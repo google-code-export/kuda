@@ -1,0 +1,114 @@
+<div id="createShapesDlg" title="Create Shape">
+    <form id="shpForm" class="withSteps" method="post" action="">
+        <fieldset id="shpSystemType">
+            <legend>
+                Select Shape Type
+            </legend>
+            <ol>
+                <li>
+                    <select id="shpTypeSelect">
+                        <option value="-1">Select Type</option>
+                        <option value="cube">Cube</option>
+                        <option value="box">Rectangle</option>
+                        <option value="sphere">Sphere</option>
+                        <option value="cone">Cone</option>
+                        <option value="cylinder">Cylinder</option>
+                        <option value="pyramid">Pyramid</option>
+                        <option value="arrow">Arrow</option>
+                        <option value="tetra">Tetrahedron</option>
+                        <option value="octa">Octahedron</option>
+                    </select>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="shpShapeParams">
+            <legend>
+                Set Shape Parameters
+            </legend>
+            <ol>
+                <li>
+                    <label for="shpPosition">
+                        Position
+                    </label>
+                    <input type="text" value="" id="shpPositionX" class="vector xNdx" /><input type="text" value="" id="shpPositionY" class="vector yNdx" /><input type="text" value="" id="shpPositionZ" class="vector zNdx" />
+                </li>
+                <li>
+                    <label>
+                        Color
+                    </label>
+                    <div id="shpColorDiv">
+                    </div>
+                </li>
+                <li>
+                    <label for="shpHeight">
+                        Height
+                    </label>
+                    <input type="text" value="" id="shpHeight" class="optional short" />
+                </li>
+                <li>
+                    <label for="shpWidth">
+                        Width
+                    </label>
+                    <input type="text" value="" id="shpWidth" class="optional short" />
+                </li>
+                <li>
+                    <label for="shpDepth">
+                        Depth
+                    </label>
+                    <input type="text" value="" id="shpDepth" class="optional short" />
+                </li>
+                <li>
+                    <label for="shpRadius">
+                        Radius
+                    </label>
+                    <input type="text" value="" id="shpRadius" class="optional short" />
+                </li>
+                <li>
+                    <label for="shpSize">
+                        Size
+                    </label>
+                    <input type="text" value="" id="shpSize" class="optional short" />
+                </li>
+                <li>
+                    <label for="shpTail">
+                        Tail
+                    </label>
+                    <input type="text" value="" id="shpTail" class="optional short" />
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="shpPreview">
+            <legend>
+                Preview Your Changes
+            </legend>
+            <ol>
+                <li>
+                    <button id="shpPreviewBtn">
+                        Show
+                    </button>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="shpSave">
+            <legend>
+                Save Your Shape
+            </legend>
+            <ol>
+                <li>
+                    <label for="shpName">
+                        Name:
+                    </label>
+                    <input type="text" id="shpName" class="name" autocomplete="off" />
+                    <div class="buttons">
+                        <button id="shpSaveBtn" disabled="disabled">
+                            Save
+                        </button>
+                        <button id="shpCancelBtn">
+                            Cancel
+                        </button>
+                    </div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
+</div>

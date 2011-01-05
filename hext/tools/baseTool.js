@@ -1,0 +1,95 @@
+o3djs.require('hemi.msg');
+o3djs.require('hemi.world');
+
+var hext = (function(hext) {
+	/**
+	 * @namespace A module for tools that allow the user to interact with the
+	 * World in a controlled way. Note that most of the tools module follows the
+	 * MVC design pattern.
+	 */
+	hext.tools = hext.tools || {};
+	
+	/**
+	 * @class A BaseTool represents the functionality common to data models for
+	 * all tools. It can be visible or not and enabled or not.
+	 * @extends hemi.world.Citizen
+	 */
+	hext.tools.BaseTool = function() {
+		hemi.world.Citizen.call(this);
+		
+		/**
+		 * Flag indicating if the BaseTool is enabled.
+		 * @type boolean
+		 * @default false
+		 */
+		this.enabled = false;
+		
+		/**
+		 * Flag indicating if the BaseTool is visible.
+		 * @type boolean
+		 * @default false
+		 */
+		this.visible = false;
+	};
+	
+	hext.tools.BaseTool.prototype = {
+        /**
+         * Overwrites hemi.world.Citizen.citizenType
+         */
+		citizenType: 'hext.tools.BaseTool',
+		
+		/*
+		 * Not currently supported.
+		 */
+		toOctane: function() {
+			var octane = {
+				wi: this.getId(),
+				tt: this.type
+			};
+			
+			return octane;
+		},
+		
+		/**
+		 * Set the enabled flag for the BaseTool and send a notification
+		 * Message.
+		 * 
+		 * @param {boolean} enabled flag to indicate if the BaseTool is enabled
+		 */
+		setEnabled: function(enabled) {
+			if (this.enabled != enabled) {
+				this.enabled = enabled;
+				
+				this.send(hemi.msg.enable,
+				{
+					enabled: this.enabled
+				});
+			}
+		},
+		
+		/**
+		 * Set the visible flag for the BaseTool and send a notification
+		 * Message.
+		 * 
+		 * @param {boolean} visible flag to indicate if the BaseTool is visible
+		 */
+		setVisible: function(visible) {
+			if (this.visible != visible) {
+				this.visible = visible;
+				
+				this.send(hemi.msg.visible,
+					{
+						visible: this.visible
+					});
+			}
+		}
+	};
+	
+	hext.tools.BaseTool.inheritsFrom(hemi.world.Citizen);
+	hext.tools.BaseTool.prototype.msgSent =
+		hext.tools.BaseTool.prototype.msgSent.concat([
+			hemi.msg.enable,
+			hemi.msg.visible]);
+	
+	return hext;
+})(hext || {});

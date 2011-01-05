@@ -1,0 +1,47 @@
+<div id="fogFormDialog">
+	<form id="fogForm" method="post">
+		<fieldset>
+			<legend>
+				Edit Fog Parameters
+			</legend>
+			<ol>
+				<li>
+					<div class="onOff">
+						<input type="checkbox" id="fogFormOnOff" value="1" />
+						<label class="check" for="fogFormOnOff"></label>
+						<label class="info" for="fogFormOnOff">Show Fog</label>
+					</div>	
+				</li>
+				<li>
+					<label for="fogFormColorR">Color</label>
+					<div id="fogFormColorDiv"></div>
+				</li>
+				<li>
+					<label for="fogFormStart" class="long">Start distance</label>
+					<input type="text" id="fogFormStart" class="short" />
+				</li>
+				<li>
+					<label for="fogFormEnd" class="long">Visibility distance</label>
+					<input type="text" id="fogFormEnd" class="short" />
+				</li>
+			</ol>
+		</fieldset>
+        <fieldset id="fogFormSave">
+            <legend>
+                Save Fog
+            </legend>
+            <ol>
+                <li>
+                    <div class="buttons">
+                        <button id="fogFormSaveBtn" disabled="disabled">
+                            Save
+                        </button>
+                        <button id="fogFormCancelBtn" disabled="disabled">
+                            Cancel
+                        </button>
+                    </div>
+                </li>
+            </ol>
+        </fieldset>
+	</form>
+</div>

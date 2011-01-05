@@ -1,0 +1,80 @@
+<div id="createAnimationsDlg" title="Create Animation">
+    <form id="anmForm" class="withSteps" method="post" action="">
+        <fieldset>
+            <legend>
+                Select a Model
+            </legend>
+            <ol>
+                <li>
+                    <span id="anmModelVal" class="selValue"></span>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="anmKeyframes">
+            <legend>
+                Select Keyframes
+            </legend>
+            <ol>
+                <li>
+                	<div id="anmSlider"></div>
+                    <label for="anmBeginFrame">
+                        From
+                    </label>
+                    <input type="text" id="anmBeginFrame" class="blend" />
+                    <label for="anmEndFrame">
+                        To
+                    </label>
+                    <input type="text" id="anmEndFrame" class="blend" />
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="anmLoops">
+            <legend>
+                Looping
+            </legend>
+            <ol id="anmLoopList">
+                <li>
+                    <button id="anmLoopAdd">
+                        Add a Loop
+                    </button>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="anmPreview">
+            <legend>
+                Preview Your Animation
+            </legend>
+            <ol>
+                <li>
+                    <button id="anmStartBtn" disabled="disabled">
+                        Start
+                    </button>
+                    <button id="anmStopBtn" disabled="disabled">
+                        Stop
+                    </button>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="anmSave">
+            <legend>
+                Save Your Animation
+            </legend>
+            <ol>
+                <li>
+                    <label for="anmName">
+                        Name:
+                    </label>
+                    <input type="text" id="anmName" class="name" autocomplete="off" />
+					<div class="buttons">
+	                    <button id="anmSaveBtn" disabled="disabled">
+	                        Save
+	                    </button>
+	                    <button id="anmCancelBtn">
+	                        Cancel
+	                    </button>
+					</div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
+</div>

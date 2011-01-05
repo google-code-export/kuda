@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Kuda Reset Button Demo</title>
+		<script type="text/javascript" src="lib/jquery.js">
+		</script>
+		<script type="text/javascript" src="lib/jshashtable.js">
+		</script>
+		<script type="text/javascript" src="lib/utils.js">
+		</script>
+		<script type="text/javascript" src="o3djs/base.js">
+		</script>
+		<script type="text/javascript" src="hemi/core.js">
+		</script>
+		<script type="text/javascript" src="ResetButton.js">
+		</script>
+		<!-- Here we include the built-in reset styling -->
+        <link rel="stylesheet" href="hext/html/assets/reset.css" type="text/css" />
+	</head>
+	<body>
+		<!-- The Reset extension will look for a DIV with this specific id to
+		     insert the Reset button into. -->
+		<div id="hext-reset"></div>
+		<div id="o3d" style="width: 800px; height: 600px;"></div>
+		<br>
+		<form id="enterForm" action="" method="POST">
+			<button id="enter">Enter</button>
+		</form>
+	</body>
+</html>

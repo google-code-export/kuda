@@ -1,0 +1,257 @@
+var hext = (function(hext) {
+	/**
+	 * @namespace A module for additional HUD features.
+	 */
+	hext.hud = hext.hud || {};
+	
+	/**
+	 * The PagingInfo navigation control for multi-page HudDisplays.
+	 * @type hext.hud.PagingInfo
+	 */
+	hext.hud.pagingInfo = null;
+	/**
+	 * Flag indicating if the PagingInfo should be attached to HudDisplays.
+	 * @type boolean
+	 * @default false
+	 */
+	hext.hud.showInfo = false;
+	/*
+	 * The MessageTarget created when the PagingInfo registers to receive HUD
+	 * messages. We need to store it so we can remove it later.
+	 */
+	hext.hud.msgTarget = null;
+	
+	/**
+	 * @class A PagingInfo contains text and images for displaying information
+	 * about a multi-page HudDisplay.
+	 * @extends hemi.hud.HudPage
+	 */
+	hext.hud.PagingInfo = function() {
+		hemi.hud.HudPage.call(this);
+		
+		/**
+		 * The HudDisplay currently using the PagingInfo.
+		 * @type hemi.hud.HudDisplay
+		 */
+		this.display = null;
+		
+		/**
+		 * The URL of the image file containing navigation icons.
+		 * @type string
+		 * @default 'hext/hud/assets/hudPaging.png'
+		 */
+		this.imageFile = 'hext/hud/assets/hudPaging.png';
+		
+		/**
+		 * The width of each navigation icon.
+		 * @type number
+		 * @default 17
+		 */
+		this.imageWidth = 17;
+		
+		/**
+		 * The height of each navigation icon.
+		 * @type number
+		 * @default 16
+		 */
+		this.imageHeight = 16;
+		
+		this.pageInfo = new hemi.hud.HudText();
+		this.leftNav = new hemi.hud.HudButton();
+		this.rightNav = new hemi.hud.HudButton();
+		
+		// Remove from the World's Citizens
+		hemi.world.removeCitizen(this.pageInfo);
+		hemi.world.removeCitizen(this.leftNav);
+		hemi.world.removeCitizen(this.rightNav);
+		
+		this.leftNav.width = this.rightNav.width = this.imageWidth;
+		this.leftNav.height = this.rightNav.height = this.imageHeight;
+		
+		var that = this;
+		this.leftNav.mouseDown = function(mouseEvent) {
+			that.display.previousPage();
+		};
+		this.rightNav.mouseDown = function(mouseEvent) {
+			that.display.nextPage();
+		};
+		
+		this.addElement(this.leftNav);
+		this.addElement(this.rightNav);
+		this.addElement(this.pageInfo);
+	};
+	
+	hext.hud.PagingInfo.prototype = {
+		/**
+		 * Overwrites hemi.world.Citizen.citizenType
+		 */
+        citizenType: 'hext.hud.PagingInfo',
+		
+		/**
+		 * Send a cleanup Message and remove all references in the
+		 * PagingInfo.
+		 */
+		cleanup: function() {
+			hemi.hud.HudPage.prototype.cleanup.call(this);
+			this.display = null;
+			this.pageInfo.cleanup();
+			this.leftNav.cleanup();
+			this.rightNav.cleanup();
+			this.pageInfo = null;
+			this.leftNav = null;
+			this.rightNav = null;
+		},
+		
+		/**
+		 * Position the elements of the PagingInfo so it is drawn at the bottom
+		 * of the given HudPage.
+		 * 
+		 * @param {hemi.hud.HudPage} page page to append the PagingInfo to
+		 */
+		appendToPage: function(page) {
+			this.margin = page.margin;
+			this.drawBackground = page.drawBackground;
+			
+			var pageNdx = this.display.currentPage + 1;
+			var numPages = this.display.pages.length;
+			
+			this.pageInfo.wrappedText = [pageNdx + ' / ' + numPages];
+			this.pageInfo.x = (page.right + page.left) / 2;
+			this.pageInfo.y = page.bottom;
+			
+			this.leftNav.enabled = pageNdx > 1;
+			this.leftNav.x = page.left + page.margin;
+			this.leftNav.y = page.bottom;
+			
+			this.rightNav.enabled = pageNdx < numPages;
+			this.rightNav.x = page.right - (this.imageWidth + page.margin);
+			this.rightNav.y = page.bottom;
+		},
+		
+		/**
+		 * Calculate the bounds (without the top margin).
+		 * @see hemi.hud.HudPage#calculateBounds
+		 */
+		calculateBounds: function() {
+			hemi.hud.HudPage.prototype.calculateBounds.call(this);
+			
+			this.top += this.margin;
+		},
+		
+		/**
+		 * Load up the images and create textures for paging navigation icons.
+		 */
+		loadPagingImages: function() {
+			var that = this;
+			
+			hemi.loader.loadImage(
+				this.imageFile,
+				hemi.hud.pack,
+				function(bitmaps) {
+					var bitmap = bitmaps[0];
+					var width = that.imageWidth;
+					var height = that.imageHeight;
+					
+					// Create the left arrow
+					var texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
+					
+					var x = 0;
+					var y = 0;
+					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
+					that.leftNav.enabledTexture = texture;
+					
+					// Create the right arrow
+					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
+					
+					x = width;
+					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
+					that.rightNav.enabledTexture = texture;
+					
+					// Create the left disabled arrow
+					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
+					
+					x = 0;
+					y = height;
+					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
+					that.leftNav.disabledTexture = texture;
+					
+					// Create the right disabled arrow
+					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
+					
+					x = width;
+					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
+					that.rightNav.disabledTexture = texture;
+					
+					// Create the left hover arrow
+					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
+					
+					x = 0;
+					y = 2 * height;
+					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
+					that.leftNav.hoverTexture = texture;
+					
+					// Create the right hover arrow
+					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
+					
+					x = width;
+					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
+					that.rightNav.hoverTexture = texture;
+				});
+		}
+	};
+	
+	hext.hud.PagingInfo.inheritsFrom(hemi.hud.HudPage);
+	
+	/**
+	 * Show the PagingInfo control on the bottom of any currently visible
+	 * HudDisplay. This will allow the user to navigate the HudDisplay pages
+	 * using clickable buttons.
+	 */
+	hext.hud.showPagingInfo = function() {
+		if (hext.hud.pagingInfo === null) {
+			hext.hud.pagingInfo = new hext.hud.PagingInfo();
+			hext.hud.pagingInfo.loadPagingImages();
+			// Remove from the World's Citizens
+			hemi.world.removeCitizen(hext.hud.pagingInfo);
+		}
+		
+		if (!hext.hud.showInfo) {
+			hext.hud.showInfo = true;
+			
+			hext.hud.msgTarget = hemi.msg.subscribe(hemi.msg.visible,
+				function(msg) {
+					if (msg.src.getCitizenType() === 'hemi.hud.HudDisplay') {
+						if (msg.data.page === 0) {
+							hext.hud.pagingInfo.display = null;
+						} else {
+							var page = msg.src.getCurrentPage();
+							hext.hud.pagingInfo.display = msg.src;
+							hext.hud.pagingInfo.appendToPage(page);
+							hext.hud.pagingInfo.draw();
+						}
+					}
+				});
+			
+			hemi.input.addMouseDownListener(hext.hud.pagingInfo);
+			hemi.input.addMouseUpListener(hext.hud.pagingInfo);
+			hemi.input.addMouseMoveListener(hext.hud.pagingInfo);
+		}
+	};
+	
+	/**
+	 * Remove the PagingInfo control and do not attach it to any visible
+	 * HudDisplays.
+	 */
+	hext.hud.hidePagingInfo = function() {
+		if (hext.hud.showInfo) {
+			hext.hud.showInfo = false;
+			hemi.msg.unsubscribe(hext.hud.msgTarget);
+			hext.hud.msgTarget = null;
+			hemi.input.removeMouseMoveListener(hext.hud.pagingInfo);
+			hemi.input.removeMouseUpListener(hext.hud.pagingInfo);
+			hemi.input.removeMouseDownListener(hext.hud.pagingInfo);
+		}
+	};
+
+	return hext;
+})(hext || {});

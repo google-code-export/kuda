@@ -1,0 +1,74 @@
+<div>
+	<div id="msgCauses" class="msgColumn">
+		<h1 class="msgColTitle">Causes</h1>
+		<div id="causeTreeWrapper" class="msgColWrapper">
+		</div>
+	</div>
+	<div id="msgEffects" class="msgColumn">
+		<h1 class="msgColTitle">Effects</h1>
+		<div id="effectTreeWrapper" class="msgColWrapper">
+		</div>		
+	</div>
+	<div id="msgEvents" class="msgColumn">
+		<h1 class="msgColTitle">Events</h1>
+		<div class="msgColWrapper">
+			<button id="msgAddEventBtn" class="dialogBtn">Register Event</button>
+		</div>
+		<div id="msgEditor">
+			<form class="noSteps" action="" method="post">
+		        <fieldset id="msgEdtCause">
+		            <legend>
+		                Cause
+		            </legend>
+					<ol>
+						<li>
+							<span id="msgEdtCauseTxt"></span>
+						</li>
+					</ol>
+		        </fieldset>
+		        <fieldset id="msgEdtEffect">
+		            <legend>
+		                Effect
+		            </legend>
+					<ol>
+						<li>
+							<span id="msgEdtEffectTxt"></span>
+						</li>
+					</ol>
+				</fieldset>
+				<fieldset id="msgEdtParams">
+					<legend>
+						Effect Method Parameters
+					</legend>
+		            <ol>
+		                <li>
+		                    <ul id="msgEdtTargetParams">
+		                    </ul>
+		                </li>
+		            </ol>
+		        </fieldset>
+		        <fieldset id="msgEdtButtons">
+		            <legend>
+		                Save Event
+		            </legend>
+		            <ol>
+		                <li>
+		                    <label for="msgEdtName">
+		                        Name:
+		                    </label>
+		                    <input type="text" id="msgEdtName" autocomplete="off" />
+		                    <button id="msgEdtSaveBtn" disabled="disabled">
+		                        Save
+		                    </button>
+		                    <button id="msgEdtCancelBtn">
+		                        Cancel
+		                    </button>
+		                </li>
+		            </ol>
+		        </fieldset>
+			</form>
+		</div>
+		<div id="msgEdtCitizensPnl">
+		</div>
+	</div>
+</div>
