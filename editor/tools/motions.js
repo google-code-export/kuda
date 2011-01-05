@@ -80,6 +80,7 @@
 				event = module.EventTypes.MotionCreated;
 			} else {
 				motion.clear();
+				motion.clearTransforms();
 				event = module.EventTypes.MotionUpdated;
 			}
 			
@@ -99,7 +100,10 @@
 				motion.setVel(props.vel);
 			}
 			
-			motion.setTransform(props.transform);
+			for (var i = 0, il = props.transforms.length; i < il; i++) {
+				motion.addTransform(props.transforms[i]);
+			}
+			
 			motion.name = props.name;
 			this.notifyListeners(event, motion);
 			this.setMotion(null);
@@ -138,7 +142,10 @@
 				this.previewMotion.setVel(props.vel);
 			}
 			
-			this.previewMotion.setTransform(props.transform);
+			for (var i = 0, il = props.transforms.length; i < il; i++) {
+				this.previewMotion.addTransform(props.transforms[i]);
+			}
+			
 			this.previewMotion.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewMotion';
 			this.previewMotion.enable();
 		},
@@ -195,7 +202,16 @@
 		    this._super(newOpts);
 			
 			this.previewing = false;
-			this.transform = null;
+			this.transforms = [];
+		},
+		
+		addTransform: function(transform) {
+			var ndx = this.transforms.indexOf(transform);
+			
+			if (ndx === -1) {
+				this.transforms.push(transform);
+				this.checkStatus();
+			}
 		},
 		
 		checkStatus: function() {
@@ -205,7 +221,7 @@
 				prevStartBtn = this.find('#mtnPrevStartBtn'),
 				prevStopBtn = this.find('#mtnPrevStopBtn'),
 				saveBtn = this.find('#mtnSaveBtn'),
-				isSafe = this.transform !== null && typeSelect.val() !== '-1';
+				isSafe = this.transforms.length > 0 && typeSelect.val() !== '-1';
 			
 			if (this.previewing) {
 				prevStopBtn.removeAttr('disabled');
@@ -345,7 +361,7 @@
 				nameInput = this.find('#mtnName'),
 				props = {
 					name: nameInput.val(),
-					transform: this.transform,
+					transforms: this.transforms,
 					type: typeSel.val()
 				},
 				vel = [],
@@ -404,6 +420,15 @@
 			}
 			
 			return props;
+		},
+		
+		removeTransform: function(transform) {
+			var ndx = this.transforms.indexOf(transform);
+			
+			if (ndx !== -1) {
+				this.transforms.splice(ndx, 1);
+				this.checkStatus();
+			}
 		},
 		
 		reset: function() {
@@ -498,11 +523,6 @@
 				accelZ.val(motion.accel[2]).keydown();
 			}
 			nameInput.val(motion.name).keyup();
-		},
-		
-		setTransform: function(transform) {
-			this.transform = transform;
-			this.checkStatus();
 		},
 	
 		setupAutoFills: function() {
@@ -710,9 +730,12 @@
 					crtWgt.setMotion(motion);
 					crtWgt.setVisible(true);
 					mtnWgt.setVisible(false);
-					var tran = motion.getTransform();
-					tran = hemi.core.getTransformParent(tran);
-					selModel.selectTransform(tran);
+					var trans = motion.getTransforms();
+					
+					for (var i = 0, il = trans.length; i < il; i++) {
+						var tran = hemi.core.getTransformParent(trans[i]);
+						selModel.selectTransform(tran);
+					}
 				}
 			});
 			
@@ -721,14 +744,15 @@
 			});
 			
 			selModel.addListener(module.EventTypes.TransformDeselected, function(transform) {
-				if (crtWgt.transform === transform) {
-					crtWgt.setTransform(null);
+				crtWgt.removeTransform(transform);
+				
+				if (crtWgt.transforms.length === 0) {
 					mtnWgt.createBtn.attr('disabled', 'disabled');
 				}
 			});
 			
 			selModel.addListener(module.EventTypes.TransformSelected, function(transform) {
-				crtWgt.setTransform(transform);
+				crtWgt.addTransform(transform);
 				mtnWgt.createBtn.removeAttr('disabled');
 			});
 		}

@@ -1195,7 +1195,7 @@
 			open: open,
 			direction: direction,
 			rotator: rotator,
-			names: [rotator.transName],
+			names: [rotator.transforms[0].name],
 			addAltName: function(name) {
 				this.names.push(name);
 			},
@@ -1233,7 +1233,7 @@
 			}
 		};
 		
-		rotator.offsetTransform.name = rotator.transName;
+		rotator.offsetTransform.name = rotator.transforms[0].name;
 		
 		hemi.world.subscribe(
 			hemi.msg.pick,
