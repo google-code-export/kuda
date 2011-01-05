@@ -1,4 +1,21 @@
-var editor = (function(module) {
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+ 
+ var editor = (function(module) {
     module.tools = module.tools || {};
     
     module.EventTypes = module.EventTypes || {};
@@ -63,6 +80,7 @@ var editor = (function(module) {
 				event = module.EventTypes.MotionCreated;
 			} else {
 				motion.clear();
+				motion.clearTransforms();
 				event = module.EventTypes.MotionUpdated;
 			}
 			
@@ -82,7 +100,10 @@ var editor = (function(module) {
 				motion.setVel(props.vel);
 			}
 			
-			motion.setTransform(props.transform);
+			for (var i = 0, il = props.transforms.length; i < il; i++) {
+				motion.addTransform(props.transforms[i]);
+			}
+			
 			motion.name = props.name;
 			this.notifyListeners(event, motion);
 			this.setMotion(null);
@@ -121,7 +142,10 @@ var editor = (function(module) {
 				this.previewMotion.setVel(props.vel);
 			}
 			
-			this.previewMotion.setTransform(props.transform);
+			for (var i = 0, il = props.transforms.length; i < il; i++) {
+				this.previewMotion.addTransform(props.transforms[i]);
+			}
+			
 			this.previewMotion.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewMotion';
 			this.previewMotion.enable();
 		},
@@ -178,7 +202,16 @@ var editor = (function(module) {
 		    this._super(newOpts);
 			
 			this.previewing = false;
-			this.transform = null;
+			this.transforms = [];
+		},
+		
+		addTransform: function(transform) {
+			var ndx = this.transforms.indexOf(transform);
+			
+			if (ndx === -1) {
+				this.transforms.push(transform);
+				this.checkStatus();
+			}
 		},
 		
 		checkStatus: function() {
@@ -188,7 +221,7 @@ var editor = (function(module) {
 				prevStartBtn = this.find('#mtnPrevStartBtn'),
 				prevStopBtn = this.find('#mtnPrevStopBtn'),
 				saveBtn = this.find('#mtnSaveBtn'),
-				isSafe = this.transform !== null && typeSelect.val() !== '-1';
+				isSafe = this.transforms.length > 0 && typeSelect.val() !== '-1';
 			
 			if (this.previewing) {
 				prevStopBtn.removeAttr('disabled');
@@ -328,7 +361,7 @@ var editor = (function(module) {
 				nameInput = this.find('#mtnName'),
 				props = {
 					name: nameInput.val(),
-					transform: this.transform,
+					transforms: this.transforms,
 					type: typeSel.val()
 				},
 				vel = [],
@@ -387,6 +420,15 @@ var editor = (function(module) {
 			}
 			
 			return props;
+		},
+		
+		removeTransform: function(transform) {
+			var ndx = this.transforms.indexOf(transform);
+			
+			if (ndx !== -1) {
+				this.transforms.splice(ndx, 1);
+				this.checkStatus();
+			}
 		},
 		
 		reset: function() {
@@ -481,11 +523,6 @@ var editor = (function(module) {
 				accelZ.val(motion.accel[2]).keydown();
 			}
 			nameInput.val(motion.name).keyup();
-		},
-		
-		setTransform: function(transform) {
-			this.transform = transform;
-			this.checkStatus();
 		},
 	
 		setupAutoFills: function() {
@@ -693,9 +730,12 @@ var editor = (function(module) {
 					crtWgt.setMotion(motion);
 					crtWgt.setVisible(true);
 					mtnWgt.setVisible(false);
-					var tran = motion.getTransform();
-					tran = hemi.core.getTransformParent(tran);
-					selModel.selectTransform(tran);
+					var trans = motion.getTransforms();
+					
+					for (var i = 0, il = trans.length; i < il; i++) {
+						var tran = hemi.core.getTransformParent(trans[i]);
+						selModel.selectTransform(tran);
+					}
 				}
 			});
 			
@@ -704,14 +744,15 @@ var editor = (function(module) {
 			});
 			
 			selModel.addListener(module.EventTypes.TransformDeselected, function(transform) {
-				if (crtWgt.transform === transform) {
-					crtWgt.setTransform(null);
+				crtWgt.removeTransform(transform);
+				
+				if (crtWgt.transforms.length === 0) {
 					mtnWgt.createBtn.attr('disabled', 'disabled');
 				}
 			});
 			
 			selModel.addListener(module.EventTypes.TransformSelected, function(transform) {
-				crtWgt.setTransform(transform);
+				crtWgt.addTransform(transform);
 				mtnWgt.createBtn.removeAttr('disabled');
 			});
 		}
