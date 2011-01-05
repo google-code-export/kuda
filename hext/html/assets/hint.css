@@ -1,0 +1,25 @@
+/**
+ * The Hint div and button
+ */
+#hext-hint {
+	float: right;
+	background: #ccc;
+	background: -moz-linear-gradient(top,  #eee,  #ededed);
+    border: 1px solid #ddd;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+}
+#hext-hint-button {
+    border: none;
+	font-family: Tahoma;
+	font-size: 18px;
+	color: #708090;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+}
+#hext-hint-button:hover {
+	background-color: #708090;
+	color: #ededed;
+}

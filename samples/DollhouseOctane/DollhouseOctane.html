@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Dollhouse From Octane</title>
+        <script type="text/javascript" src="lib/jquery.js">
+        </script>
+        <script type="text/javascript" src="lib/jshashtable.js">
+        </script>
+        <script type="text/javascript" src="lib/JSON.js">
+        </script>
+        <script type="text/javascript" src="lib/JSONError.js">
+        </script>
+        <script type="text/javascript" src="o3djs/base.js">
+        </script>
+        <script type="text/javascript" src="hemi/core.js">
+        </script>
+        <script type="text/javascript" src="DollhouseOctane.js">
+        </script>
+		<!-- Extra styling for the viewpoint controls -->
+		<style type="text/css">
+			#controller {
+				width: 200px;
+				float: left;
+				background: #c7e3ed;
+				background: -moz-linear-gradient(-45deg, #c7e3ed, #add5e4);
+				background: -webkit-gradient(linear, left top, right bottom, from(#c7e3ed), to(#add5e4));
+				padding: 10px;
+				-moz-border-radius: 6px;
+				-webkit-border-radius: 6px;
+				-border-radius: 6px;
+			}
+			
+			#controller ol {
+				margin: 0 0 0 25px;
+				padding: 0;
+			}
+			
+			#controller button {
+				width: 170px;
+				border: 1px solid #78A2AF;
+				background: #83B1BF;
+				background: -moz-linear-gradient(-90deg, #83B1BF, #6D9FAF);
+				background: -webkit-gradient(linear, center top, center bottom, from(#83B1BF), to(#6D9FAF));
+				-moz-border-radius: 8px;
+				-webkit-border-radius: 8px;
+				border-radius: 8px;
+				margin: 4px 0;
+				padding: 4px;
+				font: bold 10pt/12pt Helvetica, Verdana, Arial, sans-serif;
+				color: #fff;
+				text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.45);
+			}
+		</style>
+    </head>
+    <body>
+		<div id="o3d" style="width: 640px; height: 480px; float: left;"></div>
+		<!-- Controls to allow the user to move to viewpoints -->
+		<div id="controller">
+            <p>
+                You can zoom the camera to different viewpoints in the house.
+                Click any of the buttons to zoom to that viewpoint
+            </p>
+            <ol>
+                <li><button id="viewpoint1">Go to overall view</button></li>
+                <li><button id="viewpoint2">Go to front door</button></li>
+                <li><button id="viewpoint3">Go to basement</button></li>
+                <li><button id="viewpoint4">Go to attic door</button></li>
+                <li><button id="viewpoint5">Go to attic</button></li>
+                <li><button id="viewpoint6">Go to kitchen</button></li>
+                <li><button id="viewpoint7">Go to bathroom</button></li>
+                <li><button id="viewpoint8">Go to ceiling fan</button></li>
+                <li><button id="viewpoint9">Go to air conditioner</button></li>
+            </ol>
+        </div>
+    </body>
+</html>

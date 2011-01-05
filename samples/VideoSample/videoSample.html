@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Kuda Video Sample</title>
+		<script type="text/javascript" src="lib/jquery.js">
+		</script>
+		<script type="text/javascript" src="lib/jshashtable.js">
+		</script>
+		<script type="text/javascript" src="lib/utils.js">
+		</script>
+		<script type="text/javascript" src="o3djs/base.js">
+		</script>
+		<script type="text/javascript" src="hemi/core.js">
+		</script>
+		<script type="text/javascript" src="videoSample.js">
+		</script>		
+		<style>
+			#videoOverlay, #divOverlay {
+				display: none;
+				width: 680px;
+				height: 420px;
+				position: absolute;
+				top: 30px;
+				left: 40px;
+			}
+			
+			#o3d, #fillerDiv {
+				width: 800px;
+				height: 600px;
+			}
+			
+			#fillerDiv {
+				display: none;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="o3d">
+		</div>
+		<div id="fillerDiv">
+		</div>
+		<br>
+		<form id="enterForm" action="" method="POST">
+			<button id="enter">
+				Enter
+			</button>
+			<button id="iframeBased">
+				Toggle Video in Iframe
+			</button>
+			<button id="divBased">
+				Toggle Video in Div (hides o3d viewer)
+			</button>
+		</form>
+		<iframe id="videoOverlay" src="vid.html">
+		</iframe>
+		<div id="divOverlay">
+			<object width="640" height="385">
+				<param name="movie" value="http://www.youtube.com/v/ahViPV7RYuc?fs=1&amp;hl=en_US">
+				</param><param name="allowFullScreen" value="true">
+				</param><param name="allowscriptaccess" value="always">
+				</param>
+				<embed src="http://www.youtube.com/v/ahViPV7RYuc?fs=1&amp;hl=en_US" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="385">
+				</embed>
+			</object>
+		</div>
+	</body>
+</html>

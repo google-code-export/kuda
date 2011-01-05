@@ -1,0 +1,103 @@
+<div id="createManipsDlg" title="Create Manipulation">
+    <form id="mnpForm" class="withSteps" method="post" action="">
+        <fieldset id="mnpType">
+            <legend>
+                Select Manipulation Type
+            </legend>
+            <ol>
+                <li>
+                    <select id="mnpTypeSelect">
+                        <option value="-1">Select Type</option>
+                        <option value="drag">Draggable</option>
+                        <option value="turn">Turnable</option>
+                    </select>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mnpParams">
+            <legend>
+                Set Manipulation Parameters
+            </legend>
+            <ol>
+            	<li>
+                    <select id="mnpPlaneSelect" class="optional">
+                        <option value="-1">Select Plane</option>
+                        <option value="xy">XY</option>
+                        <option value="xz">XZ</option>
+                        <option value="yz">YZ</option>
+                    </select>
+                </li>
+                <li>
+                	<span class="optional">
+                		Optional Limits:
+                	</span>
+					<label for="mnpPlaneMin">
+                        Minimum
+                    </label>
+                    <input type="text" value="" id="mnpPlaneMinU" class="vector" /><input type="text" value="" id="mnpPlaneMinV" class="vector" />
+                    <label for="mnpPlaneMax">
+                        Maximum
+                    </label>
+                    <input type="text" value="" id="mnpPlaneMaxU" class="vector" /><input type="text" value="" id="mnpPlaneMaxV" class="vector" />
+                </li>
+				<li>
+                    <select id="mnpAxisSelect" class="optional">
+                        <option value="-1">Select Axis</option>
+                        <option value="x">X</option>
+                        <option value="y">Y</option>
+                        <option value="z">Z</option>
+                    </select>
+                </li>
+				<li>
+                	<span class="optional">
+                		Optional Limits:
+                	</span>
+					<label for="mnpAxisMin">
+                        Minimum
+                    </label>
+                    <input type="text" value="" id="mnpAxisMin" />
+                    <label for="mnpAxisMax">
+                        Maximum
+                    </label>
+                    <input type="text" value="" id="mnpAxisMax" />
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mnpPreview">
+            <legend>
+                Preview Your Changes
+            </legend>
+            <ol>
+                <li>
+                    <button id="mnpPrevStartBtn">
+                        Start
+                    </button>
+                    <button id="mnpPrevStopBtn">
+                        Stop
+                    </button>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mnpSave">
+            <legend>
+                Save Your Manipulation
+            </legend>
+            <ol>
+                <li>
+                    <label for="mnpName">
+                        Name:
+                    </label>
+                    <input type="text" id="mnpName" class="name" autocomplete="off" />
+                    <div class="buttons">
+                        <button id="mnpSaveBtn" disabled="disabled">
+                            Save
+                        </button>
+                        <button id="mnpCancelBtn">
+                            Cancel
+                        </button>
+                    </div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
+</div>

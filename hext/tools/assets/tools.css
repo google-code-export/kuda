@@ -1,0 +1,254 @@
+/**
+ * Hext ToolViews styling
+ */
+#hext-toolviews {
+    margin: 20px;
+    counter-reset: fieldsets;
+    float: right;
+}
+/**
+ * Hext Toolbar styling
+ */
+#hext-toolbar {
+	position: absolute;
+	left: 0;
+	top: 0;
+    background: #ccc;
+	background: -moz-linear-gradient(top,  #eee,  #ededed);
+    border: 1px solid #ddd;
+    line-height: 30px;
+    list-style: none;
+    margin: 20px;
+    padding: 4px;
+    overflow: hidden;
+    width: 40px;
+    height: 392px;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+}
+#hext-toolbar > div {
+    float: left;
+}
+#hext-toolbar button {	
+    background: url(../../html/assets/tools.png) no-repeat center center;
+    border: none;
+    text-indent: -5000px;
+    outline: none;
+    height: 38px;
+    width: 38px;
+    border-radius: 3px;
+    -moz-border-radius: 3px;
+    -webkit-border-radius: 3px;
+	margin: 2px 0;
+}
+#hext-toolbar #manometerButtonId {
+	background-position: 0 0;
+}
+#hext-toolbar #zoomInButtonId {
+    background-position: -38px 0;
+}
+#hext-toolbar #zoomOutButtonId {
+    background-position: -76px 0;
+}
+#hext-toolbar #blowerDoorButtonId {
+    background-position: -114px 0;
+}
+#hext-toolbar #smokePufferButtonId {
+    background-position: -152px 0;
+}
+#hext-toolbar .clicked button {
+	border: 1px solid #ccc;
+	background-color: #dcdcdc;
+}
+#hext-toolbar .clicked #manometerButtonId {
+    background-position: -1px -39px;
+}
+#hext-toolbar #zoomInButtonId.clicked {
+    border: 1px solid #ccc;
+    background-color: #dcdcdc;
+    background-position: -39px -39px;
+}
+#hext-toolbar #zoomOutButtonId.clicked {
+    border: 1px solid #ccc;
+    background-color: #dcdcdc;
+    background-position: -77px -39px;
+}
+#hext-toolbar .clicked #blowerDoorButtonId {
+    background-position: -115px -39px;
+}
+#hext-toolbar .clicked #smokePufferButtonId {
+    background-position: -153px -39px;
+}
+#hext-toolbar button[disabled] {   
+}
+#hext-toolbar #manometerButtonId[disabled] {
+    background-position: -1px -77px;
+}
+#hext-toolbar #zoomInButtonId[disabled] {
+    background-position: -38px -77px;
+}
+#hext-toolbar #zoomOutButtonId[disabled] {
+    background-position: -76px -77px;
+}
+#hext-toolbar #blowerDoorButtonId[disabled] {
+    background-position: -115px -77px;
+}
+#hext-toolbar #smokePufferButtonId[disabled] {
+    background-position: -153px -77px;
+}
+#hext-toolbar button:hover {
+	background-color: #ddd;
+}
+#hext-toolbar button[disabled]:hover {
+    background-color: transparent;
+}
+/**
+ * Manometer tool readout display
+ */
+#manometer {
+	position: relative;
+	background-image: url(manometerFace.jpg);
+	background-repeat: no-repeat;
+	height: 267px;
+	width: 159px;
+}
+#manometer div.display {
+	font-weight: bold;
+	font-family: Consolas, Courier, "Courier New", monospace;
+}
+#manometer div.display div.toprow {
+	font-size: 7pt;
+	position: absolute;
+	text-align: left;
+	top: 26px;
+}
+#manometer #device {
+	left: 12px;
+}
+#manometer #config {
+	left: 82px;
+}
+#manometer div.display div.readout {
+	font-size: 16pt;
+	line-height: 20px;
+	position: absolute;
+	text-align: right;
+	width: 70px;
+	top: 40px;
+}
+#manometer #left-text {
+	left: 6px;
+}
+#manometer #right-text {
+	left: 75px;
+}
+#manometer div.display div.units {
+	font-size: 7pt;
+	position: absolute;
+	text-align: left;
+	top: 65px;
+}
+#manometer #left-pa {
+	left: 68px;
+}
+#manometer #right-pa {
+	left: 136px;
+}
+#manometer #right-cfm {
+	left: 105px;
+}
+#manometer div.mode {
+	font-size: 7pt;
+	font-weight: bold;
+	font-family: Consolas, Courier, "Courier New", monospace;
+	position: absolute;
+	text-align: left;
+	left: 12px;
+	top: 75px;
+}
+#manometer #left-pr {
+	left: 12px;
+}
+#manometer #right-pr {
+	left: 27px;
+}
+#manometer #right-fl {
+	left: 38px;
+}
+#manometer div.tube {
+	position: absolute;
+	height: 30px;
+	width: 30px;
+	cursor: pointer;
+	background: url(tubeSprite.png) no-repeat 0 0;
+}
+#manometer div.tube.selected {
+    background: url(tubeSprite.png) no-repeat -30px 0;
+}
+#manometer div.tube.toBlower {
+    background: url(tubeSprite.png) no-repeat -90px 0;
+}
+#manometer div.tube.toDoor {
+    background: url(tubeSprite.png) no-repeat -60px 0;
+}
+#manometer div.tube.toRoom {
+    background: url(tubeSprite.png) no-repeat -120px 0;
+}
+#manometer div.tube img {
+	border: 0;
+}
+#manometer #ul {
+	left: 3px;
+	top: 120px;
+}
+#manometer #ur {
+	right: 3px;
+	top: 120px;
+}
+#manometer #ll {
+	left: 3px;
+	bottom: 0px;
+}
+#manometer #lr {
+	bottom: 0px;
+	right: 3px;
+}
+#manometer div.manometerMenu {
+	position: absolute;
+	display: none;
+	font-size: 10pt;
+	background-color: #D0D0D0;
+	z-index: 1;
+}
+#manometer div.manometerMenu ul {
+	margin: 0px;
+	padding: 0px;
+}
+#manometer div.manometerMenu ul li {
+	padding: 2px;
+	list-style-type: none;
+}
+#manometer div.manometerMenu ul li a {
+	text-decoration: none;
+	color: Black;
+}
+/**
+ * Blower door readout display
+ */
+#blowerDoor {
+    position: relative;
+    background: url(blowerDoorBack.png) 0 0 no-repeat;
+    height: 86px;
+    width: 161px;
+}
+img#blowerDoorKnob {
+    position: relative;
+	top: 24px;
+	left: 91px;
+}
+span#blowerDoorKnob {
+	position: relative;
+	top: 14px;
+	left: 80px;
+}

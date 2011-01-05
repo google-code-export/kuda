@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Kuda Camera Movement Demo</title>
+        <script type="text/javascript" src="lib/jquery.js">
+        </script>
+        <script type="text/javascript" src="lib/jshashtable.js">
+        </script>
+        <script type="text/javascript" src="lib/utils.js">
+        </script>
+        <script type="text/javascript" src="o3djs/base.js">
+        </script>
+        <script type="text/javascript" src="hemi/core.js">
+        </script>
+        <script type="text/javascript" src="CameraMoves.js">
+        </script>
+    </head>
+    <body>
+		<div id="o3d" style="width: 800px; height: 600px;"></div>
+		<p><b>Instructions</b><br/>
+		Press 1-5 to move to each of 5 viewpoints. Current: <span id="currentVP" style="color:red;font-weight:bold">1</span><br/>
+		Click and drag with the mouse to look around. Press 't' to take the tour.<br/>
+		Hold shift and press 1-5 or 't' to preview the camera path. Press 'o' for an overall viewpoint.<br/>
+		Camera easing:  <select id="Easing">
+			<option value="0">Linear</option>
+			<option value="1">Quadratic</option>
+			<option value="2">Cubic</option>
+			<option value="3">Quartic</option>
+			<option value="4">Quintic</option>
+			<option value="5">Exponential</option>
+			<option value="6">Sine</option>
+			<option value="7">Circular</option>
+			</select></p>
+    </body>
+</html>

@@ -1,0 +1,28 @@
+<div id="modelLoaderDlg" class="toolDialogBox" title="Model Loader">
+    <div id="mlForm">
+        <p>
+            Select a model and load it.
+        </p>
+        <form id="modelLoader" class="dialogForm" action="" method="post">
+            <label for="mlModelUrl">
+                Model:
+            </label>
+            <div class="inputWrapper">
+                <input type="text" id="mlModelUrl" name="mlModelUrl" class="model" />
+                <button class="loader" id="mlLoadBtn">
+                    Load
+                </button>
+            </div>
+        </form>
+    </div>
+    <div id="mlProcessing">
+        <p>
+            Loading model...
+        </p>
+    </div>
+    <div id="mlFinished">
+        <p>
+            Done loading model
+        </p>
+    </div>
+</div>
