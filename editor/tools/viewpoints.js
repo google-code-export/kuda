@@ -31,10 +31,10 @@ var editor = (function(module) {
 	module.EventTypes.PreviewViewpoint = "viewpoints.PreviewViewpoint";
 	
 	// Viewpoint List Sidebar Widget events
-	module.EventTypes.AddViewpoint = "viewpoints.AddViewpoint";
+    module.EventTypes.AddViewpoint = "viewpoints.AddViewpoint";
     module.EventTypes.EditViewpoint = "viewpoints.EditViewpoint";
     module.EventTypes.RemoveViewpoint = "viewpoints.RemoveViewpoint";
-    module.EventTypes.MoveToViewpoint = "viewpoints.v";
+    module.EventTypes.MoveToViewpoint = "viewpoints.MoveToViewpoint";
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
