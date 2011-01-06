@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- o3djs.require('o3djs.debug');
+
+o3djs.require('o3djs.debug');
 o3djs.require('o3djs.element');
 o3djs.require('o3djs.event');
 o3djs.require('o3djs.loader');

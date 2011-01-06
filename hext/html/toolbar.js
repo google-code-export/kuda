@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- o3djs.require('hext.tools.toolbarView');
+
+o3djs.require('hext.tools.toolbarView');
 
 var hext = (function(hext) {
 	hext.html = hext.html || {};

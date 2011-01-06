@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /**
+
+/**
  * This demo shows us how to set up some basic HUD pages and display them on
  * the screen. We also see how to register some mouse event handlers with the
  * HUD elements to respond to the user's actions.

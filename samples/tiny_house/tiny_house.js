@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /**
+
+/**
  * This demo shows us how to set up a script that shows how to set up the
  * manometer, and blower door weatherization tools. The script calls for a simple
  * PressureEngine with two Locations and three Portals.

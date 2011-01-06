@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /**
+
+/**
  * This sample shows how to take a World that was created using the Kuda World
  * Editor and modify it after loading it from Octane. We define two new particle
  * effects as well as binding camera movement to HTML buttons in the viewer.

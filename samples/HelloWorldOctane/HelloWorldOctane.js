@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /**
+
+/**
  * This sample is based off of the Hello World sample, except the entire World
  * was created using the Kuda World Editor and saved as a JSON file in the Kuda
  * format called "Octane". Instead of scripting, the file is loaded and the

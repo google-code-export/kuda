@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /**
+
+/**
  * @fileoverview Manips are objects that allow shapes in a 3d scene to
  *		be clicked on and dragged around. These shapes are constrained
  *		to a 2d plane, as defined by the programmer.

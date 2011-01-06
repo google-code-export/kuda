@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /**
+
+/**
  * This sample is based off of the Tutorial A sample but it shows how to
  * use the Hemi console in your viewer. Be sure to check the HTML file to see
  * important additions made there. The advantage of the Hemi console is that you
