@@ -59,7 +59,9 @@
 
 			if (this.config.uiFile && this.config.uiFile !== '') {
 				hemi.loader.loadHtml(this.config.uiFile, function(data) {
-					dlg.container = jQuery(data);
+					// clean the string of html comments
+					var cleaned = data.replace(/<!--(.|\s)*?-->/, '');
+					dlg.container = jQuery(cleaned);
 					dlg.container.dialog({
 						autoOpen : false,
 						resizable : false
