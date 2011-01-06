@@ -174,8 +174,11 @@ var editor = (function(module) {
 					&& hemi.utils.isNumeric(fp);
 					
 			if (isSafe) {
-				this.saveBtn.removeAttr('disabled');
 				this.previewBtn.removeAttr('disabled');
+				
+				if (this.name.val() !== '') {					
+					this.saveBtn.removeAttr('disabled');
+				}
 			}
 			else {
 				this.saveBtn.attr('disabled', 'disabled');
@@ -268,6 +271,10 @@ var editor = (function(module) {
 				wgt.notifyListeners(module.EventTypes.PreviewViewpoint, 
 					wgt.getParams());
 			});
+			
+			this.name.bind('keypress', function(evt) {
+				wgt.checkToggleButtons();
+			});
 		},	
 		
 		getParams: function() {
@@ -336,7 +343,7 @@ var editor = (function(module) {
 		listId: 'viewpointList',
 		prefix: 'vptLst',
 		title: 'Camera Viewpoints',
-		instructions: "Click 'Add' to add the viewpoint."
+		instructions: "Click 'Create Viewpoint' to add a viewpoint."
 	};
 	
 	module.tools.VptListSBWidget = module.ui.ListSBWidget.extend({
@@ -349,7 +356,7 @@ var editor = (function(module) {
 		
 		layoutExtra: function() {
 			this.form = jQuery('<form method="post"></form>');
-			this.addBtn = jQuery('<button id="vpAdd">Add</button>');
+			this.addBtn = jQuery('<button id="vpAdd">Create Viewpoint</button>');
 			var wgt = this;
 			
 			this.addBtn.bind('click', function(evt) {

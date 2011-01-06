@@ -27,7 +27,7 @@ html, body {
     overflow: hidden;
 }
 
-html, body, h1, form, fieldset, legend, ol, li {
+h1, form, fieldset, legend, ol, li {
     margin: 0;
     padding: 0;
 }
