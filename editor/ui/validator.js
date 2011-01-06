@@ -138,18 +138,27 @@
 	var errWgt = null;
 		
 	module.ui.Validator = module.utils.Listenable.extend({
-		init: function(elements, checkFunction) {
+		init: function(opt_elements, checkFunction) {
 			this._super();
+			this.checkFunction = checkFunction;
 			
 			if (!errWgt) {
 				errWgt = new ErrorWidget();
 			}
 			
+			if (opt_elements != null) {			
+				this.setElements(opt_elements);
+			}
+		},
+		
+		setElements: function(elements) {	
+			vld = this;
+					
 			elements.bind('blur.errEvt', function(evt) {
 				var elem = jQuery(this),
 					msg = null;
 								
-				msg = checkFunction(elem);
+				msg = vld.checkFunction(elem);
 				
 				if (msg) {
 					errWgt.showError(elem, msg);

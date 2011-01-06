@@ -64,7 +64,9 @@
 
 			if (this.config.uiFile && this.config.uiFile !== '') {
 				hemi.loader.loadHtml(this.config.uiFile, function(data) {
-					cmp.container = jQuery(data);
+					// clean the string of html comments
+					var cleaned = data.replace(/<!--(.|\s)*?-->/, '');
+					cmp.container = jQuery(cleaned);
 					cmp.finishLayout();
 				});
 			}

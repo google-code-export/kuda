@@ -1,0 +1,74 @@
+<div id="createViewpointsDlg" title="Create Viewpoint">
+    <form id="vptForm" class="withSteps" method="post" action="">
+        <fieldset id="vptParams">
+            <legend>
+                Viewpoint Parameters
+            </legend>
+            <ol>
+                <li>
+                    <label for="eyeX" class="long">
+                        Camera Position
+                    </label>
+					<div id="vptCameraDiv"></div>
+                </li>
+                <li>
+                    <label for="targetX" class="long">
+                        Camera Target
+                    </label>
+					<div id="vptTargetDiv"></div>
+                </li>
+                <li>
+                    <label for="vptFov" class="long">
+                        Field of View
+                    </label>
+					<input type="text" id="vptFov" class="short" />
+                </li>
+                <li>
+                    <label for="vptNearPlane" class="long">
+                    	Near Plane
+                    </label>
+					<input type="text" id="vptNearPlane" class="short" />
+                </li>
+                <li>
+                    <label for="vptFarPlane" class="long">
+                    	Far Plane
+                    </label>
+					<input type="text" id="vptFarPlane" class="short" />
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="vptPreview">
+            <legend>
+                Preview Your Viewpoint
+            </legend>
+            <ol>
+                <li>
+                    <button id="vptPreviewBtn" disabled="disabled">
+                        Preview
+                    </button>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="vptSave">
+            <legend>
+                Save Your Viewpoint
+            </legend>
+            <ol>
+                <li>
+                    <label for="vptName">
+                        Name:
+                    </label>
+                    <input type="text" id="vptName" class="name" autocomplete="off" />
+					<div class="buttons">
+	                    <button id="vptSaveBtn" disabled="disabled">
+	                        Save
+	                    </button>
+	                    <button id="vptCancelBtn">
+	                        Cancel
+	                    </button>
+					</div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
+</div>

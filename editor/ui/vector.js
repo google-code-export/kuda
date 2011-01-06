@@ -29,7 +29,8 @@
 		inputs: ['x', 'y', 'z'],
 		type: 'vector',
 		paramName: '',
-		onBlur: null
+		onBlur: null,
+		validator: null
 	};
 	
 	module.ui.Vector = module.ui.Component.extend({
@@ -79,17 +80,7 @@
 				input.val(input.data('ndx'));
 			}
 			
-			// add validation
-			new module.ui.Validator(vectors, function(elem) {
-				var val = elem.val(),
-					msg = null;
-					
-				if (val !== '' && !hemi.utils.isNumeric(val)) {
-					msg = 'must be a number';
-				}
-				
-				return msg;
-			});
+			wgt.config.validator.setElements(vectors);
 										
 			vectors.bind('keydown', function(evt) {
 				var elem = jQuery(this);

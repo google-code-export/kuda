@@ -201,7 +201,17 @@
 				params = this.find('#shpShapeParams'),
 				previewBtn = this.find('#shpPreviewBtn'),
 				optionalInputs = this.find('.optional'),
-				wgt = this;
+				wgt = this,
+				vecValidator = new module.ui.Validator(null, function(elem) {
+						var val = elem.val(),
+							msg = null;
+							
+						if (val !== '' && !hemi.utils.isNumeric(val)) {
+							msg = 'must be a number';
+						}
+						
+						return msg;
+					});
 			
 			this.colorPicker = new module.ui.ColorPicker({
 				inputId: 'shpColor',
@@ -236,7 +246,8 @@
 					}
 					
 					wgt.checkToggleButtons();
-				}
+				},
+				validator: vecValidator
 			});
 			
 			// add validation
