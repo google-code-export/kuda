@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /**
+
+/**
  * This demo shows us how to set up a very complex script that takes advantage
  * of Scenes to organize behavior into logical segments. It also shows how to
  * set up the manometer, blower door, and smoke puffer weatherization tools as

@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /* Simple JavaScript Inheritance
+
+/* Simple JavaScript Inheritance
  * By John Resig http://ejohn.org/
  * MIT Licensed.
  */

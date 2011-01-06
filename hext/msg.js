@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- var hext = (function(hext) {
+
+var hext = (function(hext) {
 	/**
 	 * @namespace A module to extend the Message types in Hemi to support new
 	 * features in Hext.

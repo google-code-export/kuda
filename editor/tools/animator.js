@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- o3djs.require('hemi.animation');
+
+o3djs.require('hemi.animation');
 
 var editor = (function(module) {
     module.tools = module.tools || {};

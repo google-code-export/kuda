@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /**
+
+/**
  * @fileoverview This describes the objects needed to build the hemi particle
  *		effects: Bezier curves, particles which can follow those curves, and
  *		systems to manage particles and emitters. 

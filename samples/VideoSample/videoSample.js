@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- /**
+
+/**
  * This is Tutorial A using Kuda 1.0.  It shows how to set up a simple world, 
  *		load a model, and set the camera to a viewpoint once the model
  *		has loaded.  The script called for the user interactions on the door

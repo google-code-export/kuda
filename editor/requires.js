@@ -14,8 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
- 
- var editor = (function(base, jQuery) {
+
+var editor = (function(base, jQuery) {
     o3djs.require('o3djs.util');
     o3djs.require('o3djs.math');
     o3djs.require('o3djs.quaternions');
