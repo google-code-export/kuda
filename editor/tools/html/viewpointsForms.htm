@@ -15,7 +15,30 @@
   Boston, MA 02110-1301 USA.
 -->
 
->
+<div id="createViewpointsDlg" title="Create Viewpoint">
+    <form id="vptForm" class="withSteps" method="post" action="">
+        <fieldset id="vptParams">
+            <legend>
+                Viewpoint Parameters
+            </legend>
+            <ol>
+                <li>
+                    <label for="eyeX">
+                        Camera Position
+                    </label>
+					<div id="vptCameraDiv"></div>
+                </li>
+                <li>
+                    <label for="targetX">
+                        Camera Target
+                    </label>
+					<div id="vptTargetDiv"></div>
+                </li>
+                <li>
+                    <label for="vptFov">
+                        Field of View
+                    </label>
+					<input type="text" id="vptFov" />
                 </li>
                 <li>
                     <label for="vptNearPlane" class="long">
