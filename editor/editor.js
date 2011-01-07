@@ -548,6 +548,8 @@
 				var view = views[ndx],
 					widgets = view.sidebarWidgets;				
 				
+				// disable the tool to prevent selection before it's ready
+				view.getUI().attr('disabled', 'disabled');
 				view.setSidebar(this.sidebar);
 				
 				for (var ndx2 = 0, len2 = widgets.length; ndx2 < len2; ndx2++) {
@@ -558,6 +560,11 @@
 			// show the first tool
 			this.sidebar.addListener(editor.EventTypes.SidebarFinishedLoading, function() {
 				first.setMode(editor.tools.ToolConstants.MODE_DOWN);
+				
+				// enable the tools now that all the ui is loaded
+				for (var ndx = 0, len = views.length; ndx < len; ndx++) {
+					views[ndx].getUI().removeAttr('disabled');
+				}
 			});
 		},
 		

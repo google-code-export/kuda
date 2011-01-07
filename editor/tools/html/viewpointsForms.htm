@@ -23,22 +23,22 @@
             </legend>
             <ol>
                 <li>
-                    <label for="eyeX">
+                    <label for="eyeX" class="long">
                         Camera Position
                     </label>
 					<div id="vptCameraDiv"></div>
                 </li>
                 <li>
-                    <label for="targetX">
+                    <label for="targetX" class="long">
                         Camera Target
                     </label>
 					<div id="vptTargetDiv"></div>
                 </li>
                 <li>
-                    <label for="vptFov">
+                    <label for="vptFov" class="long">
                         Field of View
                     </label>
-					<input type="text" id="vptFov" />
+					<input type="text" id="vptFov" class="short" />
                 </li>
                 <li>
                     <label for="vptNearPlane" class="long">
@@ -52,6 +52,14 @@
                     </label>
 					<input type="text" id="vptFarPlane" class="short" />
                 </li>
+				<li>
+					<label class="long">
+						Autofill Form
+					</label>
+					<button id="vptAutoFill" title="Fills with current camera position">
+						Camera Data
+					</button>
+				</li>
             </ol>
         </fieldset>
         <fieldset id="vptPreview">

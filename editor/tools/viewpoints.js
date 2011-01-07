@@ -29,6 +29,7 @@ var editor = (function(module) {
 	module.EventTypes.SaveViewpoint = "viewpoints.SaveViewpoint";
 	module.EventTypes.CancelViewpointEdit = "viewpoints.CancelViewpointEdit";
 	module.EventTypes.PreviewViewpoint = "viewpoints.PreviewViewpoint";
+	module.EventTypes.AutoFill = "viewpoints.AutoFill";
 	
 	// Viewpoint List Sidebar Widget events
     module.EventTypes.AddViewpoint = "viewpoints.AddViewpoint";
@@ -86,6 +87,10 @@ var editor = (function(module) {
 			else {
 				hemi.view.removeRenderListener(this);
 			}
+		},
+		
+		getCameraViewpoint: function(name) {
+			return hemi.view.createViewpoint(name, hemi.world.camera);
 		},
 		
 		moveToViewpoint: function(viewpoint) {
@@ -196,6 +201,7 @@ var editor = (function(module) {
 			this.saveBtn = this.find('#vptSaveBtn');
 			this.cancelBtn = this.find('#vptCancelBtn');
 			this.previewBtn = this.find('#vptPreviewBtn');
+			this.autofillBtn = this.find('#vptAutoFill');
 			this.fov = this.find('#vptFov');
 			this.nearPlane = this.find('#vptNearPlane');
 			this.farPlane = this.find('#vptFarPlane');
@@ -270,6 +276,12 @@ var editor = (function(module) {
 			this.previewBtn.bind('click', function(evt) {					
 				wgt.notifyListeners(module.EventTypes.PreviewViewpoint, 
 					wgt.getParams());
+			});
+			
+			this.autofillBtn.bind('click', function(evt) {
+				var name = wgt.name.val();
+				
+				wgt.notifyListeners(module.EventTypes.AutoFill, name);
 			});
 			
 			this.name.bind('keypress', function(evt) {
@@ -506,6 +518,14 @@ var editor = (function(module) {
 			});
 			crtVptWgt.addListener(module.EventTypes.PreviewViewpoint, function(params) {
 				model.previewViewpoint(params);
+			});
+			crtVptWgt.addListener(module.EventTypes.AutoFill, function(name) {
+				var vp = model.getCameraViewpoint(name);
+				crtVptWgt.set(vp);
+				
+				if (name != '') {
+					crtVptWgt.saveBtn.removeAttr('disabled');
+				}
 			});
 			
 			// viewpoint list widget specific

@@ -161,7 +161,7 @@ var editor = (function(module) {
 		 * 
 		 * @return {jQuery Object} the toolbar widget
 		 */
-		getToolbarDisplay: function() {
+		getUI: function() {
 			return this.toolbarWidget;
 		},
 		
@@ -219,24 +219,6 @@ var editor = (function(module) {
 		
 		getSidebar: function() {
 			return this.sidebar || null;
-		},
-		
-		notify: function(eventType, value) {
-//			if (eventType === module.EventTypes.SBWidgetVisible) {
-//				var visible = value.visible,
-//					wgt = value.widget;
-//					
-//				if (visible && jQuery.inArray(wgt, this.visibleWidgets) === -1) {
-//					this.visibleWidgets.push(wgt);
-//				}
-//				else if (!visible) {
-//			        var ndx = this.visibleWidgets.indexOf(widget);
-//			        
-//			        if (ndx != -1) {
-//			            var spliced = this.visibleWidgets.splice(ndx, 1);
-//			        }
-//				}
-//			}
 		}
 	});
     
