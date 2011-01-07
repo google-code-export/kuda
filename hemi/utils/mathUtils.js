@@ -333,5 +333,21 @@ var hemi = (function(hemi) {
 		transform.localMatrix = newMatrix;
 	};
 	
+	/**
+	 * Calculate the screen coordinates from a 3d position in the world.
+	 * @param {float[3]} p XYZ point to calculate from
+	 * @return {float[2]} XY screen position of point, null if offscreen?
+	 */
+	hemi.utils.worldToScreen = function(p0) {
+		var VM = hemi.view.viewInfo.drawContext.view;
+		var PM = hemi.view.viewInfo.drawContext.projection;
+		var p = hemi.core.math.matrix4.transformPoint(
+				PM,
+				hemi.core.math.matrix4.transformPoint(VM,p0));
+		var x = (p[0]+1.0)*0.5*hemi.view.clientSize.width;
+		var y = (-p[1]+1.0)*0.5*hemi.view.clientSize.height;
+		return [Math.round(x),Math.round(y)];
+	};
+	
 	return hemi;
 })(hemi || {});
