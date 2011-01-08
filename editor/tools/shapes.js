@@ -215,9 +215,10 @@ var editor = (function(module) {
 			
 			this.colorPicker = new module.ui.ColorPicker({
 				inputId: 'shpColor',
-				container: wgt.find('#shpColorDiv'),
 				buttonId: 'shpColorPicker'
 			});
+			
+			this.find('#shpColorLbl').after(this.colorPicker.getUI());
 				
 			// hide optional inputs
 			optionalInputs.parent().hide();

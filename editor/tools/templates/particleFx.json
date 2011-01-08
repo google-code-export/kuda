@@ -1,0 +1,67 @@
+{
+"templates": [
+	{
+		"type": "Emitter",
+		"name": "Smoke Stack",
+		"state": 0,
+		"colorRamp": [0, 0, 0, 0.5, 0, 0, 0, 0],
+		"params": {
+			"numParticles": 10,
+			"position": [0, 0, 0],
+			"positionRange": [3.6, 2, 3.4],
+			"timeRange": 1,
+			"lifeTime": 2,
+			"startSize": 10,
+			"startSizeRange": 20,
+			"endSize": 100,
+			"endSizeRange": 1,
+			"velocity": [0, 100, 0],
+			"velocityRange": [10.1, 9.7, 10.3],
+			"acceleration": [0, -1, 0],
+			"spinSpeedRange": 4
+		}
+	},
+	{
+		"type": "Emitter",
+		"name": "Fire",
+		"state": 1,
+		"colorRamp": [1, 1, 0, 0.6,
+				 1, 0, 0, 0.6,
+				 0, 0, 0, 1,
+				 0, 0, 0, 0.5,
+				 0, 0, 0, 0],
+		"params": {
+			"numParticles": 20,
+			"position": [0, 0, 0],
+			"positionRange": [3.6, 2, 3.4],
+			"lifeTime": 1.1,
+			"timeRange": 1,
+			"startSize": 55,
+			"startSizeRange": 20,
+			"endSize": 1,
+			"endSizeRange": 1,
+			"velocity":[0, 55, 0],
+			"velocityRange": [10.1, 9.7, 10.3],
+			"acceleration": [0, -1, 0],
+			"spinSpeedRange": 4
+		}
+	},
+	{
+		"type": "Trail",
+		"name": "Water Drip",
+		"state": 0,
+		"colorRamp": [0.35, 0.71, 0.80, 0.8],
+		"fireInterval": 0.6,
+		"params": {
+			"acceleration": [0, -9.8, 0],
+			"numParticles": 1,
+			"lifeTime": 3,
+			"startSize": 2,
+			"endSize": 2,
+			"position": [0, 40, 0],
+			"positionRange": [0.2, 0, 0.1],
+			"velocity": [0, 0, 0],
+			"spinSpeedRange": 4,
+		}
+	}
+]}

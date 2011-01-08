@@ -696,7 +696,7 @@
 		}
 	};
 	
-	function getParam( name ) {
+	function getParam(name) {
 		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
 		var regexS = "[\\?&]"+name+"=([^&#]*)";
 		var regex = new RegExp( regexS );

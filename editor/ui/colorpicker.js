@@ -26,7 +26,8 @@ var editor = (function(module) {
 	module.ui.ColorPickerDefaults = {
 		container: null,
 		inputId: 'color',
-		buttonId: 'colorPicker'
+		buttonId: 'colorPicker',
+		containerClass: ''
 	};
 	
 	module.ui.ColorPicker = module.ui.Component.extend({
@@ -38,7 +39,8 @@ var editor = (function(module) {
 		
 		finishLayout: function() {
 			// initialize container
-			this.container = this.config.container;
+			this.container = jQuery('<div></div>');
+			this.container.addClass(this.config.containerClass);
 			
 			// initialize inputs
 			this.rInput = jQuery('<input type="text" id="' + this.config.inputId + 'R" class="rNdx color"/>');

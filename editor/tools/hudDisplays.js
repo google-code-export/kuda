@@ -555,9 +555,10 @@ var editor = (function(module) {
 			
 			var colorPicker = new module.ui.ColorPicker({
 				inputId: 'hudPgeColor',
-				container: wgt.find('#hudPgeColorDiv'),
 				buttonId: 'hudPgeColorPicker'
 			});
+			
+			this.find('#hudPgeColorLbl').after(colorPicker.getUI());
 			
 			colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {		
 				saveBtn.removeAttr('disabled');
@@ -628,9 +629,10 @@ var editor = (function(module) {
 			
 			var colorPicker = new module.ui.ColorPicker({
 				inputId: 'hudTxtColor',
-				container: wgt.find('#hudTxtColorDiv'),
 				buttonId: 'hudTxtColorPicker'
 			});
+			
+			this.find('#hudTxtColorLbl').after(colorPicker.getUI());
 			
 			txtEdt.data('colorPicker', colorPicker);
 			
