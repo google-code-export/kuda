@@ -27,6 +27,7 @@ var editor = (function(module) {
     module.EventTypes.ParticleFxAdded = "particleFx.ParticleFxAdded";
     module.EventTypes.ParticleFxUpdated = "particleFx.ParticleFxUpdated";
     module.EventTypes.ParticleFxRemoved = "particleFx.ParticleFxRemoved";
+    module.EventTypes.TemplatesLoaded = "particleFx.TemplatesLoaded";
 	
 	// view specific
     module.EventTypes.ParticleFxType = "particleFx.ParticleFxType";
@@ -69,6 +70,8 @@ var editor = (function(module) {
 			this.colorRamp = null;
 			this.fireInterval = null;
 			this.isUpdating = false;
+			
+			var mdl = this;
 	    },
 		
 		addToColorRamp: function(ndx, color) {
@@ -139,6 +142,18 @@ var editor = (function(module) {
 			}
 		},
 		
+		loadTemplates: function() {			
+			var mdl = this;
+			
+			// load the template file, eventually, this will be grabbed
+			// from a server
+			hemi.loader.loadHtml('editor/tools/templates/particleFx.json', function(data) {
+				mdl.templates = JSON.parse(data);
+				mdl.notifyListeners(module.EventTypes.TemplatesLoaded, 
+					mdl.templates);
+			});
+		},
+		
 		preview: function() {
 			this.create();
 			this.currentParticleEffect.particles = null;
@@ -189,6 +204,10 @@ var editor = (function(module) {
 			this.isUpdating = false;	
 		},
 		
+		saveTemplate: function(name) {
+			
+		},
+		
 		setEffect: function(effect) {
 			this.currentParticleEffect = effect;
 			this.particleEffectParams = jQuery.extend(true, {}, effect.params);
@@ -211,8 +230,11 @@ var editor = (function(module) {
 		},
 		
 		setTemplate: function(tpl) {
+			var oldId = null;			
 			this.particleEffectParams = {};
+			
 			if (this.currentParticleEffect) {
+				oldId = this.currentParticleEffect.getId();
 				this.stopPreview();
 				this.currentParticleEffect.cleanup();
 				this.currentParticleEffect = null;
@@ -230,6 +252,11 @@ var editor = (function(module) {
 			
 			for (var key in prm) {
 				this.setParam(key, prm[key]);
+			}
+			
+			if (this.isUpdating) {
+				this.create();
+				this.currentParticleEffect.setId(oldId);
 			}
 		},
 		
@@ -303,14 +330,6 @@ var editor = (function(module) {
 			this.colorPickers = [];
 			
 		    this._super(newOpts);	
-			
-			// also load the template file, eventually, this will be grabbed
-			// from a server
-			hemi.loader.loadHtml('editor/tools/templates/particleFx.json', function(data) {
-				// clean the string of comments
-				var templateData = JSON.parse(data);
-				wgt.setupTemplates(templateData);
-			});
 		},
 		
 		addColorInput: function() {
@@ -388,6 +407,7 @@ var editor = (function(module) {
 					numColors = colorRamp.length / 4, 
 					colorAdder = this.find('#pteAddColorToRamp');
 				
+				this.find('#pteTemplateSelect').val(-1);
 				this.find('#pteType').val(type).change();
 				this.find('#pteName').val(effect.name);
 				
@@ -566,6 +586,7 @@ var editor = (function(module) {
 		
 		reset: function() {      
 			// reset selects
+			this.find('#pteTemplateSelect').val(-1);
 			this.find('#pteType').val(-1).removeAttr('disabled');
 			this.find('#pteState').val(-1);
 			
@@ -857,40 +878,23 @@ var editor = (function(module) {
 				pteEdt = view.pteFxEditSBWidget,
 				pteLst = view.pteFxListSBWidget,
 	        	that = this;
+				
+			model.loadTemplates();
 	                	        
 	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
 	            var isDown = value === module.tools.ToolConstants.MODE_DOWN;
 	        });
 			
 			// create widget specific
+			pteEdt.addListener(module.EventTypes.CancelCreateParticleFx, function(name) {
+				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+				pteLst.setVisible(true && isDown);
+				pteEdt.setVisible(false);
+				model.cancelParticleFxEdit();
+			});			
 			pteEdt.addListener(module.EventTypes.ParticleFxType, function(value) {
 				model.setType(value);
 			});	        
-	        pteEdt.addListener(module.EventTypes.RemoveParticleFxParam, function(value) {
-	        	model.removeParam(value);
-	        });	        
-	        pteEdt.addListener(module.EventTypes.SetParticleFxParam, function(value) {
-	        	model.setParam(value.paramName, value.paramVal);
-	        });	        
-	        pteEdt.addListener(module.EventTypes.SetParticleFxColorRamp, function(value) {
-	        	model.addToColorRamp(value.ndx, value.color);
-	        });			
-			pteEdt.addListener(module.EventTypes.SetParticleFxState, function(value) {
-				model.setState(value);
-			});			
-			pteEdt.addListener(module.EventTypes.SetParticleFxFireInterval, function(value) {
-				model.setFireInterval(value);
-			});			
-			pteEdt.addListener(module.EventTypes.StartParticleFxPreview, function(value) {
-				model.preview();
-			});			
-			pteEdt.addListener(module.EventTypes.StopParticleFxPreview, function(value) {
-				model.stopPreview();
-			});			
-			pteEdt.addListener(module.EventTypes.SaveParticleFx, function(name) {
-				model.save(name);
-				pteEdt.setVisible(false);
-			});			
 			pteEdt.addListener(module.EventTypes.PreviewCurrentFx, function(value) {
 				if (value.show) {
 					model.previewEffect(value.effect);	
@@ -898,13 +902,32 @@ var editor = (function(module) {
 				else {
 					model.stopPreviewEffect(value.effect);
 				}
-			});			
-			pteEdt.addListener(module.EventTypes.CancelCreateParticleFx, function(name) {
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
-				pteLst.setVisible(true && isDown);
+			});		
+	        pteEdt.addListener(module.EventTypes.RemoveParticleFxParam, function(value) {
+	        	model.removeParam(value);
+	        });	        	
+			pteEdt.addListener(module.EventTypes.SaveParticleFx, function(name) {
+				model.save(name);
 				pteEdt.setVisible(false);
-				model.cancelParticleFxEdit();
+			});		
+	        pteEdt.addListener(module.EventTypes.SetParticleFxParam, function(value) {
+	        	model.setParam(value.paramName, value.paramVal);
+	        });	        
+	        pteEdt.addListener(module.EventTypes.SetParticleFxColorRamp, function(value) {
+	        	model.addToColorRamp(value.ndx, value.color);
+	        });			
+			pteEdt.addListener(module.EventTypes.SetParticleFxFireInterval, function(value) {
+				model.setFireInterval(value);
+			});		
+			pteEdt.addListener(module.EventTypes.SetParticleFxState, function(value) {
+				model.setState(value);
+			});				
+			pteEdt.addListener(module.EventTypes.StartParticleFxPreview, function(value) {
+				model.preview();
 			});			
+			pteEdt.addListener(module.EventTypes.StopParticleFxPreview, function(value) {
+				model.stopPreview();
+			});				
 			pteEdt.addListener(module.EventTypes.TemplateSelected, function(template) {
 				model.setTemplate(template);
 			});		
@@ -934,15 +957,18 @@ var editor = (function(module) {
 				pteEdt.setVisible(false);
 				pteLst.add(particleFx);			
 			});			
+			model.addListener(module.EventTypes.ParticleFxRemoved, function(value) {
+				pteEdt.reset();
+			});			
 			model.addListener(module.EventTypes.ParticleFxUpdated, function(particleFx) {	
 				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
 				pteLst.setVisible(true && isDown);	
 				pteEdt.setVisible(false);			
 				pteLst.update(particleFx);
-			});			
-			model.addListener(module.EventTypes.ParticleFxRemoved, function(value) {
-				pteEdt.reset();
-			});			
+			});		
+			model.addListener(module.EventTypes.TemplatesLoaded, function(templates) {		
+				pteEdt.setupTemplates(templates);
+			});	
 			model.addListener(module.EventTypes.WorldLoaded, function(effects) {		
 				for (var ndx = 0, len = effects.length; ndx < len; ndx++) {
 					var eft = effects[ndx];
@@ -951,7 +977,7 @@ var editor = (function(module) {
 			});			
 			model.addListener(module.EventTypes.WorldCleaned, function(effects) {		
 				pteLst.list.clear();
-			});
+			});		
 	    }
 	});
     
