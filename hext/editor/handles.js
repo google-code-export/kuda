@@ -80,13 +80,23 @@ var hext = (function(hext) {
 			hemi.core.mainPack,
 			hext.editor.arrowMat,
 			0.05, 0.2, 1.0, downMatrix);
-		rotShape1.name = rotShape2.name = 'R';		
+		rotShape1.name = rotShape2.name = 'R';	
+
+		var scaleShape1 = hemi.core.primitives.createSphere(
+			hemi.core.mainPack,
+			hext.editor.arrowMat,
+			0.2, 6, 12, upMatrix);
+		var scaleShape2 = hemi.core.primitives.createSphere(
+			hemi.core.mainPack,
+			hext.editor.arrowMat,
+			0.2, 6, 12, downMatrix);
+		scaleShape1.name = scaleShape2.name = 'S';
 		
 		hext.editor.transforms = t;
 		hext.editor.shapes = {
 			translate : [transShape1,transShape2],
 			rotate    : [rotShape1, rotShape2],
-			scale     : []
+			scale     : [scaleShape1, scaleShape2]
 		};
 	};
 		
@@ -179,6 +189,16 @@ var hext = (function(hext) {
 					break;
 				case 'hext.editor.handleZR':
 					this.draggable = new hemi.manip.Turnable(hemi.manip.Axis.Y);
+					break;
+				case 'hext.editor.handleXS':
+					this.draggable = new hemi.manip.Scalable(hemi.manip.Axis.X);
+					break;
+				case 'hext.editor.handleYS':
+					this.draggable = new hemi.manip.Scalable(hemi.manip.Axis.Y);
+					break;
+				case 'hext.editor.handleZS':
+					this.draggable = new hemi.manip.Scalable(hemi.manip.Axis.Z);
+					break;
 			}
 			if (this.draggable) {
 				this.draggable.addTransform(this.transform);

@@ -336,17 +336,36 @@ var hemi = (function(hemi) {
 	/**
 	 * Calculate the screen coordinates from a 3d position in the world.
 	 * @param {float[3]} p XYZ point to calculate from
-	 * @return {float[2]} XY screen position of point, null if offscreen?
+	 * @return {float[2]} XY screen position of point
 	 */
 	hemi.utils.worldToScreen = function(p0) {
-		var VM = hemi.view.viewInfo.drawContext.view;
-		var PM = hemi.view.viewInfo.drawContext.projection;
-		var p = hemi.core.math.matrix4.transformPoint(
-				PM,
-				hemi.core.math.matrix4.transformPoint(VM,p0));
-		var x = (p[0]+1.0)*0.5*hemi.view.clientSize.width;
-		var y = (-p[1]+1.0)*0.5*hemi.view.clientSize.height;
+		var VM = hemi.view.viewInfo.drawContext.view,
+			PM = hemi.view.viewInfo.drawContext.projection,
+			w = hemi.view.clientSize.width,
+			h = hemi.view.clientSize.height,
+			m4 = hemi.core.math.matrix4;
+		var p = m4.transformPoint(PM,m4.transformPoint(VM,p0));
+		var x = (p[0]+1.0)*0.5*w;
+		var y = (-p[1]+1.0)*0.5*h;
 		return [Math.round(x),Math.round(y)];
+	};
+	
+	/**
+	 * Calculate the screen coordinates from a 3d position in the world.
+	 * @param {float[3]} p XYZ point to calculate from
+	 * @return {float[3]} XY screen position of point, plus z-distance,
+	 *		where 0.0 = near clip and 1.0 = flar clip
+	 */
+	hemi.utils.worldToScreenFloat = function(p0) {
+		var VM = hemi.view.viewInfo.drawContext.view,
+			PM = hemi.view.viewInfo.drawContext.projection,
+			w = hemi.view.clientSize.width,
+			h = hemi.view.clientSize.height,
+			m4 = hemi.core.math.matrix4;
+		var p = m4.transformPoint(PM,m4.transformPoint(VM,p0));
+		var x = (p[0]+1.0)*0.5*w;
+		var y = (-p[1]+1.0)*0.5*h;
+		return [x,y,p[2]];
 	};
 	
 	return hemi;

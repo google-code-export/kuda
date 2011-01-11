@@ -172,7 +172,7 @@ var hemi = (function(hemi) {
 				plane: dPlane
 			};
 
-			hemi.world.tranReg.register(trans, this);
+			//hemi.world.tranReg.register(trans, this);
 			this.transformObjs.push(transObj);		
 		},
 
@@ -218,7 +218,7 @@ var hemi = (function(hemi) {
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 				var transform = this.transformObjs[i].transform;
-				hemi.world.tranReg.unregister(transform, this);
+				//hemi.world.tranReg.unregister(transform, this);
 			}
 			
 			this.transformObjs = [];
@@ -541,7 +541,7 @@ var hemi = (function(hemi) {
 					planeOffset = [0,0,wp[2]];
 					break;
 			}
-			hemi.world.tranReg.register(transform, this);
+			//hemi.world.tranReg.register(transform, this);
 			this.currentTransform = transform;
 			this.transformObjs.push({
 				transform : transform,
@@ -562,7 +562,7 @@ var hemi = (function(hemi) {
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 				var transform = this.transformObjs[i].transform;
-				hemi.world.tranReg.unregister(transform, this);
+				//hemi.world.tranReg.unregister(transform, this);
 			}
 			
 			this.transformObjs = [];
@@ -626,10 +626,9 @@ var hemi = (function(hemi) {
 		 */
 		getAngle : function(x,y) {
 			var u = hemi.utils;
-			var plane = [
-				hemi.core.math.addVector(u.pointAsWorld(this.currentTransform,this.plane[0]),this.offset),
-				hemi.core.math.addVector(u.pointAsWorld(this.currentTransform,this.plane[1]),this.offset),
-				hemi.core.math.addVector(u.pointAsWorld(this.currentTransform,this.plane[2]),this.offset)];
+			var plane = [ u.pointAsWorld(this.currentTransform,this.plane[0]),
+						  u.pointAsWorld(this.currentTransform,this.plane[1]),
+						  u.pointAsWorld(this.currentTransform,this.plane[2]) ];			
 			var ray = hemi.core.picking.clientPositionToWorldRay(
 					x, 
 					y, 
@@ -763,11 +762,118 @@ var hemi = (function(hemi) {
 		
 	};
 	
+	hemi.manip.Scalable = function(axis) {
+		hemi.world.Citizen.call(this);
+		this.transforms = [];
+		this.activeTransform = null;
+		this.v0 = null;
+		this.scale = null;
+		this.scaling = false;
+		this.setAxis(axis);
+		this.enable();
+	};
+	
+	hemi.manip.Scalable.prototype = {
+		addTransform : function(transform) {
+			this.transforms.push(transform);
+		},
+		cleanup: function() {
+			this.disable();
+			hemi.world.Citizen.prototype.cleanup.call(this);
+			this.msgHandler = null;
+		},
+		containsTransform : function(transform) {
+			for (var i = 0; i < this.transforms.length; i++) {
+				var family = this.transforms[i].getTransformsInTree();
+				for (var j = 0; j < family.length; j++) {
+					if (family[j].clientId == transform.clientId) {
+						this.activeTransform = this.transforms[i];
+						return true;
+					}
+				}
+			}
+			return false;
+		},
+		disable: function() {
+			if (this.enabled) {
+				hemi.world.unsubscribe(this.msgHandler, hemi.msg.pick);
+				hemi.input.removeMouseMoveListener(this);
+				hemi.input.removeMouseUpListener(this);
+				this.enabled = false;
+			}
+		},
+		enable: function() {
+			if (!this.enabled) {
+				this.msgHandler = hemi.world.subscribe(
+					hemi.msg.pick,
+					this,
+					'onPick',
+					[hemi.dispatch.MSG_ARG + 'data.pickInfo', 
+					 hemi.dispatch.MSG_ARG + 'data.mouseEvent']);
+				hemi.input.addMouseMoveListener(this);
+				hemi.input.addMouseUpListener(this);
+				this.enabled = true;
+			}
+		},
+		onMouseMove : function(e) {
+			if (!this.scaling) return;
+			this.scaleXY(e.x,e.y);
+		},
+		onMouseUp : function() {
+			this.scaling = false;
+			this.scale = null;
+		},
+		onPick : function(pickInfo,event) {
+			if (this.containsTransform(pickInfo.shapeInfo.parent.transform)) {
+				this.scaling = true;
+				this.scaleXY(event.x,event.y);
+			}
+		},
+		scaleXY : function(x,y) {
+			var math = hemi.core.math,
+				orig = this.xyPoint([0,0,0]),
+				ref = this.xyPoint(this.axis);
+			this.v0 = math.normalize([ref[0]-orig[0],ref[1]-orig[1]]);
+			var scale = Math.abs(math.dot(this.v0,[x-orig[0],y-orig[1]]));		
+			if (this.scale != null) {
+				var f = scale/this.scale;
+				for (i=0; i<this.transforms.length; i++) {
+					var t = this.transforms[i];
+					if (this.axis[0]) t.scale([f,1,1]);
+					if (this.axis[1]) t.scale([1,f,1]);
+					if (this.axis[2]) t.scale([1,1,f]);
+				}
+			}	
+			this.scale = scale
+		},
+		setAxis : function(axis) {
+			switch(axis) {
+				case hemi.manip.Axis.X:
+					this.axis = [1,0,0];
+					break;
+				case hemi.manip.Axis.Y:
+					this.axis = [0,1,0];
+					break;
+				case hemi.manip.Axis.Z:
+					this.axis = [0,0,1];
+					break;
+				default:
+					this.axis = [0,0,0];
+			}
+		},
+		xyPoint : function(p) {
+			var u = hemi.utils;
+			return u.worldToScreenFloat(u.pointAsWorld(this.activeTransform,p));
+		}
+	};
+	
 	hemi.manip.Draggable.inheritsFrom(hemi.world.Citizen);
 	hemi.manip.Draggable.prototype.msgSent =
 		hemi.manip.Draggable.prototype.msgSent.concat([hemi.msg.drag]);
 	
 	hemi.manip.Turnable.inheritsFrom(hemi.world.Citizen);
+	
+	hemi.manip.Scalable.inheritsFrom(hemi.world.Citizen);
 	
 	return hemi;
 })(hemi || {});
