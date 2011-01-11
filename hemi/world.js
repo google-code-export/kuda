@@ -1151,7 +1151,11 @@ var hemi = (function(hemi) {
 	 */
 	hemi.world.getTranOwner = function(transform) {
 		var param = transform.getParam('ownerId'),
+			owner = null;
+		
+		if (param !== null) {
 			owner = this.getCitizenById(param.value);
+		}
 		
 		return owner;
 	};

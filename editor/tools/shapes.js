@@ -54,9 +54,8 @@ var editor = (function(module) {
 			this._super();
 			
 			this.currentShape = null;
-			this.previousShape = null;
+			this.previewShape = null;
 			this.shapeParams = {};
-			this.isUpdating = false;
 	    },
 			
 		worldCleaned: function() {
@@ -81,45 +80,41 @@ var editor = (function(module) {
 		},
 		
 		setShape: function(shape) {
+			if (this.previewShape !== null) {
+				this.previewShape.cleanup();
+				this.previewShape = null;
+			}
+			
 			this.currentShape = shape;
-			this.isUpdating = true;
 			
 			// set the params
-			this.shapeParams = jQuery.extend({
-					type: shape.shapeType,
-					color: shape.color
-				},
-				shape.dim);
+			if (shape !== null) {
+				this.shapeParams = jQuery.extend({
+						type: shape.shapeType,
+						color: shape.color
+					},
+					shape.dim);
+			} else {
+				this.shapeParams = {};
+			}
 			
 			this.notifyListeners(module.EventTypes.ShapeSet, shape);
 		},
 		
 		previewShape: function() {
-			if (this.isUpdating && this.previousShape === null) {
-				this.previousShape = this.currentShape;
-				this.previousShape.transform.visible = false;
+			if (this.currentShape !== null) {
+				this.currentShape.transform.visible = false;
 			}
-			this.createShape();
-		},
-		
-		createShape: function() {
-			if (this.currentShape) {
-				var oldId = this.currentShape.getId();
-				if (this.previousShape !== this.currentShape) {
-					this.currentShape.cleanup();
-				}
-				this.currentShape = new hemi.shape.Shape(this.shapeParams);
-				if (this.previousShape === null) {
-					this.currentShape.setId(oldId);
-				}
+			if (this.previewShape !== null) {
+				this.previewShape.cleanup();
 			}
-			else {
-				this.currentShape = new hemi.shape.Shape(this.shapeParams);
-			}
+			
+			this.previewShape = new hemi.shape.Shape(this.shapeParams);
+			this.previewShape.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
 			
 			if (this.shapeParams.position) {
 				var pos = this.shapeParams.position;
-				this.currentShape.translate(pos[0], pos[1], pos[2]);
+				this.previewShape.translate(pos[0], pos[1], pos[2]);
 			}
 		},
 		
@@ -128,41 +123,34 @@ var editor = (function(module) {
 			shape.cleanup();
 		},
 		
-		cancelUpdate: function() {
-			// TODO: need to figure out how changes to other aspects of the 
-			// editor should be handled.  i.e.: modal?
-			if (this.previousShape !== null) {
-				this.previousShape.transform.visible = true;
-				this.removeShape(this.currentShape);
-			}
-			this.previousShape = null;
-			this.currentShape = null;
-			this.shapeParams = {};
-			this.isUpdating = false;
-		},
-		
 		saveShape: function(name) {
-			this.createShape();
+			var msgType;
 			
-			if (this.previousShape !== null) {
-				var oldId = this.previousShape.getId();
-				this.previousShape.cleanup();
-				this.previousShape = null;
-				this.currentShape.setId(oldId);
+			if (this.previewShape !== null) {
+				this.previewShape.cleanup();
 			}
 			
-			var trans = this.currentShape.getTransform(),
-				primitive = trans.shapes[0],
-				msgType = this.isUpdating ? module.EventTypes.ShapeUpdated 
-					: module.EventTypes.ShapeCreated;
-				
+			if (this.currentShape !== null) {
+				this.currentShape.change(this.shapeParams);
+				this.currentShape.transform.identity();
+				this.currentShape.transform.visible = true;
+				msgType = module.EventTypes.ShapeUpdated;
+			} else {
+				this.currentShape = new hemi.shape.Shape(this.shapeParams);
+				msgType = module.EventTypes.ShapeCreated;
+			}
+			
+			if (this.shapeParams.position) {
+				var pos = this.shapeParams.position;
+				this.currentShape.translate(pos[0], pos[1], pos[2]);
+			}
+			
 			this.currentShape.setName(name);
-				
 			this.notifyListeners(msgType, this.currentShape);
 			
 			this.currentShape = null;
+			this.previewShape = null;
 			this.shapeParams = {};
-			this.isUpdating = false;
 		}
 	});
    	
@@ -709,7 +697,7 @@ var editor = (function(module) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
 			});	
 			crtWgt.addListener(module.EventTypes.CancelCreateShape, function() {
-				model.cancelUpdate();
+				model.setShape(null);
 				lstWgt.setVisible(true);
 			});	
 			

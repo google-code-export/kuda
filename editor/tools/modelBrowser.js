@@ -257,10 +257,6 @@ var editor = (function(module) {
 				opt_owner = hemi.world.getTranOwner(transform);
 			}
 			
-			// set up an error collector since we know we might get a destroyed
-			// transform
-			var errorCollector = hemi.core.error.createErrorCollector(hemi.core.client);
-			
 			var ownerId = opt_owner.getId(),
 				transforms = this.selected.get(ownerId),
 				children = transform.children;
@@ -279,22 +275,7 @@ var editor = (function(module) {
 					this.unhighlightTransform(transform);
 					this.notifyListeners(module.EventTypes.TransformDeselected, transform);
 				}
-				
-				// check for destroyed transforms
-				var newList = [];
-				
-				for (var ndx = 0, len = transforms.length; ndx < len; ndx++) {
-					var t = transforms[ndx];
-					
-					if (t.parent != null) {
-						newList.push(t);
-					}
-				}
-				
-				this.selected.put(ownerId, newList);
 			}
-			
-			errorCollector.finish();
 		},
 		
 		enableSelection: function(enable) {
@@ -493,8 +474,7 @@ var editor = (function(module) {
 		},
 	    
 	    selectShape: function(shape, transform) {
-			var errorCollector = hemi.core.error.createErrorCollector(hemi.core.client),
-				shapeName = HIGHLIGHT_PRE + shape.name,
+			var shapeName = HIGHLIGHT_PRE + shape.name,
 				shapes = transform.shapes,
 				highlightShape = null;
 			
@@ -526,8 +506,6 @@ var editor = (function(module) {
 					owner: hemi.world.getTranOwner(transform)
 				});
 			}
-			
-			errorCollector.finish();
 	    },
 		
 		selectTransform: function(transform, opt_owner) {
