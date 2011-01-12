@@ -73,30 +73,38 @@ var hemi = (function(hemi) {
 		 * @param {o3d.transform} transform the transform to add
 		 */
 		addTransform : function(transform) {
-			var tranChildren = transform.children,
-				shapes = transform.shapes,
-				newTran = hemi.core.mainPack.createObject('Transform'),
-				offsetTran = hemi.core.mainPack.createObject('Transform');
+			hemi.world.tranReg.register(transform, this);
+			var obj = {};
 			
-			for (var ndx = 0, len = tranChildren.length; ndx < len; ndx++) {
-				tranChildren[ndx].parent = offsetTran;
-			};
-			
-			newTran.parent = transform;
-			offsetTran.parent = newTran;
-		
-			for(var i = shapes.length-1; i >= 0; i--) {
-				var shape = shapes[i];
-				offsetTran.addShape(shape);
-				transform.removeShape(shape);
+			if (hemi.utils.isAnimated(transform)) {
+				var tran1 = hemi.core.mainPack.createObject('Transform'),
+					tran2 = hemi.utils.fosterTransform(transform);
+				
+				tran1.parent = transform;
+				tran2.parent = tran1;
+				
+				obj.tran = tran1;
+				obj.offset = tran2;
+				obj.foster = true;
+				hemi.core.addToTransformTable(transform);
+			} else {
+				var tran1 = hemi.core.mainPack.createObject('Transform'),
+					tran2 = hemi.core.mainPack.createObject('Transform'),
+					tParent = hemi.core.getTransformParent(transform);
+				
+				tran1.parent = tParent;
+				tran2.parent = tran1;
+				transform.parent = tran2;				
+				tran1.localMatrix = transform.localMatrix;
+				transform.identity();
+				
+				obj.tran = tran2;
+				obj.offset = transform;
+				obj.foster = false;
+				hemi.core.addToTransformTable(tParent);
 			}
 			
-			hemi.core.addToTransformTable(transform);
-			hemi.world.tranReg.register(transform, this);
-			this.transformObjs.push({
-				tran: newTran,
-				offset: offsetTran
-			});
+			this.transformObjs.push(obj);
 		},
 		
         /**
@@ -129,6 +137,42 @@ var hemi = (function(hemi) {
 		 * Clear the list of spinning transforms.
 		 */
 		clearTransforms: function() {
+			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+				var obj = this.transformObjs[i],
+					tran;
+				
+				if (obj.foster) {
+					tran = hemi.core.getTransformParent(obj.tran);
+					
+					obj.tran.parent = null;
+					hemi.core.removeFromTransformTable(obj.tran);
+					hemi.core.mainPack.removeObject(obj.tran);
+					
+					obj.offset.parent = tran;
+					hemi.utils.unfosterTransform(obj.offset, tran);
+				} else {
+					var tParent1 = hemi.core.getTransformParent(obj.tran),
+						tParent2 = hemi.core.getTransformParent(tParent1);
+					
+					tran = obj.offset;
+					tran.parent = tParent2;
+					tran.localMatrix = tParent1.localMatrix;
+					
+					obj.tran.parent = tParent1.parent = null;
+					hemi.core.removeFromTransformTable(obj.tran);
+					hemi.core.removeFromTransformTable(tParent1);
+					hemi.core.mainPack.removeObject(obj.tran);
+					hemi.core.mainPack.removeObject(tParent1);
+					
+					hemi.core.addToTransformTable(tParent2);
+				}
+				
+				hemi.world.tranReg.unregister(tran, this);
+			}
+			
+			this.transformObjs = [];
+			
+			
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 				var transformObj = this.transformObjs[i],
 					tParent = hemi.core.getTransformParent(transformObj.tran),
@@ -346,7 +390,7 @@ var hemi = (function(hemi) {
 		this.steadyMove = false;
 		this.startPos = this.pos;
 		this.stopPos = this.pos;
-		this.transforms = [];
+		this.transformObjs = [];
 		this.intFunc = function (val) {
 			return val;
 		};
@@ -364,25 +408,18 @@ var hemi = (function(hemi) {
 		 * @param {o3d.transform} transform the transform to add
 		 */
 		addTransform : function(transform) {
-			var tranChildren = transform.children,
-				shapes = transform.shapes,
-				newTran = hemi.core.mainPack.createObject('Transform');
+			hemi.world.tranReg.register(transform, this);
+			var obj = {};
 			
-			for (var ndx = 0, len = tranChildren.length; ndx < len; ndx++) {
-				tranChildren[ndx].parent = newTran;
-			};
-			
-			newTran.parent = transform;
-			
-			for (var i = shapes.length-1; i >= 0; i--) {
-				var shape = shapes[i];
-				newTran.addShape(shape);
-				transform.removeShape(shape);
+			if (hemi.utils.isAnimated(transform)) {
+				obj.tran = hemi.utils.fosterTransform(transform);
+				obj.foster = true;
+			} else {
+				obj.tran = transform;
+				obj.foster = false;
 			}
 			
-			hemi.core.addToTransformTable(transform);
-			hemi.world.tranReg.register(transform, this);
-			this.transforms.push(newTran);
+			this.transformObjs.push(obj);
 		},
 		
         /**
@@ -413,31 +450,20 @@ var hemi = (function(hemi) {
 		 * Clear the list of translating transforms.
 		 */
 		clearTransforms: function() {
-			for (var i = 0, il = this.transforms.length; i < il; i++) {
-				var transform = this.transforms[i],
-					tParent = hemi.core.getTransformParent(transform),
-					tranChildren = transform.children,
-					shapes = transform.shapes;
+			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+				var obj = this.transformObjs[i],
+					tran;
 				
-				hemi.core.removeFromTransformTable(transform);
-				
-				for (var j = 0, jl = tranChildren.length; j < jl; j++) {
-					tranChildren[j].parent = tParent;
-				};
-			
-				for (var j = 0, jl = shapes.length; j < jl; j++) {
-					var shape = shapes[j];
-					tParent.addShape(shape);
-					transform.removeShape(shape);
+				if (obj.foster) {
+					tran = hemi.utils.unfosterTransform(obj.tran);
+				} else {
+					tran = obj.tran;
 				}
 				
-				hemi.world.tranReg.unregister(tParent, this);
-				transform.parent = null;
-				hemi.core.mainPack.removeObject(transform);
-				hemi.core.addToTransformTable(tParent);
+				hemi.world.tranReg.unregister(tran, this);
 			}
 			
-			this.transforms = [];
+			this.transformObjs = [];
 		},
 		
 		/**
@@ -466,7 +492,13 @@ var hemi = (function(hemi) {
 		 * @return {o3d.Transform[]} array of transforms
 		 */
 		getTransforms: function() {
-			return this.transforms;
+			var trans = [];
+			
+			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+				trans.push(this.transformObjs[i].tran);
+			}
+			
+			return trans;
 		},
 		
 		move : function(pos,time,opt_mustComplete,opt_intFunc) {
@@ -491,7 +523,7 @@ var hemi = (function(hemi) {
 		 * @param {o3d.event} event Message describing render event
 		 */
 		onRender : function(event) {
-			if (this.transforms.length > 0) {
+			if (this.transformObjs.length > 0) {
 				var t = event.activeTime;
 				if (this.steadyMove) {
 					this.time += t;
@@ -514,8 +546,8 @@ var hemi = (function(hemi) {
 							hemi.core.math.mulScalarVector(t,this.vel));
 				}
 				
-				for (var i = 0, il = this.transforms.length; i < il; i++) {
-					var transform = this.transforms[i];
+				for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+					var transform = this.transformObjs[i].tran;
 					transform.identity();
 					transform.translate(this.pos);
 				}

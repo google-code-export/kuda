@@ -135,45 +135,27 @@ var hemi = (function(hemi) {
 		 * Add a transform to the list of draggable transforms.
 		 *
 		 * @param {o3d.transform} transform the transform to add
-		 * @param {boolean} opt_needsChild true if this is an animation-locked 
-		 *		transform, which means a new child transform needs to be created 
-		 *		and shapes moved down into that transform
 		 */
-		addTransform: function(transform,
-							   opt_needsChild) {
-			var trans;		  
-			if (opt_needsChild) {
-				//TODO: Come up with a way to track these so we can clean them
-				// up properly from the Pack.
-				var trans = hemi.core.mainPack.createObject('Transform');
-				
-				trans.parent = transform;
-				trans.name = transform.name;   
-				for (var i = transform.shapes.length-1; i >= 0; i--) {
-					var shape = transform.shapes[i];
-					trans.addShape(shape);
-					transform.removeShape(shape);
-				}
-				for (var i = 0; i < transform.children.length; i++) {
-					transform.children[i].parent = trans;
-				}
+		addTransform: function(transform) {
+			hemi.world.tranReg.register(transform, this);
+			var offsetVector = transform.worldMatrix[3].slice(0,3),
+				dPlane = [],
+				obj = {};
+			
+			if (hemi.utils.isAnimated(transform)) {
+				obj.transform = hemi.utils.fosterTransform(transform);
+				obj.foster = true;
 			} else {
-				trans = transform;
+				obj.transform = transform;
+				obj.foster = false;
 			}
 			
-			var offsetVector = transform.worldMatrix[3].slice(0,3);
-			var dPlane = [];
 			for(var i = 0; i < this.plane.length; i++) {
 				dPlane[i] = hemi.core.math.addVector(this.plane[i], offsetVector);
 			}
-
-			var transObj = {
-				transform: trans,
-				plane: dPlane
-			};
-
-			//hemi.world.tranReg.register(trans, this);
-			this.transformObjs.push(transObj);		
+			
+			obj.plane = dPlane;
+			this.transformObjs.push(obj);		
 		},
 
 		/**
@@ -217,8 +199,16 @@ var hemi = (function(hemi) {
 		 */
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				var transform = this.transformObjs[i].transform;
-				//hemi.world.tranReg.unregister(transform, this);
+				var obj = this.transformObjs[i],
+					tran;
+				
+				if (obj.foster) {
+					tran = hemi.utils.unfosterTransform(obj.transform);
+				} else {
+					tran = obj.transform;
+				}
+				
+				hemi.world.tranReg.unregister(tran, this);
 			}
 			
 			this.transformObjs = [];
@@ -528,24 +518,32 @@ var hemi = (function(hemi) {
 		 *		turn about its origin when clicked and dragged
 		 */
 		addTransform : function(transform) {
-			var wp = transform.worldMatrix[3].slice(0,3);
-			var planeOffset;
+			hemi.world.tranReg.register(transform, this);
+			var wp = transform.worldMatrix[3].slice(0,3),
+				obj = {};
+			
+			if (hemi.utils.isAnimated(transform)) {
+				obj.transform = hemi.utils.fosterTransform(transform);
+				obj.foster = true;
+			} else {
+				obj.transform = transform;
+				obj.foster = false;
+			}
+			
 			switch(this.axis) {
 				case hemi.manip.Axis.X:
-					planeOffset = [wp[0],0,0];
+					obj.offset = [wp[0],0,0];
 					break;
 				case hemi.manip.Axis.Y:
-					planeOffset = [0,wp[1],0];
+					obj.offset = [0,wp[1],0];
 					break;
 				case hemi.manip.Axis.Z:
-					planeOffset = [0,0,wp[2]];
+					obj.offset = [0,0,wp[2]];
 					break;
 			}
-			//hemi.world.tranReg.register(transform, this);
-			this.currentTransform = transform;
-			this.transformObjs.push({
-				transform : transform,
-				offset : planeOffset});
+			
+			this.currentTransform = trans;
+			this.transformObjs.push(obj);
 		},
 		
 		/**
@@ -561,8 +559,16 @@ var hemi = (function(hemi) {
 		 */
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				var transform = this.transformObjs[i].transform;
-				//hemi.world.tranReg.unregister(transform, this);
+				var obj = this.transformObjs[i],
+					tran;
+				
+				if (obj.foster) {
+					tran = hemi.utils.unfosterTransform(obj.transform);
+				} else {
+					tran = obj.transform;
+				}
+				
+				hemi.world.tranReg.unregister(tran, this);
 			}
 			
 			this.transformObjs = [];
