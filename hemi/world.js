@@ -487,11 +487,14 @@ var hemi = (function(hemi) {
 		 * @param {hemi.world.Citizen} target the Citizen to receive it
 		 */
 		register: function(transform, target) {
-			var id = transform.getParam('ownerId').value,
-				citizen = hemi.world.getCitizenById(id),
-				owner = this.getOwner(citizen);
+			var param = transform.getParam('ownerId');
 			
-			owner.register(transform, target);
+			if (param !== null) {
+				var citizen = hemi.world.getCitizenById(param.value),
+					owner = this.getOwner(citizen);
+				
+				owner.register(transform, target);
+			}
 		},
 		
 	    /**
@@ -525,14 +528,17 @@ var hemi = (function(hemi) {
 		 * @param {hemi.world.Citizen} target the Citizen in the entry
 		 */
 		unregister: function(transform, target) {
-			var id = transform.getParam('ownerId').value,
-				citizen = hemi.world.getCitizenById(id),
-				owner = this.getOwner(citizen);
+			var param = transform.getParam('ownerId');
 			
-			owner.unregister(transform, target);
-			
-			if (owner.entries.length === 0) {
-				this.owners.remove(id);
+			if (param !== null) {
+				var citizen = hemi.world.getCitizenById(param.value),
+					owner = this.getOwner(citizen);
+				
+				owner.unregister(transform, target);
+				
+				if (owner.entries.length === 0) {
+					this.owners.remove(id);
+				}
 			}
 		}
 	};
