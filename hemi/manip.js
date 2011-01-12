@@ -155,7 +155,7 @@ var hemi = (function(hemi) {
 			}
 			
 			obj.plane = dPlane;
-			this.transformObjs.push(obj);		
+			this.transformObjs.push(obj);
 		},
 
 		/**
@@ -225,7 +225,7 @@ var hemi = (function(hemi) {
 			for (var i = 0; i < this.transformObjs.length; i++) {
 				var children = this.transformObjs[i].transform.getTransformsInTree();
 				for (var j = 0; j < children.length; j++) {
-					if (transform.clientId == children[j].clientId) {
+					if (transform.clientId === children[j].clientId) {
 						return true;
 					}
 				}
@@ -380,7 +380,7 @@ var hemi = (function(hemi) {
 			}
 
 			function checkTransform(transform, pickTransform) {
-				var found = (transform.clientId == pickTransform.clientId);
+				var found = (transform.clientId === pickTransform.clientId);
 
 				if (!found) {
 					var children = transform.children;
@@ -583,7 +583,7 @@ var hemi = (function(hemi) {
 			for (var i = 0; i < this.transformObjs.length; i++) {
 				var family = this.transformObjs[i].transform.getTransformsInTree();
 				for (var j = 0; j < family.length; j++) {
-					if (family[j].clientId == transform.clientId) {
+					if (family[j].clientId === transform.clientId) {
 						this.offset = this.transformObjs[i].offset;
 						this.currentTransform = this.transformObjs[i].transform;
 						return true;
@@ -770,7 +770,7 @@ var hemi = (function(hemi) {
 	
 	hemi.manip.Scalable = function(axis) {
 		hemi.world.Citizen.call(this);
-		this.transforms = [];
+		this.transformObjs = [];
 		this.activeTransform = null;
 		this.v0 = null;
 		this.scale = null;
@@ -781,19 +781,50 @@ var hemi = (function(hemi) {
 	
 	hemi.manip.Scalable.prototype = {
 		addTransform : function(transform) {
-			this.transforms.push(transform);
+			hemi.world.tranReg.register(transform, this);
+			var obj = {};
+			
+			if (hemi.utils.isAnimated(transform)) {
+				obj.transform = hemi.utils.fosterTransform(transform);
+				obj.foster = true;
+			} else {
+				obj.transform = transform;
+				obj.foster = false;
+			}
+			
+			this.transformObjs.push(obj);
 		},
 		cleanup: function() {
 			this.disable();
+			this.clearTransforms();
 			hemi.world.Citizen.prototype.cleanup.call(this);
 			this.msgHandler = null;
 		},
+		/**
+		 * Clear the list of scalable transforms.
+		 */
+		clearTransforms: function() {
+			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+				var obj = this.transformObjs[i],
+					tran;
+				
+				if (obj.foster) {
+					tran = hemi.utils.unfosterTransform(obj.transform);
+				} else {
+					tran = obj.transform;
+				}
+				
+				hemi.world.tranReg.unregister(tran, this);
+			}
+			
+			this.transformObjs = [];
+		},
 		containsTransform : function(transform) {
-			for (var i = 0; i < this.transforms.length; i++) {
-				var family = this.transforms[i].getTransformsInTree();
-				for (var j = 0; j < family.length; j++) {
-					if (family[j].clientId == transform.clientId) {
-						this.activeTransform = this.transforms[i];
+			for (var i = 0; i < this.transformObjs.length; i++) {
+				var children = this.transformObjs[i].transform.getTransformsInTree();
+				for (var j = 0; j < children.length; j++) {
+					if (transform.clientId === children[j].clientId) {
+						this.activeTransform = this.transformObjs[i].transform;
 						return true;
 					}
 				}
@@ -843,8 +874,8 @@ var hemi = (function(hemi) {
 			var scale = Math.abs(math.dot(this.v0,[x-orig[0],y-orig[1]]));		
 			if (this.scale != null) {
 				var f = scale/this.scale;
-				for (i=0; i<this.transforms.length; i++) {
-					var t = this.transforms[i];
+				for (i=0; i<this.transformObjs.length; i++) {
+					var t = this.transformObjs[i].transform;
 					if (this.axis[0]) t.scale([f,1,1]);
 					if (this.axis[1]) t.scale([1,f,1]);
 					if (this.axis[2]) t.scale([1,1,f]);
