@@ -33,6 +33,12 @@ var editor = (function(module) {
     module.EventTypes.UpdateScene = "scenes.UpdateScene";
     module.EventTypes.RemoveScene = "scenes.RemoveScene";
     module.EventTypes.ReorderScene = "scenes.ReorderScene";
+	
+	// scene list item widget specific
+	module.EventTypes.EditSceneEvent = "scenes.EditSceneEvent";
+	module.EventTypes.RemoveSceneEvent = "scenes.RemoveSceneEvent";
+	module.EventTypes.AddLoadEvent = "scenes.AddLoadEvent";
+	module.EventTypes.AddUnLoadEvent = "scenes.AddUnLoadEvent";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -50,36 +56,6 @@ var editor = (function(module) {
 			this.lastScene = null;
 			this.editScene = null;
 	    },
-		    
-	    worldLoaded: function() {
-			var scenes = hemi.world.getScenes(),
-				nextScene = null;
-			
-			for (var ndx = 0, len = scenes.length; ndx < len; ndx++) {
-				var scene = scenes[ndx];
-				
-				if (scene.prev === null) {
-					nextScene = scene;
-				}
-				
-				if (scene.next === null) {
-					this.lastScene = scene;
-				}
-			}
-			
-			while (nextScene !== null) {
-				this.notifyListeners(module.EventTypes.SceneAdded, nextScene);
-				nextScene = nextScene.next;
-			}
-	    },
-	    
-	    worldCleaned: function() {
-			this.notifyListeners(module.EventTypes.WorldCleaned, null);
-	    },
-		
-		setScene: function(scene) {
-			this.editScene = scene;
-		},
 	    
 	    addScene: function(sceneName) {
 			var scene = new hemi.scene.Scene();
@@ -92,6 +68,10 @@ var editor = (function(module) {
 			this.lastScene = scene;
 			this.notifyListeners(module.EventTypes.SceneAdded, scene);
 	    },
+		
+		addSceneEvent: function(scene, eventParams) {
+			// TODO
+		},
 	    
 	    removeScene: function(scene) {
 			if (this.lastScene === scene) {
@@ -101,6 +81,10 @@ var editor = (function(module) {
 			scene.cleanup();
 			this.notifyListeners(module.EventTypes.SceneRemoved, scene);
 	    },
+		
+		removeSceneEvent: function(sceneEvent) {
+			// TODO
+		},
 		
 		reorderScenes: function(scene, previous, next) {
 			var oldPrev = scene.prev,
@@ -123,10 +107,44 @@ var editor = (function(module) {
 			}
 		},
 		
+		setScene: function(scene) {
+			this.editScene = scene;
+		},
+		
 		updateScene: function(sceneName) {
 			this.editScene.name = sceneName;
 			this.notifyListeners(module.EventTypes.SceneUpdated, this.editScene);
-		}
+		},
+		
+		updateSceneEvent: function(sceneEvent, eventParams) {
+			// TODO
+		},
+	    
+	    worldCleaned: function() {
+			this.notifyListeners(module.EventTypes.WorldCleaned, null);
+	    },
+		    
+	    worldLoaded: function() {
+			var scenes = hemi.world.getScenes(),
+				nextScene = null;
+			
+			for (var ndx = 0, len = scenes.length; ndx < len; ndx++) {
+				var scene = scenes[ndx];
+				
+				if (scene.prev === null) {
+					nextScene = scene;
+				}
+				
+				if (scene.next === null) {
+					this.lastScene = scene;
+				}
+			}
+			
+			while (nextScene !== null) {
+				this.notifyListeners(module.EventTypes.SceneAdded, nextScene);
+				nextScene = nextScene.next;
+			}
+	    }
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -136,7 +154,156 @@ var editor = (function(module) {
 	var ADD_TXT = "Add Scene",
 		SAVE_TXT = "Save Scene",
 		ADD_WIDTH = 180,
-		SAVE_WIDTH = 170;
+		SAVE_WIDTH = 170,
+		ScnEvtType = {
+			LOAD: 'load',
+			UNLOAD: 'unload'
+		};
+		
+	module.tools.ScnListItemWidget = module.ui.EditableListItemWidget.extend({
+		init: function() {
+			this._super();
+			
+			this.isSorting = false;
+			this.events = new Hashtable();
+		},
+		
+		add: function(event, type) {
+			var li = new module.ui.EditableListItemWidget();
+			
+			li.setText(event.name);
+			li.attachObject(event);
+			
+			this.bindButtons(li);
+			
+			if (type === ScnEvtType.LOAD) {
+				this.loadList.before(li, this.loadAdd);
+			}
+			else {
+				this.unloadList.before(li, this.unloadAdd);
+			}
+			
+			this.events.put(event.getId(), {
+				type: type,
+				li: li
+			});
+		},
+		
+		bindButtons: function(li) {
+			var wgt = this;
+			
+			li.editBtn.bind('click', function(evt) {
+				var evt = li.getAttachedObject();
+				
+				wgt.notifyListeners(module.EventTypes.EditSceneEvent, evt);
+			});
+			
+			li.removeBtn.bind('click', function(evt) {
+				var evt = li.getAttachedObject();
+				wgt.remove(evt);
+				wgt.notifyListeners(module.EventTypes.RemoveSceneEvent, evt);
+			});
+		},
+		
+		createAddBtnLi: function() {
+			var li = new module.ui.ListItemWidget();
+			li.addBtn = jQuery('<button>Add</button>');
+			li.container.append(li.addBtn);
+			
+			return li;
+		},
+		
+		finishLayout: function() {
+			this._super();
+			
+			// attach the sub lists
+			var loadHeader = jQuery('<h2>Load Events:</h2>'),
+				unloadHeader = jQuery('<h2>Unload Events:</h2>'),
+				evtList = jQuery('<div class="scnEvtListWrapper"></div>'),
+				arrow = jQuery('<div class="scnEvtListArrow"></div>'),
+				wgt = this;
+			
+			this.loadAdd = this.createAddBtnLi();
+			this.unloadAdd = this.createAddBtnLi();
+			
+			this.loadAdd.addBtn.bind('click', function(evt) {
+				wgt.notifyListeners(module.EventTypes.AddLoadEvent, 
+					wgt.getAttachedObject());
+			});
+			this.unloadAdd.addBtn.bind('click', function(evt) {
+				wgt.notifyListeners(module.EventTypes.AddUnLoadEvent, 
+					wgt.getAttachedObject());
+			});
+			
+			this.loadList = new module.ui.ListWidget({
+				widgetClass: 'scnEvtList',
+				prefix: 'scnEvtLst'
+			});
+			this.unloadList = new module.ui.ListWidget({
+				widgetClass: 'scnEvtList',
+				prefix: 'scnEvtLst'
+			});
+			
+			this.loadList.add(this.loadAdd);
+			this.unloadList.add(this.unloadAdd);
+			evtList.append(loadHeader).append(this.loadList.getUI())
+				.append(unloadHeader).append(this.unloadList.getUI())
+				.hide();
+			arrow.hide();
+			this.container.append(arrow).append(evtList);
+			
+			this.container.bind('mouseup', function(evt) {
+				var tgt = evt.target;
+				
+				if (tgt !== wgt.editBtn[0] && tgt !== wgt.removeBtn[0]
+						&& tgt !== wgt.loadAdd.addBtn[0]
+						&& tgt !== wgt.unloadAdd.addBtn[0]
+						&& !wgt.isSorting) {
+					arrow.toggle(100);
+					evtList.slideToggle(200);
+				}
+			});		
+			
+			this.loadAdd.container.parent().addClass('button');
+			this.unloadAdd.container.parent().addClass('button');	
+		},
+		
+		remove: function(event) {
+			var evtObj = this.events.get(event.getId());
+			
+			if (evtObj.type === ScnEvtType.LOAD) {
+				this.loadList.remove(evtObj.li);
+			}
+			else {
+				this.unloadList.remove(evtObj.li);
+			}
+			
+			this.events.remove(event.getId());
+		},
+		
+		setParent: function(parent) {
+			this._super();
+			var wgt = this;
+			
+			// need to check for sorting
+			if (parent) {
+				parent.list.bind('sortstart', function(evt, ui){
+					wgt.isSorting = true;
+				});
+				parent.list.bind('sortstop', function(evt, ui){
+					wgt.isSorting = false;
+				});
+			}
+		},
+		
+		update: function(event) {
+			var evtObj = this.events.get(event.getId()),
+				li = evtObj.li;
+			
+			li.attachObject(event);
+			li.setText(event.name);
+		}
+	});
 		
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
@@ -159,6 +326,28 @@ var editor = (function(module) {
 			this.items = new Hashtable();		
 		},
 		
+		bindButtons: function(li, obj) {
+			var wgt = this;
+			
+			li.editBtn.bind('click', function(evt) {
+				var scn = li.getAttachedObject();
+				
+				wgt.nameInput.val(scn.name).width(SAVE_WIDTH);
+				wgt.notifyListeners(module.EventTypes.EditScene, scn);
+				wgt.addBtn.text(SAVE_TXT).data('isEditing', true)
+					.data('scene', scn).removeAttr('disabled');
+			});
+			
+			li.removeBtn.bind('click', function(evt) {
+				var scn = li.getAttachedObject();
+				wgt.notifyListeners(module.EventTypes.RemoveScene, scn);
+			});
+		},
+		
+		createListItemWidget: function() {
+			return new module.tools.ScnListItemWidget();
+		},
+		
 		finishLayout: function() {
 			this._super();			
 			
@@ -174,6 +363,10 @@ var editor = (function(module) {
 					next: next ? next : null
 				});
 			});
+		},
+		
+		getOtherHeights: function() {
+			return this.form.outerHeight(true);
 		},
 		
 		layoutExtra: function() {
@@ -214,30 +407,12 @@ var editor = (function(module) {
 			.width(ADD_WIDTH);
 			
 			return this.form;
-		},
-		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				var scn = li.getAttachedObject();
-				
-				wgt.nameInput.val(scn.name).width(SAVE_WIDTH);
-				wgt.notifyListeners(module.EventTypes.EditScene, scn);
-				wgt.addBtn.text(SAVE_TXT).data('isEditing', true)
-					.data('scene', scn).removeAttr('disabled');
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var scn = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.RemoveScene, scn);
-			});
-		},
-		
-		getOtherHeights: function() {
-			return this.form.outerHeight(true);
 		}
 	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     	Scene Event Editor Sidebar Widget                     //
+////////////////////////////////////////////////////////////////////////////////     
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
@@ -286,7 +461,33 @@ var editor = (function(module) {
 	        var model = this.model,
 	        	view = this.view,
 				scnLst = view.sceneListSBWidget,
-	        	that = this;
+	        	that = this,
+				addSceneListeners = function(scnWgt) {
+					scnWgt.addListener(module.EventTypes.AddLoadEvent, 
+						function(scn) {
+							// show the editor
+							// hide the scene list
+							scnLst.setVisible(false);
+						});
+					scnWgt.addListener(module.EventTypes.AddUnloadEvent, 
+						function(scn) {
+							// show the editor
+							// hide the scene list
+							scnLst.setVisible(false);
+						});
+					scnWgt.addListener(module.EventTypes.EditSceneEvent, 
+						function(scnEvt) {
+							// show the editor
+							// set the editor values
+							// hide the scene list
+							scnLst.setVisible(false);
+						});
+					scnWgt.addListener(module.EventTypes.RemoveSceneEvent, 
+						function(scnEvt) {
+							// let the model know
+							model.removeSceneEvent(scnEvt);
+						});
+				};
 			
 			// special listener for when the tool button is clicked
 	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
@@ -313,7 +514,8 @@ var editor = (function(module) {
 			
 			// model specific
 			model.addListener(module.EventTypes.SceneAdded, function(scene) {
-				scnLst.add(scene);
+				var li = scnLst.add(scene);
+				that.addSceneListeners(li);
 			});			
 			model.addListener(module.EventTypes.SceneUpdated, function(scene) {
 				scnLst.update(scene);

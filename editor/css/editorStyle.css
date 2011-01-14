@@ -648,13 +648,14 @@ ol.listWidget {
 	width: 100%;
 	clear: both;
 	float: left;
-	padding: 5px 0;
+	padding: 5px 0 0;
 	line-height: 30px;
+	position: relative;
 }
 ol.listWidget li {
 	display: list-item;
 	width: 290px;
-	padding: 5px 0 5px 10px;
+	padding: 5px 0 0 10px;
 }
 ol.listWidget li>div {
 	float: right;
@@ -666,6 +667,9 @@ ol.listWidget li>div {
 .listWidget li span {
 	float: left;
 	margin: 0 10px;
+}
+ol.listWidget li span {
+	margin: 0;
 }
 .listWidget li button {
 	margin: 0 2px 0 0;
@@ -687,7 +691,7 @@ ol.listWidget li>div {
 }
 .listWidget .buttonContainer {
 	float: right;
-	padding-right: 10px;
+	padding: 0 10px 7px 0;
 }
 /**
  * General form styling
@@ -1607,6 +1611,44 @@ button.msgEdtChainBtn[disabled] {
  */
 #scnName {
 	float: left;
+}
+.scnEvtListWrapper {
+	float: left;
+	width: 259px;
+	margin: 0 0 0 -30px;
+	padding: 5px 10px 5px 30px;
+	background: #fff;
+	box-shadow: 0 0 3px #ddd;
+	-moz-box-shadow: 0 0 3px #ddd;  
+}
+.scnEvtListArrow {
+	display: block; 
+	position: absolute;
+	top: 33px; 
+	left: 30px; 
+	width: 15px;
+	height: 15px;
+	background: #fff;
+	box-shadow: -1px -1px 2px #ddd;
+	-moz-box-shadow: -1px -1px 2px #ddd;  
+	transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+.scnEvtListWrapper h2 {
+	float: left;
+	width: 100%;
+}
+.scnEvtList {
+	float: left;
+	padding: 0;
+}
+ul.scnEvtList li {
+	padding: 0;
+	list-style: circle inside;
+}
+ul.scnEvtList li.button {
+	list-style: none;
 }
 
 /**

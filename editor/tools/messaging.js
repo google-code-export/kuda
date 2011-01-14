@@ -1823,7 +1823,7 @@ var editor = (function(module) {
 				var level = view.chainParent.data('level') + 1,
 					lastItem = lastChild(view.chainParent);
 				
-				this.eventList.insert(li, lastItem);
+				this.eventList.after(li, lastItem);
 				li.getUI().data('chainParent', view.chainParent)
 					.data('level', level)
 					.find('span').css('paddingLeft', level * 20 + 'px');
