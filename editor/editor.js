@@ -80,19 +80,23 @@
 				function(msg) {
 					if (msg.src instanceof hemi.model.Model) {
 						that.msgMdl.addCitizen(msg.src);
+						that.scnMdl.addCitizen(msg.src);
 						that.editorStateChanged();
 					}
 				});
 			var addFunc = function(citizen) {
 				that.msgMdl.addCitizen(citizen);
+				that.scnMdl.addCitizen(citizen);
 				that.editorStateChanged();
 			};
 			var removeFunc = function(citizen) {
 				that.msgMdl.removeCitizen(citizen);
+				that.scnMdl.addCitizen(citizen);
 				that.editorStateChanged();
 			};
 			var updateFunc = function(citizen) {
 				that.msgMdl.updateCitizen(citizen);
+				that.scnMdl.addCitizen(citizen);
 				that.editorStateChanged();
 			};
 			
@@ -138,7 +142,21 @@
 			hemi.world.subscribe(hemi.msg.cleanup, this, 'worldCleaned');
 			hemi.world.subscribe(hemi.msg.ready, this, 'worldLoaded');
 			
-			hemi.world.ready();
+			var views = this.toolbar.tools;
+				first = views[0];
+			
+			// wait for the ui to load first
+			this.sidebar.addListener(editor.EventTypes.SidebarFinishedLoading, function() {				
+				hemi.world.ready();
+				
+				// select the first tool
+				first.setMode(editor.tools.ToolConstants.MODE_DOWN);
+				
+				// enable the tools now that all the ui is loaded
+				for (var ndx = 0, len = views.length; ndx < len; ndx++) {
+					views[ndx].getUI().removeAttr('disabled');
+				}
+			});
 			
 			if (editor.dirty) {
 				var app = this;
@@ -541,8 +559,7 @@
 		layoutSidebar: function() {
 			this.sidebar = new editor.ui.Sidebar();
 			
-			var views = this.toolbar.tools,
-				first = views[0];
+			var views = this.toolbar.tools;
 			
 			for (var ndx = 0, len = views.length; ndx < len; ndx++) {
 				var view = views[ndx],
@@ -556,16 +573,6 @@
 					this.sidebar.addWidget(widgets[ndx2]);
 				}
 			}
-			
-			// show the first tool
-			this.sidebar.addListener(editor.EventTypes.SidebarFinishedLoading, function() {
-				first.setMode(editor.tools.ToolConstants.MODE_DOWN);
-				
-				// enable the tools now that all the ui is loaded
-				for (var ndx = 0, len = views.length; ndx < len; ndx++) {
-					views[ndx].getUI().removeAttr('disabled');
-				}
-			});
 		},
 		
 		sizeViewerPane: function() {

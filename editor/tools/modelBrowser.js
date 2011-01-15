@@ -858,7 +858,6 @@ var editor = (function(module) {
 		},
 		
 		addModel: function(modelData) {
-			// we're always adding the model to the root, which is -1
 			this.tree.jstree('create_node', jQuery('#node_models'), 
 				'inside', {
 					json_data: modelData

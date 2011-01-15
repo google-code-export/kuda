@@ -26,6 +26,7 @@ var editor = (function(module) {
 	module.EventTypes.SceneAdded = "scenes.SceneAdded";
 	module.EventTypes.SceneRemoved = "scenes.SceneRemoved";
 	module.EventTypes.SceneUpdated = "scenes.SceneUpdated";
+	module.EventTypes.ScnCitizenAdded = "scenes.ScnCitizenAdded";
 	
 	// scene list widget specific
     module.EventTypes.AddScene = "scenes.AddScene";
@@ -38,7 +39,177 @@ var editor = (function(module) {
 	module.EventTypes.EditSceneEvent = "scenes.EditSceneEvent";
 	module.EventTypes.RemoveSceneEvent = "scenes.RemoveSceneEvent";
 	module.EventTypes.AddLoadEvent = "scenes.AddLoadEvent";
-	module.EventTypes.AddUnLoadEvent = "scenes.AddUnLoadEvent";
+	module.EventTypes.AddUnLoadEvent = "scenes.AddUnLoadEvent";		
+    
+////////////////////////////////////////////////////////////////////////////////
+//                             Helper Methods                                 //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var CAUSE_PREFIX = 'ca_',
+		CAUSE_WRAPPER = '#causeTreeWrapper',
+		EFFECT_PREFIX = 'ef_',
+		EFFECT_WRAPPER = '#effectTreeWrapper',
+		CITIZEN_PREFIX = 'ci_',
+		CITIZEN_WRAPPER = '#msgEdtCitizensPnl',
+		MSG_WILDCARD = 'Any';
+		
+	var methodsToRemove = [
+        'constructor',
+		'getId',
+		'setId',
+		'getCitizenType',
+		'setCitizenType',
+		'toOctane'
+	];
+	
+	var createCitizenJson = function(citizen, prefix) {
+		var name = getNodeName(citizen, {
+			option: null,
+			prefix: prefix,
+			id: citizen.getId()
+		});
+		
+		var node = {
+			data: citizen.name,
+			attr: {
+				id: name,
+				rel: 'citizen'
+			},
+			metadata: {
+				type: 'citizen',
+				citizen: citizen
+			}
+		};
+		
+		return node;
+	};
+	
+	var createCitizenTypeJson = function(citizen, prefix) {
+		var type = citizen.getCitizenType().split('.').pop(),
+			name = getNodeName(citizen, {
+				option: null,
+				prefix: prefix
+			});
+		
+		var node = {
+			data: type,
+			attr: {
+				id: name,
+				rel: 'citType'
+			},
+			state: 'closed',
+			children: [],
+			metadata: {
+				type: 'citType'
+			}
+		};
+		
+		return node;
+	};
+	
+	var createEffectJson = function(citizen) {
+		var methods = [],
+			id = citizen.getId();
+		
+		for (propName in citizen) {
+			var prop = citizen[propName];
+			
+			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
+				var name = getNodeName(citizen, {
+					option: propName,
+					prefix: EFFECT_PREFIX,
+					id: id
+				});
+				
+				methods.push({
+					data: propName,
+					attr: {
+						id: name,
+						rel: 'method'
+					},
+					metadata: {
+						type: 'method',
+						parent: citizen
+					}
+				});
+			}
+		}
+		
+		var node = createCitizenJson(citizen, EFFECT_PREFIX);
+		node.children = methods;
+		node.state = 'closed';
+		return node;
+	};
+	
+	var createModuleJson = function(module) {
+		var methods = [];
+		
+		for (propName in module) {
+			var prop = module[propName];
+			
+			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
+				var name = getNodeName(module, {
+					option: propName,
+					prefix: EFFECT_PREFIX,
+					id: module.getId()
+				});
+				
+				methods.push({
+					data: propName,
+					attr: {
+						id: name,
+						rel: 'method'
+					},
+					metadata: {
+						type: 'method',
+						parent: module
+					}
+				});
+			}
+		}
+		
+		var name = getNodeName(module, {
+			prefix: EFFECT_PREFIX,
+			id: module.getId()
+		});
+		
+		var node = {
+			data: module.name,
+			attr: {
+				id: name,
+				rel: 'citType'
+			},
+			metadata: {
+				type: 'citType',
+				citizen: module
+			}
+		};
+		
+		node.children = methods;
+		node.state = 'closed';
+		return node;
+	};
+	
+	var getNodeName = function(citizen, config) {
+		var nodeName = config.prefix;
+		
+		if (citizen === null) {
+			return null;
+		} else if (citizen === MSG_WILDCARD) {
+			nodeName += citizen;
+		} else if (citizen.getCitizenType !== undefined) {
+			nodeName += citizen.getCitizenType().split('.').pop();
+		}
+		
+		if (config.id != null) {
+			nodeName += '_' + config.id;
+		}
+		if (config.option != null) {
+			nodeName += '_' + config.option;
+		}
+		
+		return nodeName.replace(' ', '_').replace('.', '_');
+	};
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -53,9 +224,39 @@ var editor = (function(module) {
     module.tools.SceneMgrModel = module.tools.ToolModel.extend({
 		init: function() {
 			this._super();
+			this.citizenTypes = new Hashtable();
 			this.lastScene = null;
 			this.editScene = null;
 	    },
+		
+		addCitizen: function(citizen) {
+			if (citizen instanceof hemi.handlers.ValueCheck) {
+				return;
+			}
+			
+			var type = citizen.getCitizenType().split('.').pop(),
+				citizens = this.citizenTypes.get(type),
+				createType = citizens === null,
+				add = createType;
+			
+			if (createType) {
+				this.citizenTypes.put(type, [citizen]);
+			} else {
+				add = citizens.indexOf(citizen) === -1;
+				
+				if (add) {
+					citizens.push(citizen);
+					this.citizenTypes.put(type, citizens);
+				}
+			}
+			
+			if (add) {
+				this.notifyListeners(module.EventTypes.ScnCitizenAdded, {
+					citizen: citizen,
+					createType: createType
+				});
+			}
+		},
 	    
 	    addScene: function(sceneName) {
 			var scene = new hemi.scene.Scene();
@@ -125,8 +326,17 @@ var editor = (function(module) {
 	    },
 		    
 	    worldLoaded: function() {
-			var scenes = hemi.world.getScenes(),
+			var citizens = hemi.world.getCitizens(),
+				scenes = hemi.world.getScenes(),
 				nextScene = null;
+			
+			for (var ndx = 0, len = citizens.length; ndx < len; ndx++) {
+				var citizen = citizens[ndx];
+				
+				if (citizen.name.match(module.tools.ToolConstants.EDITOR_PREFIX) === null) {
+					this.addCitizen(citizen);
+				}
+			}
 			
 			for (var ndx = 0, len = scenes.length; ndx < len; ndx++) {
 				var scene = scenes[ndx];
@@ -414,6 +624,227 @@ var editor = (function(module) {
 //                     	Scene Event Editor Sidebar Widget                     //
 ////////////////////////////////////////////////////////////////////////////////     
     
+	/*
+	 * Configuration object for the HiddenItemsSBWidget.
+	 */
+	module.tools.ScnEvtEdtSBWidgetDefaults = {
+		name: 'scnEvtEdtSBWidget',
+		uiFile: 'editor/tools/html/scenesForm.htm',
+		manualVisible: true
+	};
+	
+	module.tools.ScnEvtEdtSBWidget = module.ui.SidebarWidget.extend({
+		init: function(options) {
+			var newOpts = jQuery.extend({}, 
+				module.tools.ScnEvtEdtSBWidgetDefaults, options);
+		    this._super(newOpts);
+		},
+		
+		addEffect: function(citizen, createType) {
+			if (createType) {
+				this.addEffectType(citizen);
+			}
+			
+			var effectNode = createEffectJson(citizen),
+				type = citizen.getCitizenType().split('.').pop();
+				
+			this.effectChooser.tree.jstree('create_node', '#' + EFFECT_PREFIX + type, 'inside', {
+				json_data: effectNode
+			});
+		},
+		
+		addEffectType: function(citizen) {
+			var json = createCitizenTypeJson(citizen, EFFECT_PREFIX);
+			
+			this.effectChooser.tree.jstree('create_node', -1, 'last', {
+				json_data: json
+			});
+		},
+		
+		fillParams: function(argHash, autocomplete) {
+			var list = this.mainPanel.find('#msgEdtTargetParams'),
+				args = [],
+				that = this;
+			
+			list.empty();
+			argHash.each(function(key, value) {
+				args[value.ndx] = {
+					name: key,
+					val: value.value
+				};
+			});
+			
+			for (var ndx = 0, len = args.length; ndx < len; ndx++) {
+				var li = jQuery('<li></li>'),
+					ip = jQuery('<input type="text"></input>'),
+					lb = jQuery('<label></label>'),
+					cb = jQuery('<button class="msgEdtCitTreeBtn dialogBtn">Citizens</button>'),
+					arg = args[ndx],
+					id = 'msgParam_' + arg.name;
+				
+	            list.append(li);
+	            li.append(lb).append(ip).append(cb);
+				
+	            var windowHeight = window.innerHeight ? window.innerHeight : document.documentElement.offsetHeight,
+					position = li.offset(),
+					height = windowHeight - position.top;			
+				
+				cb.data('paramIn', ip)
+				.bind('click', function(evt) {
+					var citTreePnl = jQuery(CITIZEN_WRAPPER),
+						oldElem = citTreePnl.data('curElem'),
+						elem = jQuery(this);
+					
+					if (citTreePnl.is(':visible') && elem[0] === oldElem[0]) {
+						citTreePnl.hide(200).data('curElem', null);
+						that.currentParamIn = null;
+						
+						jQuery(document).unbind('click.msgCitTree');
+						citTreePnl.data('docBound', false);
+					}
+					else {
+						var position = elem.offset(),
+							isDocBound = citTreePnl.data('docBound');
+						
+						position.top += elem.outerHeight();
+						citTreePnl.hide().show(200).data('curElem', elem)
+							.offset(position).css('right', position.left);
+						
+						if (!isDocBound) {
+							jQuery(document).bind('click.msgCitTree', function(evt){
+								var target = jQuery(evt.target),
+									parent = target.parents(CITIZEN_WRAPPER),
+									id = target.attr('id');
+								
+								if (parent.size() == 0 
+									&& id != 'msgEdtCitizensPnl' 
+									&& !target.hasClass('msgEdtCitTreeBtn')) {
+									citTreePnl.hide();
+								}
+							});
+							citTreePnl.data('docBound', true);
+						}
+						
+						that.currentParamIn = elem.data('paramIn');
+					}
+				});
+				
+				lb.text(arg.name + ':');
+				lb.attr('for', id);
+				ip.attr('id', id)
+				.data('paramName', arg.name)
+				.css('maxHeight', height)
+				.blur(function(event, ui) {
+					var elem = jQuery(this),
+						val = elem.val();
+					
+					if (hemi.utils.isNumeric(val)) {
+						val = parseFloat(val);
+					}
+					
+					that.notifyListeners(module.EventTypes.SetArgument, {
+						name: elem.data('paramName'),
+						value: val
+					});
+					return false;
+				})
+				.autocomplete({
+					source: autocomplete,
+					focus: function(event, ui) {
+						var elem = jQuery(this),
+							val = ui.item.value;
+						elem.val(ui.item.label);
+						
+						if (hemi.utils.isNumeric(val)) {
+							val = parseFloat(val);
+						}
+						
+						that.notifyListeners(module.EventTypes.SetArgument, {
+							name: elem.data('paramName'),
+							value: val
+						});
+						return false;
+					},
+					select: function(event, ui) {
+	                    var elem = jQuery(this),
+							val = ui.item.value;
+						elem.val(ui.item.label);
+						
+						if (hemi.utils.isNumeric(val)) {
+							val = parseFloat(val);
+						}
+						
+						that.notifyListeners(module.EventTypes.SetArgument, {
+							name: elem.data('paramName'),
+							value: val
+						});
+						return false;
+					}
+				})
+				.data('autocomplete')._renderItem = function(ul, item) {
+					return jQuery('<li></li>')
+		            .data('item.autocomplete', item)
+					.append('<a>' + item.label + '<br/><span class="ui-autocomplete-desc">' + item.desc + '</span></a>')
+					.appendTo(ul);
+				};
+				
+				if (arg.val !== null) {
+					ip.val(arg.val);
+				} else {
+					ip.val('');
+				}
+			}
+		},
+		
+		finishLayout: function() {
+			var wgt = this,
+				container = this.find('#scnEvtEffectContainer');
+			
+			this.saveBtn = this.find('#scnEvtSaveBtn');
+			this.cancelBtn = this.find('#scnEvtCancelBtn');
+			this.name = this.find('#scnEvtName');
+			
+			this.effectChooser = new module.ui.TreeSelector({
+				buttonId: 'scnEvtTreeSelector',
+				containerClass: 'scnEvtEffectDiv',
+				types: {
+					'message': {
+						'icon': {
+							'image': 'images/treeSprite.png',
+							'position': '-80px 0'
+						}
+					},
+					'citizen': {
+						'icon': {
+							'image': 'images/treeSprite.png',
+							'position': '-48px 0'
+						}
+					},
+					'citType': {
+						'icon': {
+							'image': 'images/treeSprite.png',
+							'position': '-64px 0'
+						}
+					}
+				},
+				json: createModuleJson(hemi.audio)
+			});
+			
+			container.append(this.effectChooser.getUI());
+			
+			this.find('form').submit(function() { return false; });
+		},		
+		
+		reset: function() {
+		},
+		
+		set: function(animation) {
+		},
+		
+		validate: function() {	
+		}
+	});
+	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
@@ -435,6 +866,7 @@ var editor = (function(module) {
 			this.editItemId = null;
 			
 			this.addSidebarWidget(new module.tools.ScnListSBWidget());
+			this.addSidebarWidget(new module.tools.ScnEvtEdtSBWidget());
 	    }
 	});	
     
@@ -461,23 +893,27 @@ var editor = (function(module) {
 	        var model = this.model,
 	        	view = this.view,
 				scnLst = view.sceneListSBWidget,
+				edtWgt = view.scnEvtEdtSBWidget,
 	        	that = this,
 				addSceneListeners = function(scnWgt) {
 					scnWgt.addListener(module.EventTypes.AddLoadEvent, 
 						function(scn) {
 							// show the editor
+							edtWgt.setVisible(true);
 							// hide the scene list
 							scnLst.setVisible(false);
 						});
-					scnWgt.addListener(module.EventTypes.AddUnloadEvent, 
+					scnWgt.addListener(module.EventTypes.AddUnLoadEvent, 
 						function(scn) {
 							// show the editor
+							edtWgt.setVisible(true);
 							// hide the scene list
 							scnLst.setVisible(false);
 						});
 					scnWgt.addListener(module.EventTypes.EditSceneEvent, 
 						function(scnEvt) {
 							// show the editor
+							edtWgt.setVisible(true);
 							// set the editor values
 							// hide the scene list
 							scnLst.setVisible(false);
@@ -515,14 +951,17 @@ var editor = (function(module) {
 			// model specific
 			model.addListener(module.EventTypes.SceneAdded, function(scene) {
 				var li = scnLst.add(scene);
-				that.addSceneListeners(li);
+				addSceneListeners(li);
 			});			
 			model.addListener(module.EventTypes.SceneUpdated, function(scene) {
 				scnLst.update(scene);
 			});		
 			model.addListener(module.EventTypes.SceneRemoved, function(scene) {
 				scnLst.remove(scene);
-			});				
+			});		
+			model.addListener(module.EventTypes.ScnCitizenAdded, function(citData) {
+				edtWgt.addEffect(citData.citizen, citData.createType);
+			});	
 			model.addListener(module.EventTypes.WorldCleaned, function() {
 				scnLst.list.clear();
 			});

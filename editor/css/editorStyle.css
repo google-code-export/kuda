@@ -1616,19 +1616,19 @@ button.msgEdtChainBtn[disabled] {
 	float: left;
 	width: 259px;
 	margin: 0 0 0 -30px;
-	padding: 5px 10px 5px 30px;
-	background: #fff;
+	padding: 5px 10px 15px 30px;
+	background: #fffdf2;
 	box-shadow: 0 0 3px #ddd;
 	-moz-box-shadow: 0 0 3px #ddd;  
 }
 .scnEvtListArrow {
 	display: block; 
 	position: absolute;
-	top: 33px; 
-	left: 30px; 
-	width: 15px;
-	height: 15px;
-	background: #fff;
+	top: 35px; 
+	left: 35px; 
+	width: 13px;
+	height: 13px;
+	background: #fffdf2;
 	box-shadow: -1px -1px 2px #ddd;
 	-moz-box-shadow: -1px -1px 2px #ddd;  
 	transform: rotate(45deg);
@@ -1641,14 +1641,27 @@ button.msgEdtChainBtn[disabled] {
 }
 .scnEvtList {
 	float: left;
-	padding: 0;
+	padding: 0 0 0 20px;
 }
 ul.scnEvtList li {
 	padding: 0;
 	list-style: circle inside;
+	width: 240px;
+}
+ul.scnEvtList li:hover {
+	background: none;
+}
+ul.scnEvtList li > div {	
+	width: 240px;
 }
 ul.scnEvtList li.button {
 	list-style: none;
+}
+.treeSelectPnl {
+	background: #fff;
+	border: 1px solid black;
+	overflow: auto;
+	position: absolute;
 }
 
 /**

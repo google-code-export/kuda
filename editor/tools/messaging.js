@@ -1280,10 +1280,12 @@ var editor = (function(module) {
 				
 		createCauseTree: function(json) {
 			var that = this,
-				wildcardCause = createWildcardJson();
+				wildcardCause = createWildcardJson(),
+				causeWrapper = this.mainPanel.find(CAUSE_WRAPPER);
 			
 			json.unshift(wildcardCause);
 			this.causeTree = jQuery('<div id="causeTree"></div>');
+			causeWrapper.append(this.causeTree);
 			
 			this.causeTree.bind('select_node.jstree', function(evt, data) {
 				var elem = data.rslt.obj,
@@ -1360,8 +1362,11 @@ var editor = (function(module) {
 		},
 		
 		createCitizenTree: function(json) {
-			var that = this;
+			var that = this,
+				citizenWrapper = this.mainPanel.find(CITIZEN_WRAPPER);
+				
 			this.citizenTree = jQuery('<div id="msgEdtCitizensTree"></div>');
+			citizenWrapper.append(this.citizenTree);
 			
 			this.citizenTree.bind('select_node.jstree', function(evt, data) {
 				var elem = data.rslt.obj,
@@ -1420,8 +1425,11 @@ var editor = (function(module) {
 		},
 		
 		createEffectTree: function(json) {
-			var that = this;
+			var that = this,
+				effectWrapper = this.mainPanel.find(EFFECT_WRAPPER);
+				
 			this.effectTree = jQuery('<div id="effectTree"></div>');
+			effectWrapper.append(this.effectTree);
 			
 			this.effectTree.bind('select_node.jstree', function(evt, data) {
 				var elem = data.rslt.obj,

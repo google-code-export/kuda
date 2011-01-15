@@ -79,7 +79,7 @@ var editor = (function(module, jQuery) {
 			
 			// position this
 			ctn.offset({
-				top: top,
+				top: top + 20,
 				left: offset.left - difference
 			});
 			
@@ -102,6 +102,10 @@ var editor = (function(module, jQuery) {
 			// set the element class
 			element.addClass('error');
 			
+			ctn.css('opacity', 0).animate({
+				opacity: 1,
+				top: '-=20'
+			}, 200);
 			// auto hide the message
 			this.hideTimer(true);
 		},
@@ -128,8 +132,11 @@ var editor = (function(module, jQuery) {
 			if (this.id === id) {
 				var ctn = this.container;
 				
-				ctn.fadeOut(300, function(){
-					ctn.remove();
+				ctn.animate({
+					opacity: 0,
+					top: '-=20'
+				}, 200, function(){
+					ctn.hide().remove();
 				});
 			}
 		}
