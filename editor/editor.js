@@ -545,6 +545,7 @@
 			
 			scnCtr.setView(scnView);
 			scnCtr.setModel(this.scnMdl);
+			scnCtr.setMessagingModel(this.msgMdl);
 			
 			shpCtr.setView(shpView);
 			shpCtr.setModel(this.shpMdl);

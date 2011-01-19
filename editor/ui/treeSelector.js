@@ -23,8 +23,9 @@ var editor = (function(module) {
 	// jquery triggered events
 	module.EventTypes.ColorPicked = 'editor.TreeSelector.ColorPicked';
 	
+	var eventNdx = 0;
+	
 	module.ui.TreeSelectorDefaults = {
-		buttonId: 'treeSelector',
 		containerClass: '',
 		panelHeight: 400,
 		types: {},
@@ -36,6 +37,9 @@ var editor = (function(module) {
 		init: function(options) {
 			var newOpts =  jQuery.extend({}, module.ui.TreeSelectorDefaults, 
 				options);
+			this.eventName = 'click.treeSelctor' + eventNdx;
+			this.buttonId = 'treeSelector' + eventNdx;
+			this.panelId = 'treeSelectPnl' + eventNdx++;
 			this._super(newOpts);
 		},
 		
@@ -45,8 +49,8 @@ var editor = (function(module) {
 			// initialize container
 			this.container = jQuery('<div></div>');
 			this.input = jQuery('<input type="text" />');
-			this.picker = jQuery('<button id="' + this.config.buttonId + '">Selector</button>');
-			this.panel = jQuery('<div class="treeSelectPnl"></div>');
+			this.picker = jQuery('<button id="' + this.buttonId + '">Selector</button>');
+			this.panel = jQuery('<div id="' + this.panelId + '" class="treeSelectPnl"></div>');
 			this.tree = jQuery('<div></div>');
 			
 			this.container.addClass(this.config.containerClass);
@@ -59,18 +63,17 @@ var editor = (function(module) {
 			}).append(this.tree).hide();
 			
 			// setup the tree
-			this.tree.bind('select_node.jstree', function(evt, data) {
-				// check for a click on the node
-				if (data.args[2] != null) {
-					if (wgt.config.select) {
-						wgt.config.select(data);
-					}
-					else {
-						var elem = data.rslt.obj, 
-							name = elem.find('a').text();
-						
-						wgt.input.val(name);						
-					}
+			this.tree.bind('select_node.jstree', function(evt, data) {	
+				if (wgt.config.select) {
+					wgt.config.select(data, wgt);
+				}
+				else {
+					var elem = data.rslt.obj,					 
+						val = elem.find('a').text();	
+					
+					wgt.input.val(val);	
+					wgt.hidePanel();
+					wgt.setSelection(val);
 				}
 			})
 			.jstree({
@@ -92,18 +95,39 @@ var editor = (function(module) {
 			
 			this.picker.bind('click', function(evt) {
 				var input = wgt.input,
-					position = input.offset(),
-					width = wgt.container.outerWidth();
-								
-				position.top += input.outerHeight();
+					pnl = wgt.panel;
 				
-				wgt.panel.offset(position).width(width).slideDown(100);
+				if (pnl.is(':visible')) {
+					wgt.hidePanel();
+					
+					jQuery(document).unbind(wgt.eventName);
+					pnl.data('docBound', false);
+				}
+				else {
+					var isDocBound = pnl.data('docBound');
+					
+					wgt.showPanel();
+										
+					if (!isDocBound) {
+						jQuery(document).bind(wgt.eventName, function(evt){
+							var target = jQuery(evt.target),
+								parent = target.parents('#' + wgt.panelId),
+								id = target.attr('id');
+							
+							if (parent.size() == 0 
+									&& id != wgt.panelId
+									&& id != wgt.buttonId) {
+								pnl.hide();
+							}
+						});
+						pnl.data('docBound', true);
+					}
+				}
 			});
 		},
-	
-		select: function(nodeId) {
-			var elem = jQuery('#' + nodeId);
-			this.tree.jstree('select_node', elem);
+		
+		hidePanel: function() {
+			this.panel.slideUp(200);
 		},
 		
 		reset: function() {
@@ -111,7 +135,24 @@ var editor = (function(module) {
 			this.tree.jstree('deselect_all');
 		},
 		
-		value: function() {
+		setSelection: function(obj) {
+			this.input.data('selectObj', obj);
+		},
+	
+		select: function(nodeId) {
+			var elem = jQuery('#' + nodeId);
+			this.tree.jstree('select_node', elem);
+		},
+		
+		showPanel: function() {
+			var position = this.input.offset(),
+				width = wgt.container.outerWidth();
+			
+			position.top += this.input.outerHeight();
+			this.panel.offset(position).width(width).slideDown(200);
+		},
+		
+		getValue: function() {
 			return this.input.data('selectObj');
 		}
 	});

@@ -540,9 +540,9 @@ var editor = (function(module) {
 		chainTable.put('hemi.motion.Translator' + '_' + 'onRender', [hemi.msg.stop]);
 		// Scene
 		chainTable.put('hemi.scene.Scene' + '_' + 'load', [hemi.msg.load]);
-		chainTable.put('hemi.scene.Scene' + '_' + 'nextScene', [hemi.msg.load]); // Calls load(), unload()
-		chainTable.put('hemi.scene.Scene' + '_' + 'previousScene', [hemi.msg.load]); // Calls load(), unload()
-		chainTable.put('hemi.scene.Scene' + '_' + 'unload', [hemi.msg.load]);
+		chainTable.put('hemi.scene.Scene' + '_' + 'nextScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.scene.Scene' + '_' + 'previousScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.scene.Scene' + '_' + 'unload', [hemi.msg.unload]);
 		// Camera
 		chainTable.put('hemi.view.Camera' + '_' + 'moveOnCurve', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
 		chainTable.put('hemi.view.Camera' + '_' + 'moveToView', [hemi.msg.start, hemi.msg.stop]); // Leads to update()

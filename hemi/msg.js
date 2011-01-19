@@ -90,11 +90,21 @@ var hemi = (function(hemi) {
 		 * { }
 		 * @example
 		 * Sent by hemi.scene.Scene, data =
-		 * {
-		 *     loaded: (flag indicating if the Scene is loaded)
-		 * }
+		 * { }
 		 */
 		load: 'hemi.load',
+		/**
+		 * The Message sent when something is unloaded.
+		 * @type string
+		 * @constant
+		 * @example
+		 * Sent by hemi.model.Model, data =
+		 * { }
+		 * @example
+		 * Sent by hemi.scene.Scene, data =
+		 * { }
+		 */
+		unload: 'hemi.unload',
 		/**
 		 * The Message sent when a shape is picked by a mouse down.
 		 * @type string

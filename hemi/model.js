@@ -699,6 +699,8 @@ var hemi = (function(hemi) {
 				this.root = null;
 				this.animParam = null;
 			}
+			
+			this.send(hemi.msg.unload, {});
 		}
 	};
 

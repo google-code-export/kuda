@@ -118,10 +118,7 @@ var hemi = (function(hemi) {
 			if (!this.isLoaded) {
 				this.isLoaded = true;
 				
-				this.send(hemi.msg.load,
-				{
-					loaded: this.isLoaded
-				});
+				this.send(hemi.msg.load, {});
 			}
 		},
 		
@@ -132,10 +129,7 @@ var hemi = (function(hemi) {
 			if (this.isLoaded) {
 				this.isLoaded = false;
 				
-				this.send(hemi.msg.load,
-				{
-					loaded: this.isLoaded
-				});
+				this.send(hemi.msg.unload, {});
 			}
 		},
 		
@@ -162,7 +156,7 @@ var hemi = (function(hemi) {
 	
 	hemi.scene.Scene.inheritsFrom(hemi.world.Citizen);
 	hemi.scene.Scene.prototype.msgSent =
-		hemi.scene.Scene.prototype.msgSent.concat([hemi.msg.load]);
+		hemi.scene.Scene.prototype.msgSent.concat([hemi.msg.load, hemi.msg.unload]);
 	
 	return hemi;
 })(hemi || {});

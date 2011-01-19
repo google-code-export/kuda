@@ -729,9 +729,7 @@
 		
 		scene.subscribe(hemi.msg.load,
 			function(msg) {
-				if (msg.data.loaded) {
-					hemi.world.camera.moveToView(viewpoint1);
-				}
+				hemi.world.camera.moveToView(viewpoint1);
 			});
 		
 		var text1 = new hemi.hud.HudText();
@@ -773,9 +771,7 @@
 		
 		scene.subscribe(hemi.msg.load,
 			function(msg) {
-				if (msg.data.loaded) {
-					hemi.world.camera.moveToView(viewpoint);
-				}
+				hemi.world.camera.moveToView(viewpoint);
 			});
 		
 		var text1 = new hemi.hud.HudText();
@@ -866,9 +862,7 @@
 		
 		scene.subscribe(hemi.msg.load,
 			function(msg) {
-				if (msg.data.loaded) {
-					hemi.world.camera.moveToView(viewpoint);
-				}
+				hemi.world.camera.moveToView(viewpoint);
 			});
         
 		var text1 = new hemi.hud.HudText();
@@ -979,10 +973,8 @@
 		
 		scene.subscribe(hemi.msg.load,
 			function(msg) {
-				if (msg.data.loaded) {
-					hext.hud.showPagingInfo();
-					display1.show();
-				}
+				hext.hud.showPagingInfo();
+				display1.show();
 			});
 		
 		var viewpoint1 = createViewpoint(model, 'camEye_BDCam', 'camTarget_BDCam');
@@ -1011,9 +1003,7 @@
 		
 		scene.subscribe(hemi.msg.load,
 			function(msg) {
-				if (msg.data.loaded) {
-					hemi.world.camera.moveToView(viewpoint);
-				}
+				hemi.world.camera.moveToView(viewpoint);
 			});
 		
         var text1 = new hemi.hud.HudText();
@@ -1112,10 +1102,8 @@
 		
 		scene.subscribe(hemi.msg.load,
 			function(msg) {
-				if (msg.data.loaded) {
-					display1.show();
-					hemi.world.camera.moveToView(viewpoint1);
-				}
+				display1.show();
+				hemi.world.camera.moveToView(viewpoint1);
 			});
 		
 		var startFrame = 260;

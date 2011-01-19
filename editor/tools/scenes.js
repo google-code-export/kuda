@@ -27,6 +27,7 @@ var editor = (function(module) {
 	module.EventTypes.SceneRemoved = "scenes.SceneRemoved";
 	module.EventTypes.SceneUpdated = "scenes.SceneUpdated";
 	module.EventTypes.ScnCitizenAdded = "scenes.ScnCitizenAdded";
+	module.EventTypes.ScnEventCreated = "scenes.ScnEventCreated";
 	
 	// scene list widget specific
     module.EventTypes.AddScene = "scenes.AddScene";
@@ -40,17 +41,21 @@ var editor = (function(module) {
 	module.EventTypes.RemoveSceneEvent = "scenes.RemoveSceneEvent";
 	module.EventTypes.AddLoadEvent = "scenes.AddLoadEvent";
 	module.EventTypes.AddUnLoadEvent = "scenes.AddUnLoadEvent";		
+	
+	// scene event editor widget specific
+	module.EventTypes.CancelScnEvtEdit = "scenes.CancelScnEvtEdit";
+	module.EventTypes.SaveSceneEvent = "scenes.SaveSceneEvent";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                             Helper Methods                                 //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var CAUSE_PREFIX = 'ca_',
+	var CAUSE_PREFIX = 'scnCa_',
 		CAUSE_WRAPPER = '#causeTreeWrapper',
-		EFFECT_PREFIX = 'ef_',
+		EFFECT_PREFIX = 'scnEf_',
 		EFFECT_WRAPPER = '#effectTreeWrapper',
-		CITIZEN_PREFIX = 'ci_',
-		CITIZEN_WRAPPER = '#msgEdtCitizensPnl',
+		CITIZEN_PREFIX = 'scnCi_',
+		CITIZEN_WRAPPER = '#scnEvtCitizensPnl',
 		MSG_WILDCARD = 'Any';
 		
 	var methodsToRemove = [
@@ -190,6 +195,13 @@ var editor = (function(module) {
 		return node;
 	};
 	
+	/**
+	 * Returns the list of parameters for a function
+	 */
+	var getFunctionParams = function(func) {
+		return func.toString().match(/\((.*?)\)/)[1].match(/[\w]+/g) || [];
+    };
+	
 	var getNodeName = function(citizen, config) {
 		var nodeName = config.prefix;
 		
@@ -199,6 +211,8 @@ var editor = (function(module) {
 			nodeName += citizen;
 		} else if (citizen.getCitizenType !== undefined) {
 			nodeName += citizen.getCitizenType().split('.').pop();
+		} else if (citizen.name) {
+			nodeName += citizen.name;
 		}
 		
 		if (config.id != null) {
@@ -227,6 +241,9 @@ var editor = (function(module) {
 			this.citizenTypes = new Hashtable();
 			this.lastScene = null;
 			this.editScene = null;
+			
+			// TODO: share the dispatch proxy with messaging
+			this.dispatchProxy = new module.tools.DispatchProxy();
 	    },
 		
 		addCitizen: function(citizen) {
@@ -270,8 +287,9 @@ var editor = (function(module) {
 			this.notifyListeners(module.EventTypes.SceneAdded, scene);
 	    },
 		
-		addSceneEvent: function(scene, eventParams) {
-			// TODO
+		cancelSceneEventEdit: function() {
+			this.isUpdatingScnEvt = false;
+			this.sceneEvent = null;
 		},
 	    
 	    removeScene: function(scene) {
@@ -282,10 +300,6 @@ var editor = (function(module) {
 			scene.cleanup();
 			this.notifyListeners(module.EventTypes.SceneRemoved, scene);
 	    },
-		
-		removeSceneEvent: function(sceneEvent) {
-			// TODO
-		},
 		
 		reorderScenes: function(scene, previous, next) {
 			var oldPrev = scene.prev,
@@ -319,6 +333,71 @@ var editor = (function(module) {
 		
 		updateSceneEvent: function(sceneEvent, eventParams) {
 			// TODO
+			var values = this.args.values(),
+				args = [],
+				editId = null,
+				newTarget;
+			
+			if (this.msgTarget !== null) {
+				this.dispatchProxy.removeTarget(this.msgTarget);
+				
+				if (this.msgTarget.handler instanceof hemi.handlers.ValueCheck) {
+					this.msgTarget.handler.cleanup();
+				}
+				
+				this.msgTarget.cleanup();
+			}
+			
+			for (var ndx = 0, len = values.length; ndx < len; ndx++) {
+				var val = values[ndx];
+				args[val.ndx] = val.value;
+			}
+			
+			if (this.source.shapePick) {
+				this.dispatchProxy.swap();
+				newTarget = hemi.handlers.handlePick(
+					this.type,
+					this.handler,
+					this.method,
+					args);
+				this.dispatchProxy.unswap();
+			}
+			else if (this.source.camMove) {
+				this.dispatchProxy.swap();
+				var viewpoint = hemi.world.getCitizenById(this.type);
+				newTarget = hemi.handlers.handleCameraMove(
+					hemi.world.camera,
+					viewpoint,
+					this.handler,
+					this.method,
+					args);
+				this.dispatchProxy.unswap();
+			}
+			else {
+				var src = this.source === MSG_WILDCARD ? hemi.dispatch.WILDCARD : this.source.getId(),
+					type = this.type === MSG_WILDCARD ? hemi.dispatch.WILDCARD : this.type;
+				
+				newTarget = this.dispatchProxy.registerTarget(
+		            src,
+		            type,
+		            this.handler,
+		            this.method,
+		            args);
+			}
+			
+			newTarget.name = name;
+			
+			if (this.msgTarget !== null) {
+				newTarget.dispatchId = this.msgTarget.dispatchId;
+				this.notifyListeners(module.EventTypes.TargetUpdated, newTarget);
+			} else {
+				this.notifyListeners(module.EventTypes.TargetCreated, newTarget);
+			}
+			
+			this.msgTarget = null;
+			this.args.each(function(key, value) {
+				value.value = null;
+			});
 		},
 	    
 	    worldCleaned: function() {
@@ -352,6 +431,17 @@ var editor = (function(module) {
 			
 			while (nextScene !== null) {
 				this.notifyListeners(module.EventTypes.SceneAdded, nextScene);
+				var target = hemi.dispatch.getTargets({
+							src: nextScene
+						}),
+					spec = hemi.dispatch.getSpec(target);
+					
+				this.notifyListeners(module.EventTypes.ScnEventCreated, {
+					scene: nextScene,
+					type: spec.msg,
+					msgTarget: target
+				});
+				
 				nextScene = nextScene.next;
 			}
 	    }
@@ -364,11 +454,7 @@ var editor = (function(module) {
 	var ADD_TXT = "Add Scene",
 		SAVE_TXT = "Save Scene",
 		ADD_WIDTH = 180,
-		SAVE_WIDTH = 170,
-		ScnEvtType = {
-			LOAD: 'load',
-			UNLOAD: 'unload'
-		};
+		SAVE_WIDTH = 170;
 		
 	module.tools.ScnListItemWidget = module.ui.EditableListItemWidget.extend({
 		init: function() {
@@ -386,14 +472,14 @@ var editor = (function(module) {
 			
 			this.bindButtons(li);
 			
-			if (type === ScnEvtType.LOAD) {
+			if (type === hemi.msg.load) {
 				this.loadList.before(li, this.loadAdd);
 			}
 			else {
 				this.unloadList.before(li, this.unloadAdd);
 			}
 			
-			this.events.put(event.getId(), {
+			this.events.put(event.dispatchId, {
 				type: type,
 				li: li
 			});
@@ -403,9 +489,15 @@ var editor = (function(module) {
 			var wgt = this;
 			
 			li.editBtn.bind('click', function(evt) {
-				var evt = li.getAttachedObject();
+				var evt = li.getAttachedObject(),
+					scn = wgt.getAttachedObject(),
+					typ = wgt.events.get(evt.dispatchId).type;
 				
-				wgt.notifyListeners(module.EventTypes.EditSceneEvent, evt);
+				wgt.notifyListeners(module.EventTypes.EditSceneEvent, {
+					scene: scn,
+					event: evt,
+					type: typ
+				});
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
@@ -463,11 +555,11 @@ var editor = (function(module) {
 			this.container.append(arrow).append(evtList);
 			
 			this.container.bind('mouseup', function(evt) {
-				var tgt = evt.target;
+				var tgt = jQuery(evt.target);
 				
-				if (tgt !== wgt.editBtn[0] && tgt !== wgt.removeBtn[0]
-						&& tgt !== wgt.loadAdd.addBtn[0]
-						&& tgt !== wgt.unloadAdd.addBtn[0]
+				if (evt.target.tagName !== 'BUTTON'
+						&& tgt.parents('.scnEvtListWrapper').size() === 0
+						&& !tgt.hasClass('scnEvtListWrapper')
 						&& !wgt.isSorting) {
 					arrow.toggle(100);
 					evtList.slideToggle(200);
@@ -479,16 +571,16 @@ var editor = (function(module) {
 		},
 		
 		remove: function(event) {
-			var evtObj = this.events.get(event.getId());
+			var evtObj = this.events.get(event.dispatchId);
 			
-			if (evtObj.type === ScnEvtType.LOAD) {
+			if (evtObj.type === hemi.msg.load) {
 				this.loadList.remove(evtObj.li);
 			}
 			else {
 				this.unloadList.remove(evtObj.li);
 			}
 			
-			this.events.remove(event.getId());
+			this.events.remove(event.dispatchId);
 		},
 		
 		setParent: function(parent) {
@@ -507,7 +599,7 @@ var editor = (function(module) {
 		},
 		
 		update: function(event) {
-			var evtObj = this.events.get(event.getId()),
+			var evtObj = this.events.get(event.dispatchId),
 				li = evtObj.li;
 			
 			li.attachObject(event);
@@ -534,6 +626,14 @@ var editor = (function(module) {
 		    this._super(newOpts);
 			
 			this.items = new Hashtable();		
+		},
+		
+		add: function(obj) {
+			var li = this._super(obj);
+			
+			this.items.put(obj.getId(), li);
+			
+			return li;
 		},
 		
 		bindButtons: function(li, obj) {
@@ -577,6 +677,10 @@ var editor = (function(module) {
 		
 		getOtherHeights: function() {
 			return this.form.outerHeight(true);
+		},
+		
+		getListItem: function(scene) {
+			return this.items.get(scene.getId());
 		},
 		
 		layoutExtra: function() {
@@ -640,6 +744,31 @@ var editor = (function(module) {
 		    this._super(newOpts);
 		},
 		
+		addCitizen: function(citizen, createType) {
+			if (createType) {
+				this.addCitizenType(citizen);
+			}
+			
+			var citizenNode = createCitizenJson(citizen, CITIZEN_PREFIX),
+				type = citizen.getCitizenType().split('.').pop();
+				
+			this.citizenTree.jstree('create_node', '#' + CITIZEN_PREFIX + type, 'inside', {
+				json_data: citizenNode
+			});
+		},
+		
+		addCitizenType: function(citizen) {
+			var json = createCitizenTypeJson(citizen, CITIZEN_PREFIX);
+			
+			if (this.citizenTree == null) {
+				this.createCitizenTree([json]);
+			} else {
+				this.citizenTree.jstree('create_node', -1, 'last', {
+					json_data: json
+				});
+			}
+		},
+		
 		addEffect: function(citizen, createType) {
 			if (createType) {
 				this.addEffectType(citizen);
@@ -661,28 +790,99 @@ var editor = (function(module) {
 			});
 		},
 		
-		fillParams: function(argHash, autocomplete) {
-			var list = this.mainPanel.find('#msgEdtTargetParams'),
-				args = [],
-				that = this;
+		canSave: function() {
+			var isSaveable = this.effectChooser.getValue()  != null 
+				&& this.name.val() !== '';
+				
+			if (isSaveable) {
+				this.saveBtn.removeAttr('disabled');
+			}
+			else {
+				this.saveBtn.attr('disabled', 'disabled');
+			}
+		},
+		
+		createCitizenTree: function(json) {
+			var that = this,
+				citizenWrapper = this.find(CITIZEN_WRAPPER);
+				
+			this.citizenTree = jQuery('<div id="scnEvtCitizensTree"></div>');
+			citizenWrapper.append(this.citizenTree);
 			
-			list.empty();
-			argHash.each(function(key, value) {
-				args[value.ndx] = {
-					name: key,
-					val: value.value
-				};
+			this.citizenTree.bind('select_node.jstree', function(evt, data) {
+				var elem = data.rslt.obj,
+					metadata = elem.data('jstree'),
+					paramIn = that.currentParamIn,
+					citParam;
+					
+				if (metadata.type === 'citizen') {
+					citParam = hemi.dispatch.ID_ARG + metadata.citizen.getId();
+					jQuery(this).parent().hide(200);
+					that.citizenTree.jstree('close_all').jstree('deselect_all');
+					that.currentParamIn = null;
+				} else if (metadata.type === 'citType') {
+					citParam = '';
+					that.citizenTree.jstree('toggle_node', elem);
+				}
+				
+				if (paramIn !== null) {
+					paramIn.val(citParam);
+					
+					that.notifyListeners(module.EventTypes.SetArgument, {
+						name: paramIn.data('paramName'),
+						value: citParam
+					});
+				}
+			})
+			.jstree({
+				'json_data': {
+					'data': json
+				},
+				'types': {
+					'types': {
+						'citizen': {
+							'icon': {
+								'image': 'images/treeSprite.png',
+								'position': '-48px 0'
+							}
+						},
+						'citType': {
+							'icon': {
+								'image': 'images/treeSprite.png',
+								'position': '-64px 0'
+							}
+						}
+					}
+				},
+				'themes': {
+					'dots': false
+				},
+				'ui': {
+					'select_limit': 1,
+					'selected_parent_close': 'false'
+				},
+				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
+			
+			citizenWrapper.css('position', 'absolute').data('curElem', null)
+				.hide();
+		},
+		
+		fillParams: function(args, vals) {
+			var	wgt = this;
+			
+			this.list.empty();
+			this.curArgs = [];
 			
 			for (var ndx = 0, len = args.length; ndx < len; ndx++) {
 				var li = jQuery('<li></li>'),
 					ip = jQuery('<input type="text"></input>'),
 					lb = jQuery('<label></label>'),
-					cb = jQuery('<button class="msgEdtCitTreeBtn dialogBtn">Citizens</button>'),
+					cb = jQuery('<button class="scnEvtCitTreeBtn dialogBtn">Citizens</button>'),
 					arg = args[ndx],
-					id = 'msgParam_' + arg.name;
+					id = 'scnEvtParam_' + arg.name;
 				
-	            list.append(li);
+	            this.list.append(li);
 	            li.append(lb).append(ip).append(cb);
 				
 	            var windowHeight = window.innerHeight ? window.innerHeight : document.documentElement.offsetHeight,
@@ -691,15 +891,16 @@ var editor = (function(module) {
 				
 				cb.data('paramIn', ip)
 				.bind('click', function(evt) {
-					var citTreePnl = jQuery(CITIZEN_WRAPPER),
+					var citTreePnl = wgt.find(CITIZEN_WRAPPER),
 						oldElem = citTreePnl.data('curElem'),
 						elem = jQuery(this);
 					
-					if (citTreePnl.is(':visible') && elem[0] === oldElem[0]) {
+					if (citTreePnl.is(':visible') && oldElem 
+							&& elem[0] === oldElem[0]) {
 						citTreePnl.hide(200).data('curElem', null);
-						that.currentParamIn = null;
+						wgt.currentParamIn = null;
 						
-						jQuery(document).unbind('click.msgCitTree');
+						jQuery(document).unbind('click.scnEvtCitTree');
 						citTreePnl.data('docBound', false);
 					}
 					else {
@@ -711,88 +912,35 @@ var editor = (function(module) {
 							.offset(position).css('right', position.left);
 						
 						if (!isDocBound) {
-							jQuery(document).bind('click.msgCitTree', function(evt){
+							jQuery(document).bind('click.scnEvtCitTree', function(evt){
 								var target = jQuery(evt.target),
 									parent = target.parents(CITIZEN_WRAPPER),
 									id = target.attr('id');
 								
 								if (parent.size() == 0 
-									&& id != 'msgEdtCitizensPnl' 
-									&& !target.hasClass('msgEdtCitTreeBtn')) {
+									&& id != 'scnEvtCitizensPnl' 
+									&& !target.hasClass('scnEvtCitTreeBtn')) {
 									citTreePnl.hide();
 								}
 							});
 							citTreePnl.data('docBound', true);
 						}
 						
-						that.currentParamIn = elem.data('paramIn');
+						wgt.currentParamIn = elem.data('paramIn');
 					}
 				});
 				
-				lb.text(arg.name + ':');
+				lb.text(arg + ':');
 				lb.attr('for', id);
-				ip.attr('id', id)
-				.data('paramName', arg.name)
-				.css('maxHeight', height)
-				.blur(function(event, ui) {
-					var elem = jQuery(this),
-						val = elem.val();
-					
-					if (hemi.utils.isNumeric(val)) {
-						val = parseFloat(val);
-					}
-					
-					that.notifyListeners(module.EventTypes.SetArgument, {
-						name: elem.data('paramName'),
-						value: val
-					});
-					return false;
-				})
-				.autocomplete({
-					source: autocomplete,
-					focus: function(event, ui) {
-						var elem = jQuery(this),
-							val = ui.item.value;
-						elem.val(ui.item.label);
-						
-						if (hemi.utils.isNumeric(val)) {
-							val = parseFloat(val);
-						}
-						
-						that.notifyListeners(module.EventTypes.SetArgument, {
-							name: elem.data('paramName'),
-							value: val
-						});
-						return false;
-					},
-					select: function(event, ui) {
-	                    var elem = jQuery(this),
-							val = ui.item.value;
-						elem.val(ui.item.label);
-						
-						if (hemi.utils.isNumeric(val)) {
-							val = parseFloat(val);
-						}
-						
-						that.notifyListeners(module.EventTypes.SetArgument, {
-							name: elem.data('paramName'),
-							value: val
-						});
-						return false;
-					}
-				})
-				.data('autocomplete')._renderItem = function(ul, item) {
-					return jQuery('<li></li>')
-		            .data('item.autocomplete', item)
-					.append('<a>' + item.label + '<br/><span class="ui-autocomplete-desc">' + item.desc + '</span></a>')
-					.appendTo(ul);
-				};
+				ip.attr('id', id).data('name', arg).css('maxHeight', height);
 				
-				if (arg.val !== null) {
-					ip.val(arg.val);
+				if (vals && vals[ndx] !== null) {
+					ip.val(vals[ndx]);
 				} else {
 					ip.val('');
 				}
+				
+				this.curArgs.push(ip);
 			}
 		},
 		
@@ -803,12 +951,13 @@ var editor = (function(module) {
 			this.saveBtn = this.find('#scnEvtSaveBtn');
 			this.cancelBtn = this.find('#scnEvtCancelBtn');
 			this.name = this.find('#scnEvtName');
+			this.list = this.find('#scnEvtTargetParams');
 			
 			this.effectChooser = new module.ui.TreeSelector({
 				buttonId: 'scnEvtTreeSelector',
 				containerClass: 'scnEvtEffectDiv',
 				types: {
-					'message': {
+					'method': {
 						'icon': {
 							'image': 'images/treeSprite.png',
 							'position': '-80px 0'
@@ -827,18 +976,105 @@ var editor = (function(module) {
 						}
 					}
 				},
-				json: createModuleJson(hemi.audio)
+				json: createModuleJson(hemi.audio),
+				select: function(data, selector) {
+					var elem = data.rslt.obj,
+						metadata = elem.data('jstree'),
+						path = wgt.effectChooser.tree.jstree('get_path', elem);
+					
+					if (metadata.type === 'citType' 
+							|| metadata.type === 'citizen') {
+						selector.tree.jstree('open_node', elem, false, false);
+					}
+					else {					
+						var cit = metadata.parent,
+							method = path[path.length-1];
+							
+						wgt.fillParams(getFunctionParams(cit[method]));
+						selector.input.val(path.join('.'));
+						selector.hidePanel();
+						selector.setSelection({
+							obj: cit,
+							method: method 
+						});
+						wgt.canSave();
+					}
+				}
 			});
 			
 			container.append(this.effectChooser.getUI());
 			
 			this.find('form').submit(function() { return false; });
+			
+			this.cancelBtn.bind('click', function(evt) {
+				wgt.notifyListeners(module.EventTypes.CancelScnEvtEdit, null);
+			});
+			
+			this.saveBtn.bind('click', function(evt) {
+				var selVal = wgt.effectChooser.getValue(),
+					saveObj = jQuery.extend(selVal, {
+						args: wgt.getArgs(),
+						type: wgt.type,
+						name: wgt.name.val(),
+						scene: wgt.scene
+					});
+				wgt.notifyListeners(module.EventTypes.SaveSceneEvent, saveObj);
+			});
+			
+			this.name.bind('keyup', function(evt) {
+				wgt.canSave();
+			});
 		},		
 		
-		reset: function() {
+		getArgs: function() {
+			var argsIpt = this.curArgs,
+				args = [];
+			
+			for (var ndx = 0, len = argsIpt.length; ndx < len; ndx++) {
+				var ipt = argsIpt[ndx],
+					val = ipt.val();
+				
+				if (hemi.utils.isNumeric(val)) {
+					val = parseFloat(val);
+				}
+				
+				args.push({
+					name: ipt.data('name'),
+					value: val
+				});				
+			}
+			
+			return args;
 		},
 		
-		set: function(animation) {
+		reset: function() {
+			this.scene = null;
+			this.type = null;
+			this.name.val('');
+			this.curArgs = [];
+			this.effectChooser.reset();
+			this.list.empty();
+		},
+		
+		set: function(scene, type, target) {
+			this.scene = scene;
+			this.type = type;
+			
+			if (target) {				
+				var node = getNodeName(target.handler, {
+					option: target.func,
+					prefix: EFFECT_PREFIX,
+					id: target.handler.getId()
+				});
+				
+				this.effectChooser.select(node);
+				
+				for (var ndx = 0, len = target.args.length; ndx < len; ndx++) {
+					this.curArgs[ndx].val(target.args[ndx]);
+				}
+				
+				this.name.val(target.name);
+			}
 		},
 		
 		validate: function() {	
@@ -891,6 +1127,7 @@ var editor = (function(module) {
 	        this._super();
 	        
 	        var model = this.model,
+				msgMdl = this.messagingModel,
 	        	view = this.view,
 				scnLst = view.sceneListSBWidget,
 				edtWgt = view.scnEvtEdtSBWidget,
@@ -900,6 +1137,7 @@ var editor = (function(module) {
 						function(scn) {
 							// show the editor
 							edtWgt.setVisible(true);
+							edtWgt.set(scn, hemi.msg.load);
 							// hide the scene list
 							scnLst.setVisible(false);
 						});
@@ -907,6 +1145,7 @@ var editor = (function(module) {
 						function(scn) {
 							// show the editor
 							edtWgt.setVisible(true);
+							edtWgt.set(scn, hemi.msg.unload);
 							// hide the scene list
 							scnLst.setVisible(false);
 						});
@@ -915,13 +1154,17 @@ var editor = (function(module) {
 							// show the editor
 							edtWgt.setVisible(true);
 							// set the editor values
+							edtWgt.set(scnEvt.scene, scnEvt.type, scnEvt.event);
+							// let the model know
+							msgMdl.copyTarget(scnEvt.event);
+							msgMdl.msgTarget = scnEvt.event;
 							// hide the scene list
 							scnLst.setVisible(false);
 						});
 					scnWgt.addListener(module.EventTypes.RemoveSceneEvent, 
 						function(scnEvt) {
 							// let the model know
-							model.removeSceneEvent(scnEvt);
+							msgMdl.removeTarget(scnEvt);
 						});
 				};
 			
@@ -934,25 +1177,49 @@ var editor = (function(module) {
 			scnLst.addListener(module.EventTypes.AddScene, function(sceneName) {
 				model.addScene(sceneName);
 			});			
+			scnLst.addListener(module.EventTypes.EditScene, function(scene) {
+				model.setScene(scene);
+			});			
 			scnLst.addListener(module.EventTypes.RemoveScene, function(scene) {
 				model.removeScene(scene);
 			});			
 			scnLst.addListener(module.EventTypes.ReorderScene, function(scnObj) {
 				model.reorderScenes(scnObj.scene, scnObj.prev, scnObj.next);
 			});			
-			scnLst.addListener(module.EventTypes.EditScene, function(scene) {
-				model.setScene(scene);
-			});			
 			scnLst.addListener(module.EventTypes.UpdateScene, function(scnObj) {
 				model.updateScene(scnObj.name);
 				model.setScene(null);
+			});
+			
+			// edit widget specific
+			edtWgt.addListener(module.EventTypes.CancelScnEvtEdit, function() {
+				msgMdl.msgTarget = null;
+				edtWgt.reset();
+				edtWgt.setVisible(false);
+				scnLst.setVisible(true);
+			});
+			edtWgt.addListener(module.EventTypes.SaveSceneEvent, function(saveObj) {
+				var args = saveObj.args || [];
+				
+				msgMdl.setMessageSource(saveObj.scene);
+				msgMdl.setMessageType(saveObj.type);
+				msgMdl.setMessageHandler(saveObj.obj);
+				msgMdl.setMethod(saveObj.method);
+				
+				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
+					var arg = args[ndx];
+					
+					msgMdl.setArgument(arg.name, arg.value);
+				}
+				
+				msgMdl.save(saveObj.name);
 			});
 			
 			// model specific
 			model.addListener(module.EventTypes.SceneAdded, function(scene) {
 				var li = scnLst.add(scene);
 				addSceneListeners(li);
-			});			
+			});		
 			model.addListener(module.EventTypes.SceneUpdated, function(scene) {
 				scnLst.update(scene);
 			});		
@@ -961,11 +1228,63 @@ var editor = (function(module) {
 			});		
 			model.addListener(module.EventTypes.ScnCitizenAdded, function(citData) {
 				edtWgt.addEffect(citData.citizen, citData.createType);
-			});	
+				edtWgt.addCitizen(citData.citizen, citData.createType);
+			});			
 			model.addListener(module.EventTypes.WorldCleaned, function() {
 				scnLst.list.clear();
 			});
-	    }
+			
+			// messaging model specific
+			msgMdl.addListener(module.EventTypes.TargetCreated, function(target) {
+				var spec = msgMdl.dispatchProxy.getTargetSpec(target),
+					scn = hemi.world.getCitizenById(spec.src),
+					li = scnLst.getListItem(scn),
+	            	isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
+				
+				if (li) {
+					li.add(target, spec.msg);
+					
+					edtWgt.reset();
+					edtWgt.setVisible(false);
+					scnLst.setVisible(isDown && true);
+				}
+			});
+			msgMdl.addListener(module.EventTypes.TargetUpdated, function(target) {
+				var spec = msgMdl.dispatchProxy.getTargetSpec(target),
+					scn = hemi.world.getCitizenById(spec.src),
+					li = scnLst.getListItem(scn),
+	            	isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
+				
+				if (li) {
+					li.update(target);
+					
+					edtWgt.reset();
+					edtWgt.setVisible(false);
+					scnLst.setVisible(isDown && true);
+				}
+			});
+	    },
+		
+		/**
+		 * Overrides editor.tools.ToolController.checkBindEvents()
+		 *
+		 * Returns true if the messaging model, scenes model, and view are all
+		 * set.
+		 *
+		 * @return true if messaging model, scenes model, and view are all
+		 *      set, false otherwise.
+		 */
+		checkBindEvents: function() {
+			return this.messagingModel && this.model && this.view;
+		},
+		
+		setMessagingModel: function(mdl) {
+			this.messagingModel = mdl;
+			
+			if (this.checkBindEvents()) {
+				this.bindEvents();
+			}
+		}
 	});
     
     return module;

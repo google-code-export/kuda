@@ -671,9 +671,6 @@ ol.listWidget li>div {
 ol.listWidget li span {
 	margin: 0;
 }
-.listWidget li button {
-	margin: 0 2px 0 0;
-}
 .listWidget .msgEdtListItm {
 	float: left;
 	width: 100%;
@@ -691,8 +688,36 @@ ol.listWidget li span {
 }
 .listWidget .buttonContainer {
 	float: right;
-	padding: 0 10px 7px 0;
+	padding: 0 10px 10px 0;
 }
+
+/**
+ * List widget buttons
+ */
+.listWidget button {
+	background: url(../images/listOptionsSprite.png) no-repeat;
+	text-indent: -5000px;
+	height: 16px;
+	width: 16px;
+	border: none;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	margin: 5px 5px 3px 5px;
+	padding: 0;
+}
+.listWidget button.editBtn {
+	background-position: 0 0;
+}
+.listWidget button.editBtn:hover {
+	background-position: -16px 0;
+}
+.listWidget button.removeBtn {
+	background-position: 0 -32px;
+}
+.listWidget button.removeBtn:hover {
+	background-position: -16px -32px;
+}
+
 /**
  * General form styling
  */
@@ -1066,6 +1091,7 @@ form button.icon {
 	height: 16px;
 	width: 16px;
 	border: none;
+	box-shadow: none;
 	-moz-box-shadow: none;
 	margin: 5px;
 	padding: 0;
@@ -1545,6 +1571,7 @@ li.even>ul>li:nth-child(even)>div {
 	height: 16px;
 	width: 16px;
 	border: none;
+	box-shadow: none;
 	-moz-box-shadow: none;
 	margin: 5px;
 	padding: 0;
@@ -1652,7 +1679,10 @@ ul.scnEvtList li:hover {
 	background: none;
 }
 ul.scnEvtList li > div {	
-	width: 240px;
+	width: 220px;
+}
+ul.scnEvtList li .buttonContainer {
+	padding-right: 0;
 }
 ul.scnEvtList li.button {
 	list-style: none;

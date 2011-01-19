@@ -113,6 +113,7 @@ var editor = (function(module, jQuery) {
 			if (typeof idOrWidget === 'string') {
 				li = this.list.find('#' + idOrWidget);
 				var widget = li.data('obj');
+				widget.setParent(null);
 				this.listItems.remove(widget);
 			}
 			else if (idOrWidget instanceof module.ui.ListItemWidget) {
@@ -121,7 +122,6 @@ var editor = (function(module, jQuery) {
 			
 			if (li !== null) {
 				li.remove();
-				li.setParent(null);
 			}
 		}
 	});
