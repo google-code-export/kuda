@@ -961,10 +961,10 @@ var editor = (function(module) {
 			this.container = jQuery('<div class="msgEdtListItm"></div>');
 			this.title = jQuery('<span class="msgEdtItemTitle"></span>');
 			this.buttonDiv = jQuery('<div class="msgEdtButtons"></div>');
-			this.removeBtn = jQuery('<button class="msgEdtRemoveBtn dialogBtn" title="Remove">Remove</button>');
-			this.editBtn = jQuery('<button class="msgEdtEditBtn dialogBtn" title="Edit">Edit</button>');
-			this.chainBtn = jQuery('<button class="msgEdtChainBtn dialogBtn" title="Chain">Chain</button>');
-			this.cloneBtn = jQuery('<button class="msgEdtCloneBtn dialogBtn" title="Clone">Clone</button>');
+			this.removeBtn = jQuery('<button class="removeBtn" title="Remove">Remove</button>');
+			this.editBtn = jQuery('<button class="editBtn" title="Edit">Edit</button>');
+			this.chainBtn = jQuery('<button class="chainBtn" title="Chain">Chain</button>');
+			this.cloneBtn = jQuery('<button class="cloneBtn" title="Clone">Clone</button>');
 			
 			this.buttonDiv.append(this.editBtn).append(this.chainBtn)
 				.append(this.cloneBtn).append(this.removeBtn);

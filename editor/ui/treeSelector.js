@@ -38,19 +38,56 @@ var editor = (function(module) {
 			var newOpts =  jQuery.extend({}, module.ui.TreeSelectorDefaults, 
 				options);
 			this.eventName = 'click.treeSelctor' + eventNdx;
-			this.buttonId = 'treeSelector' + eventNdx;
-			this.panelId = 'treeSelectPnl' + eventNdx++;
+			this.buttonId = 'treeSelectorBtn' + eventNdx;
+			this.inputId = 'treeSelectorIpt' + eventNdx;
+			this.panelId = 'treeSelectorPnl' + eventNdx++;
 			this._super(newOpts);
 		},
 		
 		finishLayout: function() {			
-			var wgt = this;
+			var wgt = this,
+				toggleFcn = function(evt) {
+					var input = wgt.input,
+						btn = wgt.picker,
+						pnl = wgt.panel;
+					
+					if (pnl.is(':visible')) {
+						wgt.hidePanel();
+						
+						jQuery(document).unbind(wgt.eventName);
+						pnl.data('docBound', false);
+						btn.removeClass('selected');
+					}
+					else {
+						var isDocBound = pnl.data('docBound');
+						btn.addClass('selected');
+						
+						wgt.showPanel();
+											
+						if (!isDocBound) {
+							jQuery(document).bind(wgt.eventName, function(evt){
+								var target = jQuery(evt.target),
+									parent = target.parents('#' + wgt.panelId),
+									id = target.attr('id');
+								
+								if (parent.size() == 0 
+										&& id != wgt.panelId
+										&& id != wgt.inputId
+										&& id != wgt.buttonId) {
+									pnl.hide();
+									btn.removeClass('selected');
+								}
+							});
+							pnl.data('docBound', true);
+						}
+					}
+				};
 			
 			// initialize container
-			this.container = jQuery('<div></div>');
-			this.input = jQuery('<input type="text" />');
-			this.picker = jQuery('<button id="' + this.buttonId + '">Selector</button>');
-			this.panel = jQuery('<div id="' + this.panelId + '" class="treeSelectPnl"></div>');
+			this.container = jQuery('<div class="treeSelector"></div>');
+			this.input = jQuery('<input type="text" id="' + this.inputId + '" class="treeSelectorIpt" />');
+			this.picker = jQuery('<button id="' + this.buttonId + '" class="treeSelectorBtn">Selector</button>');
+			this.panel = jQuery('<div id="' + this.panelId + '" class="treeSelectorPnl"></div>');
 			this.tree = jQuery('<div></div>');
 			
 			this.container.addClass(this.config.containerClass);
@@ -58,14 +95,17 @@ var editor = (function(module) {
 			jQuery('body').append(this.panel);
 			this.container.append(this.input).append(this.picker);
 			this.panel.css({
-				height: this.config.panelHeight,
+				maxHeight: this.config.panelHeight,
 				position: 'absolute'
 			}).append(this.tree).hide();
 			
 			// setup the tree
 			this.tree.bind('select_node.jstree', function(evt, data) {	
 				if (wgt.config.select) {
-					wgt.config.select(data, wgt);
+					if (wgt.config.select(data, wgt)) {
+						wgt.picker.removeClass('selected');
+						wgt.hidePanel();
+					}
 				}
 				else {
 					var elem = data.rslt.obj,					 
@@ -73,6 +113,7 @@ var editor = (function(module) {
 					
 					wgt.input.val(val);	
 					wgt.hidePanel();
+					wgt.picker.removeClass('selected');
 					wgt.setSelection(val);
 				}
 			})
@@ -93,37 +134,8 @@ var editor = (function(module) {
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
 			
-			this.picker.bind('click', function(evt) {
-				var input = wgt.input,
-					pnl = wgt.panel;
-				
-				if (pnl.is(':visible')) {
-					wgt.hidePanel();
-					
-					jQuery(document).unbind(wgt.eventName);
-					pnl.data('docBound', false);
-				}
-				else {
-					var isDocBound = pnl.data('docBound');
-					
-					wgt.showPanel();
-										
-					if (!isDocBound) {
-						jQuery(document).bind(wgt.eventName, function(evt){
-							var target = jQuery(evt.target),
-								parent = target.parents('#' + wgt.panelId),
-								id = target.attr('id');
-							
-							if (parent.size() == 0 
-									&& id != wgt.panelId
-									&& id != wgt.buttonId) {
-								pnl.hide();
-							}
-						});
-						pnl.data('docBound', true);
-					}
-				}
-			});
+			this.picker.bind('click', toggleFcn);
+			this.input.bind('click', toggleFcn);
 		},
 		
 		hidePanel: function() {
@@ -146,7 +158,7 @@ var editor = (function(module) {
 		
 		showPanel: function() {
 			var position = this.input.offset(),
-				width = wgt.container.outerWidth();
+				width = this.container.width();
 			
 			position.top += this.input.outerHeight();
 			this.panel.offset(position).width(width).slideDown(200);

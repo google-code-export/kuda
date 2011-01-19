@@ -315,8 +315,8 @@ var editor = (function(module) {
 		},
 		
 		setVisible: function(visible) {
-			this._super(visible),
-			wgt = this;
+			this._super(visible);
+			var wgt = this;
 			
 			this.notifyListeners(module.EventTypes.SBWidgetVisible, {
 				widget: wgt,

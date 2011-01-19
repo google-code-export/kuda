@@ -502,7 +502,6 @@ var editor = (function(module) {
 			
 			li.removeBtn.bind('click', function(evt) {
 				var evt = li.getAttachedObject();
-				wgt.remove(evt);
 				wgt.notifyListeners(module.EventTypes.RemoveSceneEvent, evt);
 			});
 		},
@@ -679,8 +678,29 @@ var editor = (function(module) {
 			return this.form.outerHeight(true);
 		},
 		
-		getListItem: function(scene) {
-			return this.items.get(scene.getId());
+		getListItem: function(obj) {
+			if (obj instanceof hemi.dispatch.MessageTarget) {
+				var items = this.items.values(),
+					found = -1,
+					itm = null;
+				
+				for (var ndx = 0, len = items.length; ndx < len && found === -1; ndx++) {
+					var item = items[ndx];
+					
+					if (item.events.containsKey(obj.dispatchId)) {
+						found = ndx;
+					}
+				}
+				
+			 	if (found !== -1) {
+					itm = items[found];
+				}
+				
+				return itm;
+			}
+			else { // it's a scene
+				return this.items.get(obj.getId());
+			}
 		},
 		
 		layoutExtra: function() {
@@ -869,31 +889,13 @@ var editor = (function(module) {
 		},
 		
 		fillParams: function(args, vals) {
-			var	wgt = this;
-			
-			this.list.empty();
-			this.curArgs = [];
-			
-			for (var ndx = 0, len = args.length; ndx < len; ndx++) {
-				var li = jQuery('<li></li>'),
-					ip = jQuery('<input type="text"></input>'),
-					lb = jQuery('<label></label>'),
-					cb = jQuery('<button class="scnEvtCitTreeBtn dialogBtn">Citizens</button>'),
-					arg = args[ndx],
-					id = 'scnEvtParam_' + arg.name;
-				
-	            this.list.append(li);
-	            li.append(lb).append(ip).append(cb);
-				
-	            var windowHeight = window.innerHeight ? window.innerHeight : document.documentElement.offsetHeight,
-					position = li.offset(),
-					height = windowHeight - position.top;			
-				
-				cb.data('paramIn', ip)
-				.bind('click', function(evt) {
-					var citTreePnl = wgt.find(CITIZEN_WRAPPER),
-						oldElem = citTreePnl.data('curElem'),
-						elem = jQuery(this);
+			var wgt = this, 
+				toggleFcn = function(evt){
+					var citTreePnl = wgt.find(CITIZEN_WRAPPER), 
+						oldElem = citTreePnl.data('curElem'), 
+						elem = jQuery(this).parent(), 
+						btn = elem.children('button'), 
+						ipt = elem.children('input');
 					
 					if (citTreePnl.is(':visible') && oldElem 
 							&& elem[0] === oldElem[0]) {
@@ -904,31 +906,59 @@ var editor = (function(module) {
 						citTreePnl.data('docBound', false);
 					}
 					else {
-						var position = elem.offset(),
+						var position = ipt.offset(), 
 							isDocBound = citTreePnl.data('docBound');
 						
-						position.top += elem.outerHeight();
-						citTreePnl.hide().show(200).data('curElem', elem)
-							.offset(position).css('right', position.left);
+						position.top += ipt.outerHeight();
+						citTreePnl.hide().show(200).data('curElem', elem).offset(position);
 						
 						if (!isDocBound) {
 							jQuery(document).bind('click.scnEvtCitTree', function(evt){
-								var target = jQuery(evt.target),
-									parent = target.parents(CITIZEN_WRAPPER),
+								var target = jQuery(evt.target), 
+									parent = target.parents(CITIZEN_WRAPPER), 
 									id = target.attr('id');
 								
 								if (parent.size() == 0 
-									&& id != 'scnEvtCitizensPnl' 
-									&& !target.hasClass('scnEvtCitTreeBtn')) {
+										&& id != 'scnEvtCitizensPnl' 
+										&& !target.hasClass('scnEvtCitTreeBtn')
+										&& !target.hasClass('scnEvtCitTreeIpt')) {
 									citTreePnl.hide();
 								}
 							});
 							citTreePnl.data('docBound', true);
 						}
 						
-						wgt.currentParamIn = elem.data('paramIn');
+						wgt.currentParamIn = btn.data('paramIn');
 					}
-				});
+				};
+			
+			this.list.empty();
+			this.curArgs = [];
+			
+			if (args.length > 0) {
+				this.paramsSet.show(100);
+			}
+			else {
+				this.paramsSet.hide(100);
+			}
+			
+			for (var ndx = 0, len = args.length; ndx < len; ndx++) {
+				var li = jQuery('<li></li>'),
+					ip = jQuery('<input type="text" class="scnEvtCitTreeIpt"></input>'),
+					lb = jQuery('<label></label>'),
+					cb = jQuery('<button class="scnEvtCitTreeBtn">Citizens</button>'),
+					arg = args[ndx],
+					id = 'scnEvtParam_' + arg;
+				
+	            this.list.append(li);
+	            li.append(lb).append(ip).append(cb);
+				
+	            var windowHeight = window.innerHeight ? window.innerHeight : document.documentElement.offsetHeight,
+					position = li.offset(),
+					height = windowHeight - position.top;			
+				
+				cb.data('paramIn', ip).bind('click', toggleFcn);
+				ip.bind('click', toggleFcn);
 				
 				lb.text(arg + ':');
 				lb.attr('for', id);
@@ -945,6 +975,8 @@ var editor = (function(module) {
 		},
 		
 		finishLayout: function() {
+			this._super();
+			
 			var wgt = this,
 				container = this.find('#scnEvtEffectContainer');
 			
@@ -952,6 +984,9 @@ var editor = (function(module) {
 			this.cancelBtn = this.find('#scnEvtCancelBtn');
 			this.name = this.find('#scnEvtName');
 			this.list = this.find('#scnEvtTargetParams');
+			this.paramsSet = this.find('#scnEvtParams');
+			
+			this.paramsSet.hide();
 			
 			this.effectChooser = new module.ui.TreeSelector({
 				buttonId: 'scnEvtTreeSelector',
@@ -985,6 +1020,7 @@ var editor = (function(module) {
 					if (metadata.type === 'citType' 
 							|| metadata.type === 'citizen') {
 						selector.tree.jstree('open_node', elem, false, false);
+						return false;
 					}
 					else {					
 						var cit = metadata.parent,
@@ -992,12 +1028,13 @@ var editor = (function(module) {
 							
 						wgt.fillParams(getFunctionParams(cit[method]));
 						selector.input.val(path.join('.'));
-						selector.hidePanel();
 						selector.setSelection({
 							obj: cit,
 							method: method 
 						});
 						wgt.canSave();
+						
+						return true;
 					}
 				}
 			});
@@ -1054,6 +1091,7 @@ var editor = (function(module) {
 			this.curArgs = [];
 			this.effectChooser.reset();
 			this.list.empty();
+			this.paramsSet.hide();
 		},
 		
 		set: function(scene, type, target) {
@@ -1181,6 +1219,12 @@ var editor = (function(module) {
 				model.setScene(scene);
 			});			
 			scnLst.addListener(module.EventTypes.RemoveScene, function(scene) {
+				// get the scene's events
+				var targets = msgMdl.dispatchProxy.getTargets(scene.getId());
+				
+				for (var ndx = 0, len = targets.length; ndx < len; ndx++) {
+					msgMdl.removeTarget(targets[ndx]);
+				}
 				model.removeScene(scene);
 			});			
 			scnLst.addListener(module.EventTypes.ReorderScene, function(scnObj) {
@@ -1247,6 +1291,13 @@ var editor = (function(module) {
 					edtWgt.reset();
 					edtWgt.setVisible(false);
 					scnLst.setVisible(isDown && true);
+				}
+			});
+			msgMdl.addListener(module.EventTypes.TargetRemoved, function(target) {
+				var li = scnLst.getListItem(target);
+				
+				if (li) {
+					li.remove(target);
 				}
 			});
 			msgMdl.addListener(module.EventTypes.TargetUpdated, function(target) {

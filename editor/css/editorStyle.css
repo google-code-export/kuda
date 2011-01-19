@@ -688,34 +688,105 @@ ol.listWidget li span {
 }
 .listWidget .buttonContainer {
 	float: right;
-	padding: 0 10px 10px 0;
+	padding: 0 10px 5px 0;
 }
 
 /**
  * List widget buttons
  */
 .listWidget button {
-	background: url(../images/listOptionsSprite.png) no-repeat;
 	text-indent: -5000px;
+	height: 24px;
+	width: 24px;
+	border: 1px solid transparent;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	padding: 3px;
+	background: none;
+}
+.listWidget button:before {
+	background: url(../images/listOptionsSprite.png) no-repeat;
 	height: 16px;
 	width: 16px;
 	border: none;
-	box-shadow: none;
-	-moz-box-shadow: none;
-	margin: 5px 5px 3px 5px;
 	padding: 0;
+	content: "";
+	float: left;
 }
-.listWidget button.editBtn {
+.listWidget button:hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #ededed, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fff));
+	border-color: #dcdcdc;
+}
+.listWidget button.editBtn:before {
 	background-position: 0 0;
 }
-.listWidget button.editBtn:hover {
+.listWidget button.editBtn:hover:before {
 	background-position: -16px 0;
 }
-.listWidget button.removeBtn {
+.listWidget button.removeBtn:before {
 	background-position: 0 -32px;
 }
-.listWidget button.removeBtn:hover {
+.listWidget button.removeBtn:hover:before {
 	background-position: -16px -32px;
+}
+.listWidget button.cloneBtn:before {
+	background-position: 0 -64px;
+}
+.listWidget button.cloneBtn:hover:before {
+	background-position: -16px -64px;
+}
+.listWidget button.chainBtn:before {
+	background-position: 0 -48px;
+}
+.listWidget button.chainBtn:hover:before {
+	background-position: -16px -48px;
+}
+.listWidget button.chainBtn[disabled]:before {
+	background-position: 0 -80px;
+}
+
+/**
+ * Tree selector widget
+ */
+.treeSelector {
+	width: 100%;
+}
+.treeSelectorPnl {
+	background: #fff;
+	border: 1px solid #ccc;
+	overflow: auto;
+}
+.treeSelector input.treeSelectorIpt {
+	width: 213px;
+	float: left;
+}
+.treeSelectorBtn {
+	padding: 8px 11px;
+	overflow: hidden;
+	text-indent: 30px;
+	width: 30px;
+	height: 27px;
+}
+.treeSelectorBtn:hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fff));
+}
+.treeSelectorBtn:before {
+	background: url(../images/listOptionsSprite.png) -32px 0 no-repeat;
+	height: 7px;
+	width: 8px;
+	float: left;
+	margin-left: 6px;
+	transform: rotate(180deg);
+	-moz-transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
+	content: "";
+}
+.treeSelectorBtn.selected:before {
+	transform: none;
+	-moz-transform: none;
+	-webkit-transform: none;
 }
 
 /**
@@ -780,7 +851,7 @@ form ol > li {
 .sidebarForm ol > li {
 	width: 255px;
 }
-form ol > li > div:not(.ui-slider) {
+form ol > li > div:not(.ui-slider, .buttons) {
 	float: left;
 }
 
@@ -1398,7 +1469,7 @@ form #anmLoops label {
 #modelLoaderDlg p {	
     text-align: center;
 }
-#modelLoaderDlg form input[type="text"] {
+#modelLoaderDlg form input[type=text] {
 	width: 165px;
 }
 #modelLoaderDlg form label {
@@ -1565,29 +1636,6 @@ li.even>ul>li:nth-child(even)>div {
 	float: right;
 	padding-right: 10px;
 }
-.msgEdtButtons button {
-	background: url(../images/listOptionsSprite.png) no-repeat;
-	text-indent: -5000px;
-	height: 16px;
-	width: 16px;
-	border: none;
-	box-shadow: none;
-	-moz-box-shadow: none;
-	margin: 5px;
-	padding: 0;
-}
-button.msgEdtCloneBtn {
-	background-position: 0 -64px;
-}
-button.msgEdtRemoveBtn {
-	background-position: 0 -32px;
-}
-button.msgEdtChainBtn {
-	background-position: 0 -48px;
-}
-button.msgEdtChainBtn[disabled] {
-	background-position: 0 -80px;
-}
 .restricted a:not(.restrictedSelectable) {
 	color: #999;
 	background: none;
@@ -1687,11 +1735,49 @@ ul.scnEvtList li .buttonContainer {
 ul.scnEvtList li.button {
 	list-style: none;
 }
-.treeSelectPnl {
+#scnEvtTargetParams {
+	padding: 0;
+}
+#scnEvtTargetParams input[type=text] {
+	width: 128px;
+	float: left;
+}
+#scnEvtTargetParams li {
+	list-style: none;
+	float: left;
+}
+#scnEvtTargetParams label {
+	width: 80px;
+}
+.scnEvtCitTreeBtn {
+	padding: 8px 11px;
+	overflow: hidden;
+	text-indent: 30px;
+	width: 30px;
+	height: 27px;
+}
+.scnEvtCitTreeBtn:before {
+	background: url(../images/listOptionsSprite.png) -32px 0 no-repeat;
+	height: 7px;
+	width: 8px;
+	float: left;
+	margin-left: 6px;
+	transform: rotate(180deg);
+	-moz-transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
+	content: "";
+}
+.scnEvtCitTreeBtn.selected:before {
+	transform: none;
+	-moz-transform: none;
+	-webkit-transform: none;
+}
+#scnEvtCitizensTree {
 	background: #fff;
-	border: 1px solid black;
+	border: 1px solid #ccc;
 	overflow: auto;
-	position: absolute;
+	height: 100px;
+	width: 171px;
 }
 
 /**
