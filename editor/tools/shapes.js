@@ -729,7 +729,9 @@ var editor = (function(module) {
 				lstWgt.remove(shape);
 			});
 			model.addListener(module.EventTypes.ShapeSet, function(shape) {
-				crtWgt.set(shape);
+				if (shape != null) {
+					crtWgt.set(shape);
+				}
 			});
 			model.addListener(module.EventTypes.ShapeWorldCleaned, function() {
 				lstWgt.list.clear();
