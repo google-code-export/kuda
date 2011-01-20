@@ -806,7 +806,7 @@ var hemi = (function(hemi) {
 				}
 			}
 			if(!this.active) return;
-			this.pTimer += event.activeTime;
+			this.pTimer += event.elapsedTime;
 			if(this.pTimer >= (1.0/this.pRate)) {
 				this.pTimer = 0;
 				var p = this.particles[this.pIndex];

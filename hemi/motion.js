@@ -259,7 +259,7 @@ var hemi = (function(hemi) {
 		 */
 		onRender : function(event) {
 			if (this.transformObjs.length > 0) {
-				var t = event.activeTime;
+				var t = event.elapsedTime;
 				if (this.steadyRotate) {
 					this.time += t;
 					if (this.time >= this.stopTime) {
@@ -524,7 +524,7 @@ var hemi = (function(hemi) {
 		 */
 		onRender : function(event) {
 			if (this.transformObjs.length > 0) {
-				var t = event.activeTime;
+				var t = event.elapsedTime;
 				if (this.steadyMove) {
 					this.time += t;
 					if (this.time >= this.stopTime) {

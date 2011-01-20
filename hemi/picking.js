@@ -101,7 +101,8 @@ var hemi = (function(hemi) {
 		this.pickRoot.name = hemi.picking.PICK_ROOT;
 		this.pickRoot.parent = hemi.core.client.root;
 		
-		this.treeInfo = hemi.core.picking.createTransformInfo(this.pickRoot, null);
+		this.pickManager = hemi.core.picking.createPickManager(this.pickRoot);
+		this.treeInfo = this.pickManager.rootTransformInfo;
 	};
 	
 	/**
@@ -113,8 +114,8 @@ var hemi = (function(hemi) {
 	 * @param {o3djs.picking.TransformInfo} parent Parent transformInfo of the
 	 *     transform. Can be null.
 	 */
-	hemi.picking.HemiTransformInfo = function(transform, parent) {
-		o3djs.picking.TransformInfo.call(this, transform, parent);
+	hemi.picking.HemiTransformInfo = function(transform, parent) {		
+		o3djs.picking.TransformInfo.call(this, transform, hemi.picking.pickManager);
 		
 		this.pickable = true;
 		this.recorded = false;

@@ -279,7 +279,7 @@ var hemi = (function(hemi) {
 		 *		  information about the render
 		 */
 		onRender: function(renderEvent){
-			this.currentTime += renderEvent.activeTime;
+			this.currentTime += renderEvent.elapsedTime;
 			this.checkLoops();
 			if (this.currentTime < this.endTime) {
 				this.updateTarget(this.currentTime);

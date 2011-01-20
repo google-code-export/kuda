@@ -793,7 +793,7 @@ var editor = (function(module) {
 					prefix: 'mbrShpLst',
 					type: module.ui.ListType.UNORDERED
 				}),
-				worldMatrix = transform.worldMatrix,
+				worldMatrix = transform.getUpdatedWorldMatrix(),
 				wgt = this;
 			
 			for (var i = 0, il = worldMatrix.length; i < il; i++) {

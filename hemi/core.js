@@ -15,6 +15,8 @@
  * Boston, MA 02110-1301 USA.
  */
 
+o3djs.base.o3d = o3d;
+o3djs.require('o3djs.webgl');
 o3djs.require('o3djs.debug');
 o3djs.require('o3djs.element');
 o3djs.require('o3djs.event');
@@ -38,7 +40,7 @@ o3djs.require('hemi.view');
 o3djs.require('hemi.model');
 o3djs.require('hemi.effect');
 o3djs.require('hemi.scene');
-o3djs.require('hemi.hud');
+//o3djs.require('hemi.hud');
 o3djs.require('hemi.manip');
 o3djs.require('hemi.curve');
 o3djs.require('hemi.sprite');
@@ -156,7 +158,7 @@ var hemi = (function(hemi) {
 				var normal = o3djs.element.getNormalForTriangle(pickInfo.element, pickInfo.rayIntersectionInfo.primitiveIndex);
 				
 				// Convert the normal from local to world space.
-				normal = hemi.core.math.matrix4.transformNormal(pickInfo.shapeInfo.parent.transform.worldMatrix, normal);
+				normal = hemi.core.math.matrix4.transformNormal(pickInfo.shapeInfo.parent.transform.getUpdatedWorldMatrix(), normal);
 				
 				// Remove the scale from the normal.
 				normal = hemi.core.math.normalize(normal);
@@ -269,7 +271,7 @@ var hemi = (function(hemi) {
 		hemi.view.init();
 		hemi.model.init();
 		hemi.effect.init();
-		hemi.hud.init();
+//		hemi.hud.init();
 		hemi.shape.init();
 		hemi.world.init();
 
@@ -364,9 +366,9 @@ var hemi = (function(hemi) {
 			}
 			
 			param = material.getParam('lightColor');
-			
+		
 			if (param) {
-				param.bind(hemi.world.camera.light.color);
+				param.bind(hemi.world.camera.lightColorParam);
 			}
 			
 			// For now, the Z-sorted draw list does not work well with

@@ -138,7 +138,8 @@ var hemi = (function(hemi) {
 		 */
 		addTransform: function(transform) {
 			hemi.world.tranReg.register(transform, this);
-			var offsetVector = transform.worldMatrix[3].slice(0,3),
+			var wM = transform.getUpdatedWorldMatrix(),
+				offsetVector = wM[3].slice(0,3);
 				dPlane = [],
 				obj = {};
 			
@@ -519,7 +520,7 @@ var hemi = (function(hemi) {
 		 */
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
-			var wp = transform.worldMatrix[3].slice(0,3),
+			var wp = transform.getUpdatedWorldMatrix()[3].slice(0,3),
 				obj = {};
 			
 			if (hemi.utils.isAnimated(transform)) {

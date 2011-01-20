@@ -45,6 +45,12 @@ var hemi = (function(hemi) {
 		this.transform = pack.createObject('Transform');
 		this.material = pack.createObject('Material');
 		this.material.createParam('emissiveSampler','o3d.ParamSampler');
+		// TODO: check if this is necessary
+		o3djs.material.attachStandardEffect(
+			hemi.core.mainPack, 
+			this.material, 
+			hemi.view.viewInfo, 
+			'constant');		
 		core.material.attachStandardEffect(pack,this.material,viewInfo,'constant');
 		this.material.getParam('o3d.drawList').value = viewInfo.zOrderedDrawList;
 		this.material.effect.createUniformParameters(this.material);
@@ -108,7 +114,7 @@ var hemi = (function(hemi) {
 		 *	@param {o3d.renderEvent} e Message describing this render loop
 		 */
 		onRender : function(e) {
-			var p0 = this.transform.worldMatrix[3].slice(0,3);
+			var p0 = this.transform.getUpdatedWorldMatrix()[3].slice(0,3);
 			if (this.lookAtCam) {
 				var localP = this.transform.localMatrix[3].slice(0,3);
 				this.transform.identity();

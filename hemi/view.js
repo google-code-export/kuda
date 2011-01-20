@@ -84,6 +84,8 @@ var hemi = (function(hemi) {
 			color : this.paramObj.createParam('lightColor','ParamFloat4'),
 			fixed : true
 		};
+		this.lightColorParam = this.paramObj.createParam('lightColor',
+				'ParamFloat4');
 		this.light.color.value = [1,1,1,1]; 
         this.pan = {
 			current : 0,

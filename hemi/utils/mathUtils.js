@@ -141,7 +141,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.utils.pointAsLocal = function(transform,point) {
 		var m4 = hemi.core.math.matrix4;
-		var W = m4.inverse(transform.worldMatrix);
+		var W = m4.inverse(transform.getUpdatedWorldMatrix());
 		return m4.transformPoint(W,point);
 	};
 	
@@ -150,7 +150,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.utils.pointAsWorld = function(transform, point) {
 		var m4 = hemi.core.math.matrix4;
-		return m4.transformPoint(transform.worldMatrix,point);
+		return m4.transformPoint(transform.getUpdatedWorldMatrix(),point);
 	};
 	
 	/**
@@ -326,9 +326,9 @@ var hemi = (function(hemi) {
 		var newMatrix = matrix.mul(
 			matrix.mul(
 				matrix.mul(
-					transform.worldMatrix,
+					transform.getUpdatedWorldMatrix(),
 					matrix.translate(matrix.identity(),v)),
-				matrix.inverse(transform.worldMatrix)),
+				matrix.inverse(transform.getUpdatedWorldMatrix())),
 			transform.localMatrix);
 		transform.localMatrix = newMatrix;
 	};

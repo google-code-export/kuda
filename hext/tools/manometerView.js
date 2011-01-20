@@ -153,7 +153,7 @@ var hext = (function(hext) {
 		 * @param {o3d.RenderEvent} event the event containing the elapsed time
 		 */
 		onRender: function(event) {
-			this.time += event.activeTime;
+			this.time += event.elapsedTime;
 			
 			if (this.time >= this.refreshTime) {
 				if (this.updateLeft) {

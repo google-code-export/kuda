@@ -25,7 +25,7 @@
 		initViewerStep1: function() {
 			var app = this;
 			
-			o3djs.util.makeClients(function(clientElements) {
+			o3djs.webgl.makeClients(function(clientElements) {
 				app.initViewerStep2(clientElements);
 			});
 		},

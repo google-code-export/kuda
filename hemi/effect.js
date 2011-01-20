@@ -343,7 +343,7 @@ var hemi = (function(hemi) {
 		 * @param {o3d.Event} renderEvent the render event
 		 */
 		onRender: function(renderEvent) {
-			this.count += renderEvent.activeTime;
+			this.count += renderEvent.elapsedTime;
 			
 			if (this.count >= this.fireInterval) {
 				this.count = 0;

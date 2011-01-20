@@ -106,11 +106,11 @@ var hemi = (function(hemi) {
 				}
 				break;	
 			case 'grid':
-				if (callback) {
-					callback(hemi.fx.createGridTexture(spec));
-				} else {
-					return hemi.fx.createGridTexture(spec);
-				}
+//				if (callback) {
+//					callback(hemi.fx.createGridTexture(spec));
+//				} else {
+//					return hemi.fx.createGridTexture(spec);
+//				}
 				break;
 		}
 	};
