@@ -286,11 +286,6 @@ var editor = (function(module) {
 			this.lastScene = scene;
 			this.notifyListeners(module.EventTypes.SceneAdded, scene);
 	    },
-		
-		cancelSceneEventEdit: function() {
-			this.isUpdatingScnEvt = false;
-			this.sceneEvent = null;
-		},
 	    
 	    removeScene: function(scene) {
 			if (this.lastScene === scene) {
@@ -329,75 +324,7 @@ var editor = (function(module) {
 		updateScene: function(sceneName) {
 			this.editScene.name = sceneName;
 			this.notifyListeners(module.EventTypes.SceneUpdated, this.editScene);
-		},
-		
-		updateSceneEvent: function(sceneEvent, eventParams) {
-			// TODO
-			var values = this.args.values(),
-				args = [],
-				editId = null,
-				newTarget;
-			
-			if (this.msgTarget !== null) {
-				this.dispatchProxy.removeTarget(this.msgTarget);
-				
-				if (this.msgTarget.handler instanceof hemi.handlers.ValueCheck) {
-					this.msgTarget.handler.cleanup();
-				}
-				
-				this.msgTarget.cleanup();
-			}
-			
-			for (var ndx = 0, len = values.length; ndx < len; ndx++) {
-				var val = values[ndx];
-				args[val.ndx] = val.value;
-			}
-			
-			if (this.source.shapePick) {
-				this.dispatchProxy.swap();
-				newTarget = hemi.handlers.handlePick(
-					this.type,
-					this.handler,
-					this.method,
-					args);
-				this.dispatchProxy.unswap();
-			}
-			else if (this.source.camMove) {
-				this.dispatchProxy.swap();
-				var viewpoint = hemi.world.getCitizenById(this.type);
-				newTarget = hemi.handlers.handleCameraMove(
-					hemi.world.camera,
-					viewpoint,
-					this.handler,
-					this.method,
-					args);
-				this.dispatchProxy.unswap();
-			}
-			else {
-				var src = this.source === MSG_WILDCARD ? hemi.dispatch.WILDCARD : this.source.getId(),
-					type = this.type === MSG_WILDCARD ? hemi.dispatch.WILDCARD : this.type;
-				
-				newTarget = this.dispatchProxy.registerTarget(
-		            src,
-		            type,
-		            this.handler,
-		            this.method,
-		            args);
-			}
-			
-			newTarget.name = name;
-			
-			if (this.msgTarget !== null) {
-				newTarget.dispatchId = this.msgTarget.dispatchId;
-				this.notifyListeners(module.EventTypes.TargetUpdated, newTarget);
-			} else {
-				this.notifyListeners(module.EventTypes.TargetCreated, newTarget);
-			}
-			
-			this.msgTarget = null;
-			this.args.each(function(key, value) {
-				value.value = null;
-			});
+			this.editScene = null;
 		},
 	    
 	    worldCleaned: function() {
@@ -508,8 +435,8 @@ var editor = (function(module) {
 		
 		createAddBtnLi: function() {
 			var li = new module.ui.ListItemWidget();
-			li.addBtn = jQuery('<button>Add</button>');
-			li.container.append(li.addBtn);
+			li.addBtn = jQuery('<button class="addBtn">Add</button>');
+			li.container.append(li.addBtn).addClass('add');
 			
 			return li;
 		},
@@ -650,6 +577,12 @@ var editor = (function(module) {
 			li.removeBtn.bind('click', function(evt) {
 				var scn = li.getAttachedObject();
 				wgt.notifyListeners(module.EventTypes.RemoveScene, scn);
+				
+				if (wgt.addBtn.data('scene') === scn) {
+					wgt.addBtn.text(ADD_TXT).data('isEditing', false)
+						.data('scene', null);
+					wgt.nameInput.val('').width(ADD_WIDTH);
+				}
 			});
 		},
 		
@@ -1268,6 +1201,7 @@ var editor = (function(module) {
 				scnLst.update(scene);
 			});		
 			model.addListener(module.EventTypes.SceneRemoved, function(scene) {
+				model.editScene = null;
 				scnLst.remove(scene);
 			});		
 			model.addListener(module.EventTypes.ScnCitizenAdded, function(citData) {

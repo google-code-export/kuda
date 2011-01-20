@@ -745,6 +745,19 @@ ol.listWidget li span {
 .listWidget button.chainBtn[disabled]:before {
 	background-position: 0 -80px;
 }
+.listWidget button.addBtn {
+	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fff));
+	border-color: #eee;
+	padding: 3px 6px;
+	width: 30px;
+}
+.listWidget button.addBtn:before {
+	background-position: 0 -96px;
+}
+.listWidget button.addBtn:hover:before {
+	background-position: -16px -96px;
+}
 
 /**
  * Tree selector widget
@@ -1728,6 +1741,9 @@ ul.scnEvtList li:hover {
 }
 ul.scnEvtList li > div {	
 	width: 220px;
+}
+ul.scnEvtList li > div.add {
+	width: 240px;
 }
 ul.scnEvtList li .buttonContainer {
 	padding-right: 0;
