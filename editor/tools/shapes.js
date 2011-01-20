@@ -54,7 +54,7 @@ var editor = (function(module) {
 			this._super();
 			
 			this.currentShape = null;
-			this.previewShape = null;
+			this.prevShape = null;
 			this.shapeParams = {};
 	    },
 			
@@ -80,9 +80,9 @@ var editor = (function(module) {
 		},
 		
 		setShape: function(shape) {
-			if (this.previewShape !== null) {
-				this.previewShape.cleanup();
-				this.previewShape = null;
+			if (this.prevShape !== null) {
+				this.prevShape.cleanup();
+				this.prevShape = null;
 			}
 			
 			this.currentShape = shape;
@@ -105,16 +105,16 @@ var editor = (function(module) {
 			if (this.currentShape !== null) {
 				this.currentShape.transform.visible = false;
 			}
-			if (this.previewShape !== null) {
-				this.previewShape.cleanup();
+			if (this.prevShape !== null) {
+				this.prevShape.cleanup();
 			}
 			
-			this.previewShape = new hemi.shape.Shape(this.shapeParams);
-			this.previewShape.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
+			this.prevShape = new hemi.shape.Shape(this.shapeParams);
+			this.prevShape.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
 			
 			if (this.shapeParams.position) {
 				var pos = this.shapeParams.position;
-				this.previewShape.translate(pos[0], pos[1], pos[2]);
+				this.prevShape.translate(pos[0], pos[1], pos[2]);
 			}
 		},
 		
@@ -126,8 +126,8 @@ var editor = (function(module) {
 		saveShape: function(name) {
 			var msgType;
 			
-			if (this.previewShape !== null) {
-				this.previewShape.cleanup();
+			if (this.prevShape !== null) {
+				this.prevShape.cleanup();
 			}
 			
 			if (this.currentShape !== null) {
@@ -149,7 +149,7 @@ var editor = (function(module) {
 			this.notifyListeners(msgType, this.currentShape);
 			
 			this.currentShape = null;
-			this.previewShape = null;
+			this.prevShape = null;
 			this.shapeParams = {};
 		}
 	});
