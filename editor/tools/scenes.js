@@ -591,7 +591,8 @@ var editor = (function(module) {
 		},
 		
 		finishLayout: function() {
-			this._super();			
+			this._super();		
+			var wgt = this;	
 			
 			this.list.getUI().bind('sortupdate', function(evt, ui) {
 				var elem = ui.item,
