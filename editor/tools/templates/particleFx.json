@@ -61,7 +61,7 @@
 			"position": [0, 40, 0],
 			"positionRange": [0.2, 0, 0.1],
 			"velocity": [0, 0, 0],
-			"spinSpeedRange": 4,
+			"spinSpeedRange": 4
 		}
 	}
 ]}
