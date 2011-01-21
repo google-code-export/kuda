@@ -35,7 +35,7 @@
 		createHudDisplay();
 		
 		var house = new hemi.model.Model();
-		house.setFileName('assets/ScenarioB_v017.o3dtgz');
+		house.setFileName('assets/house_v12/scene.json');
 		
 		// Create an initial viewpoint
 		var viewpoint = new hemi.view.Viewpoint();
@@ -46,6 +46,7 @@
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {
 				hemi.world.camera.moveToView(viewpoint);
+				hemi.world.camera.enableControl();
 			});
 		
 		// Now that everything is ready, tell the World to start.
@@ -55,7 +56,6 @@
 	function createHudDisplay() {
 		// The HudDisplay is the first thing we create.
 		var display = new hemi.hud.HudDisplay();
-		
 		createHudPage1(display);
 		createHudPage2(display);
 		createHudPage3(display);
@@ -89,7 +89,7 @@
 		var text = new hemi.hud.HudText();
 		text.x = image.x + 128;
 		text.y = image.y;
-		text.config.textAlign = hemi.core.o3d.CanvasPaint.LEFT;
+		text.config.textAlign = 'left';
 		// This sets the maximum width of the text element. The text will be
 		// wrapped if it is wider.
 		text.setWidth(300);
@@ -114,8 +114,8 @@
 		var text = new hemi.hud.HudText();
 		text.x = 300;
 		text.y = 400;
-		text.config.textStyle = hemi.core.o3d.CanvasPaint.ITALIC;
-		text.config.textAlign = hemi.core.o3d.CanvasPaint.LEFT;
+		text.config.textStyle = 'italic';
+		text.config.textAlign = 'left';
 		text.setWidth(200);
 		var textMsg = "This is the second page of text. Please click on the image to the right and hold the mouse button down.";
 		text.setText(textMsg);
@@ -180,7 +180,7 @@
 	}
 
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(init);
+		o3djs.webgl.makeClients(init);
 	});
 
 	jQuery(window).unload(function() {
