@@ -56,27 +56,26 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {string} text the string to perform text wrapping on
 	 * @param {number} targetWidth maximum desired width for text in pixels
-	 * @param {o3d.CanvasPaint} paint paint object used to measure text's
+	 * @param {CanvasRenderingContext2D} canvas object used to measure text's
 	 *     on-screen size
 	 * @return {string[]} array of wrapped text
 	 */
-	hemi.utils.wrapTextStrict = function(text, targetWidth, paint) {
-		var wrapLines = [];
-		var text = hemi.utils.cleanseText(text);
-		var textLength = text.length;
-		var textSize = paint.measureText(text);
-		var avgCharWidth = (textSize[2] - textSize[0]) / textLength;
-		
-		var chars = Math.floor(targetWidth / avgCharWidth);
-		var increment = Math.ceil(chars / 10);
-		var start = 0;
-		var end = chars;
-		var line, lineSize, width;
+	hemi.utils.wrapTextStrict = function(text, targetWidth, canvas) {
+		var wrapLines = [],
+			text = hemi.utils.cleanseText(text),
+			textLength = text.length,
+			metric = canvas.measureText(text),
+			charWidth = metric.width / textLength,
+			chars = Math.floor(targetWidth / charWidth),
+			increment = Math.ceil(chars / 10),
+			start = 0,
+			end = chars,
+			line, width;
 		
 		while (end < textLength) {
 			line = text.substring(start, end).trim();
-			lineSize = paint.measureText(line);
-			width = lineSize[2] - lineSize[0];
+			metric = canvas.measureText(line);
+			width = metric.width;
 			
 			while (width < targetWidth && end < textLength) {
 				end += increment;
@@ -86,19 +85,19 @@ var hemi = (function(hemi) {
 				}
 				
 				line = text.substring(start, end).trim();
-				lineSize = paint.measureText(line);
-				width = lineSize[2] - lineSize[0];
+				metric = canvas.measureText(line);
+				width = metric.width;
 			}
 			
 			while (width > targetWidth) {
 				end--;
 				line = text.substring(start, end).trim();
-				lineSize = paint.measureText(line);
-				width = lineSize[2] - lineSize[0];
+				metric = canvas.measureText(line);
+				width = metric.width;
 			}
 			
-			var breakNdx = end - 1;
-			var ch = text.charAt(breakNdx);
+			var breakNdx = end - 1,
+				ch = text.charAt(breakNdx);
 			
 			while (!breakable.containsKey(ch) && breakNdx > start) {
 				breakNdx--;
@@ -115,7 +114,7 @@ var hemi = (function(hemi) {
 			end += chars;
 		}
 			
-		if (start != textLength || wrapLines.length == 0) {
+		if (start != textLength || wrapLines.length === 0) {
 			line = text.substring(start, textLength).trim();
 			wrapLines.push(line);
 		}
@@ -134,15 +133,14 @@ var hemi = (function(hemi) {
 	 * @return {string[]} array of wrapped text
 	 */
 	hemi.utils.wrapText = function(text, targetWidth, charWidth) {
-		var wrapLines = [];
-		var text = hemi.utils.cleanseText(text);
-		var textLength = text.length;
-		
-		var cols = parseInt(targetWidth / charWidth);
-        var rows = Math.ceil(textLength / cols);
-		var start = cols;
-		var index = 0;
-		var last;
+		var wrapLines = [],
+			text = hemi.utils.cleanseText(text),
+			textLength = text.length,
+			cols = parseInt(targetWidth / charWidth),
+        	rows = Math.ceil(textLength / cols),
+			start = cols,
+			index = 0,
+			last;
 		
 		for (var i = 0; i < rows - 1; i++) {
 			last = index;
@@ -177,16 +175,16 @@ var hemi = (function(hemi) {
 	 *     to search for a "best" break
 	 */
 	function bestBreak(text, start, radius) {
-		var bestIndex = start;
-		var bestWeight = 0;
-		var examWeight;
-		var textLength = text.length;
+		var bestIndex = start,
+			bestWeight = 0,
+			textLength = text.length,
+			beginRadius = start - Math.max(start - radius, 0),
+			endRadius = Math.min(start + radius, textLength - 1) - start,
+			examWeight, weight;
 		
-		var beginRadius = start - Math.max(start - radius, 0);
-		var endRadius = Math.min(start + radius, textLength - 1) - start;
 		for (var i = parseInt(start - beginRadius); i <= start + endRadius; i++) {
-			var weight = breakable.get(text.charAt(i));
-			if (weight == null) 
+			weight = breakable.get(text.charAt(i));
+			if (weight === null) 
 				continue;
 			
 			examWeight = weight / Math.abs(start - i);

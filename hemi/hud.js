@@ -48,6 +48,7 @@ var hemi = (function(hemi) {
 		this.pack.destroy();
 		this.pack = null;
 		this.hudMgr = null;
+		this.theme = null;
 	};
 	
 	/**
@@ -73,12 +74,16 @@ var hemi = (function(hemi) {
 		 */
 		this.image = {
 			/**
-			 * Flag to indicate if the canvas should update after drawing the
-			 * overlay.
-			 * @type boolean
-			 * @default false
+			 * Options for a blur shadow effect on the image. Set radius to 0 to
+			 * cancel.
+			 * @type Object
 			 */
-			update: false
+			shadow: {
+				radius: 0,
+				offsetY: 0,
+				offsetX: 0,
+				color: [0, 0, 0, 1]
+			}
 		};
 		
 		/**
@@ -106,22 +111,11 @@ var hemi = (function(hemi) {
 			},
 			
 			/**
-			 * Options for an outline around a page. This is mutually exclusive to
-			 * shadow. Set radius to 0 to cancel.
-			 * @type Object
+			 * Optional outline for the page in RGBA format. This is mutually
+			 * exclusive to shadow. Set to null to cancel.
+			 * @type number[4]
 			 */
-			outline: {
-				radius: 0,
-				color: [0, 0, 0, 0]
-			},
-			
-			/**
-			 * Flag to indicate if the canvas should update after drawing the
-			 * overlay.
-			 * @type boolean
-			 * @default false
-			 */
-			update: false
+			outline: null
 		};
 		
 		/**
@@ -141,28 +135,21 @@ var hemi = (function(hemi) {
 			 * @type string
 			 * @default 'helvetica'
 			 */
-			textTypeface: 'Helvetica',
+			textTypeface: 'helvetica',
 			
 			/**
 			 * The horizontal alignment of the text.
-			 * @type o3d.CanvasPaint.TextAlign
-			 * @default hemi.core.o3d.CanvasPaint.CENTER
+			 * @type string
+			 * @default 'center'
 			 */
-			textAlign: hemi.core.o3d.CanvasPaint.CENTER,
+			textAlign: 'center',
 			
 			/**
 			 * Additional styling for the text (normal, bold, italics)
-			 * @type o3d.CanvasPaint.Style
-			 * @default hemi.core.o3d.CanvasPaint.BOLD
+			 * @type string
+			 * @default 'bold'
 			 */
-			textStyle: hemi.core.o3d.CanvasPaint.BOLD,
-			
-			/**
-			 * The 2D shader to use to paint. Set to null to stop using a shader.
-			 * @type o3d.CanvasShader
-			 * @default undefined
-			 */
-			shader: undefined,
+			textStyle: 'bold',
 			
 			/**
 			 * Flag to indicate if the HudManager should perform strict text
@@ -199,22 +186,11 @@ var hemi = (function(hemi) {
 			},
 			
 			/**
-			 * Options for an outline around text. This is mutually exclusive to
-			 * shadow. Set radius to 0 to cancel.
-			 * @type Object
+			 * Optional outline for the text in RGBA format. This is mutually
+			 * exclusive to shadow. Set to null to cancel.
+			 * @type number[4]
 			 */
-			outline: {
-				radius: 0,
-				color: [0, 0, 0, 1]
-			},
-			
-			/**
-			 * Flag to indicate if the canvas should update after drawing the
-			 * text.
-			 * @type boolean
-			 * @default false
-			 */
-			update: false
+			outline: null
 		};
 	};
 	
@@ -560,20 +536,20 @@ var hemi = (function(hemi) {
 			var align;
 			
 			if (this.config.textAlign != null) {
-				align = this.config.textAlign;
+				align = this.config.textAlign.toLowerCase();
 			} else {
-				align = hemi.hud.theme.text.textAlign;
+				align = hemi.hud.theme.text.textAlign.toLowerCase();
 			}
 			
 			this.top = this.y;
 			this.bottom = this.top + this.wrappedHeight;
 
 			switch (align) {
-				case hemi.core.o3d.CanvasPaint.LEFT:
+				case 'left':
 					this.left = this.x;
 					this.right = this.left + this.wrappedWidth;
 					break;
-				case hemi.core.o3d.CanvasPaint.RIGHT:
+				case 'right':
 					this.right = this.x;
 					this.left = this.right - this.wrappedWidth;
 					break;
@@ -686,14 +662,6 @@ var hemi = (function(hemi) {
 		this.y = 0;
 		
 		/**
-		 * The actual image texture to draw on screen. This property is created
-		 * when the image URL is loaded. It should typically not be set
-		 * directly.
-		 * @type o3d.Texture2D
-		 */
-		this.texture = null;
-		
-		/**
 		 * The height of the image. This property is calculated when the image
 		 * URL is loaded. It should typically not be set directly.
 		 * @type number
@@ -707,7 +675,8 @@ var hemi = (function(hemi) {
 		 */
 		this.width = 0;
 		
-		this.imageUrl = null;
+		this.image = null;
+		this.url = null;
 	};
 	
 	hemi.hud.HudImage.prototype = {
@@ -721,13 +690,8 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			hemi.hud.HudElement.prototype.cleanup.call(this);
-			
-			if (this.texture) {
-				hemi.hud.pack.removeObject(this.texture);
-				this.texture = null;
-			}
+			this.image = null;
 		},
-		
 		
 		/**
 		 * Get the Octane structure for the HudImage.
@@ -747,7 +711,7 @@ var hemi = (function(hemi) {
 			});
 			octane.props.push({
 				name: 'setImageUrl',
-				arg: [this.imageUrl]
+				arg: [this.url]
 			});
 			
 			return octane;
@@ -769,7 +733,7 @@ var hemi = (function(hemi) {
 		 * @see hemi.hud.HudElement#draw
 		 */
 		draw: function() {
-			hemi.hud.hudMgr.createImageOverlay(this.texture, this.config, this.x, this.y);
+			hemi.hud.hudMgr.createImageOverlay(this.image, this.config, this.x, this.y);
 		},
 		
 		/**
@@ -778,20 +742,19 @@ var hemi = (function(hemi) {
 		 * @return {string} the URL of the image file
 		 */
 		getImageUrl: function() {
-			return this.imageUrl;
+			return this.url;
 		},
 		
 		/**
 		 * Set the URL of the image file to load and begin loading it.
 		 * 
-		 * @param {string} imageUrl the URL of the image file
+		 * @param {string} url the URL of the image file
 		 */
-		setImageUrl: function(imageUrl) {
-			this.imageUrl = imageUrl;
+		setImageUrl: function(url) {
+			this.url = url;
 			
-			if (this.texture) {
-				hemi.hud.pack.removeObject(this.texture);
-				this.texture = null;
+			if (this.image !== null) {
+				this.image = null;
 			}
 			
 			this.loadImage();
@@ -805,21 +768,11 @@ var hemi = (function(hemi) {
 			var that = this;
 			
 			hemi.loader.loadImage(
-				this.imageUrl,
-				hemi.hud.pack,
-				function(bitmaps) {
-					var bitmap = bitmaps[0];
-					that.texture = hemi.hud.pack.createTexture2D(
-						bitmap.width,
-						bitmap.height,
-						bitmap.format,
-						bitmap.numMipmaps,
-						false);
-					that.texture.setFromBitmap(bitmap);
-					that.height = that.texture.height;
-					that.width = that.texture.width;
-					// Now that we have our texture, remove the bitmap
-					hemi.hud.pack.removeObject(bitmap);
+				this.url,
+				function(image) {
+					that.image = image;
+					that.height = image.height;
+					that.width = image.width;
 					that.send(hemi.msg.load, {});
 				});
 		}
@@ -830,8 +783,8 @@ var hemi = (function(hemi) {
 		hemi.hud.HudImage.prototype.msgSent.concat([hemi.msg.load]);
 
 	/**
-	 * @class A HudButton contains textures for different images based on if
-	 * the button is enabled or if a mouse is hovering over it.
+	 * @class A HudButton uses different images based on if the button is
+	 * enabled or if a mouse is hovering over it.
 	 * @extends hemi.hud.HudImage
 	 */
 	hemi.hud.HudButton = function() {
@@ -852,23 +805,23 @@ var hemi = (function(hemi) {
 		this.hovering = false;
 		
 		/**
-		 * The texture to use for the HudButton when it is enabled.
-		 * @type o3d.Texture2D
+		 * The XY coords to use for the HudButton when it is enabled.
+		 * @type number[2]
 		 */
-		this.enabledTexture = null;
+		this.enabledCoords = [0, 0];
 		
 		/**
-		 * The texture to use for the HudButton when it is disabled.
-		 * @type o3d.Texture2D
+		 * The XY coords to use for the HudButton when it is disabled.
+		 * @type number[2]
 		 */
-		this.disabledTexture = null;
+		this.disabledCoords = [0, 0];
 		
 		/**
-		 * The texture to use for the HudButton when it is enabled and the
+		 * The XY coords to use for the HudButton when it is enabled and the
 		 * mouse cursor is hovering.
-		 * @type o3d.Texture2D
+		 * @type number[2]
 		 */
-		this.hoverTexture = null;
+		this.hoverCoords = [0, 0];
 		
 		var that = this;
 		
@@ -893,11 +846,6 @@ var hemi = (function(hemi) {
 				that.draw();
 			}
 		};
-		
-		// Since we need to update the button's texture based upon mouse
-		// interaction, the HUD needs to update its texture any time the button
-		// is drawn.
-		this.config.update = true;
 	};
 	
 	hemi.hud.HudButton.prototype = {
@@ -906,38 +854,29 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			hemi.hud.HudElement.prototype.cleanup.call(this);
-			
-			if (this.enabledTexture) {
-				hemi.hud.pack.removeObject(this.enabledTexture);
-				this.enabledTexture = null;
-			}
-			if (this.disabledTexture) {
-				hemi.hud.pack.removeObject(this.disabledTexture);
-				this.disabledTexture = null;
-			}
-			if (this.hoverTexture) {
-				hemi.hud.pack.removeObject(this.hoverTexture);
-				this.hoverTexture = null;
-			}
+			this.mouseMove = null;
 		},
 		
 		/**
-		 * Set the HudButton's texture based on the enabled and hovering flags
+		 * Set the HudButton's image based on the enabled and hovering flags
 		 * and then draw it.
 		 * @see hemi.hud.HudImage#draw
 		 */
 		draw: function() {
+			var coords;
+			
 			if (this.enabled) {
 				if (this.hovering) {
-					this.texture = this.hoverTexture;
+					coords = this.hoverCoords;
 				} else {
-					this.texture = this.enabledTexture;
+					coords = this.enabledCoords;
 				}
 			} else {
-				this.texture = this.disabledTexture;
+				coords = this.disabledCoords;
 			}
 			
-			hemi.hud.HudImage.prototype.draw.call(this);
+			hemi.hud.hudMgr.createImageOverlay(this.image, this.config, this.x,
+				this.y, coords[0], coords[1], this.width, this.height);
 		}
 	};
 	
@@ -1097,8 +1036,6 @@ var hemi = (function(hemi) {
 			for (var ndx = 0, len = this.elements.length; ndx < len; ndx++) {
 				this.elements[ndx].draw();
 			}
-			
-			hemi.hud.hudMgr.canvas.updateTexture();
 		},
 		
 		/**
@@ -1530,45 +1467,36 @@ var hemi = (function(hemi) {
 	 * @extends hemi.world.Citizen
 	 */
 	hemi.hud.HudManager = function() {
-		this.orthoRoot = hemi.hud.pack.createObject('Transform');
+		var o3El = document.getElementById('o3d'),
+			o3Can = o3El.firstElementChild,
+			hudCan = document.createElement('canvas'),
+			style = hudCan.style;
 		
-		// Create a view for the orthographic display of the fullscreen banner.
-		this.orthoViewInfo = hemi.core.renderGraph.createBasicView(hemi.hud.pack, this.orthoRoot, hemi.core.client.renderGraphRoot);
+		style.left = '0px';
+		style.position = 'absolute';
+		style.top = '0px';
+		style.zIndex = '10';
 		
-		// Make sure the orthographic view gets drawn after the 3d stuff          
-		this.orthoViewInfo.root.priority = hemi.view.viewInfo.root.priority + 1000;
+		hudCan.height = o3Can.height;
+		hudCan.width = o3Can.width;
 		
-		// Turn off clearing the color for the orthographic view, since that would
-		// erase the 3d parts.  Leave clearing the depth and stencil, so it's
-		// unaffected by anything done by the 3d parts.
-		this.orthoViewInfo.clearBuffer.clearColorFlag = false;
+		o3El.appendChild(hudCan);
+		this.canvas = hudCan.getContext('2d');
+		// In our coordinate system, y indicates the top of the first line
+		// of text, so set the canvas baseline to match.
+		this.canvas.textBaseline = 'top';
+		// Since the HUD canvas obscures the GL canvas, pass mouse events
+		// through to Hemi.
+		var wheelHandler = o3d.Client.wrapEventCallback_(hemi.input.scroll, true),
+			downHandler = o3d.Client.wrapEventCallback_(hemi.input.mouseDown, false),
+			moveHandler = o3d.Client.wrapEventCallback_(hemi.input.mouseMove, false),
+			upHandler = o3d.Client.wrapEventCallback_(hemi.input.mouseUp, false);
 		
-		// Set culling to none so we can flip images using rotation or negative scale.
-		this.orthoViewInfo.zOrderedState.getStateParam('CullMode').value = hemi.core.o3d.State.CULL_NONE;
-		this.orthoViewInfo.zOrderedState.getStateParam('ZWriteEnable').value = false;
-		
-		// Create an orthographic matrix for the banner.
-		// The area we're using for display is width by height pixels.
-		// If we change the size of the client area after setup, everything will get
-		// scaled to match, but we don't have to change any of our code.
-		this.orthoViewInfo.drawContext.projection = hemi.core.math.matrix4.orthographic(0 + 0.5, hemi.core.client.width + 0.5, hemi.core.client.height + 0.5, 0 + 0.5, 0.001, 1000);
-		
-		this.orthoViewInfo.drawContext.view = hemi.core.math.matrix4.lookAt(
-			[0, 0, 1], // eye
- 			[0, 0, 0], // target
- 			[0, 1, 0]); // up
-		this.canvasLib = hemi.core.canvas.create(hemi.hud.pack, this.orthoRoot, this.orthoViewInfo);
-		this.paint = hemi.hud.pack.createObject('CanvasPaint');
-		
-		this.canvas = hemi.hud.createCanvas(this.canvasLib,
-			{
-				topX: 0,
-				topY: 0,
-				width: hemi.core.client.width,
-				height: hemi.core.client.height,
-				clear: [0, 0, 0, 0],
-				transform: this.orthoRoot
-			});
+		hudCan.addEventListener('DOMMouseScroll', wheelHandler, true);
+		hudCan.addEventListener('mousewheel', wheelHandler, true);
+		hudCan.addEventListener('mousedown', downHandler, true);
+		hudCan.addEventListener('mousemove', moveHandler, true);
+		hudCan.addEventListener('mouseup', upHandler, true);
 	};
 	
 	hemi.hud.HudManager.prototype = {
@@ -1580,54 +1508,53 @@ var hemi = (function(hemi) {
 		 * <li>color - the color to paint with. This is an array in RGBA
 		 * format</li>
 		 * <li>shader - the shader to apply.</li>
-		 * <li>textAlign - the alignment of the text.  Can be
-		 * o3d.CanvasPaint.CENTER, o3d.CanvasPaint.LEFT, o3d.CanvasPaint.RIGHT</li>
+		 * <li>textAlign - the alignment of the text. Can be 'center', 'left',
+		 * 'right'</li>
 		 * <li>textSize - the size of the text to draw.</li>
-		 * <li>textStyle - the style of the text.  Can be o3d.CanvasPaint.NORMAL,
-		 * o3d.CanvasPaint.BOLD, o3d.CanvasPaint.ITALIC, o3d.CanvasPaint.BOLD_ITALIC
-		 * </li>
+		 * <li>textStyle - the style of the text. Can be 'normal', 'bold',
+		 * 'italic', 'bold italic'</li>
 		 * <li>textTypeface - the type face of the text.  e.g.: 'arial'</li>
 		 * </ul>
-		 * All options default to undefined.
 		 */
 		setPaintProperties: function(options) {
-			options = jQuery.extend({
-				color: undefined,
-				shader: undefined,
-				textAlign: undefined,
-				textSize: undefined,
-				textStyle: undefined,
-				textTypeface: undefined,
-				shadow: undefined,
-				outline: undefined
-			}, options);
+			var font;
 			
-			if (options.color != undefined) 
-				this.paint.color = options.color;
-			if (options.shader != undefined) 
-				this.paint.shader = options.shader;
-			if (options.textAlign != undefined) 
-				this.paint.textAlign = options.textAlign;
-			if (options.textSize != undefined) 
-				this.paint.textSize = options.textSize;
-			if (options.textStyle != undefined) 
-				this.paint.textStyle = options.textStyle;
-			if (options.textTypeface != undefined) 
-				this.paint.textTypeface = options.textTypeface;
-			if (options.shadow != undefined) {
-				var shadow = options.shadow;
-				this.paint.setShadow(shadow.radius, shadow.offsetY, shadow.offsetX, shadow.color);
+			if (options.color != null) {
+				this.canvas.fillStyle = getRgba(options.color);
 			}
-			else {
-				this.paint.setShadow(0, 0, 0, [0, 0, 0, 0]);
+			if (options.outline != null) {
+				this.canvas.strokeStyle = getRgba(options.outline);
+				// If there is an outline, cancel the shadow.
+				this.canvas.shadowColor = 'rgba(0,0,0,0)';
+			} else if (options.shadow != null) {
+				var shad = options.shadow;
+				this.canvas.shadowBlur = shad.radius;
+				this.canvas.shadowColor = getRgba(shad.color);
+				this.canvas.shadowOffsetX = shad.offsetX;
+				this.canvas.shadowOffsetY = shad.offsetY;
+			} else {
+				this.canvas.shadowColor = 'rgba(0,0,0,0)';
 			}
-			if (options.outline != undefined) {
-				var outline = options.outline;
-				this.paint.setOutline(outline.radius, outline.color);
+			if (options.textAlign != null) {
+				this.canvas.textAlign = options.textAlign;
 			}
-			else {
-				this.paint.setOutline(0, [0, 0, 0, 0]);
+			if (options.textStyle != null) {
+				font = options.textStyle + ' ';
+			} else {
+				font = 'bold ';
 			}
+			if (options.textSize != null) {
+				font += options.textSize + 'px ';
+			} else {
+				font += '12px ';
+			}
+			if (options.textTypeface != null) {
+				font += '"' + options.textTypeface + '"';
+			} else {
+				font += 'helvetica';
+			}
+			
+			this.canvas.font = font;
 		},
 		
 		/**
@@ -1639,18 +1566,17 @@ var hemi = (function(hemi) {
 		 *     rectangular overlay
 		 */
 		createRectangleOverlay: function(element, boxConfig) {
-			var config = jQuery.extend({}, hemi.hud.theme.page, boxConfig);
+			var config = jQuery.extend({}, hemi.hud.theme.page, boxConfig),
+				coords = [element.left,
+					element.top,
+					element.right - element.left,
+					element.bottom - element.top];
+			
 			this.setPaintProperties(config);
+			this.canvas.fillRect(coords[0], coords[1], coords[2], coords[3]);
 			
-			this.canvas.canvas.drawRect(
-				element.left,
-				element.top,
-				element.right,
-				element.bottom,
-				this.paint);
-			
-			if (config.update) {
-				this.canvas.updateTexture();
+			if (config.outline != null) {
+				this.canvas.strokeRect(coords[0], coords[1], coords[2], coords[3]);
 			}
 		},
 		
@@ -1664,46 +1590,46 @@ var hemi = (function(hemi) {
 		 * @param {number} y y coordinate to draw the text at
 		 */
 		createTextOverlay: function(text, textConfig, x, y) {
-			var config = jQuery.extend({}, hemi.hud.theme.text, textConfig);
+			var config = jQuery.extend({}, hemi.hud.theme.text, textConfig),
+				height = config.textSize,
+				outline = config.outline != null;
+			
 			this.setPaintProperties(config);
-			
-			if (config.clear !== undefined) {
-				this.canvas.canvas.clear(config.clear);
-			}
-			
-			// In our coordinate system, y indicates the top of the first line
-			// of text. Since O3D interprets y as the bottom of the first line,
-			// we need to increment our y before making the drawText() call.
-			var metrics = this.paint.getFontMetrics();
-			var charHeight = Math.abs(metrics.ascent - metrics.descent);
-			y += charHeight;
 			
 			for (var ndx = 0, len = text.length; ndx < len; ndx++) {
 				var line = text[ndx];
-				this.canvas.canvas.drawText(line, x, y, this.paint);
-				y += charHeight + config.lineMargin;
-			}
-			
-			if (config.update) {
-				this.canvas.updateTexture();
+				this.canvas.fillText(line, x, y);
+				
+				if (outline) {
+					this.canvas.strokeText(line, x, y);
+				}
+				
+				y += height + config.lineMargin;
 			}
 		},
 		
 		/**
 		 * Create an image overlay.
 		 *
-		 * @param {o3d.Texture2D} texture the image texture display
+		 * @param {Image} image the image to display
 		 * @param {Object} imgConfig unique configuration options for the image
 		 *    overlay
 		 * @param {number} x x coordinate to draw the image at
 		 * @param {number} y y coordinate to draw the image at
+		 * @param {number} srcX optional x coordinate to pull from source image
+		 * @param {number} srcY optional y coordinate to pull from source image
+		 * @param {number} width optional width of destination image
+		 * @param {number} height optional height of destination image
 		 */
-		createImageOverlay: function(texture, imgConfig, x, y) {
+		createImageOverlay: function(image, imgConfig, x, y, srcX, srcY, width, height) {
 			var config = jQuery.extend({}, hemi.hud.theme.image, imgConfig);
-			this.canvas.canvas.drawBitmap(texture, x, y);
+			this.setPaintProperties(config);
 			
-			if (config.update) {
-				this.canvas.updateTexture();
+			if (srcX != null && srcY != null && width != null && height != null) {
+				this.canvas.drawImage(image, srcX, srcY, width, height, x, y,
+					width, height);
+			} else {
+				this.canvas.drawImage(image, x, y);
 			}
 		},
 		
@@ -1711,8 +1637,9 @@ var hemi = (function(hemi) {
 		 * Clear the current overlays from the HUD.
 		 */
 		clearDisplay: function() {
-			this.canvas.canvas.clear([0, 0, 0, 0]);
-			this.canvas.updateTexture();
+			var can = this.canvas.canvas;
+			this.canvas.clearRect(0, 0, can.width, can.height);
+			this.canvas.beginPath();
 		},
 		
 		/**
@@ -1725,28 +1652,27 @@ var hemi = (function(hemi) {
 		 * @return {Object} wrapped text object
 		 */
 		doTextWrapping: function(text, width, textOptions) {
-			var config = jQuery.extend({}, hemi.hud.theme.text, textOptions);
+			var config = jQuery.extend({}, hemi.hud.theme.text, textOptions),
+				wrappedText;
+			
 			this.setPaintProperties(config);
-			var wrappedText;
 			
 			if (config.strictWrapping) {
-				wrappedText = hemi.utils.wrapTextStrict(text, width, this.paint);
+				wrappedText = hemi.utils.wrapTextStrict(text, width, this.canvas);
 			} else {
-				var textSize = this.paint.measureText(text);
-				var charWidth = (textSize[2] - textSize[0]) / text.length;
+				var metric = this.canvas.measureText(text),
+					charWidth = metric.width / text.length;
 				wrappedText = hemi.utils.wrapText(text, width, charWidth);
 			}
 			
-			var metrics = this.paint.getFontMetrics();
-			var height = wrappedText.length * (Math.abs(metrics.ascent) + Math.abs(metrics.descent) + config.lineMargin);
-			var longestWidth = 0;
+			var height = wrappedText.length * (config.textSize + config.lineMargin),
+				longestWidth = 0;
 			
 			for (var ndx = 0, len = wrappedText.length; ndx < len; ndx++) {
-				var textSize = this.paint.measureText(wrappedText[ndx]);
-				var tempWidth = textSize[2] - textSize[0];
+				var metric = this.canvas.measureText(wrappedText[ndx]);
 				
-				if (longestWidth < tempWidth) {
-					longestWidth = tempWidth;
+				if (longestWidth < metric.width) {
+					longestWidth = metric.width;
 				}
 			}
 			
@@ -1757,46 +1683,14 @@ var hemi = (function(hemi) {
 			};
 		}
 	};
-
-	/**
-	 * Create a canvas to draw 2D elements on.
-	 * 
-	 * @param {hemi.core.canvas.CanvasInfo} canvasInfo the CanvasInfo to use to
-	 *     actually create the canvas
-	 * @param {Object} options options for configuring the canvas. Valid
-	 * options are
-	 * <ul>
-	 * <li>topX - default 0</li>
-	 * <li>topY - default 0</li>
-	 * <li>z - default 0</li>
-	 * <li>width - default 100</li>
-	 * <li>height - default 100</li>
-	 * <li>clear - default [0, 0, 0, 0].  Used to clear the canvas.</li>
-	 * <li>transparent - default true</li>
-	 * <li>transform - default a newly created transform</li>
-	 * </ul>
-	 * @return {hemi.core.canvas.CanvasQuad} the newly created canvas
+	
+	/*
+	 * Get the CSS RGBA string for the given color array in 0-1 format.
+	 * @param {number[4]} col color array
+	 * @return {string} the equivalent RGBA string
 	 */
-	hemi.hud.createCanvas = function(canvasInfo, options) {
-		options = jQuery.extend({
-			topX: 0,
-			topY: 0,
-			z: 0,
-			width: 100,
-			height: 100,
-			clear: [0, 0, 0, 0],
-			transparent: true
-		}, options);
-
-		if (!options.transform) {
-			options.transform = hemi.hud.pack.createObject('Transform');
-		}
-
-		options.transform.parent = hemi.core.client.root;
-
-		var quad = canvasInfo.createXYQuad(options.topX, options.topY, options.z, options.width, options.height, options.transparent, options.transform);
-		quad.canvas.clear(options.clear);
-		return quad;
+	var getRgba = function(col) {
+		return 'rgba(' + col[0]*255 + ',' + col[1]*255 + ',' + col[2]*255 + ',' + col[3] + ')';
 	};
 
 	return hemi;

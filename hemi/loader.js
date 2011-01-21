@@ -54,7 +54,7 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Load the image file at the given URL into the given Pack. If an error
+	 * Load the bitmap file at the given URL into the given Pack. If an error
 	 * occurs, an alert is thrown. Otherwise the given callback is executed and
 	 * passed an array of the loaded bitmaps.
 	 * 
@@ -64,7 +64,7 @@ var hemi = (function(hemi) {
 	 * @param {function(o3d.Bitmap[]):void} callback a function to pass an array
 	 *     of the loaded bitmaps
 	 */
-	hemi.loader.loadImage = function(url, pack, callback) {
+	hemi.loader.loadBitmap = function(url, pack, callback) {
 		url = getPath(url);
 
 		hemi.world.loader.loadBitmaps(pack, url,
@@ -75,6 +75,35 @@ var hemi = (function(hemi) {
 					callback(bitmaps);
 				}
 			});
+	};
+
+	/**
+	 * Load the image file at the given URL. If an error occurs, it is logged.
+	 * Otherwise the given callback is executed and passed the loaded image.
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda
+	 *     directory
+	 * @param {function(Image):void} callback a function to pass the loaded
+	 *     image
+	 */
+	hemi.loader.loadImage = function(url, callback) {
+		++hemi.world.loader.count_;
+		var img = new Image();
+		
+		img.onabort = function() {
+			hemi.console.log('Aborted loading: ' + url, hemi.console.WARN);
+			hemi.world.loader.countDown_();
+		};
+		img.onerror = function() {
+			hemi.console.log('Error loading: ' + url, hemi.console.ERR);
+			hemi.world.loader.countDown_();
+		};
+		img.onload = function() {
+			callback(img);
+			hemi.world.loader.countDown_();
+		};
+		
+		img.src = getPath(url);
 	};
 
 	/**

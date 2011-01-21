@@ -163,56 +163,24 @@ var hext = (function(hext) {
 			
 			hemi.loader.loadImage(
 				this.imageFile,
-				hemi.hud.pack,
-				function(bitmaps) {
-					var bitmap = bitmaps[0];
-					var width = that.imageWidth;
-					var height = that.imageHeight;
+				function(image) {
+					var width = that.imageWidth,
+						height = that.imageHeight;
 					
+					that.leftNav.image = image;
+					that.rightNav.image = image;
 					// Create the left arrow
-					var texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
-					
-					var x = 0;
-					var y = 0;
-					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
-					that.leftNav.enabledTexture = texture;
-					
+					that.leftNav.enabledCoords = [0, 0];
 					// Create the right arrow
-					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
-					
-					x = width;
-					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
-					that.rightNav.enabledTexture = texture;
-					
+					that.rightNav.enabledCoords = [width, 0];
 					// Create the left disabled arrow
-					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
-					
-					x = 0;
-					y = height;
-					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
-					that.leftNav.disabledTexture = texture;
-					
+					that.leftNav.disabledCoords = [0, height];
 					// Create the right disabled arrow
-					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
-					
-					x = width;
-					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
-					that.rightNav.disabledTexture = texture;
-					
+					that.rightNav.disabledCoords = [width, height];
 					// Create the left hover arrow
-					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
-					
-					x = 0;
-					y = 2 * height;
-					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
-					that.leftNav.hoverTexture = texture;
-					
+					that.leftNav.hoverCoords = [0, 2*height];
 					// Create the right hover arrow
-					texture = hemi.hud.pack.createTexture2D(width, height, bitmap.format, 1, false);
-					
-					x = width;
-					texture.drawImage(bitmap, 0, x, y, width, height, 0, 0, 0, width, height);
-					that.rightNav.hoverTexture = texture;
+					that.rightNav.hoverCoords = [width, 2*height];
 				});
 		}
 	};

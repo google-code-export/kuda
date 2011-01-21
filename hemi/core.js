@@ -40,7 +40,7 @@ o3djs.require('hemi.view');
 o3djs.require('hemi.model');
 o3djs.require('hemi.effect');
 o3djs.require('hemi.scene');
-//o3djs.require('hemi.hud');
+o3djs.require('hemi.hud');
 o3djs.require('hemi.manip');
 o3djs.require('hemi.curve');
 o3djs.require('hemi.sprite');
@@ -271,7 +271,7 @@ var hemi = (function(hemi) {
 		hemi.view.init();
 		hemi.model.init();
 		hemi.effect.init();
-//		hemi.hud.init();
+		hemi.hud.init();
 		hemi.shape.init();
 		hemi.world.init();
 
