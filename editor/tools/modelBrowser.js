@@ -1040,7 +1040,7 @@ var editor = (function(module) {
 		createHud: function() {
 			var textConfig = {
 				color: [0.6, 0.9, 1, 1],
-				textAlign: hemi.core.o3d.CanvasPaint.LEFT,
+				textAlign: 'left',
 				textSize: 10
 			};
 			
