@@ -115,7 +115,8 @@ var hemi = (function(hemi) {
 	 *     transform. Can be null.
 	 */
 	hemi.picking.HemiTransformInfo = function(transform, parent) {		
-		o3djs.picking.TransformInfo.call(this, transform, hemi.picking.pickManager);
+		o3djs.picking.TransformInfo.call(this, transform, parent,
+			hemi.picking.pickManager);
 		
 		this.pickable = true;
 		this.recorded = false;

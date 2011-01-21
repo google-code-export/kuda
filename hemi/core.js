@@ -368,7 +368,7 @@ var hemi = (function(hemi) {
 			param = material.getParam('lightColor');
 		
 			if (param) {
-				param.bind(hemi.world.camera.lightColorParam);
+				param.bind(hemi.world.camera.light.color);
 			}
 			
 			// For now, the Z-sorted draw list does not work well with
