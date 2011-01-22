@@ -114,9 +114,10 @@ var editor = (function(module) {
 			
 			this.colorPicker = new module.ui.ColorPicker({
 				inputId: 'fogFormColor',	
-				container: wgt.find('#fogFormColorDiv'),
 				buttonId: 'fogFormColorPicker'			
 			});
+			
+			this.find('#fogFormColorLbl').after(this.colorPicker.getUI());
 			
 			this.colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
 				if (wgt.start.val() !== '' && wgt.end.val() !== '') {

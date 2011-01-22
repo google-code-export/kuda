@@ -44,46 +44,12 @@ var hemi = (function(hemi) {
 	 *	}
 	 *
 	 */
-	 
-	hemi.fx.gridShader = 
-		"uniform float4x4 worldViewProjection : WORLDVIEWPROJECTION;" +
-		"uniform float4 color1;" +
-		"uniform float4 color2;" +
-		"uniform float squares;" +
-		"uniform float thickness;" +
-		"struct PixelShaderInput {" +
-		"  float4 position : POSITION;" +
-		"  float2 texcoord : TEXCOORD0;" +
-		"};" +
-		"struct VertexShaderInput {" +
-		"  float4 position : POSITION;" +
-		"  float2 texcoord : TEXCOORD0;" +
-		"};" +
-		"PixelShaderInput vertexShaderFunction(VertexShaderInput input) {" +
-		"  PixelShaderInput output;" +
-		"  output.position = mul(input.position, worldViewProjection);" +
-		"  output.texcoord = input.texcoord;" +
-		"  return output;" +
-		"}" +
-		"float4 pixelShaderFunction(PixelShaderInput input): COLOR {" +
-		"  float2 uv = input.texcoord;" +
-		"  float fmodX = fmod((squares+thickness)*uv.x,1.0);" +
-		"  float fmodY = fmod((squares+thickness)*uv.y,1.0);" +
-		"  if (fmodX < thickness || fmodY < thickness) {" +
-		"    return color1;" +
-		"  } else {" +
-		"  return color2;" +
-		"  }" +
-		"}" +
-		"// #o3d VertexShaderEntryPoint vertexShaderFunction" +
-		"// #o3d PixelShaderEntryPoint pixelShaderFunction" +
-		"// #o3d MatrixLoadOrder RowMajor";
 	
 	hemi.fx.create = function(spec,callback) {
 		switch (spec.type) {
 			case 'constant':
 				if (spec.texture) {
-					return hemi.fx.createConstantTexture(spec.texture,callback);
+					return hemi.fx.createConstantTexture(spec.texture, callback);
 				} else {
 					callback(hemi.core.material.createConstantMaterial(
 						hemi.core.mainPack,
@@ -95,7 +61,7 @@ var hemi = (function(hemi) {
 				break;
 			case 'basic':
 				if (spec.texture) {
-					return hemi.fx.createBasicTexture(spec.texture,callback);
+					return hemi.fx.createBasicTexture(spec.texture, callback);
 				} else {
 					callback(hemi.core.material.createBasicMaterial(
 						hemi.core.mainPack,
@@ -115,7 +81,7 @@ var hemi = (function(hemi) {
 		}
 	};
 	
-	hemi.fx.modify = function(material,spec) {
+	hemi.fx.modify = function(material, spec) {
 		switch (spec.type) {
 			case 'constant':
 				material.effect = null;
@@ -135,10 +101,10 @@ var hemi = (function(hemi) {
 		}
 	};
 	
-	hemi.fx.createConstantTexture = function(path,callback) {
+	hemi.fx.createConstantTexture = function(path, callback) {
 		var url = o3djs.util.getCurrentURI() + path;
 		var material;
-		hemi.core.io.loadTexture(hemi.core.mainPack,url,function(texture,e) {
+		hemi.core.io.loadTexture(hemi.core.mainPack,url,function(texture, e) {
 			if (e) {
 				alert(e);
 			} else {
@@ -151,10 +117,10 @@ var hemi = (function(hemi) {
 		});
 	};
 	
-	hemi.fx.createBasicTexture = function(path,callback) {
+	hemi.fx.createBasicTexture = function(path, callback) {
 		var url = o3djs.util.getCurrentURI() + path;
 		var material;
-		hemi.core.io.loadTexture(hemi.core.mainPack,url,function(texture,e) {
+		hemi.core.io.loadTexture(hemi.core.mainPack,url,function(texture, e) {
 			if (e) {
 				alert(e);
 			} else {
@@ -181,53 +147,67 @@ var hemi = (function(hemi) {
 		return material;
 	};
 	
-	hemi.fx.addPixelInputField = function(shader,field) {
-		var index1 = shader.search('PixelShaderInput');
-		if (index1 < 0) index1 = shader.search('OutVertex');
-		var index = index1 + shader.slice(index1).search('}');
-		return shader.slice(0,index) + field + shader.slice(index);
-	};
-	
-	hemi.fx.addVertexInputField = function(shader,field) {
-		var index1 = shader.search('VertexShaderInput');
-		if (index1 < 0) index1 = shader.search('InVertex');
-		var index = index1 + shader.slice(index1).search('}');
-		return shader.slice(0,index) + field + shader.slice(index);
-	};
-	
-	hemi.fx.modifyPixelReturn = function(shader,code) {
-		var index = shader.search('pixelShaderFunction');
-		var head = shader.slice(0,index);
-		var tail = shader.slice(index).replace('return','float4 pxl =');
-		index = tail.search('pxl') + tail.slice(tail.search('pxl')).search(';') + 1;
-		return head + tail.slice(0,index) + code + tail.slice(index);
-	};
-	
-	hemi.fx.addFog = function(material,fog) {
-		var header = "uniform float fogStart; uniform float fogEnd; uniform float4 fogColor;";
-		var insert1 = 
-			"float fog;if(output.position.z<=fogStart){fog=0.0;}" + 
-			"else if(output.position.z>=fogEnd){fog = 1.0;}" + 
-			"else{fog=(output.position.z-fogStart)/(fogEnd-fogStart);}" +
-			"output.color = float4(fogColor.rgb,fog);";
-		var shader = material.effect.source;	
-		if(shader.search('fog') < 0) {
-			shader = hemi.fx.addPixelInputField(shader,'float4 color: COLOR;');
-			var index = shader.search('return');
-			var fogShader = hemi.fx.modifyPixelReturn(
-				header + shader.slice(0,index) + insert1 + shader.slice(index),
-				'return (1-input.color.a)*pxl + input.color.a*input.color;');
-			hemi.fx.replaceShader(material,fogShader);
+	hemi.fx.addFog = function(material, fog) {		
+		// get the source
+		var gl = material.gl,
+			program = material.effect.program_,
+			shaders = gl.getAttachedShaders(program),
+			source1 = gl.getShaderSource(shaders[0]),
+			source2 = gl.getShaderSource(shaders[1]),
+			fragSrc = source1.search('gl_FragColor') > 0 ? source1 : source2,
+			vertSrc = fragSrc === source1 ? source2 : source1,
+			srcCombineFcn = function(head, tail, src, global, retVar) {
+				var hdrNdx = src.search('void main'),
+					endNdx = src.search(global),
+					end = '';
+				
+				src = src.replace(global, retVar);
+				end = src.slice(endNdx);			
+				endNdx = endNdx + end.search(';') + 1;
+				src = src.slice(0, hdrNdx) + head 
+					+ src.slice(hdrNdx, endNdx) + tail
+					+ src.slice(endNdx);
+					
+				return src;
+			};
+		
+		// detach the previous shaders
+		gl.detachShader(program, shaders[0]);
+		gl.detachShader(program, shaders[1]);
+		
+		// modify the shaders
+		if (vertSrc.search('fog') < 0) {
+			var vertHdr = "varying float fogAlpha;\
+					uniform float fogStart;\
+					uniform float fogEnd;",
+				vertEnd = "float z = pos[2];\
+					if (z <= fogStart) {\
+						fogAlpha = 0.0;\
+					}\
+					else if (z >= fogEnd) {\
+						fogAlpha = 1.0;\
+					}\
+					else {\
+						fogAlpha = (z - fogStart)/(fogEnd - fogStart);\
+					}\
+					gl_Position = pos;";
+					
+			vertSrc = srcCombineFcn(vertHdr, vertEnd, vertSrc, 'gl_Position', 'vec4 pos');
+			material.effect.loadVertexShaderFromString(vertSrc);
 		}
+		if (fragSrc.search('fog') < 0) {
+			var fragHdr = "varying float fogAlpha;\
+					uniform vec4 fogColor;",
+				fragEnd = "gl_FragColor = (1.0 - fogAlpha)*clr + fogAlpha*fogColor;";
+							
+			fragSrc = srcCombineFcn(fragHdr, fragEnd, fragSrc, 'gl_FragColor', 'vec4 clr');
+			material.effect.loadPixelShaderFromString(fragSrc);
+		}
+		
 		material.effect.createUniformParameters(material);
 		material.getParam('fogStart').value = fog.start;
 		material.getParam('fogEnd').value = fog.end;
 		material.getParam('fogColor').value = fog.color;
-	};
-	
-	hemi.fx.replaceShader = function(material,shader) {
-		material.effect.loadFromFXString(shader);
-		material.effect.createUniformParameters(material);
 	};
 	
 	return hemi;

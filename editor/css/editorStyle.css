@@ -864,6 +864,9 @@ form ol > li {
 .sidebarForm ol > li {
 	width: 255px;
 }
+.sidebarForm ol > li > div {
+	float: left;
+}
 form ol > li > div:not(.ui-slider, .buttons) {
 	float: left;
 }
