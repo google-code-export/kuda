@@ -337,7 +337,7 @@ var hemi = (function(hemi) {
 	hemi.core.loaderCallback = function(pack, parentTransform) {
 		// Update transform and picking info
 		hemi.core.addToTransformTable(parentTransform, hemi.model.modelRoot);
-		hemi.picking.treeInfo.update();
+		hemi.picking.pickManager.update();
 		
 		// Generate draw elements and setup material draw lists.
 		o3djs.pack.preparePack(pack, hemi.view.viewInfo);

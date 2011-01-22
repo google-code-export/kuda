@@ -34,19 +34,6 @@ var hemi = (function(hemi) {
 	hemi.picking.PICK_ROOT = 'PickRoot';
 	
 	/**
-	 * Override O3D's createTransformInfo function so that it will construct
-	 * our extended HemiTransformInfo instead.
-	 * 
-	 * @param {o3d.Transform} transform Transform to keep info about.
-	 * @param {o3djs.picking.TransformInfo} parent Parent transform of the
-	 *     transform. Can be null.
-	 * @return {o3djs.picking.TransformInfo} The new TransformInfo.
-	 */
-	o3djs.picking.createTransformInfo = function(transform, parent) {
-		return new hemi.picking.HemiTransformInfo(transform, parent);
-	};
-	
-	/**
 	 * Calculate the pick information to describe what shape was clicked in the
 	 * 3D scene.
 	 *  
@@ -55,21 +42,15 @@ var hemi = (function(hemi) {
 	 *     calculated
 	 */
 	hemi.picking.getPickInfo = function(mouseEvent) {
-		var pickInfo;
+		var worldRay = hemi.core.picking.clientPositionToWorldRay(
+			mouseEvent.x,
+			mouseEvent.y,
+			hemi.view.viewInfo.drawContext,
+			hemi.core.client.width,
+			hemi.core.client.height);
 		
-		if (hemi.picking.treeInfo) {
-			var worldRay = hemi.core.picking.clientPositionToWorldRay(
-				mouseEvent.x,
-				mouseEvent.y,
-				hemi.view.viewInfo.drawContext,
-				hemi.core.client.width,
-				hemi.core.client.height);
-			
-			hemi.picking.treeInfo.update();
-			pickInfo = hemi.picking.treeInfo.pick(worldRay);
-		}
-		
-		return pickInfo;
+		this.pickManager.update();
+		return this.pickManager.pick(worldRay);
 	};
 	
 	/**
@@ -82,7 +63,7 @@ var hemi = (function(hemi) {
 	 *     Transforms as well
 	 */
 	hemi.picking.setPickable = function(transform, pickable, recurse) {
-		var info = this.transformInfoTable.get(transform.clientId);
+		var info = this.pickManager.getTransformInfo(transform);
 		
 		if (info) {
 			info.setPickable(pickable, recurse);
@@ -94,15 +75,21 @@ var hemi = (function(hemi) {
 	 * need to be children of.
 	 */
 	hemi.picking.init = function() {
-		this.transformInfoTable = new Hashtable();
-		
 		// A transform parent to hold pickable transform roots
 		this.pickRoot = hemi.core.mainPack.createObject('Transform');
 		this.pickRoot.name = hemi.picking.PICK_ROOT;
 		this.pickRoot.parent = hemi.core.client.root;
 		
 		this.pickManager = hemi.core.picking.createPickManager(this.pickRoot);
-		this.treeInfo = this.pickManager.rootTransformInfo;
+		/*
+		 * Override PickManager's createTransformInfo function so that it will
+		 * construct our extended HemiTransformInfo instead.
+		 */
+		this.pickManager.createTransformInfo = function(transform, parent) {
+			var info = new hemi.picking.HemiTransformInfo(transform, parent, this);
+			this.addTransformInfo(info);
+			return info;
+		};
 	};
 	
 	/**
@@ -113,13 +100,15 @@ var hemi = (function(hemi) {
 	 * @param {o3d.Transform} transform Transform to keep info about
 	 * @param {o3djs.picking.TransformInfo} parent Parent transformInfo of the
 	 *     transform. Can be null.
+	 * @param {o3djs.picking.PickManager} pickManager The PickManager this
+	 *     TransformInfo belongs to.
 	 */
-	hemi.picking.HemiTransformInfo = function(transform, parent) {		
-		o3djs.picking.TransformInfo.call(this, transform, parent,
-			hemi.picking.pickManager);
+	hemi.picking.HemiTransformInfo = function(transform, parent, pickManager) {		
+		o3djs.picking.TransformInfo.call(this, transform, parent, pickManager);
 		
 		this.pickable = true;
-		this.recorded = false;
+		// Override the default value for this TransformInfo property
+		this.pickableEvenIfInvisible = true;
 	};
 	
 	hemi.picking.HemiTransformInfo.prototype = {
@@ -164,19 +153,6 @@ var hemi = (function(hemi) {
 			}
 			
 			return pickInfo;
-		},
-		
-		/**
-		 * Override TransformInfo's update function so that we can also update
-		 * our lookup table of HemiTransformInfos.
-		 */
-		update: function() {
-			o3djs.picking.TransformInfo.prototype.update.call(this);
-			
-			if (!this.recorded) {
-				hemi.picking.transformInfoTable.put(this.transform.clientId, this);
-				this.recorded = true;
-			}
 		}
 	};
 	
