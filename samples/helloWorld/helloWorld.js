@@ -49,7 +49,7 @@
 		 *		will begin loading that file.
 		 */
 		var house = new hemi.model.Model();				// Create a new Model
-		house.setFileName('assets/house_v12.o3dtgz');	// Set the model file
+		house.setFileName('assets/house_v12/scene.json'); // Set the model file
 		
 		/**
 		 * When we call the world's 'ready' function, it will wait for the model
@@ -80,7 +80,7 @@
 	}
 
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(init);
+		o3djs.webgl.makeClients(init);
 	});
 
 	jQuery(window).unload(function() {

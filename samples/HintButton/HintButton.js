@@ -47,7 +47,7 @@
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		
 		house = new hemi.model.Model();
-		house.setFileName('assets/house_v12.o3dtgz');
+		house.setFileName('assets/house_v12/scene.json');
 		
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {
@@ -230,7 +230,7 @@
 	}
 
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(init);
+		o3djs.webgl.makeClients(init);
 	});
 
 	jQuery(window).unload(function() {
