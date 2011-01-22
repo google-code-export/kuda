@@ -16,6 +16,7 @@
  */
 
 o3djs.require('hemi.hud');
+o3djs.require('hext.hud.paging');
 
 var hext = (function(hext) {
 	/**
@@ -147,10 +148,16 @@ var hext = (function(hext) {
 				message = [hintMsg];
 			}
 			
-			var multiPage = message.length > 1;
-			var show = hudDisplay.isVisible();
+			var multiPage = message.length > 1,
+				show = hudDisplay.isVisible();
+			
+			if (multiPage) {
+				hext.hud.showPagingInfo();
+			} else {
+				hext.hud.hidePagingInfo();
+			}
+			
 			hudDisplay.clearPages();
-			hudDisplay.addPagingInfo = multiPage;
 			
 			for (var ndx = 0, len = message.length; ndx < len; ndx++) {
 				var page = createHudPage(message[ndx], multiPage);
