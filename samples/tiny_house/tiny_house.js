@@ -48,7 +48,7 @@
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		
 		house = new hemi.model.Model();
-		house.setFileName('assets/TinyHouse_v06.o3dtgz');
+		house.setFileName('assets/TinyHouse_v07/scene.json');
 		
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {
@@ -63,6 +63,7 @@
 		house.setTransformVisible('fan_ring1', false);
 		house.setTransformVisible('cam_Eye', false);
 		house.setTransformVisible('cam_Target', false);
+		house.setTransformVisible('SO_window', false);
 
 		var winWidth = 16; // Typical window width
 		var engine = new hext.engines.PressureEngine();
@@ -92,7 +93,7 @@
 		}.init();
 
 		houseWindow = {
-			transform: house.getTransform('tinyHouseWindow_sash'),
+			transform: house.getTransform('SO_window'),
 			// Y always maps to the V coordinate, so this defines a Draggable on
 			// the YZ plane that can be dragged from 0 to 0 on the Z plane and 0
 			// to 55 on the Y plane.
@@ -110,11 +111,8 @@
 				var pack = hemi.core.mainPack;
 				var pickMat = hemi.core.material.createBasicMaterial(pack, hemi.view.viewInfo, [0, 0, 0, 0], true);
 				var pickBox = hemi.core.primitives.createBox(pack, pickMat, 10, 60, 80);
-				var pickT = pack.createObject('Transform');
-				pickT.parent = this.transform;
-				pickT.addShape(pickBox);
-				pickT.translate(163.97, 119.17, 718.23);
 				this.draggable.addTransform(this.transform);
+				this.draggable.addTransform(house.getTransform('tinyHouseWindow_sash'));
 				this.draggable.subscribe(hemi.msg.drag, this.msgHandler);
 				return this;
 			}
@@ -201,7 +199,7 @@
 	}
 
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(init);
+		o3djs.webgl.makeClients(init);
 	});
 
 	jQuery(window).unload(function() {

@@ -95,7 +95,7 @@
 	}
 
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(init);
+		o3djs.webgl.makeClients(init);
 	});
 
 	jQuery(window).unload(function() {
