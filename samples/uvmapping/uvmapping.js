@@ -48,7 +48,7 @@
 	function createWorld() {
 	
 		ticker = new hemi.model.Model();				// Create a new Model
-		ticker.setFileName('assets/DigitalDisplay.o3dtgz');	// Set the model file
+		ticker.setFileName('assets/DigitalDisplay/scene.json');	// Set the model file
 	
 		/**
 		 * When we call the world's 'ready' function, it will wait for the model
@@ -137,7 +137,7 @@
 	}
 	
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(init);
+		o3djs.webgl.makeClients(init);
 	});
 
 	jQuery(window).unload(function() {
