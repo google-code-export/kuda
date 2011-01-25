@@ -40,7 +40,7 @@
 			// set editor defaults
 			editor.Defaults = {
 				farPlane: 10000,
-				nearPlane: 1
+				nearPlane: 0
 			};
 			
 			editor.dirty = loadProject;
@@ -65,8 +65,8 @@
 			cam.clip.near = defaults.nearPlane;
 			cam.updateProjection();
 			
-			this.extent = 2000;		// Grid will reach 20 meters in each direction
-			this.fidelity = 100;	// Grid squares will be 100 meters wide
+			this.extent = 2000;		// Grid will reach 2000 meters in each direction
+			this.fidelity = 1;		// Grid squares = 1 square meter
 			
             this.layoutDialogs();
 			this.layoutGrid();
@@ -204,7 +204,7 @@
 			this.fogMdl.worldLoaded();
             
 			var vd = hemi.view.createViewData(hemi.world.camera);
-			vd.eye = [0, 100, 600];
+			vd.eye = [0, 10, 40];
 			vd.target = [0, 0, 0];
             hemi.world.camera.moveToView(vd);			
 		},
@@ -239,9 +239,10 @@
 		},
 		
 		resetGrid: function(extent, fidelity) {
-			this.db.setAxisScale(extent, fidelity/100);
+			this.db.setAxisScale(extent, fidelity/10);
+			var fullExtent = extent * 2;
 			hemi.texture.scale(this.gridShape.shapes[0].elements[0], 
-				this.fidelity, this.fidelity);
+				fullExtent/fidelity, fullExtent/fidelity);
 		},
 		
 		removeGrid: function() {
