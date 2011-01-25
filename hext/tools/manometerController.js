@@ -129,7 +129,7 @@ var hext = (function(hext) {
 			}
 
 			this.view.setTapSelected(this.activeWidgetId, false);
-			hemi.core.client.cursor = hemi.core.o3d.Cursor.DEFAULT;
+			document.getElementById('o3d').style.cursor = 'default';
 			hemi.world.removePickGrabber();
 			this.activeInputId = null;
 			this.activeWidgetId = null;
@@ -208,7 +208,7 @@ var hext = (function(hext) {
 						toolView.setTapToBlower(newWidget, false);
 						toolView.setTapToRoom(newWidget, false);
 						toolView.setTapSelected(newWidget, true);
-						hemi.core.client.cursor = hemi.core.o3d.Cursor.POINTER;
+						document.getElementById('o3d').style.cursor = 'pointer';
 						hemi.world.setPickGrabber(that);
 					}
 				});

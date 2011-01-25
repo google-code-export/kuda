@@ -58,7 +58,7 @@ var hext = (function(hext) {
 				// change the cursor
 				// change the mode by setting the pickgrabber
 				if (!toolModel.picking) {
-					hemi.core.client.cursor = hemi.core.o3d.Cursor.POINTER;
+					document.getElementById('o3d').style.cursor = 'pointer';
 					hemi.world.setPickGrabber(that);
 					toolModel.setPicking(true);
 					toolbarView.setClickedState(true);
@@ -93,7 +93,7 @@ var hext = (function(hext) {
 		 * Clean up pick Message interception and view styling.
 		 */
 		cleanupAfterPick: function() {
-			hemi.core.client.cursor = hemi.core.o3d.Cursor.DEFAULT;
+			document.getElementById('o3d').style.cursor = 'default';
 			hemi.world.removePickGrabber();
 			this.model.setPicking(false);
 			this.toolbarView.setClickedState(false);
