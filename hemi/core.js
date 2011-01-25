@@ -46,6 +46,7 @@ o3djs.require('hemi.curve');
 o3djs.require('hemi.sprite');
 o3djs.require('hemi.shape');
 o3djs.require('hemi.fx');
+o3djs.require('hemi.texture');
 
 /**
  * @namespace The core Hemi library used by Kuda.
@@ -119,132 +120,6 @@ var hemi = (function(hemi) {
 		};
 	}
 
-	/**
-	 * The Debug class holds utilites for debugging.
-	 *
-	 * @constructor
-	 * @ignore
-	 */
-	hemi.core.Debug = function() {
-		this.debugHelper = o3djs.debug.createDebugHelper(hemi.core.client.createPack(), hemi.view.viewInfo);
-		this.debugLineGroup = this.debugHelper.createDebugLineGroup(hemi.core.client.root);
-		this.debugLine = this.debugLineGroup.addLine();
-		this.debugLine.setColor([0, 1, 0, 1]);
-		this.drawingNormals = false;
-		this.loggingPickInfo = false;
-	};
-
-	hemi.core.Debug.prototype = {
-		/**
-		 * Enable or disable logging pick info to the console.
-		 *
-		 * @param {boolean} log whether or not to log pick info
-		 */
-		logPickInfo: function(pickInfo) {
-			if (pickInfo) {
-				console.log(pickInfo);
-			}
-		},
-
-		/**
-		 * Draw a normal line from the point of intersection on the picked
-		 * shape if there was one.
-		 *
-		 * @param {o3djs.picking.PickInfo} pickInfo information from the pick
-		 */
-		drawNormals: function(pickInfo) {
-			if (pickInfo) {
-				// Display the normal
-				var normal = o3djs.element.getNormalForTriangle(pickInfo.element, pickInfo.rayIntersectionInfo.primitiveIndex);
-				
-				// Convert the normal from local to world space.
-				normal = hemi.core.math.matrix4.transformNormal(pickInfo.shapeInfo.parent.transform.getUpdatedWorldMatrix(), normal);
-				
-				// Remove the scale from the normal.
-				normal = hemi.core.math.normalize(normal);
-				
-				// Get the world position of the collision.
-				var worldPosition = pickInfo.worldIntersectionPosition;
-				
-				// Add the normal to it to get a point in space above it with some
-				// multiplier to scale it.
-				var normalSpot = hemi.core.math.addVector(worldPosition, hemi.core.math.mulVectorScalar(normal, 50.0));
-				
-				this.debugLine.setVisible(true);
-				this.debugLine.setEndPoints(worldPosition, normalSpot);
-			}
-			else {
-				this.debugLine.setVisible(false);
-			}
-		},
-		
-		/**
-		 * This function allows Debug to handle Pick messages.
-		 *
-		 * @param {o3djs.picking.PickInfo} pickInfo the data from the pick message
-		 */
-		onPick: function(pickInfo) {
-			if (this.drawingNormals) {
-				this.drawNormals(pickInfo);
-			}
-			
-			if (this.loggingPickInfo) {
-				this.logPickInfo(pickInfo);
-			}
-		},
-
-		/**
-		 * This function dumps the names of all of the materials for the given Model
-		 * to the console.
-		 *
-		 * @param {hemi.model.Model} model the Model to log materials for
-		 */
-		logMaterialNames: function(model) {
-			console.log("Material names for model: " + model.name);
-			
-			for (var m = 0; m < model.materials.length; m++) {
-				var material = model.materials[m];
-				console.log(material.name);
-			}
-
-			console.log("End of materials for model: " + model.name);
-		},
-		
-		/**
-		 * This function dumps the names of all of the shapes for the given Model
-		 * to the console.
-		 *
-		 * @param {hemi.model.Model} model the Model to log shapes for
-		 */
-		logShapeNames: function(model) {
-			console.log("Shape names for model: " + model.name);
-			
-			for (var s = 0; s < model.shapes.length; s++) {
-				var shape = model.shapes[s];
-				console.log(shape.name);
-			}
-			
-			console.log("End of shapes for model: " + model.name);
-		},
-		
-		/**
-		 * This function dumps the names of all of the transforms for the given
-		 * Model to the console.
-		 *
-		 * @param {hemi.model.Model} model the Model to log transforms for
-		 */
-		logTransformNames: function(model) {
-			console.log("Transforms names for model: " + model.name);
-			
-			for (var t = 0; t < model.transforms.length; t++) {
-				var transform = model.transforms[t];
-				console.log(transform.name);
-			}
-			
-			console.log("End of transforms for model: " + model.name);
-		}
-	};
-
 	hemi.core.init = function(clientElement) {
 		// Create aliases o3djs libraries
 		this.event = o3djs.event;
@@ -259,6 +134,7 @@ var hemi = (function(hemi) {
 		this.primitives = o3djs.primitives;
 		this.io = o3djs.io;
 		this.error = o3djs.error;
+		this.debug = o3djs.debug;
 
 		this.o3dElement = clientElement;
 		this.o3d = this.o3dElement.o3d;
@@ -275,7 +151,6 @@ var hemi = (function(hemi) {
 		hemi.shape.init();
 		hemi.world.init();
 
-		this.debug = new hemi.core.Debug();
 		this.addToTransformTable(this.client.root);
 	};
 	

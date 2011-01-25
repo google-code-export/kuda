@@ -210,27 +210,38 @@
 		},
 		
 		layoutGrid: function() {
-			this.db = o3djs.debug.createDebugHelper(hemi.core.mainPack, hemi.view.viewInfo);
+			var url = "images/grid.png",
+				oldPath = hemi.loader.loadPath;
+				that = this;
+			this.db = hemi.core.debug.createDebugHelper(hemi.core.mainPack, 
+				hemi.view.viewInfo);
 			this.db.addAxis(hemi.core.client.root);
-			this.gridMat = hemi.fx.create({
-				type:'grid',
-				color1:[0.8,0.8,1,1],
-				thickness:0.03,
-				squares:this.extent/this.fidelity });
-			this.gridShape = hemi.shape.createBox(0,2*this.extent,2*this.extent,this.gridMat);
-			this.gridShape.parent = hemi.core.client.root;
-			this.resetGrid(this.extent, this.fidelity);
+			
+			hemi.loader.loadPath = '';
+			hemi.loader.loadTexture(url, function(texture) {
+		    	var mat = hemi.core.material.createConstantMaterial(
+					hemi.core.mainPack, hemi.view.viewInfo, texture, true);	
+					
+				that.gridShape = hemi.shape.createBox(0, 2*that.extent, 
+					2*that.extent, mat);
+			
+				that.gridShape.parent = hemi.core.client.root;
+				that.resetGrid(that.extent, that.fidelity);
+		  	});
+				
+			hemi.loader.loadPath = oldPath;
 		},
 		
 		showGrid: function() {
 			this.db.addAxis(hemi.core.client.root);
 			this.gridShape.visible = true;
-			this.resetGrid(this.extent,this.fidelity);
+			this.resetGrid(this.extent, this.fidelity);
 		},
 		
 		resetGrid: function(extent, fidelity) {
-			this.db.setAxisScale(extent, fidelity/10);
-			this.gridMat.getParam('squares').value = extent/fidelity;
+			this.db.setAxisScale(extent, fidelity/100);
+			hemi.texture.scale(this.gridShape.shapes[0].elements[0], 
+				this.fidelity, this.fidelity);
 		},
 		
 		removeGrid: function() {
