@@ -144,7 +144,7 @@ var editor = (function(module) {
 			for (var i = 0, il = props.transforms.length; i < il; i++) {
 				var tran = props.transforms[i];
 				this.previewMotion.addTransform(tran);
-				this.matrices.push(tran.localMatrix);
+				this.matrices.push(hemi.utils.copyArray(tran.localMatrix));
 			}
 			
 			this.previewMotion.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewMotion';

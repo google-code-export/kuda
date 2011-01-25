@@ -95,7 +95,7 @@ var hemi = (function(hemi) {
 				tran1.parent = tParent;
 				tran2.parent = tran1;
 				transform.parent = tran2;				
-				tran1.localMatrix = transform.localMatrix;
+				tran1.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 				transform.identity();
 				
 				obj.tran = tran2;

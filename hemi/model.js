@@ -587,7 +587,7 @@ var hemi = (function(hemi) {
 			var update = this.getTransformUpdate(transformName);			
 			
 			transform.rotateX(amount);
-			update.localMatrix = transform.localMatrix;
+			update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 		},
 
 		/**
@@ -602,7 +602,7 @@ var hemi = (function(hemi) {
 			var update = this.getTransformUpdate(transformName);			
 			
 			transform.rotateY(amount);
-			update.localMatrix = transform.localMatrix;			   
+			update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 		},
 
 		/**
@@ -617,7 +617,7 @@ var hemi = (function(hemi) {
 			var update = this.getTransformUpdate(transformName);			
 			
 			transform.rotateZ(amount);
-			update.localMatrix = transform.localMatrix;
+			update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 		},
 		
 		/**
@@ -660,7 +660,7 @@ var hemi = (function(hemi) {
 				var update = this.getTransformUpdate(transformName);
 				
 				transform.scale(xFactor, yFactor, zFactor);
-				update.localMatrix = transform.localMatrix;
+				update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 			}			
 		},
 
@@ -675,7 +675,7 @@ var hemi = (function(hemi) {
 			var update = this.getTransformUpdate(transformName);			
 			
 			transform.localMatrix = matrix;
-			update.localMatrix = transform.localMatrix;
+			update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 		},
 		
 		/**
