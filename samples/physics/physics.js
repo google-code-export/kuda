@@ -97,7 +97,7 @@ function clearWait() {
 		var links = [];
 		
 		hemi.view.addRenderListener({onRender:function(e) {
-			system.integrate(e.activeTime);
+			system.integrate(e.elapsedTime);
 			for(var i = 0; i < links.length; i++) {
 				applyJig(links[i].jig,links[i].kuda);
 			}
@@ -134,7 +134,7 @@ function clearWait() {
 	}
 	
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(init);
+		o3djs.webgl.makeClients(init);
 	});
 
 	jQuery(window).unload(function() {
