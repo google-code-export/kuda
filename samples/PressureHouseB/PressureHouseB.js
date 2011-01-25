@@ -59,7 +59,7 @@
 		
 		// Load the model
 		var house = new hemi.model.Model();
-		house.setFileName('assets/ScenarioB_v017.o3dtgz');
+		house.setFileName('assets/ScenarioB_v017/scene.json');
 		
 		// When the World is initialized, create the script.
 		hemi.world.subscribe(hemi.msg.ready,
@@ -107,15 +107,15 @@
 		for(var i = 0; i < t.length; i++) {
 			var name = t[i].name;
 			
-			if (name == 'SO_B2_1') {
+			if (name === 'SO_B2_1') {
 				// Set this particular select Transform to be hidden and
 				// non-pickable
 				model.setTransformVisible(name, false);
 				model.setTransformPickable(name, false);
-			} else if(name.substring(0,3) == 'SO_') {
+			} else if(name.substring(0,3) === 'SO_') {
 				// Set select Transforms to be hidden
 				model.setTransformVisible(name, false);
-			} else if(name.substring(0,3) == 'cam') {
+			} else if(name.substring(0,3) === 'cam') {
 				// Set camera Transforms to be hidden and non-pickable
 				model.setTransformVisible(name, false);
 				model.setTransformPickable(name, false);
@@ -755,7 +755,7 @@
 		
 		hemi.world.subscribe(hemi.msg.pick,
 			function(msg) {
-				if (scene.isLoaded && msg.data.pickInfo.shapeInfo.shape.name == 'SO_BDShape') {
+				if (scene.isLoaded && msg.data.pickInfo.shapeInfo.shape.name === 'SO_BDShape') {
 					model.setTransformVisible('highlight_frontDoor', false);
 					display1.hide();
 					scene.nextScene();
@@ -836,7 +836,7 @@
 		
 		manometerView.subscribe(hext.msg.input,
 			function(msg) {
-				if (scene.isLoaded && msg.data.selected && msg.data.elementId == 'll') {
+				if (scene.isLoaded && msg.data.selected && msg.data.elementId === 'll') {
 					model.setTransformVisible('highlight_bdHole', true);
 					display2.hide();
 					display3.show();
@@ -903,7 +903,7 @@
 		
 		manometerView.subscribe(hext.msg.input,
 			function(msg) {
-				if (scene.isLoaded && msg.data.selected && msg.data.elementId == 'ur') {
+				if (scene.isLoaded && msg.data.selected && msg.data.elementId === 'ur') {
 					display1.hide();
 					display2.show();
 				}
@@ -981,7 +981,7 @@
 		
 		display1.subscribe(hemi.msg.visible,
 			function(msg) {
-				if (scene.isLoaded && msg.data.page == 2) {
+				if (scene.isLoaded && msg.data.page === 2) {
 					hemi.world.camera.moveToView(viewpoint1);
 				}
 			});
@@ -1120,11 +1120,11 @@
 		display1.subscribe(hemi.msg.visible,
 			function(msg) {
 				if (scene.isLoaded) {
-					if (msg.data.page == 2) {
+					if (msg.data.page === 2) {
 						hemi.world.camera.moveToView(viewpoint2);
 						animation1.start();
 						model.setTransformVisible('blowerArrowsExt_g', true);
-					} else if (msg.data.page == 3) {
+					} else if (msg.data.page === 3) {
 						hemi.world.camera.moveToView(viewpoint3);
 						model.setTransformVisible('blowerArrowsExt_g', false);
 						animation1.stop();
@@ -1134,7 +1134,7 @@
 		
 		manometerView.subscribe(hext.msg.input,
 			function(msg) {
-				if (scene.isLoaded && msg.data.elementId == 'ur') {
+				if (scene.isLoaded && msg.data.elementId === 'ur') {
 					if (msg.data.selected) {
 						model.setTransformPickable('SO_BA_1', true);
 						model.setTransformPickable('SO_B1_1', true);
@@ -1183,7 +1183,7 @@
 			open: open,
 			direction: direction,
 			rotator: rotator,
-			names: [rotator.transforms[0].name],
+			names: [rotator.transformObjs[0].offset.name],
 			addAltName: function(name) {
 				this.names.push(name);
 			},
@@ -1191,7 +1191,7 @@
 				var pickName = pickInfo.shapeInfo.parent.transform.name;
 				
 				for (var i = 0; i < this.names.length; i++) {
-					if (pickName == this.names[i]) {
+					if (pickName === this.names[i]) {
 						this.swing();
 						break;
 					}
@@ -1220,8 +1220,6 @@
 				}
 			}
 		};
-		
-		rotator.offsetTransform.name = rotator.transforms[0].name;
 		
 		hemi.world.subscribe(
 			hemi.msg.pick,
@@ -1256,7 +1254,7 @@
 	};
 
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(init);
+		o3djs.webgl.makeClients(init);
 	});
 
 	jQuery(window).unload(function() {
