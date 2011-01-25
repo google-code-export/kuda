@@ -107,7 +107,7 @@ o3djs.require('hemi.texture');
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		houseModel = new hemi.model.Model();
-		houseModel.setFileName('assets/LightingHouse_v082.o3dtgz');
+		houseModel.setFileName('assets/LitHouse_v082/scene.json');
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {
 				setupScene();
@@ -187,7 +187,7 @@ o3djs.require('hemi.texture');
 	}
 
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(initStep);
+		o3djs.webgl.makeClients(initStep);
 	});
 
 	jQuery(window).unload(function() {
