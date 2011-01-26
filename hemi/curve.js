@@ -557,7 +557,7 @@ var hemi = (function(hemi) {
 		setScales : function(scaleKeys) {
 			this.scales = [];
 			if(scaleKeys) {
-				this.scaleKeys = [];
+				var sKeys = [];
 				for (i = 0; i < scaleKeys.length; i++) {
 					var p = {};
 					var c = scaleKeys[i];
@@ -577,17 +577,17 @@ var hemi = (function(hemi) {
 					} else {
 						p.value = c.value;
 					}
-					this.scaleKeys[i] = p;
+					sKeys[i] = p;
 				}
 			} else {
-				this.scaleKeys = [
+				sKeys = [
 					{key:0,value:[1,1,1]},
 					{key:1,value:[1,1,1]}
 				];
 			}
 			for (var i = 1; i <= this.lastFrame; i++) {		
 				var time = (i-1)/(this.lastFrame-2);				
-				this.scales[i] = this.lerpValue(time,this.scaleKeys);				
+				this.scales[i] = this.lerpValue(time,sKeys);				
 			}	
 			return this;
 		},
@@ -628,7 +628,7 @@ var hemi = (function(hemi) {
 			var scale = this.scales[this.frame];		
 			this.transform.getParam('diffuse').value = color;
 			var f = this.frame;
-			this.transform.localMatrix = this.lt[f];
+			this.transform.localMatrix = hemi.utils.copyArray(this.lt[f]);
 			this.transform.scale(scale);		
 			this.frame++;
 			this.transform.visible = true;

@@ -32,7 +32,7 @@
 	
 	function createWorld() {		
 		var house = new hemi.model.Model();				// Create a new Model
-		house.setFileName('assets/house_v12.o3dtgz');	// Set the model file
+		house.setFileName('assets/house_v12/scene.json'); // Set the model file
 		
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {	
@@ -138,7 +138,7 @@
 	};
 
 	jQuery(window).load(function() {
-		o3djs.util.makeClients(init);
+		o3djs.webgl.makeClients(init);
 	});
 
 	jQuery(window).unload(function() {
