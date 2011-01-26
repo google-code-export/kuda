@@ -31,11 +31,67 @@
 	 * allows us to override the alpha value of the texture, which on a jpg
 	 * will always be 1.
 	 */
-	var shaderString = "uniform float4x4 worldViewProjection : WORLDVIEWPROJECTION; uniform float3 lightWorldPos; uniform float4 lightColor; uniform float4x4 world : WORLD; uniform float4x4 viewInverse : VIEWINVERSE; uniform float4x4 worldInverseTranspose : WORLDINVERSETRANSPOSE; uniform float4 emissive; uniform float4 ambient; sampler2D diffuseSampler; uniform float4 specular; uniform float shininess; uniform float specularFactor; uniform float opacity; struct InVertex { float4 position : POSITION; float3 normal : NORMAL; float2 diffuseUV : TEXCOORD0; }; struct OutVertex { float4 position : POSITION; float2 diffuseUV : TEXCOORD0; float3 normal : TEXCOORD1; float3 surfaceToLight: TEXCOORD2; float3 surfaceToView : TEXCOORD3; }; OutVertex vertexShaderFunction(InVertex input) { OutVertex output; output.diffuseUV = input.diffuseUV; output.position = mul(input.position, worldViewProjection); output.normal = mul(float4(input.normal, 0), worldInverseTranspose).xyz; output.surfaceToLight = lightWorldPos - mul(input.position, world).xyz; output.surfaceToView = (viewInverse[3] - mul(input.position, world)).xyz; return output; } float4 pixelShaderFunction(OutVertex input) : COLOR { float4 diffuse = tex2D(diffuseSampler, input.diffuseUV); float3 normal = normalize(input.normal); float3 surfaceToLight = normalize(input.surfaceToLight); float3 surfaceToView = normalize(input.surfaceToView); float3 halfVector = normalize(surfaceToLight + surfaceToView); float4 litR = lit(dot(normal, surfaceToLight), dot(normal, halfVector), shininess); return float4((emissive + lightColor * (ambient * diffuse + diffuse * litR.y + + specular * litR.z * specularFactor)).rgb, diffuse.a*opacity); } // #o3d VertexShaderEntryPoint vertexShaderFunction // #o3d PixelShaderEntryPoint pixelShaderFunction // #o3d MatrixLoadOrder RowMajor "
+		
+	var vertStr = "uniform mat4 worldViewProjection; \n\
+		uniform vec3 lightWorldPos; \n\
+		uniform mat4 world; \n\
+		uniform mat4 viewInverse; \n\
+		uniform mat4 worldInverseTranspose; \n\
+		\n\
+		attribute vec4 position; \n\
+		attribute vec3 normal; \n\
+		attribute vec2 texCoord0; \n\
+		\n\
+		varying vec4 v_position; \n\
+		varying vec2 v_diffuseUV; \n\
+		varying vec3 v_normal; \n\
+		varying vec3 v_surfaceToLight; \n\
+		varying vec3 v_surfaceToView; \n\
+			\n\
+		void main() { \n\
+			v_diffuseUV = texCoord0; \n\
+			v_position = worldViewProjection * position; \n\
+			v_normal = (vec4(normal, 0) * worldInverseTranspose).xyz; \n\
+			v_surfaceToLight = lightWorldPos - (position * world).xyz; \n\
+			v_surfaceToView = (viewInverse[3] - (position * world)).xyz; \n\
+			gl_Position = v_position;\n\
+		}";
+		
+	var fragStr = "uniform float shininess; \n\
+		uniform float specularFactor; \n\
+		uniform float opacity; \n\
+		uniform vec4 emissive; \n\
+		uniform vec4 ambient; \n\
+		uniform vec4 specular; \n\
+		uniform vec4 lightColor; \n\
+		uniform sampler2D diffuseSampler; \n\
+		\n\
+		varying vec4 v_position; \n\
+		varying vec2 v_diffuseUV; \n\
+		varying vec3 v_normal; \n\
+		varying vec3 v_surfaceToLight; \n\
+		varying vec3 v_surfaceToView; \n\
+		\n\
+		vec4 lit(float l ,float h, float m) { \n\
+         	return vec4(1.0,\n\
+                        max(l, 0.0),\n\
+                        (l > 0.0) ? pow(max(0.0, h), m) : 0.0,\n\
+                       1.0);\n\
+        }\n\
+		\n\
+		void main() {\n\
+			vec4 diffuse = texture2D(diffuseSampler, v_diffuseUV); \n\
+			vec3 normal = normalize(v_normal); \n\
+			vec3 surfaceToLight = normalize(v_surfaceToLight); \n\
+			vec3 surfaceToView = normalize(v_surfaceToView); \n\
+			vec3 halfVector = normalize(surfaceToLight + surfaceToView); \n\
+			vec4 litR = lit(dot(normal, surfaceToLight), dot(normal, halfVector), shininess); \n\
+			gl_FragColor = vec4((emissive + lightColor * (ambient * diffuse + diffuse * litR.y + + specular * litR.z * specularFactor)).rgb, diffuse.a*opacity); \n\
+		}";
 
 	
 	function initStep1() {
-		o3djs.util.makeClients(initStep2);
+		o3djs.webgl.makeClients(initStep2);
 	};
 	
 	function initStep2 (clientElements) {
@@ -74,7 +130,7 @@
 		var world = hemi.world;
 		
 		var house = new hemi.model.Model();				// Create a new Model
-		house.setFileName('assets/Boxhouse.o3dtgz');	// Set the model file
+		house.setFileName('assets/house_v12/scene.json');	// Set the model file
 
 		/*
 		 * When the file name for the house model was set, it began loading.
@@ -90,8 +146,8 @@
 	
 	function setUpScene(house) {
 		var vp1 = new hemi.view.Viewpoint();		// Create a new Viewpoint
-		vp1.eye = [68,51,143];					// Set viewpoint eye
-		vp1.target = [5,15,2];					// Set viewpoint target
+		vp1.eye = hemi.core.math.matrix4.getTranslation(house.getTransform('camEye_outdoors').localMatrix);
+		vp1.target = hemi.core.math.matrix4.getTranslation(house.getTransform('camTarget_outdoors').localMatrix);
 
 		/*
 		 * Move the camera from it's default position (eye : [0,0,-1],
@@ -107,12 +163,15 @@
 		/* Get the material used on the walls, set it to use the shader defined at the
 		 * top of the file, and get the parameter that controls the opacity
 		 */
-		var wallT = house.getTransform('exteriorwall2');
+		var wallT = house.getTransform('wallFront');
 		var brickMat = wallT.shapes[0].elements[0].material;
 		brickMat.getParam('o3d.drawList').value = hemi.view.viewInfo.zOrderedDrawList;
 		var effect = house.pack.createObject('o3d.Effect');
-		effect.loadFromFXString(shaderString);
-		brickMat.getParam('effect').value = effect;
+		
+		effect.loadVertexShaderFromString(vertStr);
+		effect.loadPixelShaderFromString(fragStr);
+		
+		brickMat.effect = effect;
 		brickMat.effect.createUniformParameters(brickMat);
 		brickMat.getParam('opacity').value = 1.0;
 		
