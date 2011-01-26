@@ -867,6 +867,9 @@ form ol > li {
 .sidebarForm ol > li > div {
 	float: left;
 }
+.sidebarForm li > div.ui-slider {
+	width: 245px;
+}
 form ol > li > div:not(.ui-slider, .buttons) {
 	float: left;
 }
@@ -1001,12 +1004,6 @@ form input[type=radio] {
     margin-right: 5px;
 }
 form input.blend {
-	background: none;
-	border: none;
-	color: #2A6275;
-	box-shadow: none;
-	-moz-box-shadow: none;
-	-webkit-box-shadow: none;
 }
 
 form ol#viewpoints li, form ol#eventsTest li, form ol#viewpointsTest li {

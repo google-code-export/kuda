@@ -799,6 +799,8 @@ var editor = (function(module) {
 			});
 			this.beginInput.val(0).data('oldVal', 0);
 			this.endInput.val(max).data('oldVal', max);
+			this.notifyListeners(module.EventTypes.SetAnmBeginFrame, 0);
+			this.notifyListeners(module.EventTypes.SetAnmEndFrame, max);
 	    },
 		
 		resize: function(maxHeight) {
