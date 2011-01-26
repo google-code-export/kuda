@@ -673,7 +673,7 @@
 		// Navigation tool
 		var eye = [79, 2742, 1393];
 		var target = [98, 7, 88];
-		var fov = 40;
+		var fov = hemi.core.math.degToRad(40);
 		var np = 5;
 		var fp = 5000;
 		var defaultViewpoint = hemi.view.createCustomViewpoint("Start", eye, target, hemi.world.camera.up, fov, np, fp);
@@ -1239,7 +1239,7 @@
 		var up = hemi.world.camera.up;
 		var np = 5;
 		var fp = 5000;
-		opt_fov = opt_fov || 40;
+		opt_fov = opt_fov || hemi.core.math.degToRad(40);
 		
 		var eyeTran = model.getTransform(eyeName);
 		var targetTran = model.getTransform(targetName);

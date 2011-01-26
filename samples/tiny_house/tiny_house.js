@@ -194,7 +194,7 @@
 		var viewpoint = new hemi.view.Viewpoint();
 		viewpoint.eye = [500, 300, 1300];
 		viewpoint.target = [-425,-40,200];
-		viewpoint.fov = 40;
+		viewpoint.fov = hemi.core.math.degToRad(40);
 		hemi.world.camera.moveToView(viewpoint, 1);
 	}
 
