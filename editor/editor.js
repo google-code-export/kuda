@@ -40,7 +40,7 @@
 			// set editor defaults
 			editor.Defaults = {
 				farPlane: 10000,
-				nearPlane: 0
+				nearPlane: 0.5
 			};
 			
 			editor.dirty = loadProject;
