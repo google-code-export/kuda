@@ -59,6 +59,7 @@
 		createHudPage1(display);
 		createHudPage2(display);
 		createHudPage3(display);
+		createHudPage4(display);
 		
 		// When the World is done loading, show the HudDisplay.
 		hemi.world.subscribe(hemi.msg.ready,
@@ -167,6 +168,47 @@
 		
 		text.mouseDown = function(mouseEvent) {
 			updateMessageDiv('You clicked on the text for page 3');
+		};
+		
+		page.addElement(text);
+		
+		display.addPage(page);
+	}
+	
+	function createHudPage4(display) {
+		var page = new hemi.hud.HudPage();
+		
+		page.mouseDown = function(mouseEvent) {
+			updateMessageDiv('You clicked on the background for page 4');
+		};
+		
+		var video = new hemi.hud.HudVideo();
+		video.x = 50;
+		video.y = 100;
+		// Optional - the video will default to its native height and width
+		video.setHeight(270);
+		video.setWidth(480);
+		// We add multiple formats in case the browser does not support one
+		video.addVideoUrl('assets/BigBuckBunny_640x360.mp4', 'mp4');
+		video.addVideoUrl('assets/BigBuckBunny_640x360.ogv', 'ogg');
+		
+		video.mouseDown = function(mouseEvent) {
+			updateMessageDiv('You clicked on the video for page 4');
+		};
+		
+		page.addElement(video);
+		
+		var text = new hemi.hud.HudText();
+		text.x = video.x;
+		text.y = video.y + 275;
+		text.config.textAlign = 'left';
+		// This sets the maximum width of the text element. The text will be
+		// wrapped if it is wider.
+		text.setWidth(300);
+		text.setText(["This video will pause when you go to a different page."]);
+		
+		text.mouseDown = function(mouseEvent) {
+			updateMessageDiv('You clicked on the text for page 4');
 		};
 		
 		page.addElement(text);
