@@ -192,6 +192,24 @@ var hemi = (function(hemi) {
 			 */
 			outline: null
 		};
+		
+		/**
+		 * Configuration options for a video foreground overlay.
+		 * @type Object
+		 */
+		this.video = {
+			/**
+			 * Options for a blur shadow effect on the video. Set radius to 0 to
+			 * cancel.
+			 * @type Object
+			 */
+			shadow: {
+				radius: 0,
+				offsetY: 0,
+				offsetX: 0,
+				color: [0, 0, 0, 1]
+			}
+		};
 	};
 	
 	hemi.hud.Theme.prototype = {
@@ -883,6 +901,198 @@ var hemi = (function(hemi) {
 	hemi.hud.HudButton.inheritsFrom(hemi.hud.HudImage);
 	
 	/**
+	 * @class A HudVideo contains a texture and display options for a single
+	 * image on the HUD.
+	 * @extends hemi.hud.HudElement
+	 */
+	hemi.hud.HudVideo = function() {
+		hemi.hud.HudElement.call(this);
+		
+		/**
+		 * The x-coordinate of the left side of the HudVideo.
+		 * @type number
+		 * @default 0
+		 */
+		this.x = 0;
+		
+		/**
+		 * The y-coordinate of the top of the HudVideo.
+		 * @type number
+		 * @default 0
+		 */
+		this.y = 0;
+		
+		/**
+		 * The height of the video. Call setHeight to change.
+		 * @type number
+		 */
+		this.height = 0;
+		
+		/**
+		 * The width of the video. Call setWidth to change.
+		 * @type number
+		 */
+		this.width = 0;
+		
+		this.urls = [];
+		this.video = document.createElement('video');
+		var vid = this.video,
+			that = this;
+		
+		this.video.onloadeddata = function() {
+			if (that.height === 0) {
+				that.height = vid.videoHeight;
+			} else {
+				vid.setAttribute('height', '' + that.height);
+			}
+			if (that.width === 0) {
+				that.width = vid.videoWidth;
+			} else {
+				vid.setAttribute('width', '' + that.width);
+			}
+			that.send(hemi.msg.load, {});
+		};
+	};
+	
+	hemi.hud.HudVideo.prototype = {
+		/**
+		 * Overwrites hemi.world.Citizen.citizenType
+		 */
+        citizenType: 'hemi.hud.HudVideo',
+		
+		/**
+		 * Add the given URL as a source for the video file to load.
+		 * 
+		 * @param {string} url the URL of the video file
+		 */
+		addVideoUrl: function(url, type) {
+			var src = document.createElement('source'),
+				loadUrl = hemi.loader.getPath(url);
+			
+			src.setAttribute('src', loadUrl);
+			src.setAttribute('type', 'video/' + type);
+			this.video.appendChild(src);
+			this.urls.push({
+				url: url,
+				type: type,
+				node: src
+			});
+		},
+		
+		/**
+		 * Send a cleanup Message and remove all references in the HudImage.
+		 */
+		cleanup: function() {
+			hemi.hud.HudElement.prototype.cleanup.call(this);
+			this.video = null;
+			this.urls = [];
+		},
+		
+		/**
+		 * Get the Octane structure for the HudVideo.
+	     *
+	     * @return {Object} the Octane structure representing the HudVideo
+		 */
+		toOctane: function() {
+			var octane = hemi.hud.HudElement.prototype.toOctane.call(this);
+			
+			octane.props.push({
+				name: 'x',
+				val: this.x
+			});
+			octane.props.push({
+				name: 'y',
+				val: this.y
+			});
+			
+			for (var i = 0, il = this.urls.length; i < il; i++) {
+				var urlObj = this.urls[i];
+				
+				octane.props.push({
+					name: 'addVideoUrl',
+					arg: [urlObj.url, urlObj.type]
+				});
+			}
+			
+			return octane;
+		},
+		
+		/**
+		 * Calculate the bounds of the video.
+		 * @see hemi.hud.HudElement#calculateBounds
+		 */
+		calculateBounds: function() {
+			this.top = this.y;
+			this.bottom = this.top + this.height;
+			this.left = this.x;
+			this.right = this.left + this.width;
+		},
+		
+		/**
+		 * Draw the video.
+		 * @see hemi.hud.HudElement#draw
+		 */
+		draw: function() {
+			hemi.hud.hudMgr.createVideoOverlay(this.video, this.config, this.x,
+				this.y, this.width, this.height);
+		},
+		
+		/**
+		 * Get the URL of the video file to load.
+		 * 
+		 * @return {string} the URL of the video file
+		 */
+		getVideoUrl: function() {
+			return this.url;
+		},
+		
+		/**
+		 * Remove the given URL as a source for the video file to load.
+		 * 
+		 * @param {string} url the URL to remove
+		 */
+		removeVideoUrl: function(url) {
+			for (var i = 0, il = this.urls.length; i < il; i++) {
+				var urlObj = this.urls[i];
+				
+				if (urlObj.url === url) {
+					this.video.removeChild(urlObj.node);
+					this.urls.splice(i, 1);
+					break;
+				}
+			}
+		},
+		
+		/**
+		 * Set the height for the video to be displayed at.
+		 * 
+		 * @param {number} height the height to set for the video
+		 */
+		setHeight: function(height) {
+			this.height = height;
+			if (this.video !== null) {
+				this.video.setAttribute('height', '' + height);
+			}
+		},
+		
+		/**
+		 * Set the width for the video to be displayed at.
+		 * 
+		 * @param {number} width the width to set for the video
+		 */
+		setWidth: function(width) {
+			this.width = width;
+			if (this.video !== null) {
+				this.video.setAttribute('width', '' + width);
+			}
+		}
+	};
+
+	hemi.hud.HudVideo.inheritsFrom(hemi.hud.HudElement);
+	hemi.hud.HudVideo.prototype.msgSent =
+		hemi.hud.HudVideo.prototype.msgSent.concat([hemi.msg.load]);
+	
+	/**
 	 * @class A HudPage contains other HudElements and display options for
 	 * drawing a single page on the HUD.
 	 * @extends hemi.hud.HudElement
@@ -1472,6 +1682,8 @@ var hemi = (function(hemi) {
 			hudCan = document.createElement('canvas'),
 			style = hudCan.style;
 		
+		this.videos = [];
+		
 		style.left = '0px';
 		style.position = 'absolute';
 		style.top = '0px';
@@ -1497,6 +1709,8 @@ var hemi = (function(hemi) {
 		hudCan.addEventListener('mousedown', downHandler, true);
 		hudCan.addEventListener('mousemove', moveHandler, true);
 		hudCan.addEventListener('mouseup', upHandler, true);
+		
+		hemi.view.addRenderListener(this);
 	};
 	
 	hemi.hud.HudManager.prototype = {
@@ -1553,8 +1767,9 @@ var hemi = (function(hemi) {
 			} else {
 				font += 'helvetica';
 			}
-			
-			this.canvas.font = font;
+			if (font != null) {
+				this.canvas.font = font;
+			}
 		},
 		
 		/**
@@ -1634,10 +1849,43 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
+		 * Create a video overlay.
+		 *
+		 * @param {Video} video the video to display
+		 * @param {Object} vidConfig unique configuration options for the video
+		 *    overlay
+		 * @param {number} x x coordinate to draw the video at
+		 * @param {number} y y coordinate to draw the video at
+		 * @param {number} width optional width of video
+		 * @param {number} height optional height of video
+		 */
+		createVideoOverlay: function(video, vidConfig, x, y, width, height) {
+			var config = jQuery.extend({}, hemi.hud.theme.video, vidConfig);
+			
+			this.videos.push({
+				video: video,
+				config: config,
+				x: x,
+				y: y,
+				width: width || video.videoWidth,
+				height: height || video.videoHeight
+			});
+			video.play();
+		},
+		
+		/**
 		 * Clear the current overlays from the HUD.
 		 */
 		clearDisplay: function() {
-			var can = this.canvas.canvas;
+			var can = this.canvas.canvas,
+				vids = this.videos;
+			
+			this.videos = [];
+			
+			for (var i = 0, il = vids.length; i < il; i++) {
+				vids[i].video.pause();
+			}
+			
 			this.canvas.clearRect(0, 0, can.width, can.height);
 			this.canvas.beginPath();
 		},
@@ -1681,6 +1929,18 @@ var hemi = (function(hemi) {
 				height: height,
 				width: longestWidth
 			};
+		},
+		
+		onRender: function(renderEvent) {
+			var vids = this.videos,
+				can = this.canvas,
+				vid;
+			
+			for (var i = 0, il = vids.length; i < il; i++) {
+				vid = vids[i];
+				this.setPaintProperties(vid.config);
+				can.drawImage(vid.video, vid.x, vid.y, vid.width, vid.height);
+			}
 		}
 	};
 	

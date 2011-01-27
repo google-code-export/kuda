@@ -42,7 +42,7 @@ var hemi = (function(hemi) {
 	 *     data that was loaded
 	 */
 	hemi.loader.loadHtml = function(url, callback) {
-		url = getPath(url);
+		url = hemi.loader.getPath(url);
 		
 		jQuery.get(url, function(data, status, xhr) {
 			if (status === 'error') {
@@ -65,7 +65,7 @@ var hemi = (function(hemi) {
 	 *     of the loaded bitmaps
 	 */
 	hemi.loader.loadBitmap = function(url, pack, callback) {
-		url = getPath(url);
+		url = hemi.loader.getPath(url);
 
 		hemi.world.loader.loadBitmaps(pack, url,
 			function(bitmaps, exception){
@@ -103,7 +103,7 @@ var hemi = (function(hemi) {
 			hemi.world.loader.countDown_();
 		};
 		
-		img.src = getPath(url);
+		img.src = hemi.loader.getPath(url);
 	};
 
 	/**
@@ -119,7 +119,7 @@ var hemi = (function(hemi) {
 	 * @param {o3d.Pack} opt_pack the Pack to load bitmaps into
 	 */
 	hemi.loader.loadTexture = function(url, onLoadTexture, opt_this, opt_pack) {
-		url = getPath(url);
+		url = hemi.loader.getPath(url);
 		var pack = opt_pack || hemi.core.mainPack;
 
 		hemi.world.loader.loadTexture(pack, url,
@@ -148,7 +148,7 @@ var hemi = (function(hemi) {
 	 * @param {o3djs.serialization.Options} opt_options options for the loader
 	 */
 	hemi.loader.loadModel = function(url, pack, parent, opt_callback, opt_options) {
-		url = getPath(url);
+		url = hemi.loader.getPath(url);
 		opt_options = opt_options || {};
 
 		hemi.world.loader.loadScene(hemi.core.client, pack, parent, url,
@@ -176,7 +176,7 @@ var hemi = (function(hemi) {
 	 *     ready function is called
 	 */
 	hemi.loader.loadOctane = function(url, opt_callback) {
-		url = getPath(url);
+		url = hemi.loader.getPath(url);
 
 		jQuery.get(url, function(data, status, xhr) {
 			if (status === 'error') {
@@ -203,14 +203,14 @@ var hemi = (function(hemi) {
 		});
 	};
 	
-	/*
+	/**
 	 * Get the correct path for the given URL. If the URL is absolute, then
 	 * leave it alone. Otherwise prepend it with the load path.
 	 * 
 	 * @param {string} url the url to update
 	 * @return {string} the udpated url
 	 */
-	var getPath = function(url) {
+	hemi.loader.getPath = function(url) {
 		if (url.substr(0, 4) === 'http') {
 			return url;
 		} else {
