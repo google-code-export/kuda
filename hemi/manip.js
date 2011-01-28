@@ -468,7 +468,7 @@ var hemi = (function(hemi) {
 		this.turning = false;
 		this.offset = null;
 		this.angle = 0;
-		this.realAngle = opt_startAngle == null ? 0 : opt_startAngle;
+		this.realAngle = opt_startAngle == null ? 0 : hemi.core.math.degToRad(opt_startAngle);
 		
 		if (opt_axis != null) {
 			this.setAxis(opt_axis);
@@ -529,22 +529,10 @@ var hemi = (function(hemi) {
 		 */
 		addTransform : function(transform) {
 			var wp = transform.worldMatrix[3].slice(0,3);
-			var planeOffset;
-			switch(this.axis) {
-				case hemi.manip.Axis.X:
-					planeOffset = [wp[0],0,0];
-					break;
-				case hemi.manip.Axis.Y:
-					planeOffset = [0,wp[1],0];
-					break;
-				case hemi.manip.Axis.Z:
-					planeOffset = [0,0,wp[2]];
-					break;
-			}
 			hemi.world.tranReg.register(transform, this);
 			this.transformObjs.push({
 				transform : transform,
-				offset : planeOffset});
+				offset : wp});
 		},
 		
 		/**
@@ -665,13 +653,13 @@ var hemi = (function(hemi) {
 			var savedRA = this.realAngle;
 			this.angle += delta;
 			this.realAngle += delta;
-			if (this.max) {
+			if (this.max != null) {
 				if (this.realAngle >= this.max) {
 					this.realAngle = this.max;
 					delta = this.max - savedRA;
 				}
 			}
-			if (this.min) {
+			if (this.min != null) {
 				if (this.realAngle <= this.min) {
 					this.realAngle = this.min;
 					delta = this.min - savedRA;
