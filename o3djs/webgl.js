@@ -218,11 +218,11 @@ o3djs.webgl.createClient = function(element, opt_features, opt_debug) {
 
   // This keeps the cursor from changing to an I-beam when the user clicks and
   // drags.  It's easier on the eyes.
-  function returnFalse() {
-    return false;
-  }
-  document.onselectstart = returnFalse;
-  document.onmousedown = returnFalse;
+//  function returnFalse() {
+//    return false;
+//  }
+//  document.onselectstart = returnFalse;
+//  document.onmousedown = returnFalse;
 
   canvas.client = client;
   canvas.o3d = o3d;

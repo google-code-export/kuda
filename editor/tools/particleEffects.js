@@ -459,10 +459,6 @@ var editor = (function(module) {
 		finishLayout: function() {
 			this._super();
 			
-			this.find('form').bind('submit', function(evt) {
-				return false;
-			});
-			
 			var saveBtn = this.find('#pteSaveBtn'),
 				cancelBtn = this.find('#pteCancelBtn'),
 				previewStartBtn = this.find('#ptePreviewStartBtn'),

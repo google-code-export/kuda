@@ -396,6 +396,7 @@ input.error {
 .hiddenView {
     height: 0;
     margin: 0;
+	display: none;
 }
 
 /**
@@ -434,6 +435,8 @@ input.error {
     text-indent: -5000px;
 	padding: 0;
 	text-align: left;
+	width: 48px;
+	height: 48px;
 }
 
 #complexTools .toolBtn {
@@ -442,10 +445,10 @@ input.error {
 .toolBtn span {
     background: url(../images/toolbarSprite.png) no-repeat 0 0;
 	display: block;
-	width: 44px;
-	height: 44px;
+	width: 48px;
+	height: 48px;
 	float: left;
-	left: -1px;
+	margin: -3px 0 0 -3px;
 }
 
 .toolBtn:hover {
@@ -458,91 +461,91 @@ input.error {
 }
 
 #modelBrowserBtn span {
-	background-position: -2px -2px;
+	background-position: 0 0;
 }
 
 #modelBrowserBtn:hover span {
-    background-position: -2px -50px;
+    background-position: 0 -48px;
 }
 
 #animationsBtn span {
-	background-position: -50px -2px;
+	background-position: -48px 0;
 }
 
 #animationsBtn:hover span {
-    background-position: -50px -50px;
+    background-position: -48px -48px;
 }
 
 #viewpointsBtn span {
-	background-position: -98px -2px;
+	background-position: -96px 0;
 }
 
 #viewpointsBtn:hover span {
-    background-position: -98px -50px;
+    background-position: -96px -48px;
 }
 
 #messagingBtn span {
-	background-position: -194px -2px;
+	background-position: -192px 0;
 }
 
 #messagingBtn:hover span {
-    background-position: -194px -50px;
+    background-position: -192px -48px;
 }
 
 #scenesBtn span {
-	background-position: -242px -2px;
+	background-position: -240px 0;
 }
 
 #scenesBtn:hover span {
-    background-position: -242px -50px;
+    background-position: -240px -48px;
 }
 
 #particleEffectsBtn span {
-	background-position: -290px -2px;
+	background-position: -288px 0;
 }
 
 #particleEffectsBtn:hover span {
-	background-position: -290px -50px;
+	background-position: -288px -48px;
 }
 
 #shapesBtn span {
-	background-position: -338px -2px;
+	background-position: -336px 0;
 }
 
 #shapesBtn:hover span {
-	background-position: -338px -50px;
+	background-position: -336px -48px;
 }
 
 #hudBtn span {
-	background-position: -386px -2px;
+	background-position: -384px 0;
 }
 
 #hudBtn:hover span {
-	background-position: -386px -50px;
+	background-position: -384px -48px;
 }
 
 #fogBtn span {
-	background-position: -434px -2px;
+	background-position: -432px 0;
 }
 
 #fogBtn:hover span {
-	background-position: -434px -50px;
+	background-position: -432px -48px;
 }
 
 #motionsBtn span {
-	background-position: -146px -2px;
+	background-position: -144px 0;
 }
 
 #motionsBtn:hover span {
-	background-position: -146px -50px;
+	background-position: -144px -48px;
 }
 
 #manipsBtn span {
-	background-position: -482px -2px;
+	background-position: -480px 0;
 }
 
 #manipsBtn:hover span {
-	background-position: -482px -50px;
+	background-position: -480px -48px;
 }
 
 .toolBtn.down {

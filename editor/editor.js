@@ -156,15 +156,6 @@
 				for (var ndx = 0, len = views.length; ndx < len; ndx++) {
 					views[ndx].getUI().removeAttr('disabled');
 				}
-				
-				// TODO: investigate why focus issues occur in firefox
-				// for now, force input focus				
-				jQuery('input[type=text], textarea').bind('click', function(evt) {
-					jQuery(this).focus();
-				})
-				.bind('dblclick', function(evt) {
-					jQuery(this).focus().select();
-				});
 			});
 			
 			if (editor.dirty) {
