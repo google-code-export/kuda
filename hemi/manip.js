@@ -444,7 +444,7 @@ var hemi = (function(hemi) {
 	 * @extends hemi.world.Citizen
 	 * @param {hemi.manip.Axis} opt_axis Axis to rotate about - x,y, or z
 	 * @param {number[]} opt_limits [min angle, max angle] in degrees
-	 * @param {number[]} opt_startAngle Starting angle if not 0
+	 * @param {number[]} opt_startAngle Starting angle in degrees (default is 0)
 	 */
 	hemi.manip.Turnable = function(opt_axis, opt_limits, opt_startAngle) {
 		hemi.world.Citizen.call(this);
@@ -455,11 +455,11 @@ var hemi = (function(hemi) {
 		this.max = null;
 		this.msgHandler = null;
 		this.plane = null;
+		this.currentTransform = null;
 		this.transformObjs = [];
 		this.turning = false;
-		this.offset = null;
 		this.angle = 0;
-		this.realAngle = opt_startAngle == null ? 0 : opt_startAngle;
+		this.realAngle = opt_startAngle == null ? 0 : hemi.core.math.degToRad(opt_startAngle);
 		
 		if (opt_axis != null) {
 			this.setAxis(opt_axis);
@@ -531,18 +531,6 @@ var hemi = (function(hemi) {
 				obj.foster = false;
 			}
 			
-			switch(this.axis) {
-				case hemi.manip.Axis.X:
-					obj.offset = [wp[0],0,0];
-					break;
-				case hemi.manip.Axis.Y:
-					obj.offset = [0,wp[1],0];
-					break;
-				case hemi.manip.Axis.Z:
-					obj.offset = [0,0,wp[2]];
-					break;
-			}
-			
 			this.currentTransform = trans;
 			this.transformObjs.push(obj);
 		},
@@ -572,6 +560,7 @@ var hemi = (function(hemi) {
 				hemi.world.tranReg.unregister(tran, this);
 			}
 			
+			this.currentTransform = null;
 			this.transformObjs = [];
 		},
 		
@@ -585,8 +574,6 @@ var hemi = (function(hemi) {
 				var family = this.transformObjs[i].transform.getTransformsInTree();
 				for (var j = 0; j < family.length; j++) {
 					if (family[j].clientId === transform.clientId) {
-						this.offset = this.transformObjs[i].offset;
-						this.currentTransform = this.transformObjs[i].transform;
 						return true;
 					}
 				}
@@ -714,6 +701,7 @@ var hemi = (function(hemi) {
 		 */
 		onPick : function(pickInfo,event) {
 			if (this.containsTransform(pickInfo.shapeInfo.parent.transform)) {
+				this.currentTransform = pickInfo.shapeInfo.parent.transform;
 				this.turning = true;
 				this.angle = this.getAngle(event.x,event.y);
 			}
@@ -825,7 +813,6 @@ var hemi = (function(hemi) {
 				var children = this.transformObjs[i].transform.getTransformsInTree();
 				for (var j = 0; j < children.length; j++) {
 					if (transform.clientId === children[j].clientId) {
-						this.activeTransform = this.transformObjs[i].transform;
 						return true;
 					}
 				}
@@ -863,6 +850,7 @@ var hemi = (function(hemi) {
 		},
 		onPick : function(pickInfo,event) {
 			if (this.containsTransform(pickInfo.shapeInfo.parent.transform)) {
+				this.activeTransform = pickInfo.shapeInfo.parent.transform;
 				this.scaling = true;
 				this.scaleXY(event.x,event.y);
 			}
