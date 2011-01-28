@@ -62,9 +62,7 @@ o3djs.require('hext.house.structure');
 		var o3dElem = jQuery('#o3d');
 		var iframeBtn = jQuery('#iframeBased');
 		var divBtn = jQuery('#divBased');
-		var children = hemi.core.client.root.children;
 
-		o3dElem.data('oldHeight', o3dElem.height());
 		iframeBtn.click(function(evt) {
 			var elem = jQuery(this);
 			var showing = elem.data('showing');
@@ -85,30 +83,14 @@ o3djs.require('hext.house.structure');
 		divBtn.click(function(evt) {
 			var elem = jQuery(this);
 			var showing = elem.data('showing');
-			var oldHeight = o3dElem.data('oldHeight');
 			var div = jQuery('#divOverlay');
-			var filler = jQuery('#fillerDiv');
 
 			if (!showing) {
-				filler.show();
-				o3dElem.height(1);
 				div.show();
 				iframeBtn.attr('disabled', 'disabled');
-
-				// Hide the currently rendered tree
-				for (var ndx = 0; ndx < children.length; ndx++) {
-					children[ndx].parent = null;
-				}
 			} else {
-				filler.hide();
-				o3dElem.height(oldHeight);
 				div.hide();
 				iframeBtn.removeAttr('disabled');
-
-				// Restore the render tree
-				for (var ndx = 0; ndx < children.length; ndx++) {
-					children[ndx].parent = hemi.core.client.root;
-				}
 			}
 
 			elem.data('showing', !showing);
