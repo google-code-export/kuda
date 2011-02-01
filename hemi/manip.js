@@ -657,13 +657,13 @@ var hemi = (function(hemi) {
 			var delta = this.getAngle(event.x,event.y) - this.angle;
 			var savedRA = this.realAngle;
 			this.realAngle += delta;
-			if (this.max) {
+			if (this.max != null) {
 				if (this.realAngle >= this.max) {
 					this.realAngle = this.max;
 					delta = this.max - savedRA;
 				}
 			}
-			if (this.min) {
+			if (this.min != null) {
 				if (this.realAngle <= this.min) {
 					this.realAngle = this.min;
 					delta = this.min - savedRA;
