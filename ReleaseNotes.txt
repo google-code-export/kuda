@@ -2,6 +2,8 @@
 2011 March 31
 1. What's New
 World Editor
+* XXXX Would like to incliude the ADL patch???
+** XXX Need a contributor agreement per GPL CA.
 Kuda Library
 
 2. Bug Fixes
