@@ -32,7 +32,6 @@ var hemi = (function(hemi) {
 	/* The reserve ids, which belong to Hemi library modules */
 	var reserveIds = 50;
 	hemi.world.WORLD_ID = 0;
-	hemi.world.AUDIO_ID = 1;
 	
 	/* The next id to assign to a Citizen requesting a world id */
 	var nextId = reserveIds;
@@ -67,9 +66,6 @@ var hemi = (function(hemi) {
 		switch(id) {
 			case hemi.world.WORLD_ID:
 				reserve = hemi.world;
-				break;
-			case hemi.world.AUDIO_ID:
-				reserve = hemi.audio;
 				break;
 			default:
 				reserve = null;

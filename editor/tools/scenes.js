@@ -945,7 +945,7 @@ var editor = (function(module) {
 						}
 					}
 				},
-				json: createModuleJson(hemi.audio),
+				json: {},
 				select: function(data, selector) {
 					var elem = data.rslt.obj,
 						metadata = elem.data('jstree'),

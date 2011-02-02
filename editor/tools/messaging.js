@@ -1266,11 +1266,10 @@ var editor = (function(module) {
 		},
 		
 		addEffectType: function(citizen) {
-			var json = createCitizenTypeJson(citizen, EFFECT_PREFIX),
-				audioJson = createModuleJson(hemi.audio);
+			var json = createCitizenTypeJson(citizen, EFFECT_PREFIX);
 			
 			if (this.effectTree === null) {
-				this.createEffectTree([json, audioJson]);
+				this.createEffectTree([json]);
 			} else {
 				this.effectTree.jstree('create_node', -1, 'last', {
 					json_data: json
