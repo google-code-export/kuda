@@ -83,6 +83,11 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
+		 * Sent by hemi.audio.Audio, data =
+		 * {
+		 *     src: (the URL of the audio file loaded)
+		 * }
+		 * @example
 		 * Sent by hemi.hud.HudImage, data =
 		 * { }
 		 * @example
@@ -93,18 +98,6 @@ var hemi = (function(hemi) {
 		 * { }
 		 */
 		load: 'hemi.load',
-		/**
-		 * The Message sent when something is unloaded.
-		 * @type string
-		 * @constant
-		 * @example
-		 * Sent by hemi.model.Model, data =
-		 * { }
-		 * @example
-		 * Sent by hemi.scene.Scene, data =
-		 * { }
-		 */
-		unload: 'hemi.unload',
 		/**
 		 * The Message sent when a shape is picked by a mouse down.
 		 * @type string
@@ -134,6 +127,9 @@ var hemi = (function(hemi) {
 		 * Sent by hemi.animation.Animation, data =
 		 * { }
 		 * @example
+		 * Sent by hemi.audio.Audio, data =
+		 * { }
+		 * @example
 		 * Sent by hemi.effect.Trail, data =
 		 * { }
 		 * @example
@@ -157,6 +153,9 @@ var hemi = (function(hemi) {
 		 * Sent by hemi.animation.Animation, data =
 		 * { }
 		 * @example
+		 * Sent by hemi.audio.Audio, data =
+		 * { }
+		 * @example
 		 * Sent by hemi.effect.Trail, data =
 		 * { }
 		 * @example
@@ -172,6 +171,21 @@ var hemi = (function(hemi) {
 		 * }
 		 */
 		stop: 'hemi.stop',
+		/**
+		 * The Message sent when something is unloaded.
+		 * @type string
+		 * @constant
+		 * @example
+		 * Sent by hemi.audio.Audio, data =
+		 * { }
+		 * @example
+		 * Sent by hemi.model.Model, data =
+		 * { }
+		 * @example
+		 * Sent by hemi.scene.Scene, data =
+		 * { }
+		 */
+		unload: 'hemi.unload',
 		/**
 		 * The Message sent when something is displayed or hidden.
 		 * @type string

@@ -883,6 +883,25 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
+	 * Get any Audio with the given attributes. If no attributes are given, all
+	 * Audio will be returned. Valid attributes are:
+	 * - name
+	 * - worldId
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to
+	 *     search for
+	 * @param {function(Audio): boolean} opt_filter optional filter function
+	 *     that takes an Audio and returns true if the Audio should be included
+	 *     in the returned array
+	 * @return {hemi.audio.Audio[]} an array of Audio with matching attributes
+	 */
+	hemi.world.getAudio = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes.citizenType = hemi.audio.Audio.prototype.citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
+	
+	/**
 	 * Get any Scenes with the given attributes. If no attributes are given, all
 	 * Scenes will be returned. Valid attributes are:
 	 * - name

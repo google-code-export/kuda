@@ -706,9 +706,8 @@ var hemi = (function(hemi) {
 
 	hemi.model.Model.inheritsFrom(hemi.world.Citizen);
 	hemi.model.Model.prototype.msgSent =
-		hemi.model.Model.prototype.msgSent.concat([
-			hemi.msg.animate,
-			hemi.msg.load]);
+		hemi.model.Model.prototype.msgSent.concat([hemi.msg.animate,
+			hemi.msg.load, hemi.msg.unload]);
 
 	/**
 	 * Set up the modelRoot, the transform root that all Model transforms will

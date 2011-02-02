@@ -950,7 +950,9 @@ var hemi = (function(hemi) {
 			} else {
 				vid.setAttribute('width', '' + that.width);
 			}
-			that.send(hemi.msg.load, {});
+			that.send(hemi.msg.load, {
+				src: vid.currentSrc
+			});
 		};
 	};
 	
@@ -964,6 +966,7 @@ var hemi = (function(hemi) {
 		 * Add the given URL as a source for the video file to load.
 		 * 
 		 * @param {string} url the URL of the video file
+		 * @param {string} type the type of the video file (ogv, mp4, etc)
 		 */
 		addVideoUrl: function(url, type) {
 			var src = document.createElement('source'),
@@ -980,7 +983,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Send a cleanup Message and remove all references in the HudImage.
+		 * Send a cleanup Message and remove all references in the HudVideo.
 		 */
 		cleanup: function() {
 			hemi.hud.HudElement.prototype.cleanup.call(this);
@@ -1035,15 +1038,6 @@ var hemi = (function(hemi) {
 		draw: function() {
 			hemi.hud.hudMgr.createVideoOverlay(this.video, this.config, this.x,
 				this.y, this.width, this.height);
-		},
-		
-		/**
-		 * Get the URL of the video file to load.
-		 * 
-		 * @return {string} the URL of the video file
-		 */
-		getVideoUrl: function() {
-			return this.url;
 		},
 		
 		/**
