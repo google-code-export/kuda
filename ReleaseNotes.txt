@@ -9,6 +9,7 @@ World Editor
 Kuda Library
 * manip.js turnable did not default to degrees for the optional start angle 
 * shape.js fix???
+* XXX All bugs from the test matrix??? Scott developed kudaDemos_testMatrix...
 
 ----------------------------Kuda 1.2.1 Release Notes----------------------------
 2011 January 10
