@@ -1168,7 +1168,7 @@ var editor = (function(module) {
 				this.shapeDisplay.isVisible() ? this.shapeDisplay.showPage() 
 					: this.shapeDisplay.show();
 			}	
-			else {
+			else if (this.shapeDisplay){
 				this.shapeDisplay.hide();
 			}
 		}
