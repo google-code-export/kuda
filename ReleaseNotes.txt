@@ -1,5 +1,17 @@
+----------------------------Kuda 1.2.2 Release Notes----------------------------
+2011 March 31
+1. What's New
+World Editor
+Kuda Library
+
+2. Bug Fixes
+World Editor
+Kuda Library
+* manip.js turnable did not default to degrees for the optional start angle 
+* shape.js fix???
+
 ----------------------------Kuda 1.2.1 Release Notes----------------------------
-2010 January 10
+2011 January 10
 1. What's New
 Kuda Library
 * Holding shift while scrolling will truck the camera forward or backward

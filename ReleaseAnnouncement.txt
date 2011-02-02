@@ -1,4 +1,4 @@
-KUDA RELEASE – JANUARY 1 2010
+KUDA RELEASE – MARCH 31 2011
 
 World Editor Enhancements
 
@@ -6,4 +6,4 @@ World Editor Enhancements
 Kuda Library Enhancements
 
 
-Migration From 1.1.x to 1.2.0
+Migration From 1.2.1 to 1.2.2
