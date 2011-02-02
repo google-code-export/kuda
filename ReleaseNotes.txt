@@ -2,6 +2,9 @@
 2011 June 1
 1. What's New
 World Editor
+* XXXX Would like to incliude the ADL patch???
+** Big deal though as it means reading OBJ, Collada, etc as the service currently has o3dtgz support.
+** XXX Need a contributor agreement per GPL CA.
 Kuda Library
 
 2. Bug Fixes
