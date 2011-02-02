@@ -6,16 +6,25 @@ World Editor
 ** Big deal though as it means reading OBJ, Collada, etc as the service currently has o3dtgz support.
 ** XXX Need a contributor agreement per GPL CA.
 Kuda Library
+* Kuda ported from O3D plugin to WebGL
+* HUD updated to use HTML5 canvas element
+* HUD now has support for HTML5 video element
+* Audio support expanded to use HTML5 audio element
+* All samples updated to run on WebGL
 
 2. Bug Fixes
 World Editor
+* Problems with multiple select in model browser fixed
 Kuda Library
+* Bugs in manip, motion, and shape related to transform hierarchy fixed
+* Starting angle for manips now expected in degrees rather than radians
 
 ----------------------------Kuda 1.2.1 Release Notes----------------------------
 2011 January 10
 1. What's New
 Kuda Library
 * Holding shift while scrolling will truck the camera forward or backward????  XXX Did this get ported from maintenance???
+* Motions now support multiple transforms
 
 ----------------------------Kuda 1.2.0 Release Notes----------------------------
 2011 January 3

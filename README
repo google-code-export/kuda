@@ -73,9 +73,10 @@ VideoSample -   This sample that offers two techniques to do video, one overlays
                 other hides the 3d.  The overlay uses and iframe for the video which
                 is the only technique with the o3d plugin that works across the
                 browsers on Windows.  It does not work on a Mac with the o3d plugin.
-Physics     -   This is a simple hello world, showing how to set up a simple world, 
-                load a model, and set the camera to a viewpoint once the model
-                has loaded.
+AudioHouse  -   This sample shows how to incorporate audio media such as sound
+                effects into the Tutorial A house model.
+Physics     -   This samples shows very basic integration with the jiglib
+                physics library.
 
 Kuda Editor:
 The Kuda Editor provides you with a graphical interface to the Hemi library and
