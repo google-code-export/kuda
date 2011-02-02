@@ -226,6 +226,7 @@ var editor = (function(module) {
 			this.msgHandler = null;
 			this.shapHighlightMat = null;
 	        this.tranHighlightMat = null;
+			this.curHandle = new module.ui.TransHandles();
 	        
 	        this.initSelectorUI();
 			var that = this;
@@ -271,6 +272,7 @@ var editor = (function(module) {
 				if (ndx !== -1) {
 					transforms.splice(ndx, 1);
 					this.currentShape = null;
+					this.curHandle.setTransform(null);
 					this.notifyListeners(module.EventTypes.ShapeSelected, null);
 					this.unhighlightTransform(transform);
 					this.notifyListeners(module.EventTypes.TransformDeselected, transform);
@@ -522,16 +524,19 @@ var editor = (function(module) {
 			
 			if (transforms === null) {
 				transforms = [transform];
+				this.curHandle.setTransform(transform);
 				this.selected.put(ownerId, transforms);
 			} else {
 				var ndx = transforms.indexOf(transform);
 				
+				if (transforms.length === 0) {					
+					this.curHandle.setTransform(transform);
+				}
 				if (ndx === -1) {
 					transforms.push(transform);
 				}
 			}
-			
-			
+						
 			this.highlightTransform(transform);
 			this.notifyListeners(module.EventTypes.TransformSelected, transform);
 		},

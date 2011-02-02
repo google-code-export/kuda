@@ -1693,17 +1693,18 @@ var hemi = (function(hemi) {
 		this.canvas.textBaseline = 'top';
 		// Since the HUD canvas obscures the GL canvas, pass mouse events
 		// through to Hemi.
-		var wheelHandler = o3d.Client.wrapEventCallback_(hemi.input.scroll, true),
-			downHandler = o3d.Client.wrapEventCallback_(hemi.input.mouseDown, false),
-			moveHandler = o3d.Client.wrapEventCallback_(hemi.input.mouseMove, false),
-			upHandler = o3d.Client.wrapEventCallback_(hemi.input.mouseUp, false);
+		this.wheelHandler = o3d.Client.wrapEventCallback_(hemi.input.scroll, true),
+		this.downHandler = o3d.Client.wrapEventCallback_(hemi.input.mouseDown, false),
+		this.moveHandler = o3d.Client.wrapEventCallback_(hemi.input.mouseMove, false),
+		this.upHandler = o3d.Client.wrapEventCallback_(hemi.input.mouseUp, false);
 		
-		hudCan.addEventListener('DOMMouseScroll', wheelHandler, true);
-		hudCan.addEventListener('mousewheel', wheelHandler, true);
-		hudCan.addEventListener('mousedown', downHandler, true);
-		hudCan.addEventListener('mousemove', moveHandler, true);
-		hudCan.addEventListener('mouseup', upHandler, true);
+		hudCan.addEventListener('DOMMouseScroll', this.wheelHandler, true);
+		hudCan.addEventListener('mousewheel', this.wheelHandler, true);
+		hudCan.addEventListener('mousedown', this.downHandler, true);
+		hudCan.addEventListener('mousemove', this.moveHandler, true);
+		hudCan.addEventListener('mouseup', this.upHandler, true);
 		
+		this.canvasElem = hudCan;
 		hemi.view.addRenderListener(this);
 	};
 	

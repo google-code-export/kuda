@@ -44,6 +44,7 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.ui.vector');
 	o3djs.require('editor.ui.treeSelector');
 	o3djs.require('editor.ui.validator');
+	o3djs.require('editor.ui.transformHandles');
 
     o3djs.require('editor.tools.baseTool');
     o3djs.require('editor.tools.animator');
@@ -62,6 +63,7 @@ var editor = (function(base, jQuery) {
 	
 	o3djs.require('hemi.loader');
 	o3djs.require('hemi.handlers.valueCheck');
+	o3djs.require('hext.editor.handles');
 	
 	return base;
 })(editor || {}, jQuery);
