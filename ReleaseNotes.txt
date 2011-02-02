@@ -1,5 +1,21 @@
+----------------------------Kuda 1.3.0 Release Notes----------------------------
+2011 June 1
+1. What's New
+World Editor
+Kuda Library
+
+2. Bug Fixes
+World Editor
+Kuda Library
+
+----------------------------Kuda 1.2.1 Release Notes----------------------------
+2011 January 10
+1. What's New
+Kuda Library
+* Holding shift while scrolling will truck the camera forward or backward????  XXX Did this get ported from maintenance???
+
 ----------------------------Kuda 1.2.0 Release Notes----------------------------
-2010 January 3
+2011 January 3
 
 1. What's New
 World Editor
