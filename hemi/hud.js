@@ -1782,12 +1782,15 @@ var hemi = (function(hemi) {
 					element.right - element.left,
 					element.bottom - element.top];
 			
+			this.canvas.save();
 			this.setPaintProperties(config);
 			this.canvas.fillRect(coords[0], coords[1], coords[2], coords[3]);
 			
 			if (config.outline != null) {
 				this.canvas.strokeRect(coords[0], coords[1], coords[2], coords[3]);
 			}
+			
+			this.canvas.restore();
 		},
 		
 		/**
@@ -1804,6 +1807,7 @@ var hemi = (function(hemi) {
 				height = config.textSize,
 				outline = config.outline != null;
 			
+			this.canvas.save();
 			this.setPaintProperties(config);
 			
 			for (var ndx = 0, len = text.length; ndx < len; ndx++) {
@@ -1816,6 +1820,8 @@ var hemi = (function(hemi) {
 				
 				y += height + config.lineMargin;
 			}
+			
+			this.canvas.restore();
 		},
 		
 		/**
@@ -1833,6 +1839,7 @@ var hemi = (function(hemi) {
 		 */
 		createImageOverlay: function(image, imgConfig, x, y, srcX, srcY, width, height) {
 			var config = jQuery.extend({}, hemi.hud.theme.image, imgConfig);
+			this.canvas.save();
 			this.setPaintProperties(config);
 			
 			if (srcX != null && srcY != null && width != null && height != null) {
@@ -1841,6 +1848,8 @@ var hemi = (function(hemi) {
 			} else {
 				this.canvas.drawImage(image, x, y);
 			}
+			
+			this.canvas.restore();
 		},
 		
 		/**
@@ -1898,6 +1907,7 @@ var hemi = (function(hemi) {
 			var config = jQuery.extend({}, hemi.hud.theme.text, textOptions),
 				wrappedText;
 			
+			this.canvas.save();
 			this.setPaintProperties(config);
 			
 			if (config.strictWrapping) {
@@ -1919,6 +1929,8 @@ var hemi = (function(hemi) {
 				}
 			}
 			
+			this.canvas.restore();
+			
 			return {
 				text: wrappedText,
 				height: height,
@@ -1933,8 +1945,10 @@ var hemi = (function(hemi) {
 			
 			for (var i = 0, il = vids.length; i < il; i++) {
 				vid = vids[i];
+				this.canvas.save();
 				this.setPaintProperties(vid.config);
 				can.drawImage(vid.video, vid.x, vid.y, vid.width, vid.height);
+				this.canvas.restore();
 			}
 		}
 	};
