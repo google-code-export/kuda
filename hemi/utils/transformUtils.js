@@ -54,7 +54,6 @@ var hemi = (function(hemi) {
 			transform.removeShape(shape);
 		}
 		
-		hemi.core.addToTransformTable(transform);
 		return newTran;
 	};
 	
@@ -63,15 +62,12 @@ var hemi = (function(hemi) {
 	 * back to the original parent Transform. Destroy the foster Transform
 	 * 
 	 * @param {o3d.Transform} transform the foster Transform previously created
-	 * @param {o3d.Transform} opt_parent optional parent of the foster Transform
 	 * @return {o3d.Transform} the original parent Transform
 	 */
-	hemi.utils.unfosterTransform = function(transform, opt_parent) {
+	hemi.utils.unfosterTransform = function(transform) {
 		var children = transform.children,
 			shapes = transform.shapes,
-			tParent = opt_parent || hemi.core.getTransformParent(transform);
-		
-		hemi.core.removeFromTransformTable(transform);
+			tParent = transform.parent;
 		
 		for (var i = 0, il = children.length; i < il; i++) {
 			children[i].parent = tParent;
@@ -85,7 +81,6 @@ var hemi = (function(hemi) {
 		
 		transform.parent = null;
 		hemi.core.mainPack.removeObject(transform);
-		hemi.core.addToTransformTable(tParent);
 		return tParent;
 	};
 	

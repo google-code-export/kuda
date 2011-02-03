@@ -429,7 +429,6 @@ var hemi = (function(hemi) {
 			applyColor(transform, color);
 		}
 		
-		hemi.core.addToTransformTable(transform, hemi.shape.root);
 		return transform;
 	};
 	
@@ -715,7 +714,6 @@ var hemi = (function(hemi) {
 			hemi.shape.pack.removeObject(shapes[i]);
 		}
 		
-		hemi.core.removeFromTransformTable(transform);
 		hemi.shape.pack.removeObject(transform);
 	};
 	

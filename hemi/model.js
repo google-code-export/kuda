@@ -281,7 +281,7 @@ var hemi = (function(hemi) {
 					config.pack,
 					config.rootTransform,
 					function(pack, parent) {
-						hemi.core.loaderCallback(pack, parent);
+						hemi.core.loaderCallback(pack);
 						that.loadConfig(config);
 					},
 					{opt_animSource: config.animationTime});
@@ -692,8 +692,6 @@ var hemi = (function(hemi) {
 				// Remove this Model's transform tree from the client root
 				// transform before destroying the resources.
 				this.root.parent = null;
-				// Clean up the Transform table
-				hemi.core.removeFromTransformTable(this.root);
 				this.pack.destroy();
 				this.pack = null;
 				this.root = null;

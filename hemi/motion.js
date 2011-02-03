@@ -86,11 +86,10 @@ var hemi = (function(hemi) {
 				obj.tran = tran1;
 				obj.offset = tran2;
 				obj.foster = true;
-				hemi.core.addToTransformTable(transform);
 			} else {
 				var tran1 = hemi.core.mainPack.createObject('Transform'),
 					tran2 = hemi.core.mainPack.createObject('Transform'),
-					tParent = hemi.core.getTransformParent(transform);
+					tParent = transform.parent;
 				
 				tran1.parent = tParent;
 				tran2.parent = tran1;
@@ -101,7 +100,6 @@ var hemi = (function(hemi) {
 				obj.tran = tran2;
 				obj.offset = transform;
 				obj.foster = false;
-				hemi.core.addToTransformTable(tParent);
 			}
 			
 			this.transformObjs.push(obj);
@@ -142,29 +140,23 @@ var hemi = (function(hemi) {
 					tran;
 				
 				if (obj.foster) {
-					tran = hemi.core.getTransformParent(obj.tran);
-					
+					tran = obj.tran.parent;
 					obj.tran.parent = null;
-					hemi.core.removeFromTransformTable(obj.tran);
 					hemi.core.mainPack.removeObject(obj.tran);
 					
 					obj.offset.parent = tran;
-					hemi.utils.unfosterTransform(obj.offset, tran);
+					hemi.utils.unfosterTransform(obj.offset);
 				} else {
-					var tParent1 = hemi.core.getTransformParent(obj.tran),
-						tParent2 = hemi.core.getTransformParent(tParent1);
+					var tParent1 = obj.tran.parent,
+						tParent2 = tParent1.parent;
 					
 					tran = obj.offset;
 					tran.parent = tParent2;
 					tran.localMatrix = tParent1.localMatrix;
 					
 					obj.tran.parent = tParent1.parent = null;
-					hemi.core.removeFromTransformTable(obj.tran);
-					hemi.core.removeFromTransformTable(tParent1);
 					hemi.core.mainPack.removeObject(obj.tran);
 					hemi.core.mainPack.removeObject(tParent1);
-					
-					hemi.core.addToTransformTable(tParent2);
 				}
 				
 				hemi.world.tranReg.unregister(tran, this);
@@ -175,11 +167,9 @@ var hemi = (function(hemi) {
 			
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 				var transformObj = this.transformObjs[i],
-					tParent = hemi.core.getTransformParent(transformObj.tran),
+					tParent = transformObj.tran.parent,
 					tranChildren = transformObj.offset.children,
 					shapes = transformObj.offset.shapes;
-				
-				hemi.core.removeFromTransformTable(transformObj.tran);
 				
 				for (var j = 0, jl = tranChildren.length; j < jl; j++) {
 					tranChildren[j].parent = tParent;
@@ -196,7 +186,6 @@ var hemi = (function(hemi) {
 				transformObj.offset.parent = null;
 				hemi.core.mainPack.removeObject(transformObj.tran);
 				hemi.core.mainPack.removeObject(transformObj.offset);
-				hemi.core.addToTransformTable(tParent);
 			}
 			
 			this.transformObjs = [];

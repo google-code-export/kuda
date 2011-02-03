@@ -140,7 +140,6 @@ var hemi = (function(hemi) {
 		this.o3d = this.o3dElement.o3d;
 		this.client = this.o3dElement.client;
 		this.mainPack = this.client.createPack();
-		this.transformTable = new Hashtable();
 
 		hemi.picking.init();
 		hemi.input.init();
@@ -150,68 +149,16 @@ var hemi = (function(hemi) {
 		hemi.hud.init();
 		hemi.shape.init();
 		hemi.world.init();
-
-		this.addToTransformTable(this.client.root);
-	};
-	
-	/**
-	 * Update the child-to-parent Transform table with the given Transform and
-	 * its parent Transform. Recurse through all of the given Transform's
-	 * children to create entries for them as well.
-	 * 
-	 * @param {o3d.Transform} transform the child Transform
-	 * @param {o3d.Transform} parent the parent Transform
-	 */
-	hemi.core.addToTransformTable = function(transform, opt_parent) {
-		if (opt_parent) {
-			this.transformTable.put(transform.clientId, opt_parent);
-		}
-		
-		var children = transform.children;
-		
-		for (var ndx = 0; ndx < children.length; ndx++) {
-			this.addToTransformTable(children[ndx], transform);
-		}
-	};
-	
-	/**
-	 * Remove the given Transform's entry from the child-to-parent Transform
-	 * table. Recurse through all of the given Transform's children to remove
-	 * any entries for them as well.
-	 * 
-	 * @param {o3d.Transform} transform the root Transform to remove
-	 */
-	hemi.core.removeFromTransformTable = function(transform) {
-		this.transformTable.remove(transform.clientId);
-		var children = transform.children;
-		
-		for (var ndx = 0; ndx < children.length; ndx++) {
-			this.removeFromTransformTable(children[ndx]);
-		}
-	};
-	
-	/**
-	 * Get the parent Transform of the given child Transform. This makes use of
-	 * the child-to-parent Transform table.
-	 * 
-	 * @param {o3d.Transform} transform the child Transform to get the parent
-	 *	   of
-	 */
-	hemi.core.getTransformParent = function(transform) {
-		return this.transformTable.get(transform.clientId);
 	};
 	
 	/**
 	 * Callback function for whenever a new model file is loaded. This function
-	 * updates transform and picking trees and sets up materials.
+	 * updates the picking tree and sets up materials.
 	 *
 	 * @param {o3d.Pack} pack the pack loaded with scene content
-	 * @param {o3d.Transform} parentTransform the root transform for the loaded
-	 *		  content
 	 */
-	hemi.core.loaderCallback = function(pack, parentTransform) {
-		// Update transform and picking info
-		hemi.core.addToTransformTable(parentTransform, hemi.model.modelRoot);
+	hemi.core.loaderCallback = function(pack) {
+		// Update picking info
 		hemi.picking.pickManager.update();
 		
 		// Generate draw elements and setup material draw lists.
