@@ -217,7 +217,8 @@ var hemi = (function(hemi) {
 		// Generate draw elements and setup material draw lists.
 		o3djs.pack.preparePack(pack, hemi.view.viewInfo);
 		
-		var materials = pack.getObjectsByClassName('o3d.Material');
+		var materials = pack.getObjectsByClassName('o3d.Material'),
+			worldFog = hemi.world.fog;
 		
 		for (var m = 0; m < materials.length; ++m) {
 			var material = materials[m];
@@ -253,8 +254,11 @@ var hemi = (function(hemi) {
 				material.drawList = hemi.view.viewInfo.performanceDrawList;
 			}
 			
-			if (hemi.world.fog !== null) {
-				hemi.fx.addFog(material, hemi.world.fog);
+			if (worldFog !== null) {
+				var fogPrms = hemi.fx.addFog(material);
+				fogPrms.start.value = worldFog.start;
+				fogPrms.end.value = worldFog.end;
+				fogPrms.color.value = worldFog.color;
 			}
 		}
 	};

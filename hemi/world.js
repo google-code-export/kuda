@@ -1255,7 +1255,10 @@ var hemi = (function(hemi) {
 		}
 		mats= mats.concat(hemi.core.mainPack.getObjectsByClassName('o3d.Material'));
 		for (i = 0; i < mats.length; i++) {
-			hemi.fx.addFog(mats[i],{color:color,start:start,end:end});
+			var fogPrms = hemi.fx.addFog(mats[i]);
+			fogPrms.start.value = start;
+			fogPrms.end.value = end;
+			fogPrms.color.value = color;
 		}
 		hemi.view.setBGColor(color);
 		

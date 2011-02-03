@@ -25,70 +25,6 @@
 	o3djs.require('hemi.msg');
 	o3djs.require('hemi.motion');
 	o3djs.require('hemi.curve');
-
-	/* This is the string which will be used as our custom shader. It is 
-	 * a basic phong-lambert shader with one variable added in, opacity, that
-	 * allows us to override the alpha value of the texture, which on a jpg
-	 * will always be 1.
-	 */
-		
-	var vertStr = "uniform mat4 worldViewProjection; \n\
-		uniform vec3 lightWorldPos; \n\
-		uniform mat4 world; \n\
-		uniform mat4 viewInverse; \n\
-		uniform mat4 worldInverseTranspose; \n\
-		\n\
-		attribute vec4 position; \n\
-		attribute vec3 normal; \n\
-		attribute vec2 texCoord0; \n\
-		\n\
-		varying vec4 v_position; \n\
-		varying vec2 v_diffuseUV; \n\
-		varying vec3 v_normal; \n\
-		varying vec3 v_surfaceToLight; \n\
-		varying vec3 v_surfaceToView; \n\
-			\n\
-		void main() { \n\
-			v_diffuseUV = texCoord0; \n\
-			v_position = worldViewProjection * position; \n\
-			v_normal = (vec4(normal, 0) * worldInverseTranspose).xyz; \n\
-			v_surfaceToLight = lightWorldPos - (position * world).xyz; \n\
-			v_surfaceToView = (viewInverse[3] - (position * world)).xyz; \n\
-			gl_Position = v_position;\n\
-		}";
-		
-	var fragStr = "uniform float shininess; \n\
-		uniform float specularFactor; \n\
-		uniform float opacity; \n\
-		uniform vec4 emissive; \n\
-		uniform vec4 ambient; \n\
-		uniform vec4 specular; \n\
-		uniform vec4 lightColor; \n\
-		uniform sampler2D diffuseSampler; \n\
-		\n\
-		varying vec4 v_position; \n\
-		varying vec2 v_diffuseUV; \n\
-		varying vec3 v_normal; \n\
-		varying vec3 v_surfaceToLight; \n\
-		varying vec3 v_surfaceToView; \n\
-		\n\
-		vec4 lit(float l ,float h, float m) { \n\
-         	return vec4(1.0,\n\
-                        max(l, 0.0),\n\
-                        (l > 0.0) ? pow(max(0.0, h), m) : 0.0,\n\
-                       1.0);\n\
-        }\n\
-		\n\
-		void main() {\n\
-			vec4 diffuse = texture2D(diffuseSampler, v_diffuseUV); \n\
-			vec3 normal = normalize(v_normal); \n\
-			vec3 surfaceToLight = normalize(v_surfaceToLight); \n\
-			vec3 surfaceToView = normalize(v_surfaceToView); \n\
-			vec3 halfVector = normalize(surfaceToLight + surfaceToView); \n\
-			vec4 litR = lit(dot(normal, surfaceToLight), dot(normal, halfVector), shininess); \n\
-			gl_FragColor = vec4((emissive + lightColor * (ambient * diffuse + diffuse * litR.y + + specular * litR.z * specularFactor)).rgb, diffuse.a*opacity); \n\
-		}";
-
 	
 	function initStep1() {
 		o3djs.webgl.makeClients(initStep2);
@@ -157,27 +93,22 @@
 		hemi.world.camera.moveToView(vp1,120);
 		hemi.world.camera.enableControl();
 		
-		var count = 0;					// Counter to keep track of wall opacity
-		var dir = 1;					// Whether wall is becoming more or less opaque
+		var count = 0;			// Counter to keep track of wall opacity
+		var dir = 1;			// Whether wall is becoming more or less opaque
 		
-		/* Get the material used on the walls, set it to use the shader defined at the
-		 * top of the file, and get the parameter that controls the opacity
+		/* Get the material used on the walls, add an opacity variable to its
+		 * shader, and get the parameter that controls that opacity.
 		 */
-		var wallT = house.getTransform('wallFront');
-		var brickMat = wallT.shapes[0].elements[0].material;
+		var wallT = house.getTransform('wallFront'),
+			brickMat = wallT.shapes[0].elements[0].material;
+		
 		brickMat.getParam('o3d.drawList').value = hemi.view.viewInfo.zOrderedDrawList;
-		var effect = house.pack.createObject('o3d.Effect');
+		var brickOpacity = hemi.fx.addOpacity(brickMat);
+		brickOpacity.value = 1.0;
 		
-		effect.loadVertexShaderFromString(vertStr);
-		effect.loadPixelShaderFromString(fragStr);
-		
-		brickMat.effect = effect;
-		brickMat.effect.createUniformParameters(brickMat);
-		brickMat.getParam('opacity').value = 1.0;
-		
-		/* Create a transform-level opacity paramater that will override the material-
-		 * level opacity parameter. That way, we can make this wall fade without fading
-		 * every object that uses the wall material.
+		/* Create a transform-level opacity paramater that will override the
+		 * material-level opacity parameter. That way, we can make this wall
+		 * fade without fading every object that uses the wall material.
 		 */
 		var opacity = wallT.createParam('opacity','ParamFloat');
 		opacity.value = 1.0;

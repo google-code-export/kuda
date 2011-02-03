@@ -23,7 +23,7 @@ var hemi = (function(hemi) {
 	 * 	{
 	 *		type      : string ->
 	 *			'texture','phong','lambert','basic','custom'
-	 *		color     : float4	
+	 *		color     : float4
 	 * 		color1    : float4
 	 *      color2    : float4
 	 * 		diffuse   : [float4 | url]
@@ -43,6 +43,160 @@ var hemi = (function(hemi) {
 	 *      fog       : boolean
 	 *	}
 	 *
+	 */
+	
+	/**
+	 * Add parameters to the given Material that will allow the user to define a
+	 * fog effect for it. The returned object will have these parameters:
+	 * color: array of floats defining fog color in RGBA format
+	 * start: float defining distance from the camera that fog starts
+	 * end: float defining distance from the camera that fog becomes opaque
+	 * 
+	 * @param {o3d.Material} material the Material to create opacity for
+	 * @return {Object} an object containing the ParamObjects listed above
+	 */
+	hemi.fx.addFog = function(material) {
+		// get the source
+		var gl = material.gl,
+			program = material.effect.program_,
+			shad = getShaders(material),
+			fragShd = shad.fragShd,
+			fragSrc = shad.fragSrc,
+			vertShd = shad.vertShd,
+			vertSrc = shad.vertSrc;
+		
+		// modify the shaders
+		if (vertSrc.search('fog') < 0) {
+			var vertHdr = "varying float fogAlpha;\
+					uniform float fogStart;\
+					uniform float fogEnd;",
+				vertEnd = "float z = pos[2];\
+					if (z <= fogStart) {\
+						fogAlpha = 0.0;\
+					}\
+					else if (z >= fogEnd) {\
+						fogAlpha = 1.0;\
+					}\
+					else {\
+						fogAlpha = (z - fogStart)/(fogEnd - fogStart);\
+					}\
+					gl_Position = pos;";
+			
+			vertSrc = combineSrc(vertHdr, vertEnd, 'gl_Position', 'vec4 pos', vertSrc);
+			gl.detachShader(program, vertShd);
+			material.effect.loadVertexShaderFromString(vertSrc);
+		}
+		if (fragSrc.search('fog') < 0) {
+			var fragHdr = "varying float fogAlpha;\
+					uniform vec4 fogColor;",
+				fragEnd = "gl_FragColor = (1.0 - fogAlpha)*clr + fogAlpha*fogColor;";
+			
+			fragSrc = combineSrc(fragHdr, fragEnd, 'gl_FragColor', 'vec4 clr', fragSrc);
+			gl.detachShader(program, fragShd);
+			material.effect.loadPixelShaderFromString(fragSrc);
+		}
+		
+		material.effect.createUniformParameters(material);
+		return {
+			start: material.getParam('fogStart'),
+			end: material.getParam('fogEnd'),
+			color: material.getParam('fogColor')
+		};
+	};
+	
+	/**
+	 * Add an opacity parameter to the given Material that will allow
+	 * transparency to be set for it. Transparency ranges from 0.0 to 1.0.
+	 * 
+	 * @param {o3d.Material} material the Material to create opacity for
+	 * @return {o3d.ParamObject} a ParamObject linked to opacity
+	 */
+	hemi.fx.addOpacity = function(material) {
+		// get the source
+		var gl = material.gl,
+			program = material.effect.program_,
+			shad = getShaders(material),
+			fragShd = shad.fragShd,
+			fragSrc = shad.fragSrc;
+		
+		// modify the pixel shader
+		if (fragSrc.search('opacity') < 0) {
+			var fragHdr = 'uniform float opacity;',
+				fragEnd = 'gl_FragColor = vec4(clr.rgb, clr.a * opacity);';
+			
+			fragSrc = combineSrc(fragHdr, fragEnd, 'gl_FragColor', 'vec4 clr', fragSrc);
+			gl.detachShader(program, fragShd);
+			material.effect.loadPixelShaderFromString(fragSrc);
+		}
+		
+		material.effect.createUniformParameters(material);
+		return material.getParam('opacity');
+	};
+	
+	/*
+	 * Combine the given strings into one cohesive shader source string.
+	 * 
+	 * @param {string} head any source to insert before the main function
+	 * @param {string} tail any source to append to the end of main, typically
+	 *     setting the value of the global variable for the shader
+	 * @param {string} global the global variable previously being set by the
+	 *     main function
+	 * @param {string} local a new local variable to receive the value that was
+	 *     previously being set to the global variable
+	 * @param {string} src the original shader source string
+	 * @return {string} the new shader source string
+	 */
+	var combineSrc = function(head, tail, global, local, src) {
+		var hdrNdx = src.search('void main'),
+			endNdx = src.search(global),
+			end = '';
+		
+		src = src.replace(global, local);
+		end = src.slice(endNdx);
+		endNdx = endNdx + end.search(';') + 1;
+		src = src.slice(0, hdrNdx) + head
+			+ src.slice(hdrNdx, endNdx) + tail
+			+ src.slice(endNdx);
+		
+		return src;
+	};
+	
+	/*
+	 * Get the vertex and pixel shaders (as well as their source) for the given
+	 * Material.
+	 * 
+	 * @param {o3d.Material} material the material to get shaders for
+	 * @return {Object} object containing shaders and source strings
+	 */
+	var getShaders = function(material) {
+		var gl = material.gl,
+			program = material.effect.program_,
+			shaders = gl.getAttachedShaders(program),
+			source1 = gl.getShaderSource(shaders[0]),
+			source2 = gl.getShaderSource(shaders[1]),
+			obj;
+		
+		if (source1.search('gl_FragColor') > 0) {
+			obj = {
+				fragShd: shaders[0],
+				fragSrc: source1,
+				vertShd: shaders[1],
+				vertSrc: source2
+			};
+		} else {
+			obj = {
+				fragShd: shaders[1],
+				fragSrc: source2,
+				vertShd: shaders[0],
+				vertSrc: source1
+			};
+		}
+		
+		return obj;
+	};
+	
+	/*
+	 * The following functions may be out-dated and need some work before using.
 	 */
 	
 	hemi.fx.create = function(spec,callback) {
@@ -70,13 +224,6 @@ var hemi = (function(hemi) {
 						spec.color[3] < 1));
 					return;
 				}
-				break;	
-			case 'grid':
-//				if (callback) {
-//					callback(hemi.fx.createGridTexture(spec));
-//				} else {
-//					return hemi.fx.createGridTexture(spec);
-//				}
 				break;
 		}
 	};
@@ -92,9 +239,9 @@ var hemi = (function(hemi) {
 					material.removeParam(diffuseParam);
 				}
 				o3djs.material.attachStandardEffect(
-					hemi.core.mainPack, 
-					material, 
-					hemi.view.viewInfo, 
+					hemi.core.mainPack,
+					material,
+					hemi.view.viewInfo,
 					'constant');
 				return material;
 				break;
@@ -111,7 +258,7 @@ var hemi = (function(hemi) {
 				material = hemi.core.material.createConstantMaterial(
 					hemi.core.mainPack,
 					hemi.view.viewInfo,
-					texture); 
+					texture);
 				callback(material);
 			}
 		});
@@ -127,87 +274,10 @@ var hemi = (function(hemi) {
 				material = hemi.core.material.createBasicMaterial(
 					hemi.core.mainPack,
 					hemi.view.viewInfo,
-					texture); 
+					texture);
 				callback(material);
 			}
 		});
-	}; 
-	
-	hemi.fx.createGridTexture = function(spec) {
-		var s = spec || {},
-			material = hemi.core.mainPack.createObject('Material');
-		material.effect = hemi.core.mainPack.createObject('Effect');
-		material.effect.loadFromFXString(hemi.fx.gridShader);
-		material.effect.createUniformParameters(material);
-		material.getParam('o3d.drawList').value = hemi.view.viewInfo.zOrderedDrawList;
-		material.getParam('color1').value = s.color1 || [0,0,0,1];
-		material.getParam('color2').value = s.color2 || [0,0,0,0];
-		material.getParam('squares').value = s.squares || 10;
-		material.getParam('thickness').value = s.thickness || 0.1;		
-		return material;
-	};
-	
-	hemi.fx.addFog = function(material, fog) {		
-		// get the source
-		var gl = material.gl,
-			program = material.effect.program_,
-			shaders = gl.getAttachedShaders(program),
-			source1 = gl.getShaderSource(shaders[0]),
-			source2 = gl.getShaderSource(shaders[1]),
-			fragSrc = source1.search('gl_FragColor') > 0 ? source1 : source2,
-			vertSrc = fragSrc === source1 ? source2 : source1,
-			srcCombineFcn = function(head, tail, src, global, retVar) {
-				var hdrNdx = src.search('void main'),
-					endNdx = src.search(global),
-					end = '';
-				
-				src = src.replace(global, retVar);
-				end = src.slice(endNdx);			
-				endNdx = endNdx + end.search(';') + 1;
-				src = src.slice(0, hdrNdx) + head 
-					+ src.slice(hdrNdx, endNdx) + tail
-					+ src.slice(endNdx);
-					
-				return src;
-			};
-		
-		// detach the previous shaders
-		gl.detachShader(program, shaders[0]);
-		gl.detachShader(program, shaders[1]);
-		
-		// modify the shaders
-		if (vertSrc.search('fog') < 0) {
-			var vertHdr = "varying float fogAlpha;\
-					uniform float fogStart;\
-					uniform float fogEnd;",
-				vertEnd = "float z = pos[2];\
-					if (z <= fogStart) {\
-						fogAlpha = 0.0;\
-					}\
-					else if (z >= fogEnd) {\
-						fogAlpha = 1.0;\
-					}\
-					else {\
-						fogAlpha = (z - fogStart)/(fogEnd - fogStart);\
-					}\
-					gl_Position = pos;";
-					
-			vertSrc = srcCombineFcn(vertHdr, vertEnd, vertSrc, 'gl_Position', 'vec4 pos');
-			material.effect.loadVertexShaderFromString(vertSrc);
-		}
-		if (fragSrc.search('fog') < 0) {
-			var fragHdr = "varying float fogAlpha;\
-					uniform vec4 fogColor;",
-				fragEnd = "gl_FragColor = (1.0 - fogAlpha)*clr + fogAlpha*fogColor;";
-							
-			fragSrc = srcCombineFcn(fragHdr, fragEnd, fragSrc, 'gl_FragColor', 'vec4 clr');
-			material.effect.loadPixelShaderFromString(fragSrc);
-		}
-		
-		material.effect.createUniformParameters(material);
-		material.getParam('fogStart').value = fog.start;
-		material.getParam('fogEnd').value = fog.end;
-		material.getParam('fogColor').value = fog.color;
 	};
 	
 	return hemi;
