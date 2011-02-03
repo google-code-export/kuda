@@ -18,6 +18,8 @@
 var editor = (function(module) {
     module.ui = module.ui || {};
 	
+	var EXTENT = 5;
+	
 	module.ui.TransHandles = module.Class.extend({
 		init: function() {
 			this.canvas = hemi.hud.hudMgr.canvas;
@@ -30,20 +32,19 @@ var editor = (function(module) {
 			this.overrideMouse();
 		},
 		
-		drawArrows: function() {
+		drawHandles: function() {
 			var origin = this.transform.worldMatrix[3],			
 				x = origin[0],
 				y = origin[1],
 				z = origin[2],
-				xVec = [x + 5, y, z],
-				yVec = [x, y + 5, z],
-				zVec = [x, y, z + 5],
-				scrOrg = hemi.utils.worldToScreen(origin),
+				xVec = [x + EXTENT, y, z],
+				yVec = [x, y + EXTENT, z],
+				zVec = [x, y, z + EXTENT],
 				baseLength = 100 / (hemi.world.camera.distance * 0.5);
 			
-			this.xArrow.setParams(scrOrg, xVec, baseLength);			
-			this.yArrow.setParams(scrOrg, yVec, baseLength);			
-			this.zArrow.setParams(scrOrg, zVec, baseLength);
+			this.xArrow.setParams(origin, xVec, baseLength, hemi.manip.Plane.XY);			
+			this.yArrow.setParams(origin, yVec, baseLength, hemi.manip.Plane.YZ);			
+			this.zArrow.setParams(origin, zVec, baseLength, hemi.manip.Plane.XZ);
 		},
 		
 		onMouseDown: function(evt) {
@@ -168,7 +169,7 @@ var editor = (function(module) {
 		onRender: function(renderEvent) {
 			if (this.transform) {
 				hemi.hud.hudMgr.clearDisplay();
-				this.drawArrows();
+				this.drawHandles();
 			}
 		},
 		
@@ -218,6 +219,7 @@ var editor = (function(module) {
 			this.canvas = canvas;
 			this.clr = color;
 			this.hvrClr = hoverColor;
+			this.math = hemi.core.math;
 		},
 		
 		isInside: function(coordX, coordY) {
@@ -228,46 +230,104 @@ var editor = (function(module) {
 		draw: function() {
 			this.canvas.save();
 			this.drawLine();
-			this.drawHead();
+			this.drawTranslator();
 			this.canvas.restore();
 		},
 		
 		drawLine: function() {	
-			var cvs = this.canvas;
+			var cvs = this.canvas,
+				cfg = this.config;
 			cvs.beginPath();
-			cvs.moveTo(this.orgPnt[0], this.orgPnt[1]);
-			cvs.lineTo(this.endPnt[0], this.endPnt[1]);
+			cvs.moveTo(cfg.orgPnt[0], cfg.orgPnt[1]);
+			cvs.lineTo(cfg.endPnt[0], cfg.endPnt[1]);
+			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
+			cvs.lineWidth = 3;
+			cvs.stroke();
+		},
+				
+		drawRotater: function() {
+			var cfg = this.config,
+				origin = cfg.origin,
+				vector = cfg.vector,
+				increment = Math.PI / 36,  // 5 degrees
+				startAngle = Math.PI / 2,
+				radius = EXTENT,
+				points = [],
+				angles = [
+					startAngle - increment * 3,
+					startAngle - increment * 2,
+					startAngle - increment,
+					startAngle,
+					startAngle + increment,
+					startAngle + increment * 2,
+					startAngle + increment * 3		
+				],
+				cvs = this.canvas;
+			
+			cvs.beginPath();
+			// sample points on a circle in 3d space
+			for (var ndx = 0, len = angles.length; ndx < len; ndx++) {
+				var a = angles[ndx],
+					pnt = hemi.core.math.copyVector(origin); 
+					
+				switch(cfg.plane) {
+					case hemi.manip.Plane.XY:
+						pnt[1] = origin[1] + radius * Math.cos(a);
+						pnt[0] = origin[0] + radius * Math.sin(a);
+						break;
+					case hemi.manip.Plane.YZ:
+						pnt[2] = origin[2] + radius * Math.cos(a);
+						pnt[1] = origin[1] + radius * Math.sin(a);
+						break;
+					case hemi.manip.Plane.XZ:
+						pnt[0] = origin[0] + radius * Math.cos(a);
+						pnt[2] = origin[2] + radius * Math.sin(a);
+						break;
+				}
+				
+				pnt = hemi.utils.worldToScreen(pnt);
+				if (ndx === 0) {
+					cvs.moveTo(pnt[0], pnt[1]);
+				}
+				cvs.lineTo(pnt[0], pnt[1]);
+			}
 			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
 			cvs.lineWidth = 3;
 			cvs.stroke();
 		},
 		
-		drawHead: function() {
-			var slope = this.getSlope(this.orgPnt, this.endPnt),
-				dis = this.getDistance(this.orgPnt, this.endPnt),
-				invSlope = slope == null ? 0 : slope == 0 ? null : -1/slope,
-				orgX = this.orgPnt[0],
-				orgY = this.orgPnt[1],
-				endX = this.endPnt[0],
-				endY = this.endPnt[1],
+		drawScaler: function() {
+			
+		},
+		
+		drawTranslator: function() {
+			var cfg = this.config,
+				slope = cfg.slope,
+				dis = cfg.distance,
+				invSlope = cfg.invSlope,
+				bseLen = cfg.baseLength,
+				endPnt = cfg.endPnt,
+				orgPnt = cfg.orgPnt,
+				orgX = cfg.orgPnt[0],
+				orgY = cfg.orgPnt[1],
+				endX = cfg.endPnt[0],
+				endY = cfg.endPnt[1],
 				yInt1 = slope == null ? 0 : endY - (slope * endX),
 				yInt2 = invSlope == null ? 0 : endY - (invSlope * endX),
-				xPoints = slope == 0 ? [endX, endX] : this.solveX(this.endPnt, invSlope, this.bseLen),
-				endXPoints = invSlope == 0 ? [endX, endX] : this.solveX(this.endPnt, slope, dis / 10),
-				cvs = this.canvas,
-				centerEye = hemi.core.math.normalize(hemi.world.camera.getEye()),
-				centerArrow = hemi.core.math.normalize(this.vec),
-				scale = hemi.core.math.dot(centerEye, centerArrow);
+				xPoints = slope == 0 ? [endX, endX] : this.solveX(endPnt, invSlope, bseLen),
+				endXPoints = invSlope == 0 ? [endX, endX] : this.solveX(endPnt, slope, dis / 10),
+				cvs = this.canvas;
 				
 			var x1 = xPoints[0],
 				x2 = xPoints[1],
-				y1 = slope == 0 ? endY + this.bseLen : invSlope == 0 ? endY : invSlope * x1 + yInt2,
-				y2 = slope == 0 ? endY - this.bseLen : invSlope == 0 ? endY : invSlope * x2 + yInt2,
+				y1 = slope == 0 ? endY + bseLen : invSlope == 0 ? endY : invSlope * x1 + yInt2,
+				y2 = slope == 0 ? endY - bseLen : invSlope == 0 ? endY : invSlope * x2 + yInt2,
 				newX = orgX < endX ? endXPoints[1] : endXPoints[0],
 				newY = invSlope == 0 ? endY - dis/10 : slope * newX + yInt1,
 				top = endY - orgY,
 				bot = endX - orgX,
-				angle = bot === 0 ? Math.PI/2 : Math.atan(top/bot);
+				angle = bot === 0 ? Math.PI/2 : Math.atan(top/bot),
+				scale = this.math.dot(cfg.centerEye, cfg.centerArrow);
 				
 			// save coordinates
 			this.topLeft = [Math.min(x1, x2, newX), 
@@ -293,7 +353,7 @@ var editor = (function(module) {
 			cvs.save();
 			cvs.translate(endX, endY);
 			cvs.rotate(angle);
-			cvs.scale(this.bseLen * scale, this.bseLen);
+			cvs.scale(bseLen * scale, bseLen);
 			cvs.arc(0, 0, 1, 0, Math.PI * 2, false);
 			cvs.restore();
 			cvs.closePath();
@@ -317,21 +377,32 @@ var editor = (function(module) {
 			return rise / run;
 		},
 		
-		getDistance: function(point1, point2) {
-			var x = point1[0] - point2[0],
-				y = point1[1] - point2[1];
-				
-			return Math.sqrt(x * x + y * y);
-		},
-		
-		setParams: function(origin, vector, baseLength) {
-			this.endPnt = hemi.utils.worldToScreen(vector);
-			this.orgPnt = origin;
-			this.bseLen = baseLength;
-			this.vec = vector;
+		setParams: function(origin, vector, baseLength, plane) {			
+			var ep = hemi.utils.worldToScreen(vector),
+				op = hemi.utils.worldToScreen(origin),
+				s = this.getSlope(op, ep),
+				d = this.math.distance(op, ep),
+				e = hemi.world.camera.getEye(),
+				ce = this.math.normalize(this.math.subVector(e, origin)),
+				ca = this.math.normalize(this.math.subVector(vector, origin));
+			
+			this.config = {
+				origin: origin,
+				vector: vector,
+				orgPnt: op,
+				endPnt: ep,
+				slope: s,
+				distance: d,
+				invSlope: s == null ? 0 : s == 0 ? null : -1/s,
+				baseLength: baseLength,
+				centerEye: ce,
+				centerArrow: ca,
+				plane: plane
+			};
 			
 			this.drawLine();
-			this.drawHead();
+			this.drawTranslator();
+			this.drawRotater();
 		},
 		
 		solveX: function(point1, slope, distance) {
