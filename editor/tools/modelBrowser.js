@@ -253,6 +253,19 @@ var editor = (function(module) {
 			}
 		},
 		
+		deselectShape: function() {
+			if (this.currentShape !== null) {
+				var elements = this.currentShape.elements;
+				
+				for (var ee = 0; ee < elements.length; ee++) {
+					elements[ee].material = this.tranHighlightMat;
+				}
+				
+				this.currentShape = null;
+				this.notifyListeners(module.EventTypes.ShapeSelected, null);
+			}
+		},
+		
 		deselectTransform: function(transform, opt_owner) {
 			if (opt_owner == null) {
 				opt_owner = hemi.world.getTranOwner(transform);
@@ -658,10 +671,10 @@ var editor = (function(module) {
 		finishLayout: function() {
 			this.container = jQuery('<div></div>');
 			this.title = jQuery('<span></span>');
-			this.inspectBtn = jQuery('<button class="removeBtn">Inspect</button>');
+			this.removeBtn = jQuery('<button class="removeBtn">Remove</button>');
 			var btnDiv = jQuery('<div class="buttonContainer"></div>');
 			
-			btnDiv.append(this.inspectBtn);
+			btnDiv.append(this.removeBtn);
 			this.container.append(this.title).append(btnDiv);
 		},
 		
@@ -822,9 +835,12 @@ var editor = (function(module) {
 						shape: shape
 					});
 					
-					item.inspectBtn.bind('click', function(evt) {
+					item.title.bind('click', function(evt) {
 						var data = item.getAttachedObject();
 						wgt.notifyListeners(module.EventTypes.SetShape, data);
+					});
+					item.removeBtn.bind('click', function(evt) {
+						wgt.notifyListeners(module.EventTypes.SetShape, null);
 					});
 					
 					shapeList.add(item);
@@ -1046,7 +1062,7 @@ var editor = (function(module) {
 			var textConfig = {
 				color: [0.6, 0.9, 1, 1],
 				textAlign: 'left',
-				textSize: 10
+				textSize: 13
 			};
 			
 			this.nameText = new hemi.hud.HudText();
@@ -1122,7 +1138,7 @@ var editor = (function(module) {
 		},
 		
 		setShape: function(shape, owner) {
-			var shapeInfo = hemi.core.picking.createShapeInfo(shape, null),
+			var shapeInfo = hemi.picking.pickManager.createShapeInfo(shape, null),
 				box = shapeInfo.boundingBox,
 				minExtent = box.minExtent,
 				maxExtent = box.maxExtent;
@@ -1417,7 +1433,11 @@ var editor = (function(module) {
 				selModel.deselectTransform(transform);
 			});			
 			mbrWgt.addListener(module.EventTypes.SetShape, function(data) {
-				selModel.selectShape(data.shape, data.transform);
+				if (data !== null) {
+					selModel.selectShape(data.shape, data.transform);
+				} else {
+					selModel.deselectShape();
+				}
 			});
 	
 			// view specific
