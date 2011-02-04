@@ -45,6 +45,7 @@ var editor = (function(module) {
     module.EventTypes.Translate = "modelbrowser.Translate";
     module.EventTypes.Rotate = "modelbrowser.Rotate";
     module.EventTypes.Scale = "modelbrowser.Scale";
+    module.EventTypes.ManipState = "modelbrowser.ManipState";
 	
 	// selector model events
 	module.EventTypes.Dragging = "selector.Dragging";
@@ -552,6 +553,10 @@ var editor = (function(module) {
 						
 			this.highlightTransform(transform);
 			this.notifyListeners(module.EventTypes.TransformSelected, transform);
+		},
+		
+		setManipState: function(state) {
+			this.curHandle.setDrawState(state);
 		},
 	    
 	    showSelected: function() {
@@ -1226,11 +1231,13 @@ var editor = (function(module) {
 			var view = this;
 			
 			widget.finishLayout = function() {
-				var transXYBtn = widget.find('#slideXY');
-		        var transXZBtn = widget.find('#slideXZ');
-		        var transYZBtn = widget.find('#slideYZ');
-				
-		        widget.find('.dialogForm').submit(function() {
+				var manipBtns = widget.find('#mbTranslate, #mbRotate, #mbScale'),
+					tBtn = manipBtns.filter('#mbTranslate'),
+					rBtn = manipBtns.filter('#mbRotate'),
+					sBtn = manipBtns.filter('#mbScale'),
+					down = module.tools.ToolConstants.MODE_DOWN;
+									
+		        widget.find('form').submit(function() {
 		            return false;
 		        });
 		        
@@ -1251,109 +1258,50 @@ var editor = (function(module) {
 		            view.hiddenItemsSBWidget.setVisible(!isVisible);
 		        });
 		        
-		        transXYBtn.bind('click', function(evt) {
-		            toggleTranslate(jQuery(this), module.tools.ToolConstants.XY_PLANE);
-		            disableTranslate(transXZBtn);
-		            disableTranslate(transYZBtn);
-		        })
-		        .data('isDown', false);
-		
-		        transXZBtn.bind('click', function(evt) {
-		            toggleTranslate(jQuery(this), module.tools.ToolConstants.XZ_PLANE);
-		            disableTranslate(transXYBtn);
-		            disableTranslate(transYZBtn);
-		        })
-		        .data('isDown', false);
-		        
-		        transYZBtn.bind('click', function(evt) {
-					toggleTranslate(jQuery(this), module.tools.ToolConstants.YZ_PLANE);
-		            disableTranslate(transXYBtn);
-		            disableTranslate(transXZBtn);
-		        })
-		        .data('isDown', false);
-		        
-		        widget.find('#mbScaleBtn').bind('click', function(evt) {
-		            var factor = parseFloat(widget.find('#mbScaleVal').val());
-		            
-		            if (factor) {
-		                view.notifyListeners(module.EventTypes.Scale, factor);
-		            }
-		        });
-		        
-		        widget.find('#mbRotateX').bind('click', function(evt) {            
-		            view.notifyListeners(module.EventTypes.Rotate, module.tools.ToolConstants.X_AXIS);
-		        });
-		        widget.find('#mbRotateY').bind('click', function(evt) {  
-		            view.notifyListeners(module.EventTypes.Rotate, module.tools.ToolConstants.Y_AXIS);
-		        });
-		        widget.find('#mbRotateZ').bind('click', function(evt) {  
-		            view.notifyListeners(module.EventTypes.Rotate, module.tools.ToolConstants.Z_AXIS);
-		        });
-				
-				function toggleTranslate(elem, plane) {			
-		            var isDown = !elem.data('isDown');
+		        manipBtns.bind('click', function(evt) {
+					var elem = jQuery(this),
+						id = elem.attr('id'),
+						isDown = elem.data('isDown'),
+						msg;
+						
+					switch(id) {
+						case 'mbTranslate':
+						    msg = module.ui.trans.DrawState.TRANSLATE;
+							rBtn.data('isDown', false).removeClass(down);
+							sBtn.data('isDown', false).removeClass(down);
+							break;
+						case 'mbRotate':
+						    msg = module.ui.trans.DrawState.ROTATE;
+							tBtn.data('isDown', false).removeClass(down);
+							sBtn.data('isDown', false).removeClass(down);
+							break;
+						case 'mbScale':
+						    msg = module.ui.trans.DrawState.SCALE;
+							tBtn.data('isDown', false).removeClass(down);
+							rBtn.data('isDown', false).removeClass(down);
+							break;
+					}
 					
-		            view.notifyListeners(module.EventTypes.Translate, {
-		                plane: plane,
-		                enable: isDown,
-						btn: elem
-		            });
-				}
-				
-				function disableTranslate(elem) {
-		            var isDown = elem.data('isDown');
+					if (isDown) {						
+						msg = module.ui.trans.DrawState.NONE;
+					}
+						
+		            view.notifyListeners(module.EventTypes.ManipState, msg);
+					elem.data('isDown', !isDown);
 					
 					if (isDown) {
-						var newMode = module.tools.ToolConstants.MODE_UP;
-						var oldMode = module.tools.ToolConstants.MODE_DOWN;
-						
-						elem.data('isDown', !isDown)
-						.removeClass(oldMode)
-						.addClass(newMode);
+						elem.removeClass(down);
 					}
-				}
+					else {
+						elem.addClass(down);
+					}
+		        })
+		        .data('isDown', false);
 				
 				view.actionBar.addWidget(widget);
 			};
 			
 			widget.layout();		
-		},
-		
-		updateTranslateButtons: function(plane) {
-			var transXYBtn = this.actionBar.find('#slideXY'),
-	        	transXZBtn = this.actionBar.find('#slideXZ'),
-	        	transYZBtn = this.actionBar.find('#slideYZ'),
-				down = module.tools.ToolConstants.MODE_DOWN,
-				up = module.tools.ToolConstants.MODE_UP;
-			
-			switch(plane) {
-				case module.tools.ToolConstants.XY_PLANE:
-					transXYBtn.data('isDown', true)
-						.removeClass(up)
-						.addClass(down);
-					break;
-				case module.tools.ToolConstants.XZ_PLANE:
-					transXZBtn.data('isDown', true)
-						.removeClass(up)
-						.addClass(down);
-					break;
-				case module.tools.ToolConstants.YZ_PLANE:
-					transYZBtn.data('isDown', true)
-							.removeClass(up)
-							.addClass(down);
-					break;
-				default:
-					transXYBtn.data('isDown', false)
-						.removeClass(down)
-						.addClass(up);
-					transXZBtn.data('isDown', false)
-						.removeClass(down)
-						.addClass(up);
-					transYZBtn.data('isDown', false)
-						.removeClass(down)
-						.addClass(up);
-					break;
-			}
 		}
 	});
 	
@@ -1440,7 +1388,10 @@ var editor = (function(module) {
 				}
 			});
 	
-			// view specific
+			// view specific  
+	        view.addListener(module.EventTypes.ManipState, function(state) {
+				selModel.setManipState(state);
+	        });
 	        view.addListener(module.EventTypes.Rotate, function(axis) {    
 	            selModel.rotateSelected(axis);    
 	        });	
@@ -1526,7 +1477,7 @@ var editor = (function(module) {
 			
 			// select model specific
 			selModel.addListener(module.EventTypes.Dragging, function(plane) {
-				view.updateTranslateButtons(plane);
+//				view.updateTranslateButtons(plane);
 			});			
 			selModel.addListener(module.EventTypes.ShapeSelected, function(shapeInfo) {
 				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;

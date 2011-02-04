@@ -17,8 +17,16 @@
 
 var editor = (function(module) {
     module.ui = module.ui || {};
+	module.ui.trans = module.ui.trans || {};
 	
 	var EXTENT = 5;
+	
+	module.ui.trans.DrawState = {
+		TRANSLATE: 0,
+		ROTATE: 1,
+		SCALE: 2,
+		NONE: 3
+	};
 	
 	module.ui.TransHandles = module.Class.extend({
 		init: function() {
@@ -28,88 +36,88 @@ var editor = (function(module) {
 			this.xArrow = new module.ui.Arrow(this.canvas, '#f00', '#f99');
 			this.yArrow = new module.ui.Arrow(this.canvas, '#0c0', '#9c9');
 			this.zArrow = new module.ui.Arrow(this.canvas, '#00f', '#99f');
+			this.drawState = module.ui.trans.DrawState.NONE;
 			
 			hemi.view.addRenderListener(this);
 			this.overrideMouse();
 		},
 		
 		drawHandles: function() {
-			var origin = this.transform.worldMatrix[3],			
-				x = origin[0],
-				y = origin[1],
-				z = origin[2],
-				xVec = [x + EXTENT, y, z],
-				yVec = [x, y + EXTENT, z],
-				zVec = [x, y, z + EXTENT],
-				baseLength = 100 / (hemi.world.camera.distance * 0.5);
+			if (this.drawState !== module.ui.trans.DrawState.NONE) {
+				var origin = this.transform.worldMatrix[3], 
+					x = origin[0], 
+					y = origin[1], 
+					z = origin[2], 
+					xVec = [x + EXTENT, y, z], 
+					yVec = [x, y + EXTENT, z], 
+					zVec = [x, y, z + EXTENT], 
+					baseLength = 100 / (hemi.world.camera.distance * 0.5);
+				
+				this.xArrow.setParams(origin, xVec, baseLength, 
+					hemi.manip.Plane.XY, this.drawState);
+				this.yArrow.setParams(origin, yVec, baseLength, 
+					hemi.manip.Plane.YZ, this.drawState);
+				this.zArrow.setParams(origin, zVec, baseLength, 
+					hemi.manip.Plane.XZ, this.drawState);
+			}
+		},
+		
+		convertEvent: function(evt) {			
+			var elem = jQuery(evt.target ? evt.target : evt.srcElement),
+				offset = elem.offset();
+			evt.x = evt.pageX - offset.left;
+			evt.y = evt.pageY - offset.top;
 			
-			this.xArrow.setParams(origin, xVec, baseLength, hemi.manip.Plane.XY);			
-			this.yArrow.setParams(origin, yVec, baseLength, hemi.manip.Plane.YZ);			
-			this.zArrow.setParams(origin, zVec, baseLength, hemi.manip.Plane.XZ);
+			return evt;
 		},
 		
 		onMouseDown: function(evt) {
-			if (!this.transform) {
+			if (!this.transform 
+					|| this.drawState === module.ui.trans.DrawState.NONE) {
 				return false;
 			}
 			
 			var x = evt.layerX,
 				y = evt.layerY,
-				pos = this.transform.localMatrix[3],
-				plane;
+				plane,
+				axis;
 				
 			if (this.xArrow.isInside(x, y)) {
 				this.down = true;
 				plane = hemi.manip.Plane.XY;
+				axis = hemi.manip.Axis.Y;
 			}
 			else if (this.yArrow.isInside(x, y)) {
 				this.down = true;
 				plane = hemi.manip.Plane.YZ;
+				axis = hemi.manip.Axis.Z;
 			}
 			else if (this.zArrow.isInside(x, y)) {
 				this.down = true;	
 				plane = hemi.manip.Plane.XZ;
+				axis = hemi.manip.Axis.X;
 			}
 			
-			if (this.down) {		
-				hemi.world.camera.disableControl();		
-				this.dragger = new hemi.manip.Draggable();
-				this.dragger.name = module.tools.ToolConstants.EDITOR_PREFIX + 'Dragger';
-				this.dragger.setPlane(plane);
-				
-				switch(plane) {
-					case hemi.manip.Plane.XY:
-					    this.dragger.vmin = this.dragger.vmax = pos[1];
+			if (this.down) {
+				switch(this.drawState) {
+					case module.ui.trans.DrawState.ROTATE:
+						this.startRotate(axis, evt);
 						break;
-					case hemi.manip.Plane.YZ:
-					    this.dragger.umin = this.dragger.umax = pos[2];
+					case module.ui.trans.DrawState.SCALE:
+						this.startScale();
 						break;
-					case hemi.manip.Plane.XZ:
-					    this.dragger.umin = this.dragger.umax = pos[0];
+					case module.ui.trans.DrawState.TRANSLATE:
+					    this.startTranslate(plane, evt);
 						break;
 				}
-
-	            this.dragger.addTransform(this.transform);
-				
-				var elem = jQuery(evt.target ? evt.target : evt.srcElement),
-					offset = elem.offset();
-				evt.x = evt.pageX - offset.left;
-				evt.y = evt.pageY - offset.top;
-				
-				this.dragger.onPick({
-					shapeInfo: {
-						parent: {
-							transform: this.transform
-						}
-					}
-				}, evt);
 			}
 			
 			return false;
 		},
 		
 		onMouseMove: function(evt) {
-			if (!this.transform || this.down) {
+			if (!this.transform || this.down
+					|| this.drawState === module.ui.trans.DrawState.NONE) {
 				return false;
 			}
 			
@@ -134,7 +142,8 @@ var editor = (function(module) {
 		},
 		
 		onMouseOver: function(evt) {	
-			if (!this.transform) {
+			if (!this.transform
+					|| this.drawState === module.ui.trans.DrawState.NONE) {
 				return false;
 			}
 			
@@ -161,6 +170,10 @@ var editor = (function(module) {
 			if (this.dragger) {
 				this.dragger.cleanup();
 				this.dragger = null;
+			}
+			if (this.turnable) {
+				this.turnable.cleanup();
+				this.turnable = null;
 			}
 			hemi.world.camera.enableControl();
 			
@@ -219,8 +232,62 @@ var editor = (function(module) {
 			this.drawCallback = callback;
 		},
 		
+		setDrawState: function(state) {
+			this.drawState = state;
+		},
+		
 		setTransform: function(transform) {
 			this.transform = transform;
+		},
+		
+		startRotate: function(axis, evt) {
+			hemi.world.camera.disableControl();
+			this.turnable = new hemi.manip.Turnable(axis);
+			this.turnable.addTransform(this.transform);
+			this.turnable.enable();
+			
+			this.turnable.onPick({
+				shapeInfo: {
+					parent: {
+						transform: this.transform
+					}
+				}
+			}, this.convertEvent(evt));
+		},
+		
+		startScale: function() {
+			
+		},
+		
+		startTranslate: function(plane, evt) {
+			var pos = this.transform.localMatrix[3];
+			
+			hemi.world.camera.disableControl();		
+			this.dragger = new hemi.manip.Draggable();
+			this.dragger.name = module.tools.ToolConstants.EDITOR_PREFIX + 'Dragger';
+			this.dragger.setPlane(plane);
+			
+			switch(plane) {
+				case hemi.manip.Plane.XY:
+				    this.dragger.vmin = this.dragger.vmax = pos[1];
+					break;
+				case hemi.manip.Plane.YZ:
+				    this.dragger.umin = this.dragger.umax = pos[2];
+					break;
+				case hemi.manip.Plane.XZ:
+				    this.dragger.umin = this.dragger.umax = pos[0];
+					break;
+			}
+
+            this.dragger.addTransform(this.transform);
+			
+			this.dragger.onPick({
+				shapeInfo: {
+					parent: {
+						transform: this.transform
+					}
+				}
+			}, this.convertEvent(evt));
 		}
 	});
 	
@@ -244,6 +311,41 @@ var editor = (function(module) {
 			this.canvas.restore();
 		},
 		
+		drawArrow: function(points, xScale, yScale, angle) {
+			var cvs = this.canvas,
+				x1 = points[0][0],
+				y1 = points[0][1];
+				
+			cvs.beginPath();
+			cvs.moveTo(x1, y1);
+			cvs.lineTo(points[1][0], points[1][1]);
+			cvs.lineTo(points[2][0], points[2][1]);
+			cvs.lineTo(x1, y1);
+			cvs.shadowBlur = 0;
+			cvs.shadowOffsetX = 0;
+			cvs.shadowOffsetY = 0;
+			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
+			cvs.fillStyle = this.hover ? this.hvrClr : this.clr;
+			cvs.stroke();
+			cvs.fill();
+			
+			cvs.beginPath();
+			cvs.save();
+			cvs.translate(points[3][0], points[3][1]);
+			cvs.rotate(angle);
+			cvs.scale(xScale, yScale);
+			cvs.arc(0, 0, 1, 0, Math.PI * 2, false);
+			cvs.restore();
+			cvs.closePath();
+			cvs.shadowBlur = 0;
+			cvs.shadowOffsetX = 0;
+			cvs.shadowOffsetY = 0;
+			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
+			cvs.fillStyle = this.hover ? this.hvrClr : this.clr;
+			cvs.stroke();
+			cvs.fill();
+		},
+		
 		drawLine: function() {	
 			var cvs = this.canvas,
 				cfg = this.config;
@@ -259,7 +361,7 @@ var editor = (function(module) {
 			var cfg = this.config,
 				origin = cfg.origin,
 				vector = cfg.vector,
-				increment = Math.PI / 36,  // 5 degrees
+				increment = Math.PI / 90,  // 2 degrees
 				startAngle = Math.PI / 2,
 				radius = EXTENT,
 				points = [],
@@ -272,7 +374,9 @@ var editor = (function(module) {
 					startAngle + increment * 2,
 					startAngle + increment * 3		
 				],
-				cvs = this.canvas;
+				cvs = this.canvas,
+				pnt1,
+				pnt2;
 			
 			cvs.beginPath();
 			// sample points on a circle in 3d space
@@ -298,12 +402,36 @@ var editor = (function(module) {
 				pnt = hemi.utils.worldToScreen(pnt);
 				if (ndx === 0) {
 					cvs.moveTo(pnt[0], pnt[1]);
+					pnt1 = pnt;
+				}
+				else if (ndx === len-1) {
+					pnt2 = pnt;
 				}
 				cvs.lineTo(pnt[0], pnt[1]);
 			}
 			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
 			cvs.lineWidth = 3;
 			cvs.stroke();
+			
+			// save coordinates
+			var x1 = pnt1[0],
+				x2 = pnt2[0],
+				y1 = pnt1[1],
+				y2 = pnt2[1],
+				minX = Math.min(x1, x2),
+				minY = Math.min(y1, y2),
+				maxX = Math.max(x1, x2),
+				maxY = Math.max(y1, y2);
+				
+			if (Math.abs(x1 - x2) < 5) {
+				maxX = minX + 5;
+			}
+			if (Math.abs(y1 - y2) < 5) {
+				maxY = minY + 5;
+			}
+				
+			this.topLeft = [minX, minY];
+			this.bottomRight = [maxX, maxY];
 		},
 		
 		drawScaler: function() {
@@ -333,7 +461,7 @@ var editor = (function(module) {
 				y1 = slope == 0 ? endY + bseLen : invSlope == 0 ? endY : invSlope * x1 + yInt2,
 				y2 = slope == 0 ? endY - bseLen : invSlope == 0 ? endY : invSlope * x2 + yInt2,
 				newX = orgX < endX ? endXPoints[1] : endXPoints[0],
-				newY = invSlope == 0 ? endY - dis/10 : slope * newX + yInt1,
+				newY = invSlope == 0 ? orgY > endY ? endY - dis/10 : endY + dis/10 : slope * newX + yInt1,
 				top = endY - orgY,
 				bot = endX - orgX,
 				angle = bot === 0 ? Math.PI/2 : Math.atan(top/bot),
@@ -345,35 +473,12 @@ var editor = (function(module) {
 			this.bottomRight = [Math.max(x1, x2, newX), 
 				Math.max(y1, y2, newY)];
 				
-			cvs.beginPath();
-			cvs.moveTo(x1, y1);
-			cvs.lineTo(x2, y2);
-			cvs.lineTo(newX, newY);
-			cvs.lineTo(x1, y1);
-			cvs.closePath();
-			cvs.shadowBlur = 0;
-			cvs.shadowOffsetX = 0;
-			cvs.shadowOffsetY = 0;
-			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
-			cvs.fillStyle = this.hover ? this.hvrClr : this.clr;
-			cvs.stroke();
-			cvs.fill();
-			
-			cvs.beginPath();
-			cvs.save();
-			cvs.translate(endX, endY);
-			cvs.rotate(angle);
-			cvs.scale(bseLen * scale, bseLen);
-			cvs.arc(0, 0, 1, 0, Math.PI * 2, false);
-			cvs.restore();
-			cvs.closePath();
-			cvs.shadowBlur = 0;
-			cvs.shadowOffsetX = 0;
-			cvs.shadowOffsetY = 0;
-			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
-			cvs.fillStyle = this.hover ? this.hvrClr : this.clr;
-			cvs.stroke();
-			cvs.fill();
+			this.drawArrow([
+					[x1, y1], 
+					[x2, y2],
+					[newX, newY],
+					[endX, endY]
+				], bseLen * scale, bseLen, angle);
 		},
 		
 		getSlope: function(point1, point2) {
@@ -387,7 +492,7 @@ var editor = (function(module) {
 			return rise / run;
 		},
 		
-		setParams: function(origin, vector, baseLength, plane) {			
+		setParams: function(origin, vector, baseLength, plane, drawState) {			
 			var ep = hemi.utils.worldToScreen(vector),
 				op = hemi.utils.worldToScreen(origin),
 				s = this.getSlope(op, ep),
@@ -411,8 +516,18 @@ var editor = (function(module) {
 			};
 			
 			this.drawLine();
-			this.drawTranslator();
-			this.drawRotater();
+			
+			switch(drawState) {
+				case module.ui.trans.DrawState.TRANSLATE:
+				    this.drawTranslator();
+					break;
+				case module.ui.trans.DrawState.ROTATE:
+				    this.drawRotater();
+					break;
+				case module.ui.trans.DrawState.SCALE:
+				    this.drawScaler();
+					break;
+			}
 		},
 		
 		solveX: function(point1, slope, distance) {

@@ -531,7 +531,7 @@ var hemi = (function(hemi) {
 				obj.foster = false;
 			}
 			
-			this.currentTransform = trans;
+			this.currentTransform = transform;
 			this.transformObjs.push(obj);
 		},
 		
@@ -674,12 +674,15 @@ var hemi = (function(hemi) {
 				switch(this.axis) {
 					case hemi.manip.Axis.X:
 						t.rotateX(-delta);
+						console.log('x:' + delta);
 						break;
 					case hemi.manip.Axis.Y:
 						t.rotateY(-delta);
+						console.log('y:' + delta);
 						break;
 					case hemi.manip.Axis.Z:
 						t.rotateZ(delta);
+						console.log('z:' + delta);
 						break;
 				}
 			}
