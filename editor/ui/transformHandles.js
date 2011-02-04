@@ -23,6 +23,7 @@ var editor = (function(module) {
 	module.ui.TransHandles = module.Class.extend({
 		init: function() {
 			this.canvas = hemi.hud.hudMgr.canvas;
+			this.drawCallback = null;
 			
 			this.xArrow = new module.ui.Arrow(this.canvas, '#f00', '#f99');
 			this.yArrow = new module.ui.Arrow(this.canvas, '#0c0', '#9c9');
@@ -169,6 +170,11 @@ var editor = (function(module) {
 		onRender: function(renderEvent) {
 			if (this.transform) {
 				hemi.hud.hudMgr.clearDisplay();
+				
+				if (this.drawCallback) {
+					this.drawCallback();
+				}
+				
 				this.drawHandles();
 			}
 		},
@@ -207,6 +213,10 @@ var editor = (function(module) {
 			cvs.addEventListener('mousemove', newMouseMove, true);
 			cvs.addEventListener('mouseup', newMouseUp, true);
 			cvs.addEventListener('mouseover', mouseOver, true);
+		},
+		
+		setDrawCallback: function(callback) {
+			this.drawCallback = callback;
 		},
 		
 		setTransform: function(transform) {

@@ -1182,7 +1182,7 @@ var editor = (function(module) {
 			this.currentShape = null;
 			this.currentOwner = null;
 			this.setVisible(false);
-		},		
+		},
 		
 		setVisible: function(visible) {
 			if (visible) {
@@ -1490,7 +1490,7 @@ var editor = (function(module) {
 				
 				if (shape.transform.visible === false) {
 					hidWgt.addHiddenItem(shape.transform, shape);
-					hidWgt.setVisible(isDown && true);
+					hidWgt.setVisible(isDown);
 				}
 			});		
 			model.addListener(module.EventTypes.RemoveUserCreatedShape, function(shape) {
@@ -1517,7 +1517,7 @@ var editor = (function(module) {
 					selModel.selectTransform(tfm);
 					selModel.selectShape(shp, tfm);
 					shapeDisp.setShape(shape.getTransform().shapes[0], shape);
-					shapeDisp.setVisible(isDown && true);
+					shapeDisp.setVisible(isDown);
 				}
 			});			
 	        model.addListener(module.EventTypes.WorldLoaded, function() {
@@ -1532,10 +1532,14 @@ var editor = (function(module) {
 				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
 				
 				if (shapeInfo === null) {
+					selModel.curHandle.setDrawCallback(null);
 					shapeDisp.deselect();
 				} else {
+					selModel.curHandle.setDrawCallback(function() {
+						shapeDisp.setVisible(true);
+					});
 					shapeDisp.setShape(shapeInfo.shape, shapeInfo.owner);
-					shapeDisp.setVisible(isDown && true);
+					shapeDisp.setVisible(isDown);
 				}
 			});			
 			selModel.addListener(module.EventTypes.TransformDeselected, function(transform) {
@@ -1544,7 +1548,7 @@ var editor = (function(module) {
 	        selModel.addListener(module.EventTypes.TransformHidden, function(obj) {
 				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
 	            hidWgt.addHiddenItem(obj.transform, obj.owner);
-				hidWgt.setVisible(isDown && true);
+				hidWgt.setVisible(isDown);
 	        });			
 			selModel.addListener(module.EventTypes.TransformSelected, function(transform) {
 				mbrWgt.selectNode(getNodeId(transform));
