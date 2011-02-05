@@ -80,22 +80,26 @@ var editor = (function(module) {
 			var x = evt.layerX,
 				y = evt.layerY,
 				plane,
-				axis;
+				axis,
+				scaleAxis;
 				
 			if (this.xArrow.isInside(x, y)) {
 				this.down = true;
 				plane = hemi.manip.Plane.XY;
 				axis = hemi.manip.Axis.Y;
+				scaleAxis = hemi.manip.Axis.Z;
 			}
 			else if (this.yArrow.isInside(x, y)) {
 				this.down = true;
 				plane = hemi.manip.Plane.YZ;
 				axis = hemi.manip.Axis.Z;
+				scaleAxis = hemi.manip.Axis.X;
 			}
 			else if (this.zArrow.isInside(x, y)) {
 				this.down = true;	
 				plane = hemi.manip.Plane.XZ;
 				axis = hemi.manip.Axis.X;
+				scaleAxis = hemi.manip.Axis.Y;
 			}
 			
 			if (this.down) {
@@ -104,7 +108,7 @@ var editor = (function(module) {
 						this.startRotate(axis, evt);
 						break;
 					case module.ui.trans.DrawState.SCALE:
-						this.startScale();
+						this.startScale(scaleAxis, evt);
 						break;
 					case module.ui.trans.DrawState.TRANSLATE:
 					    this.startTranslate(plane, evt);
@@ -141,30 +145,6 @@ var editor = (function(module) {
 			return false;
 		},
 		
-		onMouseOver: function(evt) {	
-			if (!this.transform
-					|| this.drawState === module.ui.trans.DrawState.NONE) {
-				return false;
-			}
-			
-			var x = evt.layerX,
-				y = evt.layerY;
-				
-			this.xArrow.hover = false;
-			this.yArrow.hover = false;
-			this.zArrow.hover = false;
-			
-			if (this.xArrow.isInside(x, y)) {
-				this.xArrow.hover = true;
-			}
-			else if (this.yArrow.isInside(x, y)) {	
-				this.yArrow.hover = true;	
-			}
-			else if (this.zArrow.isInside(x, y)) {
-				this.zArrow.hover = true;		
-			}
-		},
-		
 		onMouseUp: function(evt) {
 			this.down = false;
 			if (this.dragger) {
@@ -174,6 +154,10 @@ var editor = (function(module) {
 			if (this.turnable) {
 				this.turnable.cleanup();
 				this.turnable = null;
+			}
+			if (this.scalable) {
+				this.scalable.cleanup();
+				this.scalable = null;
 			}
 			hemi.world.camera.enableControl();
 			
@@ -218,14 +202,10 @@ var editor = (function(module) {
 					mouseMove(evt);
 				}
 			};
-			var mouseOver = function(evt) {
-				that.onMouseOver(evt);
-			};
 			
 			cvs.addEventListener('mousedown', newMouseDown, true);
 			cvs.addEventListener('mousemove', newMouseMove, true);
 			cvs.addEventListener('mouseup', newMouseUp, true);
-			cvs.addEventListener('mouseover', mouseOver, true);
 		},
 		
 		setDrawCallback: function(callback) {
@@ -255,8 +235,19 @@ var editor = (function(module) {
 			}, this.convertEvent(evt));
 		},
 		
-		startScale: function() {
+		startScale: function(axis, evt) {
+			hemi.world.camera.disableControl();
+			this.scalable = new hemi.manip.Scalable(axis);
+			this.scalable.addTransform(this.transform);
+			this.scalable.enable();
 			
+			this.scalable.onPick({
+				shapeInfo: {
+					parent: {
+						transform: this.transform
+					}
+				}
+			}, this.convertEvent(evt));
 		},
 		
 		startTranslate: function(plane, evt) {
@@ -314,7 +305,8 @@ var editor = (function(module) {
 		drawArrow: function(points, xScale, yScale, angle) {
 			var cvs = this.canvas,
 				x1 = points[0][0],
-				y1 = points[0][1];
+				y1 = points[0][1],
+				clr = this.hover ? this.hvrClr : this.clr;
 				
 			cvs.beginPath();
 			cvs.moveTo(x1, y1);
@@ -324,8 +316,8 @@ var editor = (function(module) {
 			cvs.shadowBlur = 0;
 			cvs.shadowOffsetX = 0;
 			cvs.shadowOffsetY = 0;
-			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
-			cvs.fillStyle = this.hover ? this.hvrClr : this.clr;
+			cvs.strokeStyle = clr;
+			cvs.fillStyle = clr;
 			cvs.stroke();
 			cvs.fill();
 			
@@ -340,8 +332,8 @@ var editor = (function(module) {
 			cvs.shadowBlur = 0;
 			cvs.shadowOffsetX = 0;
 			cvs.shadowOffsetY = 0;
-			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
-			cvs.fillStyle = this.hover ? this.hvrClr : this.clr;
+			cvs.strokeStyle = clr;
+			cvs.fillStyle = clr;
 			cvs.stroke();
 			cvs.fill();
 		},
@@ -364,7 +356,6 @@ var editor = (function(module) {
 				increment = Math.PI / 90,  // 2 degrees
 				startAngle = Math.PI / 2,
 				radius = EXTENT,
-				points = [],
 				angles = [
 					startAngle - increment * 3,
 					startAngle - increment * 2,
@@ -435,7 +426,106 @@ var editor = (function(module) {
 		},
 		
 		drawScaler: function() {
+			var cfg = this.config,
+				origin = cfg.origin,
+				vector = cfg.vector,
+				size = EXTENT / 15,  
+				points = [],
+				cvs = this.canvas,
+				clr = this.hover ? this.hvrClr : this.clr,
+				cubeFcn = function(ndx1, ndx2, ndx3) {
+					var pnt1 = hemi.core.math.copyVector(vector),
+						pnts = [];
+					pnt1[ndx1] = vector[ndx1] + size/2;
+					pnt1[ndx2] = vector[ndx2] + size/2;
+					pnts.push(pnt1);
+					
+					var pnt2 = hemi.core.math.copyVector(pnt1);
+					pnt2[ndx2] -= size;
+					pnts.push(pnt2);
+					
+					var pnt3 = hemi.core.math.copyVector(pnt2);
+					pnt3[ndx1] -= size;	
+					pnts.push(pnt3);
+					
+					var pnt4 = hemi.core.math.copyVector(pnt3);
+					pnt4[ndx2] += size;
+					pnts.push(pnt4);
+					
+					var pnt = hemi.core.math.copyVector(pnt4);
+					pnt[ndx3] += size;
+					pnts.push(pnt);
+					
+					pnt = hemi.core.math.copyVector(pnt3);
+					pnt[ndx3] += size;
+					pnts.push(pnt);
+					
+					pnt = hemi.core.math.copyVector(pnt2);
+					pnt[ndx3] += size;
+					pnts.push(pnt);
+					
+					pnt = hemi.core.math.copyVector(pnt1);
+					pnt[ndx3] += size;
+					pnts.push(pnt);
+					
+					return pnts;
+				},
+				faceFcn = function(point1, point2, point3, point4) {
+					cvs.beginPath();
+					cvs.moveTo(point1[0], point1[1]);
+					cvs.lineTo(point2[0], point2[1]);
+					cvs.lineTo(point3[0], point3[1]);
+					cvs.lineTo(point4[0], point4[1]);
+					cvs.lineTo(point1[0], point1[1]);
+					cvs.closePath();
+					cvs.fillStyle = clr;
+					cvs.fill();
+				};
+					
+			switch(cfg.plane) {
+				case hemi.manip.Plane.XY:
+					points = cubeFcn(1, 2, 0);
+					break;
+				case hemi.manip.Plane.YZ:
+					points = cubeFcn(2, 0, 1);
+					break;
+				case hemi.manip.Plane.XZ:
+					points = cubeFcn(0, 1, 2);
+					break;
+			}
 			
+			var minX, minY, maxX, maxY;
+			
+			minX = minY = 10000000;
+			maxX = maxY = -10000000;
+			
+			for (var ndx = 0, len = points.length; ndx < len; ndx++) {
+				var pnt = hemi.utils.worldToScreen(points[ndx]);
+				
+				minX = Math.min(minX, pnt[0]);
+				minY = Math.min(minY, pnt[1]);
+				maxX = Math.max(maxX, pnt[0]);
+				maxY = Math.max(maxY, pnt[1]);
+			}
+			
+			var pnt1 = hemi.utils.worldToScreen(points[0]),
+				pnt2 = hemi.utils.worldToScreen(points[1]),
+				pnt3 = hemi.utils.worldToScreen(points[2]),
+				pnt4 = hemi.utils.worldToScreen(points[3]),
+				pnt5 = hemi.utils.worldToScreen(points[4]),
+				pnt6 = hemi.utils.worldToScreen(points[5]),
+				pnt7 = hemi.utils.worldToScreen(points[6]),
+				pnt8 = hemi.utils.worldToScreen(points[7]);
+				
+			faceFcn(pnt1, pnt2, pnt3, pnt4);
+			faceFcn(pnt1, pnt8, pnt5, pnt4);
+			faceFcn(pnt1, pnt2, pnt7, pnt8);
+			faceFcn(pnt8, pnt7, pnt6, pnt5);
+			faceFcn(pnt7, pnt6, pnt4, pnt3);
+			faceFcn(pnt4, pnt3, pnt6, pnt5);
+								
+			this.topLeft = [minX, minY];
+			this.bottomRight = [maxX, maxY];
 		},
 		
 		drawTranslator: function() {
