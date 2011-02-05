@@ -9,6 +9,7 @@ Kuda Library
 * Kuda ported from O3D plugin to WebGL
 * HUD updated to use HTML5 canvas element
 * HUD now has support for HTML5 video element
+* HUD pages now have an option for rounded corners
 * Audio support expanded to use HTML5 audio element
 * Added material opacity feature to fx (from FadingWalls demo)
 * All samples updated to run on WebGL

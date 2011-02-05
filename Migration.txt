@@ -16,3 +16,14 @@ be necessary to convert your pre-existing files:
 	myModel.setFileName('assets/house_v12.o3dtgz');
   with:
 	myModel.setFileName('assets/house_v12/scene.json');
+
+2) Hext paging extension has changed slightly:
+---------- Old code ----------
+hext.hud.showPagingInfo();
+var display = new hemi.hud.HudDisplay();
+display.show();
+
+---------- New code ----------
+var display = new hemi.hud.HudDisplay();
+hext.hud.addPagingInfo(display);
+display.show();
