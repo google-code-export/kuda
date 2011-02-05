@@ -54,7 +54,7 @@ var hemi = (function(hemi) {
 		X : 'x',
 		Y : 'y',
 		Z : 'z'
-	}
+	};
 
 	/**
 	 * @class A Draggable allows a 3d object to be dragged around the scene
@@ -870,7 +870,7 @@ var hemi = (function(hemi) {
 					if (this.axis[2]) t.scale([1,1,f]);
 				}
 			}	
-			this.scale = scale
+			this.scale = scale;
 		},
 		setAxis : function(axis) {
 			switch(axis) {
