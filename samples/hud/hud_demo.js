@@ -28,10 +28,6 @@
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		
-		// This adds a nice navigation control element. It allows us to move
-		// between HudPages.
-		hext.hud.showPagingInfo();
-		
 		createHudDisplay();
 		
 		var house = new hemi.model.Model();
@@ -60,6 +56,10 @@
 		createHudPage2(display);
 		createHudPage3(display);
 		createHudPage4(display);
+		
+		// This adds a nice navigation control element that allows us to move
+		// between HudPages.
+		hext.hud.addPagingInfo(display);
 		
 		// When the World is done loading, show the HudDisplay.
 		hemi.world.subscribe(hemi.msg.ready,
@@ -150,6 +150,7 @@
 	
 	function createHudPage3(display) {
 		var page = new hemi.hud.HudPage();
+		page.config.curve = 0.3;
 		
 		page.mouseDown = function(mouseEvent) {
 			updateMessageDiv('You clicked on the background for page 3');
@@ -164,7 +165,7 @@
 		// wrapping. It may end up slightly wider than 350. 
 		text.config.strictWrapping = false;
 		text.setWidth(350);
-		text.setText(["This third page has HUD text but it does not have an image. This text is center aligned and a new font."]);
+		text.setText(["This third page has rounded corners. This text is center aligned and a new font."]);
 		
 		text.mouseDown = function(mouseEvent) {
 			updateMessageDiv('You clicked on the text for page 3');

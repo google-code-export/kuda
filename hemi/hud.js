@@ -99,6 +99,12 @@ var hemi = (function(hemi) {
 			color: [0, 0, 0, 0.45],
 			
 			/**
+			 * The amount of curving to apply to the corners of the page. Range
+			 * is from 0.0 to 1.0 where 0 is a plain rectangle and 1 is an oval.
+			 */
+			curve: 0,
+			
+			/**
 			 * Options for a blur shadow effect on the page. This is mutually
 			 * exclusive to outline. Set radius to 0 to cancel.
 			 * @type Object
@@ -1542,35 +1548,17 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Show the first HudPage of the HudDisplay and bind the key and mouse
-		 * handlers for interaction.
-		 * 
-		 * @param {boolean} opt_keyNav optional flag indicating if keyboard
-		 *     navigation should be enabled (defaults to true)
+		 * Show the first HudPage of the HudDisplay and bind the mouse handlers
+		 * for interaction.
 		 */
-		show: function(opt_keyNav) {
-			var that = this;
-			
-			if (opt_keyNav !== false) {
-				// register as keydown handler
-				jQuery(document).unbind('keydown.hud');
-				jQuery(document).bind('keydown.hud', function(evt) {
-					var key = hemi.core.event.getEventKeyChar(evt);
-					
-					if (key == 37) {
-						that.previousPage();
-					}
-					else if (key == 39) {
-						that.nextPage();
-					}
-				});
+		show: function() {
+			if (!this.visible) {
+				this.visible = true;
+				this.showPage();
+				hemi.input.addMouseDownListener(this);
+				hemi.input.addMouseUpListener(this);
+				hemi.input.addMouseMoveListener(this);
 			}
-
-			this.visible = true;
-			this.showPage();
-			hemi.input.addMouseDownListener(this);
-			hemi.input.addMouseUpListener(this);
-			hemi.input.addMouseMoveListener(this);
 		},
 
 		/**
@@ -1592,18 +1580,19 @@ var hemi = (function(hemi) {
 		 * Hide the HudDisplay and unregister its key and mouse handlers.
 		 */
 		hide: function() {
-			hemi.input.removeMouseMoveListener(this);
-			hemi.input.removeMouseUpListener(this);
-			hemi.input.removeMouseDownListener(this);
-			jQuery(document).unbind('keydown.hud');
-			hemi.hud.hudMgr.clearDisplay();
-			this.visible = false;
-			this.currentPage = 0;
-			
-			this.send(hemi.msg.visible,
-				{
-					page: 0
-				});
+			if (this.visible) {
+				hemi.input.removeMouseMoveListener(this);
+				hemi.input.removeMouseUpListener(this);
+				hemi.input.removeMouseDownListener(this);
+				hemi.hud.hudMgr.clearDisplay();
+				this.visible = false;
+				this.currentPage = 0;
+				
+				this.send(hemi.msg.visible,
+					{
+						page: 0
+					});
+			}
 		},
 
 		/**
@@ -1776,18 +1765,28 @@ var hemi = (function(hemi) {
 		 *     rectangular overlay
 		 */
 		createRectangleOverlay: function(element, boxConfig) {
-			var config = jQuery.extend({}, hemi.hud.theme.page, boxConfig),
-				coords = [element.left,
-					element.top,
-					element.right - element.left,
-					element.bottom - element.top];
-			
+			var config = jQuery.extend({}, hemi.hud.theme.page, boxConfig);
 			this.canvas.save();
 			this.setPaintProperties(config);
-			this.canvas.fillRect(coords[0], coords[1], coords[2], coords[3]);
 			
-			if (config.outline != null) {
-				this.canvas.strokeRect(coords[0], coords[1], coords[2], coords[3]);
+			if (config.curve > 0) {
+				var curve = config.curve <= 1 ? config.curve / 2.0 : 0.5;
+				this.drawRoundRect(element, curve, true);
+				
+				if (config.outline != null) {
+					this.drawRoundRect(element, curve, false);
+				}
+			} else {
+				var x = element.left,
+					y = element.top,
+					width = element.right - x,
+					height = element.bottom - y;
+				
+				this.canvas.fillRect(x, y, width, height);
+				
+				if (config.outline != null) {
+					this.canvas.strokeRect(x, y, width, height);
+				}
 			}
 			
 			this.canvas.restore();
@@ -1938,6 +1937,55 @@ var hemi = (function(hemi) {
 			};
 		},
 		
+		/**
+		 * Draw a rectangular overlay that has rounded corners from the given
+		 * HudElement.
+		 *
+		 * @param {hemi.hud.HudElement} element element with a bounding box to
+		 *     create the rectangle from
+		 * @param {number} curveFactor amount of curving on the corners (between
+		 *     0 and 0.5)
+		 * @param {boolean} fill flag indicating whether to fill or stroke
+		 */
+		drawRoundRect: function(element, curveFactor, fill) {
+			var lt = element.left,
+				rt = element.right,
+				tp = element.top,
+				bm = element.bottom,
+				wide = rt - lt,
+				high = bm - tp,
+				inc = high > wide ? wide * curveFactor : high * curveFactor,
+				// Positions on a clock in radians :)
+				hour12 = hemi.core.math.degToRad(270),
+				hour3 = 0,
+				hour6 = hemi.core.math.degToRad(90),
+				hour9 = hemi.core.math.degToRad(180);
+			
+			this.canvas.beginPath();
+			this.canvas.moveTo(lt, tp + inc);
+			this.canvas.lineTo(lt, bm - inc);
+			this.canvas.arc(lt + inc, bm - inc, inc, hour9, hour6, true);
+			this.canvas.lineTo(rt - inc, bm);
+			this.canvas.arc(rt - inc, bm - inc, inc, hour6, hour3, true);
+			this.canvas.lineTo(rt, tp + inc);
+			this.canvas.arc(rt - inc, tp + inc, inc, hour3, hour12, true);
+			this.canvas.lineTo(lt + inc, tp);
+			this.canvas.arc(lt + inc, tp + inc, inc, hour12, hour9, true);
+			this.canvas.closePath();
+			
+			if (fill) {
+				this.canvas.fill();
+			} else {
+				this.canvas.stroke();
+			}
+		},
+		
+		/**
+		 * Copy the current image from any video elements onto the canvas on
+		 * each render.
+		 * 
+		 * @param {o3d.RenderEvent} renderEvent event containing render info
+		 */
 		onRender: function(renderEvent) {
 			var vids = this.videos,
 				can = this.canvas,

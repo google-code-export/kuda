@@ -32,20 +32,12 @@ var hext = (function(hext) {
 	 * @default false
 	 */
 	hext.hud.showInfo = false;
-	/*
-	 * The MessageTarget created when the PagingInfo registers to receive HUD
-	 * messages. We need to store it so we can remove it later.
-	 */
-	hext.hud.msgTarget = null;
 	
 	/**
 	 * @class A PagingInfo contains text and images for displaying information
 	 * about a multi-page HudDisplay.
-	 * @extends hemi.hud.HudPage
 	 */
 	hext.hud.PagingInfo = function() {
-		hemi.hud.HudPage.call(this);
-		
 		/**
 		 * The HudDisplay currently using the PagingInfo.
 		 * @type hemi.hud.HudDisplay
@@ -87,72 +79,34 @@ var hext = (function(hext) {
 		
 		var that = this;
 		this.leftNav.mouseDown = function(mouseEvent) {
-			that.display.previousPage();
+			that.previousPage();
 		};
 		this.rightNav.mouseDown = function(mouseEvent) {
-			that.display.nextPage();
+			that.nextPage();
 		};
-		
-		this.addElement(this.leftNav);
-		this.addElement(this.rightNav);
-		this.addElement(this.pageInfo);
 	};
 	
 	hext.hud.PagingInfo.prototype = {
 		/**
-		 * Overwrites hemi.world.Citizen.citizenType
-		 */
-        citizenType: 'hext.hud.PagingInfo',
-		
-		/**
-		 * Send a cleanup Message and remove all references in the
-		 * PagingInfo.
-		 */
-		cleanup: function() {
-			hemi.hud.HudPage.prototype.cleanup.call(this);
-			this.display = null;
-			this.pageInfo.cleanup();
-			this.leftNav.cleanup();
-			this.rightNav.cleanup();
-			this.pageInfo = null;
-			this.leftNav = null;
-			this.rightNav = null;
-		},
-		
-		/**
-		 * Position the elements of the PagingInfo so it is drawn at the bottom
-		 * of the given HudPage.
+		 * Position the elements of the PagingInfo so they are drawn at the
+		 * bottom of the given HudPage.
 		 * 
 		 * @param {hemi.hud.HudPage} page page to append the PagingInfo to
 		 */
 		appendToPage: function(page) {
-			this.margin = page.margin;
-			this.drawBackground = page.drawBackground;
-			
-			var pageNdx = this.display.currentPage + 1;
-			var numPages = this.display.pages.length;
-			
-			this.pageInfo.wrappedText = [pageNdx + ' / ' + numPages];
+			page.calculateBounds();
+			this.pageInfo.setWidth(page.right - page.left - (2 * page.margin));
 			this.pageInfo.x = (page.right + page.left) / 2;
 			this.pageInfo.y = page.bottom;
+			page.addElement(this.pageInfo);
 			
-			this.leftNav.enabled = pageNdx > 1;
 			this.leftNav.x = page.left + page.margin;
 			this.leftNav.y = page.bottom;
+			page.addElement(this.leftNav);
 			
-			this.rightNav.enabled = pageNdx < numPages;
 			this.rightNav.x = page.right - (this.imageWidth + page.margin);
 			this.rightNav.y = page.bottom;
-		},
-		
-		/**
-		 * Calculate the bounds (without the top margin).
-		 * @see hemi.hud.HudPage#calculateBounds
-		 */
-		calculateBounds: function() {
-			hemi.hud.HudPage.prototype.calculateBounds.call(this);
-			
-			this.top += this.margin;
+			page.addElement(this.rightNav);
 		},
 		
 		/**
@@ -182,17 +136,72 @@ var hext = (function(hext) {
 					// Create the right hover arrow
 					that.rightNav.hoverCoords = [width, 2*height];
 				});
+		},
+		
+		/**
+		 * If possible, navigate the HudDisplay to its next page and append the
+		 * PagingInfo elements to that page.
+		 */
+		nextPage: function() {
+			var ndx = this.display.currentPage,
+				numPages = this.display.pages.length;
+			
+			if (ndx < numPages - 1) {
+				var curPage = this.display.pages[ndx],
+					nextPage = this.display.pages[ndx + 1];
+				
+				this.pageInfo.setText([(ndx + 2) + ' / ' + numPages]);
+				this.leftNav.enabled = true;
+				this.rightNav.enabled = ndx < numPages - 2;
+				
+				this.removeFromPage(curPage);
+				this.appendToPage(nextPage);
+				this.display.nextPage();
+			}
+		},
+		
+		/**
+		 * If possible, navigate the HudDisplay to its previous page and append
+		 * the PagingInfo elements to that page.
+		 */
+		previousPage: function() {
+			var ndx = this.display.currentPage,
+				numPages = this.display.pages.length;
+				
+			if (ndx > 0) {
+				var curPage = this.display.pages[ndx],
+					prevPage = this.display.pages[ndx - 1];
+				
+				this.pageInfo.setText([ndx + ' / ' + numPages]);
+				this.leftNav.enabled = ndx > 1;
+				this.rightNav.enabled = true;
+				
+				this.removeFromPage(curPage);
+				this.appendToPage(prevPage);
+				this.display.previousPage();
+			}
+		},
+		
+		/**
+		 * Remove the elements of the PagingInfo from the given HudPage.
+		 * 
+		 * @param {hemi.hud.HudPage} page page to remove the PagingInfo from
+		 */
+		removeFromPage: function(page) {
+			page.removeElement(this.leftNav);
+			page.removeElement(this.rightNav);
+			page.removeElement(this.pageInfo);
 		}
 	};
 	
 	hext.hud.PagingInfo.inheritsFrom(hemi.hud.HudPage);
 	
 	/**
-	 * Show the PagingInfo control on the bottom of any currently visible
-	 * HudDisplay. This will allow the user to navigate the HudDisplay pages
-	 * using clickable buttons.
+	 * Add the PagingInfo control to the bottom of the given HudDisplay. This
+	 * will allow the user to navigate the HudDisplay pages using clickable
+	 * buttons or the keyboard.
 	 */
-	hext.hud.showPagingInfo = function() {
+	hext.hud.addPagingInfo = function(display) {
 		if (hext.hud.pagingInfo === null) {
 			hext.hud.pagingInfo = new hext.hud.PagingInfo();
 			hext.hud.pagingInfo.loadPagingImages();
@@ -200,41 +209,47 @@ var hext = (function(hext) {
 			hemi.world.removeCitizen(hext.hud.pagingInfo);
 		}
 		
-		if (!hext.hud.showInfo) {
-			hext.hud.showInfo = true;
-			
-			hext.hud.msgTarget = hemi.msg.subscribe(hemi.msg.visible,
-				function(msg) {
-					if (msg.src.getCitizenType() === 'hemi.hud.HudDisplay') {
-						if (msg.data.page === 0) {
-							hext.hud.pagingInfo.display = null;
-						} else {
-							var page = msg.src.getCurrentPage();
-							hext.hud.pagingInfo.display = msg.src;
-							hext.hud.pagingInfo.appendToPage(page);
-							hext.hud.pagingInfo.draw();
-						}
-					}
-				});
-			
-			hemi.input.addMouseDownListener(hext.hud.pagingInfo);
-			hemi.input.addMouseUpListener(hext.hud.pagingInfo);
-			hemi.input.addMouseMoveListener(hext.hud.pagingInfo);
+		if (hext.hud.showInfo) {
+			hext.hud.removePagingInfo();
 		}
+		
+		hext.hud.showInfo = true;
+		hext.hud.pagingInfo.display = display;
+		
+		// register a keydown handler
+		jQuery(document).unbind('keydown.hud');
+		jQuery(document).bind('keydown.hud', function(evt) {
+			var key = hemi.core.event.getEventKeyChar(evt);
+			
+			if (key === 37) {
+				hext.hud.pagingInfo.previousPage();
+			} else if (key === 39) {
+				hext.hud.pagingInfo.nextPage();
+			}
+		});
+		
+		var msgTarget = display.subscribe(hemi.msg.visible,
+			function(msg) {
+				if (msg.data.page !== 0) {
+					display.unsubscribe(msgTarget);
+					var page = display.getCurrentPage();
+					hext.hud.pagingInfo.appendToPage(page);
+					// Force a redraw now that we've appended
+					display.showPage();
+				}
+			});
 	};
 	
 	/**
-	 * Remove the PagingInfo control and do not attach it to any visible
-	 * HudDisplays.
+	 * Remove the PagingInfo control from its current HudDisplay.
 	 */
-	hext.hud.hidePagingInfo = function() {
+	hext.hud.removePagingInfo = function() {
 		if (hext.hud.showInfo) {
+			jQuery(document).unbind('keydown.hud');
+			var page = hext.hud.pagingInfo.display.getCurrentPage();
+			hext.hud.pagingInfo.removeFromPage(page);
+			hext.hud.pagingInfo.display = null;
 			hext.hud.showInfo = false;
-			hemi.msg.unsubscribe(hext.hud.msgTarget);
-			hext.hud.msgTarget = null;
-			hemi.input.removeMouseMoveListener(hext.hud.pagingInfo);
-			hemi.input.removeMouseUpListener(hext.hud.pagingInfo);
-			hemi.input.removeMouseDownListener(hext.hud.pagingInfo);
 		}
 	};
 
