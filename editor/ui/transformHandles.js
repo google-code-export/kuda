@@ -87,18 +87,18 @@ var editor = (function(module) {
 				this.down = true;
 				plane = hemi.manip.Plane.XY;
 				axis = hemi.manip.Axis.Y;
-				scaleAxis = hemi.manip.Axis.Z;
+				scaleAxis = hemi.manip.Axis.X;
 			}
 			else if (this.yArrow.isInside(x, y)) {
 				this.down = true;
 				plane = hemi.manip.Plane.YZ;
-				axis = hemi.manip.Axis.Z;
-				scaleAxis = hemi.manip.Axis.X;
+				axis = hemi.manip.Axis.X;
+				scaleAxis = hemi.manip.Axis.Z;
 			}
 			else if (this.zArrow.isInside(x, y)) {
 				this.down = true;	
 				plane = hemi.manip.Plane.XZ;
-				axis = hemi.manip.Axis.X;
+				axis = hemi.manip.Axis.Z;
 				scaleAxis = hemi.manip.Axis.Y;
 			}
 			
