@@ -39,7 +39,7 @@ var editor = (function(module) {
 			this.drawState = module.ui.trans.DrawState.NONE;
 			
 			hemi.view.addRenderListener(this);
-			this.overrideMouse();
+			this.overrideHandlers();
 		},
 		
 		drawHandles: function() {
@@ -176,7 +176,7 @@ var editor = (function(module) {
 			}
 		},
 		
-		overrideMouse: function() {
+		overrideHandlers: function() {
 			var mouseDown = hemi.hud.hudMgr.downHandler,
 				mouseUp = hemi.hud.hudMgr.upHandler,
 				mouseMove = hemi.hud.hudMgr.moveHandler,
@@ -239,6 +239,11 @@ var editor = (function(module) {
 			hemi.world.camera.disableControl();
 			this.scalable = new hemi.manip.Scalable(axis);
 			this.scalable.addTransform(this.transform);
+			
+			if (evt.shiftKey) {
+				this.scalable.axis = [1, 1, 1];
+			}
+			
 			this.scalable.enable();
 			
 			this.scalable.onPick({
