@@ -153,16 +153,18 @@ var hemi = (function(hemi) {
 			if (status === 'error') {
 				alert(xhr.statusText);
 			} else {
-				var octane = JSON.decode(data);
+				if (typeof data === 'string') {
+					data = JSON.decode(data);
+				}
 				
-				if (octane.type) {
-					var obj = hemi.octane.createObject(octane);
+				if (data.type) {
+					var obj = hemi.octane.createObject(data);
 					
 					if (opt_callback) {
 						opt_callback(obj);
 					}
 				} else {
-					hemi.octane.createWorld(octane);
+					hemi.octane.createWorld(data);
 				
 					if (opt_callback) {
 						opt_callback();
