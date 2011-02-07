@@ -2,6 +2,7 @@
 2011 June 1
 1. What's New
 World Editor
+* handles for rotation/translation/scaling added
 * XXXX Would like to incliude the ADL patch???
 ** Big deal though as it means reading OBJ, Collada, etc as the service currently has o3dtgz support.
 ** XXX Need a contributor agreement per GPL CA.
@@ -17,6 +18,7 @@ Kuda Library
 2. Bug Fixes
 World Editor
 * Problems with multiple select in model browser fixed
+* Problems with animation form fixed (where a model has no animation)
 Kuda Library
 * Bugs in manip, motion, and shape related to transform hierarchy fixed
 * Starting angle for manips now expected in degrees rather than radians
