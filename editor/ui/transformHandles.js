@@ -300,13 +300,6 @@ var editor = (function(module) {
 				&& coordY >= this.topLeft[1] && coordY <= this.bottomRight[1];
 		},
 		
-		draw: function() {
-			this.canvas.save();
-			this.drawLine();
-			this.drawTranslator();
-			this.canvas.restore();
-		},
-		
 		drawArrow: function(points, xScale, yScale, angle) {
 			var cvs = this.canvas,
 				x1 = points[0][0],
@@ -573,7 +566,7 @@ var editor = (function(module) {
 					[x2, y2],
 					[newX, newY],
 					[endX, endY]
-				], bseLen * scale, bseLen, angle);
+				], scale === 0 ? 1 : bseLen * scale, bseLen, angle);
 		},
 		
 		getSlope: function(point1, point2) {
