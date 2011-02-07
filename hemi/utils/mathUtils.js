@@ -341,16 +341,11 @@ var hemi = (function(hemi) {
 	 * @param {number[]} v xyz vector to translate by
 	 * @param {o3d.transform} transform The transform to translate
 	 */
-	hemi.utils.worldTranslate = function(v, transform) {	
-		var matrix = hemi.core.math.matrix4;
-		var newMatrix = matrix.mul(
-			matrix.mul(
-				matrix.mul(
-					transform.getUpdatedWorldMatrix(),
-					matrix.translate(matrix.identity(),v)),
-				matrix.inverse(transform.getUpdatedWorldMatrix())),
-			transform.localMatrix);
-		transform.localMatrix = newMatrix;
+	hemi.utils.worldTranslate = function(v, transform) {
+		var m4 = hemi.core.math.matrix4,
+			iW = m4.inverse(transform.getUpdatedWorldMatrix()),
+			lV = m4.transformDirection(iW, v);
+		transform.translate(lV);
 	};
 	
 	/**
