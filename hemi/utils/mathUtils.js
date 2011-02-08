@@ -344,7 +344,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.utils.worldRotate = function(axis, angle, transform) {
 		var m4 = hemi.core.math.matrix4,
-			iW = m4.inverse(t.getUpdatedWorldMatrix()),
+			iW = m4.inverse(transform.getUpdatedWorldMatrix()),
 			lA = m4.transformDirection(iW, axis);
 		transform.axisRotate(lA, angle);
 	};
