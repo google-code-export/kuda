@@ -163,32 +163,6 @@ var hemi = (function(hemi) {
 			}
 			
 			this.transformObjs = [];
-			
-			
-			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				var transformObj = this.transformObjs[i],
-					tParent = transformObj.tran.parent,
-					tranChildren = transformObj.offset.children,
-					shapes = transformObj.offset.shapes;
-				
-				for (var j = 0, jl = tranChildren.length; j < jl; j++) {
-					tranChildren[j].parent = tParent;
-				};
-			
-				for (var j = 0, jl = shapes.length; j < jl; j++) {
-					var shape = shapes[j];
-					tParent.addShape(shape);
-					transformObj.offset.removeShape(shape);
-				}
-				
-				hemi.world.tranReg.unregister(tParent, this);
-				transformObj.tran.parent = null;
-				transformObj.offset.parent = null;
-				hemi.core.mainPack.removeObject(transformObj.tran);
-				hemi.core.mainPack.removeObject(transformObj.offset);
-			}
-			
-			this.transformObjs = [];
 		},
 		
 		/**
