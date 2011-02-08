@@ -13,6 +13,7 @@ Kuda Library
 * HUD pages now have an option for rounded corners
 * Audio support expanded to use HTML5 audio element
 * Added material opacity feature to fx (from FadingWalls demo)
+* Turnable manip now rotates in world space rather than local space
 * All samples updated to run on WebGL
 
 2. Bug Fixes
