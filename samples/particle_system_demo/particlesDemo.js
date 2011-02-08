@@ -86,6 +86,7 @@
 		 * 5 seconds. Specify the shapes are arrows.
 		 */
 		var particleSystemConfig = {
+			aim : true,
 			rate : 20,
 			life : 5,
 			boundingBoxes : [box1, box2, box3, box4, box5],
