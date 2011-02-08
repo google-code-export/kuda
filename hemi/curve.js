@@ -448,8 +448,10 @@ var hemi = (function(hemi) {
 	 *		color of the default material
 	 * @param {hemi.curve.scaleKey[]} scaleKeys Array of key-values for the 
 	 *		scale of the transform
+	 * @param {boolean} rotate flag indicating if the transform should rotate as
+	 *      it travels along the points
 	 */
-	hemi.curve.Particle = function(trans,points,colorKeys,scaleKeys) {	
+	hemi.curve.Particle = function(trans,points,colorKeys,scaleKeys,rotate) {	
 		var pack = hemi.core.mainPack;
 		this.transform = pack.createObject('Transform');
 		this.transform.parent = trans;
@@ -460,19 +462,21 @@ var hemi = (function(hemi) {
 		this.lt = [];		
 		this.setColors(colorKeys);
 		this.setScales(scaleKeys);	
-		for (var i = this.frame; i <= this.lastFrame; i++) {		
-			var L = o3djs.math.matrix4.identity();
-			var dx = points[i+1][0] - points[i-1][0];
-			var dy = points[i+1][1] - points[i-1][1];
-			var dz = points[i+1][2] - points[i-1][2];
-			var dxz = Math.sqrt(dx*dx + dz*dz);
-			var rotY = Math.atan2(dx,dz);
-			var rotX = Math.atan2(dxz,dy);
-			L = o3djs.math.matrix4.translate(L,points[i]);
-			L = o3djs.math.matrix4.rotateY(L,rotY);
-			L = o3djs.math.matrix4.rotateX(L,rotX);
-			this.lt[i] = L;								
-		}		
+		for (var i = this.frame; i <= this.lastFrame; i++) {
+			var L = o3djs.math.matrix4.translation(points[i]);
+			
+			if (rotate) {
+				var dx = points[i+1][0] - points[i-1][0];
+				var dy = points[i+1][1] - points[i-1][1];
+				var dz = points[i+1][2] - points[i-1][2];
+				var dxz = Math.sqrt(dx*dx + dz*dz);
+				var rotY = Math.atan2(dx,dz);
+				var rotX = Math.atan2(dxz,dy);
+				L = o3djs.math.matrix4.rotateY(L,rotY);
+				L = o3djs.math.matrix4.rotateX(L,rotX);
+			}
+			this.lt[i] = L;
+		}
 		this.ready = true;
 		this.active = false;
 	};
@@ -759,7 +763,8 @@ var hemi = (function(hemi) {
 				this.transform,
 				this.points[i],
 				config.colorKeys,
-				config.scaleKeys);
+				config.scaleKeys,
+				config.aim);
 			for (var j = 0; j < this.shapes.length; j++) {
 				this.particles[i].addShape(this.shapes[j]);
 			}
