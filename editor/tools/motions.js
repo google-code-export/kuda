@@ -48,6 +48,7 @@ var editor = (function(module) {
 			
 			this.currentMotion = null;
 			this.previewMotion = null;
+			this.matrices = [];
 	    },
 		
 		removeMotion: function(motion) {
@@ -116,9 +117,7 @@ var editor = (function(module) {
 		},
 		
 		startPreview: function(props) {
-			if (this.previewMotion !== null) {
-				this.previewMotion.cleanup();
-			}
+			this.stopPreview();
 			
 			if (props.type === 'rot') {
 				this.previewMotion = new hemi.motion.Rotator();
@@ -143,7 +142,9 @@ var editor = (function(module) {
 			}
 			
 			for (var i = 0, il = props.transforms.length; i < il; i++) {
-				this.previewMotion.addTransform(props.transforms[i]);
+				var tran = props.transforms[i];
+				this.previewMotion.addTransform(tran);
+				this.matrices.push(tran.localMatrix);
 			}
 			
 			this.previewMotion.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewMotion';
@@ -152,8 +153,15 @@ var editor = (function(module) {
 		
 		stopPreview: function() {
 			if (this.previewMotion !== null) {
+				var trans = this.previewMotion.getTransforms();
+					
+				for (var i = 0, il = trans.length; i < il; i++) {
+					trans[i].localMatrix = this.matrices[i];
+				}
+				
 				this.previewMotion.cleanup();
 				this.previewMotion = null;
+				this.matrices = [];
 			}
 		},
 			

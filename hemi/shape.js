@@ -48,17 +48,9 @@ var hemi = (function(hemi) {
 		this.shapeType = null;
 		this.transform = null;
 		
-		var cfg = opt_config || {};
-		for (t in cfg) {
-			if (t === 'color') {
-				this.color = cfg[t];
-			} else if (t === 'type') {
-				this.shapeType = cfg[t];
-			} else {
-				this.dim[t] = cfg[t];
-			}
+		if (opt_config != null) {
+			this.loadConfig(opt_config);
 		}
-		
 		if (this.color && this.shapeType) {
 			this.create();
 		}
@@ -117,6 +109,38 @@ var hemi = (function(hemi) {
 			return octane;
 		},
 		
+		change: function(cfg) {
+			this.loadConfig(cfg);
+			
+			var config = jQuery.extend({
+						shape: this.shapeType,
+						color: this.color
+					},
+					this.dim),
+				newTran = hemi.shape.create(config),
+				oldTran = this.transform,
+				oldShapes = oldTran.shapes,
+				newShapes = newTran.shapes;
+			
+			while (oldShapes.length === 0) {
+				oldTran = oldTran.children[0];
+				oldShapes = oldTran.shapes;
+			}
+			
+			for (var i = 0, il = newShapes.length; i < il; i++) {
+				oldTran.addShape(newShapes[i]);
+				newTran.removeShape(newShapes[i]);
+			}
+			
+			for (var i = 0, il = oldShapes.length; i < il; i++) {
+				newTran.addShape(oldShapes[i]);
+				oldTran.removeShape(oldShapes[i]);
+			}
+			
+			applyColor(this.transform, this.color);
+			destroyTransform(newTran);
+		},
+		
 		/**
 		 * Create the actual shape and transform for the Shape.
 		 *
@@ -149,6 +173,20 @@ var hemi = (function(hemi) {
 			this.ownerId = this.transform.createParam('ownerId', 'o3d.ParamInteger');
 			this.ownerId.value = this.getId();
 			hemi.world.tranReg.distribute(this);
+		},
+		
+		loadConfig: function(config) {
+			this.dim = {};
+			
+			for (t in config) {
+				if (t === 'color') {
+					this.color = config[t];
+				} else if (t === 'type') {
+					this.shapeType = config[t];
+				} else {
+					this.dim[t] = config[t];
+				}
+			}
 		},
 		
 		/**
@@ -391,6 +429,7 @@ var hemi = (function(hemi) {
 			applyColor(transform, color);
 		}
 		
+		hemi.core.addToTransformTable(transform, hemi.shape.root);
 		return transform;
 	};
 	
@@ -642,9 +681,14 @@ var hemi = (function(hemi) {
 	 * @param {number[4]} color RGBA color to apply
 	 */
 	var applyColor = function(transform, color) {
-		var children = transform.children;
+		var children = transform.children,
+			param = transform.getParam('diffuse');
 		
-		transform.createParam('diffuse', 'o3d.ParamFloat4').value = color;
+		if (param === null) {
+			param = transform.createParam('diffuse', 'o3d.ParamFloat4');
+		}
+		
+		param.value = color;
 		
 		for (var i = 0, il = children.length; i < il; i++) {
 			applyColor(children[i], color);
@@ -671,6 +715,7 @@ var hemi = (function(hemi) {
 			hemi.shape.pack.removeObject(shapes[i]);
 		}
 		
+		hemi.core.removeFromTransformTable(transform);
 		hemi.shape.pack.removeObject(transform);
 	};
 	

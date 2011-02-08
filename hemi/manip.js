@@ -54,7 +54,7 @@ var hemi = (function(hemi) {
 		X : 'x',
 		Y : 'y',
 		Z : 'z'
-	}
+	};
 
 	/**
 	 * @class A Draggable allows a 3d object to be dragged around the scene
@@ -135,45 +135,28 @@ var hemi = (function(hemi) {
 		 * Add a transform to the list of draggable transforms.
 		 *
 		 * @param {o3d.transform} transform the transform to add
-		 * @param {boolean} opt_needsChild true if this is an animation-locked 
-		 *		transform, which means a new child transform needs to be created 
-		 *		and shapes moved down into that transform
 		 */
-		addTransform: function(transform,
-							   opt_needsChild) {
-			var trans;		  
-			if (opt_needsChild) {
-				//TODO: Come up with a way to track these so we can clean them
-				// up properly from the Pack.
-				var trans = hemi.core.mainPack.createObject('Transform');
-				
-				trans.parent = transform;
-				trans.name = transform.name;   
-				for (var i = transform.shapes.length-1; i >= 0; i--) {
-					var shape = transform.shapes[i];
-					trans.addShape(shape);
-					transform.removeShape(shape);
-				}
-				for (var i = 0; i < transform.children.length; i++) {
-					transform.children[i].parent = trans;
-				}
+		addTransform: function(transform) {
+			hemi.world.tranReg.register(transform, this);
+			var wM = transform.getUpdatedWorldMatrix(),
+				offsetVector = wM[3].slice(0,3);
+				dPlane = [],
+				obj = {};
+			
+			if (hemi.utils.isAnimated(transform)) {
+				obj.transform = hemi.utils.fosterTransform(transform);
+				obj.foster = true;
 			} else {
-				trans = transform;
+				obj.transform = transform;
+				obj.foster = false;
 			}
 			
-			var offsetVector = transform.worldMatrix[3].slice(0,3);
-			var dPlane = [];
 			for(var i = 0; i < this.plane.length; i++) {
 				dPlane[i] = hemi.core.math.addVector(this.plane[i], offsetVector);
 			}
-
-			var transObj = {
-				transform: trans,
-				plane: dPlane
-			};
-
-			hemi.world.tranReg.register(trans, this);
-			this.transformObjs.push(transObj);		
+			
+			obj.plane = dPlane;
+			this.transformObjs.push(obj);
 		},
 
 		/**
@@ -217,8 +200,16 @@ var hemi = (function(hemi) {
 		 */
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				var transform = this.transformObjs[i].transform;
-				hemi.world.tranReg.unregister(transform, this);
+				var obj = this.transformObjs[i],
+					tran;
+				
+				if (obj.foster) {
+					tran = hemi.utils.unfosterTransform(obj.transform);
+				} else {
+					tran = obj.transform;
+				}
+				
+				hemi.world.tranReg.unregister(tran, this);
 			}
 			
 			this.transformObjs = [];
@@ -235,7 +226,7 @@ var hemi = (function(hemi) {
 			for (var i = 0; i < this.transformObjs.length; i++) {
 				var children = this.transformObjs[i].transform.getTransformsInTree();
 				for (var j = 0; j < children.length; j++) {
-					if (transform.clientId == children[j].clientId) {
+					if (transform.clientId === children[j].clientId) {
 						return true;
 					}
 				}
@@ -390,7 +381,7 @@ var hemi = (function(hemi) {
 			}
 
 			function checkTransform(transform, pickTransform) {
-				var found = (transform.clientId == pickTransform.clientId);
+				var found = (transform.clientId === pickTransform.clientId);
 
 				if (!found) {
 					var children = transform.children;
@@ -453,7 +444,7 @@ var hemi = (function(hemi) {
 	 * @extends hemi.world.Citizen
 	 * @param {hemi.manip.Axis} opt_axis Axis to rotate about - x,y, or z
 	 * @param {number[]} opt_limits [min angle, max angle] in degrees
-	 * @param {number[]} opt_startAngle Starting angle if not 0
+	 * @param {number[]} opt_startAngle Starting angle in degrees (default is 0)
 	 */
 	hemi.manip.Turnable = function(opt_axis, opt_limits, opt_startAngle) {
 		hemi.world.Citizen.call(this);
@@ -464,9 +455,9 @@ var hemi = (function(hemi) {
 		this.max = null;
 		this.msgHandler = null;
 		this.plane = null;
+		this.currentTransform = null;
 		this.transformObjs = [];
 		this.turning = false;
-		this.offset = null;
 		this.angle = 0;
 		this.realAngle = opt_startAngle == null ? 0 : hemi.core.math.degToRad(opt_startAngle);
 		
@@ -528,11 +519,20 @@ var hemi = (function(hemi) {
 		 *		turn about its origin when clicked and dragged
 		 */
 		addTransform : function(transform) {
-			var wp = transform.worldMatrix[3].slice(0,3);
 			hemi.world.tranReg.register(transform, this);
-			this.transformObjs.push({
-				transform : transform,
-				offset : wp});
+			var wp = transform.worldMatrix[3].slice(0,3),
+				obj = {};
+			
+			if (hemi.utils.isAnimated(transform)) {
+				obj.transform = hemi.utils.fosterTransform(transform);
+				obj.foster = true;
+			} else {
+				obj.transform = transform;
+				obj.foster = false;
+			}
+			
+			this.currentTransform = transform;
+			this.transformObjs.push(obj);
 		},
 		
 		/**
@@ -548,10 +548,19 @@ var hemi = (function(hemi) {
 		 */
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				var transform = this.transformObjs[i].transform;
-				hemi.world.tranReg.unregister(transform, this);
+				var obj = this.transformObjs[i],
+					tran;
+				
+				if (obj.foster) {
+					tran = hemi.utils.unfosterTransform(obj.transform);
+				} else {
+					tran = obj.transform;
+				}
+				
+				hemi.world.tranReg.unregister(tran, this);
 			}
 			
+			this.currentTransform = null;
 			this.transformObjs = [];
 		},
 		
@@ -564,8 +573,7 @@ var hemi = (function(hemi) {
 			for (var i = 0; i < this.transformObjs.length; i++) {
 				var family = this.transformObjs[i].transform.getTransformsInTree();
 				for (var j = 0; j < family.length; j++) {
-					if (family[j].clientId == transform.clientId) {
-						this.offset = this.transformObjs[i].offset;
+					if (family[j].clientId === transform.clientId) {
 						return true;
 					}
 				}
@@ -611,10 +619,10 @@ var hemi = (function(hemi) {
 		 *		active plane
 		 */
 		getAngle : function(x,y) {
-			var plane = [
-				hemi.core.math.addVector(this.plane[0],this.offset),
-				hemi.core.math.addVector(this.plane[1],this.offset),
-				hemi.core.math.addVector(this.plane[2],this.offset)];
+			var u = hemi.utils;
+			var plane = [ u.pointAsWorld(this.currentTransform,this.plane[0]),
+						  u.pointAsWorld(this.currentTransform,this.plane[1]),
+						  u.pointAsWorld(this.currentTransform,this.plane[2]) ];
 			var ray = hemi.core.picking.clientPositionToWorldRay(
 					x, 
 					y, 
@@ -697,6 +705,7 @@ var hemi = (function(hemi) {
 		 */
 		onPick : function(pickInfo,event) {
 			if (this.containsTransform(pickInfo.shapeInfo.parent.transform)) {
+				this.currentTransform = pickInfo.shapeInfo.parent.transform;
 				this.turning = true;
 				this.angle = this.getAngle(event.x,event.y);
 			}
