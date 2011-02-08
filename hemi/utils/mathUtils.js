@@ -336,10 +336,24 @@ var hemi = (function(hemi) {
 	}
 	
 	/**
-	 * Translate a transform by a world space vector.
+	 * Rotate the transform by the given angle along the given world space axis.
 	 *
-	 * @param {number[]} v xyz vector to translate by
-	 * @param {o3d.transform} transform The transform to translate
+	 * @param {number[]} axis rotation axis defined as an XYZ vector
+	 * @param {number} angle amount to rotate by in radians
+	 * @param {o3d.Transform} transform the transform to rotate
+	 */
+	hemi.utils.worldRotate = function(axis, angle, transform) {
+		var m4 = hemi.core.math.matrix4,
+			iW = m4.inverse(t.getUpdatedWorldMatrix()),
+			lA = m4.transformDirection(iW, axis);
+		transform.axisRotate(lA, angle);
+	};
+	
+	/**
+	 * Translate the transform by the given world space vector.
+	 *
+	 * @param {number[]} v XYZ vector to translate by
+	 * @param {o3d.Transform} transform the transform to translate
 	 */
 	hemi.utils.worldTranslate = function(v, transform) {
 		var m4 = hemi.core.math.matrix4,

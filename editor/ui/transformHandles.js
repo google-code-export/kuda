@@ -86,7 +86,7 @@ var editor = (function(module) {
 			if (this.xArrow.isInside(x, y)) {
 				this.down = true;
 				plane = hemi.manip.Plane.XY;
-				axis = hemi.manip.Axis.Y;
+				axis = hemi.manip.Axis.Z;
 				scaleAxis = hemi.manip.Axis.X;
 			}
 			else if (this.yArrow.isInside(x, y)) {
@@ -98,7 +98,7 @@ var editor = (function(module) {
 			else if (this.zArrow.isInside(x, y)) {
 				this.down = true;	
 				plane = hemi.manip.Plane.XZ;
-				axis = hemi.manip.Axis.Z;
+				axis = hemi.manip.Axis.Y;
 				scaleAxis = hemi.manip.Axis.Y;
 			}
 			

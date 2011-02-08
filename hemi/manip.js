@@ -458,8 +458,8 @@ var hemi = (function(hemi) {
 		this.currentTransform = null;
 		this.transformObjs = [];
 		this.turning = false;
-		this.angle = 0;
-		this.realAngle = opt_startAngle == null ? 0 : hemi.core.math.degToRad(opt_startAngle);
+		this.dragAngle = 0;
+		this.angle = opt_startAngle == null ? 0 : hemi.core.math.degToRad(opt_startAngle);
 		
 		if (opt_axis != null) {
 			this.setAxis(opt_axis);
@@ -618,18 +618,14 @@ var hemi = (function(hemi) {
 		 * @return {float} Relative angle of mouse click position on this Turnable's current
 		 *		active plane
 		 */
-		getAngle : function(x,y) {
-			var u = hemi.utils;
-			var plane = [ u.pointAsWorld(this.currentTransform,this.plane[0]),
-						  u.pointAsWorld(this.currentTransform,this.plane[1]),
-						  u.pointAsWorld(this.currentTransform,this.plane[2]) ];			
+		getAngle : function(x,y) {			
 			var ray = hemi.core.picking.clientPositionToWorldRay(
 					x, 
 					y, 
 					hemi.view.viewInfo.drawContext, 
 					hemi.core.client.width, 
 					hemi.core.client.height);
-			var tuv = hemi.utils.intersect(ray,plane);
+			var tuv = hemi.utils.intersect(ray, this.plane);
 			return Math.atan2(tuv[2],tuv[1]);
 		},
 		
@@ -654,34 +650,35 @@ var hemi = (function(hemi) {
 		 */
 		onMouseMove : function(event) {
 			if (!this.turning) return;
-			var delta = this.getAngle(event.x,event.y) - this.angle;
-			var savedRA = this.realAngle;
-			this.realAngle += delta;
-			if (this.max != null) {
-				if (this.realAngle >= this.max) {
-					this.realAngle = this.max;
-					delta = this.max - savedRA;
-				}
+			
+			var delta = this.getAngle(event.x,event.y) - this.dragAngle,
+				axis;
+			
+			if (this.max != null && this.angle + delta >= this.max) {
+				delta = this.max - this.angle;
 			}
-			if (this.min != null) {
-				if (this.realAngle <= this.min) {
-					this.realAngle = this.min;
-					delta = this.min - savedRA;
-				}
-			}	
+			if (this.min != null && this.angle + delta <= this.min) {
+				delta = this.min - this.angle;
+			}
+			
+			this.angle += delta;
+			this.dragAngle += delta;
+			
+			switch(this.axis) {
+				case hemi.manip.Axis.X:
+					axis = [-1,0,0];
+					break;
+				case hemi.manip.Axis.Y:
+					axis = [0,-1,0];
+					break;
+				case hemi.manip.Axis.Z:
+					axis = [0,0,1];
+					break;
+			}
+			
 			for (var i = 0; i < this.transformObjs.length; i++) {
-				var t = this.transformObjs[i].transform;
-				switch(this.axis) {
-					case hemi.manip.Axis.X:
-						t.rotateX(-delta);
-						break;
-					case hemi.manip.Axis.Y:
-						t.rotateY(-delta);
-						break;
-					case hemi.manip.Axis.Z:
-						t.rotateZ(delta);
-						break;
-				}
+				var tran = this.transformObjs[i].transform;
+				hemi.utils.worldRotate(axis, delta, tran);
 			}
 		},
 		
@@ -691,6 +688,7 @@ var hemi = (function(hemi) {
 		 */
 		onMouseUp : function(event) {
 			this.turning = false;
+			this.dragAngle = 0;
 		},
 		
 		/**
@@ -703,7 +701,7 @@ var hemi = (function(hemi) {
 			if (this.containsTransform(pickInfo.shapeInfo.parent.transform)) {
 				this.currentTransform = pickInfo.shapeInfo.parent.transform;
 				this.turning = true;
-				this.angle = this.getAngle(event.x,event.y);
+				this.dragAngle = this.getAngle(event.x,event.y);
 			}
 		},
 		
