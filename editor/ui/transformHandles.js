@@ -43,22 +43,25 @@ var editor = (function(module) {
 		},
 		
 		drawHandles: function() {
-			if (this.drawState !== module.ui.trans.DrawState.NONE) {
+			// need to check if transform is not in camera view
+			// TODO: also need to check if any vectors are not in camera view
+			if (this.drawState !== module.ui.trans.DrawState.NONE
+					&& this.isInView()) {
 				var origin = this.transform.worldMatrix[3], 
+					extent = this.extent / 2,
 					x = origin[0], 
 					y = origin[1], 
 					z = origin[2], 
-					xVec = [x + EXTENT, y, z], 
-					yVec = [x, y + EXTENT, z], 
-					zVec = [x, y, z + EXTENT], 
-					baseLength = 100 / (hemi.world.camera.distance * 0.5);
+					xVec = [x + extent, y, z], 
+					yVec = [x, y + extent, z], 
+					zVec = [x, y, z + extent];				
 				
-				this.xArrow.setParams(origin, xVec, baseLength, 
-					hemi.manip.Plane.XY, this.drawState);
-				this.yArrow.setParams(origin, yVec, baseLength, 
-					hemi.manip.Plane.YZ, this.drawState);
-				this.zArrow.setParams(origin, zVec, baseLength, 
-					hemi.manip.Plane.XZ, this.drawState);
+				this.xArrow.setParams(origin, xVec,  
+					hemi.manip.Plane.XY, this.drawState, extent);
+				this.yArrow.setParams(origin, yVec,  
+					hemi.manip.Plane.YZ, this.drawState, extent);
+				this.zArrow.setParams(origin, zVec,  
+					hemi.manip.Plane.XZ, this.drawState, extent);
 			}
 		},
 		
@@ -69,6 +72,34 @@ var editor = (function(module) {
 			evt.y = evt.pageY - offset.top;
 			
 			return evt;
+		},
+		
+		getExtent: function() {
+			var bdgBox = o3djs.util.getBoundingBoxOfTree(this.transform),
+				minExt = hemi.utils.pointAsWorld(this.transform, bdgBox.minExtent),
+				maxExt = hemi.utils.pointAsWorld(this.transform, bdgBox.maxExtent),
+				x = Math.abs(minExt[0] - maxExt[0]),
+				y = Math.abs(minExt[1] - maxExt[1]),
+				z = Math.abs(minExt[2] - maxExt[2]);
+				
+			return (x + y + z) / 3;
+		},
+		
+		isInView: function() {
+			var worldViewProjection = [[], [], [], []],
+				transform = this.transform,
+				bdgBox = o3djs.util.getBoundingBoxOfTree(this.transform);
+        	
+			o3d.Transform.compose(hemi.view.viewInfo.drawContext.view,
+				transform.getUpdatedWorldMatrix(),
+				worldViewProjection);
+        	o3d.Transform.compose(hemi.view.viewInfo.drawContext.projection,
+				worldViewProjection,
+				worldViewProjection);
+
+			var onScreen = transform.boundingBox.inFrustum(worldViewProjection);
+
+			return onScreen;
 		},
 		
 		onMouseDown: function(evt) {
@@ -113,7 +144,8 @@ var editor = (function(module) {
 					case module.ui.trans.DrawState.TRANSLATE:
 					    this.startTranslate(plane, evt);
 						break;
-				}
+				}			
+				return true;
 			}
 			
 			return false;
@@ -126,26 +158,31 @@ var editor = (function(module) {
 			}
 			
 			var x = evt.layerX,
-				y = evt.layerY;
+				y = evt.layerY,
+				hovered = false;
 					
 			this.xArrow.hover = false;
 			this.yArrow.hover = false;
 			this.zArrow.hover = false;
 			
 			if (this.xArrow.isInside(x, y)) {
-				this.xArrow.hover = true;
+				hovered = this.xArrow.hover = true;
 			}
 			else if (this.yArrow.isInside(x, y)) {
-				this.yArrow.hover = true;
+				hovered = this.yArrow.hover = true;
 			}
 			else if (this.zArrow.isInside(x, y)) {
-				this.zArrow.hover = true;
+				hovered = this.zArrow.hover = true;
 			}
 			
-			return false;
+			return hovered;
 		},
 		
 		onMouseUp: function(evt) {
+			if (!this.down) {
+				return false;
+			}
+			
 			this.down = false;
 			if (this.dragger) {
 				this.dragger.cleanup();
@@ -161,7 +198,7 @@ var editor = (function(module) {
 			}
 			hemi.world.camera.enableControl();
 			
-			return false;
+			return true;
 		},
 		
 		onRender: function(renderEvent) {
@@ -218,6 +255,7 @@ var editor = (function(module) {
 		
 		setTransform: function(transform) {
 			this.transform = transform;
+			this.extent = this.getExtent();
 		},
 		
 		startRotate: function(axis, evt) {
@@ -343,7 +381,7 @@ var editor = (function(module) {
 			cvs.moveTo(cfg.orgPnt[0], cfg.orgPnt[1]);
 			cvs.lineTo(cfg.endPnt[0], cfg.endPnt[1]);
 			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
-			cvs.lineWidth = 3;
+			cvs.lineWidth = cfg.lineWidth;
 			cvs.stroke();
 		},
 				
@@ -353,7 +391,7 @@ var editor = (function(module) {
 				vector = cfg.vector,
 				increment = Math.PI / 90,  // 2 degrees
 				startAngle = Math.PI / 2,
-				radius = EXTENT,
+				radius = cfg.extent,
 				angles = [
 					startAngle - increment * 3,
 					startAngle - increment * 2,
@@ -399,7 +437,7 @@ var editor = (function(module) {
 				cvs.lineTo(pnt[0], pnt[1]);
 			}
 			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
-			cvs.lineWidth = 3;
+			cvs.lineWidth = cfg.lineWidth;
 			cvs.stroke();
 			
 			// save coordinates
@@ -427,7 +465,7 @@ var editor = (function(module) {
 			var cfg = this.config,
 				origin = cfg.origin,
 				vector = cfg.vector,
-				size = EXTENT / 15,  
+				size = cfg.extent / 15,  
 				points = [],
 				cvs = this.canvas,
 				clr = this.hover ? this.hvrClr : this.clr,
@@ -531,7 +569,8 @@ var editor = (function(module) {
 				slope = cfg.slope,
 				dis = cfg.distance,
 				invSlope = cfg.invSlope,
-				bseLen = cfg.baseLength,
+				vector = cfg.vector,
+				bseLen = cfg.baseLength, // extent is in 3d space, not 2d
 				endPnt = cfg.endPnt,
 				orgPnt = cfg.orgPnt,
 				orgX = cfg.orgPnt[0],
@@ -541,7 +580,7 @@ var editor = (function(module) {
 				yInt1 = slope == null ? 0 : endY - (slope * endX),
 				yInt2 = invSlope == null ? 0 : endY - (invSlope * endX),
 				xPoints = slope == 0 ? [endX, endX] : this.solveX(endPnt, invSlope, bseLen),
-				endXPoints = invSlope == 0 ? [endX, endX] : this.solveX(endPnt, slope, dis / 10),
+				endXPoints = invSlope == 0 ? [endX, endX] : this.solveX(endPnt, slope, dis / 20),
 				cvs = this.canvas;
 				
 			var x1 = xPoints[0],
@@ -580,7 +619,7 @@ var editor = (function(module) {
 			return rise / run;
 		},
 		
-		setParams: function(origin, vector, baseLength, plane, drawState) {			
+		setParams: function(origin, vector, plane, drawState, extent) {			
 			var ep = hemi.utils.worldToScreen(vector),
 				op = hemi.utils.worldToScreen(origin),
 				s = this.getSlope(op, ep),
@@ -588,33 +627,37 @@ var editor = (function(module) {
 				e = hemi.world.camera.getEye(),
 				ce = this.math.normalize(this.math.subVector(e, origin)),
 				ca = this.math.normalize(this.math.subVector(vector, origin));
-			
-			this.config = {
-				origin: origin,
-				vector: vector,
-				orgPnt: op,
-				endPnt: ep,
-				slope: s,
-				distance: d,
-				invSlope: s == null ? 0 : s == 0 ? null : -1/s,
-				baseLength: baseLength,
-				centerEye: ce,
-				centerArrow: ca,
-				plane: plane
-			};
-			
-			this.drawLine();
-			
-			switch(drawState) {
-				case module.ui.trans.DrawState.TRANSLATE:
-				    this.drawTranslator();
-					break;
-				case module.ui.trans.DrawState.ROTATE:
-				    this.drawRotater();
-					break;
-				case module.ui.trans.DrawState.SCALE:
-				    this.drawScaler();
-					break;
+				
+			if (!isNaN(ce[0]) && !isNaN(ca[0])) {			
+				this.config = {
+					origin: origin,
+					vector: vector,
+					orgPnt: op,
+					endPnt: ep,
+					slope: s,
+					distance: d,
+					invSlope: s == null ? 0 : s == 0 ? null : -1 / s,
+					baseLength: (extent * 25) / (hemi.world.camera.distance),
+					centerEye: ce,
+					centerArrow: ca,
+					plane: plane,
+					extent: extent,
+					lineWidth: 100 / hemi.world.camera.distance
+				};
+				
+				this.drawLine();
+				
+				switch (drawState) {
+					case module.ui.trans.DrawState.TRANSLATE:
+						this.drawTranslator();
+						break;
+					case module.ui.trans.DrawState.ROTATE:
+						this.drawRotater();
+						break;
+					case module.ui.trans.DrawState.SCALE:
+						this.drawScaler();
+						break;
+				}
 			}
 		},
 		

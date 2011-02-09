@@ -333,7 +333,7 @@ var hemi = (function(hemi) {
 		return [r*Math.sin(t)*Math.cos(p),	// x
 				r*Math.sin(t)*Math.sin(p),  // y
 				r*Math.cos(t)];				// z
-	}
+	};
 	
 	/**
 	 * Rotate the transform by the given angle along the given world space axis.
@@ -390,8 +390,15 @@ var hemi = (function(hemi) {
 			PM = hemi.view.viewInfo.drawContext.projection,
 			w = hemi.view.clientSize.width,
 			h = hemi.view.clientSize.height,
-			m4 = hemi.core.math.matrix4;
-		var p = m4.transformPoint(PM,m4.transformPoint(VM,p0));
+			m4 = hemi.core.math.matrix4,
+			v = m4.transformPoint(VM,p0),
+			z = v[2];
+		var p = m4.transformPoint(PM, v);
+		
+		if (z > 0) {
+			p[0] = -p[0];
+			p[1] = -p[1];
+		}
 		var x = (p[0]+1.0)*0.5*w;
 		var y = (-p[1]+1.0)*0.5*h;
 		return [Math.round(x),Math.round(y)];
