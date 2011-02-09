@@ -43,8 +43,6 @@ var editor = (function(module) {
 		},
 		
 		drawHandles: function() {
-			// need to check if transform is not in camera view
-			// TODO: also need to check if any vectors are not in camera view
 			if (this.drawState !== module.ui.trans.DrawState.NONE
 					&& this.isInView()) {
 				var origin = this.transform.worldMatrix[3], 
@@ -255,7 +253,9 @@ var editor = (function(module) {
 		
 		setTransform: function(transform) {
 			this.transform = transform;
-			this.extent = this.getExtent();
+			if (transform) {
+				this.extent = this.getExtent();
+			}
 		},
 		
 		startRotate: function(axis, evt) {
