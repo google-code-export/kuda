@@ -861,15 +861,11 @@ var hemi = (function(hemi) {
 			var scale = Math.abs(math.dot(this.v0,[x-orig[0],y-orig[1]]));		
 			if (this.scale != null) {
 				var f = scale/this.scale,
-					axis;
+					axis = [];
 				
-				if (this.axis[0]) {
-					axis = [f, 1, 1];
-				} else if (this.axis[1]) {
-					axis = [1, f, 1];
-				} else if (this.axis[2]) {
-					axis = [1, 1, f];
-				}
+				axis[0] = this.axis[0] ? f : 1;
+				axis[1] = this.axis[1] ? f : 1;
+				axis[2] = this.axis[2] ? f : 1;
 				
 				for (i=0; i<this.transformObjs.length; i++) {
 					var tran = this.transformObjs[i].transform;
