@@ -241,6 +241,9 @@ var editor = (function(module) {
 			cvs.addEventListener('mousedown', newMouseDown, true);
 			cvs.addEventListener('mousemove', newMouseMove, true);
 			cvs.addEventListener('mouseup', newMouseUp, true);
+			jQuery(document).bind('mouseup', function(evt) {
+				that.onMouseUp(evt);
+			});
 		},
 		
 		setDrawCallback: function(callback) {
