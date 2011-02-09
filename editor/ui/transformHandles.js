@@ -93,13 +93,13 @@ var editor = (function(module) {
 				this.down = true;
 				plane = hemi.manip.Plane.YZ;
 				axis = hemi.manip.Axis.X;
-				scaleAxis = hemi.manip.Axis.Z;
+				scaleAxis = hemi.manip.Axis.Y;
 			}
 			else if (this.zArrow.isInside(x, y)) {
 				this.down = true;	
 				plane = hemi.manip.Plane.XZ;
 				axis = hemi.manip.Axis.Y;
-				scaleAxis = hemi.manip.Axis.Y;
+				scaleAxis = hemi.manip.Axis.Z;
 			}
 			
 			if (this.down) {

@@ -860,14 +860,22 @@ var hemi = (function(hemi) {
 			this.v0 = math.normalize([ref[0]-orig[0],ref[1]-orig[1]]);
 			var scale = Math.abs(math.dot(this.v0,[x-orig[0],y-orig[1]]));		
 			if (this.scale != null) {
-				var f = scale/this.scale;
-				for (i=0; i<this.transformObjs.length; i++) {
-					var t = this.transformObjs[i].transform;
-					if (this.axis[0]) t.scale([f,1,1]);
-					if (this.axis[1]) t.scale([1,f,1]);
-					if (this.axis[2]) t.scale([1,1,f]);
+				var f = scale/this.scale,
+					axis;
+				
+				if (this.axis[0]) {
+					axis = [f, 1, 1];
+				} else if (this.axis[1]) {
+					axis = [1, f, 1];
+				} else if (this.axis[2]) {
+					axis = [1, 1, f];
 				}
-			}	
+				
+				for (i=0; i<this.transformObjs.length; i++) {
+					var tran = this.transformObjs[i].transform;
+					hemi.utils.worldScale(axis, tran);
+				}
+			}
 			this.scale = scale;
 		},
 		setAxis : function(axis) {
@@ -887,7 +895,7 @@ var hemi = (function(hemi) {
 		},
 		xyPoint : function(p) {
 			var u = hemi.utils;
-			return u.worldToScreenFloat(u.pointAsWorld(this.activeTransform,p));
+			return u.worldToScreenFloat(p);
 		}
 	};
 	

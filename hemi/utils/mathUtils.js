@@ -350,6 +350,24 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
+	 * Scale the transform by the given scale amounts in world space.
+	 *
+	 * @param {number[]} scale scale factors defined as an XYZ vector
+	 * @param {o3d.Transform} transform the transform to scale
+	 */
+	hemi.utils.worldScale = function(scale, transform) {
+		var m4 = hemi.core.math.matrix4,
+			newMatrix = m4.mul(
+				m4.mul(
+					m4.mul(
+						transform.getUpdatedWorldMatrix(),
+						m4.scaling(scale)),
+					m4.inverse(transform.getUpdatedWorldMatrix())),
+				transform.localMatrix);
+		transform.localMatrix = newMatrix;
+	};
+	
+	/**
 	 * Translate the transform by the given world space vector.
 	 *
 	 * @param {number[]} v XYZ vector to translate by
