@@ -3,7 +3,7 @@
 1. What's New
 World Editor
 * handles for rotation/translation/scaling added
-* XXXX Would like to incliude the ADL patch???
+* XXX Would like to include the ADL patch???
 ** Big deal though as it means reading OBJ, Collada, etc as the service currently has o3dtgz support.
 ** XXX Need a contributor agreement per GPL CA.
 Kuda Library
