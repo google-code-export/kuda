@@ -1,8 +1,8 @@
 ----------------------------Kuda 1.2.2 Release Notes----------------------------
-2011 March 31
+2011 February 11
 1. What's New
 World Editor
-* XXXX Would like to incliude the ADL patch???
+* XXX Would like to include the ADL patch???
 ** XXX Need a contributor agreement per GPL CA.
 Kuda Library
 
