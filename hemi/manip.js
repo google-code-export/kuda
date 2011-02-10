@@ -449,17 +449,18 @@ var hemi = (function(hemi) {
 	hemi.manip.Turnable = function(opt_axis, opt_limits, opt_startAngle) {
 		hemi.world.Citizen.call(this);
 		
+		this.angle = opt_startAngle == null ? 0 : hemi.core.math.degToRad(opt_startAngle);
 		this.axis = null;
+		this.currentTransform = null;
+		this.dragAngle = 0;
 		this.enabled = false;
+		this.local = false;
 		this.min = null;
 		this.max = null;
 		this.msgHandler = null;
 		this.plane = null;
-		this.currentTransform = null;
 		this.transformObjs = [];
 		this.turning = false;
-		this.dragAngle = 0;
-		this.angle = opt_startAngle == null ? 0 : hemi.core.math.degToRad(opt_startAngle);
 		
 		if (opt_axis != null) {
 			this.setAxis(opt_axis);
@@ -618,14 +619,25 @@ var hemi = (function(hemi) {
 		 * @return {float} Relative angle of mouse click position on this Turnable's current
 		 *		active plane
 		 */
-		getAngle : function(x,y) {			
+		getAngle : function(x,y) {
 			var ray = hemi.core.picking.clientPositionToWorldRay(
-					x, 
-					y, 
-					hemi.view.viewInfo.drawContext, 
-					hemi.core.client.width, 
-					hemi.core.client.height);
-			var tuv = hemi.utils.intersect(ray, this.plane);
+					x,
+					y,
+					hemi.view.viewInfo.drawContext,
+					hemi.core.client.width,
+					hemi.core.client.height),
+				plane;
+			
+			if (this.local) {
+				var u = hemi.utils;
+				plane = [u.pointAsWorld(this.currentTransform,this.plane[0]),
+						 u.pointAsWorld(this.currentTransform,this.plane[1]),
+						 u.pointAsWorld(this.currentTransform,this.plane[2])];
+			} else {
+				plane = this.plane;
+			}
+			
+			var tuv = hemi.utils.intersect(ray, plane);
 			return Math.atan2(tuv[2],tuv[1]);
 		},
 		
@@ -662,7 +674,10 @@ var hemi = (function(hemi) {
 			}
 			
 			this.angle += delta;
-			this.dragAngle += delta;
+			
+			if (!this.local) {
+				this.dragAngle += delta;
+			}
 			
 			switch(this.axis) {
 				case hemi.manip.Axis.X:
@@ -678,7 +693,12 @@ var hemi = (function(hemi) {
 			
 			for (var i = 0; i < this.transformObjs.length; i++) {
 				var tran = this.transformObjs[i].transform;
-				hemi.utils.worldRotate(axis, delta, tran);
+				
+				if (this.local) {
+					tran.axisRotate(axis, delta);
+				} else {
+					hemi.utils.worldRotate(axis, delta, tran);
+				}
 			}
 		},
 		
@@ -757,11 +777,14 @@ var hemi = (function(hemi) {
 	
 	hemi.manip.Scalable = function(axis) {
 		hemi.world.Citizen.call(this);
-		this.transformObjs = [];
 		this.activeTransform = null;
-		this.v0 = null;
+		this.axis = null;
+		this.local = false;
 		this.scale = null;
 		this.scaling = false;
+		this.transformObjs = [];
+		this.v0 = null;
+		
 		this.setAxis(axis);
 		this.enable();
 	};
@@ -869,7 +892,12 @@ var hemi = (function(hemi) {
 				
 				for (i=0; i<this.transformObjs.length; i++) {
 					var tran = this.transformObjs[i].transform;
-					hemi.utils.worldScale(axis, tran);
+					
+					if (this.local) {
+						tran.scale(axis);
+					} else {
+						hemi.utils.worldScale(axis, tran);
+					}
 				}
 			}
 			this.scale = scale;
@@ -890,8 +918,16 @@ var hemi = (function(hemi) {
 			}
 		},
 		xyPoint : function(p) {
-			var u = hemi.utils;
-			return u.worldToScreenFloat(p);
+			var u = hemi.utils,
+				point;
+			
+			if (this.local) {
+				point = u.pointAsWorld(this.activeTransform, p);
+			} else {
+				point = p;
+			}
+			
+			return u.worldToScreenFloat(point);
 		}
 	};
 	
