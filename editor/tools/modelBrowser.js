@@ -302,10 +302,13 @@ var editor = (function(module) {
 			
 			if (enable) {
 				this.msgHandler = hemi.world.subscribe(
-					hemi.msg.pick,
-					this,
-					"onPick",
-					[hemi.dispatch.MSG_ARG + "data.pickInfo", hemi.dispatch.MSG_ARG + "data.mouseEvent"]);
+					hemi.msg.pick, 
+					this, 
+					"onPick", 
+					[
+						hemi.dispatch.MSG_ARG + "data.pickInfo", 
+						hemi.dispatch.MSG_ARG + "data.mouseEvent"
+					]);
 			}
 		},
 		
@@ -388,11 +391,13 @@ var editor = (function(module) {
 			this.tranHighlightMat = hemi.core.material.createConstantMaterial(
 				hemi.core.mainPack, 
 				hemi.view.viewInfo, 
-				[0, 1, 0, 1]);
+				[0, 1, 0, 0.6],
+				true);
 			this.shapHighlightMat = hemi.core.material.createConstantMaterial(
 				hemi.core.mainPack, 
 				hemi.view.viewInfo, 
-				[0, 0, 1, 1]);
+				[0, 0, 1, 0.6],
+				true);
 			
 			// Setup a state to bring the lines forward.
 			var state = hemi.core.mainPack.createObject('State');
@@ -1065,7 +1070,7 @@ var editor = (function(module) {
 		
 		createHud: function() {
 			var textConfig = {
-				color: [0.6, 0.9, 1, 1],
+				color: [0.9, 0.9, 1, 1],
 				textAlign: 'left',
 				textSize: 13
 			};
@@ -1074,7 +1079,7 @@ var editor = (function(module) {
 			this.nameText.name = module.tools.ToolConstants.EDITOR_PREFIX + 'ShapeName';
 			this.nameText.setWidth(300);
 			this.nameText.setConfig(textConfig);
-			this.nameText.y = 5;
+			this.nameText.y = 15;
 			
 			this.boundTitle = new hemi.hud.HudText();
 			this.boundTitle.name = module.tools.ToolConstants.EDITOR_PREFIX + 'ShapeBound';
@@ -1124,7 +1129,8 @@ var editor = (function(module) {
 			var page = new hemi.hud.HudPage();
 			page.name = module.tools.ToolConstants.EDITOR_PREFIX + 'ShapePage';
 			page.setConfig({
-				color: [0, 0, 0, 0.5]
+				color: [0, 0, 0, 0.5],
+				curve: 0.08
 			});
 			page.addElement(this.nameText);
 			page.addElement(this.boundTitle);
@@ -1156,7 +1162,7 @@ var editor = (function(module) {
 			this.boundMaxY.setText('y: ' + module.utils.roundNumber(maxExtent[1], 5));
 			this.boundMaxZ.setText('z: ' + module.utils.roundNumber(maxExtent[2], 5));
 			
-			var x = hemi.core.client.width - (this.nameText.wrappedWidth + 5);
+			var x = hemi.core.client.width - (this.nameText.wrappedWidth + 15);
 			this.nameText.x = x;
 			this.boundTitle.x = x;
 			this.boundMin.x = x + 10;
@@ -1355,6 +1361,25 @@ var editor = (function(module) {
 				hidWgt = view.hiddenItemsSBWidget,
 				shapeDisp = view.shapeDisplay;
 			
+			// for when the tool gets selected/deselected	
+			view.addListener(module.EventTypes.ToolModeSet, function(value) {
+				var isDown = value == module.tools.ToolConstants.MODE_DOWN,
+					savedState = selModel.savedDrawState,
+					handle = selModel.curHandle;
+				selModel.enableSelection(isDown);
+				
+				if (isDown && savedState != null) {
+					handle.setDrawState(savedState);
+				}
+				else if (!isDown) {
+					selModel.savedDrawState = selModel.curHandle.drawState;
+					handle.setDrawState(module.ui.trans.DrawState.NONE);
+				}
+				
+				shapeDisp.setVisible(shapeDisp.currentShape && isDown);
+				hidWgt.setVisible(isDown && hidWgt.hiddenItems.size() > 0);
+			});	        
+			
 			// hidden list widget specific
 			hidWgt.addListener(module.EventTypes.ShowHiddenItem, function(transform) {
                 selModel.showTransform(transform);
@@ -1405,13 +1430,6 @@ var editor = (function(module) {
 	                selModel.hideSelected();
 				}
 			});			
-			view.addListener(module.EventTypes.ToolModeSet, function(value) {
-				var isDown = value == module.tools.ToolConstants.MODE_DOWN;
-				selModel.enableSelection(isDown);
-				
-				shapeDisp.setVisible(shapeDisp.currentShape && isDown);
-				hidWgt.setVisible(isDown && hidWgt.hiddenItems.size() > 0);
-			});	        
 	        view.addListener(module.EventTypes.Translate, function(value) {
 				if (value.enable) {
 					selModel.startDragging(value.plane);
