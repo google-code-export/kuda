@@ -336,6 +336,22 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
+	 * Convert the given UV coordinates for the given plane into XYZ coordinates
+	 * in 3D space.
+	 * 
+	 * @param {number[]} uv uv coordinates on a plane
+	 * @param {number[][]} plane array of 3 xyz coordinates defining the plane
+	 * @return {number[]} xyz coordinates of the uv location on the plane
+	 */
+	hemi.utils.uvToXYZ = function(uv, plane) {
+		var hMath = hemi.core.math,
+			uf = hMath.mulScalarVector(uv[0], hMath.subVector(plane[1], plane[0])),
+			vf = hMath.mulScalarVector(uv[1], hMath.subVector(plane[2], plane[0]));
+			pos = hMath.addVector(plane[0], hMath.addVector(uf, vf));
+		return pos;
+	};
+	
+	/**
 	 * Rotate the transform by the given angle along the given world space axis.
 	 *
 	 * @param {number[]} axis rotation axis defined as an XYZ vector

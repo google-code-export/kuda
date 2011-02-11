@@ -63,26 +63,25 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {number[][]} opt_plane Array of 3 xyz points defining a plane
 	 * @param {number[]} opt_limits An array containing 
-	 *	   [min on x, max on x, min on y, max on y]
+	 *	   [min on u, max on u, min on v, max on v]
 	 * @param {number[]} opt_startUV Draggable's starting uv coordinate, if
 	 *		not [0,0]
 	 */
 	hemi.manip.Draggable = function(opt_plane, opt_limits, opt_startUV) {
 		hemi.world.Citizen.call(this);
 		
-		this.transformObjs = [];
-		this.dragging = false;
+		this.activeTransform = null;
+		this.dragUV = null;
 		this.enabled = false;
-		this.lastPos = null;
-		this.offset = [0,0];
+		this.local = false;
 		this.msgHandler = null;
-		this.activePlane = [];
 		this.plane = null;
+		this.transformObjs = [];
 		this.umin = null;
 		this.umax = null;
+		this.uv = opt_startUV == null ? [0,0] : opt_startUV;
 		this.vmin = null;
 		this.vmax = null;
-		this.uv = opt_startUV == null ? [0,0] : opt_startUV;
 		
 		if (opt_plane != null) {
 			this.setPlane(opt_plane);
@@ -117,7 +116,7 @@ var hemi = (function(hemi) {
 		 */
 		toOctane: function(){
 			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
-				valNames = ['plane', 'umin', 'umax', 'vmin', 'vmax'];
+				valNames = ['local', 'plane', 'umin', 'umax', 'vmin', 'vmax'];
 			
 			for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
 				var name = valNames[ndx];
@@ -138,10 +137,7 @@ var hemi = (function(hemi) {
 		 */
 		addTransform: function(transform) {
 			hemi.world.tranReg.register(transform, this);
-			var wM = transform.getUpdatedWorldMatrix(),
-				offsetVector = wM[3].slice(0,3);
-				dPlane = [],
-				obj = {};
+			var obj = {};
 			
 			if (hemi.utils.isAnimated(transform)) {
 				obj.transform = hemi.utils.fosterTransform(transform);
@@ -151,38 +147,37 @@ var hemi = (function(hemi) {
 				obj.foster = false;
 			}
 			
-			for(var i = 0; i < this.plane.length; i++) {
-				dPlane[i] = hemi.core.math.addVector(this.plane[i], offsetVector);
-			}
-			
-			obj.plane = dPlane;
 			this.transformObjs.push(obj);
 		},
 
 		/**
-		 * Simple 2d clamp function.
+		 * Add the given UV delta to the current UV coordinates and clamp the
+		 * results.
 		 *
-		 * @param {number[]} uv 2d coordinate to clamp
-		 * @return {number[]} 2d coordinate clamped to this Draggable's limits
+		 * @param {number[]} delta the uv change to add before clamping
+		 * @return {number[]} the actual change in uv after clamping
 		 */
-		clamp : function(uv) {
-			var u = uv[0];
-			var v = uv[1];
-
-			if (this.umin != null) {
-				u = (u < this.umin)? this.umin : u;
+		clamp : function(delta) {
+			var u = this.uv[0] + delta[0],
+				v = this.uv[1] + delta[1];
+			
+			if (this.umin != null && u < this.umin) {
+				u = this.umin;
 			}
-			if (this.umax != null) {
-				u = (u > this.umax)? this.umax : u;
+			if (this.umax != null && u > this.umax) {
+				u = this.umax;
 			}
-			if (this.vmin != null) {
-				v = (v < this.vmin)? this.vmin : v;
+			if (this.vmin != null && v < this.vmin) {
+				v = this.vmin;
 			}
-			if (this.vmax != null) {
-				v = (v > this.vmax)? this.vmax : v;
+			if (this.vmax != null && v > this.vmax) {
+				v = this.vmax;
 			}
-
-			return [u,v];
+			
+			delta = [u - this.uv[0], v - this.uv[1]];
+			this.uv = [u, v];
+			
+			return delta;
 		},
 		
 		/**
@@ -264,6 +259,37 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
+		 * Get the two dimensional plane that the Draggable will translate its
+		 * active transform along.
+		 * 
+		 * @return {number[][]} the current drag plane defined as 3 XYZ points
+		 */
+		getPlane: function() {
+			if (this.activeTransform === null) {
+				return null;
+			}
+			
+			var u = hemi.utils,
+				hMath = hemi.core.math,
+				plane;
+			
+			if (this.local) {
+				plane = [u.pointAsWorld(this.activeTransform, this.plane[0]),
+						 u.pointAsWorld(this.activeTransform, this.plane[1]),
+						 u.pointAsWorld(this.activeTransform, this.plane[2])];
+			} else {
+				var wM = this.activeTransform.getUpdatedWorldMatrix(),
+					translation = wM[3].slice(0,3);
+				
+				plane = [hMath.addVector(this.plane[0], translation),
+						 hMath.addVector(this.plane[1], translation),
+						 hMath.addVector(this.plane[2], translation)];
+			}
+			
+			return plane;
+		},
+		
+		/**
 		 * Get the transforms that the Draggable currently contains.
 		 * 
 		 * @return {o3d.Transform[]} array of transforms
@@ -277,6 +303,27 @@ var hemi = (function(hemi) {
 			
 			return trans;
 		},
+		
+		/**
+		 * Convert the given screen coordinates into UV coordinates on the
+		 * current dragging plane.
+		 * 
+		 * @param {number} x x screen coordinate
+		 * @param {number} y y screen coordinate
+		 * @return {number[]} equivalent UV coordinates
+		 */
+		getUV: function(x,y) {
+			var ray = hemi.core.picking.clientPositionToWorldRay(
+					x,
+					y,
+					hemi.view.viewInfo.drawContext,
+					hemi.core.client.width,
+					hemi.core.client.height),
+				plane = this.getPlane(),
+				tuv = hemi.utils.intersect(ray, plane);
+			
+			return [tuv[1], tuv[2]];
+		},
 
 		/**
 		 * Mouse movement event listener, calculates mouse point intersection 
@@ -286,56 +333,26 @@ var hemi = (function(hemi) {
 		 * @param {o3d.inputevent} event Message describing how the mouse has moved
 		 */
 		onMouseMove : function(event) {
-			if (!this.dragging) return;
-			
-			var worldRay = hemi.core.picking.clientPositionToWorldRay(
-				event.x, 
-				event.y, 
-				hemi.view.viewInfo.drawContext, 
-				hemi.core.client.width, 
-				hemi.core.client.height);
-
-			var ip = hemi.utils.intersect(worldRay, this.activePlane);
-			this.uv = this.clamp([ip[1] + this.offset[0],
-								 ip[2] + this.offset[1]]);
-									 
-			var uf = hemi.core.math.mulScalarVector(
-				this.uv[0],
-				hemi.core.math.addVector(
-					this.activePlane[1],
-					hemi.core.math.mulScalarVector(
-						-1,
-						this.activePlane[0])));
-							
-			var vf = hemi.core.math.mulScalarVector(
-				this.uv[1],
-				hemi.core.math.addVector(
-					this.activePlane[2],
-					hemi.core.math.mulScalarVector(
-						-1,
-						this.activePlane[0])));
-							
-			var pos = hemi.core.math.addVector(
-				this.activePlane[0],
-				hemi.core.math.addVector(uf,vf));
-	
-	
-			if (this.lastPos) {
-				var delta = hemi.core.math.addVector(
-					pos,
-					hemi.core.math.mulScalarVector(-1, this.lastPos));
-				
-				for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
-					var transObj = this.transformObjs[ndx];
-					hemi.utils.worldTranslate(delta, transObj.transform);
-				}
-				
-				this.send(hemi.msg.drag,
-					{
-						drag: delta
-					});
+			if (this.dragUV === null) {
+				return;
 			}
-			this.lastPos = pos;
+			
+			var uv = this.getUV(event.x, event.y),
+				delta = [uv[0] - this.dragUV[0], uv[1] - this.dragUV[1]],
+				plane = this.getPlane();
+			
+			delta = this.clamp(delta);
+			
+			var localDelta = hemi.utils.uvToXYZ(delta, plane),
+				xyzOrigin = hemi.utils.uvToXYZ([0, 0], plane),
+				xyzDelta = hemi.core.math.subVector(localDelta, xyzOrigin);
+			
+			for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
+				var tran = this.transformObjs[ndx].transform;
+				hemi.utils.worldTranslate(xyzDelta, tran);
+			}
+			
+			this.send(hemi.msg.drag, { drag: xyzDelta });
 		},
 
 		/**
@@ -344,8 +361,8 @@ var hemi = (function(hemi) {
 		 * @param {o3d.mouseevent} event Message describing the mouse behavior
 		 */
 		onMouseUp : function(event) {
-			this.dragging = false;
-			this.lastPos = null;
+			this.activeTransform = null;
+			this.dragUV = null;
 		},
 
 		/**
@@ -357,41 +374,14 @@ var hemi = (function(hemi) {
 		 * @param {o3d.mouseevent} mouseEvent Message describing mouse behavior
 		 */
 		onPick : function(pickInfo, mouseEvent) {
-			var found = false;
-			for (var ndx = 0, len = this.transformObjs.length; ndx < len && !found; ndx++) {
-				if (checkTransform(this.transformObjs[ndx].transform, 
-					pickInfo.shapeInfo.parent.transform)) {
-						found = true;
-						this.activePlane = this.transformObjs[ndx].plane;
-					}
-			}
-
-			if (found) {
-				this.dragging = true;
-				var worldRay = hemi.core.picking.clientPositionToWorldRay(
-					mouseEvent.x, 
-					mouseEvent.y, 
-					hemi.view.viewInfo.drawContext, 
-					hemi.core.client.width, 
-					hemi.core.client.height);
-					
-				var ip = hemi.utils.intersect(worldRay,this.activePlane);		
-				this.offset = [this.uv[0] - ip[1], this.uv[1] - ip[2]];
-				this.onMouseMove(mouseEvent);
-			}
-
-			function checkTransform(transform, pickTransform) {
-				var found = (transform.clientId === pickTransform.clientId);
-
-				if (!found) {
-					var children = transform.children;
-					
-					for (var ndx = 0, len = children.length; ndx < len && !found; ndx++) {
-						found = found || checkTransform(children[ndx], pickTransform);
-					}
+			var pickTran = pickInfo.shapeInfo.parent.transform;
+			
+			for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
+				if (checkTransform(this.transformObjs[ndx].transform, pickTran)) {
+					this.activeTransform = pickTran;
+					this.dragUV = this.getUV(mouseEvent.x, mouseEvent.y);
+					break;
 				}
-				
-				return found;
 			}
 		},
 		
@@ -405,7 +395,7 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the uv limits in which this Draggable can move.
+		 * Set the relative uv limits in which this Draggable can move.
 		 *
 		 * @param {number[][]} coords Min uv point, and max uv point of bounding box
 		 */
@@ -435,6 +425,21 @@ var hemi = (function(hemi) {
 				default:
 					this.plane = plane;
 			}
+		},
+		
+		/**
+		 * Set the Draggable to operate in the local space of the transform it
+		 * is translating.
+		 */
+		setToLocal: function() {
+			this.local = true;
+		},
+		
+		/**
+		 * Set the Draggable to operate in world space.
+		 */
+		setToWorld: function() {
+			this.local = false;
 		}
 	};
 
@@ -938,6 +943,28 @@ var hemi = (function(hemi) {
 	hemi.manip.Turnable.inheritsFrom(hemi.world.Citizen);
 	
 	hemi.manip.Scalable.inheritsFrom(hemi.world.Citizen);
+	
+	/*
+	 * Check if the pickTransform is a child, grandchild, etc. of the transform.
+	 * 
+	 * @param {o3d.Transform} transform parent transform to check
+	 * @param {o3d.Transform} pickTransform child transform to search for
+	 * @return {boolean} true if the pickTransform is contained within the
+	 *     transform
+	 */
+	function checkTransform(transform, pickTransform) {
+		var found = (transform.clientId === pickTransform.clientId);
+
+		if (!found) {
+			var children = transform.children;
+			
+			for (var ndx = 0, len = children.length; ndx < len && !found; ndx++) {
+				found = found || checkTransform(children[ndx], pickTransform);
+			}
+		}
+		
+		return found;
+	}
 	
 	return hemi;
 })(hemi || {});

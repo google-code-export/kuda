@@ -45,14 +45,19 @@ var editor = (function(module) {
 		drawHandles: function() {
 			if (this.drawState !== module.ui.trans.DrawState.NONE
 					&& this.isInView()) {
-				var origin = this.transform.worldMatrix[3], 
+//				var origin = this.transform.localMatrix[3],		FOR LOCAL
+				var origin = this.transform.getUpdatedWorldMatrix()[3], 
 					extent = this.extent / 2,
 					x = origin[0], 
 					y = origin[1], 
 					z = origin[2], 
+//					u = hemi.utils,	 FOR LOCAL
+//					xVec = u.pointAsWorld(this.transform, [x + extent, y, z]),	 FOR LOCAL
+//					yVec = u.pointAsWorld(this.transform, [x, y + extent, z]),	 FOR LOCAL 
+//					zVec = u.pointAsWorld(this.transform, [x, y, z + extent]);	 FOR LOCAL
 					xVec = [x + extent, y, z], 
 					yVec = [x, y + extent, z], 
-					zVec = [x, y, z + extent];				
+					zVec = [x, y, z + extent];
 				
 				this.xArrow.setParams(origin, xVec,  
 					hemi.manip.Plane.XY, this.drawState, extent);
@@ -74,6 +79,8 @@ var editor = (function(module) {
 		
 		getExtent: function() {
 			var bdgBox = o3djs.util.getBoundingBoxOfTree(this.transform),
+//				minExt = bdgBox.minExtent,	FOR LOCAL
+//				maxExt = bdgBox.maxExtent,	FOR LOCAL
 				minExt = hemi.utils.pointAsWorld(this.transform, bdgBox.minExtent),
 				maxExt = hemi.utils.pointAsWorld(this.transform, bdgBox.maxExtent),
 				x = Math.abs(minExt[0] - maxExt[0]),
@@ -297,8 +304,6 @@ var editor = (function(module) {
 		},
 		
 		startTranslate: function(plane, evt) {
-			var pos = this.transform.localMatrix[3];
-			
 			hemi.world.camera.disableControl();		
 			this.dragger = new hemi.manip.Draggable();
 			this.dragger.name = module.tools.ToolConstants.EDITOR_PREFIX + 'Dragger';
@@ -306,13 +311,13 @@ var editor = (function(module) {
 			
 			switch(plane) {
 				case hemi.manip.Plane.XY:
-				    this.dragger.vmin = this.dragger.vmax = pos[1];
+				    this.dragger.vmin = this.dragger.vmax = 0;
 					break;
 				case hemi.manip.Plane.YZ:
-				    this.dragger.umin = this.dragger.umax = pos[2];
+				    this.dragger.umin = this.dragger.umax = 0;
 					break;
 				case hemi.manip.Plane.XZ:
-				    this.dragger.umin = this.dragger.umax = pos[0];
+				    this.dragger.umin = this.dragger.umax = 0;
 					break;
 			}
 
