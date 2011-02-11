@@ -150,10 +150,7 @@ var hext = (function(hext) {
 				var curPage = this.display.pages[ndx],
 					nextPage = this.display.pages[ndx + 1];
 				
-				this.pageInfo.setText([(ndx + 2) + ' / ' + numPages]);
-				this.leftNav.enabled = true;
-				this.rightNav.enabled = ndx < numPages - 2;
-				
+				this.setNavInfo(ndx + 1, numPages);
 				this.removeFromPage(curPage);
 				this.appendToPage(nextPage);
 				this.display.nextPage();
@@ -172,10 +169,7 @@ var hext = (function(hext) {
 				var curPage = this.display.pages[ndx],
 					prevPage = this.display.pages[ndx - 1];
 				
-				this.pageInfo.setText([ndx + ' / ' + numPages]);
-				this.leftNav.enabled = ndx > 1;
-				this.rightNav.enabled = true;
-				
+				this.setNavInfo(ndx - 1, numPages);
 				this.removeFromPage(curPage);
 				this.appendToPage(prevPage);
 				this.display.previousPage();
@@ -191,6 +185,19 @@ var hext = (function(hext) {
 			page.removeElement(this.leftNav);
 			page.removeElement(this.rightNav);
 			page.removeElement(this.pageInfo);
+		},
+		
+		/**
+		 * Set the navigation info and icons according to the given page index
+		 * and maximum page number.
+		 * 
+		 * @param {number} ndx page index to set info for
+		 * @param {number} max maximum page number
+		 */
+		setNavInfo: function(ndx, max) {
+			this.pageInfo.setText([(ndx + 1) + ' / ' + max]);
+			this.leftNav.enabled = ndx > 0;
+			this.rightNav.enabled = ndx < max - 1;
 		}
 	};
 	
@@ -232,7 +239,11 @@ var hext = (function(hext) {
 			function(msg) {
 				if (msg.data.page !== 0) {
 					display.unsubscribe(msgTarget);
-					var page = display.getCurrentPage();
+					var page = display.getCurrentPage(),
+						ndx = display.currentPage,
+						numPages = display.pages.length;
+					
+					hext.hud.pagingInfo.setNavInfo(ndx, numPages);
 					hext.hud.pagingInfo.appendToPage(page);
 					// Force a redraw now that we've appended
 					display.showPage();

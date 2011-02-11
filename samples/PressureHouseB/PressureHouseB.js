@@ -70,10 +70,6 @@
 				firstScene.load();
 			});
 		
-		// Make sure the paging navigation is loaded
-		hext.hud.showPagingInfo();
-		hext.hud.hidePagingInfo();
-		
 		hemi.world.ready();
 	}
 	
@@ -970,10 +966,10 @@
 		display1.addPage(page2);
 		display1.addPage(page3);
 		display1.addPage(page4);
+		hext.hud.addPagingInfo(display1);
 		
 		scene.subscribe(hemi.msg.load,
 			function(msg) {
-				hext.hud.showPagingInfo();
 				display1.show();
 			});
 		
@@ -990,6 +986,7 @@
 			function(msg) {
 				if (scene.isLoaded && msg.data.visible) {
 					display1.hide();
+					hext.hud.removePagingInfo();
 					scene.nextScene();
 				}
 			});
@@ -1033,6 +1030,7 @@
 		hemi.world.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
+					hext.hud.addPagingInfo(display1);
 					display1.show();
 				}
 			});
@@ -1042,6 +1040,7 @@
 				// Wait for a pressure reading of -50 Pa.
 				if (scene.isLoaded && msg.data.left + 50 <= 0.1) {
 					display1.hide();
+					hext.hud.removePagingInfo();
 					scene.nextScene();
 				}
 			});
@@ -1102,6 +1101,7 @@
 		
 		scene.subscribe(hemi.msg.load,
 			function(msg) {
+				hext.hud.addPagingInfo(display1);
 				display1.show();
 				hemi.world.camera.moveToView(viewpoint1);
 			});
@@ -1166,7 +1166,7 @@
 				// leak!
 				if (scene.isLoaded && msg.src !== smokePuffer.defaultPuff) {
 					display1.hide();
-					hext.hud.hidePagingInfo();
+					hext.hud.removePagingInfo();
 					display2.show();
 				}
 			});
