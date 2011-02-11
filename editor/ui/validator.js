@@ -79,7 +79,7 @@ var editor = (function(module, jQuery) {
 			
 			// position this
 			ctn.offset({
-				top: top,
+				top: top + 20,
 				left: offset.left - difference
 			});
 			
@@ -102,6 +102,10 @@ var editor = (function(module, jQuery) {
 			// set the element class
 			element.addClass('error');
 			
+			ctn.css('opacity', 0).animate({
+				opacity: 1,
+				top: '-=20'
+			}, 200);
 			// auto hide the message
 			this.hideTimer(true);
 		},
@@ -128,8 +132,11 @@ var editor = (function(module, jQuery) {
 			if (this.id === id) {
 				var ctn = this.container;
 				
-				ctn.fadeOut(300, function(){
-					ctn.remove();
+				ctn.animate({
+					opacity: 0,
+					top: '-=20'
+				}, 200, function(){
+					ctn.hide().remove();
 				});
 			}
 		}
@@ -138,18 +145,27 @@ var editor = (function(module, jQuery) {
 	var errWgt = null;
 		
 	module.ui.Validator = module.utils.Listenable.extend({
-		init: function(elements, checkFunction) {
+		init: function(opt_elements, checkFunction) {
 			this._super();
+			this.checkFunction = checkFunction;
 			
 			if (!errWgt) {
 				errWgt = new ErrorWidget();
 			}
 			
+			if (opt_elements != null) {			
+				this.setElements(opt_elements);
+			}
+		},
+		
+		setElements: function(elements) {	
+			vld = this;
+					
 			elements.bind('blur.errEvt', function(evt) {
 				var elem = jQuery(this),
 					msg = null;
 								
-				msg = checkFunction(elem);
+				msg = vld.checkFunction(elem);
 				
 				if (msg) {
 					errWgt.showError(elem, msg);

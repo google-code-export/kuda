@@ -40,7 +40,7 @@
 			// set editor defaults
 			editor.Defaults = {
 				farPlane: 10000,
-				nearPlane: 1
+				nearPlane: 0.5
 			};
 			
 			editor.dirty = loadProject;
@@ -65,8 +65,8 @@
 			cam.clip.near = defaults.nearPlane;
 			cam.updateProjection();
 			
-			this.extent = 2000;		// Grid will reach 20 meters in each direction
-			this.fidelity = 100;	// Grid squares will be 100 meters wide
+			this.extent = 2000;		// Grid will reach 2000 meters in each direction
+			this.fidelity = 1;		// Grid squares = 1 square meter
 			
             this.layoutDialogs();
 			this.layoutGrid();
@@ -80,19 +80,23 @@
 				function(msg) {
 					if (msg.src instanceof hemi.model.Model) {
 						that.msgMdl.addCitizen(msg.src);
+						that.scnMdl.addCitizen(msg.src);
 						that.editorStateChanged();
 					}
 				});
 			var addFunc = function(citizen) {
 				that.msgMdl.addCitizen(citizen);
+				that.scnMdl.addCitizen(citizen);
 				that.editorStateChanged();
 			};
 			var removeFunc = function(citizen) {
 				that.msgMdl.removeCitizen(citizen);
+				that.scnMdl.addCitizen(citizen);
 				that.editorStateChanged();
 			};
 			var updateFunc = function(citizen) {
 				that.msgMdl.updateCitizen(citizen);
+				that.scnMdl.addCitizen(citizen);
 				that.editorStateChanged();
 			};
 			
@@ -138,7 +142,10 @@
 			hemi.world.subscribe(hemi.msg.cleanup, this, 'worldCleaned');
 			hemi.world.subscribe(hemi.msg.ready, this, 'worldLoaded');
 			
-			hemi.world.ready();
+			// wait for the ui to load first
+			this.sidebar.addListener(editor.EventTypes.SidebarFinishedLoading, function() {				
+				hemi.world.ready();
+			});
 			
 			if (editor.dirty) {
 				var app = this;
@@ -177,33 +184,60 @@
 			this.fogMdl.worldLoaded();
             
 			var vd = hemi.view.createViewData(hemi.world.camera);
-			vd.eye = [0, 100, 600];
+			vd.eye = [0, 10, 40];
 			vd.target = [0, 0, 0];
-            hemi.world.camera.moveToView(vd);			
+            hemi.world.camera.moveToView(vd);		
+			
+			if (!this.firstSelected) {
+				var views = this.toolbar.tools;
+					first = views[0];
+					
+				// select the first tool
+				first.setMode(editor.tools.ToolConstants.MODE_DOWN);
+				
+				// enable the tools now that all the ui is loaded
+				for (var ndx = 0, len = views.length; ndx < len; ndx++) {
+					views[ndx].getUI().removeAttr('disabled');
+				}
+				
+				this.firstSelected = true;
+			}
 		},
 		
 		layoutGrid: function() {
-			this.db = o3djs.debug.createDebugHelper(hemi.core.mainPack, hemi.view.viewInfo);
+			var url = "images/grid.png",
+				oldPath = hemi.loader.loadPath;
+				that = this;
+			this.db = o3djs.debug.createDebugHelper(hemi.core.mainPack, 
+				hemi.view.viewInfo);
 			this.db.addAxis(hemi.core.client.root);
-			this.gridMat = hemi.fx.create({
-				type:'grid',
-				color1:[0.8,0.8,1,1],
-				thickness:0.03,
-				squares:this.extent/this.fidelity });
-			this.gridShape = hemi.shape.createBox(0,2*this.extent,2*this.extent,this.gridMat);
-			this.gridShape.parent = hemi.core.client.root;
-			this.resetGrid(this.extent, this.fidelity);
+			
+			hemi.loader.loadPath = '';
+			hemi.loader.loadTexture(url, function(texture) {
+		    	var mat = hemi.core.material.createConstantMaterial(
+					hemi.core.mainPack, hemi.view.viewInfo, texture, true);	
+					
+				that.gridShape = hemi.shape.createBox(0, 2*that.extent, 
+					2*that.extent, mat);
+			
+				that.gridShape.parent = hemi.core.client.root;
+				that.resetGrid(that.extent, that.fidelity);
+		  	});
+				
+			hemi.loader.loadPath = oldPath;
 		},
 		
 		showGrid: function() {
 			this.db.addAxis(hemi.core.client.root);
 			this.gridShape.visible = true;
-			this.resetGrid(this.extent,this.fidelity);
+			this.resetGrid(this.extent, this.fidelity);
 		},
 		
 		resetGrid: function(extent, fidelity) {
 			this.db.setAxisScale(extent, fidelity/10);
-			this.gridMat.getParam('squares').value = extent/fidelity;
+			var fullExtent = extent * 2;
+			hemi.texture.scale(this.gridShape.shapes[0].elements[0], 
+				fullExtent/fidelity, fullExtent/fidelity);
 		},
 		
 		removeGrid: function() {
@@ -527,6 +561,7 @@
 			
 			scnCtr.setView(scnView);
 			scnCtr.setModel(this.scnMdl);
+			scnCtr.setMessagingModel(this.msgMdl);
 			
 			shpCtr.setView(shpView);
 			shpCtr.setModel(this.shpMdl);
@@ -541,24 +576,20 @@
 		layoutSidebar: function() {
 			this.sidebar = new editor.ui.Sidebar();
 			
-			var views = this.toolbar.tools,
-				first = views[0];
+			var views = this.toolbar.tools;
 			
 			for (var ndx = 0, len = views.length; ndx < len; ndx++) {
 				var view = views[ndx],
 					widgets = view.sidebarWidgets;				
 				
+				// disable the tool to prevent selection before it's ready
+				view.getUI().attr('disabled', 'disabled');
 				view.setSidebar(this.sidebar);
 				
 				for (var ndx2 = 0, len2 = widgets.length; ndx2 < len2; ndx2++) {
 					this.sidebar.addWidget(widgets[ndx2]);
 				}
 			}
-			
-			// show the first tool
-			this.sidebar.addListener(editor.EventTypes.SidebarFinishedLoading, function() {
-				first.setMode(editor.tools.ToolConstants.MODE_DOWN);
-			});
 		},
 		
 		sizeViewerPane: function() {
@@ -689,7 +720,7 @@
 		}
 	};
 	
-	function getParam( name ) {
+	function getParam(name) {
 		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
 		var regexS = "[\\?&]"+name+"=([^&#]*)";
 		var regex = new RegExp( regexS );

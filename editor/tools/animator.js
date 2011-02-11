@@ -81,23 +81,56 @@ var editor = (function(module) {
 					}
 				});
 	    },
-		
-	    worldCleaned: function() {
-	        var animations = hemi.world.getAnimations();
-	    	
-	        for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
-	            var anm = animations[ndx];
-	            this.notifyListeners(module.EventTypes.AnimationRemoved, anm);
-	        }
-	    },
-		
-	    worldLoaded: function() {
-			var animations = hemi.world.getAnimations();
-			
-			for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
-				var anm = animations[ndx];
-	            this.notifyListeners(module.EventTypes.AnimationCreated, anm);
+	    
+	    /**
+	     * Creates an animation object
+	     */
+	    createAnimation: function() {	        
+	        if (!this.animation) {				
+	            this.animation = hemi.animation.createModelAnimation(
+					this.selectedModel, this.startTime, this.endTime);
+				this.animation.name = this.name;
+				this.animation.reset();
+				this.animDirty = true;
+	        }   
+	        else if (this.startTime != null && this.endTime != null) {				
+	            this.stopAnimation();
+	            this.animation.beginTime = this.startTime;
+	            this.animation.endTime = this.endTime;
+	            this.animation.reset();
+				this.animation.name = this.name;
+	        } 
+	    },  
+	    
+	    /**
+	     * Creates an animation loop and adds it to the current animation 
+	     * object.  If no animation object exists, this  returns false, true
+	     * otherwise.
+	     * 
+	     * @param {number} start the starting keyframe for the loop 
+	     * @param {number} end the end keyframe for the loop
+	     * @param {number} iterations the number of iterations to loop over.  
+	     *        Specify a -1 if looping infinitely.
+	     *        
+	     * @return {boolean} true if the loop was created, false otherwise.
+	     */
+	    createLoop: function(start, end, iterations) {			
+	        if (!this.animation) {
+				this.createAnimation();
 			}
+			
+            var start = hemi.view.getTimeOfFrame(start),
+            	end = hemi.view.getTimeOfFrame(end),
+            	iterations = parseInt(iterations),            
+            	loop = new hemi.animation.Loop();
+				
+			loop.startTime = start;
+			loop.stopTime = end;
+			loop.iterations = iterations;
+            this.stopAnimation();
+            this.animation.addLoop(loop);
+        
+	        return loop;
 	    },
 	    
 	    /**
@@ -129,56 +162,6 @@ var editor = (function(module) {
 	            this.removeHilights();
 	        }
 	    },
-	    
-	    /**
-	     * Called when a pick occurs.  
-	     * 
-	     * @param {Object} pickInfo pick information
-	     */
-	    onPick: function(pickInfo) {
-	        this.selectModel(pickInfo);
-	    },
-	    
-	    /**
-	     * Initializes UI for highlighting a selection.
-	     */
-	    initSelectorUI: function() {
-	        this.hilightMaterial = hemi.core.material.createConstantMaterial(
-	            hemi.core.mainPack, 
-	            hemi.view.viewInfo, 
-	            [0, 1, 0, 0.3],
-	            true);
-	        // Setup a state to bring the lines forward.
-	        var state = hemi.core.mainPack.createObject('State');
-	        state.getStateParam('PolygonOffset2').value = -1.0;
-	        state.getStateParam('FillMode').value = 
-				hemi.core.o3d.State.WIREFRAME;
-	        this.hilightMaterial.state = state;
-	    },
-	    
-	    /**
-	     * Selects a model based off the pickInfo.  Once selected, the model
-	     * gets highlighted and sends a hemi.msg.modelPicked message.  
-	     * 
-	     * @param {Object} pickInfo the pick information
-	     */
-	    selectModel: function(pickInfo) {			
-	        if (pickInfo) {
-	            var transform = pickInfo.shapeInfo.parent.transform,
-					model = hemi.world.getTranOwner(transform);
-				
-				this.setModel(model);
-	        }
-	    },
-		
-		setModel: function(model) {	            
-			if (this.selectedModel !== model) {
-        		this.unSelectAll();
-				this.notifyListeners(module.EventTypes.ModelPicked, model);
-	            this.selectedModel = model;
-	            this.hilightShapes();
-			}
-		},
 	
 	    /**
 	     * Highlights all shapes in the selected model.
@@ -213,6 +196,46 @@ var editor = (function(module) {
 	    },
 	    
 	    /**
+	     * Initializes UI for highlighting a selection.
+	     */
+	    initSelectorUI: function() {
+	        this.hilightMaterial = hemi.core.material.createConstantMaterial(
+	            hemi.core.mainPack, 
+	            hemi.view.viewInfo, 
+	            [0, 1, 0, 0.3],
+	            true);
+	        // Setup a state to bring the lines forward.
+	        var state = hemi.core.mainPack.createObject('State');
+	        state.getStateParam('PolygonOffset2').value = -1.0;
+	        state.getStateParam('FillMode').value = 
+				hemi.core.o3d.State.WIREFRAME;
+	        this.hilightMaterial.state = state;
+	    },
+	    
+	    /**
+	     * Called when a pick occurs.  
+	     * 
+	     * @param {Object} pickInfo pick information
+	     */
+	    onPick: function(pickInfo) {
+	        this.selectModel(pickInfo);
+	    },
+	    
+	    /**
+	     * Starts an animation for preview purposes.
+	     */
+	    previewAnimation: function() {
+			this.createAnimation();
+			
+	        this.animation.start();	                   
+	    }, 
+		
+	    removeAnimation: function(animation) {
+	        this.notifyListeners(module.EventTypes.AnimationRemoved, animation);
+			animation.cleanup();
+		},
+	    
+	    /**
 	     * Removes highlight shapes from the selected model.
 	     */
 	    removeHilights: function() {
@@ -235,98 +258,7 @@ var editor = (function(module) {
 	            
 	            this.hilights.clear();
 	        }
-	    },
-	    
-	    /**
-	     * Unselects the current selection(s).
-	     */
-	    unSelectAll: function() {
-	        if (this.selectedModel) {
-	            this.removeHilights();
-	            this.selectedModel = null;
-				this.animation = null;
-	        }
-	    },
-		
-		setAnimation: function(animation) {
-			this.animation = animation;
-			this.name = animation.name;
-			this.startTime = animation.beginTime;
-			this.endTime = animation.endTime;
-			this.isUpdate = true;
-		},
-		
-		setStart: function(startFrame) {
-			this.startTime = hemi.view.getTimeOfFrame(startFrame);
-		},
-		
-		setEnd: function(endFrame) {
-			this.endTime = hemi.view.getTimeOfFrame(endFrame);
-		},
-		
-		setName: function(name) {
-			this.name = name;
-		},
-	    
-	    /**
-	     * Starts an animation for preview purposes.
-	     */
-	    previewAnimation: function() {
-			this.createAnimation();
-			
-	        this.animation.start();	                   
-	    },
-	    
-	    /**
-	     * Stops an animation and resets to the beginning keyframe.
-	     */
-	    stopAnimation: function() {
-	        if (this.animation && this.animation.target.isAnimating) {
-	            this.animation.stop();
-	            this.animation.reset();
-	            this.animation.updateTarget(this.animation.currentTime);
-	        }
-	    },      
-	    
-	    /**
-	     * Creates an animation loop and adds it to the current animation 
-	     * object.  If no animation object exists, this  returns false, true
-	     * otherwise.
-	     * 
-	     * @param {number} start the starting keyframe for the loop 
-	     * @param {number} end the end keyframe for the loop
-	     * @param {number} iterations the number of iterations to loop over.  
-	     *        Specify a -1 if looping infinitely.
-	     *        
-	     * @return {boolean} true if the loop was created, false otherwise.
-	     */
-	    createLoop: function(start, end, iterations) {			
-	        if (!this.animation) {
-				this.createAnimation();
-			}
-			
-            var start = hemi.view.getTimeOfFrame(start),
-            	end = hemi.view.getTimeOfFrame(end),
-            	iterations = parseInt(iterations),            
-            	loop = new hemi.animation.Loop();
-				
-			loop.startTime = start;
-			loop.stopTime = end;
-			loop.iterations = iterations;
-            this.stopAnimation();
-            this.animation.addLoop(loop);
-        
-	        return loop;
-	    },
-		
-		saveLoop: function(loop, start, end, iterations) {
-			this.stopAnimation();
-			
-			loop.startTime = hemi.view.getTimeOfFrame(start);
-			loop.stopTime = hemi.view.getTimeOfFrame(end);
-			loop.iterations = iterations;
-			loop.current = 0;
-		},
+	    },   
 	    
 	    /**
 	     * Removes the given loop.
@@ -338,26 +270,6 @@ var editor = (function(module) {
 	            this.stopAnimation();
 	            this.animation.removeLoop(loop);
 	        }
-	    },
-	    
-	    /**
-	     * Creates an animation object
-	     */
-	    createAnimation: function() {	        
-	        if (!this.animation) {				
-	            this.animation = hemi.animation.createModelAnimation(
-					this.selectedModel, this.startTime, this.endTime);
-				this.animation.name = this.name;
-				this.animation.reset();
-				this.animDirty = true;
-	        }   
-	        else if (this.startTime != null && this.endTime != null) {				
-	            this.stopAnimation();
-	            this.animation.beginTime = this.startTime;
-	            this.animation.endTime = this.endTime;
-	            this.animation.reset();
-				this.animation.name = this.name;
-	        } 
 	    },
 		
 	    saveAnimation: function() {
@@ -380,10 +292,98 @@ var editor = (function(module) {
 			return retVal;
 		},
 		
-	    removeAnimation: function(animation) {
-	        this.notifyListeners(module.EventTypes.AnimationRemoved, animation);
-			animation.cleanup();
-		}
+		saveLoop: function(loop, start, end, iterations) {
+			this.stopAnimation();
+			
+			loop.startTime = hemi.view.getTimeOfFrame(start);
+			loop.stopTime = hemi.view.getTimeOfFrame(end);
+			loop.iterations = iterations;
+			loop.current = 0;
+		},
+	    
+	    /**
+	     * Selects a model based off the pickInfo.  Once selected, the model
+	     * gets highlighted and sends a hemi.msg.modelPicked message.  
+	     * 
+	     * @param {Object} pickInfo the pick information
+	     */
+	    selectModel: function(pickInfo) {			
+	        if (pickInfo) {
+	            var transform = pickInfo.shapeInfo.parent.transform,
+					model = hemi.world.getTranOwner(transform);
+				
+				this.setModel(model);
+	        }
+	    },
+		
+		setAnimation: function(animation) {
+			this.animation = animation;
+			this.name = animation.name;
+			this.startTime = animation.beginTime;
+			this.endTime = animation.endTime;
+			this.isUpdate = true;
+		},
+		
+		setEnd: function(endFrame) {
+			this.endTime = hemi.view.getTimeOfFrame(endFrame);
+		},
+		
+		setModel: function(model) {	            
+			if (this.selectedModel !== model) {
+        		this.unSelectAll();
+				this.notifyListeners(module.EventTypes.ModelPicked, model);
+	            this.selectedModel = model;
+	            this.hilightShapes();
+			}
+		},
+		
+		setName: function(name) {
+			this.name = name;
+		},
+		
+		setStart: function(startFrame) {
+			this.startTime = hemi.view.getTimeOfFrame(startFrame);
+		},
+	    
+	    /**
+	     * Stops an animation and resets to the beginning keyframe.
+	     */
+	    stopAnimation: function() {
+	        if (this.animation && this.animation.target.isAnimating) {
+	            this.animation.stop();
+	            this.animation.reset();
+	            this.animation.updateTarget(this.animation.currentTime);
+	        }
+	    },
+	    
+	    /**
+	     * Unselects the current selection(s).
+	     */
+	    unSelectAll: function() {
+	        if (this.selectedModel) {
+	            this.removeHilights();
+	            this.selectedModel = null;
+				this.animation = null;
+	        }
+	    },
+		
+	    worldCleaned: function() {
+	        var animations = hemi.world.getAnimations();
+	    	
+	        for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
+	            var anm = animations[ndx];
+	            this.notifyListeners(module.EventTypes.AnimationRemoved, anm);
+	        }
+	    },
+		
+	    worldLoaded: function() {
+			var animations = hemi.world.getAnimations();
+			
+			for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
+				var anm = animations[ndx];
+	            this.notifyListeners(module.EventTypes.AnimationCreated, anm);
+			}
+	    }
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -409,6 +409,129 @@ var editor = (function(module) {
 			this.hiddenItems = new Hashtable();		
 		},
 		
+		addLoopInput: function(loop, min, max) {
+			var wgt = this,
+				wrapper = jQuery('<li class="loopEditor"></li>'),
+				startVal = loop.startTime * hemi.view.FPS,
+				endVal = loop.stopTime * hemi.view.FPS,
+				itrVal = loop.iterations,
+				startInput = jQuery('<input class="loopStart blend" type="text" value="' + startVal + '"/>'),
+				endInput = jQuery('<input class="loopEnd blend" type="text" value="' + endVal + '"/>'),
+				itrInput = jQuery('<input type="text" class="blend" value="' + itrVal + '" />'),
+				startLbl = jQuery('<label>From</label>'),
+				endLbl = jQuery('<label>To</label>'),
+				itrLbl = jQuery('<label># Times</label>'),
+				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>'),
+				slider = jQuery('<div class="loopSlider"></div>').slider({
+						range: true,
+						min: min,
+						max: max,
+						slide: function(evt, ui) {
+							var min = ui.values[0],
+								max = ui.values[1];
+								
+							startInput.val(min).data('oldVal', min);	
+							endInput.val(max).data('oldVal', max);
+						},
+						values: [startVal, endVal]
+					}),
+				changeFcn = function(evt) {
+					var elem = jQuery(this),
+						loop = wrapper.data('obj'),
+						val = elem.val(),
+						begins = parseInt(startInput.val()),
+						ends = parseInt(endInput.val()),
+						itr = parseInt(itrInput.val()),
+						oldStart = startInput.data('oldVal'),
+						oldEnd = endInput.data('oldVal'),
+						oldItr = itrInput.data('oldVal'),
+						curMin = slider.slider('option', 'min'),
+						curMax = slider.slider('option', 'max');
+					
+					if (hemi.utils.isNumeric(val) && begins <= ends 
+							&& begins >= curMin && ends <= curMax) {
+						slider.slider('option', 'values', [begins, ends]);
+						startInput.data('oldVal', begins);
+						endInput.data('oldVal', ends);
+						itrInput.data('oldVal', itr);
+						
+		                wgt.notifyListeners(module.EventTypes.EditAnmLoop, {
+		                    loop: loop,
+							start: begins,
+							end: ends,
+							itr: itr
+		                });
+					}
+					else {
+						itrInput.val(oldItr);
+					}
+				};
+				
+			this.find('#anmLoopData').show();
+			startInput.bind('change', changeFcn).data('oldVal', startVal);	
+			endInput.bind('change', changeFcn).data('oldVal', endVal);
+			itrInput.bind('change', changeFcn).data('oldVal', itrVal);
+			slider.bind('slidechange', function(evt, ui) {
+				var loop = wrapper.data('obj'),				
+					values = slider.slider('option', 'values'),
+					itr = parseInt(itrInput.val());
+					
+	                wgt.notifyListeners(module.EventTypes.EditAnmLoop, {
+	                    loop: loop,
+						start: values[0],
+						end: values[1],
+						itr: itr
+	                });
+			});
+			
+			removeBtn.bind('click', function(evt) {
+				var loop = wrapper.data('obj');
+				
+				wrapper.remove();
+				wgt.notifyListeners(module.EventTypes.RemoveAnmLoop, loop);
+			});
+			
+			wrapper.append(slider).append(startLbl).append(startInput)
+				.append(endLbl).append(endInput).append(itrLbl)
+				.append(itrInput).append(removeBtn).data('obj', loop);
+				
+			// add validation
+			var checkFcn = function(elem) {
+				var val = elem.val(),
+					begins = parseInt(startInput.val()),
+					ends = parseInt(endInput.val()),
+					min = slider.slider('option', 'min'),
+					max = slider.slider('option', 'max'),
+					msg = null;
+					
+				if (val !== '' && !hemi.utils.isNumeric(val)) {
+					msg = 'must be a number';
+				}
+				else if (elem.hasClass('loopStart')) {
+					if (begins > ends && ends >= min) {
+						msg = 'begin must be less than end';
+					}
+					else if (begins < min) {
+						msg = 'begin must be greater than ' + min; 
+					}	
+				}
+				else if (elem.hasClass('loopEnd')) {
+					if (begins > ends && begins <= max) {
+						msg = 'end must be greater than beginning';
+					}
+					else if (ends > max) {
+						msg = 'end must be lass than ' + max;
+					}					
+				}
+				return msg;
+			};
+			
+			new module.ui.Validator(startInput, checkFcn);
+			new module.ui.Validator(endInput, checkFcn);
+			
+			this.loopList.append(wrapper);
+		},
+		
 		finishLayout: function() {
 			this._super();
 			this.slider = this.find('#anmSlider');
@@ -421,6 +544,7 @@ var editor = (function(module) {
 			this.beginInput = this.find('#anmBeginFrame');
 			this.endInput = this.find('#anmEndFrame');
 			this.loopList = this.find('#anmLoopList');
+			this.insLabel = this.find('#anmModelVal');
 			
 			var wgt = this,
 				inputs = this.find('#anmBeginFrame, #anmEndFrame, #anmName'),
@@ -610,33 +734,62 @@ var editor = (function(module) {
 				wgt.notifyListeners(module.EventTypes.CancelCreateAnm, null);
 				wgt.find('input.error').removeClass('error');
 			});
-		},
-		
-		validate: function() {
-	        var start = this.beginInput.val(),
-            	end = this.endInput.val(),
-            	name = this.find('#anmName').val();
-            
-            if (start && end) {
-				this.startBtn.removeAttr('disabled');
-                if (name) {
-                    this.saveBtn.removeAttr('disabled');
-                }
-            }
-            else {
-                this.saveBtn.attr('disabled', 'disabled');
-                this.startBtn.attr('disabled', 'disabled');
-            }			
-		},		
+		},	
+	    
+	    modelSelected: function(model) { 
+			var max = parseInt(model.getMaxAnimationTime() * hemi.view.FPS);
+			
+			if (max > 0) {
+				this.insLabel.html(model.name);
+				this.find('#anmKeyframes, #anmLoops, #anmPreview').show(200);
+				this.slider.slider('option', {
+					min: 0,
+					max: max,
+					values: [0, max]
+				});
+				this.beginInput.val(0).data('oldVal', 0);
+				this.endInput.val(max).data('oldVal', max);
+				this.notifyListeners(module.EventTypes.SetAnmBeginFrame, 0);
+				this.notifyListeners(module.EventTypes.SetAnmEndFrame, max);
+			}
+			else {
+				this.insLabel.html('Model has no animations');
+			}
+	    },
 		
 		reset: function() {
-	        this.find('#anmModelVal').html(this.config.instructions);
+	        this.insLabel.html(this.config.instructions);
 	        this.find('input[type="text"]').val('');
 	        this.find('#anmKeyframes, #anmLoops, #anmPreview').hide();
 	        this.find('#anmLoopList').find('.loopEditor').remove();
 			
 			this.saveBtn.attr('disabled', 'disabled');
 		},
+		
+		resize: function(maxHeight) {
+			this._super(maxHeight);
+			var form = this.find('form'),
+				oldHeight = form.outerHeight(true),
+				borderHeight = parseInt(form.css('borderTopWidth')) 
+					+ parseInt(form.css('borderBottomWidth')),
+				marginHeight = parseInt(form.css('marginTop')) 
+					+ parseInt(form.css('marginBottom')),
+				paddingHeight = parseInt(form.css('paddingTop')) 
+					+ parseInt(form.css('paddingBottom')),
+				newHeight = maxHeight - borderHeight - marginHeight 
+					- paddingHeight;
+			
+			if (form) {
+				form.height(newHeight);
+				
+				if (oldHeight > newHeight) {
+					form.addClass('scrolling');
+				}
+				else {
+					form.removeClass('scrolling');
+				}
+			}
+		},	
 		
 		set: function(animation) {
 	        this.find('#anmKeyframes, #anmLoops, #anmPreview').show();   
@@ -664,166 +817,21 @@ var editor = (function(module) {
 			this.notifyListeners(module.EventTypes.SetAnimation, animation);
 		},
 		
-		addLoopInput: function(loop, min, max) {
-			var wgt = this,
-				wrapper = jQuery('<li class="loopEditor"></li>'),
-				startVal = loop.startTime * hemi.view.FPS,
-				endVal = loop.stopTime * hemi.view.FPS,
-				itrVal = loop.iterations,
-				startInput = jQuery('<input class="loopStart blend" type="text" value="' + startVal + '"/>'),
-				endInput = jQuery('<input class="loopEnd blend" type="text" value="' + endVal + '"/>'),
-				itrInput = jQuery('<input type="text" class="blend" value="' + itrVal + '" />'),
-				startLbl = jQuery('<label>From</label>'),
-				endLbl = jQuery('<label>To</label>'),
-				itrLbl = jQuery('<label># Times</label>'),
-				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>'),
-				slider = jQuery('<div class="loopSlider"></div>').slider({
-						range: true,
-						min: min,
-						max: max,
-						slide: function(evt, ui) {
-							var min = ui.values[0],
-								max = ui.values[1];
-								
-							startInput.val(min).data('oldVal', min);	
-							endInput.val(max).data('oldVal', max);
-						},
-						values: [startVal, endVal]
-					}),
-				changeFcn = function(evt) {
-					var elem = jQuery(this),
-						loop = wrapper.data('obj'),
-						val = elem.val(),
-						begins = parseInt(startInput.val()),
-						ends = parseInt(endInput.val()),
-						itr = parseInt(itrInput.val()),
-						oldStart = startInput.data('oldVal'),
-						oldEnd = endInput.data('oldVal'),
-						oldItr = itrInput.data('oldVal'),
-						curMin = slider.slider('option', 'min'),
-						curMax = slider.slider('option', 'max');
-					
-					if (hemi.utils.isNumeric(val) && begins <= ends 
-							&& begins >= curMin && ends <= curMax) {
-						slider.slider('option', 'values', [begins, ends]);
-						startInput.data('oldVal', begins);
-						endInput.data('oldVal', ends);
-						itrInput.data('oldVal', itr);
-						
-		                wgt.notifyListeners(module.EventTypes.EditAnmLoop, {
-		                    loop: loop,
-							start: begins,
-							end: ends,
-							itr: itr
-		                });
-					}
-					else {
-						itrInput.val(oldItr);
-					}
-				};
-				
-			this.find('#anmLoopData').show();
-			startInput.bind('change', changeFcn).data('oldVal', startVal);	
-			endInput.bind('change', changeFcn).data('oldVal', endVal);
-			itrInput.bind('change', changeFcn).data('oldVal', itrVal);
-			slider.bind('slidechange', function(evt, ui) {
-				var loop = wrapper.data('obj'),				
-					values = slider.slider('option', 'values'),
-					itr = parseInt(itrInput.val());
-					
-	                wgt.notifyListeners(module.EventTypes.EditAnmLoop, {
-	                    loop: loop,
-						start: values[0],
-						end: values[1],
-						itr: itr
-	                });
-			});
-			
-			removeBtn.bind('click', function(evt) {
-				var loop = wrapper.data('obj');
-				
-				wrapper.remove();
-				wgt.notifyListeners(module.EventTypes.RemoveAnmLoop, loop);
-			});
-			
-			wrapper.append(slider).append(startLbl).append(startInput)
-				.append(endLbl).append(endInput).append(itrLbl)
-				.append(itrInput).append(removeBtn).data('obj', loop);
-				
-			// add validation
-			var checkFcn = function(elem) {
-				var val = elem.val(),
-					begins = parseInt(startInput.val()),
-					ends = parseInt(endInput.val()),
-					min = slider.slider('option', 'min'),
-					max = slider.slider('option', 'max'),
-					msg = null;
-					
-				if (val !== '' && !hemi.utils.isNumeric(val)) {
-					msg = 'must be a number';
-				}
-				else if (elem.hasClass('loopStart')) {
-					if (begins > ends && ends >= min) {
-						msg = 'begin must be less than end';
-					}
-					else if (begins < min) {
-						msg = 'begin must be greater than ' + min; 
-					}	
-				}
-				else if (elem.hasClass('loopEnd')) {
-					if (begins > ends && begins <= max) {
-						msg = 'end must be greater than beginning';
-					}
-					else if (ends > max) {
-						msg = 'end must be lass than ' + max;
-					}					
-				}
-				return msg;
-			};
-			
-			new module.ui.Validator(startInput, checkFcn);
-			new module.ui.Validator(endInput, checkFcn);
-			
-			this.loopList.append(wrapper);
-		},
-	    
-	    modelSelected: function(model) { 
-			var max = parseInt(model.getMaxAnimationTime() * hemi.view.FPS);
-			    
-	        this.find('#anmModelVal').html(model.name);
-	        this.find('#anmKeyframes, #anmLoops, #anmPreview').show(200);
-			this.slider.slider('option', {
-				min: 0,
-				max: max,
-				values: [0, max]
-			});
-			this.beginInput.val(0).data('oldVal', 0);
-			this.endInput.val(max).data('oldVal', max);
-	    },
-		
-		resize: function(maxHeight) {
-			this._super(maxHeight);
-			var form = this.find('form'),
-				oldHeight = form.outerHeight(true),
-				borderHeight = parseInt(form.css('borderTopWidth')) 
-					+ parseInt(form.css('borderBottomWidth')),
-				marginHeight = parseInt(form.css('marginTop')) 
-					+ parseInt(form.css('marginBottom')),
-				paddingHeight = parseInt(form.css('paddingTop')) 
-					+ parseInt(form.css('paddingBottom')),
-				newHeight = maxHeight - borderHeight - marginHeight 
-					- paddingHeight;
-			
-			if (form) {
-				form.height(newHeight);
-				
-				if (oldHeight > newHeight) {
-					form.addClass('scrolling');
-				}
-				else {
-					form.removeClass('scrolling');
-				}
-			}
+		validate: function() {
+	        var start = this.beginInput.val(),
+            	end = this.endInput.val(),
+            	name = this.find('#anmName').val();
+            
+            if (start && end) {
+				this.startBtn.removeAttr('disabled');
+                if (name) {
+                    this.saveBtn.removeAttr('disabled');
+                }
+            }
+            else {
+                this.saveBtn.attr('disabled', 'disabled');
+                this.startBtn.attr('disabled', 'disabled');
+            }			
 		}
 	});
 	
@@ -850,20 +858,6 @@ var editor = (function(module) {
 			this.items = new Hashtable();		
 		},
 		
-		layoutExtra: function() {
-			this.buttonDiv = jQuery('<div class="buttons"></div>');
-			this.createBtn = jQuery('<button id="createAnimation">Create Animation</button>');
-			var wgt = this;
-			
-			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.CreateAnimation, null);
-			});
-			
-			this.buttonDiv.append(this.createBtn);
-			
-			return this.buttonDiv;
-		},
-		
 		bindButtons: function(li, obj) {
 			var wgt = this;
 			
@@ -880,6 +874,20 @@ var editor = (function(module) {
 		
 		getOtherHeights: function() {
 			return this.buttonDiv.outerHeight(true);
+		},
+		
+		layoutExtra: function() {
+			this.buttonDiv = jQuery('<div class="buttons"></div>');
+			this.createBtn = jQuery('<button id="createAnimation">Create Animation</button>');
+			var wgt = this;
+			
+			this.createBtn.bind('click', function(evt) {
+				wgt.notifyListeners(module.EventTypes.CreateAnimation, null);
+			});
+			
+			this.buttonDiv.append(this.createBtn);
+			
+			return this.buttonDiv;
 		}
 	});
 	
@@ -944,26 +952,9 @@ var editor = (function(module) {
 	            var isDown = value == module.tools.ToolConstants.MODE_DOWN;				
 	            model.enableModelPicking(isDown);
 	            model.stopAnimation();
-	        });
+	        });	
 			
-			// creat animation widget specific
-			crtAnmWgt.addListener(module.EventTypes.RemoveAnmLoop, function(value) {
-				model.removeLoop(value);
-			});			
-			crtAnmWgt.addListener(module.EventTypes.SetAnimation, function(value) {
-				if (value === null && model.animDirty) {
-					model.removeAnimation(model.animation);
-					model.animDirty = false;
-				}
-				
-				model.animation = value;
-			});			
-			crtAnmWgt.addListener(module.EventTypes.StartPreview, function(value) {
-	            model.previewAnimation();			
-			});	        
-	        crtAnmWgt.addListener(module.EventTypes.StopPreview, function(value) {
-	            model.stopAnimation();
-	        });	        
+			// creat animation widget specific		    
 	        crtAnmWgt.addListener(module.EventTypes.AddAnmLoop, function(obj) {
 				model.setStart(obj.start);
 				model.setEnd(obj.end);
@@ -972,11 +963,18 @@ var editor = (function(module) {
 						obj.loopItr);
 						
 	            crtAnmWgt.addLoopInput(loop, obj.start, obj.end);      
-	        });	     
+	        });	  	
+			crtAnmWgt.addListener(module.EventTypes.CancelCreateAnm, function () {
+				anmLstWgt.setVisible(true);
+				model.unSelectAll();
+			});   
 	        crtAnmWgt.addListener(module.EventTypes.EditAnmLoop, function(obj) {				
 	            var loop = model.saveLoop(obj.loop, obj.start, obj.end, 
 					obj.itr);     
-	        });		
+	        });	
+			crtAnmWgt.addListener(module.EventTypes.RemoveAnmLoop, function(value) {
+				model.removeLoop(value);
+			});		
 			crtAnmWgt.addListener(module.EventTypes.SaveAnimation, function (value) {
 				var animation = model.saveAnimation();       	            
 	            if (animation) {
@@ -986,6 +984,14 @@ var editor = (function(module) {
 	                model.unSelectAll();
 	            }
 			});			
+			crtAnmWgt.addListener(module.EventTypes.SetAnimation, function(value) {
+				if (value === null && model.animDirty) {
+					model.removeAnimation(model.animation);
+					model.animDirty = false;
+				}
+				
+				model.animation = value;
+			});		
 			crtAnmWgt.addListener(module.EventTypes.SetAnmBeginFrame, function (starts) {
 				model.setStart(starts);     
 			});			
@@ -994,11 +1000,13 @@ var editor = (function(module) {
 			});			
 			crtAnmWgt.addListener(module.EventTypes.SetAnmName, function (name) {
 				model.setName(name);     
-			});			
-			crtAnmWgt.addListener(module.EventTypes.CancelCreateAnm, function () {
-				anmLstWgt.setVisible(true);
-				model.unSelectAll();
-			});
+			});	
+			crtAnmWgt.addListener(module.EventTypes.StartPreview, function(value) {
+	            model.previewAnimation();			
+			});	        
+	        crtAnmWgt.addListener(module.EventTypes.StopPreview, function(value) {
+	            model.stopAnimation();
+	        });	    	
 			
 			// animation list widget specific
 			anmLstWgt.addListener(module.EventTypes.CreateAnimation, function() {
@@ -1016,23 +1024,23 @@ var editor = (function(module) {
 				model.removeAnimation(animation);
 			});
 	        
-			// model specific
-	        model.addListener(module.EventTypes.ModelPicked, function(model) {
-	            crtAnmWgt.modelSelected(model);
-	        });			
+			// model specific	
 			model.addListener(module.EventTypes.AnimationCreated, function(animation) {
 				anmLstWgt.add(animation);
-			});	        
-	        model.addListener(module.EventTypes.AnimationUpdated, function(animation) {
-	            anmLstWgt.update(animation);
-	        });			
+			});	     	
 	        model.addListener(module.EventTypes.AnimationRemoved, function(animation) {
 	            anmLstWgt.remove(animation);
 	        });				
 	        model.addListener(module.EventTypes.AnimationStopped, function(value) {
 	            crtAnmWgt.find('#anmStartBtn').removeAttr('disabled');
 	            crtAnmWgt.find('#anmStopBtn').attr('disabled', 'disabled');
-	        });
+	        });   
+	        model.addListener(module.EventTypes.AnimationUpdated, function(animation) {
+	            anmLstWgt.update(animation);
+	        });		
+	        model.addListener(module.EventTypes.ModelPicked, function(model) {
+	            crtAnmWgt.modelSelected(model);
+	        });		
 	    }
 	});
     

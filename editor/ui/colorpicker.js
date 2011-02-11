@@ -26,7 +26,8 @@ var editor = (function(module) {
 	module.ui.ColorPickerDefaults = {
 		container: null,
 		inputId: 'color',
-		buttonId: 'colorPicker'
+		buttonId: 'colorPicker',
+		containerClass: ''
 	};
 	
 	module.ui.ColorPicker = module.ui.Component.extend({
@@ -38,7 +39,8 @@ var editor = (function(module) {
 		
 		finishLayout: function() {
 			// initialize container
-			this.container = this.config.container;
+			this.container = jQuery('<div></div>');
+			this.container.addClass(this.config.containerClass);
 			
 			// initialize inputs
 			this.rInput = jQuery('<input type="text" id="' + this.config.inputId + 'R" class="rNdx color"/>');
@@ -126,10 +128,10 @@ var editor = (function(module) {
 		setupAutoFills: function() {
 			var wgt = this;
 				
-			this.rInput.val('r').attr('disabled', 'disabled');
-			this.gInput.val('g').attr('disabled', 'disabled');
-			this.bInput.val('b').attr('disabled', 'disabled');
-			this.aInput.val('a').attr('disabled', 'disabled');
+			this.rInput.val('r');
+			this.gInput.val('g');
+			this.bInput.val('b');
+			this.aInput.val('a');
 						
 			this.find('.color').bind('keydown', function(evt) {
 				var elem = jQuery(this);
@@ -154,7 +156,7 @@ var editor = (function(module) {
 					elem.val('');
 				}
 			})
-			.addClass('vectorHelper');
+			.addClass('vectorHelper').attr('disabled', 'disabled');
 		},
 		
 		setColor: function(color) {	

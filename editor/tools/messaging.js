@@ -540,9 +540,9 @@ var editor = (function(module) {
 		chainTable.put('hemi.motion.Translator' + '_' + 'onRender', [hemi.msg.stop]);
 		// Scene
 		chainTable.put('hemi.scene.Scene' + '_' + 'load', [hemi.msg.load]);
-		chainTable.put('hemi.scene.Scene' + '_' + 'nextScene', [hemi.msg.load]); // Calls load(), unload()
-		chainTable.put('hemi.scene.Scene' + '_' + 'previousScene', [hemi.msg.load]); // Calls load(), unload()
-		chainTable.put('hemi.scene.Scene' + '_' + 'unload', [hemi.msg.load]);
+		chainTable.put('hemi.scene.Scene' + '_' + 'nextScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.scene.Scene' + '_' + 'previousScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.scene.Scene' + '_' + 'unload', [hemi.msg.unload]);
 		// Camera
 		chainTable.put('hemi.view.Camera' + '_' + 'moveOnCurve', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
 		chainTable.put('hemi.view.Camera' + '_' + 'moveToView', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
@@ -961,10 +961,10 @@ var editor = (function(module) {
 			this.container = jQuery('<div class="msgEdtListItm"></div>');
 			this.title = jQuery('<span class="msgEdtItemTitle"></span>');
 			this.buttonDiv = jQuery('<div class="msgEdtButtons"></div>');
-			this.removeBtn = jQuery('<button class="msgEdtRemoveBtn dialogBtn" title="Remove">Remove</button>');
-			this.editBtn = jQuery('<button class="msgEdtEditBtn dialogBtn" title="Edit">Edit</button>');
-			this.chainBtn = jQuery('<button class="msgEdtChainBtn dialogBtn" title="Chain">Chain</button>');
-			this.cloneBtn = jQuery('<button class="msgEdtCloneBtn dialogBtn" title="Clone">Clone</button>');
+			this.removeBtn = jQuery('<button class="removeBtn" title="Remove">Remove</button>');
+			this.editBtn = jQuery('<button class="editBtn" title="Edit">Edit</button>');
+			this.chainBtn = jQuery('<button class="chainBtn" title="Chain">Chain</button>');
+			this.cloneBtn = jQuery('<button class="cloneBtn" title="Clone">Clone</button>');
 			
 			this.buttonDiv.append(this.editBtn).append(this.chainBtn)
 				.append(this.cloneBtn).append(this.removeBtn);
@@ -1266,11 +1266,10 @@ var editor = (function(module) {
 		},
 		
 		addEffectType: function(citizen) {
-			var json = createCitizenTypeJson(citizen, EFFECT_PREFIX),
-				audioJson = createModuleJson(hemi.audio);
+			var json = createCitizenTypeJson(citizen, EFFECT_PREFIX);
 			
 			if (this.effectTree === null) {
-				this.createEffectTree([json, audioJson]);
+				this.createEffectTree([json]);
 			} else {
 				this.effectTree.jstree('create_node', -1, 'last', {
 					json_data: json
@@ -1280,10 +1279,12 @@ var editor = (function(module) {
 				
 		createCauseTree: function(json) {
 			var that = this,
-				wildcardCause = createWildcardJson();
+				wildcardCause = createWildcardJson(),
+				causeWrapper = this.mainPanel.find(CAUSE_WRAPPER);
 			
 			json.unshift(wildcardCause);
 			this.causeTree = jQuery('<div id="causeTree"></div>');
+			causeWrapper.append(this.causeTree);
 			
 			this.causeTree.bind('select_node.jstree', function(evt, data) {
 				var elem = data.rslt.obj,
@@ -1360,8 +1361,11 @@ var editor = (function(module) {
 		},
 		
 		createCitizenTree: function(json) {
-			var that = this;
+			var that = this,
+				citizenWrapper = this.mainPanel.find(CITIZEN_WRAPPER);
+				
 			this.citizenTree = jQuery('<div id="msgEdtCitizensTree"></div>');
+			citizenWrapper.append(this.citizenTree);
 			
 			this.citizenTree.bind('select_node.jstree', function(evt, data) {
 				var elem = data.rslt.obj,
@@ -1420,8 +1424,11 @@ var editor = (function(module) {
 		},
 		
 		createEffectTree: function(json) {
-			var that = this;
+			var that = this,
+				effectWrapper = this.mainPanel.find(EFFECT_WRAPPER);
+				
 			this.effectTree = jQuery('<div id="effectTree"></div>');
+			effectWrapper.append(this.effectTree);
 			
 			this.effectTree.bind('select_node.jstree', function(evt, data) {
 				var elem = data.rslt.obj,
@@ -1823,7 +1830,7 @@ var editor = (function(module) {
 				var level = view.chainParent.data('level') + 1,
 					lastItem = lastChild(view.chainParent);
 				
-				this.eventList.insert(li, lastItem);
+				this.eventList.after(li, lastItem);
 				li.getUI().data('chainParent', view.chainParent)
 					.data('level', level)
 					.find('span').css('paddingLeft', level * 20 + 'px');

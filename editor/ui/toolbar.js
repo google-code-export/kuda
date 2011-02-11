@@ -37,7 +37,7 @@ var editor = (function(module) {
 		addTool: function(tool) {
 			if (tool instanceof module.tools.ToolView) {
 				this.tools.push(tool);
-				this.container.append(tool.getToolbarDisplay());
+				this.container.append(tool.getUI());
 				
 				tool.addListener(module.EventTypes.ToolClicked, this);
 			}
@@ -52,7 +52,7 @@ var editor = (function(module) {
 	            
 	            if (spliced.length == 1) {
 	                found = spliced[0];
-					found.getToolbarDisplay().remove();
+					found.getUI().remove();
 	            }
 	        }
 	        

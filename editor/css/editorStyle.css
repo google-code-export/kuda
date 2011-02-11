@@ -27,7 +27,7 @@ html, body {
     overflow: hidden;
 }
 
-html, body, h1, form, fieldset, legend, ol, li {
+h1, form, fieldset, legend, ol, li {
     margin: 0;
     padding: 0;
 }
@@ -434,6 +434,8 @@ input.error {
     text-indent: -5000px;
 	padding: 0;
 	text-align: left;
+	width: 48px;
+	height: 48px;
 }
 
 #complexTools .toolBtn {
@@ -442,10 +444,10 @@ input.error {
 .toolBtn span {
     background: url(../images/toolbarSprite.png) no-repeat 0 0;
 	display: block;
-	width: 44px;
-	height: 44px;
+	width: 48px;
+	height: 48px;
 	float: left;
-	left: -1px;
+	margin: -3px 0 0 -3px;
 }
 
 .toolBtn:hover {
@@ -458,91 +460,91 @@ input.error {
 }
 
 #modelBrowserBtn span {
-	background-position: -2px -2px;
+	background-position: 0 0;
 }
 
 #modelBrowserBtn:hover span {
-    background-position: -2px -50px;
+    background-position: 0 -48px;
 }
 
 #animationsBtn span {
-	background-position: -50px -2px;
+	background-position: -48px 0;
 }
 
 #animationsBtn:hover span {
-    background-position: -50px -50px;
+    background-position: -48px -48px;
 }
 
 #viewpointsBtn span {
-	background-position: -98px -2px;
+	background-position: -96px 0;
 }
 
 #viewpointsBtn:hover span {
-    background-position: -98px -50px;
+    background-position: -96px -48px;
 }
 
 #messagingBtn span {
-	background-position: -194px -2px;
+	background-position: -192px 0;
 }
 
 #messagingBtn:hover span {
-    background-position: -194px -50px;
+    background-position: -192px -48px;
 }
 
 #scenesBtn span {
-	background-position: -242px -2px;
+	background-position: -240px 0;
 }
 
 #scenesBtn:hover span {
-    background-position: -242px -50px;
+    background-position: -240px -48px;
 }
 
 #particleEffectsBtn span {
-	background-position: -290px -2px;
+	background-position: -288px 0;
 }
 
 #particleEffectsBtn:hover span {
-	background-position: -290px -50px;
+	background-position: -288px -48px;
 }
 
 #shapesBtn span {
-	background-position: -338px -2px;
+	background-position: -336px 0;
 }
 
 #shapesBtn:hover span {
-	background-position: -338px -50px;
+	background-position: -336px -48px;
 }
 
 #hudBtn span {
-	background-position: -386px -2px;
+	background-position: -384px 0;
 }
 
 #hudBtn:hover span {
-	background-position: -386px -50px;
+	background-position: -384px -48px;
 }
 
 #fogBtn span {
-	background-position: -434px -2px;
+	background-position: -432px 0;
 }
 
 #fogBtn:hover span {
-	background-position: -434px -50px;
+	background-position: -432px -48px;
 }
 
 #motionsBtn span {
-	background-position: -146px -2px;
+	background-position: -144px 0;
 }
 
 #motionsBtn:hover span {
-	background-position: -146px -50px;
+	background-position: -144px -48px;
 }
 
 #manipsBtn span {
-	background-position: -482px -2px;
+	background-position: -480px 0;
 }
 
 #manipsBtn:hover span {
-	background-position: -482px -50px;
+	background-position: -480px -48px;
 }
 
 .toolBtn.down {
@@ -648,13 +650,14 @@ ol.listWidget {
 	width: 100%;
 	clear: both;
 	float: left;
-	padding: 5px 0;
+	padding: 5px 0 0;
 	line-height: 30px;
+	position: relative;
 }
 ol.listWidget li {
 	display: list-item;
 	width: 290px;
-	padding: 5px 0 5px 10px;
+	padding: 5px 0 0 10px;
 }
 ol.listWidget li>div {
 	float: right;
@@ -667,8 +670,8 @@ ol.listWidget li>div {
 	float: left;
 	margin: 0 10px;
 }
-.listWidget li button {
-	margin: 0 2px 0 0;
+ol.listWidget li span {
+	margin: 0;
 }
 .listWidget .msgEdtListItm {
 	float: left;
@@ -687,8 +690,120 @@ ol.listWidget li>div {
 }
 .listWidget .buttonContainer {
 	float: right;
-	padding-right: 10px;
+	padding: 0 10px 5px 0;
 }
+
+/**
+ * List widget buttons
+ */
+.listWidget button {
+	text-indent: -5000px;
+	height: 24px;
+	width: 24px;
+	border: 1px solid transparent;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	padding: 3px;
+	background: none;
+}
+.listWidget button:before {
+	background: url(../images/listOptionsSprite.png) no-repeat;
+	height: 16px;
+	width: 16px;
+	border: none;
+	padding: 0;
+	content: "";
+	float: left;
+}
+.listWidget button:hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #ededed, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fff));
+	border-color: #dcdcdc;
+}
+.listWidget button.editBtn:before {
+	background-position: 0 0;
+}
+.listWidget button.editBtn:hover:before {
+	background-position: -16px 0;
+}
+.listWidget button.removeBtn:before {
+	background-position: 0 -32px;
+}
+.listWidget button.removeBtn:hover:before {
+	background-position: -16px -32px;
+}
+.listWidget button.cloneBtn:before {
+	background-position: 0 -64px;
+}
+.listWidget button.cloneBtn:hover:before {
+	background-position: -16px -64px;
+}
+.listWidget button.chainBtn:before {
+	background-position: 0 -48px;
+}
+.listWidget button.chainBtn:hover:before {
+	background-position: -16px -48px;
+}
+.listWidget button.chainBtn[disabled]:before {
+	background-position: 0 -80px;
+}
+.listWidget button.addBtn {
+	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fff));
+	border-color: #eee;
+	padding: 3px 6px;
+	width: 30px;
+}
+.listWidget button.addBtn:before {
+	background-position: 0 -96px;
+}
+.listWidget button.addBtn:hover:before {
+	background-position: -16px -96px;
+}
+
+/**
+ * Tree selector widget
+ */
+.treeSelector {
+	width: 100%;
+}
+.treeSelectorPnl {
+	background: #fff;
+	border: 1px solid #ccc;
+	overflow: auto;
+}
+.treeSelector input.treeSelectorIpt {
+	width: 213px;
+	float: left;
+}
+.treeSelectorBtn {
+	padding: 8px 11px;
+	overflow: hidden;
+	text-indent: 30px;
+	width: 30px;
+	height: 27px;
+}
+.treeSelectorBtn:hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fff));
+}
+.treeSelectorBtn:before {
+	background: url(../images/listOptionsSprite.png) -32px 0 no-repeat;
+	height: 7px;
+	width: 8px;
+	float: left;
+	margin-left: 6px;
+	transform: rotate(180deg);
+	-moz-transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
+	content: "";
+}
+.treeSelectorBtn.selected:before {
+	transform: none;
+	-moz-transform: none;
+	-webkit-transform: none;
+}
+
 /**
  * General form styling
  */
@@ -751,7 +866,13 @@ form ol > li {
 .sidebarForm ol > li {
 	width: 255px;
 }
-form ol > li > div:not(.ui-slider) {
+.sidebarForm ol > li > div {
+	float: left;
+}
+.sidebarForm li > div.ui-slider {
+	width: 245px;
+}
+form ol > li > div:not(.ui-slider, .buttons) {
 	float: left;
 }
 
@@ -885,12 +1006,6 @@ form input[type=radio] {
     margin-right: 5px;
 }
 form input.blend {
-	background: none;
-	border: none;
-	color: #2A6275;
-	box-shadow: none;
-	-moz-box-shadow: none;
-	-webkit-box-shadow: none;
 }
 
 form ol#viewpoints li, form ol#eventsTest li, form ol#viewpointsTest li {
@@ -1062,6 +1177,7 @@ form button.icon {
 	height: 16px;
 	width: 16px;
 	border: none;
+	box-shadow: none;
 	-moz-box-shadow: none;
 	margin: 5px;
 	padding: 0;
@@ -1368,7 +1484,7 @@ form #anmLoops label {
 #modelLoaderDlg p {	
     text-align: center;
 }
-#modelLoaderDlg form input[type="text"] {
+#modelLoaderDlg form input[type=text] {
 	width: 165px;
 }
 #modelLoaderDlg form label {
@@ -1535,28 +1651,6 @@ li.even>ul>li:nth-child(even)>div {
 	float: right;
 	padding-right: 10px;
 }
-.msgEdtButtons button {
-	background: url(../images/listOptionsSprite.png) no-repeat;
-	text-indent: -5000px;
-	height: 16px;
-	width: 16px;
-	border: none;
-	-moz-box-shadow: none;
-	margin: 5px;
-	padding: 0;
-}
-button.msgEdtCloneBtn {
-	background-position: 0 -64px;
-}
-button.msgEdtRemoveBtn {
-	background-position: 0 -32px;
-}
-button.msgEdtChainBtn {
-	background-position: 0 -48px;
-}
-button.msgEdtChainBtn[disabled] {
-	background-position: 0 -80px;
-}
 .restricted a:not(.restrictedSelectable) {
 	color: #999;
 	background: none;
@@ -1607,6 +1701,101 @@ button.msgEdtChainBtn[disabled] {
  */
 #scnName {
 	float: left;
+}
+.scnEvtListWrapper {
+	float: left;
+	width: 259px;
+	margin: 0 0 0 -30px;
+	padding: 5px 10px 15px 30px;
+	background: #fffdf2;
+	box-shadow: 0 0 3px #ddd;
+	-moz-box-shadow: 0 0 3px #ddd;  
+}
+.scnEvtListArrow {
+	display: block; 
+	position: absolute;
+	top: 35px; 
+	left: 35px; 
+	width: 13px;
+	height: 13px;
+	background: #fffdf2;
+	box-shadow: -1px -1px 2px #ddd;
+	-moz-box-shadow: -1px -1px 2px #ddd;  
+	transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+.scnEvtListWrapper h2 {
+	float: left;
+	width: 100%;
+}
+.scnEvtList {
+	float: left;
+	padding: 0 0 0 20px;
+}
+ul.scnEvtList li {
+	padding: 0;
+	list-style: circle inside;
+	width: 240px;
+}
+ul.scnEvtList li:hover {
+	background: none;
+}
+ul.scnEvtList li > div {	
+	width: 220px;
+}
+ul.scnEvtList li > div.add {
+	width: 240px;
+}
+ul.scnEvtList li .buttonContainer {
+	padding-right: 0;
+}
+ul.scnEvtList li.button {
+	list-style: none;
+}
+#scnEvtTargetParams {
+	padding: 0;
+}
+#scnEvtTargetParams input[type=text] {
+	width: 128px;
+	float: left;
+}
+#scnEvtTargetParams li {
+	list-style: none;
+	float: left;
+}
+#scnEvtTargetParams label {
+	width: 80px;
+}
+.scnEvtCitTreeBtn {
+	padding: 8px 11px;
+	overflow: hidden;
+	text-indent: 30px;
+	width: 30px;
+	height: 27px;
+}
+.scnEvtCitTreeBtn:before {
+	background: url(../images/listOptionsSprite.png) -32px 0 no-repeat;
+	height: 7px;
+	width: 8px;
+	float: left;
+	margin-left: 6px;
+	transform: rotate(180deg);
+	-moz-transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
+	content: "";
+}
+.scnEvtCitTreeBtn.selected:before {
+	transform: none;
+	-moz-transform: none;
+	-webkit-transform: none;
+}
+#scnEvtCitizensTree {
+	background: #fff;
+	border: 1px solid #ccc;
+	overflow: auto;
+	height: 100px;
+	width: 171px;
 }
 
 /**

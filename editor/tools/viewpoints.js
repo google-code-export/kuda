@@ -25,11 +25,17 @@ var editor = (function(module) {
 	module.EventTypes.ViewpointUpdated = "viewpoints.ViewpointUpdated";
     module.EventTypes.CameraUpdated = "viewpoints.CameraUpdated";
 	
+	// Create Viewpoint Sidebar Widget events
+	module.EventTypes.SaveViewpoint = "viewpoints.SaveViewpoint";
+	module.EventTypes.CancelViewpointEdit = "viewpoints.CancelViewpointEdit";
+	module.EventTypes.PreviewViewpoint = "viewpoints.PreviewViewpoint";
+	module.EventTypes.AutoFill = "viewpoints.AutoFill";
+	
 	// Viewpoint List Sidebar Widget events
-	module.EventTypes.AddViewpoint = "viewpoints.AddViewpoint";
+    module.EventTypes.AddViewpoint = "viewpoints.AddViewpoint";
     module.EventTypes.EditViewpoint = "viewpoints.EditViewpoint";
     module.EventTypes.RemoveViewpoint = "viewpoints.RemoveViewpoint";
-    module.EventTypes.MoveToViewpoint = "viewpoints.v";
+    module.EventTypes.MoveToViewpoint = "viewpoints.MoveToViewpoint";
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -42,6 +48,86 @@ var editor = (function(module) {
 	module.tools.ViewpointsModel = module.tools.ToolModel.extend({
 		init: function() {
 			this._super();
+		},
+		
+		cancelViewpointEdit: function() {
+			if (this.origCamPosition) {
+				this.moveToViewpoint(this.origCamPosition);
+			}
+			
+			this.origCamPosition = null;
+			this.currentVp = null;
+		},
+		
+		createViewpoint: function(params) {
+			var viewpoint;
+			
+			viewpoint = this.currentVp ? this.currentVp 
+				: new hemi.view.Viewpoint();
+				
+			viewpoint.eye = params.eye;
+			viewpoint.target = params.target;
+			viewpoint.fov = params.fov;
+			viewpoint.np = params.np;
+			viewpoint.fp = params.fp;
+			viewpoint.up = hemi.world.camera.up;
+			viewpoint.name = params.name || '';
+			
+			return viewpoint;
+		},
+		
+		editViewpoint: function(viewpoint) {
+			this.currentVp = viewpoint;			
+		},
+		
+		enableMonitoring: function(enable) {
+			if (enable) {
+				hemi.view.addRenderListener(this);
+			}
+			else {
+				hemi.view.removeRenderListener(this);
+			}
+		},
+		
+		getCameraViewpoint: function(name) {
+			return hemi.view.createViewpoint(name, hemi.world.camera);
+		},
+		
+		moveToViewpoint: function(viewpoint) {
+			hemi.world.camera.moveToView(viewpoint);
+		},
+		
+		onRender: function(renderEvt) {
+			this.notifyListeners(module.EventTypes.CameraUpdated);
+		},
+		
+		previewViewpoint: function(params) {
+			if (this.origCamPosition == null) {
+				this.origCamPosition = hemi.view.createViewpoint(params.name, hemi.world.camera);
+			}
+			var viewpoint = this.createViewpoint(params);
+			
+			this.moveToViewpoint(viewpoint);
+		},
+		
+		removeViewpoint: function(viewpoint) {
+			this.notifyListeners(module.EventTypes.ViewpointRemoved, viewpoint);
+			viewpoint.cleanup();
+		},
+		
+		saveViewpoint: function(params) {
+			var viewpoint = this.createViewpoint(params),
+				msgType = this.currentVp ? module.EventTypes.ViewpointUpdated
+					: module.EventTypes.ViewpointAdded;
+				
+			this.notifyListeners(msgType, viewpoint);
+			
+			if (this.origCamPosition) {
+				this.moveToViewpoint(this.origCamPosition);
+			}
+			
+			this.currentVp = null;
+			this.origCamPosition = null;
 		},
 		
 	    worldCleaned: function() {
@@ -60,47 +146,197 @@ var editor = (function(module) {
 	            var vpt = viewpoints[ndx];
 	            this.notifyListeners(module.EventTypes.ViewpointAdded, vpt);
 	        }
-	    },
+	    }
+	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//                      Create Viewpoint Sidebar Widget                       //
+////////////////////////////////////////////////////////////////////////////////  
+ 
+	/*
+	 * Configuration object for the CreateVptSBWidget.
+	 */
+	module.tools.CreateVptSBWidgetDefaults = {
+		name: 'createVptSBWidget',
+		uiFile: 'editor/tools/html/viewpointsForms.htm',
+		manualVisible: true
+	};
+	
+	module.tools.CreateVptSBWidget = module.ui.SidebarWidget.extend({
+		init: function(options) {
+			var newOpts = jQuery.extend({}, 
+				module.tools.CreateVptSBWidgetDefaults, options);
+		    this._super(newOpts);
+		},
 		
-		enableMonitoring: function(enable) {
-			if (enable) {
-				hemi.view.addRenderListener(this);
+		checkToggleButtons: function() {
+			var np = this.nearPlane.val(),
+				fp = this.farPlane.val(),
+				fov = this.fov.val(),
+				isSafe = this.eye.getValue() != null 
+					&& this.target.getValue() != null 
+					&& hemi.utils.isNumeric(fov) && hemi.utils.isNumeric(np)
+					&& hemi.utils.isNumeric(fp);
+					
+			if (isSafe) {
+				this.previewBtn.removeAttr('disabled');
+				
+				if (this.name.val() !== '') {					
+					this.saveBtn.removeAttr('disabled');
+				}
 			}
 			else {
-				hemi.view.removeRenderListener(this);
+				this.saveBtn.attr('disabled', 'disabled');
+				this.previewBtn.attr('disabled', 'disabled');
 			}
 		},
 		
-		onRender: function(renderEvt) {
-			this.notifyListeners(module.EventTypes.CameraUpdated);
-		},
-		
-		addViewpoint: function(name) {
-			var viewpoint = hemi.view.createViewpoint(name, hemi.world.camera);
-			this.notifyListeners(module.EventTypes.ViewpointAdded, viewpoint);
-		},
-		
-		updateViewpoint: function(viewpoint, name) {
-			var camera = hemi.world.camera,			
-				up = [camera.up[0], camera.up[1], camera.up[2]],
-				eye = [camera.eye[0], camera.eye[1], camera.eye[2]],
-				target = [camera.target[0], camera.target[1], camera.target[2]];
+		finishLayout: function() {
+			this._super();
 			
-			viewpoint.name = name;
-			viewpoint.eye = eye;
-			viewpoint.target = target;
-			viewpoint.up = up;
+			var wgt = this,
+				inputs = this.find('input:not(#vptName)'),
+				form = this.find('form');
 			
-			this.notifyListeners(module.EventTypes.ViewpointUpdated, viewpoint);
+			this.saveBtn = this.find('#vptSaveBtn');
+			this.cancelBtn = this.find('#vptCancelBtn');
+			this.previewBtn = this.find('#vptPreviewBtn');
+			this.autofillBtn = this.find('#vptAutoFill');
+			this.fov = this.find('#vptFov');
+			this.nearPlane = this.find('#vptNearPlane');
+			this.farPlane = this.find('#vptFarPlane');
+			this.name = this.find('#vptName');
+			
+			inputs.bind('blur', function(evt) {
+				wgt.checkToggleButtons();
+			});
+			
+			form.bind('submit', function() {
+				return false;
+			});
+			
+			new module.ui.Validator(inputs, function(elem) {
+				var val = elem.val(),
+					msg = null;
+					
+				if (val !== '' && !hemi.utils.isNumeric(val)) {
+					msg = 'must be a number';
+				}
+				
+				return msg;
+			});
+			
+			this.eye = new module.ui.Vector({
+				container: wgt.find('#vptCameraDiv'),
+				paramName: 'eye',
+				onBlur: function(elem, evt) {					
+					wgt.checkToggleButtons();
+				},
+				validator: new module.ui.Validator(null, function(elem) {
+						var val = elem.val(),
+							msg = null;
+							
+						if (val !== '' && !hemi.utils.isNumeric(val)) {
+							msg = 'must be a number';
+						}
+						
+						return msg;
+					})
+			});
+			
+			this.target = new module.ui.Vector({
+				container: wgt.find('#vptTargetDiv'),
+				paramName: 'position',
+				onBlur: function(elem, evt) {
+					wgt.checkToggleButtons();
+				},
+				validator: new module.ui.Validator(null, function(elem) {
+						var val = elem.val(),
+							msg = null;
+							
+						if (val !== '' && !hemi.utils.isNumeric(val)) {
+							msg = 'must be a number';
+						}
+						
+						return msg;
+					})
+			});
+			
+			this.saveBtn.bind('click', function(evt) {					
+				wgt.notifyListeners(module.EventTypes.SaveViewpoint, 
+					wgt.getParams());
+				wgt.reset();
+			});
+			
+			this.cancelBtn.bind('click', function(evt) {
+				wgt.notifyListeners(module.EventTypes.CancelViewpointEdit, null);
+				wgt.reset();
+			});
+			
+			this.previewBtn.bind('click', function(evt) {					
+				wgt.notifyListeners(module.EventTypes.PreviewViewpoint, 
+					wgt.getParams());
+			});
+			
+			this.autofillBtn.bind('click', function(evt) {
+				var name = wgt.name.val();
+				
+				wgt.notifyListeners(module.EventTypes.AutoFill, name);
+			});
+			
+			this.name.bind('keypress', function(evt) {
+				wgt.checkToggleButtons();
+			});
+		},	
+		
+		getParams: function() {
+			var eyeVal = this.eye.getValue(),
+				tgtVal = this.target.getValue(),
+				params = {
+					eye: [
+						parseFloat(eyeVal.x), 
+						parseFloat(eyeVal.y), 
+						parseFloat(eyeVal.z)
+					],
+					target: [
+						parseFloat(tgtVal.x), 
+						parseFloat(tgtVal.y), 
+						parseFloat(tgtVal.z)
+					],
+					fov: parseFloat(this.fov.val()),
+					np: parseFloat(this.nearPlane.val()),
+					fp: parseFloat(this.farPlane.val()),
+					name: this.name.val()
+				};
+				
+			return params;
+		},	
+		
+		reset: function() {
+			this.eye.reset();
+			this.target.reset();
+			this.fov.val('');
+			this.nearPlane.val('');
+			this.farPlane.val('');
+			this.name.val('');
 		},
 		
-		removeViewpoint: function(viewpoint) {
-			this.notifyListeners(module.EventTypes.ViewpointRemoved, viewpoint);
-			viewpoint.cleanup();
-		},
-		
-		moveToViewpoint: function(viewpoint) {
-			hemi.world.camera.moveToView(viewpoint);
+		set: function(viewpoint) {
+			this.eye.setValue({
+				x: viewpoint.eye[0],
+				y: viewpoint.eye[1],
+				z: viewpoint.eye[2]
+			});
+			this.target.setValue({
+				x: viewpoint.target[0],
+				y: viewpoint.target[1],
+				z: viewpoint.target[2]
+			});
+			this.fov.val(viewpoint.fov);
+			this.nearPlane.val(viewpoint.np);
+			this.farPlane.val(viewpoint.fp);
+			this.name.val(viewpoint.name);
+			this.previewBtn.removeAttr('disabled');
 		}
 	});
 	
@@ -119,7 +355,7 @@ var editor = (function(module) {
 		listId: 'viewpointList',
 		prefix: 'vptLst',
 		title: 'Camera Viewpoints',
-		instructions: "Move the camera to a desired position, give the position a name, and then click 'Add' to add the viewpoint."
+		instructions: "Click 'Create Viewpoint' to add a viewpoint."
 	};
 	
 	module.tools.VptListSBWidget = module.ui.ListSBWidget.extend({
@@ -132,42 +368,19 @@ var editor = (function(module) {
 		
 		layoutExtra: function() {
 			this.form = jQuery('<form method="post"></form>');
-			this.nameInput = jQuery('<input type="text" id="vpName" />');
-			this.addBtn = jQuery('<button id="vpAdd">Add</button>');
+			this.addBtn = jQuery('<button id="vpAdd">Create Viewpoint</button>');
 			var wgt = this;
 			
 			this.addBtn.bind('click', function(evt) {
-				var btn = jQuery(this),
-					name = wgt.nameInput.val(),
-					isEditing = btn.data('isEditing'),
-					msgType = isEditing ? module.EventTypes.EditViewpoint 
-						: module.EventTypes.AddViewpoint,
-					data = isEditing ? {
-						viewpoint: btn.data('viewpoint'),
-						name: name
-					} : name;
+				var btn = jQuery(this);
 					
-				wgt.notifyListeners(msgType, data);
-				wgt.nameInput.val('');
-				wgt.addBtn.attr('disabled', 'disabled').data('isEditing', false)
-					.text(ADD_TXT);
-			})
-			.attr('disabled', 'disabled');
+				wgt.notifyListeners(module.EventTypes.AddViewpoint, null);;
+			});
 			
-			this.form.append(this.nameInput).append(this.addBtn)
+			this.form.append(this.addBtn)
 			.bind('submit', function(evt) {
 				return false;
 			});
-			
-			var nameInputFcn = function(evt) {
-				var elem = jQuery(this);
-				if (elem.val().length > 0) {
-					wgt.addBtn.removeAttr('disabled');
-				}
-			};
-			
-			this.nameInput.bind('keypress', nameInputFcn)
-				.bind('change', nameInputFcn);
 			
 			return this.form;
 		},
@@ -175,18 +388,15 @@ var editor = (function(module) {
 		bindButtons: function(li, obj) {
 			var wgt = this;
 				
-			li.title.bind('click', function(evt) {
-				var vpt = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.MoveToViewpoint, vpt);
-			});
+//			li.title.bind('click', function(evt) {
+//				var vpt = li.getAttachedObject();
+//				wgt.notifyListeners(module.EventTypes.MoveToViewpoint, vpt);
+//			});
 			
 			li.editBtn.bind('click', function(evt) {
 				var vpt = li.getAttachedObject();
 				
-				wgt.nameInput.val(vpt.name);
-				wgt.notifyListeners(module.EventTypes.MoveToViewpoint, vpt);
-				wgt.addBtn.text(SAVE_TXT).data('isEditing', true)
-					.data('viewpoint', vpt).removeAttr('disabled');
+				wgt.notifyListeners(module.EventTypes.EditViewpoint, vpt);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
@@ -227,6 +437,7 @@ var editor = (function(module) {
 			this._super(newOpts);
 			this.pre = 'vp_';
 			
+			this.addSidebarWidget(new module.tools.CreateVptSBWidget());
 			this.addSidebarWidget(new module.tools.VptListSBWidget());
 		},
 		
@@ -287,6 +498,7 @@ var editor = (function(module) {
 			var model = this.model,
 				view = this.view,
 				ctr = this,
+				crtVptWgt = view.createVptSBWidget;
 				vptLstWgt = view.viewpointListSBWidget;
 			
 			// special listener for when the toolbar button is clicked
@@ -295,15 +507,40 @@ var editor = (function(module) {
 				model.enableMonitoring(isDown);
 			});
 			
+			// create viewpoint widget specific
+			crtVptWgt.addListener(module.EventTypes.SaveViewpoint, function(params) {
+				model.saveViewpoint(params);
+			});
+			crtVptWgt.addListener(module.EventTypes.CancelViewpointEdit, function(params) {
+				crtVptWgt.setVisible(false);
+				vptLstWgt.setVisible(true);
+				model.cancelViewpointEdit();
+			});
+			crtVptWgt.addListener(module.EventTypes.PreviewViewpoint, function(params) {
+				model.previewViewpoint(params);
+			});
+			crtVptWgt.addListener(module.EventTypes.AutoFill, function(name) {
+				var vp = model.getCameraViewpoint(name);
+				crtVptWgt.set(vp);
+				
+				if (name != '') {
+					crtVptWgt.saveBtn.removeAttr('disabled');
+				}
+			});
+			
 			// viewpoint list widget specific
-			vptLstWgt.addListener(module.EventTypes.AddViewpoint, function(name) {
-				model.addViewpoint(name);
+			vptLstWgt.addListener(module.EventTypes.AddViewpoint, function() {
+				crtVptWgt.setVisible(true);
+				vptLstWgt.setVisible(false);
 			});
 			vptLstWgt.addListener(module.EventTypes.RemoveViewpoint, function(vpt) {
 				model.removeViewpoint(vpt);
 			});
-			vptLstWgt.addListener(module.EventTypes.EditViewpoint, function(data) {
-				model.updateViewpoint(data.viewpoint, data.name);
+			vptLstWgt.addListener(module.EventTypes.EditViewpoint, function(viewpoint) {
+				model.editViewpoint(viewpoint);
+				crtVptWgt.set(viewpoint);
+				crtVptWgt.setVisible(true);
+				vptLstWgt.setVisible(false);
 			});
 			vptLstWgt.addListener(module.EventTypes.MoveToViewpoint, function(vpt) {
 				model.moveToViewpoint(vpt);
@@ -311,9 +548,15 @@ var editor = (function(module) {
 			
 			// model specific
 			model.addListener(module.EventTypes.ViewpointAdded, function(vpt) {
+				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
+				crtVptWgt.setVisible(false);
+				vptLstWgt.setVisible(true && isDown);
 				vptLstWgt.add(vpt);
 			});
 			model.addListener(module.EventTypes.ViewpointUpdated, function(vpt) {
+				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
+				crtVptWgt.setVisible(false);
+				vptLstWgt.setVisible(true && isDown);
 				vptLstWgt.update(vpt);
 			});			
 			model.addListener(module.EventTypes.ViewpointRemoved, function(vpt) {

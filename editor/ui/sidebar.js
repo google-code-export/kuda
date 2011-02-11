@@ -315,8 +315,8 @@ var editor = (function(module) {
 		},
 		
 		setVisible: function(visible) {
-			this._super(visible),
-			wgt = this;
+			this._super(visible);
+			var wgt = this;
 			
 			this.notifyListeners(module.EventTypes.SBWidgetVisible, {
 				widget: wgt,
@@ -376,6 +376,37 @@ var editor = (function(module) {
 			
 			this.items = new Hashtable();		
 		},
+			    
+	    add: function(obj) {			
+			var itm = this.items.get(obj.getId());
+			if (!itm) {
+				var li = this.createListItemWidget();
+					
+				li.setText(obj.name);
+				li.attachObject(obj);
+				
+				this.bindButtons(li, obj);
+				
+				this.list.add(li);
+				this.items.put(obj.getId(), li);
+			
+				return li;
+			}
+			
+			return itm;
+	    },
+		
+		bindButtons: function() {
+			
+		},
+		
+		createListItemWidget: function() {
+			return new module.ui.EditableListItemWidget();
+		},
+		
+		getOtherHeights: function() {
+			return 0;
+		},
 		
 		finishLayout: function() {
 			this._super();
@@ -402,25 +433,6 @@ var editor = (function(module) {
 		layoutExtra: function() {
 			return null;
 		},
-		
-		bindButtons: function() {
-			
-		},
-			    
-	    add: function(obj) {			
-			if (!this.items.get(obj.getId())) {
-				var li = new module.ui.EditableListItemWidget(),
-					wgt = this;
-					
-				li.setText(obj.name);
-				li.attachObject(obj);
-				
-				this.bindButtons(li, obj);
-				
-				this.list.add(li);
-				this.items.put(obj.getId(), li);
-			}
-	    },
 	    
 	    remove: function(obj) {
 			var li = this.items.get(obj.getId()),
@@ -435,19 +447,6 @@ var editor = (function(module) {
 			
 			return retVal;
 	    },
-		
-		update: function(obj) {
-			var li = this.items.get(obj.getId()),
-				retVal = false;
-			
-			if (li) {
-				li.setText(obj.name);
-				li.attachObject(obj);
-				retVal = true;
-			}
-			
-			return retVal;
-		},
 		
 		resize: function(maxHeight) {
 			this._super(maxHeight);	
@@ -470,8 +469,17 @@ var editor = (function(module) {
 			}
 		},
 		
-		getOtherHeights: function() {
-			return 0;
+		update: function(obj) {
+			var li = this.items.get(obj.getId()),
+				retVal = false;
+			
+			if (li) {
+				li.setText(obj.name);
+				li.attachObject(obj);
+				retVal = true;
+			}
+			
+			return retVal;
 		}
 	});
 	

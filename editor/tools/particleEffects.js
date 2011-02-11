@@ -27,6 +27,7 @@ var editor = (function(module) {
     module.EventTypes.ParticleFxAdded = "particleFx.ParticleFxAdded";
     module.EventTypes.ParticleFxUpdated = "particleFx.ParticleFxUpdated";
     module.EventTypes.ParticleFxRemoved = "particleFx.ParticleFxRemoved";
+    module.EventTypes.TemplatesLoaded = "particleFx.TemplatesLoaded";
 	
 	// view specific
     module.EventTypes.ParticleFxType = "particleFx.ParticleFxType";
@@ -42,6 +43,7 @@ var editor = (function(module) {
     module.EventTypes.SetParticleFxFireInterval = "particleFx.SetParticleFxFireInterval";
     module.EventTypes.PreviewCurrentFx = "particleFx.PreviewCurrentFx";
 	module.EventTypes.CancelCreateParticleFx = "particleFx.CancelCreateParticleFx";
+	module.EventTypes.TemplateSelected = "particleFx.TemplateSelected";
 	
 	// list sidebar widget specific
 	module.EventTypes.CreateParticleFx = "particleFx.CreateParticleFx";
@@ -68,72 +70,9 @@ var editor = (function(module) {
 			this.colorRamp = null;
 			this.fireInterval = null;
 			this.isUpdating = false;
+			
+			var mdl = this;
 	    },
-		
-	    worldLoaded: function() {
-			var effects = hemi.world.getEffects();
-			this.notifyListeners(module.EventTypes.WorldLoaded, effects);
-	    },
-	    
-	    worldCleaned: function() {
-			this.notifyListeners(module.EventTypes.WorldCleaned, null);
-	    },
-		
-		setEffect: function(effect) {
-			this.currentParticleEffect = effect;
-			this.particleEffectParams = jQuery.extend(true, {}, effect.params);
-			this.colorRamp = effect.colorRamp;
-			this.state = effect.state;
-			this.type = effect.citizenType.replace('hemi.effect.', '');
-			this.isUpdating = true;
-		},
-		
-		removeEffect: function(effect, id) {
-			if (this.editId === id) {
-				this.notifyListeners(module.EventTypes.ParticleFxRemoved, null);
-				this.currentParticleEffect.cleanup();
-				this.currentParticleEffect = null;
-			}
-			else {
-				effect.cleanup();
-			}
-		},
-	    
-	    removeParam: function(paramName) {
-			if (this.particleEffectParams[paramName] !== undefined) {
-				delete this.particleEffectParams[paramName];
-				
-				if (this.currentParticleEffect) {
-					this.currentParticleEffect.params = this.particleEffectParams;
-				}
-			}
-	    },
-		
-		setType: function(type) {
-			this.type = type;
-			if (this.currentParticleEffect && this.currentParticleEffect.citizenType.replace('hemi.effect.', '') !== type) {
-				this.currentParticleEffect.cleanup();
-			}
-		},
-		
-		setState: function(state) {
-			if (state === -1) {
-				this.state = null;
-			}
-			else {
-				this.state = state;
-				if (this.currentParticleEffect) {
-					this.currentParticleEffect.state = state;
-				}
-			}
-		},
-		
-		setFireInterval: function(interval) {
-			this.fireInterval = interval;
-			if (this.currentParticleEffect) {
-				this.currentParticleEffect.fireInterval = interval;
-			}
-		},
 		
 		addToColorRamp: function(ndx, color) {
 			if (this.colorRamp === null) {
@@ -156,14 +95,15 @@ var editor = (function(module) {
 				this.currentParticleEffect.colorRamp = clrRmp;
 			}
 		},
-	    
-	    setParam: function(paramName, paramVal) {
-			this.particleEffectParams[paramName] = paramVal;
-			
+		
+		cancelParticleFxEdit: function() {
 			if (this.currentParticleEffect) {
-				this.currentParticleEffect.params = this.particleEffectParams;
+				this.stopPreview();
+				this.currentParticleEffect.cleanup();
+				this.currentParticleEffect = null;
 			}
-	    },
+			this.particleEffectParams = {};
+		},
 		
 		create: function() {
 			var mdl = this,
@@ -202,6 +142,18 @@ var editor = (function(module) {
 			}
 		},
 		
+		loadTemplates: function() {			
+			var mdl = this;
+			
+			// load the template file, eventually, this will be grabbed
+			// from a server
+			hemi.loader.loadHtml('editor/tools/templates/particleFx.json', function(data) {
+				mdl.templates = JSON.parse(data);
+				mdl.notifyListeners(module.EventTypes.TemplatesLoaded, 
+					mdl.templates);
+			});
+		},
+		
 		preview: function() {
 			this.create();
 			this.currentParticleEffect.particles = null;
@@ -222,6 +174,114 @@ var editor = (function(module) {
 			}	
 		},
 		
+		removeEffect: function(effect) {
+			effect.cleanup();
+		},
+	    
+	    removeParam: function(paramName) {
+			if (this.particleEffectParams[paramName] !== undefined) {
+				delete this.particleEffectParams[paramName];
+				
+				if (this.currentParticleEffect) {
+					this.currentParticleEffect.params = this.particleEffectParams;
+				}
+			}
+	    },
+		
+		save: function(name) {
+			this.create();
+			
+			var msgType = this.isUpdating ? module.EventTypes.ParticleFxUpdated 
+				: module.EventTypes.ParticleFxAdded;
+										
+			this.currentParticleEffect.name = name;
+			this.currentParticleEffect.particles = null;
+				
+			this.notifyListeners(msgType, this.currentParticleEffect);
+			
+			this.currentParticleEffect = null;
+			this.particleEffectParams = {};
+			this.isUpdating = false;	
+		},
+		
+		saveTemplate: function(name) {
+			
+		},
+		
+		setEffect: function(effect) {
+			this.currentParticleEffect = effect;
+			this.particleEffectParams = jQuery.extend(true, {}, effect.params);
+			this.colorRamp = effect.colorRamp;
+			this.state = effect.state;
+			this.type = effect.citizenType.replace('hemi.effect.', '');
+			this.isUpdating = true;
+		},
+		
+		setState: function(state) {
+			if (state === -1) {
+				this.state = null;
+			}
+			else {
+				this.state = state;
+				if (this.currentParticleEffect) {
+					this.currentParticleEffect.state = state;
+				}
+			}
+		},
+		
+		setTemplate: function(tpl) {
+			var oldId = null;			
+			this.particleEffectParams = {};
+			
+			if (this.currentParticleEffect) {
+				oldId = this.currentParticleEffect.getId();
+				this.stopPreview();
+				this.currentParticleEffect.cleanup();
+				this.currentParticleEffect = null;
+			}
+			this.setType(tpl.type);
+			this.setState(tpl.state);
+			if (tpl.fireInterval) {
+				this.setFireInterval(tpl.fireInterval);
+			}
+			if (tpl.colorRamp) {
+				this.colorRamp = tpl.colorRamp;
+			}
+			
+			var prm = tpl.params;
+			
+			for (var key in prm) {
+				this.setParam(key, prm[key]);
+			}
+			
+			if (this.isUpdating) {
+				this.create();
+				this.currentParticleEffect.setId(oldId);
+			}
+		},
+		
+		setType: function(type) {
+			this.type = type;
+			if (this.currentParticleEffect && this.currentParticleEffect.citizenType.replace('hemi.effect.', '') !== type) {
+				this.currentParticleEffect.cleanup();
+			}
+		},
+		
+		setFireInterval: function(interval) {
+			this.fireInterval = interval;
+			if (this.currentParticleEffect) {
+				this.currentParticleEffect.fireInterval = interval;
+			}
+		},
+	    
+	    setParam: function(paramName, paramVal) {
+			this.particleEffectParams[paramName] = paramVal;
+			
+			if (this.currentParticleEffect) {
+				this.currentParticleEffect.params = this.particleEffectParams;
+			}
+	    },
+		
 		stopPreview: function() {
 			if (this.currentParticleEffect) {
 				this.stopPreviewEffect(this.currentParticleEffect);
@@ -239,21 +299,14 @@ var editor = (function(module) {
 			}
 		},
 		
-		save: function(name) {
-			this.create();
-			
-			var msgType = this.isUpdating ? module.EventTypes.ParticleFxUpdated 
-				: module.EventTypes.ParticleFxAdded;
-										
-			this.currentParticleEffect.name = name;
-			this.currentParticleEffect.particles = null;
-				
-			this.notifyListeners(msgType, this.currentParticleEffect);
-			
-			this.currentParticleEffect = null;
-			this.particleEffectParams = {};
-			this.isUpdating = false;	
-		}
+	    worldLoaded: function() {
+			var effects = hemi.world.getEffects();
+			this.notifyListeners(module.EventTypes.WorldLoaded, effects);
+	    },
+	    
+	    worldCleaned: function() {
+			this.notifyListeners(module.EventTypes.WorldCleaned, null);
+	    }
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -272,16 +325,139 @@ var editor = (function(module) {
 	module.tools.PteFxEditSBWidget = module.ui.SidebarWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-				module.tools.PteFxEditSBWidgetDefaults, options);
+					module.tools.PteFxEditSBWidgetDefaults, options),
+				wgt = this;
+			this.colorPickers = [];
+			
 		    this._super(newOpts);	
+		},
+		
+		addColorInput: function() {
+			var colorAdder = this.find('#pteAddColorToRamp'),
+				ndx = colorAdder.data('ndx'),
+				wgt = this,
+				colorPicker;
+			
+			if (this.colorPickers.length <= ndx) {
+				colorPicker = new module.ui.ColorPicker({
+					inputId: 'pte-colorRamp' + ndx,
+					containerClass: 'colorRampAdd',
+					buttonId: 'pteColorRamp' + ndx + 'Picker'
+				});			
+				
+				colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
+					wgt.notifyListeners(module.EventTypes.SetParticleFxColorRamp, {
+						color: clr,
+						ndx: ndx
+					});
+				});
+			
+				this.colorPickers.push(colorPicker);
+			}
+			else {
+				colorPicker = this.colorPickers[ndx];
+			}
+			
+			colorAdder.before(colorPicker.getUI());
+			colorAdder.data('ndx', ndx+1);
+		},
+		
+		canSave: function() {
+			var nameInput = this.find('#pteName'),
+				typeInput = this.find('#pteType'),
+				stateInput = this.find('#pteState'),
+				colorRampInput = this.find('#pteColorRamp0r'),
+				saveBtn = this.find('#pteSaveBtn'),
+				previewBtn = this.find('#ptePreviewStartBtn'),
+				fireInterval = this.find('#pteFireInterval'),
+				typeVal = typeInput.val(),
+				stateVal = stateInput.val(),
+				clrRmpVal = colorRampInput.val(),
+				nameVal = nameInput.val(),
+				fireIntVal = fireInterval.val(),
+				type = typeVal.replace('hemi.effect.', '');
+				
+			if (nameVal !== '' && typeVal !== -1 && stateVal !== -1 
+				&& clrRmpVal !== 'r' && (type !== 'Trail' || fireIntVal !== '')) {
+				saveBtn.removeAttr('disabled');
+			}
+			else {
+				saveBtn.attr('disabled', 'disabled');
+			}
+			
+			if (stateVal !== -1 && clrRmpVal !== 'r' && typeVal !== -1
+				&& (type !== 'Trail' || fireIntVal !== '')) {
+				previewBtn.removeAttr('disabled');
+			}
+			else {
+				previewBtn.attr('disabled', 'disabled');
+			}
+		},
+		
+		edit: function(effect) {
+			this.reset();
+			
+			if (effect) {
+				var params = effect.params, 
+					type = effect.type ? effect.type 
+						: effect.citizenType.replace('hemi.effect.', ''), 
+					colorRamp = effect.colorRamp, 
+					state = effect.state, 
+					fireInt = effect.fireInterval, 
+					numColors = colorRamp.length / 4, 
+					colorAdder = this.find('#pteAddColorToRamp');
+				
+				this.find('#pteTemplateSelect').val(-1);
+				this.find('#pteType').val(type).change();
+				this.find('#pteName').val(effect.name);
+				
+				for (var paramName in params) {
+					var val = params[paramName];
+					
+					if (paramName.match('colorMult')) {
+						this.colorMultPicker.setColor(val);
+					}
+					else 
+						if (paramName.match(/acceleration|position|velocity|world/)) {
+							this.find('#pte-' + paramName + 'X').val(val[0]).removeClass('vectorHelper');
+							this.find('#pte-' + paramName + 'Y').val(val[1]).removeClass('vectorHelper');
+							this.find('#pte-' + paramName + 'Z').val(val[2]).removeClass('vectorHelper');
+						}
+						else {
+							this.find('#pte-' + paramName).val(val);
+						}
+				}
+				
+				this.find('#pteState').val(state);
+				if (fireInt) {
+					this.find('#pteFireInterval').val(fireInt);
+				}
+				
+				var count = 1;
+				while (count++ < numColors) {
+					this.addColorInput();
+				}
+				
+				for (var ndx = 0; ndx < numColors; ndx++) {
+					var temp = this.find('#pteColorRamp' + ndx + 'R'), 
+						rampNdx = ndx * 4, 
+						r = colorRamp[rampNdx], 
+						g = colorRamp[rampNdx + 1], 
+						b = colorRamp[rampNdx + 2], 
+						a = colorRamp[rampNdx + 3];
+					
+					var picker = this.colorPickers[ndx];
+					picker.setColor([r, g, b, a]);
+				}
+				
+				this.canSave();
+			}
+			
+			this.invalidate();
 		},
 		
 		finishLayout: function() {
 			this._super();
-			
-			this.find('form').bind('submit', function(evt) {
-				return false;
-			});
 			
 			var saveBtn = this.find('#pteSaveBtn'),
 				cancelBtn = this.find('#pteCancelBtn'),
@@ -406,6 +582,7 @@ var editor = (function(module) {
 		
 		reset: function() {      
 			// reset selects
+			this.find('#pteTemplateSelect').val(-1);
 			this.find('#pteType').val(-1).removeAttr('disabled');
 			this.find('#pteState').val(-1);
 			
@@ -417,169 +594,33 @@ var editor = (function(module) {
 			
 			// remove additional color ramp values
 			this.find('.colorRampAdd').remove();
+			var colorRampPicker = this.colorPickers[0];
+//			this.colorPickers = [colorRampPicker];
 			this.find('#pteAddColorToRamp').data('ndx', 1);
 			
 			// reset color pickers
 			this.colorMultPicker.reset();
-			this.colorRamp0Picker.reset();	
+			colorRampPicker.reset();	
 		},
 		
-		edit: function(effect, editId) {
-			this.reset();
+		resize: function(maxHeight) {
+			this._super(maxHeight);	
 			
-			if (effect) {
-				var params = effect.params, 
-					type = effect.citizenType.replace('hemi.effect.', ''), 
-					colorRamp = effect.colorRamp, 
-					state = effect.state, 
-					fireInt = effect.fireInterval, 
-					numColors = colorRamp.length / 4, 
-					colorAdder = this.find('#pteAddColorToRamp');
-				
-				this.find('#pteType').val(type).change();
-				this.find('#pteName').val(effect.name);
-				
-				for (var paramName in params) {
-					var val = params[paramName];
-					
-					if (paramName.match('colorMult')) {
-						this.colorMultPicker.setColor(val);
-					}
-					else 
-						if (paramName.match(/acceleration|position|velocity|world/)) {
-							this.find('#pte-' + paramName + 'X').val(val[0]).removeClass('vectorHelper');
-							this.find('#pte-' + paramName + 'Y').val(val[1]).removeClass('vectorHelper');
-							this.find('#pte-' + paramName + 'Z').val(val[2]).removeClass('vectorHelper');
-						}
-						else {
-							this.find('#pte-' + paramName).val(val);
-						}
-				}
-				
-				this.find('#pteState').val(state);
-				if (fireInt) {
-					this.find('#pteFireInterval').val(fireInt);
-				}
-				
-				var count = 1;
-				while (count++ < numColors) {
-					this.addColorInput();
-				}
-				
-				for (var ndx = 0; ndx < numColors; ndx++) {
-					var temp = this.find('#pteColorRamp' + ndx + 'R'), 
-						rampNdx = ndx * 4, 
-						r = colorRamp[rampNdx], 
-						g = colorRamp[rampNdx + 1], 
-						b = colorRamp[rampNdx + 2], 
-						a = colorRamp[rampNdx + 3];
-					
-					var picker = this['colorRamp' + ndx + 'Picker'];
-					picker.setColor([r, g, b, a]);
-				}
-				
-				this.canSave();
-			}
+			var form = this.find('form:visible'),
+				padding = parseInt(form.css('paddingTop')) 
+					+ parseInt(form.css('paddingBottom')),
+				newHeight = maxHeight - padding,
+				oldHeight = form.outerHeight(true);
 			
-			this.invalidate();
-		},
-		
-		canSave: function() {
-			var nameInput = this.find('#pteName'),
-				typeInput = this.find('#pteType'),
-				stateInput = this.find('#pteState'),
-				colorRampInput = this.find('#pteColorRamp0r'),
-				saveBtn = this.find('#pteSaveBtn'),
-				previewBtn = this.find('#ptePreviewStartBtn'),
-				fireInterval = this.find('#pteFireInterval'),
-				typeVal = typeInput.val(),
-				stateVal = stateInput.val(),
-				clrRmpVal = colorRampInput.val(),
-				nameVal = nameInput.val(),
-				fireIntVal = fireInterval.val(),
-				type = typeVal.replace('hemi.effect.', '');
-				
-			if (nameVal !== '' && typeVal !== -1 && stateVal !== -1 
-				&& clrRmpVal !== 'r' && (type !== 'Trail' || fireIntVal !== '')) {
-				saveBtn.removeAttr('disabled');
+			if (oldHeight > newHeight) {
+				form.addClass('scrolling');
 			}
 			else {
-				saveBtn.attr('disabled', 'disabled');
+				form.removeClass('scrolling');
 			}
-			
-			if (stateVal !== -1 && clrRmpVal !== 'r' && typeVal !== -1
-				&& (type !== 'Trail' || fireIntVal !== '')) {
-				previewBtn.removeAttr('disabled');
+			if (newHeight > 0) {
+				this.find('form:visible').height(newHeight);
 			}
-			else {
-				previewBtn.attr('disabled', 'disabled');
-			}
-		},
-		
-		validateNumeric: function(input) {
-		},
-		
-		setupColorPickers: function() {
-			var wgt = this,
-				colorAdder = this.find('#pteAddColorToRamp');
-			
-			this.colorMultPicker = new module.ui.ColorPicker({
-				inputId: 'pte-colorMult',	
-				container: wgt.find('#pteColorMultDiv'),
-				buttonId: 'pteColorMultPicker'			
-			});
-			
-			this.colorRamp0Picker = new module.ui.ColorPicker({
-				inputId: 'pte-colorRamp0',	
-				container: wgt.find('#pteColorRamp0Div'),
-				buttonId: 'pteColorRamp0Picker'			
-			});
-			
-			// add listeners
-			this.colorMultPicker.addListener(module.EventTypes.ColorPicked, function(clr) {				
-				wgt.notifyListeners(module.EventTypes.SetParticleFxParam, {
-					paramName: 'colorMult',
-					paramVal: clr
-				});
-			});
-			
-			this.colorRamp0Picker.addListener(module.EventTypes.ColorPicked, function(clr) {
-				wgt.notifyListeners(module.EventTypes.SetParticleFxColorRamp, {
-					color: clr,
-					ndx: 0
-				});
-			});
-			
-			// setup the color ramp adder
-			colorAdder.bind('click', function(evt) {
-				wgt.addColorInput();
-			})
-			.data('ndx', 1);
-		},
-		
-		addColorInput: function() {
-			var colorAdder = this.find('#pteAddColorToRamp'),
-				ndx = colorAdder.data('ndx'),
-				div = jQuery('<div class="colorRampAdd"></div>'),
-				wgt = this;
-			
-			colorAdder.before(div);
-			
-			var colorPicker = wgt['colorRamp' + ndx + 'Picker'] = 
-				new module.ui.ColorPicker({
-					inputId: 'pte-colorRamp' + ndx,
-					container: div,
-					buttonId: 'pteColorRamp' + ndx + 'Picker'
-				});
-			
-			colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
-				wgt.notifyListeners(module.EventTypes.SetParticleFxColorRamp, {
-					color: clr,
-					ndx: ndx
-				});
-			});
-			
-			colorAdder.data('ndx', ndx+1);
 		},
 	
 		setupAutoFills: function(inputs) {
@@ -657,24 +698,74 @@ var editor = (function(module) {
 			.addClass('vectorHelper');
 		},
 		
-		resize: function(maxHeight) {
-			this._super(maxHeight);	
+		setupColorPickers: function() {
+			var wgt = this,
+				colorAdder = this.find('#pteAddColorToRamp');
 			
-			var form = this.find('form:visible'),
-				padding = parseInt(form.css('paddingTop')) 
-					+ parseInt(form.css('paddingBottom')),
-				newHeight = maxHeight - padding,
-				oldHeight = form.outerHeight(true);
+			this.colorMultPicker = new module.ui.ColorPicker({
+				inputId: 'pte-colorMult',
+				containerClass: 'long',	
+				buttonId: 'pteColorMultPicker'			
+			});
 			
-			if (oldHeight > newHeight) {
-				form.addClass('scrolling');
+			var colorRampPicker = new module.ui.ColorPicker({
+				inputId: 'pte-colorRamp0',	
+				containerClass: 'long',
+				buttonId: 'pteColorRamp0Picker'			
+			});
+			
+			this.find('#pteColorRamp0Lbl').after(colorRampPicker.getUI());
+			this.find('#pteColorMultLbl').after(this.colorMultPicker.getUI());
+			
+			// add listeners
+			this.colorMultPicker.addListener(module.EventTypes.ColorPicked, function(clr) {				
+				wgt.notifyListeners(module.EventTypes.SetParticleFxParam, {
+					paramName: 'colorMult',
+					paramVal: clr
+				});
+			});
+			
+			colorRampPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
+				wgt.notifyListeners(module.EventTypes.SetParticleFxColorRamp, {
+					color: clr,
+					ndx: 0
+				});
+			});
+			
+			// setup the color ramp adder
+			colorAdder.bind('click', function(evt) {
+				wgt.addColorInput();
+			})
+			.data('ndx', 1);
+			
+			this.colorPickers.push(colorRampPicker);
+		},
+		
+		setupTemplates: function(tplData) {
+			this.tplSelect = this.find('#pteTemplateSelect');
+			var templates = this.templates = tplData.templates,
+				wgt = this;
+			
+			for (var ndx = 0, len = templates.length; ndx < len; ndx++) {
+				var tpl = templates[ndx],
+					option = jQuery('<option value="' + ndx + '">' + tpl.name + '</option>');
+					
+				this.tplSelect.append(option);				
 			}
-			else {
-				form.removeClass('scrolling');
-			}
-			if (newHeight > 0) {
-				this.find('form:visible').height(newHeight);
-			}
+			
+			this.tplSelect.bind('change', function(evt) {
+				var elem = jQuery(this),
+					ndx = elem.val();
+					
+				if (ndx !== -1) {
+					var tpl = templates[ndx];
+					wgt.notifyListeners(module.EventTypes.TemplateSelected, tpl);
+					wgt.edit(tpl);
+				}
+				else {
+					wgt.reset();
+				}
+			});
 		}
 	});
 	
@@ -783,40 +874,23 @@ var editor = (function(module) {
 				pteEdt = view.pteFxEditSBWidget,
 				pteLst = view.pteFxListSBWidget,
 	        	that = this;
+				
+			model.loadTemplates();
 	                	        
 	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
 	            var isDown = value === module.tools.ToolConstants.MODE_DOWN;
 	        });
 			
 			// create widget specific
+			pteEdt.addListener(module.EventTypes.CancelCreateParticleFx, function(name) {
+				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+				pteLst.setVisible(true && isDown);
+				pteEdt.setVisible(false);
+				model.cancelParticleFxEdit();
+			});			
 			pteEdt.addListener(module.EventTypes.ParticleFxType, function(value) {
 				model.setType(value);
 			});	        
-	        pteEdt.addListener(module.EventTypes.RemoveParticleFxParam, function(value) {
-	        	model.removeParam(value);
-	        });	        
-	        pteEdt.addListener(module.EventTypes.SetParticleFxParam, function(value) {
-	        	model.setParam(value.paramName, value.paramVal);
-	        });	        
-	        pteEdt.addListener(module.EventTypes.SetParticleFxColorRamp, function(value) {
-	        	model.addToColorRamp(value.ndx, value.color);
-	        });			
-			pteEdt.addListener(module.EventTypes.SetParticleFxState, function(value) {
-				model.setState(value);
-			});			
-			pteEdt.addListener(module.EventTypes.SetParticleFxFireInterval, function(value) {
-				model.setFireInterval(value);
-			});			
-			pteEdt.addListener(module.EventTypes.StartParticleFxPreview, function(value) {
-				model.preview();
-			});			
-			pteEdt.addListener(module.EventTypes.StopParticleFxPreview, function(value) {
-				model.stopPreview();
-			});			
-			pteEdt.addListener(module.EventTypes.SaveParticleFx, function(name) {
-				model.save(name);
-				pteEdt.setVisible(false);
-			});			
 			pteEdt.addListener(module.EventTypes.PreviewCurrentFx, function(value) {
 				if (value.show) {
 					model.previewEffect(value.effect);	
@@ -824,11 +898,34 @@ var editor = (function(module) {
 				else {
 					model.stopPreviewEffect(value.effect);
 				}
-			});			
-			pteEdt.addListener(module.EventTypes.CancelCreateParticleFx, function(name) {
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
-				pteLst.setVisible(true && isDown);
+			});		
+	        pteEdt.addListener(module.EventTypes.RemoveParticleFxParam, function(value) {
+	        	model.removeParam(value);
+	        });	        	
+			pteEdt.addListener(module.EventTypes.SaveParticleFx, function(name) {
+				model.save(name);
 				pteEdt.setVisible(false);
+			});		
+	        pteEdt.addListener(module.EventTypes.SetParticleFxParam, function(value) {
+	        	model.setParam(value.paramName, value.paramVal);
+	        });	        
+	        pteEdt.addListener(module.EventTypes.SetParticleFxColorRamp, function(value) {
+	        	model.addToColorRamp(value.ndx, value.color);
+	        });			
+			pteEdt.addListener(module.EventTypes.SetParticleFxFireInterval, function(value) {
+				model.setFireInterval(value);
+			});		
+			pteEdt.addListener(module.EventTypes.SetParticleFxState, function(value) {
+				model.setState(value);
+			});				
+			pteEdt.addListener(module.EventTypes.StartParticleFxPreview, function(value) {
+				model.preview();
+			});			
+			pteEdt.addListener(module.EventTypes.StopParticleFxPreview, function(value) {
+				model.stopPreview();
+			});				
+			pteEdt.addListener(module.EventTypes.TemplateSelected, function(template) {
+				model.setTemplate(template);
 			});		
 			
 			// list widget specific
@@ -856,15 +953,18 @@ var editor = (function(module) {
 				pteEdt.setVisible(false);
 				pteLst.add(particleFx);			
 			});			
+			model.addListener(module.EventTypes.ParticleFxRemoved, function(value) {
+				pteEdt.reset();
+			});			
 			model.addListener(module.EventTypes.ParticleFxUpdated, function(particleFx) {	
 				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
 				pteLst.setVisible(true && isDown);	
 				pteEdt.setVisible(false);			
 				pteLst.update(particleFx);
-			});			
-			model.addListener(module.EventTypes.ParticleFxRemoved, function(value) {
-				pteEdt.reset();
-			});			
+			});		
+			model.addListener(module.EventTypes.TemplatesLoaded, function(templates) {		
+				pteEdt.setupTemplates(templates);
+			});	
 			model.addListener(module.EventTypes.WorldLoaded, function(effects) {		
 				for (var ndx = 0, len = effects.length; ndx < len; ndx++) {
 					var eft = effects[ndx];
@@ -873,7 +973,7 @@ var editor = (function(module) {
 			});			
 			model.addListener(module.EventTypes.WorldCleaned, function(effects) {		
 				pteLst.list.clear();
-			});
+			});		
 	    }
 	});
     

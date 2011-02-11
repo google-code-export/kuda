@@ -17,6 +17,22 @@
 
 <div id="createParticleEffectDlg">
     <form id="pteForm" class="dialogForm" method="post" action="">
+        <fieldset id="pteTemplates">
+            <legend>
+                Select a Template
+            </legend>
+            <ol>
+                <li>
+                	<p>
+                		Use a template of pre-defined parameters or define
+						your own below.
+                	</p>
+                    <select id="pteTemplateSelect">
+                        <option value="-1">Select Template</option>
+                    </select>
+                </li>
+            </ol>
+        </fieldset>
         <fieldset id="pteSystemType">
             <legend>
                 Select Effect Type
@@ -129,12 +145,10 @@
                     </div>
                 </li>
                 <li>
-                    <label for="pteColorRamp0R" class="long">
+                    <label for="pteColorRamp0R" class="long" id="pteColorRamp0Lbl">
                         Color Ramp
                     </label>
                     <div id="pteColorRampWrapper" class="long">
-                        <div id="pteColorRamp0Div">
-                        </div>
                         <button id="pteAddColorToRamp">
                             Add Color
                         </button>
@@ -142,11 +156,9 @@
                 </li>
                 <li id="pteColors">
                     <div>
-                        <label for="pteColorMultDiv" class="long">
+                        <label for="pteColorMultDiv" class="long" id="pteColorMultLbl">
                             Color Multiplier
                         </label>
-                        <div id="pteColorMultDiv" class="long">
-                        </div>
                     </div>
                     <div>
                         <label for="pte-colorMultRangeR" class="long">

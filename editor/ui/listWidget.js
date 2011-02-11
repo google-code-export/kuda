@@ -50,6 +50,47 @@ var editor = (function(module, jQuery) {
 			this.listItems = new Hashtable();
 		},
 		
+		add: function(liWidget) {
+			this.list.append(this.createListItem(liWidget));
+			liWidget.setParent(this);
+		},
+		
+		after: function(liWidget, previousWidget) {
+			previousWidget.getUI().parent().after(this.createListItem(liWidget));
+			liWidget.setParent(this);
+		},
+		
+		before: function(liWidget, nextWidget) {
+			nextWidget.getUI().parent().before(this.createListItem(liWidget));
+			liWidget.setParent(this);
+		},
+		
+		clear: function() {
+			this.list.empty();
+			this.listItems.clear();
+		},
+		
+		createListItem: function(liWidget) {
+			var li = jQuery('<li></li>'),
+				id = this.config.prefix + 'LstItm-' + this.idCounter;
+				
+			li.attr('id', id).append(liWidget.getUI());
+			li.data('obj', liWidget);
+			this.listItems.put(liWidget, li);
+			
+			this.idCounter += 1;
+			
+			return li;
+		},
+		
+		edit: function(id, item, newName) {
+			var li = this.list.find('#' + id),
+				widget = li.data('obj');
+			
+			widget.attachObject(item);
+			widget.setText(newName);
+		},
+		
 		finishLayout : function() {
 			this.container = this.list = 
 				this.config.type == module.ui.ListType.UNORDERED ?
@@ -66,28 +107,13 @@ var editor = (function(module, jQuery) {
 			this.list.sortable();
 		},
 		
-		add: function(liWidget) {
-			this.list.append(this.createListItem(liWidget));
-		},
-		
-		insert: function(liWidget, previousWidget) {
-			previousWidget.getUI().parent().after(this.createListItem(liWidget));
-		},
-		
-		edit: function(id, item, newName) {
-			var li = this.list.find('#' + id),
-				widget = li.data('obj');
-			
-			widget.attachObject(item);
-			widget.setText(newName);
-		},
-		
 		remove: function(idOrWidget) {
 			var li = null;
 			
 			if (typeof idOrWidget === 'string') {
 				li = this.list.find('#' + idOrWidget);
 				var widget = li.data('obj');
+				widget.setParent(null);
 				this.listItems.remove(widget);
 			}
 			else if (idOrWidget instanceof module.ui.ListItemWidget) {
@@ -97,24 +123,6 @@ var editor = (function(module, jQuery) {
 			if (li !== null) {
 				li.remove();
 			}
-		},
-		
-		createListItem: function(liWidget) {
-			var li = jQuery('<li></li>'),
-				id = this.config.prefix + 'LstItm-' + this.idCounter;
-				
-			li.attr('id', id).append(liWidget.getUI());
-			li.data('obj', liWidget);
-			this.listItems.put(liWidget, li);
-			
-			this.idCounter += 1;
-			
-			return li;
-		},
-		
-		clear: function() {
-			this.list.empty();
-			this.listItems.clear();
 		}
 	});
 		
@@ -127,8 +135,17 @@ var editor = (function(module, jQuery) {
 			this.container.data('obj', object);
 		},
 		
-		removeObject: function() {
-			this.container.data('obj', null);
+		data: function(key, value) {
+			if (value != null) {
+				return this.container.data(key, value);
+			}
+			else {
+				return this.container.data(key);
+			}
+		},
+		
+		finishLayout: function() {
+			this.container = jQuery('<div></div>');
 		},
 		
 		getAttachedObject: function() {
@@ -143,29 +160,24 @@ var editor = (function(module, jQuery) {
 			return this.container.text();
 		},
 		
-		finishLayout: function() {
-			this.container = jQuery('<span></span>');
+		remove: function() {
+			this.container.remove();
+		},
+		
+		removeObject: function() {
+			this.container.data('obj', null);
 		},
 		
 		setId: function(id) {
 			this.container.parent().attr('id', id);
 		},
 		
+		setParent: function(parent) {
+			this.parent = parent;
+		},
+		
 		setText: function(text) {
 			this.container.text(text);
-		},
-		
-		remove: function() {
-			this.container.remove();
-		},
-		
-		data: function(key, value) {
-			if (value != null) {
-				return this.container.data(key, value);
-			}
-			else {
-				return this.container.data(key);
-			}
 		}
 	});
 	

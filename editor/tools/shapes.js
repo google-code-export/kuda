@@ -54,9 +54,8 @@ var editor = (function(module) {
 			this._super();
 			
 			this.currentShape = null;
-			this.previousShape = null;
+			this.prevShape = null;
 			this.shapeParams = {};
-			this.isUpdating = false;
 	    },
 			
 		worldCleaned: function() {
@@ -81,45 +80,41 @@ var editor = (function(module) {
 		},
 		
 		setShape: function(shape) {
+			if (this.prevShape !== null) {
+				this.prevShape.cleanup();
+				this.prevShape = null;
+			}
+			
 			this.currentShape = shape;
-			this.isUpdating = true;
 			
 			// set the params
-			this.shapeParams = jQuery.extend({
-					type: shape.shapeType,
-					color: shape.color
-				},
-				shape.dim);
+			if (shape !== null) {
+				this.shapeParams = jQuery.extend({
+						type: shape.shapeType,
+						color: shape.color
+					},
+					shape.dim);
+			} else {
+				this.shapeParams = {};
+			}
 			
 			this.notifyListeners(module.EventTypes.ShapeSet, shape);
 		},
 		
 		previewShape: function() {
-			if (this.isUpdating && this.previousShape === null) {
-				this.previousShape = this.currentShape;
-				this.previousShape.transform.visible = false;
+			if (this.currentShape !== null) {
+				this.currentShape.transform.visible = false;
 			}
-			this.createShape();
-		},
-		
-		createShape: function() {
-			if (this.currentShape) {
-				var oldId = this.currentShape.getId();
-				if (this.previousShape !== this.currentShape) {
-					this.currentShape.cleanup();
-				}
-				this.currentShape = new hemi.shape.Shape(this.shapeParams);
-				if (this.previousShape === null) {
-					this.currentShape.setId(oldId);
-				}
+			if (this.prevShape !== null) {
+				this.prevShape.cleanup();
 			}
-			else {
-				this.currentShape = new hemi.shape.Shape(this.shapeParams);
-			}
+			
+			this.prevShape = new hemi.shape.Shape(this.shapeParams);
+			this.prevShape.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
 			
 			if (this.shapeParams.position) {
 				var pos = this.shapeParams.position;
-				this.currentShape.translate(pos[0], pos[1], pos[2]);
+				this.prevShape.translate(pos[0], pos[1], pos[2]);
 			}
 		},
 		
@@ -128,41 +123,34 @@ var editor = (function(module) {
 			shape.cleanup();
 		},
 		
-		cancelUpdate: function() {
-			// TODO: need to figure out how changes to other aspects of the 
-			// editor should be handled.  i.e.: modal?
-			if (this.previousShape !== null) {
-				this.previousShape.transform.visible = true;
-				this.removeShape(this.currentShape);
-			}
-			this.previousShape = null;
-			this.currentShape = null;
-			this.shapeParams = {};
-			this.isUpdating = false;
-		},
-		
 		saveShape: function(name) {
-			this.createShape();
+			var msgType;
 			
-			if (this.previousShape !== null) {
-				var oldId = this.previousShape.getId();
-				this.previousShape.cleanup();
-				this.previousShape = null;
-				this.currentShape.setId(oldId);
+			if (this.prevShape !== null) {
+				this.prevShape.cleanup();
 			}
 			
-			var trans = this.currentShape.getTransform(),
-				primitive = trans.shapes[0],
-				msgType = this.isUpdating ? module.EventTypes.ShapeUpdated 
-					: module.EventTypes.ShapeCreated;
-				
+			if (this.currentShape !== null) {
+				this.currentShape.change(this.shapeParams);
+				this.currentShape.transform.identity();
+				this.currentShape.transform.visible = true;
+				msgType = module.EventTypes.ShapeUpdated;
+			} else {
+				this.currentShape = new hemi.shape.Shape(this.shapeParams);
+				msgType = module.EventTypes.ShapeCreated;
+			}
+			
+			if (this.shapeParams.position) {
+				var pos = this.shapeParams.position;
+				this.currentShape.translate(pos[0], pos[1], pos[2]);
+			}
+			
 			this.currentShape.setName(name);
-				
 			this.notifyListeners(msgType, this.currentShape);
 			
 			this.currentShape = null;
+			this.prevShape = null;
 			this.shapeParams = {};
-			this.isUpdating = false;
 		}
 	});
    	
@@ -201,18 +189,55 @@ var editor = (function(module) {
 				params = this.find('#shpShapeParams'),
 				previewBtn = this.find('#shpPreviewBtn'),
 				optionalInputs = this.find('.optional'),
-				wgt = this;
+				wgt = this,
+				vecValidator = new module.ui.Validator(null, function(elem) {
+						var val = elem.val(),
+							msg = null;
+							
+						if (val !== '' && !hemi.utils.isNumeric(val)) {
+							msg = 'must be a number';
+						}
+						
+						return msg;
+					});
 			
 			this.colorPicker = new module.ui.ColorPicker({
 				inputId: 'shpColor',
-				container: wgt.find('#shpColorDiv'),
 				buttonId: 'shpColorPicker'
 			});
+			
+			this.find('#shpColorLbl').after(this.colorPicker.getUI());
 				
 			// hide optional inputs
 			optionalInputs.parent().hide();
 			
-			this.setupAutoFills(this.find('input.vector'));
+			this.vectors = new module.ui.Vector({
+				container: wgt.find('#shpPositionDiv'),
+				paramName: 'position',
+				onBlur: function(elem, evt) {
+					var val = elem.val(),
+						ndx = elem.data('ndx');
+					
+					if (val === '') {
+						wgt.notifyListeners(module.EventTypes.RemoveShapeParam, 
+							wgt.vectors.config.paramName);
+					}
+					else if (hemi.utils.isNumeric(val)) {
+						var initVal = wgt.vectors.getValue();
+						
+						if (initVal) {							
+							var totalVal = [initVal.x, initVal.y, initVal.z];
+							wgt.notifyListeners(module.EventTypes.SetShapeParam, {
+								paramName: wgt.vectors.config.paramName,
+								paramValue: totalVal
+							});
+						}
+					}
+					
+					wgt.checkToggleButtons();
+				},
+				validator: vecValidator
+			});
 			
 			// add validation
 			new module.ui.Validator(inputs, function(elem) {
@@ -355,9 +380,9 @@ var editor = (function(module) {
 		
 		canSave: function() {
 			var list = this.inputsToCheck,
-				isSafe = true;
+				isSafe = this.vectors.getValue() != null;
 			
-			for (var ndx = 0, len = list.length; ndx < len; ndx++) {
+			for (var ndx = 0, len = list.length; ndx < len && isSafe; ndx++) {
 				isSafe = isSafe && list[ndx].val() !== '';
 			}
 			
@@ -394,9 +419,7 @@ var editor = (function(module) {
 			this.find('form input').val('');
 			
 			// reset the hints
-			this.find('input.xNdx').val('x').addClass('vectorHelper');
-			this.find('input.yNdx').val('y').addClass('vectorHelper');
-			this.find('input.zNdx').val('z').addClass('vectorHelper');
+			this.vectors.reset();
 		
 			// reset the colorpicker
 			this.colorPicker.reset();
@@ -423,9 +446,11 @@ var editor = (function(module) {
 			
 			// set the position
 			var translation = hemi.core.math.matrix4.getTranslation(shape.transform.localMatrix);
-			this.find('#shpPositionX').val(translation[0]).removeClass('vectorHelper');
-			this.find('#shpPositionY').val(translation[1]).removeClass('vectorHelper');
-			this.find('#shpPositionZ').val(translation[2]).removeClass('vectorHelper');
+			this.vectors.setValue({
+				x: translation[0],
+				y: translation[1],
+				z: translation[2]
+			});
 			
 			// set the dimension values
 			for (var prop in shape.dim) {
@@ -672,7 +697,7 @@ var editor = (function(module) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
 			});	
 			crtWgt.addListener(module.EventTypes.CancelCreateShape, function() {
-				model.cancelUpdate();
+				model.setShape(null);
 				lstWgt.setVisible(true);
 			});	
 			
@@ -704,7 +729,9 @@ var editor = (function(module) {
 				lstWgt.remove(shape);
 			});
 			model.addListener(module.EventTypes.ShapeSet, function(shape) {
-				crtWgt.set(shape);
+				if (shape != null) {
+					crtWgt.set(shape);
+				}
 			});
 			model.addListener(module.EventTypes.ShapeWorldCleaned, function() {
 				lstWgt.list.clear();

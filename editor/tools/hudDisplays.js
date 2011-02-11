@@ -129,6 +129,8 @@ var editor = (function(module) {
 					this.currentPage.addElement(element);
 				}
 				
+				element.x = props.x;
+				element.y = props.y;
 				element.setText(props.text);
 				element.setWidth(props.width);
 			} else if (props.type === 'Image') {
@@ -147,6 +149,8 @@ var editor = (function(module) {
 					this.currentPage.addElement(element);
 				}
 				
+				element.x = props.x;
+				element.y = props.y;
 				element.setImageUrl(props.url);
 				refresh = false;
 				var that = this,
@@ -158,8 +162,6 @@ var editor = (function(module) {
 			}
 			
 			if (element !== null) {
-				element.x = props.x;
-				element.y = props.y;
 				element.name = props.name;
 				
 				if (props.config) {
@@ -555,9 +557,10 @@ var editor = (function(module) {
 			
 			var colorPicker = new module.ui.ColorPicker({
 				inputId: 'hudPgeColor',
-				container: wgt.find('#hudPgeColorDiv'),
 				buttonId: 'hudPgeColorPicker'
 			});
+			
+			this.find('#hudPgeColorLbl').after(colorPicker.getUI());
 			
 			colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {		
 				saveBtn.removeAttr('disabled');
@@ -628,9 +631,10 @@ var editor = (function(module) {
 			
 			var colorPicker = new module.ui.ColorPicker({
 				inputId: 'hudTxtColor',
-				container: wgt.find('#hudTxtColorDiv'),
 				buttonId: 'hudTxtColorPicker'
 			});
+			
+			this.find('#hudTxtColorLbl').after(colorPicker.getUI());
 			
 			txtEdt.data('colorPicker', colorPicker);
 			
@@ -666,8 +670,8 @@ var editor = (function(module) {
 			saveBtn.bind('click', function(evt) {
 				var size = sizeInput.val(),
 					font = fontSelect.val(),
-					style = parseInt(styleSelect.val()),
-					align = parseInt(alignSelect.val()),
+					style = styleSelect.val(),
+					align = alignSelect.val(),
 					color = colorPicker.getColor();
 				
 				var props = {
@@ -686,13 +690,13 @@ var editor = (function(module) {
 				if (size !== '') {
 					props.config.textSize = parseInt(size);
 				}
-				if (parseInt(font) !== -1) {
+				if (font !== '-1') {
 					props.config.textTypeface = font;
 				}
-				if (style !== -1) {
+				if (style !== '-1') {
 					props.config.textStyle = style;
 				}
-				if (align !== -1) {
+				if (align !== '-1') {
 					props.config.textAlign = align;
 				}
 				
