@@ -181,10 +181,7 @@ var hemi = (function(hemi) {
 		transform.identity();
 		transform.translate(pos);
 		
-		var xyz = hemi.core.math.addVector(
-			point,
-			hemi.core.math.mulScalarVector(-1,pos));
-			
+		var xyz = hemi.core.math.subVector(point, pos);
 		transform.rotateY(Math.atan2(xyz[0],xyz[2]));
 		transform.rotateX(-Math.asin(
 			xyz[1]/hemi.core.math.distance([0,0,0],xyz)));
