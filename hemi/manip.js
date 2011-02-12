@@ -269,16 +269,16 @@ var hemi = (function(hemi) {
 				return null;
 			}
 			
-			var u = hemi.utils,
-				hMath = hemi.core.math,
-				plane;
+			var plane;
 			
 			if (this.local) {
+				var u = hemi.utils;
 				plane = [u.pointAsWorld(this.activeTransform, this.plane[0]),
 						 u.pointAsWorld(this.activeTransform, this.plane[1]),
 						 u.pointAsWorld(this.activeTransform, this.plane[2])];
 			} else {
-				var wM = this.activeTransform.getUpdatedWorldMatrix(),
+				var hMath = hemi.core.math,
+					wM = this.activeTransform.getUpdatedWorldMatrix(),
 					translation = wM[3].slice(0,3);
 				
 				plane = [hMath.addVector(this.plane[0], translation),
@@ -456,8 +456,8 @@ var hemi = (function(hemi) {
 		
 		this.angle = opt_startAngle == null ? 0 : hemi.core.math.degToRad(opt_startAngle);
 		this.axis = null;
-		this.currentTransform = null;
-		this.dragAngle = 0;
+		this.activeTransform = null;
+		this.dragAngle = null;
 		this.enabled = false;
 		this.local = false;
 		this.min = null;
@@ -465,7 +465,6 @@ var hemi = (function(hemi) {
 		this.msgHandler = null;
 		this.plane = null;
 		this.transformObjs = [];
-		this.turning = false;
 		
 		if (opt_axis != null) {
 			this.setAxis(opt_axis);
@@ -537,7 +536,7 @@ var hemi = (function(hemi) {
 				obj.foster = false;
 			}
 			
-			this.currentTransform = transform;
+			this.activeTransform = transform;
 			this.transformObjs.push(obj);
 		},
 		
@@ -566,7 +565,7 @@ var hemi = (function(hemi) {
 				hemi.world.tranReg.unregister(tran, this);
 			}
 			
-			this.currentTransform = null;
+			this.activeTransform = null;
 			this.transformObjs = [];
 		},
 		
@@ -625,6 +624,10 @@ var hemi = (function(hemi) {
 		 *		active plane
 		 */
 		getAngle : function(x,y) {
+			if (this.activeTransform === null) {
+				return null;
+			}
+			
 			var ray = hemi.core.picking.clientPositionToWorldRay(
 					x,
 					y,
@@ -635,11 +638,17 @@ var hemi = (function(hemi) {
 			
 			if (this.local) {
 				var u = hemi.utils;
-				plane = [u.pointAsWorld(this.currentTransform,this.plane[0]),
-						 u.pointAsWorld(this.currentTransform,this.plane[1]),
-						 u.pointAsWorld(this.currentTransform,this.plane[2])];
+				plane = [u.pointAsWorld(this.activeTransform,this.plane[0]),
+						 u.pointAsWorld(this.activeTransform,this.plane[1]),
+						 u.pointAsWorld(this.activeTransform,this.plane[2])];
 			} else {
-				plane = this.plane;
+				var hMath = hemi.core.math,
+					wM = this.activeTransform.getUpdatedWorldMatrix(),
+					translation = wM[3].slice(0,3);
+				
+				plane = [hMath.addVector(this.plane[0], translation),
+						 hMath.addVector(this.plane[1], translation),
+						 hMath.addVector(this.plane[2], translation)];
 			}
 			
 			var tuv = hemi.utils.intersect(ray, plane);
@@ -666,7 +675,9 @@ var hemi = (function(hemi) {
 		 * @param {o3d.mouseEvent} event Message describing the mouse position, etc.
 		 */
 		onMouseMove : function(event) {
-			if (!this.turning) return;
+			if (this.dragAngle === null) {
+				return;
+			}
 			
 			var delta = this.getAngle(event.x,event.y) - this.dragAngle,
 				axis;
@@ -712,8 +723,7 @@ var hemi = (function(hemi) {
 		 * @param {o3d.mouseEvent} event Message describing mouse position, etc.
 		 */
 		onMouseUp : function(event) {
-			this.turning = false;
-			this.dragAngle = 0;
+			this.dragAngle = null;
 		},
 		
 		/**
@@ -724,8 +734,7 @@ var hemi = (function(hemi) {
 		 */
 		onPick : function(pickInfo,event) {
 			if (this.containsTransform(pickInfo.shapeInfo.parent.transform)) {
-				this.currentTransform = pickInfo.shapeInfo.parent.transform;
-				this.turning = true;
+				this.activeTransform = pickInfo.shapeInfo.parent.transform;
 				this.dragAngle = this.getAngle(event.x,event.y);
 			}
 		},
@@ -776,6 +785,21 @@ var hemi = (function(hemi) {
 			} else {
 				this.max = null;
 			}
+		},
+		
+		/**
+		 * Set the Turnable to operate in the local space of the transform it is
+		 * rotating.
+		 */
+		setToLocal: function() {
+			this.local = true;
+		},
+		
+		/**
+		 * Set the Turnable to operate in world space.
+		 */
+		setToWorld: function() {
+			this.local = false;
 		}
 		
 	};
@@ -784,11 +808,11 @@ var hemi = (function(hemi) {
 		hemi.world.Citizen.call(this);
 		this.activeTransform = null;
 		this.axis = null;
+		this.dragAxis = null;
+		this.dragOrigin = null;
 		this.local = false;
 		this.scale = null;
-		this.scaling = false;
 		this.transformObjs = [];
-		this.v0 = null;
 		
 		this.setAxis(axis);
 		this.enable();
@@ -866,46 +890,51 @@ var hemi = (function(hemi) {
 				this.enabled = true;
 			}
 		},
-		onMouseMove : function(e) {
-			if (!this.scaling) return;
-			this.scaleXY(e.x,e.y);
+		getScale: function(x, y) {
+			var hMath = hemi.core.math,
+				offset = [x - this.dragOrigin[0], y - this.dragOrigin[1]],
+				scale = Math.abs(hemi.core.math.dot(this.dragAxis, offset));
+			return scale;
+		},
+		onMouseMove : function(event) {
+			if (this.dragAxis === null) {
+				return;
+			}
+			
+			var scale = this.getScale(event.x, event.y),
+				f = scale/this.scale,
+				axis = [
+					this.axis[0] ? f : 1,
+					this.axis[1] ? f : 1,
+					this.axis[2] ? f : 1
+				];
+			
+			for (i=0; i<this.transformObjs.length; i++) {
+				var tran = this.transformObjs[i].transform;
+				
+				if (this.local) {
+					tran.scale(axis);
+				} else {
+					hemi.utils.worldScale(axis, tran);
+				}
+			}
+			
+			this.scale = scale;
 		},
 		onMouseUp : function() {
-			this.scaling = false;
+			this.dragAxis = null;
+			this.dragOrigin = null;
 			this.scale = null;
 		},
 		onPick : function(pickInfo,event) {
 			if (this.containsTransform(pickInfo.shapeInfo.parent.transform)) {
 				this.activeTransform = pickInfo.shapeInfo.parent.transform;
-				this.scaling = true;
-				this.scaleXY(event.x,event.y);
+				var axis2d = this.xyPoint(this.axis);
+				this.dragOrigin = this.xyPoint([0,0,0]);
+				this.dragAxis = hemi.core.math.normalize(
+					[axis2d[0]-this.dragOrigin[0], axis2d[1]-this.dragOrigin[1]]);
+				this.scale = this.getScale(event.x, event.y);
 			}
-		},
-		scaleXY : function(x,y) {
-			var math = hemi.core.math,
-				orig = this.xyPoint([0,0,0]),
-				ref = this.xyPoint(this.axis);
-			this.v0 = math.normalize([ref[0]-orig[0],ref[1]-orig[1]]);
-			var scale = Math.abs(math.dot(this.v0,[x-orig[0],y-orig[1]]));		
-			if (this.scale != null) {
-				var f = scale/this.scale,
-					axis = [];
-				
-				axis[0] = this.axis[0] ? f : 1;
-				axis[1] = this.axis[1] ? f : 1;
-				axis[2] = this.axis[2] ? f : 1;
-				
-				for (i=0; i<this.transformObjs.length; i++) {
-					var tran = this.transformObjs[i].transform;
-					
-					if (this.local) {
-						tran.scale(axis);
-					} else {
-						hemi.utils.worldScale(axis, tran);
-					}
-				}
-			}
-			this.scale = scale;
 		},
 		setAxis : function(axis) {
 			switch(axis) {
@@ -922,14 +951,34 @@ var hemi = (function(hemi) {
 					this.axis = [0,0,0];
 			}
 		},
+		/**
+		 * Set the Scalable to operate in the local space of the transform it is
+		 * scaling.
+		 */
+		setToLocal: function() {
+			this.local = true;
+		},
+		/**
+		 * Set the Scalable to operate in world space.
+		 */
+		setToWorld: function() {
+			this.local = false;
+		},
 		xyPoint : function(p) {
+			if (this.activeTransform === null) {
+				return null;
+			}
+			
 			var u = hemi.utils,
 				point;
 			
 			if (this.local) {
 				point = u.pointAsWorld(this.activeTransform, p);
 			} else {
-				point = p;
+				var wM = this.activeTransform.getUpdatedWorldMatrix(),
+					translation = wM[3].slice(0,3);
+				
+				point = hemi.core.math.addVector(p, translation);
 			}
 			
 			return u.worldToScreenFloat(point);
