@@ -405,8 +405,8 @@ var hemi = (function(hemi) {
 			h = hemi.view.clientSize.height,
 			m4 = hemi.core.math.matrix4,
 			v = m4.transformPoint(VM,p0),
-			z = v[2];
-		var p = m4.transformPoint(PM, v);
+			z = v[2],
+			p = m4.transformPoint(PM, v);
 		
 		if (z > 0) {
 			p[0] = -p[0];
@@ -428,8 +428,15 @@ var hemi = (function(hemi) {
 			PM = hemi.view.viewInfo.drawContext.projection,
 			w = hemi.view.clientSize.width,
 			h = hemi.view.clientSize.height,
-			m4 = hemi.core.math.matrix4;
-		var p = m4.transformPoint(PM,m4.transformPoint(VM,p0));
+			m4 = hemi.core.math.matrix4,
+			v = m4.transformPoint(VM,p0),
+			z = v[2],
+			p = m4.transformPoint(PM, v);
+		
+		if (z > 0) {
+			p[0] = -p[0];
+			p[1] = -p[1];
+		}
 		var x = (p[0]+1.0)*0.5*w;
 		var y = (-p[1]+1.0)*0.5*h;
 		return [x,y,p[2]];
