@@ -137,7 +137,7 @@
 		var viewpoint = new hemi.view.Viewpoint();
 		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransform('camEye_outdoors').localMatrix);
 		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransform('camTarget_outdoors').localMatrix);
-		viewpoint.fov = 60;
+		viewpoint.fov = hemi.core.math.degToRad(60);
 		hemi.world.camera.moveToView(viewpoint, 60);
 		
 		var enterMoveCamera = function() {
@@ -183,7 +183,7 @@
 		var viewpoint = new hemi.view.Viewpoint();
 		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransform('camEye_indoors').localMatrix);
 		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransform('camTarget_indoors').localMatrix);
-		viewpoint.fov = 60;
+		viewpoint.fov = hemi.core.math.degToRad(60);
 		hemi.world.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
