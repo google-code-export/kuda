@@ -2,8 +2,7 @@
 2011 February 11
 1. What's New
 World Editor
-* XXX Would like to include the ADL patch???
-** XXX Need a contributor agreement per GPL CA.
+* Templates for particle effects
 Kuda Library
 * Curve now has the option to specify if particles should rotate with curve or not
 
@@ -13,8 +12,6 @@ Kuda Library
 * Bugs in manip, motion, and shape related to transform hierarchy fixed
 * Starting angle for manips now expected in degrees rather than radians
 * Fixed bug with loading Octane from non-local file
-* shape.js fix???
-* XXX All bugs from the test matrix??? Scott developed kudaDemos_testMatrix...
 
 ----------------------------Kuda 1.2.1 Release Notes----------------------------
 2011 January 10
