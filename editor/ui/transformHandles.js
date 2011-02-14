@@ -346,42 +346,6 @@ var editor = (function(module) {
 				&& coordY >= this.topLeft[1] && coordY <= this.bottomRight[1];
 		},
 		
-		drawArrow: function(points, xScale, yScale, angle) {
-			var cvs = this.canvas,
-				x1 = points[0][0],
-				y1 = points[0][1],
-				clr = this.hover ? this.hvrClr : this.clr;
-				
-			cvs.beginPath();
-			cvs.moveTo(x1, y1);
-			cvs.lineTo(points[1][0], points[1][1]);
-			cvs.lineTo(points[2][0], points[2][1]);
-			cvs.lineTo(x1, y1);
-			cvs.shadowBlur = 0;
-			cvs.shadowOffsetX = 0;
-			cvs.shadowOffsetY = 0;
-			cvs.strokeStyle = clr;
-			cvs.fillStyle = clr;
-			cvs.stroke();
-			cvs.fill();
-			
-			cvs.beginPath();
-			cvs.save();
-			cvs.translate(points[3][0], points[3][1]);
-			cvs.rotate(angle);
-			cvs.scale(xScale, yScale);
-			cvs.arc(0, 0, 1, 0, Math.PI * 2, false);
-			cvs.restore();
-			cvs.closePath();
-			cvs.shadowBlur = 0;
-			cvs.shadowOffsetX = 0;
-			cvs.shadowOffsetY = 0;
-			cvs.strokeStyle = clr;
-			cvs.fillStyle = clr;
-			cvs.stroke();
-			cvs.fill();
-		},
-		
 		drawLine: function() {	
 			var cvs = this.canvas,
 				cfg = this.config;
@@ -574,63 +538,112 @@ var editor = (function(module) {
 		
 		drawTranslator: function() {
 			var cfg = this.config,
-				slope = cfg.slope,
-				dis = cfg.distance,
-				invSlope = cfg.invSlope,
+				origin = cfg.origin,
 				vector = cfg.vector,
-				bseLen = cfg.baseLength, // extent is in 3d space, not 2d
-				endPnt = cfg.endPnt,
-				orgPnt = cfg.orgPnt,
-				orgX = cfg.orgPnt[0],
-				orgY = cfg.orgPnt[1],
-				endX = cfg.endPnt[0],
-				endY = cfg.endPnt[1],
-				yInt1 = slope == null ? 0 : endY - (slope * endX),
-				yInt2 = invSlope == null ? 0 : endY - (invSlope * endX),
-				xPoints = slope == 0 ? [endX, endX] : this.solveX(endPnt, invSlope, bseLen),
-				endXPoints = invSlope == 0 ? [endX, endX] : this.solveX(endPnt, slope, dis / 20),
-				cvs = this.canvas;
+				increment = Math.PI / 90,  // 2 degrees
+				startAngle = Math.PI / 2,
+				radius = cfg.extent / 25,
+				endPnt = hemi.core.math.copyVector(vector),
+				angles = 180,
+				angle = 0,
+				points = [],
+				size = cfg.extent / 10,  
+				cvs = this.canvas,
+				clr = this.hover ? this.hvrClr : this.clr,
+				ndx1 = 0,
+				ndx2 = 0,
+				getOutsidePoints = function(pnts) {
+					var maxDis = 0,
+						retVal = {
+							pnt1: null,
+							pnt2: null
+						};
+					
+					for (var i = 0, l = pnts.length; i < l; i++) {
+						var pnt1 = pnts[i];
+						
+						for (var j = 0; j < l; j++) {
+							var pnt2 = pnts[j],
+								dis = hemi.core.math.distance(pnt1, pnt2);	
+							
+							if (dis > maxDis) {
+								maxDis = dis;
+								retVal.pnt1 = pnt1;
+								retVal.pnt2 = pnt2;
+							}
+						}
+					}
+					
+					return retVal;
+				};
 				
-			var x1 = xPoints[0],
-				x2 = xPoints[1],
-				y1 = slope == 0 ? endY + bseLen : invSlope == 0 ? endY : invSlope * x1 + yInt2,
-				y2 = slope == 0 ? endY - bseLen : invSlope == 0 ? endY : invSlope * x2 + yInt2,
-				newX = orgX < endX ? endXPoints[1] : endXPoints[0],
-				newY = invSlope == 0 ? orgY > endY ? endY - dis/10 : endY + dis/10 : slope * newX + yInt1,
-				top = endY - orgY,
-				bot = endX - orgX,
-				angle = bot === 0 ? Math.PI/2 : Math.atan(top/bot),
-				scale = this.math.dot(cfg.centerEye, cfg.centerArrow);
-				
-			// save coordinates
-			this.topLeft = [Math.min(x1, x2, newX), 
-				Math.min(y1, y2, newY)];
-			this.bottomRight = [Math.max(x1, x2, newX), 
-				Math.max(y1, y2, newY)];
-				
-			this.drawArrow([
-					[x1, y1], 
-					[x2, y2],
-					[newX, newY],
-					[endX, endY]
-				], scale === 0 ? 1 : bseLen * scale, bseLen, angle);
-		},
-		
-		getSlope: function(point1, point2) {
-			// due to screen coordinates...
-			var rise = point1[1] - point2[1],
-				run = point1[0] - point2[0];
-				
-			if (run == 0) {
-				return null;
+			// get the endpoint
+			switch(cfg.plane) {
+				case hemi.manip.Plane.XY:
+					endPnt[0] = vector[0] + size;
+					ndx1 = 1;
+					ndx2 = 2;
+					break;
+				case hemi.manip.Plane.YZ:
+					endPnt[1] = vector[1] + size;
+					ndx1 = 2;
+					break;
+				case hemi.manip.Plane.XZ:
+					endPnt[2] = vector[2] + size;
+					ndx1 = 1;
+					break;
 			}
-			return rise / run;
+			endPnt = hemi.utils.worldToScreen(endPnt);
+			
+			// sample points on a circle in 3d space
+			cvs.beginPath();
+			for (var ndx = 0; ndx < angles; ndx++) {
+				var pnt = hemi.core.math.copyVector(vector);
+				
+				angle = angle += increment; 
+					
+				pnt[ndx1] = vector[ndx1] + radius * Math.cos(angle);
+				pnt[ndx2] = vector[ndx2] + radius * Math.sin(angle);
+				
+				pnt = hemi.utils.worldToScreen(pnt);
+				if (ndx === 0) {
+					cvs.moveTo(pnt[0], pnt[1]);
+				}
+				cvs.lineTo(pnt[0], pnt[1]);
+				
+				var x = pnt[0],
+					y = pnt[1];
+				
+				points.push(pnt);
+			}
+			cvs.closePath();
+			cvs.fillStyle = clr;
+			cvs.fill();
+			
+			// draw line from the max points to the end point
+			var maxPnts = getOutsidePoints(points),
+				pnt1 = maxPnts.pnt1,
+				pnt2 = maxPnts.pnt2,
+				maxX = Math.max(pnt1[0], pnt2[0], endPnt[0]),
+				maxY = Math.max(pnt1[1], pnt2[1], endPnt[1]),
+				minX = Math.min(pnt1[0], pnt2[0], endPnt[0]),
+				minY = Math.min(pnt1[1], pnt2[1], endPnt[1]);
+			
+			cvs.beginPath();
+			cvs.moveTo(pnt1[0], pnt1[1]);
+			cvs.lineTo(pnt2[0], pnt2[1]);
+			cvs.lineTo(endPnt[0], endPnt[1]);
+			cvs.closePath();
+			cvs.fillStyle = clr;
+			cvs.fill();
+				
+			this.topLeft = [minX, minY];
+			this.bottomRight = [maxX, maxY];
 		},
 		
 		setParams: function(origin, vector, plane, drawState, extent) {			
 			var ep = hemi.utils.worldToScreen(vector),
 				op = hemi.utils.worldToScreen(origin),
-				s = this.getSlope(op, ep),
 				d = this.math.distance(op, ep),
 				e = hemi.world.camera.getEye(),
 				ce = this.math.normalize(this.math.subVector(e, origin)),
@@ -642,9 +655,7 @@ var editor = (function(module) {
 					vector: vector,
 					orgPnt: op,
 					endPnt: ep,
-					slope: s,
 					distance: d,
-					invSlope: s == null ? 0 : s == 0 ? null : -1 / s,
 					baseLength: (extent * 25) / (hemi.world.camera.distance),
 					centerEye: ce,
 					centerArrow: ca,
@@ -667,22 +678,6 @@ var editor = (function(module) {
 						break;
 				}
 			}
-		},
-		
-		solveX: function(point1, slope, distance) {
-			if (slope == null) {
-				var x = point1[0];
-				
-				return [x - distance, x + distance];	
-			}
-			
-			var m2 = slope * slope,
-				d2 = distance * distance,
-				a = point1[0],
-				fstX = ((a * m2) + a - Math.sqrt(d2*m2 + d2)) / (m2 + 1),
-				secX = ((a * m2) + a + Math.sqrt(d2*m2 + d2)) / (m2 + 1);
-				
-			return [fstX, secX];
 		}
 	});
     
