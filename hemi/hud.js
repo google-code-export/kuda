@@ -757,7 +757,13 @@ var hemi = (function(hemi) {
 		 * @see hemi.hud.HudElement#draw
 		 */
 		draw: function() {
-			hemi.hud.hudMgr.createImageOverlay(this.image, this.config, this.x, this.y);
+			if (this.width !== this.image.width || this.height !== this.image.height) {
+				hemi.hud.hudMgr.createImageOverlay(this.image, this.config,
+					this.x, this.y, 0, 0, this.width, this.height);
+			} else {
+				hemi.hud.hudMgr.createImageOverlay(this.image, this.config,
+					this.x, this.y);
+			}
 		},
 		
 		/**
@@ -1259,6 +1265,13 @@ var hemi = (function(hemi) {
 			if (ndx == -1) {
 				this.elements.push(element);
 			}
+		},
+		
+		/**
+		 * Remove all HudElements from the HudPage.
+		 */
+		clearElements: function() {
+			this.elements = [];
 		},
 		
 		/**
@@ -2007,7 +2020,8 @@ var hemi = (function(hemi) {
 	 * @return {string} the equivalent RGBA string
 	 */
 	var getRgba = function(col) {
-		return 'rgba(' + col[0]*255 + ',' + col[1]*255 + ',' + col[2]*255 + ',' + col[3] + ')';
+		return 'rgba(' + Math.round(col[0]*255) + ',' + Math.round(col[1]*255) +
+			',' + Math.round(col[2]*255) + ',' + col[3] + ')';
 	};
 
 	return hemi;
