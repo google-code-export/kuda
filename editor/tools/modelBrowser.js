@@ -62,6 +62,7 @@ var editor = (function(module) {
 	module.EventTypes.DeselectTreeItem = "modelbrowser.DeselectTreeItem";
 	module.EventTypes.SelectTreeItem = "modelbrowser.SelectTreeItem";
 	module.EventTypes.SetShape = "modelbrowser.SetShape";
+	module.EventTypes.SetTexture = "modelbrowser.SetTexture";
 	
 	// shape display events
     module.EventTypes.TextureReady = "shapedisplay.TextureReady";
@@ -202,12 +203,17 @@ var editor = (function(module) {
 				
 				switch(type) {
 					case 'Model':
-						var matObj = {
-							name: 'Materials',
-							children: node.materials,
-							className: 'material'
-						};
-					    children = [node.root, matObj];
+						var tranObj = {
+								name: 'Transforms',
+								children: [node.root],
+								className: 'directory'
+							},
+							matObj = {
+								name: 'Materials',
+								children: node.materials,
+								className: 'directory'
+							};
+					    children = [tranObj, matObj];
 						break;
 					case 'Shape':
 					    children = [node.getTransform()];
@@ -215,17 +221,6 @@ var editor = (function(module) {
 					default:
 						children = null;
 						break;
-				}
-			} else if (node.className === 'Material') {
-				var params = node.params;
-				children = [];
-				
-				for (var i = 0, il = params.length; i < il; i++) {
-					var param = params[i];
-					
-					if (param.className.toLowerCase().indexOf('sampler') >= 0) {
-						children.push(param.value.texture);
-					}
 				}
 			} else {
 				children = node.children;
@@ -701,7 +696,7 @@ var editor = (function(module) {
 //////////////////////////////////////////////////////////////////////////////// 
 
 	
-	module.tools.ShapeLIWidget = module.ui.ListItemWidget.extend({
+	module.tools.ChildLIWidget = module.ui.ListItemWidget.extend({
 		init: function() {
 			this._super();
 		},
@@ -788,26 +783,17 @@ var editor = (function(module) {
 						
 						wgt.displayTransformNode(metadata.actualNode);
 						break;
-					case 'texture2d':
-						var tex = metadata.actualNode,
-							model = metadata.parent,
-							params = tex.params;
+					case 'material':
+						var material = metadata.actualNode,
+							model = metadata.parent;
 						
-						for (var i = 0, il = params.length; i < il; i++) {
-							var param = params[i];
-							
-							if (param.name.toLowerCase().indexOf('uri') >= 0) {
-								var end = model.fileName.lastIndexOf('/'),
-									path = model.fileName.substring(0, end + 1);
-								
-								wgt.notifyListeners(module.EventTypes.SelectTreeItem, {
-									owner: model,
-									path: path + param.value,
-									type: metadata.type
-								});
-								break;
-							}
-						}
+						wgt.notifyListeners(module.EventTypes.SelectTreeItem, {
+							owner: model,
+							material: material,
+							type: metadata.type
+						});
+						
+						wgt.displayMaterialNode(material, model);
 						break;
 				}
 			})
@@ -865,6 +851,63 @@ var editor = (function(module) {
 			this.instructions = jQuery('<p>Click on an item in the browser or on an item in the viewer to view its details.</p>');
 		},
 		
+		displayMaterialNode: function(material, model) {
+			var detailsList = new module.ui.DetailsList(),
+				params = material.params,
+				textures = {},
+				texList = new module.ui.ListWidget({
+					widgetId: 'mbrTextureList',
+					prefix: 'mbrTexLst',
+					type: module.ui.ListType.UNORDERED
+				}),
+				wgt = this;
+			
+			detailsList.addItem('Name:', material.name);
+			
+			for (var i = 0, il = params.length; i < il; i++) {
+				var param = params[i],
+					className = param.className.toLowerCase();
+				
+				if (className.indexOf('sampler') >= 0) {
+					var tex = param.value.texture;
+					
+					if (tex != null) {
+						textures[tex.clientId] = tex;
+					}
+				} else if (className.indexOf('texture') >= 0) {
+					var tex = param.value;
+					textures[tex.clientId] = tex;
+				}
+			}
+			
+			for (var tId in textures) {
+				var tex = textures[tId],
+					name = tex.name !== '' ? tex.name : 'unnamed',
+					item = new module.tools.ChildLIWidget();
+				
+				item.setText(name);
+				item.attachObject({
+					model: model,
+					texture: tex
+				});
+				item.title.data('liWidget', item);
+				item.title.bind('click', function(evt) {
+					var item = jQuery(this).data('liWidget'),
+						data = item.getAttachedObject();
+					wgt.notifyListeners(module.EventTypes.SetTexture, data);
+				});
+				item.removeBtn.bind('click', function(evt) {
+					wgt.notifyListeners(module.EventTypes.SetTexture, null);
+				});
+				
+				texList.add(item);
+			}
+			
+			jQuery('#mbDetails').empty().append(detailsList.getList());
+			jQuery('#mbChildren').empty().append(texList.getUI());
+			jQuery('#mbChildrenTitle').text('Textures');
+		},
+		
 		displayTransformNode: function(transform) {
 			var detailsList = new module.ui.DetailsList(),
 				shapes = transform.shapes,
@@ -890,15 +933,17 @@ var editor = (function(module) {
 					name = shape.name !== '' ? shape.name : 'unnamed'; 
 				
 				if (name.match(HIGHLIGHT_PRE) === null) {
-					var item = new module.tools.ShapeLIWidget();
+					var item = new module.tools.ChildLIWidget();
+					
 					item.setText(name);
 					item.attachObject({
 						transform: transform,
 						shape: shape
 					});
-					
+					item.title.data('liWidget', item);
 					item.title.bind('click', function(evt) {
-						var data = item.getAttachedObject();
+						var item = jQuery(this).data('liWidget'),
+							data = item.getAttachedObject();
 						wgt.notifyListeners(module.EventTypes.SetShape, data);
 					});
 					item.removeBtn.bind('click', function(evt) {
@@ -910,7 +955,8 @@ var editor = (function(module) {
 			};
 			
 			jQuery('#mbDetails').empty().append(detailsList.getList());
-			jQuery('#mbShapes').empty().append(shapeList.getUI());
+			jQuery('#mbChildren').empty().append(shapeList.getUI());
+			jQuery('#mbChildrenTitle').text('Shapes');
 		},
 		
 		selectNode: function(nodeName) {
@@ -931,13 +977,15 @@ var editor = (function(module) {
 	        var node = jQuery('#node_' + nodeName);
 			this.tree.jstree('deselect_node', node);
 			jQuery('#mbDetails').empty().append(this.instructions);
-			jQuery('#mbShapes').empty();
+			jQuery('#mbChildren').empty();
+			jQuery('#mbChildrenTitle').empty();
 		},
 		
 		deselectAll: function() {
 			this.tree.jstree('deselect_all');
 			jQuery('#mbDetails').empty().append(this.instructions);
-			jQuery('#mbShapes').empty();
+			jQuery('#mbChildren').empty();
+			jQuery('#mbChildrenTitle').empty();
 		},
 		
 		addModel: function(modelData) {
@@ -1260,15 +1308,33 @@ var editor = (function(module) {
 			this.display.currentPage = 0;
 		},
 		
-		setTexture: function(path, owner) {
+		setTexture: function(texture, model) {
 			this.deselect();
-			this.currentOwner = owner;
+			
+			var params = texture.params,
+				uri = null;
+			
+			for (var i = 0, il = params.length; i < il && uri === null; i++) {
+				var param = params[i];
+				
+				if (param.name.toLowerCase().indexOf('uri') >= 0) {
+					var end = model.fileName.lastIndexOf('/'),
+						path = model.fileName.substring(0, end + 1);
+					uri = path + param.value;
+				}
+			}
+			
+			if (uri === null) {
+				return;
+			}
+			
+			this.currentOwner = model;
 			this.display.currentPage = 1;
 			var page = this.display.getCurrentPage();
 			page.clearElements();
 			
-			if (this.images[path] != null) {
-				var image = this.images[path];
+			if (this.images[uri] != null) {
+				var image = this.images[uri];
 				page.addElement(image);
 				this.notifyListeners(module.EventTypes.TextureReady, null);
 			} else {
@@ -1278,9 +1344,10 @@ var editor = (function(module) {
 						function(msg) {
 							image.unsubscribe(msgHandler);
 							
-							// Give it a 10 pixel buffer
-							var cHeight = hemi.core.client.height - 10,
-								cWidth = hemi.core.client.width - 10,
+							// Give it a 15 pixel buffer for the page offset and
+							// margin.
+							var cHeight = hemi.core.client.height - 15,
+								cWidth = hemi.core.client.width - 15,
 								iHeight = image.height,
 								iWidth = image.width;
 							
@@ -1297,14 +1364,14 @@ var editor = (function(module) {
 							
 							image.height = Math.round(iHeight);
 							image.width = Math.round(iWidth);
-							image.x = cWidth - image.width;
+							image.x = cWidth + 5 - image.width;
 							image.y = 10;
 							that.notifyListeners(module.EventTypes.TextureReady, null);
 						});
 				
-				image.setImageUrl(path);
+				image.setImageUrl(uri);
 				page.addElement(image);
-				this.images[path] = image;
+				this.images[uri] = image;
 			}
 		},
 		
@@ -1514,13 +1581,14 @@ var editor = (function(module) {
 							mbrWgt.previousSelection.find('a').addClass('jstree-clicked');
 						}
 					}
-				} else if (value.type === 'texture2d') {
-					shapeDisp.setTexture(value.path, value.owner);
+				} else if (value.type === 'material') {
+					// TODO: Do something useful like highlight the material so
+					// that the user can see what shapes use it. ~ekitson
 				}
 			});			
 			mbrWgt.addListener(module.EventTypes.DeselectTreeItem, function(transform) {
 				selModel.deselectTransform(transform);
-			});			
+			});
 			mbrWgt.addListener(module.EventTypes.SetShape, function(data) {
 				if (data !== null) {
 					selModel.selectShape(data.shape, data.transform);
@@ -1528,7 +1596,14 @@ var editor = (function(module) {
 					selModel.deselectShape();
 				}
 			});
-	
+			mbrWgt.addListener(module.EventTypes.SetTexture, function(data) {
+				if (data !== null) {
+					shapeDisp.setTexture(data.texture, data.model);
+				} else {
+					shapeDisp.deselect();
+				}
+			});
+			
 			// view specific  
 	        view.addListener(module.EventTypes.ManipState, function(state) {
 				selModel.setManipState(state);
