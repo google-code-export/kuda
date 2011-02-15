@@ -63,6 +63,9 @@ var editor = (function(module) {
 	module.EventTypes.SelectTreeItem = "modelbrowser.SelectTreeItem";
 	module.EventTypes.SetShape = "modelbrowser.SetShape";
 	
+	// shape display events
+    module.EventTypes.TextureReady = "shapedisplay.TextureReady";
+	
 	// TODO: We need a better way of testing for our highlight shapes than
 	// searching for this prefix.
 	HIGHLIGHT_PRE = 'kuda_highlight_';
@@ -159,13 +162,17 @@ var editor = (function(module) {
 			});
 		},
 		
-		createJsonObj: function(node) {
+		createJsonObj: function(node, parentNode) {
 			var c = this.getNodeChildren(node),
 				nodeType = getNodeType(node),
 				children = [];
 			
+			if (parentNode == null) {
+				parentNode = node;
+			}
+			
 			for (var i = 0; c && i < c.length; i++) {
-				var nodeJson = this.createJsonObj(c[i]);
+				var nodeJson = this.createJsonObj(c[i], parentNode);
 				children.push(nodeJson);
 			}
 			
@@ -179,7 +186,8 @@ var editor = (function(module) {
 				children: children,
 				metadata: {
 					type: nodeType,
-					actualNode: node
+					actualNode: node,
+					parent: parentNode
 				}
 			};
 			
@@ -187,23 +195,43 @@ var editor = (function(module) {
 		},
 		
 		getNodeChildren: function(node) {
+			var children;
+			
 			if (jQuery.isFunction(node.getCitizenType)) {
-				var type = node.getCitizenType().split('.').pop(),
-					retVal = null;
+				var type = node.getCitizenType().split('.').pop();
 				
 				switch(type) {
 					case 'Model':
-					    retVal = [node.root];
+						var matObj = {
+							name: 'Materials',
+							children: node.materials,
+							className: 'material'
+						};
+					    children = [node.root, matObj];
 						break;
 					case 'Shape':
-					    retVal = [node.getTransform()];
+					    children = [node.getTransform()];
+						break;
+					default:
+						children = null;
 						break;
 				}
+			} else if (node.className === 'Material') {
+				var params = node.params;
+				children = [];
 				
-				return retVal;
+				for (var i = 0, il = params.length; i < il; i++) {
+					var param = params[i];
+					
+					if (param.className.toLowerCase().indexOf('sampler') >= 0) {
+						children.push(param.value.texture);
+					}
+				}
+			} else {
+				children = node.children;
 			}
 			
-			return node.children;
+			return children;
 		}
 	});
 	
@@ -744,19 +772,43 @@ var editor = (function(module) {
 				var elem = data.rslt.obj,
 					metadata = elem.data('jstree');
 				
-				if (metadata.type === 'transform') {
-					if (data.args[2] != null) {
-						wgt.notifyListeners(module.EventTypes.SelectTreeItem, {
-							transform: metadata.actualNode,
-							node: elem,
-							mouseEvent: data.args[2]
-						});
-					}
-					else {
-						jQuery('#mbTreeWrapper').scrollTo(elem, 400);
-					}
-					
-					wgt.displayTransformNode(metadata.actualNode);
+				switch(metadata.type) {
+					case 'transform':
+						if (data.args[2] != null) {
+							wgt.notifyListeners(module.EventTypes.SelectTreeItem, {
+								transform: metadata.actualNode,
+								node: elem,
+								mouseEvent: data.args[2],
+								type: metadata.type
+							});
+						}
+						else {
+							jQuery('#mbTreeWrapper').scrollTo(elem, 400);
+						}
+						
+						wgt.displayTransformNode(metadata.actualNode);
+						break;
+					case 'texture2d':
+						var tex = metadata.actualNode,
+							model = metadata.parent,
+							params = tex.params;
+						
+						for (var i = 0, il = params.length; i < il; i++) {
+							var param = params[i];
+							
+							if (param.name.toLowerCase().indexOf('uri') >= 0) {
+								var end = model.fileName.lastIndexOf('/'),
+									path = model.fileName.substring(0, end + 1);
+								
+								wgt.notifyListeners(module.EventTypes.SelectTreeItem, {
+									owner: model,
+									path: path + param.value,
+									type: metadata.type
+								});
+								break;
+							}
+						}
+						break;
 				}
 			})
 			.bind('deselect_node.jstree', function(evt, data) {
@@ -1064,8 +1116,11 @@ var editor = (function(module) {
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    	
 	
-	module.tools.ShapeInfoDisplay = module.Class.extend({
+	module.tools.ShapeInfoDisplay = module.utils.Listenable.extend({
 		init: function() {
+			this._super();
+			
+			this.images = {};
 		},
 		
 		createHud: function() {
@@ -1143,12 +1198,27 @@ var editor = (function(module) {
 			page.addElement(this.boundMaxY);
 			page.addElement(this.boundMaxZ);
 			
-			this.shapeDisplay = new hemi.hud.HudDisplay();
-			this.shapeDisplay.name = module.tools.ToolConstants.EDITOR_PREFIX + 'ShapeDisplay';
-			this.shapeDisplay.addPage(page);
+			var page2 = new hemi.hud.HudPage();
+			page2.name = module.tools.ToolConstants.EDITOR_PREFIX + 'TexturePage';
+			page2.setConfig({
+				color: [0, 0, 0, 0.3]
+			});
+			
+			this.display = new hemi.hud.HudDisplay();
+			this.display.name = module.tools.ToolConstants.EDITOR_PREFIX + 'ModelBrowserDisplay';
+			this.display.addPage(page);
+			this.display.addPage(page2);
+		},
+		
+		deselect: function() {
+			this.setVisible(false);
+			this.currentOwner = null;
+			this.currentShape = null;
 		},
 		
 		setShape: function(shape, owner) {
+			this.deselect();
+			
 			var shapeInfo = hemi.picking.pickManager.createShapeInfo(shape, null),
 				box = shapeInfo.boundingBox,
 				minExtent = box.minExtent,
@@ -1187,21 +1257,63 @@ var editor = (function(module) {
 			// save state
 			this.currentShape = shape;
 			this.currentOwner = owner;
+			this.display.currentPage = 0;
 		},
 		
-		deselect: function() {
-			this.currentShape = null;
-			this.currentOwner = null;
-			this.setVisible(false);
+		setTexture: function(path, owner) {
+			this.deselect();
+			this.currentOwner = owner;
+			this.display.currentPage = 1;
+			var page = this.display.getCurrentPage();
+			page.clearElements();
+			
+			if (this.images[path] != null) {
+				var image = this.images[path];
+				page.addElement(image);
+				this.notifyListeners(module.EventTypes.TextureReady, null);
+			} else {
+				var image = new hemi.hud.HudImage(),
+					that = this,
+					msgHandler = image.subscribe(hemi.msg.load,
+						function(msg) {
+							image.unsubscribe(msgHandler);
+							
+							// Give it a 10 pixel buffer
+							var cHeight = hemi.core.client.height - 10,
+								cWidth = hemi.core.client.width - 10,
+								iHeight = image.height,
+								iWidth = image.width;
+							
+							if (iWidth > cWidth) {
+								var ratio = cWidth / iWidth;
+								iWidth *= ratio;
+								iHeight *= ratio;
+							}
+							if (iHeight > cHeight) {
+								var ratio = cHeight / iHeight;
+								iWidth *= ratio;
+								iHeight *= ratio;
+							}
+							
+							image.height = Math.round(iHeight);
+							image.width = Math.round(iWidth);
+							image.x = cWidth - image.width;
+							image.y = 10;
+							that.notifyListeners(module.EventTypes.TextureReady, null);
+						});
+				
+				image.setImageUrl(path);
+				page.addElement(image);
+				this.images[path] = image;
+			}
 		},
 		
 		setVisible: function(visible) {
 			if (visible) {
-				this.shapeDisplay.isVisible() ? this.shapeDisplay.showPage() 
-					: this.shapeDisplay.show();
-			}	
-			else if (this.shapeDisplay){
-				this.shapeDisplay.hide();
+				this.display.isVisible() ? this.display.showPage() 
+					: this.display.show();
+			} else if (this.display){
+				this.display.hide();
 			}
 		}
 	});
@@ -1387,19 +1499,23 @@ var editor = (function(module) {
 			
 			// mdl browser widget specific
 			mbrWgt.addListener(module.EventTypes.SelectTreeItem, function(value) {
-				if (selModel.dragger === null) {
-					if (!value.mouseEvent.shiftKey) {
-						selModel.deselectAll();
+				if (value.type === 'transform') {
+					if (selModel.dragger === null) {
+						if (!value.mouseEvent.shiftKey) {
+							selModel.deselectAll();
+						}
+						
+						selModel.selectTransform(value.transform);
+		                mbrWgt.previousSelection = value.node;
+					} else {
+						value.node.find('a').removeClass('jstree-clicked');
+						
+						if (mbrWgt.previousSelection) {
+							mbrWgt.previousSelection.find('a').addClass('jstree-clicked');
+						}
 					}
-					
-					selModel.selectTransform(value.transform);
-	                mbrWgt.previousSelection = value.node;
-				} else {
-					value.node.find('a').removeClass('jstree-clicked');
-					
-					if (mbrWgt.previousSelection) {
-						mbrWgt.previousSelection.find('a').addClass('jstree-clicked');
-					}
+				} else if (value.type === 'texture2d') {
+					shapeDisp.setTexture(value.path, value.owner);
 				}
 			});			
 			mbrWgt.addListener(module.EventTypes.DeselectTreeItem, function(transform) {
@@ -1436,6 +1552,12 @@ var editor = (function(module) {
 				} else {
 					selModel.stopDragging();
 				}
+	        });
+			
+			// shape display specific
+			shapeDisp.addListener(module.EventTypes.TextureReady, function(value) {
+				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+				shapeDisp.setVisible(isDown);
 	        });
 			
 			// mbr model specific
