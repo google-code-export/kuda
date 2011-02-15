@@ -765,10 +765,22 @@ var editor = (function(module) {
 			this.treeParent = this.tree.parent();
 			this.tree.bind('select_node.jstree', function(evt, data) {
 				var elem = data.rslt.obj,
-					metadata = elem.data('jstree');
+					metadata = elem.data('jstree'),
+					type = metadata.type,
+					selected = wgt.tree.jstree('get_selected');
 				
-				switch(metadata.type) {
+				switch(type) {
 					case 'transform':
+						// Deselect any non-transforms that may be selected
+						for (var i = 0, il = selected.length; i < il; i++) {
+							var sel = selected[i],
+								selData = jQuery(sel).data('jstree');
+							
+							if (selData.type !== type) {
+								wgt.tree.jstree('deselect_node', sel);
+							}
+						}
+						
 						if (data.args[2] != null) {
 							wgt.notifyListeners(module.EventTypes.SelectTreeItem, {
 								transform: metadata.actualNode,
@@ -776,8 +788,8 @@ var editor = (function(module) {
 								mouseEvent: data.args[2],
 								type: metadata.type
 							});
-						}
-						else {
+							wgt.tree.jstree('toggle_node', elem);
+						} else {
 							jQuery('#mbTreeWrapper').scrollTo(elem, 400);
 						}
 						
@@ -787,6 +799,15 @@ var editor = (function(module) {
 						var material = metadata.actualNode,
 							model = metadata.parent;
 						
+						// Materials are always single selection
+						for (var i = 0, il = selected.length; i < il; i++) {
+							var sel = selected[i];
+							
+							if (sel !== elem[0]) {
+								wgt.tree.jstree('deselect_node', sel);
+							}
+						}
+						
 						wgt.notifyListeners(module.EventTypes.SelectTreeItem, {
 							owner: model,
 							material: material,
@@ -795,6 +816,9 @@ var editor = (function(module) {
 						
 						wgt.displayMaterialNode(material, model);
 						break;
+					default:
+						wgt.tree.jstree('toggle_node', elem);
+						break;
 				}
 			})
 			.bind('deselect_node.jstree', function(evt, data) {
@@ -802,7 +826,10 @@ var editor = (function(module) {
 					metadata = elem.data('jstree');
 				
 				if (metadata != null) {
-					wgt.notifyListeners(module.EventTypes.DeselectTreeItem, metadata.actualNode);
+					wgt.notifyListeners(module.EventTypes.DeselectTreeItem, {
+						node: metadata.actualNode,
+						type: metadata.type
+					});
 				}
 			})
 			.jstree({
@@ -964,7 +991,7 @@ var editor = (function(module) {
 			var path = this.tree.jstree('get_path', elem, true);
 			var temp;
 			
-			for (var i = 0; i < path.length; i++) {
+			for (var i = 0, il = path.length - 1; i < il; i++) {
 				var node = jQuery('#' + path[i]);
 				this.tree.jstree('open_node', node, false, true);
 			}
@@ -973,7 +1000,7 @@ var editor = (function(module) {
 			this.previousSelection = elem;
 		},
 		
-		deselectNode: function(nodeName) {		
+		deselectNode: function(nodeName) {
 	        var node = jQuery('#node_' + nodeName);
 			this.tree.jstree('deselect_node', node);
 			jQuery('#mbDetails').empty().append(this.instructions);
@@ -1169,6 +1196,7 @@ var editor = (function(module) {
 			this._super();
 			
 			this.images = {};
+			this.visible = false;
 		},
 		
 		createHud: function() {
@@ -1262,6 +1290,12 @@ var editor = (function(module) {
 			this.setVisible(false);
 			this.currentOwner = null;
 			this.currentShape = null;
+		},
+		
+		refresh: function() {
+			if (this.visible) {
+				this.display.showPage();
+			}
 		},
 		
 		setShape: function(shape, owner) {
@@ -1377,9 +1411,11 @@ var editor = (function(module) {
 		
 		setVisible: function(visible) {
 			if (visible) {
+				this.visible = true;
 				this.display.isVisible() ? this.display.showPage() 
 					: this.display.show();
 			} else if (this.display){
+				this.visible = false;
 				this.display.hide();
 			}
 		}
@@ -1540,6 +1576,10 @@ var editor = (function(module) {
 				hidWgt = view.hiddenItemsSBWidget,
 				shapeDisp = view.shapeDisplay;
 			
+			selModel.curHandle.setDrawCallback(function() {
+				shapeDisp.refresh();
+			});
+			
 			// for when the tool gets selected/deselected	
 			view.addListener(module.EventTypes.ToolModeSet, function(value) {
 				var isDown = value == module.tools.ToolConstants.MODE_DOWN,
@@ -1582,12 +1622,17 @@ var editor = (function(module) {
 						}
 					}
 				} else if (value.type === 'material') {
+					selModel.deselectAll();
 					// TODO: Do something useful like highlight the material so
 					// that the user can see what shapes use it. ~ekitson
 				}
 			});			
-			mbrWgt.addListener(module.EventTypes.DeselectTreeItem, function(transform) {
-				selModel.deselectTransform(transform);
+			mbrWgt.addListener(module.EventTypes.DeselectTreeItem, function(data) {
+				if (data.type === 'transform') {
+					selModel.deselectTransform(data.node);
+				} else {
+					shapeDisp.deselect();
+				}
 			});
 			mbrWgt.addListener(module.EventTypes.SetShape, function(data) {
 				if (data !== null) {
@@ -1698,12 +1743,8 @@ var editor = (function(module) {
 				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
 				
 				if (shapeInfo === null) {
-					selModel.curHandle.setDrawCallback(null);
 					shapeDisp.deselect();
 				} else {
-					selModel.curHandle.setDrawCallback(function() {
-						shapeDisp.setVisible(true);
-					});
 					shapeDisp.setShape(shapeInfo.shape, shapeInfo.owner);
 					shapeDisp.setVisible(isDown);
 				}
