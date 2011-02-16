@@ -4,6 +4,7 @@
 World Editor
 * Handles for rotation/translation/scaling added
 * Templates for particle effects
+* Material list and texture viewer added to model browser
 * XXX Would like to include the ADL patch??? Big deal though as it means reading OBJ, Collada, etc as the service currently has o3dtgz support. Need a contributor agreement per GPL CA.
 Kuda Library
 * Kuda ported from O3D plugin to WebGL
