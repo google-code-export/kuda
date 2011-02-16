@@ -1286,6 +1286,109 @@ var editor = (function(module) {
 			this.display.addPage(page2);
 		},
 		
+		createImage: function(uri) {
+			var image = new hemi.hud.HudImage(),
+				that = this,
+				msgHandler = image.subscribe(hemi.msg.load,
+					function(msg) {
+						image.unsubscribe(msgHandler);
+						
+						// Give it a 15 pixel buffer for the page offset and
+						// margin.
+						var cHeight = hemi.core.client.height - 15,
+							cWidth = hemi.core.client.width - 15,
+							iHeight = image.height,
+							iWidth = image.width;
+						
+						if (iWidth > cWidth) {
+							var ratio = cWidth / iWidth;
+							iWidth *= ratio;
+							iHeight *= ratio;
+						}
+						if (iHeight > cHeight) {
+							var ratio = cHeight / iHeight;
+							iWidth *= ratio;
+							iHeight *= ratio;
+						}
+						
+						image.height = Math.round(iHeight);
+						image.width = Math.round(iWidth);
+						image.x = cWidth + 5 - image.width;
+						image.y = 10;
+						that.notifyListeners(module.EventTypes.TextureReady, null);
+					});
+			
+			image.setImageUrl(uri);
+			return image;
+		},
+		
+		createImageMulti: function(uris) {
+			var images = [],
+				handlers = [],
+				count = 0,
+				halfCount = Math.ceil(uris.length / 2),
+				// Give it a 15 pixel buffer for the page offset and margin.
+				cHeight = hemi.core.client.height - 15,
+				cWidth = hemi.core.client.width - 15,
+				// The images will be arranged in two rows
+				scaleHeight = cHeight / 2,
+				scaleWidth = cWidth / halfCount,
+				x = cWidth + 5,
+				y = 10,
+				maxHeight = 0;
+			
+			for (var i = 0, il = uris.length; i < il; i++) {
+				var image = new hemi.hud.HudImage(),
+					that = this;
+				
+				handlers[i] = image.subscribe(hemi.msg.load,
+					function(msg) {
+						image = images[count];
+						image.unsubscribe(handlers[count]);
+						++count;
+						
+						var iHeight = image.height,
+							iWidth = image.width;
+						
+						if (iWidth > scaleWidth) {
+							var ratio = scaleWidth / iWidth;
+							iWidth *= ratio;
+							iHeight *= ratio;
+						}
+						if (iHeight > scaleHeight) {
+							var ratio = scaleHeight / iHeight;
+							iWidth *= ratio;
+							iHeight *= ratio;
+						}
+						
+						image.height = Math.round(iHeight);
+						image.width = Math.round(iWidth);
+						
+						if (count <= halfCount) {
+							maxHeight = Math.max(maxHeight, image.height);
+						} else if (y === 10) {
+							x = cWidth + 5;
+							y = maxHeight;
+						}
+						
+						x -= image.width;
+						image.x = x;
+						image.y = y;
+						
+						if (count === uris.length) {
+							that.notifyListeners(module.EventTypes.TextureReady, null);
+						} else {
+							images[count].setImageUrl(uris[count]);
+						}
+					});
+				
+				images[i] = image;
+			}
+			
+			images[0].setImageUrl(uris[0]);
+			return images;
+		},
+		
 		deselect: function() {
 			this.setVisible(false);
 			this.currentOwner = null;
@@ -1344,68 +1447,48 @@ var editor = (function(module) {
 		
 		setTexture: function(texture, model) {
 			this.deselect();
-			
-			var params = texture.params,
-				uri = null;
-			
-			for (var i = 0, il = params.length; i < il && uri === null; i++) {
-				var param = params[i];
-				
-				if (param.name.toLowerCase().indexOf('uri') >= 0) {
-					var end = model.fileName.lastIndexOf('/'),
-						path = model.fileName.substring(0, end + 1);
-					uri = path + param.value;
-				}
-			}
-			
-			if (uri === null) {
-				return;
-			}
-			
 			this.currentOwner = model;
 			this.display.currentPage = 1;
-			var page = this.display.getCurrentPage();
+			
+			var tId = texture.clientId,
+				page = this.display.getCurrentPage();
 			page.clearElements();
 			
-			if (this.images[uri] != null) {
-				var image = this.images[uri];
-				page.addElement(image);
+			if (this.images[tId] != null) {
+				var images = this.images[tId];
+				
+				for (var i = 0, il = images.length; i < il; i++) {
+					page.addElement(images[i]);
+				}
+				
 				this.notifyListeners(module.EventTypes.TextureReady, null);
 			} else {
-				var image = new hemi.hud.HudImage(),
-					that = this,
-					msgHandler = image.subscribe(hemi.msg.load,
-						function(msg) {
-							image.unsubscribe(msgHandler);
-							
-							// Give it a 15 pixel buffer for the page offset and
-							// margin.
-							var cHeight = hemi.core.client.height - 15,
-								cWidth = hemi.core.client.width - 15,
-								iHeight = image.height,
-								iWidth = image.width;
-							
-							if (iWidth > cWidth) {
-								var ratio = cWidth / iWidth;
-								iWidth *= ratio;
-								iHeight *= ratio;
-							}
-							if (iHeight > cHeight) {
-								var ratio = cHeight / iHeight;
-								iWidth *= ratio;
-								iHeight *= ratio;
-							}
-							
-							image.height = Math.round(iHeight);
-							image.width = Math.round(iWidth);
-							image.x = cWidth + 5 - image.width;
-							image.y = 10;
-							that.notifyListeners(module.EventTypes.TextureReady, null);
-						});
+				var params = texture.params,
+					uris = [];
 				
-				image.setImageUrl(uri);
-				page.addElement(image);
-				this.images[uri] = image;
+				for (var i = 0, il = params.length; i < il; i++) {
+					var param = params[i];
+					
+					if (param.name.toLowerCase().indexOf('uri') >= 0) {
+						var end = model.fileName.lastIndexOf('/'),
+							path = model.fileName.substring(0, end + 1);
+						
+						uris.push(path + param.value);
+					}
+				}
+				
+				if (uris.length === 1) {
+					var image = this.createImage(uris[0]);
+					this.images[tId] = [image];
+					page.addElement(image);
+				} else if (uris.length > 1) {
+					var images = this.createImageMulti(uris);
+					this.images[tId] = images;
+					
+					for (var i = 0, il = images.length; i < il; i++) {
+						page.addElement(images[i]);
+					}
+				}
 			}
 		},
 		
