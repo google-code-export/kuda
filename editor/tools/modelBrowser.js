@@ -1370,7 +1370,7 @@ var editor = (function(module) {
 							maxHeight = Math.max(maxHeight, image.height);
 						} else if (y === 10) {
 							x = cWidth + 5;
-							y = maxHeight;
+							y += maxHeight;
 						}
 						
 						x -= image.width;
