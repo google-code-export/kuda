@@ -42,13 +42,9 @@ var editor = (function(module) {
 	
 	// view events
     module.EventTypes.ShowPicked = "modelbrowser.ShowPicked";
-    module.EventTypes.Translate = "modelbrowser.Translate";
-    module.EventTypes.Rotate = "modelbrowser.Rotate";
-    module.EventTypes.Scale = "modelbrowser.Scale";
     module.EventTypes.ManipState = "modelbrowser.ManipState";
 	
 	// selector model events
-	module.EventTypes.Dragging = "selector.Dragging";
 	module.EventTypes.ShapeSelected = "selector.ShapeSelected";
 	module.EventTypes.TransformDeselected = "selector.TransformDeselected";
 	module.EventTypes.TransformHidden = "selector.TransformHidden";
@@ -64,8 +60,8 @@ var editor = (function(module) {
 	module.EventTypes.SetShape = "modelbrowser.SetShape";
 	module.EventTypes.SetTexture = "modelbrowser.SetTexture";
 	
-	// shape display events
-    module.EventTypes.TextureReady = "shapedisplay.TextureReady";
+	// info display events
+    module.EventTypes.TextureReady = "infoDisplay.TextureReady";
 	
 	// TODO: We need a better way of testing for our highlight shapes than
 	// searching for this prefix.
@@ -246,7 +242,6 @@ var editor = (function(module) {
 	        this.highlightedShapes = new Hashtable();
 			this.rotationAmount = 0.785398163; // 45 degrees
 			this.currentShape = null;
-			this.dragger = null;
 			this.msgHandler = null;
 			this.shapHighlightMat = null;
 	        this.tranHighlightMat = null;
@@ -446,22 +441,17 @@ var editor = (function(module) {
 		},
 		
 	    onPick: function(pickInfo, mouseEvent) {
-			var transform = pickInfo.shapeInfo.parent.transform;
+			var transform = pickInfo.shapeInfo.parent.transform,
+				owner = hemi.world.getTranOwner(transform);
 			
-	        if (this.dragger === null) {
-				var owner = hemi.world.getTranOwner(transform);
-				
-				if (this.isSelected(transform) && mouseEvent.shiftKey) {
-					this.deselectTransform(transform, owner);
-				} else {
-					if (!mouseEvent.shiftKey) {
-						this.deselectAll();
-					}
-					
-					this.selectTransform(transform, owner);
+			if (this.isSelected(transform) && mouseEvent.shiftKey) {
+				this.deselectTransform(transform, owner);
+			} else {
+				if (!mouseEvent.shiftKey) {
+					this.deselectAll();
 				}
-			} else if (!this.dragger.containsTransform(transform)) {
-				this.stopDragging();
+				
+				this.selectTransform(transform, owner);
 			}
 	    },
 	    
@@ -477,45 +467,6 @@ var editor = (function(module) {
 	            }
 	        }
 	    },
-		
-		rotateSelected: function(axis) {
-			var that = this;
-			
-			this.selected.each(function(key, value) {
-				var owner = hemi.world.getCitizenById(key),
-					names = [];
-				
-				for (var ndx = 0, len = value.length; ndx < len; ndx++) {
-					names.push(value[ndx].name);
-				}
-				
-				owner.rotate({
-					names: names,
-					axis: axis,
-					rad: that.rotationAmount
-				});
-			});
-		},
-		
-		scaleSelected: function(factor) {
-			var that = this;
-			
-			this.selected.each(function(key, value) {
-				var owner = hemi.world.getCitizenById(key),
-					names = [];
-				
-				for (var ndx = 0, len = value.length; ndx < len; ndx++) {
-					names.push(value[ndx].name);
-				}
-				
-				owner.scale({
-					names: names,
-					x: factor,
-					y: factor,
-					z: factor
-				});
-			});
-		},
 	    
 	    selectShape: function(shape, transform) {
 			var shapeName = HIGHLIGHT_PRE + shape.name,
@@ -615,48 +566,6 @@ var editor = (function(module) {
             this.notifyListeners(module.EventTypes.TransformShown, transform);
 	    },
 	    
-	    startDragging: function(planeStr) {
-			var transforms = this.getSelectedTransforms();
-			
-			if (transforms.length > 0) {
-				hemi.world.camera.disableControl();
-				var plane;
-				
-				switch (planeStr) {
-					case module.tools.ToolConstants.YZ_PLANE:
-						plane = hemi.manip.Plane.YZ;
-						break;
-					case module.tools.ToolConstants.XZ_PLANE:
-						plane = hemi.manip.Plane.XZ;
-						break;
-					case module.tools.ToolConstants.XY_PLANE:
-						plane = hemi.manip.Plane.XY;
-						break;
-				}
-				
-				this.dragger = new hemi.manip.Draggable();
-				this.dragger.name = module.tools.ToolConstants.EDITOR_PREFIX + 'Dragger';
-				this.dragger.setPlane(plane);
-				
-	            for (var ndx = 0, len = transforms.length; ndx < len; ndx++) {
-	                this.dragger.addTransform(transforms[ndx]);
-				}
-				
-				this.notifyListeners(module.EventTypes.Dragging, planeStr);
-			}
-		},
-		
-		stopDragging: function() {
-			hemi.world.camera.enableControl();
-			
-			if (this.dragger !== null) {
-				this.dragger.cleanup();
-				this.dragger = null;
-			}
-			
-			this.notifyListeners(module.EventTypes.Dragging, null);
-		},
-	    
 	    unhighlightShape: function(shape, transform) {
 			var highlightShape = this.highlightedShapes.remove(shape.clientId);
 			
@@ -731,7 +640,6 @@ var editor = (function(module) {
 			
 			this.tree = null;
 			this.treeParent = null;
-			this.previousSelection = null;
 		},
 		
 		finishLayout: function() {
@@ -997,7 +905,6 @@ var editor = (function(module) {
 			}
 			
 			this.tree.jstree('select_node', elem, false);
-			this.previousSelection = elem;
 		},
 		
 		deselectNode: function(nodeName) {
@@ -1191,10 +1098,11 @@ var editor = (function(module) {
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    	
 	
-	module.tools.ShapeInfoDisplay = module.utils.Listenable.extend({
+	module.tools.InfoDisplay = module.utils.Listenable.extend({
 		init: function() {
 			this._super();
 			
+			this.currentOwner = null;
 			this.images = {};
 			this.visible = false;
 		},
@@ -1396,7 +1304,6 @@ var editor = (function(module) {
 		deselect: function() {
 			this.setVisible(false);
 			this.currentOwner = null;
-			this.currentShape = null;
 		},
 		
 		refresh: function() {
@@ -1444,7 +1351,6 @@ var editor = (function(module) {
 			this.boundMaxZ.y = this.boundMaxY.y + this.boundMaxY.wrappedHeight;
 						
 			// save state
-			this.currentShape = shape;
 			this.currentOwner = owner;
 			this.display.currentPage = 0;
 		},
@@ -1524,8 +1430,7 @@ var editor = (function(module) {
 			this._super(newOpts);
 			
 			this.isDown = false;
-			this.previousSelection = null;
-			this.shapeDisplay = new module.tools.ShapeInfoDisplay();
+			this.infoDisplay = new module.tools.InfoDisplay();
 			
 			this.addSidebarWidget(new module.tools.ModelTreeSBWidget());
 			this.addSidebarWidget(new module.tools.HiddenItemsSBWidget());
@@ -1661,10 +1566,10 @@ var editor = (function(module) {
 				view = this.view,
 				mbrWgt = view.modelTreeSBWidget,
 				hidWgt = view.hiddenItemsSBWidget,
-				shapeDisp = view.shapeDisplay;
+				infoDisp = view.infoDisplay;
 			
 			selModel.curHandle.setDrawCallback(function() {
-				shapeDisp.refresh();
+				infoDisp.refresh();
 			});
 			
 			// for when the tool gets selected/deselected	
@@ -1682,7 +1587,7 @@ var editor = (function(module) {
 					handle.setDrawState(module.ui.trans.DrawState.NONE);
 				}
 				
-				shapeDisp.setVisible(shapeDisp.currentShape && isDown);
+				infoDisp.setVisible(isDown && infoDisp.currentOwner != null);
 				hidWgt.setVisible(isDown && hidWgt.hiddenItems.size() > 0);
 			});	        
 			
@@ -1694,20 +1599,11 @@ var editor = (function(module) {
 			// mdl browser widget specific
 			mbrWgt.addListener(module.EventTypes.SelectTreeItem, function(value) {
 				if (value.type === 'transform') {
-					if (selModel.dragger === null) {
-						if (!value.mouseEvent.shiftKey) {
-							selModel.deselectAll();
-						}
-						
-						selModel.selectTransform(value.transform);
-		                mbrWgt.previousSelection = value.node;
-					} else {
-						value.node.find('a').removeClass('jstree-clicked');
-						
-						if (mbrWgt.previousSelection) {
-							mbrWgt.previousSelection.find('a').addClass('jstree-clicked');
-						}
+					if (!value.mouseEvent.shiftKey) {
+						selModel.deselectAll();
 					}
+					
+					selModel.selectTransform(value.transform);
 				} else if (value.type === 'material') {
 					selModel.deselectAll();
 					// TODO: Do something useful like highlight the material so
@@ -1718,7 +1614,7 @@ var editor = (function(module) {
 				if (data.type === 'transform') {
 					selModel.deselectTransform(data.node);
 				} else {
-					shapeDisp.deselect();
+					infoDisp.deselect();
 				}
 			});
 			mbrWgt.addListener(module.EventTypes.SetShape, function(data) {
@@ -1730,9 +1626,9 @@ var editor = (function(module) {
 			});
 			mbrWgt.addListener(module.EventTypes.SetTexture, function(data) {
 				if (data !== null) {
-					shapeDisp.setTexture(data.texture, data.model);
+					infoDisp.setTexture(data.texture, data.model);
 				} else {
-					shapeDisp.deselect();
+					infoDisp.deselect();
 				}
 			});
 			
@@ -1740,31 +1636,18 @@ var editor = (function(module) {
 	        view.addListener(module.EventTypes.ManipState, function(state) {
 				selModel.setManipState(state);
 	        });
-	        view.addListener(module.EventTypes.Rotate, function(axis) {    
-	            selModel.rotateSelected(axis);    
-	        });	
-	        view.addListener(module.EventTypes.Scale, function(factor) {         
-	            selModel.scaleSelected(factor);
-	        });	        
 	        view.addListener(module.EventTypes.ShowPicked, function(value) {
 				if (value) {
 	                selModel.showSelected();
 				} else {
 	                selModel.hideSelected();
 				}
-			});			
-	        view.addListener(module.EventTypes.Translate, function(value) {
-				if (value.enable) {
-					selModel.startDragging(value.plane);
-				} else {
-					selModel.stopDragging();
-				}
-	        });
+			});
 			
-			// shape display specific
-			shapeDisp.addListener(module.EventTypes.TextureReady, function(value) {
+			// info display specific
+			infoDisp.addListener(module.EventTypes.TextureReady, function(value) {
 				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
-				shapeDisp.setVisible(isDown);
+				infoDisp.setVisible(isDown);
 	        });
 			
 			// mbr model specific
@@ -1775,9 +1658,9 @@ var editor = (function(module) {
 	            mbrWgt.removeModel(model);
 				hidWgt.removeOwner(model);
 				
-				if (shapeDisp.currentOwner != null 
-						&& model.getId() === shapeDisp.currentOwner.getId()) {
-					shapeDisp.deselect();			
+				if (infoDisp.currentOwner != null 
+						&& model.getId() === infoDisp.currentOwner.getId()) {
+					infoDisp.deselect();			
 				}
 	        });	
 			model.addListener(module.EventTypes.AddUserCreatedShape, function(json) {
@@ -1795,9 +1678,9 @@ var editor = (function(module) {
 				mbrWgt.removeShape(shape);
 				hidWgt.removeOwner(shape);
 				
-				if (shapeDisp.currentOwner != null 
-						&& shape.getId() === shapeDisp.currentOwner.getId()) {
-					shapeDisp.deselect();
+				if (infoDisp.currentOwner != null 
+						&& shape.getId() === infoDisp.currentOwner.getId()) {
+					infoDisp.deselect();
 				}
 				selModel.deselectTransform(shape.getTransform());
 			});		
@@ -1806,34 +1689,31 @@ var editor = (function(module) {
 					shape = shapeObj.shape;
 				mbrWgt.updateShape(shapeObj.shapeData, shape);
 				
-				if (shapeDisp.currentOwner != null 
-						&& shape.getId() === shapeDisp.currentOwner.getId()) {
+				if (infoDisp.currentOwner != null 
+						&& shape.getId() === infoDisp.currentOwner.getId()) {
 					var tfm = shape.getTransform(),
 						shp = tfm.shapes[0];
 						
-					shapeDisp.deselect();
+					infoDisp.deselect();
 					selModel.selectTransform(tfm);
 					selModel.selectShape(shp, tfm);
-					shapeDisp.setShape(shape.getTransform().shapes[0], shape);
-					shapeDisp.setVisible(isDown);
+					infoDisp.setShape(shape.getTransform().shapes[0], shape);
+					infoDisp.setVisible(isDown);
 				}
 			});			
 	        model.addListener(module.EventTypes.WorldLoaded, function() {
-	            shapeDisp.createHud();
+	            infoDisp.createHud();
 	        });
 			
 			// select model specific
-			selModel.addListener(module.EventTypes.Dragging, function(plane) {
-//				view.updateTranslateButtons(plane);
-			});			
 			selModel.addListener(module.EventTypes.ShapeSelected, function(shapeInfo) {
 				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
 				
 				if (shapeInfo === null) {
-					shapeDisp.deselect();
+					infoDisp.deselect();
 				} else {
-					shapeDisp.setShape(shapeInfo.shape, shapeInfo.owner);
-					shapeDisp.setVisible(isDown);
+					infoDisp.setShape(shapeInfo.shape, shapeInfo.owner);
+					infoDisp.setVisible(isDown);
 				}
 			});			
 			selModel.addListener(module.EventTypes.TransformDeselected, function(transform) {
