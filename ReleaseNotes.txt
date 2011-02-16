@@ -1,3 +1,14 @@
+----------------------------Kuda 1.2.3 Release Notes----------------------------
+TBD
+1. What's New
+World Editor
+* Texture viewer added to model browser
+Kuda Library
+
+2. Bug Fixes
+World Editor
+Kuda Library
+
 ----------------------------Kuda 1.2.2 Release Notes----------------------------
 2011 February 11
 1. What's New

@@ -61,6 +61,7 @@ var editor = (function(module) {
 	module.EventTypes.DeselectTreeItem = "modelbrowser.DeselectTreeItem";
 	module.EventTypes.SelectTreeItem = "modelbrowser.SelectTreeItem";
 	module.EventTypes.SetShape = "modelbrowser.SetShape";
+	module.EventTypes.SetTexture = "modelbrowser.SetTexture";
 	
 	// TODO: We need a better way of testing for our highlight shapes than
 	// searching for this prefix.
@@ -158,13 +159,17 @@ var editor = (function(module) {
 			});
 		},
 		
-		createJsonObj: function(node) {
+		createJsonObj: function(node, parentNode) {
 			var c = this.getNodeChildren(node),
 				nodeType = getNodeType(node),
 				children = [];
 			
+			if (parentNode == null) {
+				parentNode = node;
+			}
+			
 			for (var i = 0; c && i < c.length; i++) {
-				var nodeJson = this.createJsonObj(c[i]);
+				var nodeJson = this.createJsonObj(c[i], parentNode);
 				children.push(nodeJson);
 			}
 			
@@ -178,7 +183,8 @@ var editor = (function(module) {
 				children: children,
 				metadata: {
 					type: nodeType,
-					actualNode: node
+					actualNode: node,
+					parent: parentNode
 				}
 			};
 			
@@ -186,23 +192,37 @@ var editor = (function(module) {
 		},
 		
 		getNodeChildren: function(node) {
+			var children;
+			
 			if (jQuery.isFunction(node.getCitizenType)) {
-				var type = node.getCitizenType().split('.').pop(),
-					retVal = null;
+				var type = node.getCitizenType().split('.').pop();
 				
 				switch(type) {
 					case 'Model':
-					    retVal = [node.root];
+					    var tranObj = {
+								name: 'Transforms',
+								children: [node.root],
+								className: 'directory'
+							},
+							matObj = {
+								name: 'Materials',
+								children: node.materials,
+								className: 'directory'
+							};
+					    children = [tranObj, matObj];
 						break;
 					case 'Shape':
-					    retVal = [node.getTransform()];
+					    children = [node.getTransform()];
+						break;
+					default:
+						children = null;
 						break;
 				}
-				
-				return retVal;
+			} else {
+				children = node.children;
 			}
 			
-			return node.children;
+			return children;
 		}
 	});
 	
@@ -249,6 +269,19 @@ var editor = (function(module) {
 				while (transforms.length > 0) {
 					this.deselectTransform(transforms[0], owner);
 				}
+			}
+		},
+		
+		deselectShape: function() {
+			if (this.currentShape !== null) {
+				var elements = this.currentShape.elements;
+				
+				for (var ee = 0; ee < elements.length; ee++) {
+					elements[ee].material = this.tranHighlightMat;
+				}
+				
+				this.currentShape = null;
+				this.notifyListeners(module.EventTypes.ShapeSelected, null);
 			}
 		},
 		
@@ -667,7 +700,7 @@ var editor = (function(module) {
 //////////////////////////////////////////////////////////////////////////////// 
 
 	
-	module.tools.ShapeLIWidget = module.ui.ListItemWidget.extend({
+	module.tools.ChildLIWidget = module.ui.ListItemWidget.extend({
 		init: function() {
 			this._super();
 		},
@@ -675,10 +708,10 @@ var editor = (function(module) {
 		finishLayout: function() {
 			this.container = jQuery('<div></div>');
 			this.title = jQuery('<span></span>');
-			this.inspectBtn = jQuery('<button class="removeBtn">Inspect</button>');
+			this.removeBtn = jQuery('<button class="removeBtn">Remove</button>');
 			var btnDiv = jQuery('<div class="buttonContainer"></div>');
 			
-			btnDiv.append(this.inspectBtn);
+			btnDiv.append(this.removeBtn);
 			this.container.append(this.title).append(btnDiv);
 		},
 		
@@ -736,21 +769,60 @@ var editor = (function(module) {
 			this.treeParent = this.tree.parent();
 			this.tree.bind('select_node.jstree', function(evt, data) {
 				var elem = data.rslt.obj,
-					metadata = elem.data('jstree');
+					metadata = elem.data('jstree'),
+					type = metadata.type,
+					selected = wgt.tree.jstree('get_selected');
 				
-				if (metadata.type === 'transform') {
-					if (data.args[2] != null) {
+				switch(type) {
+					case 'transform':
+						// Deselect any non-transforms that may be selected
+						for (var i = 0, il = selected.length; i < il; i++) {
+							var sel = selected[i],
+								selData = jQuery(sel).data('jstree');
+							
+							if (selData.type !== type) {
+								wgt.tree.jstree('deselect_node', sel);
+							}
+						}
+						
+						if (data.args[2] != null) {
+							wgt.notifyListeners(module.EventTypes.SelectTreeItem, {
+								transform: metadata.actualNode,
+								node: elem,
+								mouseEvent: data.args[2],
+								type: metadata.type
+							});
+							wgt.tree.jstree('toggle_node', elem);
+						} else {
+							jQuery('#mbTreeWrapper').scrollTo(elem, 400);
+						}
+						
+						wgt.displayTransformNode(metadata.actualNode);
+						break;
+					case 'material':
+						var material = metadata.actualNode,
+							model = metadata.parent;
+						
+						// Materials are always single selection
+						for (var i = 0, il = selected.length; i < il; i++) {
+							var sel = selected[i];
+							
+							if (sel !== elem[0]) {
+								wgt.tree.jstree('deselect_node', sel);
+							}
+						}
+						
 						wgt.notifyListeners(module.EventTypes.SelectTreeItem, {
-							transform: metadata.actualNode,
-							node: elem,
-							mouseEvent: data.args[2]
+							owner: model,
+							material: material,
+							type: metadata.type
 						});
-					}
-					else {
-						jQuery('#mbTreeWrapper').scrollTo(elem, 400);
-					}
-					
-					wgt.displayTransformNode(metadata.actualNode);
+						
+						wgt.displayMaterialNode(material, model);
+						break;
+					default:
+						wgt.tree.jstree('toggle_node', elem);
+						break;
 				}
 			})
 			.bind('deselect_node.jstree', function(evt, data) {
@@ -758,7 +830,10 @@ var editor = (function(module) {
 					metadata = elem.data('jstree');
 				
 				if (metadata != null) {
-					wgt.notifyListeners(module.EventTypes.DeselectTreeItem, metadata.actualNode);
+					wgt.notifyListeners(module.EventTypes.DeselectTreeItem, {
+						node: metadata.actualNode,
+						type: metadata.type
+					});
 				}
 			})
 			.jstree({
@@ -807,6 +882,63 @@ var editor = (function(module) {
 			this.instructions = jQuery('<p>Click on an item in the browser or on an item in the viewer to view its details.</p>');
 		},
 		
+		displayMaterialNode: function(material, model) {
+			var detailsList = new module.ui.DetailsList(),
+				params = material.params,
+				textures = {},
+				texList = new module.ui.ListWidget({
+					widgetId: 'mbrTextureList',
+					prefix: 'mbrTexLst',
+					type: module.ui.ListType.UNORDERED
+				}),
+				wgt = this;
+			
+			detailsList.addItem('Name:', material.name);
+			
+			for (var i = 0, il = params.length; i < il; i++) {
+				var param = params[i],
+					className = param.className.toLowerCase();
+				
+				if (className.indexOf('sampler') >= 0) {
+					var tex = param.value.texture;
+					
+					if (tex != null && tex.className === 'o3d.Texture2D') {
+						textures[tex.clientId] = tex;
+					}
+				} else if (className === 'o3d.Texture2D') {
+					var tex = param.value;
+					textures[tex.clientId] = tex;
+				}
+			}
+			
+			for (var tId in textures) {
+				var tex = textures[tId],
+					name = tex.name !== '' ? tex.name : 'unnamed',
+					item = new module.tools.ChildLIWidget();
+				
+				item.setText(name);
+				item.attachObject({
+					model: model,
+					texture: tex
+				});
+				item.title.data('liWidget', item);
+				item.title.bind('click', function(evt) {
+					var item = jQuery(this).data('liWidget'),
+						data = item.getAttachedObject();
+					wgt.notifyListeners(module.EventTypes.SetTexture, data);
+				});
+				item.removeBtn.bind('click', function(evt) {
+					wgt.notifyListeners(module.EventTypes.SetTexture, null);
+				});
+				
+				texList.add(item);
+			}
+			
+			jQuery('#mbDetails').empty().append(detailsList.getList());
+			jQuery('#mbChildren').empty().append(texList.getUI());
+			jQuery('#mbChildrenTitle').text('Textures');
+		},
+		
 		displayTransformNode: function(transform) {
 			var detailsList = new module.ui.DetailsList(),
 				shapes = transform.shapes,
@@ -832,16 +964,21 @@ var editor = (function(module) {
 					name = shape.name !== '' ? shape.name : 'unnamed'; 
 				
 				if (name.match(HIGHLIGHT_PRE) === null) {
-					var item = new module.tools.ShapeLIWidget();
+					var item = new module.tools.ChildLIWidget();
+					
 					item.setText(name);
 					item.attachObject({
 						transform: transform,
 						shape: shape
 					});
-					
-					item.inspectBtn.bind('click', function(evt) {
-						var data = item.getAttachedObject();
+					item.title.data('liWidget', item);
+					item.title.bind('click', function(evt) {
+						var item = jQuery(this).data('liWidget'),
+							data = item.getAttachedObject();
 						wgt.notifyListeners(module.EventTypes.SetShape, data);
+					});
+					item.removeBtn.bind('click', function(evt) {
+						wgt.notifyListeners(module.EventTypes.SetShape, null);
 					});
 					
 					shapeList.add(item);
@@ -849,7 +986,8 @@ var editor = (function(module) {
 			};
 			
 			jQuery('#mbDetails').empty().append(detailsList.getList());
-			jQuery('#mbShapes').empty().append(shapeList.getUI());
+			jQuery('#mbChildren').empty().append(shapeList.getUI());
+			jQuery('#mbChildrenTitle').text('Shapes');
 		},
 		
 		selectNode: function(nodeName) {
@@ -857,7 +995,7 @@ var editor = (function(module) {
 			var path = this.tree.jstree('get_path', elem, true);
 			var temp;
 			
-			for (var i = 0; i < path.length; i++) {
+			for (var i = 0, il = path.length - 1; i < il; i++) {
 				var node = jQuery('#' + path[i]);
 				this.tree.jstree('open_node', node, false, true);
 			}
@@ -866,17 +1004,19 @@ var editor = (function(module) {
 			this.previousSelection = elem;
 		},
 		
-		deselectNode: function(nodeName) {		
+		deselectNode: function(nodeName) {
 	        var node = jQuery('#node_' + nodeName);
 			this.tree.jstree('deselect_node', node);
 			jQuery('#mbDetails').empty().append(this.instructions);
-			jQuery('#mbShapes').empty();
+			jQuery('#mbChildren').empty();
+			jQuery('#mbChildrenTitle').empty();
 		},
 		
 		deselectAll: function() {
 			this.tree.jstree('deselect_all');
 			jQuery('#mbDetails').empty().append(this.instructions);
-			jQuery('#mbShapes').empty();
+			jQuery('#mbChildren').empty();
+			jQuery('#mbChildrenTitle').empty();
 		},
 		
 		addModel: function(modelData) {
@@ -1056,8 +1196,12 @@ var editor = (function(module) {
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    	
 	
-	module.tools.ShapeInfoDisplay = module.Class.extend({
+	module.tools.ShapeInfoDisplay = module.utils.Listenable.extend({
 		init: function() {
+			this._super();
+			
+			this.images = {};
+			this.visible = false;
 		},
 		
 		createHud: function() {
@@ -1134,12 +1278,49 @@ var editor = (function(module) {
 			page.addElement(this.boundMaxY);
 			page.addElement(this.boundMaxZ);
 			
-			this.shapeDisplay = new hemi.hud.HudDisplay();
-			this.shapeDisplay.name = module.tools.ToolConstants.EDITOR_PREFIX + 'ShapeDisplay';
-			this.shapeDisplay.addPage(page);
+			var page2 = new hemi.hud.HudPage();
+			page2.name = module.tools.ToolConstants.EDITOR_PREFIX + 'TexturePage';
+			page2.setConfig({
+				color: [0, 0, 0, 0.3]
+			});
+			
+			this.display = new hemi.hud.HudDisplay();
+			this.display.name = module.tools.ToolConstants.EDITOR_PREFIX + 'ModelBrowserDisplay';
+			this.display.addPage(page);
+			this.display.addPage(page2);
+		},
+		
+		createImage: function(texture) {
+			var image = new hemi.hud.HudImage(),
+				// Give it a 15 pixel buffer for the page offset and margin.
+				cWidth = hemi.core.client.width - 15;
+			
+			image.height = texture.height;
+			image.width = texture.width;
+			image.x = cWidth + 5 - texture.width;
+			image.y = 10;
+			image.texture = texture;
+			
+			// So the HudImage doesn't accidentally end up in Octane.
+			hemi.world.removeCitizen(image);
+			return image;
+		},
+		
+		deselect: function() {
+			this.setVisible(false);
+			this.currentOwner = null;
+			this.currentShape = null;
+		},
+		
+		refresh: function() {
+			if (this.visible) {
+				this.display.showPage();
+			}
 		},
 		
 		setShape: function(shape, owner) {
+			this.deselect();
+			
 			var shapeInfo = hemi.core.picking.createShapeInfo(shape, null),
 				box = shapeInfo.boundingBox,
 				minExtent = box.minExtent,
@@ -1178,21 +1359,37 @@ var editor = (function(module) {
 			// save state
 			this.currentShape = shape;
 			this.currentOwner = owner;
+			this.display.currentPage = 0;
 		},
 		
-		deselect: function() {
-			this.currentShape = null;
-			this.currentOwner = null;
-			this.setVisible(false);
-		},		
+		setTexture: function(texture, model) {
+			this.deselect();
+			this.currentOwner = model;
+			this.display.currentPage = 1;
+			
+			var tId = texture.clientId,
+				page = this.display.getCurrentPage(),
+				image;
+			
+			if (this.images[tId] != null) {
+				image = this.images[tId];
+			} else {
+				image = this.createImage(texture);
+				this.images[tId] = image;
+			}
+			
+			page.clearElements();
+			page.addElement(image);
+		},
 		
 		setVisible: function(visible) {
 			if (visible) {
-				this.shapeDisplay.isVisible() ? this.shapeDisplay.showPage() 
-					: this.shapeDisplay.show();
-			}	
-			else {
-				this.shapeDisplay.hide();
+				this.visible = true;
+				this.display.isVisible() ? this.display.showPage() 
+					: this.display.show();
+			} else if (this.display){
+				this.visible = false;
+				this.display.hide();
 			}
 		}
 	});
@@ -1416,26 +1613,50 @@ var editor = (function(module) {
 			
 			// mdl browser widget specific
 			mbrWgt.addListener(module.EventTypes.SelectTreeItem, function(value) {
-				if (selModel.dragger === null) {
-					if (!value.mouseEvent.shiftKey) {
-						selModel.deselectAll();
+				if (value.type === 'transform') {
+					if (selModel.dragger === null) {
+						if (!value.mouseEvent.shiftKey) {
+							selModel.deselectAll();
+						}
+						
+						selModel.selectTransform(value.transform);
+		                mbrWgt.previousSelection = value.node;
+					} else {
+						value.node.find('a').removeClass('jstree-clicked');
+						
+						if (mbrWgt.previousSelection) {
+							mbrWgt.previousSelection.find('a').addClass('jstree-clicked');
+						}
 					}
-					
-					selModel.selectTransform(value.transform);
-	                mbrWgt.previousSelection = value.node;
-				} else {
-					value.node.find('a').removeClass('jstree-clicked');
-					
-					if (mbrWgt.previousSelection) {
-						mbrWgt.previousSelection.find('a').addClass('jstree-clicked');
-					}
+				} else if (value.type === 'material') {
+					selModel.deselectAll();
+					// TODO: Do something useful like highlight the material so
+					// that the user can see what shapes use it. ~ekitson
 				}
 			});			
-			mbrWgt.addListener(module.EventTypes.DeselectTreeItem, function(transform) {
-				selModel.deselectTransform(transform);
-			});			
+			mbrWgt.addListener(module.EventTypes.DeselectTreeItem, function(data) {
+				if (data.type === 'transform') {
+					selModel.deselectTransform(data.node);
+				} else {
+					shapeDisp.deselect();
+				}
+			});
 			mbrWgt.addListener(module.EventTypes.SetShape, function(data) {
-				selModel.selectShape(data.shape, data.transform);
+				if (data !== null) {
+					selModel.selectShape(data.shape, data.transform);
+				} else {
+					selModel.deselectShape();
+				}
+			});
+			mbrWgt.addListener(module.EventTypes.SetTexture, function(data) {
+				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+				
+				if (data !== null) {
+					shapeDisp.setTexture(data.texture, data.model);
+					shapeDisp.setVisible(isDown);
+				} else {
+					shapeDisp.deselect();
+				}
 			});
 	
 			// view specific

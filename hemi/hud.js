@@ -1136,6 +1136,13 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
+		 * Remove all HudElements from the HudPage.
+		 */
+		clearElements: function() {
+			this.elements = [];
+		},
+		
+		/**
 		 * Check if the given Event occurred within the bounds of any of the
 		 * HudElements of the HudPage. If it did, pass the Event to that
 		 * HudElement. If not, call the HudPage's mouse down handler function
