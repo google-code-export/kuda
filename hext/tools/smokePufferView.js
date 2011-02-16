@@ -87,7 +87,7 @@ var hext = (function(hext) {
 		 * SmokePufferToolbarView.
 		 */
 	    layoutView: function() {
-	        this.button = jQuery('<button id="' + this.config.buttonId + '" title="Smoke Puffer Tool">Smoke Puffer</button>');
+	        this.button = jQuery('<button id="' + this.config.buttonId + '" title="Smoke Puffer Tool"><span>Smoke Puffer</span></button>');
 			this.container.append(this.button);
 		}
     };

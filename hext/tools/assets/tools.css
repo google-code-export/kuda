@@ -50,7 +50,6 @@
 #hext-toolbar button {	
     background: url(../../html/assets/tools.png) no-repeat center center;
     border: none;
-    text-indent: -5000px;
     outline: none;
     height: 38px;
     width: 38px;
@@ -58,6 +57,9 @@
     -moz-border-radius: 3px;
     -webkit-border-radius: 3px;
 	margin: 2px 0;
+}
+#hext-toolbar button span {
+	display: none;
 }
 #hext-toolbar #manometerButtonId {
 	background-position: 0 0;

@@ -169,7 +169,7 @@ var hext = (function(hext) {
 		 * BlowerDoorToolbarView.
 		 */
 	    layoutView: function() {
-	        this.button = jQuery('<button id="' + this.config.buttonId + '" title="Blower Door Tool">Blower Door</button>');
+	        this.button = jQuery('<button id="' + this.config.buttonId + '" title="Blower Door Tool"><span>Blower Door</span></button>');
 			this.container.append(this.button);
 		}
     };

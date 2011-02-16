@@ -446,7 +446,7 @@ var hext = (function(hext) {
 		 * ManometerToolbarView.
 		 */
 		layoutView: function() {
-			this.button = jQuery('<button id="' + this.config.buttonId + '" title="Manometer Tool">Manometer</button>');
+			this.button = jQuery('<button id="' + this.config.buttonId + '" title="Manometer Tool"><span>Manometer</span></button>');
 			this.container.append(this.button);
 		}
 	};

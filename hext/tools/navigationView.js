@@ -101,8 +101,8 @@ var hext = (function(hext) {
 		 * NavigationToolbarView.
 		 */
 		layoutView: function() {
-			this.zoomInBtn = jQuery('<button id="' + this.config.zoomInButtonId + '" title="Zoom In">Zoom In</button>');
-			this.zoomOutBtn = jQuery('<button id="' + this.config.zoomOutButtonId + '" title="Zoom Out">Zoom Out</button>');
+			this.zoomInBtn = jQuery('<button id="' + this.config.zoomInButtonId + '" title="Zoom In"><span>Zoom In</span></button>');
+			this.zoomOutBtn = jQuery('<button id="' + this.config.zoomOutButtonId + '" title="Zoom Out"><span>Zoom Out</span></button>');
 			this.container.append(this.zoomInBtn);
 			this.container.append(this.zoomOutBtn);
 		},
