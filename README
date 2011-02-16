@@ -18,18 +18,9 @@ tutoriala   -   This shows how to hide shapes in a model, animate a model using
                 handle mouse clicks, and generate a basic particle effect. It
                 also uses an HTML button from the web page to interact with the
                 3D scene.
-Console     -   This sample is based off of the Tutorial A sample but it shows
-                how to use the Hemi console in your viewer. Be sure to check the
-                HTML file to see important additions made there.
-avatar      -   This is an example of a user-controlled avatar. It shows how to
-                load multiple models, edit shapes in the models, set the camera
-                to follow a shape, create a 2D sprite, handle keyboard input,
-                and perform more complex message handling.
 hud         -   This shows how to create a heads-up-display with multiple pages
                 that have different configurations. It also shows how to handle
                 mouse interactions with the HUD elements.
-particles   -   This shows how to use the Kuda particle system to define a more
-                complex path for a set of particles to follow.
 Tiny House  -   This shows a simplified version of using the pressure engine
                 with a single room and window house.  It is known as "Bubba's
                 Outhouse".
@@ -55,9 +46,6 @@ Octane          World Editor and modify it after loading it from Octane. We
 lighting    -   This sample shows how to use the the texture module, hemi.texture
                 to skin a house.  The skinning shows the effect of sunlight
                 at five times of the day.
-CameraMoves -   This sample shows different options for moving the Camera. It 
-                moves along different curves around the neighborhood, and Penner
-                ease-in and ease-out equations can be set.
 FadingWalls -   This sample shows how to dynamically set the opacity of an object
                 using a custom shader and setting material parameters on the 
                 render tick. Some of this functionality will be built into future
@@ -98,13 +86,10 @@ index.html file.
 Directory Listing:
 assets  -   Your 3D models, images, etc. You should place any assets you create 
             or use in this directory.
-css     -   Style sheets for html pages
 doc     -   API level documentation for the Hemi library
 editor  -   The graphical Kuda Editor
 hemi    -   The Hemi library
 hext    -   The Hemi Extensions library
-images  -   Image files used by Hemi
 lib     -   Third party libraries used by Hemi and the Kuda Editor
 media   -   Location for the hemi.audio mp3 flash player swf
 o3djs   -   O3D javascript libraries
-test    -   Unit tests
