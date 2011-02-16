@@ -1318,6 +1318,8 @@ var editor = (function(module) {
 						that.notifyListeners(module.EventTypes.TextureReady, null);
 					});
 			
+			// So the HudImage doesn't accidentally end up in Octane.
+			hemi.world.removeCitizen(image);
 			image.setImageUrl(uri);
 			return image;
 		},
@@ -1382,6 +1384,8 @@ var editor = (function(module) {
 						}
 					});
 				
+				// So the HudImage doesn't accidentally end up in Octane.
+				hemi.world.removeCitizen(image);
 				images[i] = image;
 			}
 			
