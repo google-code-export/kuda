@@ -47,7 +47,7 @@
 		vp.eye = [-4,507,1435];					// Set viewpoint eye
 		vp.target = [5,154,26];					// Set viewpoint target
 
-		hemi.world.camera.moveToView(vp,120);
+		hemi.world.camera.moveToView(vp,60);
 		
 		hemi.world.camera.enableControl();	// Enable camera mouse control
 		
@@ -59,9 +59,9 @@
 		 * bottom right.
 		 */
 		var box1 = [[-510,-110,-10],[-490,-90,10]];
-		var box2 = [[-600,400,-100],[-400,600,100]];
-		var box3 = [[-10,490,-10],[10,510,10]];
-		var box4 = [[400,400,-100],[600,600,100]];
+		var box2 = [[-600,400,-200],[-400,600,0]];
+		var box3 = [[-10,790,180],[10,810,200]];
+		var box4 = [[400,450,-300],[600,650,-100]];
 		var box5 = [[490,-110,-10],[510,-90,10]];
 		
 		/* The colors these arrows will be as they move through:
@@ -101,7 +101,10 @@
 		var particleSystem = new hemi.curve.ParticleSystem(
 			hemi.core.client.root, 
 			particleSystemConfig);
-			
+		
+		/* Start the particle system off with no particles generating */
+		particleSystem.changeRate(-20);
+		
 		/* Start the particle system */
 		particleSystem.start();
 	
