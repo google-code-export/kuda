@@ -114,6 +114,17 @@ var editor = (function(module) {
 			if (this.previewManip !== null) {
 				this.previewManip.cleanup();
 			}
+			if (!this.savedMatrices) {
+				this.savedMatrices = [];
+				this.props = props;
+				var list = props.transforms,
+					mCopy = hemi.core.math.copyMatrix;
+				
+				for (var ndx = 0, len = list.length; ndx < len; ndx++) {
+					var m = mCopy(list[ndx].localMatrix);
+					this.savedMatrices.push(m);
+				}
+			}
 			
 			if (props.type === 'drag') {
 				this.previewManip = new hemi.manip.Draggable();
@@ -136,6 +147,7 @@ var editor = (function(module) {
 			}
 			
 			this.previewManip.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewManip';
+			hemi.world.camera.disableControl();
 		},
 		
 		stopPreview: function() {
@@ -143,6 +155,18 @@ var editor = (function(module) {
 				this.previewManip.cleanup();
 				this.previewManip = null;
 			}
+			if (this.savedMatrices) {
+				var list = this.savedMatrices;
+				
+				for (var ndx = 0, len = list.length; ndx < len; ndx++) {
+					var m = list[ndx];
+					this.props.transforms[ndx].localMatrix = m;
+				}
+				
+				this.savedMatrices = null;
+				this.props = null;
+			}
+			hemi.world.camera.enableControl();
 		},
 			
 		worldCleaned: function() {
