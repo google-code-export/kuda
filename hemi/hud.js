@@ -1961,7 +1961,8 @@ var hemi = (function(hemi) {
 		 * @param {boolean} fill flag indicating whether to fill or stroke
 		 */
 		drawRoundRect: function(element, curveFactor, fill) {
-			var lt = element.left,
+			var hMath = hemi.core.math,
+				lt = element.left,
 				rt = element.right,
 				tp = element.top,
 				bm = element.bottom,
@@ -1969,10 +1970,10 @@ var hemi = (function(hemi) {
 				high = bm - tp,
 				inc = high > wide ? wide * curveFactor : high * curveFactor,
 				// Positions on a clock in radians :)
-				hour12 = hemi.core.math.degToRad(270),
+				hour12 = hMath.degToRad(270),
 				hour3 = 0,
-				hour6 = hemi.core.math.degToRad(90),
-				hour9 = hemi.core.math.degToRad(180);
+				hour6 = hMath.degToRad(90),
+				hour9 = hMath.degToRad(180);
 			
 			this.canvas.beginPath();
 			this.canvas.moveTo(lt, tp + inc);

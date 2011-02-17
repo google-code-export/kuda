@@ -569,7 +569,7 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the limits on the camera pan and tilt in fixed eye mode, in degrees
+		 * Set the limits on the camera pan and tilt in fixed eye mode in radians
 		 * 
 		 * @param {number} panMin Minimum pan angle
 		 * @param {number} panMax Maximum pan angle
@@ -577,10 +577,10 @@ var hemi = (function(hemi) {
 		 * @param {number} tiltMax Maximum tilt angle
 		 */
 		setLookAroundLimits : function(panMin, panMax, tiltMin, tiltMax) {
-			this.camPan.min = hemi.core.math.degToRad(panMin);
-			this.camPan.max = hemi.core.math.degToRad(panMax);
-			this.camTilt.min = hemi.core.math.degToRad(tiltMin);
-			this.camTilt.max = hemi.core.math.degToRad(tiltMax);
+			this.camPan.min = panMin;
+			this.camPan.max = panMax;
+			this.camTilt.min = tiltMin;
+			this.camTilt.max = tiltMax;
 			return this;
 		},
 		
@@ -662,12 +662,12 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the zooming limits in fixed-eye mode.
 		 *
-		 * @param {number} min Zoom-in limit, in degrees
-		 * @param {number} max Zoom-out limit, in degrees
+		 * @param {number} min Zoom-in limit, in radians
+		 * @param {number} max Zoom-out limit, in radians
 		 */
 		setZoomLimits : function(min,max) {
-			this.fov.min = hemi.core.math.degToRad(min);
-			this.fov.max = hemi.core.math.degToRad(max);
+			this.fov.min = min;
+			this.fov.max = max;
 			if (this.fov.current > this.fov.max) {
 				this.fov.current = this.fov.max;
 			}

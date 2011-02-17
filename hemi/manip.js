@@ -448,13 +448,13 @@ var hemi = (function(hemi) {
 	 *		clicking and dragging with the mouse.
 	 * @extends hemi.world.Citizen
 	 * @param {hemi.manip.Axis} opt_axis Axis to rotate about - x,y, or z
-	 * @param {number[]} opt_limits [min angle, max angle] in degrees
-	 * @param {number[]} opt_startAngle Starting angle in degrees (default is 0)
+	 * @param {number[]} opt_limits [min angle, max angle] in radians
+	 * @param {number[]} opt_startAngle Starting angle in radians (default is 0)
 	 */
 	hemi.manip.Turnable = function(opt_axis, opt_limits, opt_startAngle) {
 		hemi.world.Citizen.call(this);
 		
-		this.angle = opt_startAngle == null ? 0 : hemi.core.math.degToRad(opt_startAngle);
+		this.angle = opt_startAngle == null ? 0 : opt_startAngle;
 		this.axis = null;
 		this.activeTransform = null;
 		this.dragAngle = null;
@@ -771,17 +771,17 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the limits to which this Turnable can rotate.
-		 * @param {float[]} limits [min,max] Angle limits, in degrees
+		 * @param {float[]} limits [min,max] Angle limits in radians
 		 */
 		setLimits : function(limits) {
 			if (limits[0] != null) {
-				this.min = hemi.core.math.degToRad(limits[0]);
+				this.min = limits[0];
 			} else {
 				this.min = null;
 			}
 			
 			if (limits[1] != null) {
-				this.max = hemi.core.math.degToRad(limits[1]);
+				this.max = limits[1];
 			} else {
 				this.max = null;
 			}

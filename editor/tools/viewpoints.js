@@ -303,7 +303,7 @@ var editor = (function(module) {
 						parseFloat(tgtVal.y), 
 						parseFloat(tgtVal.z)
 					],
-					fov: parseFloat(this.fov.val()),
+					fov: hemi.core.math.degToRad(parseFloat(this.fov.val())),
 					np: parseFloat(this.nearPlane.val()),
 					fp: parseFloat(this.farPlane.val()),
 					name: this.name.val()
@@ -332,7 +332,7 @@ var editor = (function(module) {
 				y: viewpoint.target[1],
 				z: viewpoint.target[2]
 			});
-			this.fov.val(viewpoint.fov);
+			this.fov.val(hemi.core.math.radToDeg(viewpoint.fov));
 			this.nearPlane.val(viewpoint.np);
 			this.farPlane.val(viewpoint.fp);
 			this.name.val(viewpoint.name);

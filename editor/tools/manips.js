@@ -427,12 +427,13 @@ var editor = (function(module) {
 					props.plane = planeSel.val();
 					break;
 				case 'turn':
-					var min, max, val;
+					var hMath = hemi.core.math,
+						min, max, val;
 					
 					val = axisMin.val();
-					min = val === '' ? null : parseFloat(val);
+					min = val === '' ? null : hMath.degToRad(parseFloat(val));
 					val = axisMax.val();
-					max = val === '' ? null : parseFloat(val);
+					max = val === '' ? null : hMath.degToRad(parseFloat(val));
 					
 					props.limits = [min, max];
 					props.axis = axisSel.val();
@@ -522,14 +523,17 @@ var editor = (function(module) {
 					vMax.val(manip.vmax).keydown();
 				}
 			} else if (manip instanceof hemi.manip.Turnable) {
+				var hMath = hemi.core.math;
 				typeSel.val('turn').change();
 				axisSel.val(manip.axis).change();
 				
 				if (manip.min != null) {
-					axisMin.val(manip.min).keydown();
+					var min = hMath.radToDeg(manip.min);
+					axisMin.val(min).keydown();
 				}
 				if (manip.max != null) {
-					axisMax.val(manip.max).keydown();
+					var max = hMath.radToDeg(manip.max);
+					axisMax.val(max).keydown();
 				}
 			}
 			

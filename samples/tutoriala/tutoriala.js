@@ -73,8 +73,10 @@ o3djs.require('hext.house.structure');
 		house.setTransformPickable('camTarget_outdoors', false);
 		house.setTransformPickable('camTarget_indoors', false);
 
+		var hMath = hemi.core.math;
 		hemi.world.camera.fixEye();
-		hemi.world.camera.setLookAroundLimits(null, null, -50, 50);
+		hemi.world.camera.setLookAroundLimits(null, null, hMath.degToRad(-50),
+			hMath.degToRad(50));
 		hemi.world.camera.enableControl();
 
 		door = new hext.house.Door(house.getTransform('door'));

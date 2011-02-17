@@ -23,7 +23,6 @@ World Editor
 * Problems with animation form fixed (where a model has no animation)
 Kuda Library
 * Bugs in manip, motion, and shape related to transform hierarchy fixed
-* Starting angle for manips now expected in degrees rather than radians
 * Fixed bug with loading Octane from non-local file
 
 ----------------------------Kuda 1.2.1 Release Notes----------------------------
