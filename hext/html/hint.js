@@ -151,17 +151,16 @@ var hext = (function(hext) {
 			var multiPage = message.length > 1,
 				show = hudDisplay.isVisible();
 			
-			if (multiPage) {
-				hext.hud.showPagingInfo();
-			} else {
-				hext.hud.hidePagingInfo();
-			}
-			
+			hext.hud.removePagingInfo();
 			hudDisplay.clearPages();
 			
 			for (var ndx = 0, len = message.length; ndx < len; ndx++) {
 				var page = createHudPage(message[ndx], multiPage);
 				hudDisplay.addPage(page);
+			}
+			
+			if (multiPage) {
+				hext.hud.addPagingInfo(hudDisplay);
 			}
 			
 			if (show) {
