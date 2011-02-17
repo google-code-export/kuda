@@ -161,7 +161,10 @@ var editor = (function(module) {
 				width = this.container.width();
 			
 			position.top += this.input.outerHeight();
-			this.panel.offset(position).width(width).slideDown(200);
+			this.panel.css({
+				top: position.top,
+				left: position.left
+			}).width(width).slideDown(200);
 		},
 		
 		getValue: function() {
