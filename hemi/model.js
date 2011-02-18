@@ -295,11 +295,10 @@ var hemi = (function(hemi) {
 		 * Load the given configuration into the Model, populating it with
 		 * transforms, shapes, and materials.
 		 * 
-		 * @param {hemi.model.ModelConfig} modelConfig configuration for the Model
+		 * @param {hemi.model.ModelConfig} config configuration for the Model
 		 */
-		loadConfig: function(modelConfig) {
-			var config = jQuery.extend(new hemi.model.ModelConfig(), modelConfig),
-				id = this.getId();
+		loadConfig: function(config) {
+			var id = this.getId();
 			
 			this.name = getModelName(this.fileName);
 			this.root = config.rootTransform;

@@ -65,7 +65,7 @@ var hemi = (function(hemi) {
 			// Copy the property names out of the attributes object just once
 			// since this is less efficient than a simple array.
 			for (x in attributes) {
-				if (jQuery.isArray(attributes[x])) {
+				if (hemi.utils.isArray(attributes[x])) {
 					arrProps.push(x);
 				} else {
 					props.push(x);

@@ -44,9 +44,9 @@ var hemi = (function(hemi) {
 	hemi.loader.loadHtml = function(url, callback) {
 		url = hemi.loader.getPath(url);
 		
-		jQuery.get(url, function(data, status, xhr) {
-			if (status === 'error') {
-				alert(xhr.statusText);
+		hemi.utils.get(url, function(data, status) {
+			if (data == null) {
+				alert(status);
 			} else {
 				callback(data);
 			}
@@ -178,9 +178,9 @@ var hemi = (function(hemi) {
 	hemi.loader.loadOctane = function(url, opt_callback) {
 		url = hemi.loader.getPath(url);
 
-		jQuery.get(url, function(data, status, xhr) {
-			if (status === 'error') {
-				alert(xhr.statusText);
+		hemi.utils.get(url, function(data, status) {
+			if (data == null) {
+				alert(status);
 			} else {
 				if (typeof data === 'string') {
 					data = JSON.decode(data);

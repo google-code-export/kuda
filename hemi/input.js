@@ -39,9 +39,16 @@ var hemi = (function(hemi) {
 		hemi.core.event.addEventListener(hemi.core.o3dElement, 'mousemove', hemi.input.mouseMove);
 		hemi.core.event.addEventListener(hemi.core.o3dElement, 'mouseup', hemi.input.mouseUp);
 		hemi.core.event.addEventListener(hemi.core.o3dElement, 'wheel', hemi.input.scroll);
-//        hemi.core.event.addEventListener(hemi.core.o3dElement, 'keypress', hemi.input.keyPress);
-//        hemi.core.event.addEventListener(hemi.core.o3dElement, 'keydown', hemi.input.keyDown);
-//        hemi.core.event.addEventListener(hemi.core.o3dElement, 'keyup', hemi.input.keyUp);
+		
+		document.addEventListener('keypress', function(event) {
+			hemi.input.keyPress(event);
+		}, true);
+		document.addEventListener('keydown', function(event) {
+			hemi.input.keyDown(event);
+		}, true);
+		document.addEventListener('keyup', function(event) {
+			hemi.input.keyUp(event);
+		}, true);
 	};
 	
 	/**
@@ -86,12 +93,6 @@ var hemi = (function(hemi) {
 	 * @param {Object} listener an object that implements onKeyDown()
 	 */
     hemi.input.addKeyDownListener = function(listener) {
-		if (!this.hasKeyDownListener) {
-			jQuery(document).bind("keydown.coreInput", function(event) {
-				hemi.input.keyDown(event);
-			});
-			this.hasKeyDownListener = true;
-		}
 		addListener(hemi.input.keyDownListeners, listener);
     };
     
@@ -101,12 +102,6 @@ var hemi = (function(hemi) {
 	 * @param {Object} listener an object that implements onKeyUp()
 	 */
     hemi.input.addKeyUpListener = function(listener) {
-		if (!this.hasKeyUpListener) {
-			jQuery(document).bind("keyup.coreInput", function(event) {
-				hemi.input.keyUp(event);
-			});
-			this.hasKeyUpListener = true;
-		}
 		addListener(hemi.input.keyUpListeners, listener);
     };
     
@@ -116,12 +111,6 @@ var hemi = (function(hemi) {
 	 * @param {Object} listener an object that implements onKeyPress()
 	 */
     hemi.input.addKeyPressListener = function(listener) {
-		if (!this.hasKeyPressListener) {
-			jQuery(document).bind("keypress.coreInput", function(event) {
-				hemi.input.keyPress(event);
-			});
-			this.hasKeyPressListener = true;
-		}
 		addListener(hemi.input.keyPressListeners, listener);
     };
 	

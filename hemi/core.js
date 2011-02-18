@@ -27,6 +27,7 @@ o3djs.require('o3djs.particles');
 o3djs.require('o3djs.picking');
 o3djs.require('o3djs.rendergraph');
 o3djs.require('o3djs.canvas');
+o3djs.require('hemi.utils.jsUtils');
 o3djs.require('hemi.utils.hashtable');
 o3djs.require('hemi.utils.transformUtils');
 o3djs.require('hemi.msg');
