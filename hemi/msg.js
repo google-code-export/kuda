@@ -108,6 +108,19 @@ var hemi = (function(hemi) {
 		 */
 		pick: 'hemi.pick',
 		/**
+		 * The Message sent when progress data has been updated.
+		 * @type string
+		 * @constant
+		 * @example
+		 * Sent by hemi.world, data = number indicating the percentage complete
+		 * Sent by hemi.world, data = 
+		 * {
+		 * 		url: load info url,
+		 * 		percent: number indicating the percentage complete
+		 * }
+		 */
+		progress: 'hemi.progress',
+		/**
 		 * The Message sent when the World's ready function is called.
 		 * @type string
 		 * @constant
