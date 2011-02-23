@@ -4,6 +4,8 @@ TBD
 World Editor
 * Texture viewer added to model browser
 Kuda Library
+* In hemi, added messages for load progress
+* In hext, added a progress bar UI
 
 2. Bug Fixes
 World Editor
