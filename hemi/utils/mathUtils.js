@@ -35,48 +35,6 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Compare the two given arrays of numbers. The arrays should be the same
-	 * length.
-	 * 
-	 * @param {number[]} a the first array
-	 * @param {number[]} b the second array
-	 * @return {boolean} true if the arrays are equal
-	 */
-	hemi.utils.compareArrays = function(a, b) {
-		var eq = a.length === b.length;
-		
-		for (var i = 0; eq && i < a.length; i++) {
-			if (a[i] instanceof Array) { 
-				eq = hemi.utils.compareArrays(a[i], b[i]);
-			} else {
-				eq = Math.abs(a[i] - b[i]) <= 0.001;
-			}
-		}
-		
-		return eq;
-	};
-	
-	/**
-	 * Create a deep copy of the given array, even if it has nested arrays.
-	 * 
-	 * @param {number[]} a the array to copy
-	 * @return {number[]} the created array
-	 */
-	hemi.utils.copyArray = function(a) {
-		var b = [a.length];
-		
-		for (var i = 0, il = a.length; i < il; i++) {
-			if (a[i] instanceof Array) { 
-				b[i] = hemi.utils.copyArray(a[i]);
-			} else {
-				b[i] = a[i];
-			}
-		}
-		
-		return b;
-	};
-	
-	/**
 	 * Calculate the intersection between a ray and a plane.
 	 * 
 	 * @param {o3d.Ray} ray Ray described by a near xyz point and a far xyz point

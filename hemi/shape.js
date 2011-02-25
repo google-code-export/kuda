@@ -112,7 +112,7 @@ var hemi = (function(hemi) {
 		change: function(cfg) {
 			this.loadConfig(cfg);
 			
-			var config = jQuery.extend({
+			var config = hemi.utils.join({
 						shape: this.shapeType,
 						color: this.color
 					},
@@ -149,7 +149,7 @@ var hemi = (function(hemi) {
 		 * 			visibility.
 		 */
 		create: function(opt_matrix, opt_visible) {
-			var config = jQuery.extend({
+			var config = hemi.utils.join({
 					shape: this.shapeType,
 					color: this.color
 				},

@@ -19,6 +19,48 @@ var hemi = (function(hemi) {
 	hemi.utils = hemi.utils || {};
 	
 	/**
+	 * Compare the two given arrays of numbers. The arrays should be the same
+	 * length.
+	 * 
+	 * @param {number[]} a the first array
+	 * @param {number[]} b the second array
+	 * @return {boolean} true if the arrays are equal
+	 */
+	hemi.utils.compareArrays = function(a, b) {
+		var eq = a.length === b.length;
+		
+		for (var i = 0; eq && i < a.length; i++) {
+			if (a[i] instanceof Array) { 
+				eq = hemi.utils.compareArrays(a[i], b[i]);
+			} else {
+				eq = Math.abs(a[i] - b[i]) <= 0.001;
+			}
+		}
+		
+		return eq;
+	};
+	
+	/**
+	 * Create a deep copy of the given array, even if it has nested arrays.
+	 * 
+	 * @param {number[]} a the array to copy
+	 * @return {number[]} the created array
+	 */
+	hemi.utils.copyArray = function(a) {
+		var b = [a.length];
+		
+		for (var i = 0, il = a.length; i < il; i++) {
+			if (a[i] instanceof Array) { 
+				b[i] = hemi.utils.copyArray(a[i]);
+			} else {
+				b[i] = a[i];
+			}
+		}
+		
+		return b;
+	};
+	
+	/**
 	 * Perform an asynchronous AJAX GET for the resource at the given URL.
 	 * 
 	 * @param {string} url url of the resource to get
@@ -63,6 +105,44 @@ var hemi = (function(hemi) {
 	 */
 	hemi.utils.isArray = Array.isArray || function(val) {
 		return Object.prototype.toString.call(val) === '[object Array]';
+	};
+	
+	/**
+	 * Merge all of the properties of the given objects into the first object.
+	 * If any of the objects have properties with the same name, the later
+	 * properties will overwrite earlier ones. The exception to this is if both
+	 * properties are objects or arrays. In that case, they will be merged
+	 * recursively. This function performs deep copying.
+	 * 
+	 * @param {Object} obj1 the first object which will receive all properties
+	 * @param {Object} objN any number of objects to copy properties from
+	 * @return {Object} the first object now merged with all other objects
+	 */
+	hemi.utils.join = function() {
+		var target = arguments[0];
+		
+		for (var i = 1, il = arguments.length; i < il; i++) {
+			var obj = arguments[i];
+			
+			for (k in obj) {
+				var src = obj[k];
+				
+				if (src != null && typeof src === 'object') {
+					var dest = target[k],
+						srcArr = hemi.utils.isArray(src);
+					
+					if (dest == null || typeof dest !== 'object' || hemi.utils.isArray(dest) !== srcArr) {
+						dest = srcArr ? [] : {};
+					}
+					
+					target[k] = hemi.utils.join(dest, src);
+				} else {
+					target[k] = src;
+				}
+			}
+		}
+		
+		return target;
 	};
 	
 	/**

@@ -1778,7 +1778,7 @@ var hemi = (function(hemi) {
 		 *     rectangular overlay
 		 */
 		createRectangleOverlay: function(element, boxConfig) {
-			var config = jQuery.extend({}, hemi.hud.theme.page, boxConfig);
+			var config = hemi.utils.join({}, hemi.hud.theme.page, boxConfig);
 			this.canvas.save();
 			this.setPaintProperties(config);
 			
@@ -1815,7 +1815,7 @@ var hemi = (function(hemi) {
 		 * @param {number} y y coordinate to draw the text at
 		 */
 		createTextOverlay: function(text, textConfig, x, y) {
-			var config = jQuery.extend({}, hemi.hud.theme.text, textConfig),
+			var config = hemi.utils.join({}, hemi.hud.theme.text, textConfig),
 				height = config.textSize,
 				outline = config.outline != null;
 			
@@ -1850,7 +1850,7 @@ var hemi = (function(hemi) {
 		 * @param {number} height optional height of destination image
 		 */
 		createImageOverlay: function(image, imgConfig, x, y, srcX, srcY, width, height) {
-			var config = jQuery.extend({}, hemi.hud.theme.image, imgConfig);
+			var config = hemi.utils.join({}, hemi.hud.theme.image, imgConfig);
 			this.canvas.save();
 			this.setPaintProperties(config);
 			
@@ -1876,7 +1876,7 @@ var hemi = (function(hemi) {
 		 * @param {number} height optional height of video
 		 */
 		createVideoOverlay: function(video, vidConfig, x, y, width, height) {
-			var config = jQuery.extend({}, hemi.hud.theme.video, vidConfig);
+			var config = hemi.utils.join({}, hemi.hud.theme.video, vidConfig);
 			
 			this.videos.push({
 				video: video,
@@ -1916,7 +1916,7 @@ var hemi = (function(hemi) {
 		 * @return {Object} wrapped text object
 		 */
 		doTextWrapping: function(text, width, textOptions) {
-			var config = jQuery.extend({}, hemi.hud.theme.text, textOptions),
+			var config = hemi.utils.join({}, hemi.hud.theme.text, textOptions),
 				wrappedText;
 			
 			this.canvas.save();

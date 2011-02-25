@@ -232,7 +232,7 @@ var hemi = (function(hemi) {
 		setup: function() {
 			// Create a deep copy of the parameters since the particle emitter
 			// will mutate them as it fires.
-			var clonedParams = jQuery.extend(true, {}, this.params),
+			var clonedParams = hemi.utils.join({}, this.params),
 				paramSetter;
 			
 			// It's okay if paramSetter stays undefined.
@@ -357,7 +357,7 @@ var hemi = (function(hemi) {
 		setup: function() {
 			// Create a deep copy of the parameters since the particle emitter
 			// will mutate them as it fires.
-			var clonedParams = jQuery.extend(true, {}, this.params),
+			var clonedParams = hemi.utils.join({}, this.params),
 				paramSetter;
 			
 			// Calculate the maximum number of particles for the stream
