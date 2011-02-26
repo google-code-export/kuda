@@ -50,7 +50,7 @@ var hext = (function(hext) {
 	 */
 	hext.tools.ToolbarView = function(config) {
 		hemi.world.Citizen.call(this);
-		this.config = jQuery.extend(new hext.tools.ToolbarViewConfig(), config);
+		this.config = hemi.utils.join(new hext.tools.ToolbarViewConfig(), config);
 		
 		/**
 		 * The container for all HTML content.

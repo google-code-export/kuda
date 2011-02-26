@@ -92,7 +92,7 @@ var hext = (function(hext) {
 	hext.tools.ManometerView = function(config) {
 		hext.tools.HtmlView.call(this);
 		
-		this.config = jQuery.extend(new hext.tools.ManometerViewConfig(), config);
+		this.config = hemi.utils.join(new hext.tools.ManometerViewConfig(), config);
 		this.rightMode = hext.tools.ManometerMode.Pressure;
 		this.deviceName = null;
 		this.leftDisplay = null;

@@ -62,7 +62,7 @@ var hext = (function(hext) {
 	hext.tools.NavigationToolbarView = function(config) {
 		this.zoomInBtn = null;
 		this.zoomOutBtn = null;
-		config = jQuery.extend(new hext.tools.NavigationToolbarViewConfig(), config);
+		config = hemi.utils.join(new hext.tools.NavigationToolbarViewConfig(), config);
 		hext.tools.ToolbarView.call(this, config);
 	};
 	

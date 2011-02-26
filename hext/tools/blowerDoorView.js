@@ -134,7 +134,7 @@ var hext = (function(hext) {
 	 */
 	hext.tools.BlowerDoorToolbarView = function(config) {
 		this.button = null;
-        config = jQuery.extend(new hext.tools.BlowerDoorToolbarViewConfig(), config);
+        config = hemi.utils.join(new hext.tools.BlowerDoorToolbarViewConfig(), config);
         hext.tools.ToolbarView.call(this, config);
 	};
 	

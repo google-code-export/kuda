@@ -56,7 +56,7 @@ var hext = (function(hext) {
 		 */
 		this.visible = false;
 		
-		this.config = jQuery.extend(new hext.tools.HtmlViewConfig(), config);
+		this.config = hemi.utils.join(new hext.tools.HtmlViewConfig(), config);
 		this.callbacks = [];
 	};
 	

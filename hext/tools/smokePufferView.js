@@ -52,7 +52,7 @@ var hext = (function(hext) {
 	 */
 	hext.tools.SmokePufferToolbarView = function(config) {	
         this.button = null;	
-        config = jQuery.extend(new hext.tools.SmokePufferToolbarViewConfig(), config);
+        config = hemi.utils.join(new hext.tools.SmokePufferToolbarViewConfig(), config);
         hext.tools.ToolbarView.call(this, config);
 	};
 	
