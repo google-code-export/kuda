@@ -20,6 +20,8 @@
  */
 o3djs.require('o3djs.util');
 o3djs.require('hemi.texture');
+	
+o3djs.require('hext.progressUI.progressBar');
 
 (function() {
 	var	houseModel,
@@ -100,7 +102,10 @@ o3djs.require('hemi.texture');
 			window_b1: 'assets/images/TimeMaps/Window_B1_1725.jpg',
 			window_ki: 'assets/images/TimeMaps/Window_KI_1725.jpg',
 			window_lr4: 'assets/images/TimeMaps/Window_LR4_1725.jpg'
-		}];
+		}],
+		full = false,
+		pbar = null,
+		ndx = 0;
 
 	function initStep(clientElements) {
 		bindJavaScript();
@@ -108,6 +113,21 @@ o3djs.require('hemi.texture');
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		houseModel = new hemi.model.Model();
 		houseModel.setFileName('assets/LightingHouse_v082.o3dtgz');
+		
+		// get whether to show full progress or not
+		full = getParam('fullProgress').toLowerCase() == 'true';
+		// instantiate the progress bar
+		pbar = new hext.progressUI.bar(full);	
+		// if full progress, we're going to subscribe to world messages ourselves
+		// to get subprogress
+		if (full) {
+			hemi.world.subscribe(hemi.msg.progress, function(msg){
+				if (msg.data.isTotal) {
+					update(msg.data.percent);
+				}
+			});
+		}
+		
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {
 				setupScene();
@@ -147,7 +167,7 @@ o3djs.require('hemi.texture');
 		hemi.world.camera.subscribe(hemi.msg.stop,
 			function() {
 				jQuery('div.loadedTextureSets').append('Loading 5 texture sets...<br/>');
-				loadTextures(maps.shift());
+				loadTextures(maps[ndx++]);
 			});
 	}
 
@@ -176,14 +196,21 @@ o3djs.require('hemi.texture');
 		jQuery('div.loadedTextureSets').append(set + ' loaded<br/>');
 	}
 
-	function loadTextures(map) {
+	function loadTextures(map) {		
 		if (map) {
 			hemi.texture.createTextureSet(map,
 				function(samplers) {
 					onTextureSet(map, samplers);
-					loadTextures(maps.shift());
+					if (ndx < maps.length) {
+						loadTextures(maps[ndx++]);
+					}
 				});
 		}
+	}
+	
+	function update(percent) {
+		var progress = (ndx - 1 + (percent / 100)) / maps.length * 100;
+		pbar.update(progress);
 	}
 
 	jQuery(window).load(function() {
@@ -195,4 +222,15 @@ o3djs.require('hemi.texture');
 			hemi.core.client.cleanup();
 		}
 	});
+	
+	function getParam(name) {
+		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		var regexS = "[\\?&]"+name+"=([^&#]*)";
+		var regex = new RegExp( regexS );
+		var results = regex.exec( window.location.href );
+		if( results == null )
+			return "";
+		else
+			return results[1];
+	}
 })();

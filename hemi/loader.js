@@ -70,7 +70,7 @@ var hemi = (function(hemi) {
 						break;
 					}
 				}
-			}, 2);
+			}, 50);
 		}
 	};
 	
@@ -96,7 +96,7 @@ var hemi = (function(hemi) {
 	var checkFinished = function() {					
 		var percent = updateTotal();
 		
-		if (percent === 100) {
+		if (percent >= 99.9) {
 			knownFiles.clear();
 			window.clearInterval(intervalId);
 			intervalId = null;

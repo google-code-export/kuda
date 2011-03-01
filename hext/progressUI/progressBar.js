@@ -206,10 +206,15 @@ var hext = (function(hext) {
 	 * hemi.msg.progress to update the bar UI.  Currently sets the bounds of
 	 * the page to the client width and height with the bar set to 20 pixels 
 	 * in height and 1/3 the client width.
+	 * 
+	 * @param dontSubscribe flag indicating whether to subscribe to world
+	 * 			messages for progress.  Default is to subscribe.
 	 */
-	hext.progressUI.bar = function() {
+	hext.progressUI.bar = function(dontSubscribe) {
 		// register for the progress message
-		hemi.world.subscribe(hemi.msg.progress, this, 'update');
+		if (!dontSubscribe) {
+			hemi.world.subscribe(hemi.msg.progress, this, 'msgUpdate');
+		}
 		
 		var width = parseInt(hemi.core.client.width),
 			height = parseInt(hemi.core.client.height),
@@ -232,7 +237,7 @@ var hext = (function(hext) {
 		});
 		
 		// immediately update
-		this.update({data: 0});
+		this.update(0);
 	};
 	
 	/*
@@ -247,19 +252,33 @@ var hext = (function(hext) {
 		 * @param {Object} progressMsg the message data received from the 
 		 * 				   message dispatcher.
 		 */
-		update: function(progressMsg) {
-			var progressInfo = progressMsg.data;
+		msgUpdate: function(progressMsg) {
+			var progressInfo = progressMsg.data,
+				percent = this.progress;
+				
 			// get the info, but test the data type first
 			if (progressInfo.isTotal) {
-				this.progress = progressInfo.percent;
-				// update the ui
-				hemi.hud.hudMgr.clearDisplay();
-				this.pageUI.draw();
-				this.barUI.update(this.progress);
-			}			
+				percent = progressInfo.percent;
+			}
+			
+			this.update(percent);
+		},
+		
+		/**
+		 * Updates the progress bar with the given progress.
+		 * 
+		 * @param {number} progress the progress in percent.
+		 */
+		update: function(progress) {
+			this.progress = progress;
+			
+			// update the ui
+			hemi.hud.hudMgr.clearDisplay();
+			this.pageUI.draw();
+			this.barUI.update(this.progress);
 			
 			// if percent is 100, stop drawing this
-			if (this.progress === 100) {
+			if (this.progress >= 99.9) {
 				setTimeout(function() {
 					hemi.hud.hudMgr.clearDisplay();
 				}, 100);
