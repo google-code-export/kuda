@@ -20,6 +20,8 @@
  */
 o3djs.require('o3djs.util');
 o3djs.require('hemi.texture');
+	
+o3djs.require('hext.progressUI.progressBar');
 
 (function() {
 	var	houseModel,
@@ -108,6 +110,21 @@ o3djs.require('hemi.texture');
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		houseModel = new hemi.model.Model();
 		houseModel.setFileName('assets/LightingHouse_v082/scene.json');
+		
+		// get whether to show full progress or not
+		full = getParam('fullProgress').toLowerCase() == 'true';
+		// instantiate the progress bar
+		pbar = new hext.progressUI.bar(full);	
+		// if full progress, we're going to subscribe to world messages ourselves
+		// to get subprogress
+		if (full) {
+			hemi.world.subscribe(hemi.msg.progress, function(msg){
+				if (msg.data.isTotal) {
+					update(msg.data.percent);
+				}
+			});
+		}
+		
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {
 				setupScene();
@@ -185,6 +202,11 @@ o3djs.require('hemi.texture');
 				});
 		}
 	}
+	
+	function update(percent) {
+		var progress = (ndx - 1 + (percent / 100)) / maps.length * 100;
+		pbar.update(progress);
+	}
 
 	jQuery(window).load(function() {
 		o3djs.webgl.makeClients(initStep);
@@ -195,4 +217,15 @@ o3djs.require('hemi.texture');
 			hemi.core.client.cleanup();
 		}
 	});
+	
+	function getParam(name) {
+		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		var regexS = "[\\?&]"+name+"=([^&#]*)";
+		var regex = new RegExp( regexS );
+		var results = regex.exec( window.location.href );
+		if( results == null )
+			return "";
+		else
+			return results[1];
+	}
 })();

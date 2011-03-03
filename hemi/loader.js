@@ -31,6 +31,81 @@ var hemi = (function(hemi) {
 	 */
 	hemi.loader.loadPath = '';
 	
+	var knownFiles = new Hashtable(),
+		intervalId = null,
+		locked = false;
+	
+	var syncedIntervalFcn = function(url, loadInfo) {			
+		var obj = {
+			percent: 0,
+			loadInfo: loadInfo
+		};
+		
+		knownFiles.put(url, obj);
+			
+		createIntervalFcn();
+	};
+	
+	var createIntervalFcn = function() {
+		if (intervalId == null) {
+			intervalId = window.setInterval(function(){
+				var keys = knownFiles.keys(),
+					percent = 0;
+				
+				for (var ndx = 0, len = keys.length; ndx < len; ndx++) {
+					var url = keys[ndx],
+						fileObj = knownFiles.get(url), 
+						loadInfo = fileObj.loadInfo;					
+					
+					// check for finished (may have finished very quickly)
+					fileObj.percent = loadInfo.request_ == null ? 100 : 
+						loadInfo.getKnownProgressInfoSoFar().percent;
+					hemi.world.send(hemi.msg.progress, {
+						url: url,
+						percent: fileObj.percent,
+						isTotal: false
+					});
+					
+					if (checkFinished()) {
+						break;
+					}
+				}
+			}, 50);
+		}
+	};
+	
+	var updateTotal = function() {
+		var total = knownFiles.size(),
+			values = knownFiles.values(),
+			percent = 0;
+			
+		for (var ndx = 0; ndx < total; ndx++) {
+			var fileObj = values[ndx];
+			
+			percent += fileObj.percent / total;
+		}
+		
+		hemi.world.send(hemi.msg.progress, {
+			isTotal: true,
+			percent: percent
+		});
+		
+		return percent;
+	};
+	
+	var checkFinished = function() {					
+		var percent = updateTotal();
+		
+		if (percent >= 99.9) {
+			knownFiles.clear();
+			window.clearInterval(intervalId);
+			intervalId = null;
+			return true;
+		}
+		
+		return false;
+	};
+	
 	/**
 	 * Load the HTML (or HTM) file at the given URL. If an error occurs, an
 	 * alert is thrown. Otherwise the given callback is executed and passed the
@@ -74,7 +149,17 @@ var hemi = (function(hemi) {
 				} else {
 					callback(bitmaps);
 				}
+				var fileObj = knownFiles.get(url);
+				
+				if (fileObj)
+					fileObj.percent = 100;
+				checkFinished();
 			});
+		
+		var list = hemi.world.loader.loadInfo.children_,
+			loadInfo = list[list.length - 1];
+		
+		syncedIntervalFcn(url, loadInfo);
 	};
 
 	/**
@@ -128,8 +213,18 @@ var hemi = (function(hemi) {
 					alert(exception);
 				}
 
+				var fileObj = knownFiles.get(url);
+				
+				if (fileObj)
+					fileObj.percent = 100;
+				checkFinished();
 				onLoadTexture.call(opt_this, texture);
 			});
+		
+		var list = hemi.world.loader.loadInfo.children_,
+			loadInfo = list[list.length - 1];
+		
+		syncedIntervalFcn(url, loadInfo);
 	};
 
 	/**
@@ -158,7 +253,17 @@ var hemi = (function(hemi) {
 				} else if (opt_callback) {
 					opt_callback(pack, parent);
 				}
+				var fileObj = knownFiles.get(url);
+				
+				if (fileObj)
+					fileObj.percent = 100;
+				checkFinished();
 			}, opt_options);
+		
+		var list = hemi.world.loader.loadInfo.children_,
+			loadInfo = list[list.length - 1];
+		
+		syncedIntervalFcn(url, loadInfo);
 	};
 
 	/**

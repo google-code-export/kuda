@@ -1680,9 +1680,9 @@ var hemi = (function(hemi) {
 		
 		this.videos = [];
 		
-		style.left = '0px';
+		style.left = o3Can.offsetLeft + 'px';
 		style.position = 'absolute';
-		style.top = '0px';
+		style.top = o3Can.offsetTop + 'px';
 		style.zIndex = '10';
 		
 		hudCan.height = o3Can.height;
