@@ -171,7 +171,6 @@ var hext = (function(hext) {
 		update: function(percent) {
 			this.percent = percent/100;
 			this.indicatorBounds.right = (this.containerBounds.right - this.containerBounds.left) * this.percent + this.containerBounds.left;
-			console.log(this.indicatorBounds.right);
 			
 			this.draw();
 		}
