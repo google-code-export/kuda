@@ -1,15 +1,11 @@
 ----------------------------Kuda 1.2.3 Release Notes----------------------------
-TBD
+2011 March 7
 1. What's New
 World Editor
 * Texture viewer added to model browser
 Kuda Library
 * In hemi, added messages for load progress
 * In hext, added a progress bar UI
-
-2. Bug Fixes
-World Editor
-Kuda Library
 
 ----------------------------Kuda 1.2.2 Release Notes----------------------------
 2011 February 11

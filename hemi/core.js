@@ -48,15 +48,15 @@ o3djs.require('hemi.texture');
 
 /**
  * @namespace The core Hemi library used by Kuda.
- * @version 1.2.2
+ * @version 1.2.3
  */
 var hemi = (function(hemi) {
 	
 	/**
-	 * The version of Hemi released on Feb 11, 2011
+	 * The version of Hemi released on Mar 7, 2011
 	 * @constant
 	 */
-	hemi.version = '1.2.2';
+	hemi.version = '1.2.3';
 	
 	/**
 	 * @namespace A module for handling low level functionality and wrapping
