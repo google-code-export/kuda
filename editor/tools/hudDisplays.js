@@ -670,8 +670,8 @@ var editor = (function(module) {
 			saveBtn.bind('click', function(evt) {
 				var size = sizeInput.val(),
 					font = fontSelect.val(),
-					style = styleSelect.val(),
-					align = alignSelect.val(),
+					style = parseInt(styleSelect.val()),
+					align = parseInt(alignSelect.val()),
 					color = colorPicker.getColor();
 				
 				var props = {
