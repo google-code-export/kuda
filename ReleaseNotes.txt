@@ -3,6 +3,8 @@ TBD
 1. Bug Fixes
 World Editor
 * Fixed bug where hud text edit select boxes caused javascript errors due to incorrect values
+Kuda Library
+* Fixed potential divide-by-zero error in Hext pressure engine
 ----------------------------Kuda 1.2.3 Release Notes----------------------------
 2011 March 7
 1. What's New
