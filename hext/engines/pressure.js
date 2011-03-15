@@ -293,10 +293,11 @@ var hext = (function(hext) {
 		 * @param {number} increment time increment to calculate pressure for
 		 */
 		updatePressure: function(increment){
-			if (this.volume != INFINITE_VOLUME) {
+			if (this.volume > 0) {
 				this.pressure += increment * this.airFlow * 47.8224 / this.volume;
-				this.airFlow = 0;
 			}
+			
+			this.airFlow = 0;
 		},
 		
 		/**
