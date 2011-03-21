@@ -190,8 +190,8 @@
 		video.setHeight(270);
 		video.setWidth(480);
 		// We add multiple formats in case the browser does not support one
-		video.addVideoUrl('assets/BigBuckBunny_640x360.mp4', 'mp4');
-		video.addVideoUrl('assets/BigBuckBunny_640x360.ogv', 'ogg');
+		video.addVideoUrl('assets/videos/BigBuckBunny_640x360.mp4', 'mp4');
+		video.addVideoUrl('assets/videos/BigBuckBunny_640x360.ogv', 'ogg');
 		
 		video.mouseDown = function(mouseEvent) {
 			updateMessageDiv('You clicked on the video for page 4');
