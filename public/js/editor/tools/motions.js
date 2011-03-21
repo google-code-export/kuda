@@ -199,7 +199,7 @@ var editor = (function(module) {
 	 */
 	module.tools.CreateMtnSBWidgetDefaults = {
 		name: 'createMotionSBWidget',
-		uiFile: 'editor/tools/html/motionsForms.htm',
+		uiFile: 'js/editor/tools/html/motionsForms.htm',
 		manualVisible: true
 	};
 	

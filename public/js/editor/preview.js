@@ -35,7 +35,7 @@
 			// the editor directory.
 			hemi.loader.loadPath = '../';
 			hemi.core.init(clientElements[0]);
-			hemi.loader.loadOctane('editor/project.json');
+			hemi.loader.loadOctane('js/editor/project.json');
 		},
 
 		uninitViewer: function() {

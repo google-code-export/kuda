@@ -163,7 +163,7 @@ var editor = (function(module) {
 	 */
 	module.tools.CreateShpSBWidgetDefaults = {
 		name: 'createShapeSBWidget',
-		uiFile: 'editor/tools/html/shapesForms.htm',
+		uiFile: 'js/editor/tools/html/shapesForms.htm',
         instructions: 'Click on a model to select it',
 		manualVisible: true
 	};

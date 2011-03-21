@@ -445,7 +445,7 @@ var editor = (function(module) {
 	 */
 	module.tools.HudEditSBWidgetDefaults = {
 		name: 'hudEditSBWidget',
-		uiFile: 'editor/tools/html/hudForms.htm',
+		uiFile: 'js/editor/tools/html/hudForms.htm',
 		manualVisible: true
 	};
 	

@@ -1034,7 +1034,7 @@ var editor = (function(module) {
 			
 			this.mainPanel = new module.ui.Component({
 				id: 'msgPnl',
-				uiFile: 'editor/tools/html/messaging.htm',
+				uiFile: 'js/editor/tools/html/messaging.htm',
 				immediateLayout: false
 			});
 			

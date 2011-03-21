@@ -395,7 +395,7 @@ var editor = (function(module) {
 	 */
 	module.tools.CreateAnmSBWidgetDefaults = {
 		name: 'createAnmSBWidget',
-		uiFile: 'editor/tools/html/animationsForms.htm',
+		uiFile: 'js/editor/tools/html/animationsForms.htm',
         instructions: 'Click on a model to select it',
 		manualVisible: true
 	};

@@ -687,7 +687,7 @@ var editor = (function(module) {
 	 */
 	module.tools.ScnEvtEdtSBWidgetDefaults = {
 		name: 'scnEvtEdtSBWidget',
-		uiFile: 'editor/tools/html/scenesForm.htm',
+		uiFile: 'js/editor/tools/html/scenesForm.htm',
 		manualVisible: true
 	};
 	

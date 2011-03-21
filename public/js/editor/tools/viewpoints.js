@@ -158,7 +158,7 @@ var editor = (function(module) {
 	 */
 	module.tools.CreateVptSBWidgetDefaults = {
 		name: 'createVptSBWidget',
-		uiFile: 'editor/tools/html/viewpointsForms.htm',
+		uiFile: 'js/editor/tools/html/viewpointsForms.htm',
 		manualVisible: true
 	};
 	
@@ -443,7 +443,7 @@ var editor = (function(module) {
 		
 		layoutActionBar: function() {
 			var widget = new module.ui.ActionBarWidget({
-				uiFile: 'editor/tools/html/viewpointsAxnBar.htm'
+				uiFile: 'js/editor/tools/html/viewpointsAxnBar.htm'
 			});
 			var view = this;
 			

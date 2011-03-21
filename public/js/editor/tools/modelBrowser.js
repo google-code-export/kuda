@@ -629,7 +629,7 @@ var editor = (function(module) {
 	 * Configuration object for the ModelTreeSBWidget.
 	 */
 	module.tools.ModelTreeSBWidgetDefaults = {
-		uiFile: 'editor/tools/html/modelbrowser.htm',
+		uiFile: 'js/editor/tools/html/modelbrowser.htm',
 		name: 'modelTreeSBWidget'
 	};
 	
@@ -1438,7 +1438,7 @@ var editor = (function(module) {
 		
 		layoutActionBar: function() {
 			var widget = new module.ui.ActionBarWidget({
-				uiFile: 'editor/tools/html/modelbrowserAxnBar.htm',
+				uiFile: 'js/editor/tools/html/modelbrowserAxnBar.htm',
 				immediateLayout: false
 			});
 			var view = this;

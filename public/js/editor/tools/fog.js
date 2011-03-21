@@ -79,7 +79,7 @@ var editor = (function(module) {
 	 */
 	module.tools.FogFormSBWidgetDefaults = {
 		name: 'fogFormSBWidget',
-		uiFile: 'editor/tools/html/fogForms.htm'
+		uiFile: 'js/editor/tools/html/fogForms.htm'
 	};
 	
 	module.tools.FogFormSBWidget = module.ui.SidebarWidget.extend({

@@ -70,7 +70,7 @@ var editor = (function(module) {
 	 * Configuration object for the AnimatorView.
 	 */
 	module.tools.ModelLoaderViewDefaults = {
-		dlgFileName: 'editor/tools/html/modelLoader.htm',
+		dlgFileName: 'js/editor/tools/html/modelLoader.htm',
 		toolName: 'ModelLoader',
 		widgetId: 'mdlLoaderBtn'
 	};
@@ -97,7 +97,7 @@ var editor = (function(module) {
 			var view = this;
 			
 			this.loaderDialog = new module.ui.Dialog({
-				uiFile: 'editor/tools/html/modelLoader.htm',
+				uiFile: 'js/editor/tools/html/modelLoader.htm',
 				position: module.ui.Position.CENTER,
 				finishLayout: function() {
 					var dlg = this;

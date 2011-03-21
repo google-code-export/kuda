@@ -147,7 +147,7 @@ var editor = (function(module) {
 			
 			// load the template file, eventually, this will be grabbed
 			// from a server
-			hemi.loader.loadHtml('editor/tools/templates/particleFx.json', function(data) {
+			hemi.loader.loadHtml('js/editor/tools/templates/particleFx.json', function(data) {
 				mdl.templates = JSON.parse(data);
 				mdl.notifyListeners(module.EventTypes.TemplatesLoaded, 
 					mdl.templates);
@@ -318,7 +318,7 @@ var editor = (function(module) {
 	 */
 	module.tools.PteFxEditSBWidgetDefaults = {
 		name: 'pteFxEditSBWidget',
-		uiFile: 'editor/tools/html/particleFxForms.htm',
+		uiFile: 'js/editor/tools/html/particleFxForms.htm',
 		manualVisible: true
 	};
 	

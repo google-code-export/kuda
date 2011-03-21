@@ -203,7 +203,7 @@ var editor = (function(module) {
 	 */
 	module.tools.CreateMnpSBWidgetDefaults = {
 		name: 'createManipSBWidget',
-		uiFile: 'editor/tools/html/manipsForms.htm',
+		uiFile: 'js/editor/tools/html/manipsForms.htm',
 		manualVisible: true
 	};
 	
