@@ -2,9 +2,13 @@
 /**
  * Module dependencies.
  */
-var express = require('express');
+var express = require('express'),
+	fs = require('fs'),
+	util = require('util'),
+	path = require('path');
 
-var app = module.exports = express.createServer();
+var app = module.exports = express.createServer(),
+	projectsPath = 'public/projects';
 
 // Configuration
 
@@ -43,6 +47,66 @@ app.configure('production', function(){
 //    title: 'Express'
 //  });
 //});
+
+app.get('/listProjects', function(req, res) {
+	if (req.isXMLHttpRequest) {
+		var files = fs.readdirSync(projectsPath);
+		var data = {
+			options: []
+		};
+		
+		for (var ndx = 0, len = files.length; ndx < len; ndx++) {				
+			var file = files[ndx];
+			
+			if (file.match('.json')) {
+				file = file.split('.')[0];
+				data.options.push(file);	
+			}
+		}
+		
+		res.send(data, 200);		
+	}
+});
+
+app.get('/saveProject', function(req, res) {	
+	if (req.isXMLHttpRequest) {		
+		if (!path.existsSync(projectsPath)) {
+			fs.mkdirSync(projectsPath, 0755);
+		}
+		
+		var defName = 'project',			
+			name = req.param('name', defName) + '.json',
+			filePath = projectsPath + '/' + name;
+		
+		if (path.existsSync(filePath)) {
+			res.send('File by that name already exists', 400);
+		}
+		else {
+			var input = req.param('octane');
+			
+			fs.writeFileSync(filePath, input);
+			res.send({
+				name: name
+			}, 200);
+		}
+	}
+});
+
+app.get('/openProject', function(req, res) {
+	if (req.isXMLHttpRequest) {
+		var name = req.param('name') + '.json',
+			filePath = projectsPath + '/' + name;
+		
+		if (path.existsSync(filePath)) {			
+			var data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+			res.send(data, 200);
+		}
+		else {
+			res.send('File named ' + name + ' does not exist', 400);
+		}
+	}
+});
+
 
 // Only listen on $ node app.js
 

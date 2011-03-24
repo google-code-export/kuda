@@ -1,11 +1,28 @@
 Kuda Readme
-
 The best place to start with Kuda is probably the samples. Viewing these should 
 give you some ideas of things you can do with the Hemi library. You can also 
 open the Kuda Editor to start scripting 3D Worlds using a graphical interface.
-As you begin to work with the Hemi library, please refer to the API
-documentation for notes on how to use its different features.
+If you plan to use the editor, however, you'll need to follow the installation 
+instructions below. As you begin to work with the Hemi library, please refer to 
+the API documentation for notes on how to use its different features.
 
+Installation:
+To run the editor, you'll need to first install node.js. Follow the instructions 
+for your platform below.
+
+For Windows (Erik, fill in here)
+
+For Mac:
+1. Go to https://sites.google.com/site/nodejsmacosx/ and download the latest
+   distribution of node.js. 
+2. Run the package to install.
+3. Open terminal and install the express web application framework by typing: 
+		npm install express
+4. The Kuda Editor web app also has a few extra dependencies so type the 
+   following to install them:
+		npm install jade
+		npm install sass 
+		
 Samples:
 For each sample, open the html file in a browser to view it. You can open the 
 js file to see how the world was created and scripted.
@@ -78,9 +95,17 @@ allows you to perform much of the same work in a more visual manner. You can:
 - Save your project as a JSON file
 - Load your saved project from file
 
-To begin using it, go to the editor directory and open the editor.html file in
-Firefox 3.6 or later. The Kuda editor does not support IE, Chrome, or older
-versions of Firefox. It does not support Mac OS X.
+Running the Editor:
+Windows: (Erik fill in here)
+
+Mac:
+1. In the terminal, go to your Kuda directory.
+2. Type node app.js
+3. Open up your web browser (see supported browsers below) and go to 
+   http://localhost:3000/.
+   
+The Kuda editor supports IE running Chrome Frame (add the link here), Firefox 4,
+and Chrome 10.
 
 Documentation:
 To view documentation for the Hemi library, go to the doc directory and open the

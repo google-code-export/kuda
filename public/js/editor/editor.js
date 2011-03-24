@@ -27,23 +27,17 @@
 	};
 	
 	Application.prototype = {
-		initViewerStep1: function(largeGeometry, loadProject) {
+		initViewerStep1: function() {
 			var app = this,
 				options = [];
 			
 			this.bindJavascript();
-			
-			if (largeGeometry) {
-				options.push('LargeGeometry');
-			}
 			
 			// set editor defaults
 			editor.Defaults = {
 				farPlane: 10000,
 				nearPlane: 0.5
 			};
-			
-			editor.dirty = loadProject;
 			
 			o3djs.webgl.makeClients(function(clientElements) {
 				app.initViewerStep2(clientElements);
@@ -157,14 +151,6 @@
 					views[ndx].getUI().removeAttr('disabled');
 				}
 			});
-			
-			if (editor.dirty) {
-				var app = this;
-				// wait for widgets to load
-				this.sidebar.addListener(editor.EventTypes.SidebarFinishedLoading, function() {
-					app.openProject();
-				});
-			}
 		},
 		
 		worldCleaned: function() {
@@ -250,22 +236,65 @@
 		layoutDialogs: function() {
 			var that = this;
 			
-            this.savePrjDlg = jQuery('<div title="Save Project" id="saveProjectDlg"><p>Saved project to project.json</p></div>');
+            this.savePrjDlg = jQuery('<div title="Save Project" id="savePrjDlg" class="simpleDialog"><p id="savePrjMsg"></p><form method="post" action="" class="dialogForm"><label for="savePrjName">Project Name:</label><input type="text" name="savePrjName" id="savePrjName" /><button id="savePrjBtn">Save</button></form></div>');			
+			this.savePrjDlg.find('form').submit(function() { 
+				return false; 
+			});
+			this.savePrjDlg.find('#savePrjBtn').click(function() {
+				that.saveProject(that.savePrjDlg.find('#savePrjName').val());
+			});
             this.savePrjDlg.dialog({
                 width: 300,
                 resizable: false,
 				autoOpen: false,
 				modal: true
-            });
+            })
+			.bind('dialogopen', function() {
+				that.savePrjDlg.find('form').show();
+				that.savePrjDlg.find('#savePrjMsg').hide();
+			});
 			
-			this.openPrjDlg = jQuery('<div title="Open Project" id="openProjectDlg"><p id="projSuccess">Finished Loading Project</p><p id="projNull">There was no project to load</p></div>');
+			this.openPrjDlg = jQuery('<div title="Open Project" id="loadPrjDlg" class="simpleDialog"><p id="loadPrjMsg"></p><form method="post" action=""><label for="loadPrjSel">Select a Project:</label><select id="loadPrjSel"></select><button id="loadPrjBtn">Load</button></form></div>');
+			var form = this.openPrjDlg.find('form').submit(function() {
+				return false;
+			});
+			var btn = this.openPrjDlg.find('#loadPrjBtn').bind('click', function() {
+				that.openProject(that.openPrjDlg.find('#loadPrjSel').val());
+			});		
 			this.openPrjDlg.dialog({
 				width: 300,
 				resizable: false,
 				autoOpen: false,
                 modal: true
 			})
-			.find('p#projNull').hide();
+			.bind('dialogopen', function() {
+				var msg = that.openPrjDlg.find('#loadPrjMsg');
+				
+				msg.text('Retrieving projects...').show();
+				form.hide();
+				
+				jQuery.ajax({
+					url: '/listProjects',
+					dataType: 'json',
+					success: function(data, status, xhr) {
+						var sel = that.openPrjDlg.find('#loadPrjSel'),
+							options = data.options;
+						
+						sel.empty();
+						for (var ndx = 0, len = options.length; ndx < len; ndx++) {
+							var option = jQuery('<option>' + options[ndx] + '</option>');
+							sel.append(option);
+						}
+						
+						form.show();
+						msg.hide();
+					},
+					error: function(xhr, status, err) {
+						msg.text(xhr.responseText);
+					}
+				});
+			})
+			.find('p#loadPrjMsg').hide();
 			
 			this.previewDlg = jQuery('<div title="Preview" id="previewDlg"></div>');
 			this.previewDlg.dialog({
@@ -303,29 +332,14 @@
 			
 			var openProject = new editor.ui.MenuItem({
 				title: 'Open Project',
-				action: function(evt){					
-					if (that.openProject()) {
-						that.openPrjDlg.find('p#projSuccess').show();
-						that.openPrjDlg.find('p#projNull').hide();
-					}
-					else {
-						that.openPrjDlg.find('p#projSuccess').hide();
-						that.openPrjDlg.find('p#projNull').show();
-					}
+				action: function(evt){
 					that.openPrjDlg.dialog('open');
-					setTimeout(function(){
-						that.openPrjDlg.dialog('close');
-					}, 1000);
 				}
 			});
 			var saveProject = new editor.ui.MenuItem({
 				title: 'Save Project',
 				action: function(evt){
-					that.saveProject();
 					that.savePrjDlg.dialog('open');
-					setTimeout(function(){
-						that.savePrjDlg.dialog('close');
-					}, 1000);
 				}
 			});
 			var preview = new editor.ui.MenuItem({
@@ -648,65 +662,69 @@
 		},
 		
 		bindJavascript: function() {
-			var app = this,
-				largeOn = getParam('lrgGeo').toLowerCase() == 'true',
-				savedProject = getParam('loadProj').toLowerCase() == 'true',
-				lrgParam = largeOn ? 'lrgGeo=false' : 'lrgGeo=true',
-				svdParam = savedProject ? 'loadProj=true' : 'loadProj=false',
-				href = [lrgParam, svdParam],
-				linkTxt = largeOn ? 'Small Geometry' : 'Large Geometry',
-				linkCls = largeOn ? 'smallGeom' : 'largeGeom';
-			
-			jQuery("#geometryToggle").bind('click', function(evt) {
-				if (editor.dirty) {
-					app.saveProject();
-				}
-			})
-			.attr('href', '?' + href.join('&')).text(linkTxt).addClass(linkCls);
 		},
 		
 		editorStateChanged: function() {		
-			var app = this,
-				largeOn = getParam('lrgGeo').toLowerCase() == 'true',
-				savedProject = getParam('loadProj').toLowerCase() == 'true',
-				lrgParam = largeOn ? 'lrgGeo=false' : 'lrgGeo=true',
-				svdParam = 'loadProj=true',
-				href = [lrgParam, svdParam];
-				
-			jQuery('#geometryToggle').attr('href', '?' + href.join('&'));
-			editor.dirty = true;
 		},
 		
-		saveProject: function() {
+		saveProject: function(name) {
 			this.msgMdl.dispatchProxy.swap();
-			var octane = hemi.world.toOctane();
+			var octane = hemi.world.toOctane(),	
+				data = {
+					name: name,
+					octane: JSON.stringify(octane)
+				},
+				that = this;
+				
 			this.msgMdl.dispatchProxy.unswap();
-			var path = document.location.href;
-			var pathArr = path.split(/[\/|\\]/);
-			pathArr.pop();
-			path = pathArr.join('/') + '/project.json';
-			jQuery.twFile.save(jQuery.twFile.convertUriToLocalPath(path), JSON.stringify(octane));
+			
+			jQuery.ajax({
+				url: '/saveProject',
+				data: data,
+				dataType: "json",
+				success: function(data, status, xhr) {
+					that.savePrjDlg.find('form').hide();
+					that.savePrjDlg.find('#savePrjMsg').text('Saved Project to ' + data.name)
+						.show();
+					
+					setTimeout(function() {
+						that.savePrjDlg.dialog('close');
+					}, 1500);
+				},
+				error: function(xhr, status, err) {
+					that.savePrjDlg.find('#savePrjMsg').text(xhr.responseText)
+						.show();
+				}
+			});
 		},
 		
-		openProject: function() {
-			//				var octane = localStorage.getItem('kudaProject');
-			var path = document.location.href;
-			var pathArr = path.split(/[\/|\\]/);
-			pathArr.pop();
-			path = pathArr.join('/') + '/project.json';
-			var octane = jQuery.twFile.load(jQuery.twFile.convertUriToLocalPath(path));
+		openProject: function(name) {
+			var data = {
+				name: name
+			}, that = this;
 			
-			if (octane) {
-				// Fake the World cleanup message now since the dispatch
-				// will be switched while cleaning and loading the World
-				this.worldCleaned();
-				this.msgMdl.dispatchProxy.swap();
-				hemi.octane.createWorld(JSON.parse(octane));
-				this.msgMdl.dispatchProxy.unswap();
-				hemi.world.ready();
-			}
-			
-			return octane != null;
+			jQuery.ajax({
+				url: '/openProject',
+				data: data,
+				dataType: 'json',
+				success: function(data, status, xhr){
+					that.worldCleaned();
+					that.msgMdl.dispatchProxy.swap();
+					hemi.octane.createWorld(data);
+					that.msgMdl.dispatchProxy.unswap();
+					hemi.world.ready();
+					
+					that.openPrjDlg.find('form').hide();
+					that.openPrjDlg.find('#loadPrjMsg').text('Loaded world from project').show();
+					
+					setTimeout(function(){
+						that.openPrjDlg.dialog('close');
+					}, 1500);
+				},
+				error: function(xhr, status, err){
+					that.openPrjDlg.find('#loadPrjMsg').text(xhr.responseText).show();
+				}
+			});
 		},
 		
 		loadModel: function() {
@@ -729,12 +747,9 @@
 	
 	var app = new Application();
 	
-	window.onload = function() {
-		var large = getParam('lrgGeo').toLowerCase() == 'true',
-			loadProject = getParam('loadProj').toLowerCase() == 'true';
-		
+	window.onload = function() {		
 		app.sizeViewerPane();
-		app.initViewerStep1(large, loadProject);
+		app.initViewerStep1();
 	};
 	
 	window.onunload = function() {

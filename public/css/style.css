@@ -1478,23 +1478,27 @@ form #anmLoops label {
 
 
 /**
- * Model Loader dialog
+ * simple dialog
  */
-#modelLoaderDlg {
+.simpleDialog {
 }
-#modelLoaderDlg p {	
+.simpleDialog p {	
     text-align: center;
 }
-#modelLoaderDlg form input[type=text] {
+.simpleDialog form input[type=text],
+.simpleDialog form select {
 	width: 165px;
+	float: left;
+	margin-right: 5px;
 }
-#modelLoaderDlg form label {
+.simpleDialog form label {
 	width: auto;
 	padding-right: 10px;
 	font: bold 10pt/26px Helvetica, Arial, sans-serif;
+	float: left;
 }
-#modelLoaderDlg button#mlOk {
-	margin-left: 110px;
+.simpleDialog button {
+	float: left;
 }
 
 /**

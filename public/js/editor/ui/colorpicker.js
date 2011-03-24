@@ -82,7 +82,7 @@ var editor = (function(module) {
 					}
 				},
 				images: {
-					clientPath: '../lib/jpicker/images/'
+					clientPath: 'js/lib/jpicker/images/'
 				},
 				color: {
 					active: '#ffffff'
