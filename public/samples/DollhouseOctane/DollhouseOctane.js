@@ -27,11 +27,12 @@
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
+		hemi.loader.loadPath = '../../';
 		loadWorld();
 	}
 	
 	function loadWorld() {
-		hemi.loader.loadOctane('assets/dollhouse.json',
+		hemi.loader.loadOctane('samples/DollhouseOctane/dollhouse.json',
 			function() {
 				// This will be executed before hemi.world.ready() is called.
 				hemi.world.subscribe(hemi.msg.ready,

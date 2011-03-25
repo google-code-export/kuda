@@ -28,12 +28,13 @@
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([0.7, 0.8, 1, 1]);
+		hemi.loader.loadPath = '../../';
 		loadWorld();
 	}
 	
 	function loadWorld() {
 		// All we have to do is pass the file name to the Hemi loader.
-		hemi.loader.loadOctane('assets/helloWorld.json');
+		hemi.loader.loadOctane('samples/HelloWorldOctane/helloWorld.json');
 	}
 
 	jQuery(window).load(function() {
