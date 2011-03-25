@@ -614,24 +614,25 @@
 				windowWidth = window.innerWidth ? window.innerWidth 
 					: document.documentElement.offsetWidth,
 				windowHeight = win.height(),
-				headerHeight = jQuery('#menu').outerHeight()
-					+ jQuery('#actionBar').outerHeight(),
-				toolbarWidths = jQuery('#column1').outerWidth() 
-					+ jQuery('#column3').outerWidth(),
-				vwrBdrWidth = parseInt(col.css('borderRightWidth')) 
-					+ parseInt(col.css('borderLeftWidth')),
-				vwrHMargin = parseInt(vwr.css('marginLeft')) 
-					+ parseInt(vwr.css('marginRight')),
-				vwrVMargin = parseInt(vwr.css('marginTop')) 
-					+ parseInt(vwr.css('marginBottom')),
-				wrapperPadding = parseInt(wpr.css('paddingTop')) 
-					+ parseInt(wpr.css('paddingBottom')),
-				toolPadding = parseInt(toolCol.css('paddingTop')) 
-					+ parseInt(toolCol.css('paddingBottom')),
-				sidebarPadding = parseInt(sidebarCol.css('paddingTop')) 
-					+ parseInt(sidebarCol.css('paddingBottom'));
+				headerHeight = jQuery('#menu').outerHeight(true)
+					+ jQuery('#actionBar').outerHeight(true),
+				toolbarWidths = jQuery('#column1').outerWidth(true) 
+					+ jQuery('#column3').outerWidth(true),
+				vwrBdrWidth = Math.ceil(parseFloat(col.css('borderRightWidth'))) 
+					+ Math.ceil(parseFloat(col.css('borderLeftWidth'))),
+				vwrHMargin = Math.ceil(parseFloat(vwr.css('marginLeft'))) 
+					+ Math.ceil(parseFloat(vwr.css('marginRight'))),
+				vwrVMargin = Math.ceil(parseFloat(vwr.css('marginTop')))
+					+ Math.ceil(parseFloat(vwr.css('marginBottom'))),
+				wrapperPadding = Math.ceil(parseFloat(wpr.css('paddingTop')))
+					+ Math.ceil(parseFloat(wpr.css('paddingBottom'))),
+				toolPadding = Math.ceil(parseFloat(toolCol.css('paddingTop')))
+					+ Math.ceil(parseFloat(toolCol.css('paddingBottom'))),
+				sidebarPadding = 
+					Math.ceil(parseFloat(sidebarCol.css('paddingTop')))
+					+ Math.ceil(parseFloat(sidebarCol.css('paddingBottom')));
 					
-			
+			console.log(jQuery('#column3').outerWidth(true));
 			vwrBdrWidth = isNaN(vwrBdrWidth)? 0 : vwrBdrWidth;
 			
 			var vwrWidth = windowWidth - toolbarWidths - vwrBdrWidth 

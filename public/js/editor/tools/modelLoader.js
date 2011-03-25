@@ -106,7 +106,7 @@ var editor = (function(module) {
 						return false;
 					});
 					
-					view.currentPanel = view.formPanel = this.find('#mlForm');
+					view.currentPanel = view.formPanel = this.find('form');
 					view.processingPanel = this.find('#mlProcessing').hide();
 					view.finishedPanel = this.find('#mlFinished').hide();			
 		            var path = 'assets/';

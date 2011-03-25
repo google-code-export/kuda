@@ -1160,14 +1160,6 @@ form button:not([disabled], .icon):hover {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dadada), to(#eaeaea));
 }
 
-form button.loader {
-    padding: 4px;
-    font: bold 8pt / 11pt helvetica, verdana, arial, sans-serif;
-    float: none;
-    margin-right: 0;
-    margin-left: 0;
-}
-
 form button[disabled] {
 	color: #ccc;
 }
