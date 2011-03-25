@@ -49,6 +49,7 @@ function clearWait() {
 		 *		scale of 0-1.
 		 */
 		hemi.view.setBGColor([0, 0, 0.3, 1]);
+		hemi.loader.loadPath = '../../';
 		createWorld();
 	}
 

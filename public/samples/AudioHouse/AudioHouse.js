@@ -39,6 +39,7 @@ o3djs.require('hext.house.structure');
 		bindJavascript();
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
+		hemi.loader.loadPath = '../../';
 		house = new hemi.model.Model();
 		house.setFileName('assets/house_v12/scene.json');
 		

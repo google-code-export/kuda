@@ -108,6 +108,7 @@ o3djs.require('hext.progressUI.progressBar');
 		bindJavaScript();
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
+		hemi.loader.loadPath = '../../';
 		houseModel = new hemi.model.Model();
 		houseModel.setFileName('assets/LightingHouse_v082/scene.json');
 		

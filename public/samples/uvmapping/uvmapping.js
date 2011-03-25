@@ -42,6 +42,7 @@
 		 *		scale of 0-1.
 		 */
 		hemi.view.setBGColor([0.7, 0, 0, 1]);
+		hemi.loader.loadPath = '../../';
 		createWorld();
 	}
 

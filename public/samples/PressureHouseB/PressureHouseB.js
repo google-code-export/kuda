@@ -28,16 +28,12 @@
 	o3djs.require('o3djs.util');
 	o3djs.require('hext.hud.paging');
 	
-	// Require the appropriate Hemi features
-	o3djs.require('hemi.animation');
-	o3djs.require('hemi.motion');
-	o3djs.require('hemi.manip');
-	// require the html extensions
+	// Require the html extensions
 	o3djs.require('hext.html.toolbar');
 	o3djs.require('hext.html.toolViews');
 	// Include the PressureEngine extension
 	o3djs.require('hext.engines.pressure');
-	// require the appropriate tools
+	// Require the appropriate tools
 	o3djs.require('hext.tools.manometer');
 	o3djs.require('hext.tools.manometerTube');
 	o3djs.require('hext.tools.manometerView');
@@ -56,6 +52,7 @@
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
+		hemi.loader.loadPath = '../../';
 		
 		// Load the model
 		var house = new hemi.model.Model();

@@ -23,8 +23,6 @@
 (function() {
 	o3djs.require('o3djs.util');
 	
-	o3djs.require('hemi.manip');
-	o3djs.require('hemi.motion');
 	// require the html extensions
 	o3djs.require('hext.html.toolbar');
 	o3djs.require('hext.html.toolViews');
@@ -46,6 +44,7 @@
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);	
 		hemi.view.setBGColor([1, 1, 1, 1]);
+		hemi.loader.loadPath = '../../';
 		
 		house = new hemi.model.Model();
 		house.setFileName('assets/TinyHouse_v07/scene.json');

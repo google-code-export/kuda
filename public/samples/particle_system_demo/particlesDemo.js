@@ -25,8 +25,9 @@
 	o3djs.require('hemi.curve');
 	
 	function init(clientElements) {
-		hemi.core.init(clientElements[0]);	
-		hemi.view.setBGColor([1, 1, 0.7, 1]);		
+		hemi.core.init(clientElements[0]);
+		hemi.view.setBGColor([1, 1, 0.7, 1]);
+		hemi.loader.loadPath = '../../';
 		createWorld();
 	};
 	

@@ -25,9 +25,6 @@
  *		a curve in 2 seconds.
  */
 o3djs.require('o3djs.util');
-o3djs.require('hemi.animation');
-o3djs.require('hemi.motion');
-o3djs.require('hemi.effect');
 o3djs.require('hext.house.structure');
 
 (function() {
@@ -43,6 +40,7 @@ o3djs.require('hext.house.structure');
 		bindJavascript();
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
+		hemi.loader.loadPath = '../../';
 		house = new hemi.model.Model();
 		house.setFileName('assets/house_v12/scene.json');
 		hemi.world.subscribe(hemi.msg.ready,

@@ -21,6 +21,7 @@
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);	
 		hemi.view.setBGColor([0, 0, 0.3, 1]);
+		hemi.loader.loadPath = '../../';
 		hemi.world.subscribe(hemi.msg.ready, setupScene);
 		hemi.world.ready();
 	}

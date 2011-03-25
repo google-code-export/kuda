@@ -27,9 +27,6 @@
  */
 (function() {
 	o3djs.require('o3djs.util');
-	o3djs.require('hemi.animation');
-	o3djs.require('hemi.motion');
-	o3djs.require('hemi.effect');
 	
 	// Include the Reset extension
 	o3djs.require('hext.html.reset');
@@ -47,6 +44,7 @@
 		bindJavascript();
 		hemi.core.init(clientElements[0]);	
 		hemi.view.setBGColor([1, 1, 1, 1]);
+		hemi.loader.loadPath = '../../';
 		
 		house = new hemi.model.Model();
 		house.setFileName('assets/house_v12/scene.json');

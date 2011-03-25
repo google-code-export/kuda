@@ -27,6 +27,7 @@
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
+		hemi.loader.loadPath = '../../';
 		
 		createHudDisplay();
 		
