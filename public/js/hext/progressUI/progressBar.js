@@ -147,7 +147,6 @@ var hext = (function(hext) {
 			left: bounds.left,
 			right: bounds.left
 		};
-		console.log(bounds);
 		this.percent = 0;
 	};
 	
