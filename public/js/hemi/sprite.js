@@ -79,8 +79,7 @@ var hemi = (function(hemi) {
 		 * function to call and pass the index and sprite
 		 */
 		addFrame : function(path, opt_callback) {
-			var url = o3djs.util.getCurrentURI() + path;
-			hemi.loader.loadTexture(url,
+			hemi.loader.loadTexture(path,
 				function(texture) {
 					var sampler = hemi.core.mainPack.createObject('Sampler');
 					sampler.texture = texture;
