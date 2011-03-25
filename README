@@ -6,26 +6,43 @@ If you plan to use the editor, however, you'll need to follow the installation
 instructions below. As you begin to work with the Hemi library, please refer to 
 the API documentation for notes on how to use its different features.
 
-Installation:
-To run the editor, you'll need to first install node.js. Follow the instructions 
-for your platform below.
+Requirements:
+The Kuda Editor supports Firefox 4, Chrome 10, and IE running Chrome Frame 10
+(http://www.google.com/chromeframe).
+For Windows XP users:
+Chrome and Chrome Frame 10 do not work. You will need to use the version 11 beta
+or use Firefox.
 
-For Windows (Erik, fill in here)
+Installation:
+To run the editor and the samples, you'll need to first install node.js. Follow
+the instructions for your platform below.
+
+For Windows:
+1a. Go to http://www.rafaljonca.org/d/nodejs-windows/ and download the latest
+   Windows build of node.js.
+1b. Extract the package to your installation directory. (ex: C:\nodejs)
+2a. In the bin directory, run shell.cmd to open a command line prompt with the
+   proper environment set up for node.js.
+2b. Note that instead of the command "npm" below, use "node npm".
 
 For Mac:
 1. Go to https://sites.google.com/site/nodejsmacosx/ and download the latest
    distribution of node.js. 
 2. Run the package to install.
-3. Open terminal and install the express web application framework by typing: 
+
+For both OSes:
+3. Open terminal and install the Express web application framework by typing: 
 		npm install express
 4. The Kuda Editor web app also has a few extra dependencies so type the 
    following to install them:
 		npm install jade
-		npm install sass 
-		
+		npm install sass
+
 Samples:
 For each sample, open the html file in a browser to view it. You can open the 
-js file to see how the world was created and scripted.
+js file to see how the world was created and scripted. If you are using the
+default configuration for Express, a typical address will be:
+http://localhost:3000/samples/helloWorld/helloWorld.html
 
 helloWorld  -   This is a simple hello world sample. It shows how to set up a
                 simple world, load a model, and move the camera to a viewpoint.
@@ -96,28 +113,22 @@ allows you to perform much of the same work in a more visual manner. You can:
 - Load your saved project from file
 
 Running the Editor:
-Windows: (Erik fill in here)
-
-Mac:
 1. In the terminal, go to your Kuda directory.
 2. Type node app.js
 3. Open up your web browser (see supported browsers below) and go to 
    http://localhost:3000/.
-   
-The Kuda editor supports IE running Chrome Frame (add the link here), Firefox 4,
-and Chrome 10.
 
 Documentation:
 To view documentation for the Hemi library, go to the doc directory and open the
 index.html file.
 
 Directory Listing:
-assets  -   Your 3D models, images, etc. You should place any assets you create 
-            or use in this directory.
-doc     -   API level documentation for the Hemi library
-editor  -   The graphical Kuda Editor
-hemi    -   The Hemi library
-hext    -   The Hemi Extensions library
-lib     -   Third party libraries used by Hemi and the Kuda Editor
-media   -   Location for the hemi.audio mp3 flash player swf
-o3djs   -   O3D javascript libraries
+assets    -   Your 3D models, images, etc. You should place any assets you 
+              create or use in this directory.
+doc       -   API level documentation for the Hemi library
+editor    -   The graphical Kuda Editor
+hemi      -   The Hemi library
+hext      -   The Hemi Extensions (Hext) library
+lib       -   Third party libraries used by Hext and the Kuda Editor
+o3djs     -   O3D javascript libraries
+o3d-webgl -   O3D javascript libraries (replacing old O3D plugin)
