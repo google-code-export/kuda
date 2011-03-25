@@ -905,6 +905,7 @@ var editor = (function(module) {
 			}
 			
 			this.tree.jstree('select_node', elem, false);
+			this.notifyListeners(module.EventTypes.SBWidgetInvalidate);
 		},
 		
 		deselectNode: function(nodeName) {
@@ -964,11 +965,12 @@ var editor = (function(module) {
 				detHeight = this.find('#mbDetailsPane').outerHeight(true),
 			
 			// get the tree pane header height
-				hdrHeight = this.find('#mbTreePane h1').outerHeight(),
+				hdrHeight = this.find('#mbTreePane h1').outerHeight(true),
 			
 			// adjust the tree pane height
 			 	treeHeight = maxHeight - detHeight - hdrHeight;
-				
+			
+			console.log(treeHeight);
 			if (treeHeight > 0) {
 				this.find('#mbTreeWrapper').height(treeHeight);
 			}

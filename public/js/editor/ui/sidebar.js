@@ -218,8 +218,8 @@ var editor = (function(module) {
 				ctr = this.container,	
 				
 				ctrHeight = ctr.innerHeight(),
-				ctrPadding = parseInt(ctr.css('paddingTop')) 
-					+ parseInt(ctr.css('paddingBottom')),
+				ctrPadding = Math.ceil(parseFloat(ctr.css('paddingTop'))) 
+					+ Math.ceil(parseFloat(ctr.css('paddingBottom'))),
 				minBtnHeight = this.minMaxBtn.outerHeight(true),
 			
 				newHeight = ctrHeight - ctrPadding - minBtnHeight,
