@@ -203,6 +203,13 @@ var editor = (function(module) {
 			}
 			hemi.world.camera.enableControl();
 			
+			// make the changes octanable
+			var param = this.transform.getParam('ownerId'),
+				model = hemi.world.getCitizenById(param.value);
+				
+			model.setTransformMatrix(this.transform.name, 
+				this.transform.localMatrix);
+			
 			return true;
 		},
 		
