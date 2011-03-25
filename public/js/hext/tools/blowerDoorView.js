@@ -31,9 +31,9 @@ var hext = (function(hext) {
 		
 		/**
 		 * @see hext.tools.HtmlViewConfig#contentFileName
-		 * @default 'hext/tools/assets/blowerDoorDisplay.htm'
+		 * @default 'js/hext/tools/assets/blowerDoorDisplay.htm'
 		 */
-		this.contentFileName = 'hext/tools/assets/blowerDoorDisplay.htm';
+		this.contentFileName = 'js/hext/tools/assets/blowerDoorDisplay.htm';
 		
 		/**
 		 * The id for the HTML element containing the BlowerDoor knob widget.

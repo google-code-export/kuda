@@ -47,9 +47,9 @@ var hext = (function(hext) {
 		/**
 		 * The URL of the image file containing navigation icons.
 		 * @type string
-		 * @default 'hext/hud/assets/hudPaging.png'
+		 * @default 'js/hext/hud/assets/hudPaging.png'
 		 */
-		this.imageFile = 'hext/hud/assets/hudPaging.png';
+		this.imageFile = 'js/hext/hud/assets/hudPaging.png';
 		
 		/**
 		 * The width of each navigation icon.

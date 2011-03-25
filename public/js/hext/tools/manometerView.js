@@ -46,9 +46,9 @@ var hext = (function(hext) {
 		
 		/**
 		 * @see hext.tools.HtmlViewConfig#contentFileName
-		 * @default 'hext/tools/assets/manometerDisplay.htm'
+		 * @default 'js/hext/tools/assets/manometerDisplay.htm'
 		 */
-		this.contentFileName = 'hext/tools/assets/manometerDisplay.htm';
+		this.contentFileName = 'js/hext/tools/assets/manometerDisplay.htm';
 		
 		/**
 		 * The CSS class to apply to the HTML element for a manometer tap
