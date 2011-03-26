@@ -76,10 +76,20 @@ app.get('/saveProject', function(req, res) {
 		
 		var defName = 'project',			
 			name = req.param('name', defName) + '.json',
+			replace = req.param('replace') == 'true',
 			filePath = projectsPath + '/' + name;
 		
-		if (path.existsSync(filePath)) {
-			res.send('File by that name already exists', 400);
+		if (path.existsSync(filePath) && !replace) {
+			var oldData = {
+				name: req.param('name'),
+				octane: req.param('octane')
+			};
+			
+			res.send({
+				errType: 'fileExists',
+				errData: oldData,
+				errMsg: 'File by that name already exists'
+			}, 400);
 		}
 		else {
 			var input = req.param('octane');

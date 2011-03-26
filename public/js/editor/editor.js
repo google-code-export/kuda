@@ -668,14 +668,26 @@
 		editorStateChanged: function() {		
 		},
 		
-		saveProject: function(name) {
+		saveProject: function(name, oldOctane) {
 			this.msgMdl.dispatchProxy.swap();
-			var octane = hemi.world.toOctane(),	
+			var data = null;
+			
+			if (oldOctane) {					
 				data = {
 					name: name,
-					octane: JSON.stringify(octane)
-				},
-				that = this;
+					octane: oldOctane,
+					replace: true
+				};
+			}
+			else {
+				data = {
+					name: name,
+					octane: JSON.stringify(hemi.world.toOctane()),
+					replace: false
+				};
+			}
+			
+			var that = this;
 				
 			this.msgMdl.dispatchProxy.unswap();
 			
@@ -693,8 +705,21 @@
 					}, 1500);
 				},
 				error: function(xhr, status, err) {
-					that.savePrjDlg.find('#savePrjMsg').text(xhr.responseText)
-						.show();
+					var data = JSON.parse(xhr.responseText),
+						msg = that.savePrjDlg.find('#savePrjMsg');
+					
+					if (data.errType === 'fileExists') {
+						msg.html(data.errMsg + '. <a id="saveErrReplace" href="#">Replace</a> the old project or type a new name below.');
+						
+						var lnk = msg.find('#saveErrReplace');
+						
+						lnk.bind('click', function(){
+							var oldData = data.errData;
+							that.saveProject(oldData.name, oldData.octane);
+						});
+						
+						msg.show();
+					}
 				}
 			});
 		},
