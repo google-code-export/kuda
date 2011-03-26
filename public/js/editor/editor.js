@@ -61,7 +61,7 @@
 			
 			this.extent = 2000;		// Grid will reach 2000 meters in each direction
 			this.fidelity = 1;		// Grid squares = 1 square meter
-			
+						
             this.layoutDialogs();
 			this.layoutGrid();
 			this.layoutToolbar();
@@ -236,6 +236,15 @@
 		layoutDialogs: function() {
 			var that = this;
 			
+            this.wfrMdl = new editor.tools.WireframeModel();
+            this.ortMdl = new editor.tools.OrthographicModel();
+			this.mdlLdrMdl = new editor.tools.ModelLoaderModel();
+			this.mdlLdrView = new editor.tools.ModelLoaderView();
+			var mdlLdrCtr = new editor.tools.ModelLoaderController();
+			
+			mdlLdrCtr.setModel(this.mdlLdrMdl);
+			mdlLdrCtr.setView(this.mdlLdrView);
+			
             this.savePrjDlg = jQuery('<div title="Save Project" id="savePrjDlg" class="simpleDialog"><p id="savePrjMsg"></p><form method="post" action="" class="dialogForm"><label for="savePrjName">Project Name:</label><input type="text" name="savePrjName" id="savePrjName" /><button id="savePrjBtn">Save</button></form></div>');			
 			this.savePrjDlg.find('form').submit(function() { 
 				return false; 
@@ -307,16 +316,6 @@
 		layoutMenu: function() {
 			var that = this;
 			
-            this.wfrMdl = new editor.tools.WireframeModel();
-            this.ortMdl = new editor.tools.OrthographicModel();
-			this.mdlLdrMdl = new editor.tools.ModelLoaderModel();
-			var mdlLdrView = new editor.tools.ModelLoaderView();
-			var mdlLdrCtr = new editor.tools.ModelLoaderController();
-			
-			mdlLdrCtr.setModel(this.mdlLdrMdl);
-			mdlLdrCtr.setView(mdlLdrView);
-						
-        
 	        this.fileMenu = new editor.ui.Menu('File');
 	        this.viewMenu = new editor.ui.Menu('View');
 			this.menu = new editor.ui.MenuBar();
@@ -332,24 +331,35 @@
 			
 			var openProject = new editor.ui.MenuItem({
 				title: 'Open Project',
-				action: function(evt){
+				action: function(evt){				
+					// close other dialogs
+					that.mdlLdrView.hideDialog();
+				
 					that.openPrjDlg.dialog('open');
 				}
 			});
 			var saveProject = new editor.ui.MenuItem({
 				title: 'Save Project',
-				action: function(evt){
+				action: function(evt){				
+					// close other dialogs
+					that.mdlLdrView.hideDialog();
+				
 					that.savePrjDlg.dialog('open');
 				}
 			});
 			var preview = new editor.ui.MenuItem({
 				title: 'Preview',
-				action: function(evt){
-					var win = jQuery(window);
-					var windowWidth = window.innerWidth ? window.innerWidth : document.documentElement.offsetWidth;
-					var windowHeight = win.height();
-					var inset = 20;
-					var iframe = jQuery('<iframe src="preview.html"></iframe>');
+				action: function(evt){				
+					// close other dialogs
+					that.mdlLdrView.hideDialog();
+				
+					var win = jQuery(window),
+						windowWidth = window.innerWidth ? window.innerWidth 
+							: document.documentElement.offsetWidth,
+						windowHeight = win.height(),
+						inset = 20,
+						iframe = jQuery('<iframe src="preview.html"></iframe>');
+						
 					// Hide the currently rendered tree
 					var children = hemi.core.client.root.children;
 					
@@ -375,8 +385,8 @@
 			var separator = new editor.ui.Separator();
 			var loadModel = new editor.ui.MenuItem({
 				title: 'Load Model',
-				action: function(evt){
-					mdlLdrView.showDialog();
+				action: function(evt){										
+					that.mdlLdrView.showDialog();				
 				}
 			});
 			

@@ -127,6 +127,10 @@ var editor = (function(module) {
 			this.loaderDialog.setVisible(true);
 		},
 		
+		hideDialog: function() {
+			this.loaderDialog.setVisible(false);
+		},
+		
 		setMode: function(mode) {
 			var view = this;
 			
