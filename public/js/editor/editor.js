@@ -725,6 +725,11 @@
 		},
 		
 		openProject: function(name) {
+			if (name == null) {
+				this.openPrjDlg.find('#loadPrjMsg').text('No project specified!').show();
+				return;
+			}
+			
 			var data = {
 				name: name
 			}, that = this;

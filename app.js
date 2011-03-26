@@ -50,17 +50,22 @@ app.configure('production', function(){
 
 app.get('/listProjects', function(req, res) {
 	if (req.isXMLHttpRequest) {
-		var files = fs.readdirSync(projectsPath);
 		var data = {
 			options: []
 		};
 		
-		for (var ndx = 0, len = files.length; ndx < len; ndx++) {				
-			var file = files[ndx];
+		if (!path.existsSync(projectsPath)) {
+			fs.mkdirSync(projectsPath, 0755);
+		} else {
+			var files = fs.readdirSync(projectsPath);
 			
-			if (file.match('.json')) {
-				file = file.split('.')[0];
-				data.options.push(file);	
+			for (var ndx = 0, len = files.length; ndx < len; ndx++) {				
+				var file = files[ndx];
+				
+				if (file.match('.json')) {
+					file = file.split('.')[0];
+					data.options.push(file);	
+				}
 			}
 		}
 		
