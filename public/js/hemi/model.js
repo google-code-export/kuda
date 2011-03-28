@@ -56,7 +56,8 @@ var hemi = (function(hemi) {
 		 */
 		this.pickable = null;
 		
-		this.transformName = null;
+		this.transform = null;
+		this.toLoad = null;
 	};
 
 	hemi.model.TransformUpdate.prototype = {
@@ -72,8 +73,8 @@ var hemi = (function(hemi) {
 			};
 
 			octane.props.push({
-				name: 'transformName',
-				val: this.transformName
+				name: 'toLoad',
+				val: this.transform.name
 			});
 
 			octane.props.push({
@@ -104,34 +105,32 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the target Transform for the TransformUpdate.
-		 * 
-		 * @param {o3d.Transform} transform the Transform to track changes for
-		 */
-		setTransform: function(transform) {
-			this.transformName = transform.name;
-		},
-
-		/**
 		 * Apply the changes in the TransformUpdate to its target Transform.
-		 * 
-		 * @param {hemi.model.Model} model the Model to get the Transform from
 		 */
 		apply: function(model) {
-			var transform = model.getTransform(this.transformName);
+			if (this.toLoad !== null) {
+				var transforms = model.getTransforms(this.toLoad);
+				
+				if (transforms.length === 1) {
+					this.transform = transforms[0];
+					this.toLoad = null;
+				} else {
+					hemi.console.log(transforms.length + ' transforms with name ' +
+						this.toLoad + ' in model ' + model.name, hemi.console.ERR);
+					return;
+				}
+			}
 			
-			if (transform) {
-				if (this.localMatrix != null) {
-					transform.localMatrix = this.localMatrix;
-				}
-				
-				if (this.pickable != null) {
-					hemi.picking.setPickable(transform, this.pickable, true);
-				}
-				
-				if (this.visible != null) {
-					transform.visible = this.visible;
-				}
+			if (this.localMatrix != null) {
+				this.transform.localMatrix = this.localMatrix;
+			}
+			
+			if (this.pickable != null) {
+				hemi.picking.setPickable(this.transform, this.pickable, true);
+			}
+			
+			if (this.visible != null) {
+				this.transform.visible = this.visible;
 			}
 		}
 	};
@@ -239,9 +238,9 @@ var hemi = (function(hemi) {
 			for (var t = 0, len = this.transformUpdates.length; t < len; t++) {
 				var update = this.transformUpdates[t];
 				
-				// Only save the TransformUpdate if there is actually a change
-				// to save.
 				if (update.isModified()) {
+					// Only save the TransformUpdate if there is actually a
+					// change to save.
 					upEntry.oct.push(update.toOctane());
 				}
 			}
@@ -321,6 +320,7 @@ var hemi = (function(hemi) {
 			}
 
 			hemi.world.tranReg.distribute(this);
+			
 			this.send(hemi.msg.load, {});
 		},
 
@@ -400,73 +400,82 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Get the Material in the Model with the given name.
+		 * Get any Materials in the Model with the given name.
 		 *
 		 * @param {string} materialName the name of the desired Material
-		 * @return {o3d.Material} the found Material or null
+		 * @return {o3d.Material[]} array of Materials with the given name
 		 */
-		getMaterial: function(materialName) {
+		getMaterials: function(materialName) {
+			var mats = [];
+			
 			for (var m = 0, len = this.materials.length; m < len; m++) {
 				var material = this.materials[m];
-				if (material.name == materialName) 
-					return material;
+				if (material.name === materialName) 
+					mats.push(material);
 			}
-			return null;
+			
+			return mats;
 		},
 
 		/**
-		 * Get the Shape in the Model with the given name.
+		 * Get any Shapes in the Model with the given name.
 		 *
 		 * @param {string} shapeName the name of the desired Shape
-		 * @return {o3d.Shape} the found Shape or null
+		 * @return {o3d.Shape[]} array of Shapes with the given name
 		 */
-		getShape: function(shapeName) {
+		getShapes: function(shapeName) {
+			var shps = [];
+			
 			for (var s = 0, len = this.shapes.length; s < len; s++) {
 				var shape = this.shapes[s];
-				if (shape.name == shapeName) 
-					return shape;
+				if (shape.name === shapeName) 
+					shps.push(shape);
 			}
-			return null;
+			
+			return shps;
 		},
 
 		/**
-		 * Get the Transform in the Model with the given name.
+		 * Get any Transforms in the Model with the given name.
 		 *
 		 * @param {string} transformName the name of the desired Transform
-		 * @return {o3d.Transform} the found Transform or null
+		 * @return {o3d.Transform[]} array of Transforms with the given name
 		 */
-		getTransform: function(transformName) {
+		getTransforms: function(transformName) {
+			var tfms = [];
+			
 			for (var t = 0, len = this.transforms.length; t < len; t++) {
 				var transform = this.transforms[t];
-				if (transform.name == transformName) 
-					return transform;
+				if (transform.name === transformName) 
+					tfms.push(transform);
 			}
-			return null;
+			
+			return tfms;
 		},
 
 		/**
-		 * Get the TransformUpdate for the Transform with the given name, or
-		 * create a new one if it does not already exist.
+		 * Get the TransformUpdate for the given Transform, or create a new one
+		 * if it does not already exist.
 		 *
-		 * @param {string} transformName the name of the Transform
+		 * @param {o3d.Transform} transform the Transform
 		 * @return {hemi.model.TransformUpdate} the TransformUpdate for the
 		 *		   Transform
 		 */
-		getTransformUpdate: function(transformName) {
+		getTransformUpdate: function(transform) {
 			var transUp = null;
 			
 			for (var t = 0, len = this.transformUpdates.length; t < len; t++) {
 				var update = this.transformUpdates[t];
 				
-				if (update.transformName == transformName) {
+				if (update.transform === transform) {
 					transUp = update;
 					break;
 				}
 			}
 
-			if (transUp == null) {
+			if (transUp === null) {
 				transUp = new hemi.model.TransformUpdate();
-				transUp.transformName = transformName;
+				transUp.transform = transform;
 				this.transformUpdates.push(transUp);
 			}
 			
@@ -480,45 +489,39 @@ var hemi = (function(hemi) {
 		 */
 		setPickable: function(config) {
 			var pick = config.pick,
-				names;
+				transforms;
 			
-			if (config.names instanceof Array) {
-				names = config.names;
+			if (config.transforms instanceof Array) {
+				transforms = config.transforms;
 			} else {
-				names = [config.names];
+				transforms = [config.transforms];
 			}
 			
-			for (var i = 0, il = names.length; i < il; i++) {
-				this.setTransformPickable(names[i], pick);
+			for (var i = 0, il = transforms.length; i < il; i++) {
+				this.setTransformPickable(transforms[i], pick);
 			}
 		},
 
 		/**
-		 * Set the pickable flag for the Transform in the Model with the given
-		 * name.
+		 * Set the pickable flag for the given Transform.
 		 *
-		 * @param {string} transformName the name of the Transform
+		 * @param {o3d.Transform} transform the Transform
 		 * @param {boolean} pickable value to set for pickable
 		 */
-		setTransformPickable: function(transformName, pickable) {
-			var transform = this.getTransform(transformName);
-			var update = this.getTransformUpdate(transformName);
-			
+		setTransformPickable: function(transform, pickable) {
+			var update = this.getTransformUpdate(transform);
 			hemi.picking.setPickable(transform, pickable, true);
 			update.pickable = pickable ? null : false;
 		},
 		
 		/**
-		 * Set the visible flag for the Transform in the Model with the given
-		 * name.
+		 * Set the visible flag for the given Transform.
 		 *
-		 * @param {string} transformName the name of the Transform
+		 * @param {o3d.Transform} transform the Transform
 		 * @param {boolean} visible value to set for visible
 		 */
-		setTransformVisible: function(transformName, visible) {
-			var transform = this.getTransform(transformName);
-			var update = this.getTransformUpdate(transformName);
-			
+		setTransformVisible: function(transform, visible) {
+			var update = this.getTransformUpdate(transform);
 			transform.visible = visible;
 			update.visible = visible ? null : false;
 		},
@@ -530,16 +533,16 @@ var hemi = (function(hemi) {
 		 */
 		setVisible: function(config) {
 			var vis = config.vis,
-				names;
+				transforms;
 			
-			if (config.names instanceof Array) {
-				names = config.names;
+			if (config.transforms instanceof Array) {
+				transforms = config.transforms;
 			} else {
-				names = [config.names];
+				transforms = [config.transforms];
 			}
 			
-			for (var i = 0, il = names.length; i < il; i++) {
-				this.setTransformVisible(names[i], vis);
+			for (var i = 0, il = transforms.length; i < il; i++) {
+				this.setTransformVisible(transforms[i], vis);
 			}
 		},
 		
@@ -551,70 +554,61 @@ var hemi = (function(hemi) {
 		rotate: function(config) {
 			var axis = config.axis.toLowerCase(),
 				rad = config.rad,
-				names;
+				transforms;
 			
-			if (config.names instanceof Array) {
-				names = config.names;
+			if (config.transforms instanceof Array) {
+				transforms = config.transforms;
 			} else {
-				names = [config.names];
+				transforms = [config.transforms];
 			}
 			
-			for (var i = 0, il = names.length; i < il; i++) {
+			for (var i = 0, il = transforms.length; i < il; i++) {
 				switch(axis) {
 					case 'x':
-						this.rotateTransformX(names[i], rad);
+						this.rotateTransformX(transforms[i], rad);
 						break;
 					case 'y':
-						this.rotateTransformY(names[i], rad);
+						this.rotateTransformY(transforms[i], rad);
 						break;
 					case 'z':
-						this.rotateTransformZ(names[i], rad);
+						this.rotateTransformZ(transforms[i], rad);
 						break;
 				}
 			}
 		},
 
 		/**
-		 * Rotate the Transform along the x-axis with the given name by the 
-		 * amount provided.
+		 * Rotate the given Transform along the x-axis by the amount provided.
 		 * 
-		 * @param {string} transformName the name of the Transform
+		 * @param {o3d.Transform} transform the Transform
 		 * @param {number} amount the amount to rotate (in radians)
 		 */
-		rotateTransformX: function(transformName, amount) {
-			var transform = this.getTransform(transformName);
-			var update = this.getTransformUpdate(transformName);			
-			
+		rotateTransformX: function(transform, amount) {
+			var update = this.getTransformUpdate(transform);
 			transform.rotateX(amount);
 			update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 		},
 
 		/**
-		 * Rotate the Transform along the y-axis with the given name by the 
-		 * amount provided.
+		 * Rotate the given Transform along the y-axis by the amount provided.
 		 * 
-		 * @param {string} transformName the name of the Transform
+		 * @param {o3d.Transform} transform the Transform
 		 * @param {number} amount the amount to rotate (in radians)
 		 */
-		rotateTransformY: function(transformName, amount) {
-			var transform = this.getTransform(transformName);
-			var update = this.getTransformUpdate(transformName);			
-			
+		rotateTransformY: function(transform, amount) {
+			var update = this.getTransformUpdate(transform);
 			transform.rotateY(amount);
 			update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 		},
 
 		/**
-		 * Rotate the Transform along the z-axis with the given name by the 
-		 * amount provided.
+		 * Rotate the given Transform along the z-axis by the amount provided.
 		 * 
-		 * @param {string} transformName the name of the Transform
+		 * @param {o3d.Transform} transform the Transform
 		 * @param {number} amount the amount to rotate (in radians)
 		 */
-		rotateTransformZ: function(transformName, amount) {
-			var transform = this.getTransform(transformName);
-			var update = this.getTransformUpdate(transformName);			
-			
+		rotateTransformZ: function(transform, amount) {
+			var update = this.getTransformUpdate(transform);
 			transform.rotateZ(amount);
 			update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 		},
@@ -628,51 +622,46 @@ var hemi = (function(hemi) {
 			var x = config.x,
 				y = config.y,
 				z = config.z,
-				names;
+				transforms;
 			
-			if (config.names instanceof Array) {
-				names = config.names;
+			if (config.transforms instanceof Array) {
+				transforms = config.transforms;
 			} else {
-				names = [config.names];
+				transforms = [config.transforms];
 			}
 			
-			for (var i = 0, il = names.length; i < il; i++) {
-				this.scaleTransform(names[i], x, y, z);
+			for (var i = 0, il = transforms.length; i < il; i++) {
+				this.scaleTransform(transforms[i], x, y, z);
 			}
 		},
 
 		/**
-		 * Scale the Transform with the given name by the factors provided.
+		 * Scale the given Transform by the factors provided.
 		 * 
-		 * @param {string} transformName the name of the Transform
+		 * @param {o3d.Transform} transform the Transform
 		 * @param {number} xFactor the amount to scale along x
 		 * @param {number} yFactor the amount to scale along y
 		 * @param {number} zFactor the amount to scale along z
 		 * @throws {Exception} If any of the scale factors are negative.
 		 */
-		scaleTransform: function(transformName, xFactor, yFactor, zFactor) {
+		scaleTransform: function(transform, xFactor, yFactor, zFactor) {
 			if (xFactor < 0 || yFactor < 0 || zFactor < 0) {
 				throw('Cannot scale with a negative number');
-			}
-			else {
-				var transform = this.getTransform(transformName);
-				var update = this.getTransformUpdate(transformName);
-				
+			} else {
+				var update = this.getTransformUpdate(transform);
 				transform.scale(xFactor, yFactor, zFactor);
 				update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 			}			
 		},
 
 		/**
-		 * Set the Transform with the given name's matrix to the new matrix.
+		 * Set the given Transform's matrix to the new matrix.
 		 * 
-		 * @param {string} transformName the name of the Transform
+		 * @param {o3d.Transform} transform the Transform
 		 * @param {Vectormath.Aos.Matrix4} matrix the new local matrix
 		 */
-		setTransformMatrix: function(transformName, matrix) {
-			var transform = this.getTransform(transformName);
-			var update = this.getTransformUpdate(transformName);			
-			
+		setTransformMatrix: function(transform, matrix) {
+			var update = this.getTransformUpdate(transform);			
 			transform.localMatrix = matrix;
 			update.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 		},
