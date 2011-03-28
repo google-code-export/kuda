@@ -58,14 +58,14 @@ var hemi = (function(hemi) {
 		level = level || hemi.console.LOG;
 		
 		if (testPriority(level)) {
-			var output = level + ':\t' + msg + '<br>';
+			var fullMsg = level + ':\t' + msg;
 			
 			if (showTime) {
 				var time = getTime();
-				output = time + '\t' + output;
+				fullMsg = time + '\t' + fullMsg;
 			}
 			
-			output(msg);
+			output(fullMsg);
 		}
 	};
 	
@@ -76,7 +76,7 @@ var hemi = (function(hemi) {
 	 */
 	var output = function(msg) {
 		try {
-			console.log.apply(console, msg);
+			console.log(msg);
 		} catch(e) { }
 	};
 	
