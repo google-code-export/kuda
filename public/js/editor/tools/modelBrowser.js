@@ -1575,7 +1575,8 @@ var editor = (function(module) {
 			
 			// for when the tool gets selected/deselected	
 			view.addListener(module.EventTypes.ToolModeSet, function(value) {
-				var isDown = value == module.tools.ToolConstants.MODE_DOWN,
+				var isDown = value.newMode === module.tools.ToolConstants.MODE_DOWN,
+					wasDown = value.oldMode === module.tools.ToolConstants.MODE_DOWN,
 					savedState = selModel.savedDrawState,
 					handle = selModel.curHandle;
 				selModel.enableSelection(isDown);
@@ -1583,7 +1584,7 @@ var editor = (function(module) {
 				if (isDown && savedState != null) {
 					handle.setDrawState(savedState);
 				}
-				else if (!isDown) {
+				else if (!isDown && wasDown) {
 					selModel.savedDrawState = selModel.curHandle.drawState;
 					handle.setDrawState(module.ui.trans.DrawState.NONE);
 				}

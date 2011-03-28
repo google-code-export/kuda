@@ -503,7 +503,7 @@ var editor = (function(module) {
 			
 			// special listener for when the toolbar button is clicked
 			view.addListener(module.EventTypes.ToolModeSet, function(value) {
-				var isDown = value == module.tools.ToolConstants.MODE_DOWN;
+				var isDown = value.newMode === module.tools.ToolConstants.MODE_DOWN;
 				model.enableMonitoring(isDown);
 			});
 			

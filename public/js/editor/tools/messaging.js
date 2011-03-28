@@ -2164,7 +2164,7 @@ var editor = (function(module) {
 			var controller = this;
 			
 			view.addListener(module.EventTypes.ToolModeSet, function(data){
-				var isDown = data == module.tools.ToolConstants.MODE_DOWN, 
+				var isDown = data.newMode === module.tools.ToolConstants.MODE_DOWN, 
 					pnl = jQuery('#o3d'), 
 					vwr = view.mainPanel.getUI(), 
 					columns = vwr.find('.msgColumn');

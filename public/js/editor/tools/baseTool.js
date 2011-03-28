@@ -151,9 +151,13 @@ var editor = (function(module) {
 		 */
 		setMode: function(mode) {
 			this.toolbarWidget.removeClass(this.mode);
+			var oldMode = this.mode;
 			this.mode = mode;
 			this.toolbarWidget.addClass(this.mode);
-			this.notifyListeners(module.EventTypes.ToolModeSet, this.mode);
+			this.notifyListeners(module.EventTypes.ToolModeSet, {
+				oldMode: oldMode,
+				newMode: mode
+			});
 		},
 		
 		/**
@@ -325,7 +329,7 @@ var editor = (function(module) {
 			}
         
 	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value === module.tools.ToolConstants.MODE_DOWN;
+	            var isDown = value.newMode === module.tools.ToolConstants.MODE_DOWN;
 				
 				if (view.actionBar) {
 					view.actionBar.setVisible(isDown);

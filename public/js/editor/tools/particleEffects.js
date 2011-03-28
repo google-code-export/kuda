@@ -878,7 +878,7 @@ var editor = (function(module) {
 			model.loadTemplates();
 	                	        
 	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value === module.tools.ToolConstants.MODE_DOWN;
+	            var isDown = value.newMode === module.tools.ToolConstants.MODE_DOWN;
 	        });
 			
 			// create widget specific
