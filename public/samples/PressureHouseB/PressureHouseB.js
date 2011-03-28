@@ -72,28 +72,40 @@
 	
 	var setupModel = function(model) {
 		// Set these Transforms to be hidden and non-pickable
-		model.setTransformVisible('BD_barrier', false);
-		model.setTransformPickable('BD_barrier', false);
-		model.setTransformVisible('spinDisk', false);
-		model.setTransformPickable('spinDisk', false);
-		model.setTransformVisible('highlight_manometer', false);
-		model.setTransformPickable('highlight_manometer', false);
-		model.setTransformVisible('highlight_bdHole', false);
-		model.setTransformPickable('highlight_bdHole', false);
-		model.setTransformVisible('highlight_fanPressTap', false);
-		model.setTransformPickable('highlight_fanPressTap', false);
-		model.setTransformVisible('highlight_frontDoor', false);
-		model.setTransformPickable('highlight_frontDoor', false);
-		model.setTransformVisible('blowerArrowsExt_g', false);
-		model.setTransformPickable('blowerArrowsExt_g', false);
-		model.setTransformVisible('B1_window_paneTL', false);
-		model.setTransformPickable('B1_window_paneTL', false);
-		model.setTransformVisible('B1_window_paneTR', false);
-		model.setTransformPickable('B1_window_paneTR', false);
-		model.setTransformVisible('B1_window_paneLL', false);
-		model.setTransformPickable('B1_window_paneLL', false);
-		model.setTransformVisible('B1_window_paneLR', false);
-		model.setTransformPickable('B1_window_paneLR', false);
+		var t1 = model.getTransforms('BD_barrier')[0],
+			t2 = model.getTransforms('spinDisk')[0],
+			t3 = model.getTransforms('highlight_manometer')[0],
+			t4 = model.getTransforms('highlight_bdHole')[0],
+			t5 = model.getTransforms('highlight_fanPressTap')[0],
+			t6 = model.getTransforms('highlight_frontDoor')[0],
+			t7 = model.getTransforms('blowerArrowsExt_g')[0],
+			t8 = model.getTransforms('B1_window_paneTL')[0],
+			t9 = model.getTransforms('B1_window_paneTR')[0],
+			t10 = model.getTransforms('B1_window_paneLL')[0],
+			t11 = model.getTransforms('B1_window_paneLR')[0];
+		
+		model.setTransformVisible(t1, false);
+		model.setTransformPickable(t1, false);
+		model.setTransformVisible(t2, false);
+		model.setTransformPickable(t2, false);
+		model.setTransformVisible(t3, false);
+		model.setTransformPickable(t3, false);
+		model.setTransformVisible(t4, false);
+		model.setTransformPickable(t4, false);
+		model.setTransformVisible(t5, false);
+		model.setTransformPickable(t5, false);
+		model.setTransformVisible(t6, false);
+		model.setTransformPickable(t6, false);
+		model.setTransformVisible(t7, false);
+		model.setTransformPickable(t7, false);
+		model.setTransformVisible(t8, false);
+		model.setTransformPickable(t8, false);
+		model.setTransformVisible(t9, false);
+		model.setTransformPickable(t9, false);
+		model.setTransformVisible(t10, false);
+		model.setTransformPickable(t10, false);
+		model.setTransformVisible(t11, false);
+		model.setTransformPickable(t11, false);
 
 		var t = model.transforms;
 		
@@ -103,15 +115,15 @@
 			if (name === 'SO_B2_1') {
 				// Set this particular select Transform to be hidden and
 				// non-pickable
-				model.setTransformVisible(name, false);
-				model.setTransformPickable(name, false);
+				model.setTransformVisible(t[i], false);
+				model.setTransformPickable(t[i], false);
 			} else if(name.substring(0,3) === 'SO_') {
 				// Set select Transforms to be hidden
-				model.setTransformVisible(name, false);
+				model.setTransformVisible(t[i], false);
 			} else if(name.substring(0,3) === 'cam') {
 				// Set camera Transforms to be hidden and non-pickable
-				model.setTransformVisible(name, false);
-				model.setTransformPickable(name, false);
+				model.setTransformVisible(t[i], false);
+				model.setTransformPickable(t[i], false);
 			}
 		}
 		
@@ -742,14 +754,14 @@
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint1) {
 					display1.show();
-					model.setTransformVisible('highlight_frontDoor', true);
+					model.setTransformVisible(model.getTransforms('highlight_frontDoor')[0], true);
 				}
 			});
 		
 		hemi.world.subscribe(hemi.msg.pick,
 			function(msg) {
 				if (scene.isLoaded && msg.data.pickInfo.shapeInfo.shape.name === 'SO_BDShape') {
-					model.setTransformVisible('highlight_frontDoor', false);
+					model.setTransformVisible(model.getTransforms('highlight_frontDoor')[0], false);
 					display1.hide();
 					scene.nextScene();
 				}
@@ -784,9 +796,9 @@
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
 					// Replace the living room door with the blower door.
-					model.setTransformVisible('BD_barrier', true);
-					model.setTransformVisible('LR_front_door', false);
-					model.setTransformPickable('LR_front_door', false);
+					model.setTransformVisible(model.getTransforms('BD_barrier')[0], true);
+					model.setTransformVisible(model.getTransforms('LR_front_door')[0], false);
+					model.setTransformPickable(model.getTransforms('LR_front_door')[0], false);
 					display1.show();
 				}
 			});
@@ -810,7 +822,7 @@
 					display1.hide();
 					display2.show();
 					// Keep the Transform from obscuring the next pick.
-					model.setTransformPickable('SO_BD', false);
+					model.setTransformPickable(model.getTransforms('SO_BD')[0], false);
 				}
 			});
         
@@ -830,7 +842,7 @@
 		manometerView.subscribe(hext.msg.input,
 			function(msg) {
 				if (scene.isLoaded && msg.data.selected && msg.data.elementId === 'll') {
-					model.setTransformVisible('highlight_bdHole', true);
+					model.setTransformVisible(model.getTransforms('highlight_bdHole')[0], true);
 					display2.hide();
 					display3.show();
 				}
@@ -839,8 +851,8 @@
 		tube.subscribe(hemi.msg.visible,
 			function(msg) {
 				if (scene.isLoaded && msg.data.visible) {
-					model.setTransformVisible('highlight_bdHole', false);
-					model.setTransformPickable('SO_BD', true);
+					model.setTransformVisible(model.getTransforms('highlight_bdHole')[0], false);
+					model.setTransformPickable(model.getTransforms('SO_BD')[0], true);
 					display3.hide();
 					scene.nextScene();
 				}
@@ -874,9 +886,9 @@
 		hemi.world.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
-					model.setTransformVisible('highlight_fanPressTap', true);
+					model.setTransformVisible(model.getTransforms('highlight_fanPressTap')[0], true);
 					// Keep the Transform from obscuring the next pick.
-					model.setTransformPickable('SO_BD', false);
+					model.setTransformPickable(model.getTransforms('SO_BD')[0], false);
 					display1.show();
 				}
 			});
@@ -905,8 +917,8 @@
 		tube.subscribe(hemi.msg.visible,
 			function(msg) {
 				if (scene.isLoaded && msg.data.visible) {
-					model.setTransformVisible('highlight_fanPressTap', false);
-					model.setTransformPickable('SO_BD', true);
+					model.setTransformVisible(model.getTransforms('highlight_fanPressTap')[0], false);
+					model.setTransformPickable(model.getTransforms('SO_BD')[0], true);
 					display2.hide();
 					scene.nextScene();
 				}
@@ -1120,10 +1132,10 @@
 					if (msg.data.page === 2) {
 						hemi.world.camera.moveToView(viewpoint2);
 						animation1.start();
-						model.setTransformVisible('blowerArrowsExt_g', true);
+						model.setTransformVisible(model.getTransforms('blowerArrowsExt_g')[0], true);
 					} else if (msg.data.page === 3) {
 						hemi.world.camera.moveToView(viewpoint3);
-						model.setTransformVisible('blowerArrowsExt_g', false);
+						model.setTransformVisible(model.getTransforms('blowerArrowsExt_g')[0], false);
 						animation1.stop();
 					}
 				}
@@ -1133,13 +1145,13 @@
 			function(msg) {
 				if (scene.isLoaded && msg.data.elementId === 'ur') {
 					if (msg.data.selected) {
-						model.setTransformPickable('SO_BA_1', true);
-						model.setTransformPickable('SO_B1_1', true);
-						model.setTransformPickable('SO_B2_1', true);
+						model.setTransformPickable(model.getTransforms('SO_BA_1')[0], true);
+						model.setTransformPickable(model.getTransforms('SO_B1_1')[0], true);
+						model.setTransformPickable(model.getTransforms('SO_B2_1')[0], true);
 					} else {
-						model.setTransformPickable('SO_BA_1', false);
-						model.setTransformPickable('SO_B1_1', false);
-						model.setTransformPickable('SO_B2_1', false);
+						model.setTransformPickable(model.getTransforms('SO_BA_1')[0], false);
+						model.setTransformPickable(model.getTransforms('SO_B1_1')[0], false);
+						model.setTransformPickable(model.getTransforms('SO_B2_1')[0], false);
 					}
 				}
 			});

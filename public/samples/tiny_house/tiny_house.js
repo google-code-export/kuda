@@ -58,11 +58,11 @@
 	}
 
 	function setupScene() {
-		house.setTransformVisible('spinDisk', false);
-		house.setTransformVisible('fan_ring1', false);
-		house.setTransformVisible('cam_Eye', false);
-		house.setTransformVisible('cam_Target', false);
-		house.setTransformVisible('SO_window', false);
+		house.setTransformVisible(house.getTransforms('spinDisk')[0], false);
+		house.setTransformVisible(house.getTransforms('fan_ring1')[0], false);
+		house.setTransformVisible(house.getTransforms('cam_Eye')[0], false);
+		house.setTransformVisible(house.getTransforms('cam_Target')[0], false);
+		house.setTransformVisible(house.getTransforms('SO_window')[0], false);
 
 		var winWidth = 16; // Typical window width
 		var engine = new hext.engines.PressureEngine();

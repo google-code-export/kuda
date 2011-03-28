@@ -96,17 +96,17 @@ o3djs.require('hext.house.structure');
 	}
 
 	function setupScene() {
-		house.setTransformVisible('SO_door', false);
-		house.setTransformVisible('SO_window1sashLeft', false);
-		house.setTransformVisible('SO_window1sashRight', false);
-		house.setTransformVisible('camEye_outdoors', false);
-		house.setTransformVisible('camEye_indoors', false);
-		house.setTransformVisible('camTarget_outdoors', false);
-		house.setTransformVisible('camTarget_indoors', false);
-		house.setTransformPickable('camEye_outdoors', false);
-		house.setTransformPickable('camEye_indoors', false);
-		house.setTransformPickable('camTarget_outdoors', false);
-		house.setTransformPickable('camTarget_indoors', false);
+		house.setTransformVisible(house.getTransforms('SO_door')[0], false);
+		house.setTransformVisible(house.getTransforms('SO_window1sashLeft')[0], false);
+		house.setTransformVisible(house.getTransforms('SO_window1sashRight')[0], false);
+		house.setTransformVisible(house.getTransforms('camEye_outdoors')[0], false);
+		house.setTransformVisible(house.getTransforms('camEye_indoors')[0], false);
+		house.setTransformVisible(house.getTransforms('camTarget_outdoors')[0], false);
+		house.setTransformVisible(house.getTransforms('camTarget_indoors')[0], false);
+		house.setTransformPickable(house.getTransforms('camEye_outdoors')[0], false);
+		house.setTransformPickable(house.getTransforms('camEye_indoors')[0], false);
+		house.setTransformPickable(house.getTransforms('camTarget_outdoors')[0], false);
+		house.setTransformPickable(house.getTransforms('camTarget_indoors')[0], false);
 
 		var hMath = hemi.core.math;
 		hemi.world.camera.fixEye();
