@@ -207,7 +207,7 @@ var editor = (function(module) {
 			var param = this.transform.getParam('ownerId'),
 				model = hemi.world.getCitizenById(param.value);
 				
-			model.setTransformMatrix(this.transform.name, 
+			model.setTransformMatrix(this.transform, 
 				this.transform.localMatrix);
 			
 			return true;

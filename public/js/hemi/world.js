@@ -325,13 +325,36 @@ var hemi = (function(hemi) {
 			
 			for (var i = 0, il = toLoad.length; i < il; i++) {
 				var ent = toLoad[i],
-					transform = citizen.getTransform(ent.name),
-					entry = this.getEntry(transform),
-					tIds = ent.tIds;
+					transform = null;
 				
-				for (var j = 0, jl = tIds.length; j < jl; j++) {
-					var target = hemi.world.getCitizenById(tIds[j]);
-					entry.targets.push(target);
+				if (citizen.getTransform != null) {
+					transform = citizen.getTransform();
+				} else if (citizen.getTransforms != null) {
+					var tforms = citizen.getTransforms(ent.name);
+					
+					if (tforms.length === 1) {
+						transform = tforms[0];
+					}
+				}
+				
+				if (transform != null) {
+					var entry = this.getEntry(transform),
+						tIds = ent.tIds;
+					
+					for (var j = 0, jl = tIds.length; j < jl; j++) {
+						var target = hemi.world.getCitizenById(tIds[j]);
+						
+						if (target != null) {
+							entry.targets.push(target);
+						} else {
+							hemi.console.log('Unable to locate Citizen with id ' +
+								tIds[j], hemi.console.WARN);
+						}
+					}
+				} else {
+					hemi.console.log('Unable to load entry with name ' +
+						ent.name + ' for TransformOwner with name ' +
+						this.citizen.name, hemi.console.ERR);
 				}
 			}
 			
@@ -524,16 +547,22 @@ var hemi = (function(hemi) {
 		 * @param {hemi.world.Citizen} target the Citizen in the entry
 		 */
 		unregister: function(transform, target) {
-			var param = transform.getParam('ownerId');
+			var param = transform.getParam('ownerId'),
+				owner = null;
 			
 			if (param !== null) {
-				var citizen = hemi.world.getCitizenById(param.value),
-					owner = this.getOwner(citizen);
+				var citizen = hemi.world.getCitizenById(param.value);
 				
+				if (citizen !== null) {
+					owner = this.getOwner(citizen);
+				}
+			}
+			
+			if (owner !== null) {
 				owner.unregister(transform, target);
 				
 				if (owner.entries.length === 0) {
-					this.owners.remove(id);
+					this.owners.remove(param.value);
 				}
 			}
 		}
@@ -615,9 +644,7 @@ var hemi = (function(hemi) {
 			citizens: [],
 			nextId: nextId,
 			camera: this.camera.getId(),
-			fog: this.fog,
-			dispatch: hemi.dispatch.toOctane(),
-			tranReg: this.tranReg.toOctane()
+			fog: this.fog
 		};
 		
 		this.citizens.each(function(key, value) {
@@ -629,6 +656,9 @@ var hemi = (function(hemi) {
 				hemi.console.log('Null Octane returned by Citizen with id ' + value.getId(), hemi.console.WARN);
 			}
 		});
+		
+		octane.dispatch = hemi.dispatch.toOctane();
+		octane.tranReg = this.tranReg.toOctane();
 		
 		return octane;
 	};

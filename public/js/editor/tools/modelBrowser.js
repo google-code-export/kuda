@@ -359,11 +359,11 @@ var editor = (function(module) {
 			}
 			
 			opt_owner.setVisible({
-				names: [transform.name],
+				transforms: [transform],
 				vis: false
 			});
 			opt_owner.setPickable({
-				names: [transform.name],
+				transforms: [transform],
 				pick: false
 			});
             this.notifyListeners(module.EventTypes.TransformHidden, {
@@ -462,8 +462,7 @@ var editor = (function(module) {
 	            var update = updates[ndx];
 				
 	            if (update.visible === false) {
-					var transform = model.getTransform(update.transformName);
-					this.hideTransform(transform, model);
+					this.hideTransform(update.transform, model);
 	            }
 	        }
 	    },
@@ -556,11 +555,11 @@ var editor = (function(module) {
 			}
 			
 			opt_owner.setVisible({
-				names: [transform.name],
+				transforms: [transform],
 				vis: true
 			});
 			opt_owner.setPickable({
-				names: [transform.name],
+				transforms: [transform],
 				pick: true
 			});
             this.notifyListeners(module.EventTypes.TransformShown, transform);
