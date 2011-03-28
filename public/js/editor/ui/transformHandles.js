@@ -562,14 +562,14 @@ var editor = (function(module) {
 				getOutsidePoints = function(pnts) {
 					var maxDis = 0,
 						retVal = {
-							pnt1: null,
-							pnt2: null
+							pnt1: pnts[0],
+							pnt2: pnts[0]
 						};
 					
 					for (var i = 0, l = pnts.length; i < l; i++) {
 						var pnt1 = pnts[i];
 						
-						for (var j = 0; j < l; j++) {
+						for (var j = i+1; j < l; j++) {
 							var pnt2 = pnts[j],
 								dis = hemi.core.math.distance(pnt1, pnt2);	
 							
