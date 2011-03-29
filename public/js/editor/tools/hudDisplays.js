@@ -285,13 +285,12 @@ var editor = (function(module) {
 			})
 			.attr('disabled', 'disabled');
 			
-			this.nameInput.bind('keypress', function(evt) {
+			this.nameInput.bind('keyup', function(evt) {
 				var val = jQuery(this).val();
 				
 				if (val !== '') {
 					wgt.createBtn.removeAttr('disabled');
-				}
-				else {
+				} else {
 					wgt.createBtn.attr('disabled', 'disabled');
 				}
 			});

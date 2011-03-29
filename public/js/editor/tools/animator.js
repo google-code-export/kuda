@@ -616,7 +616,7 @@ var editor = (function(module) {
 
 				if (txtVal !== '' && begins <= ends && begins >= min 
 						&& ends <= max){	
-					wgt.validate();	
+					wgt.canSave();	
 					wgt.slider.slider('option', {
 						values: [begins, ends]
 					});
@@ -629,8 +629,8 @@ var editor = (function(module) {
 					elem.data('oldVal', val);
 				}
 			})
-			.bind('keypress', function(evt) {				
-				wgt.validate();
+			.bind('keyup', function(evt) {				
+				wgt.canSave();
 			});
 			
 			this.slider.slider({
@@ -671,7 +671,7 @@ var editor = (function(module) {
 						slider.slider('option', 'values', [values[0], elem.val()]);	
 					});					
 					
-					wgt.validate();
+					wgt.canSave();
 				},
 				change: function(evt, ui) {					
 					var min = ui.values[0],
@@ -817,21 +817,23 @@ var editor = (function(module) {
 			this.notifyListeners(module.EventTypes.SetAnimation, animation);
 		},
 		
-		validate: function() {
+		canSave: function() {
 	        var start = this.beginInput.val(),
             	end = this.endInput.val(),
             	name = this.find('#anmName').val();
             
-            if (start && end) {
+            if (start !== '' && end !== '') {
 				this.startBtn.removeAttr('disabled');
-                if (name) {
-                    this.saveBtn.removeAttr('disabled');
-                }
-            }
-            else {
+				
+				if (name !== '') {
+	                this.saveBtn.removeAttr('disabled');
+	            } else {
+					this.saveBtn.attr('disabled', 'disabled');
+				}
+            } else {
                 this.saveBtn.attr('disabled', 'disabled');
                 this.startBtn.attr('disabled', 'disabled');
-            }			
+            }
 		}
 	});
 	

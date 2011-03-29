@@ -666,10 +666,12 @@ var editor = (function(module) {
 				return false;
 			});
 			
-			this.nameInput.bind('keypress', function(evt) {
+			this.nameInput.bind('keyup', function(evt) {
 				var elem = jQuery(this);
-				if (elem.val().length > 0) {
+				if (elem.val() !== '') {
 					wgt.addBtn.removeAttr('disabled');
+				} else {
+					wgt.addBtn.attr('disabled', 'disabled');
 				}
 			})
 			.width(ADD_WIDTH);

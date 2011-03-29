@@ -181,11 +181,12 @@ var editor = (function(module) {
 			if (isSafe) {
 				this.previewBtn.removeAttr('disabled');
 				
-				if (this.name.val() !== '') {					
+				if (this.name.val() !== '') {
 					this.saveBtn.removeAttr('disabled');
+				} else {
+					this.saveBtn.attr('disabled', 'disabled');
 				}
-			}
-			else {
+			} else {
 				this.saveBtn.attr('disabled', 'disabled');
 				this.previewBtn.attr('disabled', 'disabled');
 			}
@@ -284,7 +285,7 @@ var editor = (function(module) {
 				wgt.notifyListeners(module.EventTypes.AutoFill, name);
 			});
 			
-			this.name.bind('keypress', function(evt) {
+			this.name.bind('keyup', function(evt) {
 				wgt.checkToggleButtons();
 			});
 		},	
