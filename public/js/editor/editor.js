@@ -642,7 +642,6 @@
 					Math.ceil(parseFloat(sidebarCol.css('paddingTop')))
 					+ Math.ceil(parseFloat(sidebarCol.css('paddingBottom')));
 					
-			console.log(jQuery('#column3').outerWidth(true));
 			vwrBdrWidth = isNaN(vwrBdrWidth)? 0 : vwrBdrWidth;
 			
 			var vwrWidth = windowWidth - toolbarWidths - vwrBdrWidth 

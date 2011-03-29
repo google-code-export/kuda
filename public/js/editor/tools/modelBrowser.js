@@ -969,7 +969,6 @@ var editor = (function(module) {
 			// adjust the tree pane height
 			 	treeHeight = maxHeight - detHeight - hdrHeight;
 			
-			console.log(treeHeight);
 			if (treeHeight > 0) {
 				this.find('#mbTreeWrapper').height(treeHeight);
 			}
