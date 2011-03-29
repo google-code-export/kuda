@@ -591,17 +591,20 @@ var editor = (function(module) {
 		},
 		
 		layoutExtra: function() {
+			this.form = jQuery('<form method="post" action=""></form>');
 			this.buttonDiv = jQuery('<div class="buttons"></div>');
-			this.createBtn = jQuery('<button id="createManip">Create Manipulation</button>');
+			this.createBtn = jQuery('<button id="createManip" disabled="">Create Manipulation</button>');
 			var wgt = this;
-						
+			
+			this.form.submit(function() {return false;});
 			this.createBtn.bind('click', function(evt) {
 				wgt.notifyListeners(module.EventTypes.CreateManip, null);
 			});
 			
 			this.buttonDiv.append(this.createBtn);
+			this.form.append(this.buttonDiv);
 			
-			return this.buttonDiv;
+			return this.form;
 		},
 		
 		bindButtons: function(li, obj) {
