@@ -78,13 +78,18 @@
 						that.editorStateChanged();
 					}
 				});
+			hemi.msg.subscribe(hemi.msg.cleanup,
+				function(msg) {
+					that.msgMdl.removeCitizen(msg.src);
+					that.scnMdl.addCitizen(msg.src);
+					that.editorStateChanged();
+				});
+			
+			hemi.world.subscribe(hemi.msg.cleanup, this, 'worldCleaned');
+			hemi.world.subscribe(hemi.msg.ready, this, 'worldLoaded');
+			
 			var addFunc = function(citizen) {
 				that.msgMdl.addCitizen(citizen);
-				that.scnMdl.addCitizen(citizen);
-				that.editorStateChanged();
-			};
-			var removeFunc = function(citizen) {
-				that.msgMdl.removeCitizen(citizen);
 				that.scnMdl.addCitizen(citizen);
 				that.editorStateChanged();
 			};
@@ -95,32 +100,22 @@
 			};
 			
 			this.anmMdl.addListener(editor.EventTypes.AnimationCreated, addFunc);
-			this.anmMdl.addListener(editor.EventTypes.AnimationRemoved, removeFunc);
 			this.anmMdl.addListener(editor.EventTypes.AnimationUpdated, updateFunc);
 			this.mnpMdl.addListener(editor.EventTypes.ManipCreated, addFunc);
-			this.mnpMdl.addListener(editor.EventTypes.ManipRemoved, removeFunc);
 			this.mnpMdl.addListener(editor.EventTypes.ManipUpdated, updateFunc);
 			this.mtnMdl.addListener(editor.EventTypes.MotionCreated, addFunc);
-			this.mtnMdl.addListener(editor.EventTypes.MotionRemoved, removeFunc);
 			this.mtnMdl.addListener(editor.EventTypes.MotionUpdated, updateFunc);
 			this.vptMdl.addListener(editor.EventTypes.ViewpointAdded, addFunc);
-			this.vptMdl.addListener(editor.EventTypes.ViewpointRemoved, removeFunc);
 			this.scnMdl.addListener(editor.EventTypes.SceneAdded, addFunc);
-			this.scnMdl.addListener(editor.EventTypes.SceneRemoved, removeFunc);
 			this.scnMdl.addListener(editor.EventTypes.SceneUpdated, updateFunc);
 			this.pteMdl.addListener(editor.EventTypes.ParticleFxAdded, addFunc);
-			this.pteMdl.addListener(editor.EventTypes.ParticleFxRemoved, removeFunc);
 			this.pteMdl.addListener(editor.EventTypes.ParticleFxUpdated, updateFunc);
 			this.shpMdl.addListener(editor.EventTypes.ShapeCreated, addFunc);
-			this.shpMdl.addListener(editor.EventTypes.ShapeRemoved, removeFunc);
 			this.shpMdl.addListener(editor.EventTypes.ShapeUpdated, updateFunc);
 			this.hudMdl.addListener(editor.EventTypes.DisplayCreated, addFunc);
-			this.hudMdl.addListener(editor.EventTypes.DisplayRemoved, removeFunc);
 			this.hudMdl.addListener(editor.EventTypes.ElementCreated, addFunc);
-			this.hudMdl.addListener(editor.EventTypes.ElementRemoved, removeFunc);
 			this.hudMdl.addListener(editor.EventTypes.ElementUpdated, updateFunc);
 			this.hudMdl.addListener(editor.EventTypes.PageCreated, addFunc);
-			this.hudMdl.addListener(editor.EventTypes.PageRemoved, removeFunc);
 			
 			// special model browser listeners
 			this.shpMdl.addListener(editor.EventTypes.ShapeCreated, function(shape) {
@@ -132,9 +127,6 @@
 			this.shpMdl.addListener(editor.EventTypes.ShapeUpdated, function(shape) {
 				that.mbrMdl.updateShape(shape);
 			});
-			
-			hemi.world.subscribe(hemi.msg.cleanup, this, 'worldCleaned');
-			hemi.world.subscribe(hemi.msg.ready, this, 'worldLoaded');
 			
 			var views = this.toolbar.tools;
 				first = views[0];
