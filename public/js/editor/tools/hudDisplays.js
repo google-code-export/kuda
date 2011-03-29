@@ -278,9 +278,8 @@ var editor = (function(module) {
 			
 			this.createBtn.bind('click', function(evt) {
 				var name = wgt.nameInput.val();
-				
 				wgt.notifyListeners(module.EventTypes.CreateDisplay, name);
-				
+				wgt.createBtn.attr('disabled', 'disabled');
 				wgt.nameInput.val('');
 			})
 			.attr('disabled', 'disabled');
@@ -514,6 +513,8 @@ var editor = (function(module) {
 			var	canSave = true;				
 					
 			for (var ndx = 0, len = inputs.length; canSave && ndx < len; ndx++) {
+				var clsAtt = jQuery(inputs[ndx]).attr('class');
+				canSave = clsAtt.indexOf('vectorHelper') === -1;
 				canSave = canSave && inputs[ndx].value !== '';
 			}
 			
