@@ -1371,6 +1371,7 @@ form #anmLoops label {
 #mbDetailsPane {
 	float: left;
 	padding-bottom: 10px;
+	width: 300px;
 }
 #mbDetails p {
 	padding: 0 10px;
