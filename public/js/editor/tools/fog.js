@@ -120,10 +120,7 @@ var editor = (function(module) {
 			this.find('#fogFormColorLbl').after(this.colorPicker.getUI());
 			
 			this.colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
-				if (wgt.start.val() !== '' && wgt.end.val() !== '') {
-					wgt.saveBtn.removeAttr('disabled');
-					wgt.cancelBtn.removeAttr('disabled');
-				}
+				wgt.canSave();
 			});
 			
 			this.onOff.bind('change', function(evt) {
@@ -134,10 +131,7 @@ var editor = (function(module) {
 			});
 			
 			form.find('input:not(type["checkbox"])').bind('keydown', function(evt) {
-				if (wgt.start.val() !== '' && wgt.end.val() !== '') {
-					wgt.saveBtn.removeAttr('disabled');
-					wgt.cancelBtn.removeAttr('disabled');
-				}
+				wgt.canSave();
 			});
 			
 			this.saveBtn.bind('click', function(evt) {
@@ -182,7 +176,15 @@ var editor = (function(module) {
 		},
 		
 		canSave: function() {
-			
+			if (this.start.val() !== '' &&
+				this.end.val() !== '' &&
+				this.colorPicker.getColor() !== null) {
+					this.saveBtn.removeAttr('disabled');
+					this.cancelBtn.removeAttr('disabled');
+			} else {
+				this.saveBtn.attr('disabled', 'disabled');
+				this.cancelBtn.attr('disabled', 'disabled');
+			}
 		}
 	});
     
