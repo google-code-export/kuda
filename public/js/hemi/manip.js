@@ -525,8 +525,7 @@ var hemi = (function(hemi) {
 		 */
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
-			var wp = transform.getUpdatedWorldMatrix()[3].slice(0,3),
-				obj = {};
+			var obj = {};
 			
 			if (hemi.utils.isAnimated(transform)) {
 				obj.transform = hemi.utils.fosterTransform(transform);
