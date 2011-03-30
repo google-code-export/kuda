@@ -596,7 +596,12 @@ var editor = (function(module) {
 			for (var ndx = 0, len = filtered.length; ndx < len; ndx++) {
 				this.unhighlightShape(filtered[ndx], transform);
 			}
-	    }
+	    },
+		
+		worldCleaned: function() {
+			// turn off handles
+			this.curHandle.setDrawState(module.ui.trans.DrawState.NONE);
+		}
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////

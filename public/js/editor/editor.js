@@ -157,6 +157,7 @@
 			this.shpMdl.worldCleaned();
 			this.hudMdl.worldCleaned();
 			this.fogMdl.worldCleaned();
+			this.selMdl.worldCleaned();
 		},
 		
 		worldLoaded: function() {
