@@ -744,8 +744,7 @@ var editor = (function(module) {
 					var trans = motion.getTransforms();
 					
 					for (var i = 0, il = trans.length; i < il; i++) {
-						var tran = trans[i].parent;
-						selModel.selectTransform(tran);
+						selModel.selectTransform(trans[i]);
 					}
 				}
 			});
