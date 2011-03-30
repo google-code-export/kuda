@@ -477,12 +477,12 @@ var editor = (function(module) {
 			this.imageEditor.hide();
 		},
 		
-		edit: function(obj, citizenType) {	
+		edit: function(obj, citizenType) {
 			if (obj) {
 				citizenType = obj.getCitizenType().split('.').pop();
 			}
-				
-			// now setup the appropriate editor			
+			
+			// now setup the appropriate editor
 			switch (citizenType) {
 				case 'HudDisplay':
 					this.setDisplayEditor(obj);
@@ -510,26 +510,26 @@ var editor = (function(module) {
 		},
 		
 		canSave: function(inputs, btns) {
-			var	canSave = true;				
-					
+			var	canSave = true;
+			
 			for (var ndx = 0, len = inputs.length; canSave && ndx < len; ndx++) {
 				var clsAtt = jQuery(inputs[ndx]).attr('class');
 				canSave = clsAtt.indexOf('vectorHelper') === -1;
 				canSave = canSave && inputs[ndx].value !== '';
 			}
 			
-			if (canSave) {					
+			if (canSave) {
 				for (var ndx = 0, len = btns.length; ndx < len; ndx++) {
 					btns[ndx].removeAttr('disabled');
 				}
 			}
-			else {					
+			else {
 				for (var ndx = 0, len = btns.length; ndx < len; ndx++) {
 					btns[ndx].attr('disabled', 'disabled');
 				}
 			}
 		},
-				
+		
 		bindDisplayEditor: function() {
 			var addPageBtn = this.displayEditor.find('#hudDpyAddPageBtn'),
 				removeBtn = this.displayEditor.find('#hudDpyRemoveBtn'),
