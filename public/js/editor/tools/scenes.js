@@ -27,6 +27,8 @@ var editor = (function(module) {
 	module.EventTypes.SceneRemoved = "scenes.SceneRemoved";
 	module.EventTypes.SceneUpdated = "scenes.SceneUpdated";
 	module.EventTypes.ScnCitizenAdded = "scenes.ScnCitizenAdded";
+	module.EventTypes.ScnCitizenRemoved = "scenes.ScnCitizenRemoved";
+	module.EventTypes.ScnCitizenUpdated = "scenes.ScnCitizenUpdated";
 	module.EventTypes.ScnEventCreated = "scenes.ScnEventCreated";
 	
 	// scene list widget specific
@@ -286,6 +288,32 @@ var editor = (function(module) {
 			this.lastScene = scene;
 			this.notifyListeners(module.EventTypes.SceneAdded, scene);
 	    },
+		
+		removeCitizen: function(citizen) {
+			var type = citizen.getCitizenType().split('.').pop(),
+				citizens = this.citizenTypes.get(type),
+				removeType = citizens !== null && citizens.length === 1,
+				remove = removeType;
+			
+			if (removeType) {
+				this.citizenTypes.remove(type);
+			} else if (citizens !== null) {
+				var ndx = citizens.indexOf(citizen);
+				
+				if (ndx !== -1) {
+					remove = true;
+					citizens.splice(ndx, 1);
+					this.citizenTypes.put(type, citizens);
+				}
+			}
+			
+			if (remove) {
+				this.notifyListeners(module.EventTypes.ScnCitizenRemoved, {
+					citizen: citizen,
+					removeType: removeType
+				});
+			}
+		},
 	    
 	    removeScene: function(scene) {
 			if (this.lastScene === scene) {
@@ -319,6 +347,10 @@ var editor = (function(module) {
 		
 		setScene: function(scene) {
 			this.editScene = scene;
+		},
+		
+		updateCitizen: function(citizen) {
+			this.notifyListeners(module.EventTypes.ScnCitizenUpdated, citizen);
 		},
 		
 		updateScene: function(sceneName) {
@@ -1020,6 +1052,56 @@ var editor = (function(module) {
 			return args;
 		},
 		
+		removeCitizen: function(citizen, removeType) {
+			var nodeName = getNodeName(citizen, {
+				option: null,
+				prefix: CITIZEN_PREFIX,
+				id: citizen.getId()
+			});
+			
+			var node = jQuery('#' + nodeName);
+			this.citizenTree.jstree('delete_node', node);
+			
+			if (removeType) {
+				this.removeCitizenType(citizen);
+			}
+		},
+		
+		removeCitizenType: function(citizen) {
+			var nodeName = getNodeName(citizen, {
+				option: null,
+				prefix: CITIZEN_PREFIX
+			});
+			
+			var node = jQuery('#' + nodeName);
+			this.citizenTree.jstree('delete_node', node);
+		},
+		
+		removeEffect: function(citizen, removeType) {
+			var nodeName = getNodeName(citizen, {
+				option: null,
+				prefix: EFFECT_PREFIX,
+				id: citizen.getId()
+			});
+			
+			var node = jQuery('#' + nodeName);
+			this.effectChooser.tree.jstree('delete_node', node);
+			
+			if (removeType) {
+				this.removeEffectType(citizen);
+			}
+		},
+		
+		removeEffectType: function(citizen) {
+			var nodeName = getNodeName(citizen, {
+				option: null,
+				prefix: EFFECT_PREFIX
+			});
+			
+			var node = jQuery('#' + nodeName);
+			this.effectChooser.tree.jstree('delete_node', node);
+		},
+		
 		reset: function() {
 			this.scene = null;
 			this.type = null;
@@ -1049,6 +1131,28 @@ var editor = (function(module) {
 				
 				this.name.val(target.name);
 			}
+		},
+		
+		updateCitizen: function(citizen) {
+			var nodeName = getNodeName(citizen, {
+					option: null,
+					prefix: CITIZEN_PREFIX,
+					id: citizen.getId()
+				}),
+				node = jQuery('#' + nodeName);
+			
+			this.citizenTree.jstree('rename_node', node, citizen.name);
+		},
+		
+		updateEffect: function(citizen) {
+			var nodeName = getNodeName(citizen, {
+					option: null,
+					prefix: EFFECT_PREFIX,
+					id: citizen.getId()
+				}),
+				node = jQuery('#' + nodeName);
+			
+			this.effectChooser.tree.jstree('rename_node', node, citizen.name);
 		},
 		
 		validate: function() {	
@@ -1210,7 +1314,15 @@ var editor = (function(module) {
 			model.addListener(module.EventTypes.ScnCitizenAdded, function(citData) {
 				edtWgt.addEffect(citData.citizen, citData.createType);
 				edtWgt.addCitizen(citData.citizen, citData.createType);
+			});		
+			model.addListener(module.EventTypes.ScnCitizenRemoved, function(citData) {
+				edtWgt.removeEffect(citData.citizen, citData.removeType);
+				edtWgt.removeCitizen(citData.citizen, citData.removeType);
 			});			
+			model.addListener(module.EventTypes.ScnCitizenUpdated, function(citData) {
+				edtWgt.updateEffect(citData.citizen);
+				edtWgt.updateCitizen(citData.citizen);
+			});				
 			model.addListener(module.EventTypes.WorldCleaned, function() {
 				scnLst.list.clear();
 			});

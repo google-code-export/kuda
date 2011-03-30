@@ -81,7 +81,7 @@
 			hemi.msg.subscribe(hemi.msg.cleanup,
 				function(msg) {
 					that.msgMdl.removeCitizen(msg.src);
-					that.scnMdl.addCitizen(msg.src);
+					that.scnMdl.removeCitizen(msg.src);
 					that.editorStateChanged();
 				});
 			
@@ -95,7 +95,7 @@
 			};
 			var updateFunc = function(citizen) {
 				that.msgMdl.updateCitizen(citizen);
-				that.scnMdl.addCitizen(citizen);
+				that.scnMdl.updateCitizen(citizen);
 				that.editorStateChanged();
 			};
 			

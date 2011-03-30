@@ -317,7 +317,7 @@ var hemi = (function(hemi) {
 			
 			octane.props.push({
 				name: 'setOrigin',
-				arg: this.origin
+				arg: [this.origin]
 			});
 			
 			return octane;
