@@ -46,7 +46,7 @@ var hemi = (function(hemi) {
 		this.vel = cfg.vel || [0,0,0];
 		
 		this.enabled = false;
-		this.originInv = hemi.core.math.mulScalarVector(-1,this.origin);
+		this.offset = hemi.core.math.mulScalarVector(-1,this.origin);
 		this.time = 0;
 		this.stopTime = 0;
 		this.steadyRotate = false;
@@ -85,21 +85,20 @@ var hemi = (function(hemi) {
 				tran2.parent = tran1;
 				
 				obj.rotTran = tran1;
-				obj.origTran = tran2;
+				obj.offTran = tran2;
 				obj.foster = true;
 			} else {
 				var tran1 = hemi.core.mainPack.createObject('Transform'),
-					tran2 = hemi.core.mainPack.createObject('Transform'),
-					tParent = transform.parent;
+					tran2 = hemi.core.mainPack.createObject('Transform');
 				
-				tran1.parent = tParent;
+				tran1.parent = transform.parent;
 				tran2.parent = tran1;
-				transform.parent = tran2;				
+				transform.parent = tran2;
 				tran1.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 				transform.identity();
 				
 				obj.rotTran = tran2;
-				obj.origTran = transform;
+				obj.offTran = transform;
 				obj.foster = false;
 			}
 			
@@ -127,7 +126,7 @@ var hemi = (function(hemi) {
 		clear: function() {
 			this.accel = [0,0,0];
 			this.angle = [0,0,0];
-			this.originInv = [0,0,0];
+			this.offset = [0,0,0];
 			this.origin = [0,0,0];
 			this.vel = [0,0,0];
 		},
@@ -138,29 +137,29 @@ var hemi = (function(hemi) {
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 				var obj = this.transformObjs[i],
-					tran;
+					origTran;
 				
 				if (obj.foster) {
-					tran = obj.rotTran.parent;
+					origTran = obj.rotTran.parent;
 					obj.rotTran.parent = null;
 					hemi.core.mainPack.removeObject(obj.rotTran);
 					
-					obj.origTran.parent = tran;
-					hemi.utils.unfosterTransform(obj.origTran);
+					obj.offTran.parent = tran;
+					hemi.utils.unfosterTransform(obj.offTran);
 				} else {
-					var tParent1 = obj.rotTran.parent,
-						tParent2 = tParent1.parent;
+					var tran1 = obj.rotTran.parent,
+						origParent = tran1.parent;
 					
-					tran = obj.origTran;
-					tran.parent = tParent2;
-					tran.localMatrix = tParent1.localMatrix;
+					origTran = obj.offTran;
+					origTran.parent = origParent;
+					origTran.localMatrix = tran1.localMatrix;
 					
-					obj.rotTran.parent = tParent1.parent = null;
+					obj.rotTran.parent = tran1.parent = null;
 					hemi.core.mainPack.removeObject(obj.rotTran);
-					hemi.core.mainPack.removeObject(tParent1);
+					hemi.core.mainPack.removeObject(tran1);
 				}
 				
-				hemi.world.tranReg.unregister(tran, this);
+				hemi.world.tranReg.unregister(origTran, this);
 			}
 			
 			this.transformObjs = [];
@@ -195,7 +194,7 @@ var hemi = (function(hemi) {
 			var trans = [];
 			
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				trans.push(this.transformObjs[i].origTran);
+				trans.push(this.transformObjs[i].offTran);
 			}
 			
 			return trans;
@@ -247,8 +246,8 @@ var hemi = (function(hemi) {
 				
 				for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 					var transformObj = this.transformObjs[i];
-					transformObj.origTran.identity();
-					transformObj.origTran.translate(this.originInv);
+					transformObj.offTran.identity();
+					transformObj.offTran.translate(this.offset);
 					transformObj.rotTran.identity();
 					transformObj.rotTran.translate(this.origin);
 					transformObj.rotTran.rotateZYX(this.angle);
@@ -267,7 +266,7 @@ var hemi = (function(hemi) {
 			
 			if (matrices != null) {
 				var tranObj = this.transformObjs[this.transformObjs.length - 1],
-					origTran = tranObj.origTran,
+					origTran = tranObj.offTran,
 					rotTran = tranObj.rotTran;
 				
 				rotTran.parent.localMatrix = matrices[0];
@@ -299,7 +298,7 @@ var hemi = (function(hemi) {
 		 */
 		setOrigin : function(origin) {
 			this.origin = origin;
-			this.originInv = hemi.core.math.mulScalarVector(-1, origin);
+			this.offset = hemi.core.math.mulScalarVector(-1, origin);
 		},
 		
 		/**
@@ -338,7 +337,7 @@ var hemi = (function(hemi) {
 			
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 				var tranObj = this.transformObjs[i],
-					origTran = tranObj.origTran,
+					origTran = tranObj.offTran,
 					rotTran = tranObj.rotTran;
 				
 				// Note: this will break if the Rotator has more than one
@@ -388,6 +387,7 @@ var hemi = (function(hemi) {
 		this.steadyMove = false;
 		this.startPos = this.pos;
 		this.stopPos = this.pos;
+		this.toLoad = {};
 		this.transformObjs = [];
 		this.intFunc = function (val) {
 			return val;
@@ -413,6 +413,12 @@ var hemi = (function(hemi) {
 				obj.tran = hemi.utils.fosterTransform(transform);
 				obj.foster = true;
 			} else {
+				var tran = hemi.core.mainPack.createObject('Transform');
+				tran.parent = transform.parent;
+				transform.parent = tran;
+				tran.localMatrix = hemi.utils.copyArray(transform.localMatrix);
+				transform.identity();
+				
 				obj.tran = transform;
 				obj.foster = false;
 			}
@@ -450,15 +456,21 @@ var hemi = (function(hemi) {
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 				var obj = this.transformObjs[i],
-					tran;
+					origTran;
 				
 				if (obj.foster) {
-					tran = hemi.utils.unfosterTransform(obj.tran);
+					origTran = hemi.utils.unfosterTransform(obj.tran);
 				} else {
-					tran = obj.tran;
+					origTran = obj.tran;
+					var tran = origTran.parent;
+					origTran.parent = tran.parent;
+					origTran.localMatrix = tran.localMatrix;
+					
+					tran.parent = null;
+					hemi.core.mainPack.removeObject(tran);
 				}
 				
-				hemi.world.tranReg.unregister(tran, this);
+				hemi.world.tranReg.unregister(origTran, this);
 			}
 			
 			this.transformObjs = [];
@@ -559,6 +571,13 @@ var hemi = (function(hemi) {
 		 */
 		receiveTransform: function(transform) {
 			this.addTransform(transform);
+			var matrices = this.toLoad[transform.name];
+			
+			if (matrices != null) {
+				transform.parent.localMatrix = matrices[0];
+				transform.localMatrix = matrices[1];
+				delete this.toLoad[transform.name];
+			}
 		},
 		
 		/**
@@ -602,6 +621,26 @@ var hemi = (function(hemi) {
 					val: this[name]
 				});
 			}
+			
+			// Save the local matrices of the transforms so we can restore them
+			var tranOct = {};
+			
+			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+				var tranObj = this.transformObjs[i],
+					origTran = tranObj.tran;
+				
+				// Note: this will break if the Translator has more than one
+				// transform with the same name
+				tranOct[origTran.name] = [
+					origTran.parent.localMatrix,
+					origTran.localMatrix
+				];
+			}
+			
+			octane.props.push({
+				name: 'toLoad',
+				val: tranOct
+			});
 			
 			return octane;
 		}
