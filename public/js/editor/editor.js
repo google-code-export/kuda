@@ -80,9 +80,11 @@
 				});
 			hemi.msg.subscribe(hemi.msg.cleanup,
 				function(msg) {
-					that.msgMdl.removeCitizen(msg.src);
-					that.scnMdl.removeCitizen(msg.src);
-					that.editorStateChanged();
+					if (msg.src.name.match(editor.tools.ToolConstants.EDITOR_PREFIX) === null) {
+						that.msgMdl.removeCitizen(msg.src);
+						that.scnMdl.removeCitizen(msg.src);
+						that.editorStateChanged();
+					}
 				});
 			
 			hemi.world.subscribe(hemi.msg.cleanup, this, 'worldCleaned');
