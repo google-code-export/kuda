@@ -46,7 +46,7 @@ var hemi = (function(hemi) {
 		this.vel = cfg.vel || [0,0,0];
 		
 		this.enabled = false;
-		this.offset = hemi.core.math.mulScalarVector(-1,this.origin);
+		this.originInv = hemi.core.math.mulScalarVector(-1,this.origin);
 		this.time = 0;
 		this.stopTime = 0;
 		this.steadyRotate = false;
@@ -71,7 +71,7 @@ var hemi = (function(hemi) {
 		 * child transform is created to allow the Rotator to spin about an
 		 * arbitray axis.
 		 *
-		 * @param {o3d.transform} transform the transform to add
+		 * @param {o3d.Transform} transform the transform to add
 		 */
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
@@ -84,8 +84,8 @@ var hemi = (function(hemi) {
 				tran1.parent = transform;
 				tran2.parent = tran1;
 				
-				obj.tran = tran1;
-				obj.offset = tran2;
+				obj.rotTran = tran1;
+				obj.origTran = tran2;
 				obj.foster = true;
 			} else {
 				var tran1 = hemi.core.mainPack.createObject('Transform'),
@@ -98,8 +98,8 @@ var hemi = (function(hemi) {
 				tran1.localMatrix = hemi.utils.copyArray(transform.localMatrix);
 				transform.identity();
 				
-				obj.tran = tran2;
-				obj.offset = transform;
+				obj.rotTran = tran2;
+				obj.origTran = transform;
 				obj.foster = false;
 			}
 			
@@ -127,7 +127,7 @@ var hemi = (function(hemi) {
 		clear: function() {
 			this.accel = [0,0,0];
 			this.angle = [0,0,0];
-			this.offset = [0,0,0];
+			this.originInv = [0,0,0];
 			this.origin = [0,0,0];
 			this.vel = [0,0,0];
 		},
@@ -141,22 +141,22 @@ var hemi = (function(hemi) {
 					tran;
 				
 				if (obj.foster) {
-					tran = obj.tran.parent;
-					obj.tran.parent = null;
-					hemi.core.mainPack.removeObject(obj.tran);
+					tran = obj.rotTran.parent;
+					obj.rotTran.parent = null;
+					hemi.core.mainPack.removeObject(obj.rotTran);
 					
-					obj.offset.parent = tran;
-					hemi.utils.unfosterTransform(obj.offset);
+					obj.origTran.parent = tran;
+					hemi.utils.unfosterTransform(obj.origTran);
 				} else {
-					var tParent1 = obj.tran.parent,
+					var tParent1 = obj.rotTran.parent,
 						tParent2 = tParent1.parent;
 					
-					tran = obj.offset;
+					tran = obj.origTran;
 					tran.parent = tParent2;
 					tran.localMatrix = tParent1.localMatrix;
 					
-					obj.tran.parent = tParent1.parent = null;
-					hemi.core.mainPack.removeObject(obj.tran);
+					obj.rotTran.parent = tParent1.parent = null;
+					hemi.core.mainPack.removeObject(obj.rotTran);
 					hemi.core.mainPack.removeObject(tParent1);
 				}
 				
@@ -195,7 +195,7 @@ var hemi = (function(hemi) {
 			var trans = [];
 			
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				trans.push(this.transformObjs[i].tran);
+				trans.push(this.transformObjs[i].origTran);
 			}
 			
 			return trans;
@@ -247,11 +247,11 @@ var hemi = (function(hemi) {
 				
 				for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 					var transformObj = this.transformObjs[i];
-					transformObj.offset.identity();
-					transformObj.offset.translate(this.offset);
-					transformObj.tran.identity();
-					transformObj.tran.translate(this.origin);
-					transformObj.tran.rotateZYX(this.angle);
+					transformObj.origTran.identity();
+					transformObj.origTran.translate(this.originInv);
+					transformObj.rotTran.identity();
+					transformObj.rotTran.translate(this.origin);
+					transformObj.rotTran.rotateZYX(this.angle);
 				}
 			}
 		},
@@ -267,11 +267,11 @@ var hemi = (function(hemi) {
 			
 			if (matrices != null) {
 				var tranObj = this.transformObjs[this.transformObjs.length - 1],
-					origTran = tranObj.offset,
-					subTran = tranObj.tran;
+					origTran = tranObj.origTran,
+					rotTran = tranObj.rotTran;
 				
-				subTran.parent.localMatrix = matrices[0];
-				subTran.localMatrix = matrices[1];
+				rotTran.parent.localMatrix = matrices[0];
+				rotTran.localMatrix = matrices[1];
 				origTran.localMatrix = matrices[2];
 				delete this.toLoad[transform.name];
 			}
@@ -299,7 +299,7 @@ var hemi = (function(hemi) {
 		 */
 		setOrigin : function(origin) {
 			this.origin = origin;
-			this.offset = hemi.core.math.mulScalarVector(-1, origin);
+			this.originInv = hemi.core.math.mulScalarVector(-1, origin);
 		},
 		
 		/**
@@ -338,14 +338,14 @@ var hemi = (function(hemi) {
 			
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
 				var tranObj = this.transformObjs[i],
-					origTran = tranObj.offset,
-					subTran = tranObj.tran;
+					origTran = tranObj.origTran,
+					rotTran = tranObj.rotTran;
 				
 				// Note: this will break if the Rotator has more than one
 				// transform with the same name
 				tranOct[origTran.name] = [
-					subTran.parent.localMatrix,
-					subTran.localMatrix,
+					rotTran.parent.localMatrix,
+					rotTran.localMatrix,
 					origTran.localMatrix
 				];
 			}
