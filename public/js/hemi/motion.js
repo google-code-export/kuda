@@ -53,6 +53,7 @@ var hemi = (function(hemi) {
 		this.mustComplete = false;
 		this.startAngle = this.angle;
 		this.stopAngle = this.angle;
+		this.toLoad = {};
 		this.transformObjs = [];
 		this.intFunc = function (val) {
 			return val;
@@ -262,6 +263,18 @@ var hemi = (function(hemi) {
 		 */
 		receiveTransform: function(transform) {
 			this.addTransform(transform);
+			var matrices = this.toLoad[transform.name];
+			
+			if (matrices != null) {
+				var tranObj = this.transformObjs[this.transformObjs.length - 1],
+					origTran = tranObj.offset,
+					subTran = tranObj.tran;
+				
+				subTran.parent.localMatrix = matrices[0];
+				subTran.localMatrix = matrices[1];
+				origTran.localMatrix = matrices[2];
+				delete this.toLoad[transform.name];
+			}
 		},
 		
 		/**
@@ -318,6 +331,28 @@ var hemi = (function(hemi) {
 			octane.props.push({
 				name: 'setOrigin',
 				arg: [this.origin]
+			});
+			
+			// Save the local matrices of the transforms so we can restore them
+			var tranOct = {};
+			
+			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+				var tranObj = this.transformObjs[i],
+					origTran = tranObj.offset,
+					subTran = tranObj.tran;
+				
+				// Note: this will break if the Rotator has more than one
+				// transform with the same name
+				tranOct[origTran.name] = [
+					subTran.parent.localMatrix,
+					subTran.localMatrix,
+					origTran.localMatrix
+				];
+			}
+			
+			octane.props.push({
+				name: 'toLoad',
+				val: tranOct
 			});
 			
 			return octane;
