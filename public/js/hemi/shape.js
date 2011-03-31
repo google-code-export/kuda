@@ -34,6 +34,88 @@ var hemi = (function(hemi) {
 	hemi.shape.CUSTOM = 'custom';
 	
 	/**
+	 * @class A TransformUpdate allows changes to the Transform in a Shape to be
+	 * persisted through Octane.
+	 */
+	hemi.shape.TransformUpdate = function() {
+		/**
+		 * The updated position, rotation, and scale of the Transform.
+		 * @type number[4][4]
+		 */
+		this.localMatrix = null;
+		/**
+		 * A flag indicating if the Transform is visible.
+		 * @type boolean
+		 */
+		this.visible = null;
+		/**
+		 * A flag indicating if the Transform is able to be picked.
+		 * @type boolean
+		 */
+		this.pickable = null;
+	};
+
+	hemi.shape.TransformUpdate.prototype = {
+		/**
+		 * Apply the changes in the TransformUpdate to the given Transform.
+		 * 
+		 * @param {o3d.Transform} transform the Transform to update
+		 */
+		apply: function(transform) {
+			if (this.localMatrix != null) {
+				transform.localMatrix = this.localMatrix;
+			}
+			
+			if (this.pickable != null) {
+				hemi.picking.setPickable(transform, this.pickable, true);
+			}
+			
+			if (this.visible != null) {
+				transform.visible = this.visible;
+			}
+		},
+
+		/**
+		 * Check if the TransformUpdate has been modified.
+		 * 
+		 * @return {boolean} true if the Transform has been changed
+		 */
+		isModified: function() {
+			return this.localMatrix != null || this.pickable != null || this.visible != null;
+		},
+		
+		/**
+		 * Reset the TransformUpdate to its unmodified state.
+		 */
+		reset: function() {
+			this.localMatrix = this.pickable = this.visible = null;
+		},
+
+		/**
+		 * Get the Octane structure for the TransformUpdate.
+		 *
+		 * @return {Object} the Octane structure representing the TransformUpdate
+		 */
+		toOctane: function() {
+			var octane = {
+					type: 'hemi.shape.TransformUpdate',
+					props: []
+				},
+				valNames = ['localMatrix', 'visible', 'pickable'];
+			
+			for (var i = 0, il = valNames.length; i < il; i++) {
+				var name = valNames[i];
+				octane.props.push({
+					name: name,
+					val: this[name]
+				});
+			};
+
+			return octane;
+		}
+	};
+	
+	/**
 	 * @class A Shape is a wrapper class around basic geometric shapes such as
 	 * cubes and spheres that allows them to interact with the World in complex
 	 * ways.
@@ -47,6 +129,7 @@ var hemi = (function(hemi) {
 		this.dim = {};
 		this.shapeType = null;
 		this.transform = null;
+		this.tranUp = new hemi.shape.TransformUpdate();
 		
 		if (opt_config != null) {
 			this.loadConfig(opt_config);
@@ -76,6 +159,7 @@ var hemi = (function(hemi) {
 			this.dim = {};
 			this.shapeType = null;
 			this.transform = null;
+			this.tranUp = null;
 		},
 		
 		/**
@@ -84,26 +168,27 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Shape
 		 */
 		toOctane: function(){
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
+				valNames = ['color', 'dim', 'shapeType'];
 			
-			octane.props.push({
-				name: 'color',
-				val: this.color
-			});
+			for (var i = 0, il = valNames.length; i < il; i++) {
+				var name = valNames[i];
+				octane.props.push({
+					name: name,
+					val: this[name]
+				});
+			};
 			
-			octane.props.push({
-				name: 'dim',
-				val: this.dim
-			});
-			
-			octane.props.push({
-				name: 'shapeType',
-				val: this.shapeType
-			});
+			if (this.tranUp.isModified()) {
+				octane.props.push({
+					name: 'tranUp',
+					oct: this.tranUp.toOctane()
+				});
+			}
 			
 			octane.props.push({
 				name: 'create',
-				arg: [this.transform.localMatrix, this.transform.visible]
+				arg: []
 			});
 			
 			return octane;
@@ -143,12 +228,8 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Create the actual shape and transform for the Shape.
-		 *
-		 * @param {number[4][4]} opt_matrix optional local matrix for the Shape
-		 * @param {boolean} opt_visible optional flag for setting the shape 
-		 * 			visibility.
 		 */
-		create: function(opt_matrix, opt_visible) {
+		create: function() {
 			var config = hemi.utils.join({
 					shape: this.shapeType,
 					color: this.color
@@ -160,15 +241,8 @@ var hemi = (function(hemi) {
 			}
 			
 			this.transform = hemi.shape.create(config);
+			this.tranUp.apply(this.transform);
 			this.setName(this.name);
-			
-			if (opt_visible != null) {
-				this.transform.visible = opt_visible;
-			}
-			
-			if (opt_matrix != null) {
-				this.transform.localMatrix = opt_matrix;
-			}
 			
 			this.ownerId = this.transform.createParam('ownerId', 'o3d.ParamInteger');
 			this.ownerId.value = this.getId();
@@ -176,6 +250,7 @@ var hemi = (function(hemi) {
 		},
 		
 		loadConfig: function(config) {
+			this.tranUp.reset();
 			this.dim = {};
 			
 			for (t in config) {
@@ -244,6 +319,8 @@ var hemi = (function(hemi) {
 					this.transform.rotateZ(rad);
 					break;
 			}
+			
+			this.tranUp.localMatrix = hemi.utils.copyArray(this.transform.localMatrix);
 		},
 		
 		/**
@@ -253,6 +330,7 @@ var hemi = (function(hemi) {
 		 */
 		scale: function(config) {
 			this.transform.scale(config.x, config.y, config.z);
+			this.tranUp.localMatrix = hemi.utils.copyArray(this.transform.localMatrix);
 		},
 
 		/**
@@ -262,6 +340,17 @@ var hemi = (function(hemi) {
 		 */
 		setPickable: function(config) {
 			hemi.picking.setPickable(this.transform, config.pick, true);
+			this.tranUp.pickable = config.pick ? null : false;
+		},
+
+		/**
+		 * Set the Shape Transform's matrix to the new matrix.
+		 * 
+		 * @param {Vectormath.Aos.Matrix4} matrix the new local matrix
+		 */
+		setMatrix: function(matrix) {			
+			this.transform.localMatrix = matrix;
+			this.tranUp.localMatrix = hemi.utils.copyArray(matrix);
 		},
 		
 		/**
@@ -270,9 +359,8 @@ var hemi = (function(hemi) {
 		 * @param {Object} config configuration options
 		 */
 		setVisible: function(config) {
-			// TODO: need to have the TransformUpdate object like in model to
-			// save changes to octane
 			this.transform.visible = config.vis;
+			this.tranUp.visible = config.vis ? null : false;
 		},
 		
 		/**
@@ -285,6 +373,7 @@ var hemi = (function(hemi) {
 		translate: function(x, y, z) {
 			if (this.transform !== null) {
 				this.transform.translate(x, y, z);
+				this.tranUp.localMatrix = hemi.utils.copyArray(this.transform.localMatrix);
 			}
 		}
 	};

@@ -68,29 +68,21 @@ var hemi = (function(hemi) {
 		 */
 		toOctane: function() {
 			var octane = {
-				type: 'hemi.model.TransformUpdate',
-				props: []
+					type: 'hemi.model.TransformUpdate',
+					props: [{
+						name: 'toLoad',
+						val: this.transform.name
+					}]
+				},
+				valNames = ['localMatrix', 'visible', 'pickable'];
+			
+			for (var i = 0, il = valNames.length; i < il; i++) {
+				var name = valNames[i];
+				octane.props.push({
+					name: name,
+					val: this[name]
+				});
 			};
-
-			octane.props.push({
-				name: 'toLoad',
-				val: this.transform.name
-			});
-
-			octane.props.push({
-				name: 'localMatrix',
-				val: this.localMatrix
-			});
-
-			octane.props.push({
-				name: 'visible',
-				val: this.visible
-			});
-
-			octane.props.push({
-				name: 'pickable',
-				val: this.pickable
-			});
 
 			return octane;
 		},
@@ -106,6 +98,8 @@ var hemi = (function(hemi) {
 
 		/**
 		 * Apply the changes in the TransformUpdate to its target Transform.
+		 * 
+		 * @param {hemi.model.Model} model the Model to get the Transform from
 		 */
 		apply: function(model) {
 			if (this.toLoad !== null) {

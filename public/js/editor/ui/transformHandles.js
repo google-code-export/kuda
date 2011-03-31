@@ -205,10 +205,14 @@ var editor = (function(module) {
 			
 			// make the changes octanable
 			var param = this.transform.getParam('ownerId'),
-				model = hemi.world.getCitizenById(param.value);
-				
-			model.setTransformMatrix(this.transform, 
-				this.transform.localMatrix);
+				owner = hemi.world.getCitizenById(param.value);
+			
+			if (owner.setTransformMatrix) {
+				owner.setTransformMatrix(this.transform, 
+					this.transform.localMatrix);
+			} else if (owner.setMatrix) {
+				owner.setMatrix(this.transform.localMatrix);
+			}
 			
 			return true;
 		},
