@@ -1319,9 +1319,9 @@ var editor = (function(module) {
 				edtWgt.removeEffect(citData.citizen, citData.removeType);
 				edtWgt.removeCitizen(citData.citizen, citData.removeType);
 			});			
-			model.addListener(module.EventTypes.ScnCitizenUpdated, function(citData) {
-				edtWgt.updateEffect(citData.citizen);
-				edtWgt.updateCitizen(citData.citizen);
+			model.addListener(module.EventTypes.ScnCitizenUpdated, function(citizen) {
+				edtWgt.updateEffect(citizen);
+				edtWgt.updateCitizen(citizen);
 			});				
 			model.addListener(module.EventTypes.WorldCleaned, function() {
 				scnLst.list.clear();
