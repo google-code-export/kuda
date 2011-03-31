@@ -194,7 +194,13 @@ var hemi = (function(hemi) {
 			var trans = [];
 			
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				trans.push(this.transformObjs[i].offTran);
+				var obj = this.transformObjs[i];
+				
+				if (obj.foster) {
+					trans.push(obj.rotTran.parent);
+				} else {
+					trans.push(obj.offTran);
+				}
 			}
 			
 			return trans;
@@ -505,7 +511,13 @@ var hemi = (function(hemi) {
 			var trans = [];
 			
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				trans.push(this.transformObjs[i].tran);
+				var obj = this.transformObjs[i];
+				
+				if (obj.foster) {
+					trans.push(obj.tran.parent);
+				} else {
+					trans.push(obj.tran);
+				}
 			}
 			
 			return trans;
