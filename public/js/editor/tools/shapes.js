@@ -380,13 +380,13 @@ var editor = (function(module) {
 		
 		canSave: function() {
 			var list = this.inputsToCheck,
-				isSafe = this.vectors.getValue() != null;
+				isSafe = this.vectors.getValue() != null && this.colorPicker.getColor() != null;
 			
 			for (var ndx = 0, len = list.length; ndx < len && isSafe; ndx++) {
-				isSafe = isSafe && list[ndx].val() !== '';
+				isSafe = list[ndx].val() !== '';
 			}
 			
-			return isSafe;		
+			return isSafe;
 		},
 		
 		checkToggleButtons: function() {
