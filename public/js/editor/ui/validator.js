@@ -159,7 +159,7 @@ var editor = (function(module, jQuery) {
 		},
 		
 		setElements: function(elements) {	
-			vld = this;
+			var vld = this;
 					
 			elements.bind('blur.errEvt', function(evt) {
 				var elem = jQuery(this),

@@ -95,7 +95,7 @@ var editor = (function(module) {
 					elem.val(ndx).addClass('vectorHelper');
 				}
 				if (wgt.config.onBlur) {
-					wgt.config.onBlur(elem, evt);
+					wgt.config.onBlur(elem, evt, wgt);
 				}	
 			})
 			.bind('focus', function(evt) {

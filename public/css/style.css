@@ -80,6 +80,7 @@ p {
 .outer {
 	border-color: red transparent;
 	margin-top: 0;
+	margin-bottom: 1px;
 	bottom: 0;
 }
 .innerErrorArrow {
@@ -90,7 +91,7 @@ p {
 	height: 0;
 	border: 10px solid transparent;
 	border-top-color: #fbb9b9;
-	margin-top: -11px;
+	margin-top: -12px;
 }
 /* creates the larger triangle */
 .errorArrow.top {

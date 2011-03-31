@@ -70,8 +70,6 @@ var editor = (function(module) {
 			this.colorRamp = null;
 			this.fireInterval = null;
 			this.isUpdating = false;
-			
-			var mdl = this;
 	    },
 		
 		addToColorRamp: function(ndx, color) {
@@ -97,11 +95,18 @@ var editor = (function(module) {
 		},
 		
 		cancelParticleFxEdit: function() {
-			if (this.currentParticleEffect) {
-				this.stopPreview();
+			this.stopPreview();
+				
+			if (!this.isUpdating && this.currentParticleEffect) {
 				this.currentParticleEffect.cleanup();
-				this.currentParticleEffect = null;
 			}
+			
+			this.currentParticleEffect = null;
+			this.fireInterval = null;
+			this.type = null;
+			this.state = null;
+			this.colorRamp = null;
+			this.isUpdating = false;
 			this.particleEffectParams = {};
 		},
 		
@@ -200,6 +205,10 @@ var editor = (function(module) {
 			this.notifyListeners(msgType, this.currentParticleEffect);
 			
 			this.currentParticleEffect = null;
+			this.fireInterval = null;
+			this.type = null;
+			this.state = null;
+			this.colorRamp = null;
 			this.particleEffectParams = {};
 			this.isUpdating = false;	
 		},
@@ -233,7 +242,7 @@ var editor = (function(module) {
 			var oldId = null;			
 			this.particleEffectParams = {};
 			
-			if (this.currentParticleEffect) {
+			if (this.isUpdating) {
 				oldId = this.currentParticleEffect.getId();
 				this.stopPreview();
 				this.currentParticleEffect.cleanup();
@@ -418,10 +427,20 @@ var editor = (function(module) {
 						this.colorMultPicker.setColor(val);
 					}
 					else 
-						if (paramName.match(/acceleration|position|velocity|world/)) {
-							this.find('#pte-' + paramName + 'X').val(val[0]).removeClass('vectorHelper');
-							this.find('#pte-' + paramName + 'Y').val(val[1]).removeClass('vectorHelper');
-							this.find('#pte-' + paramName + 'Z').val(val[2]).removeClass('vectorHelper');
+						if (paramName.match(/acceleration|position|velocity|world/)) {							
+							this[paramName].setValue({
+								x: val[0],
+								y: val[1],
+								z: val[2]
+							});
+						}
+						else if (paramName.match('orientation')) {
+							this[paramName].setValue({
+								a: val[0],
+								b: val[1],
+								c: val[2],
+								d: val[3]
+							});
 						}
 						else {
 							this.find('#pte-' + paramName).val(val);
@@ -439,8 +458,7 @@ var editor = (function(module) {
 				}
 				
 				for (var ndx = 0; ndx < numColors; ndx++) {
-					var temp = this.find('#pteColorRamp' + ndx + 'R'), 
-						rampNdx = ndx * 4, 
+					var rampNdx = ndx * 4, 
 						r = colorRamp[rampNdx], 
 						g = colorRamp[rampNdx + 1], 
 						b = colorRamp[rampNdx + 2], 
@@ -470,7 +488,48 @@ var editor = (function(module) {
 				fireInterval = this.find('#pteFireInterval'),
 				form = this.find('form'),
 				nameInput = this.find('#pteName'),
-				wgt = this;
+				wgt = this,
+				vecValidator = new module.ui.Validator(null, function(elem) {
+						var val = elem.val(),
+							msg = null;
+							
+						if (val !== '' && !hemi.utils.isNumeric(val)) {
+							msg = 'must be a number';
+						}
+						
+						return msg;
+					}),
+				onBlurFcn = function(elem, evt, vecWgt) {
+					var val = elem.val(),
+						ndx = elem.data('ndx');
+					
+					if (val === '') {
+						wgt.notifyListeners(module.EventTypes.RemoveShapeParam, 
+							wgt.vectors.config.paramName);
+					}
+					else if (hemi.utils.isNumeric(val)) {
+						var initVal = vecWgt.getValue();
+						
+						if (initVal) {		
+							var totalVal;
+							
+							if (initVal.x) {
+								totalVal = [initVal.x, initVal.y, initVal.z];
+							}
+							else if (initVal.d) {
+								totalVal = [initVal.a, initVal.b, initVal.c, initVal.d];
+							}
+							else if (initVal.r) {
+								totalVal = [initVal.r, initVal.g, initVal.b, initVal.a];
+							}
+							
+							wgt.notifyListeners(module.EventTypes.SetParticleFxParam, {
+								paramName: vecWgt.config.paramName,
+								paramVal: totalVal
+							});
+						}
+					}
+				};
 						
 			form.bind('submit', function() {
 				return false;
@@ -538,46 +597,107 @@ var editor = (function(module) {
 				wgt.notifyListeners(module.EventTypes.StopParticleFxPreview, nameInput.val());
 			});
 			
-			// bind inputs
-			inputs.bind('blur', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val(),
+			this.position = new module.ui.Vector({
+				container: wgt.find('#pte-positionDiv'),
+				paramName: 'position',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+			this.positionRange = new module.ui.Vector({
+				container: wgt.find('#pte-positionRangeDiv'),
+				paramName: 'positionRange',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+			this.orientation = new module.ui.Vector({
+				container: wgt.find('#pte-orientationDiv'),
+				paramName: 'orientation',
+				inputs: ['a', 'b', 'c', 'd'],
+				type: 'quat',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+			this.colorMultRange = new module.ui.Vector({
+				container: wgt.find('#pte-colorMultRangeDiv'),
+				paramName: 'colorMultRange',
+				inputs: ['r', 'g', 'b', 'a'],
+				type: 'color',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+			this.acceleration = new module.ui.Vector({
+				container: wgt.find('#pte-accelerationDiv'),
+				paramName: 'acceleration',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+			this.accelerationRange = new module.ui.Vector({
+				container: wgt.find('#pte-accelerationRangeDiv'),
+				paramName: 'accelerationRange',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+			this.velocity = new module.ui.Vector({
+				container: wgt.find('#pte-velocityDiv'),
+				paramName: 'velocity',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+			this.velocityRange = new module.ui.Vector({
+				container: wgt.find('#pte-velocityRangeDiv'),
+				paramName: 'velocityRange',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+			this.worldAcceleration = new module.ui.Vector({
+				container: wgt.find('#pte-worldAccelerationDiv'),
+				paramName: 'worldAcceleration',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+			this.worldVelocity = new module.ui.Vector({
+				container: wgt.find('#pte-worldVelocityDiv'),
+				paramName: 'worldVelocity',
+				onBlur: onBlurFcn,
+				validator: vecValidator
+			});
+						
+			var validator = new module.ui.Validator(inputs, function(elem) {
+				var val = elem.val(),
+					msg = null,
 					param = elem.attr('id').replace('pte-', '');
-				
+					
 				if (val === '') {
 					wgt.notifyListeners(module.EventTypes.RemoveParticleFxParam, param);
-				} else {
-					var errorMsg = null;
-					
+				}
+				else {
 					if (param === 'billboard') {
 						val = val.toLowerCase();
 						
 						if (val !== 'true' && val !== 'false') {
-							errorMsg = param + ' must be a boolean';
+							msg = 'must be a boolean';
 						}
-					} else {
+					}
+					else {
 						val = parseFloat(val);
 						
 						if (isNaN(val)) {
-							errorMsg = param + ' must be a number';
+							msg = 'must be a number';
 						}
 					}
 					
-					if (errorMsg === null) {
+					if (msg === null) {
 						wgt.notifyListeners(module.EventTypes.SetParticleFxParam, {
 							paramName: param,
 							paramVal: val
 						});
 					}
-					else {
-						elem.val('').trigger('focus');
-						alert(errorMsg);
-					}
 				}
+				
+				return msg;
 			});
 			
 			this.setupColorPickers();
-			this.setupAutoFills(this.find('input.vector, input.quat, #pteColors .range input.color'));
 		},
 		
 		reset: function() {      
@@ -587,7 +707,17 @@ var editor = (function(module) {
 			this.find('#pteState').val(-1);
 			
 			// set all inputs to blank
-			this.find('form input').val('');
+			this.find('form input:not(.vector, .color, .quat)').val('').blur();
+			this.position.reset();
+			this.positionRange.reset();
+			this.orientation.reset();
+			this.colorMultRange.reset();
+			this.acceleration.reset();
+			this.accelerationRange.reset();
+			this.velocity.reset();
+			this.velocityRange.reset();
+			this.worldAcceleration.reset();
+			this.worldVelocity.reset();
 			
 			// disable the save button
 			this.find('#pteSaveBtn').attr('disabled', 'disabled');
@@ -621,81 +751,6 @@ var editor = (function(module) {
 			if (newHeight > 0) {
 				this.find('form:visible').height(newHeight);
 			}
-		},
-	
-		setupAutoFills: function(inputs) {
-			var wgt = this;
-			
-			inputs.filter('.xNdx').val('x');
-			inputs.filter('.yNdx').val('y');
-			inputs.filter('.zNdx').val('z');
-			inputs.filter('.rNdx').val('r');
-			inputs.filter('.gNdx').val('g');
-			inputs.filter('.aNdx').val('a');
-			inputs.filter('.bNdx').val('b');
-			inputs.filter('.cNdx').val('c');
-			inputs.filter('.dNdx').val('d');
-						
-			// setup autofills for vectors
-			inputs.bind('keydown', function(evt) {
-				var elem = jQuery(this);
-				elem.removeClass('vectorHelper');
-			})
-			.bind('blur', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val(),
-					cls = elem.attr('class'),
-					param = elem.attr('id'),
-					totalVal = null,
-					type = cls.match(/xNdx|yNdx|zNdx|rNdx|gNdx|aNdx|bNdx|cNdx|dNdx/),
-					paramName;
-				
-				param = param.substring(0, param.length-1);
-				paramName = param.replace('pte-', '');
-				
-				if (val === '') {
-					elem.val(type[0].replace('Ndx', '')).addClass('vectorHelper');
-					wgt.notifyListeners(module.EventTypes.RemoveParticleFxParam, paramName);
-				}
-				else {
-					var x = parseFloat(jQuery('#' + param + 'X').val()),
-						y = parseFloat(jQuery('#' + param + 'Y').val()),
-						z = parseFloat(jQuery('#' + param + 'Z').val()),
-						r = parseFloat(jQuery('#' + param + 'R').val()),
-						g = parseFloat(jQuery('#' + param + 'G').val()),
-						a = parseFloat(jQuery('#' + param + 'A').val()),
-						b = parseFloat(jQuery('#' + param + 'B').val()),
-						c = parseFloat(jQuery('#' + param + 'C').val()),
-						d = parseFloat(jQuery('#' + param + 'D').val());
-					
-					if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
-						totalVal = [x, y, z];
-					}
-					else if (!isNaN(r) && !isNaN(g) && !isNaN(b) &&!isNaN(a)) {
-						totalVal = [r, g, b, a];
-					}
-					else if (!isNaN(a) && !isNaN(b) && !isNaN(c) &&!isNaN(d)) {
-						totalVal = [a, b, c, d];
-					}
-					
-					if (totalVal) {
-						wgt.notifyListeners(module.EventTypes.SetParticleFxParam, {
-							paramName: paramName,
-							paramVal: totalVal
-						});
-					}
-				}
-			})
-			.bind('focus', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val();
-				if (val === 'x' || val === 'y' || val === 'z' || val === 'r'
-					|| val === 'g' || val === 'b' || val === 'a' || val === 'c' 
-					|| val === 'd') {
-					elem.val('');
-				}
-			})
-			.addClass('vectorHelper');
 		},
 		
 		setupColorPickers: function() {

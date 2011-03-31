@@ -75,19 +75,17 @@
                 </li>
                 <li>
                     <div class="long">
-                        <label for="pte-positionX">
+                        <label for="pte-position">
                             Position
                         </label>
-                        <div>
-                            <input type="text" value="" id="pte-positionX" class="vector xNdx" /><input type="text" value="" id="pte-positionY" class="vector yNdx" /><input type="text" value="" id="pte-positionZ" class="vector zNdx" />
+                        <div id="pte-positionDiv">
                         </div>
                     </div>
                     <div class="long">
-                        <label for="pte-positionRangeX">
+                        <label for="pte-positionRange">
                             Range
                         </label>
-                        <div>
-                            <input type="text" value="" id="pte-positionRangeX" class="vector xNdx" /><input type="text" value="" id="pte-positionRangeY" class="vector yNdx" /><input type="text" value="" id="pte-positionRangeZ" class="vector zNdx" />
+                        <div id="pte-positionRangeDiv">
                         </div>
                     </div>
                 </li>
@@ -137,11 +135,10 @@
                     <input type="text" value="" id="pte-billboard" class="short" />
                 </li>
                 <li>
-                    <label for="pte-orientationA" class="long">
+                    <label for="pte-orientation" class="long">
                         Orientation
                     </label>
-                    <div class="long">
-                        <input type="text" value="" id="pte-orientationA" class="quat aNdx" /><input type="text" value="" id="pte-orientationB" class="quat bNdx" /><input type="text" value="" id="pte-orientationC" class="quat cNdx" /><input type="text" value="" id="pte-orientationD" class="quat dNdx" />
+                    <div class="long" id="pte-orientationDiv">
                     </div>
                 </li>
                 <li>
@@ -161,11 +158,10 @@
                         </label>
                     </div>
                     <div>
-                        <label for="pte-colorMultRangeR" class="long">
+                        <label for="pte-colorMultRange" class="long">
                             Range
                         </label>
-                        <div class="long">
-                            <input type="text" value="" id="pte-colorMultRangeR" class="color range rNdx" /><input type="text" value="" id="pte-colorMultRangeG" class="color range gNdx" /><input type="text" value="" id="pte-colorMultRangeB" class="color range bNdx" /><input type="text" value="" id="pte-colorMultRangeA" class="color range aNdx" />
+                        <div class="long" class="pte-colorMultRangeDiv">
                         </div>
                     </div>
                 </li>
@@ -206,54 +202,48 @@
             <ol>
             <li>
                 <div>
-                    <label for="pte-accelerationX" class="long">
+                    <label for="pte-acceleration" class="long">
                         Local Acceleration
                     </label>
-                    <div class="long">
-                        <input type="text" value="" id="pte-accelerationX" class="vector xNdx" /><input type="text" value="" id="pte-accelerationY" class="vector yNdx" /><input type="text" value="" id="pte-accelerationZ" class="vector zNdx" />
+                    <div class="long" id="pte-accelerationDiv">                    	
                     </div>
                 </div>
                 <div>
-                    <label for="pte-accelerationRangeX" class="long">
+                    <label for="pte-accelerationRange" class="long">
                         Range
                     </label>
-                    <div class="long">
-                        <input type="text" value="" id="pte-accelerationRangeX" class="vector xNdx" /><input type="text" value="" id="pte-accelerationRangeY" class="vector yNdx" /><input type="text" value="" id="pte-accelerationRangeZ" class="vector zNdx" />
+                    <div class="long" id="pte-accelerationRangeDiv">
                     </div>
                 </div>
             </li>
             <li>
                 <div>
-                    <label for="pte-velocityX" class="long">
+                    <label for="pte-velocity" class="long">
                         Local Velocity
                     </label>
-                    <div class="long">
-                        <input type="text" value="" id="pte-velocityX" class="vector xNdx" /><input type="text" value="" id="pte-velocityY" class="vector yNdx" /><input type="text" value="" id="pte-velocityZ" class="vector zNdx" />
+                    <div class="long" id="pte-velocityDiv">
                     </div>
                 </div>
                 <div>
-                    <label for="pte-velocityRangeX" class="long">
+                    <label for="pte-velocityRange" class="long">
                         Range
                     </label>
-                    <div class="long">
-                        <input type="text" value="" id="pte-velocityRangeX" class="vector xNdx" /><input type="text" value="" id="pte-velocityRangeY" class="vector yNdx" /><input type="text" value="" id="pte-velocityRangeZ" class="vector zNdx" />
+                    <div class="long" id="pte-velocityRangeDiv">
                     </div>
                 </div>
             </li>
             <li>
-                <label for="pte-worldAccelerationX" class="long">
+                <label for="pte-worldAcceleration" class="long">
                     World Acceleration
                 </label>
-                <div class="long">
-                    <input type="text" value="" id="pte-worldAccelerationX" class="vector xNdx" /><input type="text" value="" id="pte-worldAccelerationY" class="vector yNdx" /><input type="text" value="" id="pte-worldAccelerationZ" class="vector zNdx" />
+                <div class="long" id="pte-worldAccelerationDiv">
                 </div>
             </li>
             <li>
-                <label for="pte-worldVelocityX" class="long">
+                <label for="pte-worldVelocity" class="long">
                     World Velocity
                 </label>
-                <div class="long">
-                    <input type="text" value="" id="pte-worldVelocityX" class="vector xNdx" /><input type="text" value="" id="pte-worldVelocityY" class="vector yNdx" /><input type="text" value="" id="pte-worldVelocityZ" class="vector zNdx" />
+                <div class="long" id="pte-worldVelocityDiv">
                 </div>
             </li>
             <li>
