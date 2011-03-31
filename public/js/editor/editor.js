@@ -80,7 +80,8 @@
 				});
 			hemi.msg.subscribe(hemi.msg.cleanup,
 				function(msg) {
-					if (msg.src.name.match(editor.tools.ToolConstants.EDITOR_PREFIX) === null) {
+					if (msg.src.name != null &&
+						msg.src.name.match(editor.tools.ToolConstants.EDITOR_PREFIX) === null) {
 						that.msgMdl.removeCitizen(msg.src);
 						that.scnMdl.removeCitizen(msg.src);
 						that.editorStateChanged();
