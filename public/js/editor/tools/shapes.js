@@ -664,7 +664,7 @@ var editor = (function(module) {
 				}
 			});
 			model.addListener(module.EventTypes.ShapeWorldCleaned, function() {
-				lstWgt.list.clear();
+				lstWgt.clear();
 			});
 	    }
 	});

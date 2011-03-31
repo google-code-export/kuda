@@ -1027,7 +1027,7 @@ var editor = (function(module) {
 				}
 			});			
 			model.addListener(module.EventTypes.WorldCleaned, function(effects) {		
-				pteLst.list.clear();
+				pteLst.clear();
 			});		
 	    }
 	});

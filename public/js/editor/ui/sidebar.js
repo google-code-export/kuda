@@ -400,6 +400,11 @@ var editor = (function(module) {
 			
 		},
 		
+		clear: function() {
+			this.list.clear();
+			this.items.clear();
+		},
+		
 		createListItemWidget: function() {
 			return new module.ui.EditableListItemWidget();
 		},

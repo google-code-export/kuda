@@ -1324,7 +1324,7 @@ var editor = (function(module) {
 				edtWgt.updateCitizen(citizen);
 			});				
 			model.addListener(module.EventTypes.WorldCleaned, function() {
-				scnLst.list.clear();
+				scnLst.clear();
 			});
 			
 			// messaging model specific
