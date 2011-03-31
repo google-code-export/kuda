@@ -218,6 +218,23 @@ input.error {
 }
 
 /**
+ * Project name styling
+ */
+#currentProject {
+	float: right;
+	font: bold 10pt/30px "Myriad Pro", Helvetica, Arial, sans-serif;
+	color: #535353;
+	text-shadow: 0 1px 1px #fff;
+}
+#currentProject span.label {
+	margin-right: 5px;
+}
+#currentProject span.name {
+	margin-right: 30px;
+	color: #0A6496;
+}
+
+/**
  * ActionBar.  The actionBar consists of the most common and basic functionality.
  */
 #actionBar {

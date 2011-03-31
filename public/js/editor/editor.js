@@ -67,6 +67,7 @@
 			this.layoutToolbar();
 			this.layoutSidebar();
             this.layoutMenu();
+			this.layoutProjectName();
 			
 			// For now, we do this here
 			var that = this;
@@ -322,6 +323,9 @@
 					hemi.world.cleanup();
 					hemi.world.camera.enableControl();
 					hemi.world.ready();
+					
+					that.projectName.empty();
+					that.projectNameDiv.hide(200);
 				}
 			});
 			
@@ -470,6 +474,17 @@
             // add the menus to the container
 			var container = jQuery('#menu');
 			container.append(this.menu.getUI());
+		},
+		
+		layoutProjectName: function() {
+			var container = jQuery('#menu'),
+				label = jQuery('<span class="label">Current Project:</span>');
+				
+			this.projectNameDiv = jQuery('<div id="currentProject"></div>');				
+			this.projectName = jQuery('<span class="name"></span>');
+			this.projectNameDiv.append(label).append(this.projectName).hide();
+			
+			container.append(this.projectNameDiv);
 		},
 		
 		layoutToolbar: function() {
@@ -704,6 +719,8 @@
 					that.savePrjDlg.find('form').hide();
 					that.savePrjDlg.find('#savePrjMsg').text('Saved Project to ' + data.name)
 						.show();
+					that.projectName.text(name);
+					that.projectNameDiv.show(200);
 					
 					setTimeout(function() {
 						that.savePrjDlg.dialog('close');
@@ -752,6 +769,9 @@
 					
 					that.openPrjDlg.find('form').hide();
 					that.openPrjDlg.find('#loadPrjMsg').text('Loaded world from project').show();
+					
+					that.projectName.text(name);
+					that.projectNameDiv.show(200);
 					
 					setTimeout(function(){
 						that.openPrjDlg.dialog('close');

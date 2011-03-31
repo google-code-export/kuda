@@ -725,7 +725,6 @@ var editor = (function(module) {
 			// remove additional color ramp values
 			this.find('.colorRampAdd').remove();
 			var colorRampPicker = this.colorPickers[0];
-//			this.colorPickers = [colorRampPicker];
 			this.find('#pteAddColorToRamp').data('ndx', 1);
 			
 			// reset color pickers
