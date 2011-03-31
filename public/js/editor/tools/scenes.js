@@ -779,7 +779,7 @@ var editor = (function(module) {
 		},
 		
 		canSave: function() {
-			var isSaveable = this.effectChooser.getValue()  != null 
+			var isSaveable = this.effectChooser.getSelection()  != null 
 				&& this.name.val() !== '';
 				
 			if (isSaveable) {
@@ -1016,7 +1016,7 @@ var editor = (function(module) {
 			});
 			
 			this.saveBtn.bind('click', function(evt) {
-				var selVal = wgt.effectChooser.getValue(),
+				var selVal = wgt.effectChooser.getSelection(),
 					saveObj = jQuery.extend(selVal, {
 						args: wgt.getArgs(),
 						type: wgt.type,
@@ -1110,6 +1110,7 @@ var editor = (function(module) {
 			this.effectChooser.reset();
 			this.list.empty();
 			this.paramsSet.hide();
+			this.saveBtn.attr('disabled', 'disabled');
 		},
 		
 		set: function(scene, type, target) {

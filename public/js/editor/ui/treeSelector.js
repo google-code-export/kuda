@@ -85,7 +85,7 @@ var editor = (function(module) {
 			
 			// initialize container
 			this.container = jQuery('<div class="treeSelector"></div>');
-			this.input = jQuery('<input type="text" id="' + this.inputId + '" class="treeSelectorIpt" />');
+			this.input = jQuery('<input type="text" id="' + this.inputId + ' "class="treeSelectorIpt" readonly="readonly" />');
 			this.picker = jQuery('<button id="' + this.buttonId + '" class="treeSelectorBtn">Selector</button>');
 			this.panel = jQuery('<div id="' + this.panelId + '" class="treeSelectorPnl"></div>');
 			this.tree = jQuery('<div></div>');
@@ -138,12 +138,17 @@ var editor = (function(module) {
 			this.input.bind('click', toggleFcn);
 		},
 		
+		getSelection: function() {
+			return this.input.data('selectObj');
+		},
+		
 		hidePanel: function() {
 			this.panel.slideUp(200);
 		},
 		
 		reset: function() {
 			this.input.val('');
+			this.input.removeData('selectObj');
 			this.tree.jstree('deselect_all');
 		},
 		
@@ -165,10 +170,6 @@ var editor = (function(module) {
 				top: position.top,
 				left: position.left
 			}).width(width).slideDown(200);
-		},
-		
-		getValue: function() {
-			return this.input.data('selectObj');
 		}
 	});
 	
