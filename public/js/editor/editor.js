@@ -327,7 +327,7 @@
 					that.projectName.empty();
 					that.projectNameDiv.hide(200);
 					// Clean up any previous name
-					that.savePrjDlg.find('#savePrjName').val('')
+					that.savePrjDlg.find('#savePrjName').val('');
 				}
 			});
 			
@@ -772,7 +772,7 @@
 					that.openPrjDlg.find('form').hide();
 					that.openPrjDlg.find('#loadPrjMsg').text('Loaded world from project').show();
 					// For convenience if they decide to save
-					that.savePrjDlg.find('#savePrjName').val(name)
+					that.savePrjDlg.find('#savePrjName').val(name);
 					
 					that.projectName.text(name);
 					that.projectNameDiv.show(200);
