@@ -21,10 +21,6 @@ Version 2 and MIT licenses.  jQuery is available from http://jquery.com.
 jQuery UI is available at http://jqueryui.com.  The jQuery plugins are available
 at http://plugins.jquery.com.
 
-This software uses jQuery.twFile a jQuery plugin.  The original software is
-available from http://jquery.tiddlywiki.org/twFile.html, code is triple
-licensed under the BSD, MIT and GPL licenses.
-
 This software uses jshashtable a JavaScript library.  The original software is
 available from http://www.timdown.co.uk/jshashtable/, code is licensed Apache
 license.
@@ -32,6 +28,3 @@ license.
 This software uses JSON and JSONError JavaScript libraries.  The original
 software is available from http://www.3site.eu, code licensed Andrea
 Giammarchi - www.3site.eu.
-
-This software uses player_mp3_js Flash mp3 audio player.  The original software
-is available from http://code.google.com/p/mp3player/, code licensed MPL license.
