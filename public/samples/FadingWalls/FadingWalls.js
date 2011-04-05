@@ -82,8 +82,8 @@
 	
 	function setUpScene(house) {
 		var vp1 = new hemi.view.Viewpoint();		// Create a new Viewpoint
-		vp1.eye = hemi.core.math.matrix4.getTranslation(house.getTransform('camEye_outdoors').localMatrix);
-		vp1.target = hemi.core.math.matrix4.getTranslation(house.getTransform('camTarget_outdoors').localMatrix);
+		vp1.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_outdoors')[0].localMatrix);
+		vp1.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_outdoors')[0].localMatrix);
 
 		/*
 		 * Move the camera from it's default position (eye : [0,0,-1],
@@ -99,7 +99,7 @@
 		/* Get the material used on the walls, add an opacity variable to its
 		 * shader, and get the parameter that controls that opacity.
 		 */
-		var wallT = house.getTransform('wallFront'),
+		var wallT = house.getTransforms('wallFront')[0],
 			brickMat = wallT.shapes[0].elements[0].material;
 		
 		brickMat.getParam('o3d.drawList').value = hemi.view.viewInfo.zOrderedDrawList;

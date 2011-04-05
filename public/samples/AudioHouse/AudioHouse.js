@@ -102,7 +102,7 @@ o3djs.require('hext.house.structure');
 		fire.transform.translate(0.0, 72.0, -236.0);
 		fire.show();
 
-		door = new hext.house.Door(house.getTransform('door'));
+		door = new hext.house.Door(house.getTransforms('door')[0]);
 		door.angle = -door.angle;
 		door.onPick(function(msg) {
 			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
@@ -136,7 +136,7 @@ o3djs.require('hext.house.structure');
 			}, 200);
 		});
 		
-		window1Left = new hext.house.Window(house.getTransform('window1_sashLeft'),[0,60,0]);
+		window1Left = new hext.house.Window(house.getTransforms('window1_sashLeft')[0],[0,60,0]);
 		window1Left.onPick(function(msg) {
 			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
 				case 'SO_window1sashLeft':
@@ -165,7 +165,7 @@ o3djs.require('hext.house.structure');
 			audio.winLeft.pause();
 		});
 	
-		window1Right = new hext.house.Window(house.getTransform('window1_sashRight'),[0,60,0]);
+		window1Right = new hext.house.Window(house.getTransforms('window1_sashRight')[0],[0,60,0]);
 		window1Right.onPick(function(msg) {
 			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
 				case 'SO_window1sashRight':
@@ -195,8 +195,8 @@ o3djs.require('hext.house.structure');
 		});
 		
 		var viewpoint = new hemi.view.Viewpoint();
-		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransform('camEye_outdoors').localMatrix);
-		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransform('camTarget_outdoors').localMatrix);
+		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_outdoors')[0].localMatrix);
+		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_outdoors')[0].localMatrix);
 		viewpoint.fov = hemi.core.math.degToRad(60);
 		hemi.world.camera.moveToView(viewpoint, 60);
 		// Use a simple function to track when the windows and door are open to allow entering the house per the script.
@@ -237,8 +237,8 @@ o3djs.require('hext.house.structure');
 	function enter() {
 		entered = true;
 		var viewpoint = new hemi.view.Viewpoint();
-		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransform('camEye_indoors').localMatrix);
-		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransform('camTarget_indoors').localMatrix);
+		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_indoors')[0].localMatrix);
+		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_indoors')[0].localMatrix);
 		viewpoint.fov = hemi.core.math.degToRad(60);
 		hemi.world.camera.subscribe(hemi.msg.stop,
 			function(msg) {

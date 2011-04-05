@@ -82,7 +82,7 @@
 		
 		door = {
 			closed: true,
-			rotator: new hemi.motion.Rotator(house.getTransform('door')),
+			rotator: new hemi.motion.Rotator(house.getTransforms('door')[0]),
 			swing: function() {
 				var direction = this.closed? -1 : 1;
 
@@ -93,7 +93,7 @@
 		};
 		window1Left = {
 			closed: true,
-			translator: new hemi.motion.Translator(house.getTransform('window1_sashLeft')),
+			translator: new hemi.motion.Translator(house.getTransforms('window1_sashLeft')[0]),
 			slide: function() {
 				var direction = this.closed? 1 : -1;
 
@@ -104,7 +104,7 @@
 		};
 		window1Right = {
 			closed: true,
-			translator: new hemi.motion.Translator(house.getTransform('window1_sashRight')),
+			translator: new hemi.motion.Translator(house.getTransforms('window1_sashRight')[0]),
 			slide: function() {
 				var direction = this.closed? 1 : -1;
 
@@ -133,8 +133,8 @@
 		fire.transform.translate(0.0, 72.0, -236.0);
 		
 		var viewpoint = new hemi.view.Viewpoint();
-		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransform('camEye_outdoors').localMatrix);
-		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransform('camTarget_outdoors').localMatrix);
+		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_outdoors')[0].localMatrix);
+		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_outdoors')[0].localMatrix);
 		viewpoint.fov = hemi.core.math.degToRad(60);
 		hemi.world.camera.moveToView(viewpoint, 60);
 		
@@ -179,8 +179,8 @@
 	function enter() {
 		entered = true;
 		var viewpoint = new hemi.view.Viewpoint();
-		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransform('camEye_indoors').localMatrix);
-		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransform('camTarget_indoors').localMatrix);
+		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_indoors')[0].localMatrix);
+		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_indoors')[0].localMatrix);
 		viewpoint.fov = hemi.core.math.degToRad(60);
 		hemi.world.camera.subscribe(hemi.msg.stop,
 			function(msg) {

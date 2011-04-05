@@ -129,7 +129,7 @@
 		
 		// Make the material of the highlight shapes pulse between two different
 		// colors.
-		var highlightTran = model.getTransform('highlight_bdHole');
+		var highlightTran = model.getTransforms('highlight_bdHole')[0];
 		var highlightMat = highlightTran.shapes[0].elements[0].material;
 		
 		var pulsator = {
@@ -374,8 +374,8 @@
 		
 		// Set up the Draggable windows.
 		var b1RightWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.XY, [[0, 0], [0, 55]], [0, 44]);
-		var b1RightWinTran = model.getTransform('B1_window01_sashRight');
-		var b1RightWinTranSO = model.getTransform('SO_B1_window_right');
+		var b1RightWinTran = model.getTransforms('B1_window01_sashRight')[0];
+		var b1RightWinTranSO = model.getTransforms('SO_B1_window_right')[0];
 		b1RightWinDrag.addTransform(b1RightWinTran);
 		b1RightWinDrag.addTransform(b1RightWinTranSO);
 		
@@ -389,8 +389,8 @@
 			["msg:data.drag"]);
 		
 		var b1LeftWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.XY, [[0, 0], [0, 55]], [0, 44]);
-		var b1LeftWinTran = model.getTransform('B1_window_sashLeft');
-		var b1LeftWinTranSO = model.getTransform('SO_B1_window_left');
+		var b1LeftWinTran = model.getTransforms('B1_window_sashLeft')[0];
+		var b1LeftWinTranSO = model.getTransforms('SO_B1_window_left')[0];
 		b1LeftWinDrag.addTransform(b1LeftWinTran);
 		b1LeftWinDrag.addTransform(b1LeftWinTranSO);
 		
@@ -402,8 +402,8 @@
 			["msg:data.drag"]);
 		
 		var b2RightWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.YZ, [[0, 0], [0, 55]], [0, 17]);
-		var b2RightWinTran = model.getTransform('B2_window2_sashRight');
-		var b2RightWinTranSO = model.getTransform('SO_B2_window2_right');
+		var b2RightWinTran = model.getTransforms('B2_window2_sashRight')[0];
+		var b2RightWinTranSO = model.getTransforms('SO_B2_window2_right')[0];
 		b2RightWinDrag.addTransform(b2RightWinTran);
 		b2RightWinDrag.addTransform(b2RightWinTranSO);
 		
@@ -415,8 +415,8 @@
 			["msg:data.drag"]);
 		
 		var b2LeftWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.YZ, [[0, 0], [0, 55]], [0, 17]);
-		var b2LeftWinTran = model.getTransform('B2_window2_sashLeft');
-		var b2LeftWinTranSO = model.getTransform('SO_B2_window2_left');
+		var b2LeftWinTran = model.getTransforms('B2_window2_sashLeft')[0];
+		var b2LeftWinTranSO = model.getTransforms('SO_B2_window2_left')[0];
 		b2LeftWinDrag.addTransform(b2LeftWinTran);
 		b2LeftWinDrag.addTransform(b2LeftWinTranSO);
 		
@@ -428,8 +428,8 @@
 			["msg:data.drag"]);
 		
 		var baWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.YZ, [[0, 0], [32, 0]], [13, 0]);
-		var baWinTran = model.getTransform('BA_windowSashRight');
-		var baWinTranSO = model.getTransform('SO_BA_window');
+		var baWinTran = model.getTransforms('BA_windowSashRight')[0];
+		var baWinTranSO = model.getTransforms('SO_BA_window')[0];
 		baWinDrag.addTransform(baWinTran);
 		baWinDrag.addTransform(baWinTranSO);
 		
@@ -444,7 +444,7 @@
 		var cw = 1;
 		var ccw = -1;
 		
-		var b1DoorTran = model.getTransform('B1_door');
+		var b1DoorTran = model.getTransforms('B1_door')[0];
 		var b1DoorRot = new hemi.motion.Rotator(b1DoorTran, {
 			origin: [16.758, -14.848, 0]
 		});
@@ -452,7 +452,7 @@
 		var door1 = createDoor(b1DoorRot, cw, true);
 		door1.addAltName('SO_B1_2');
 		
-		var b2DoorTran = model.getTransform('B2_door');
+		var b2DoorTran = model.getTransforms('B2_door')[0];
 		var b2DoorRot = new hemi.motion.Rotator(b2DoorTran, {
 			origin: [394.4, -20.1, 0]
 		});
@@ -460,7 +460,7 @@
 		var door2 = createDoor(b2DoorRot, ccw, true);
 		door2.addAltName('SO_B2_2');
 		
-		var baDoorTran = model.getTransform('BA_door');
+		var baDoorTran = model.getTransforms('BA_door')[0];
 		var baDoorRot = new hemi.motion.Rotator(baDoorTran, {
 			origin: [-135, -63.9, 0]
 		});
@@ -487,7 +487,7 @@
 		manometer.setLocation(livingroom);
         
         var manShapeView = new hext.tools.ShapeView();
-        manShapeView.addTransform(model.getTransform('LR_manometer'));
+        manShapeView.addTransform(model.getTransforms('LR_manometer')[0]);
 		
 		hext.html.toolViews.addView(manView);
 		hext.html.toolbar.addView(manToolbarView);
@@ -527,7 +527,7 @@
 		
 		// Create a Rotator to animate the fan blades in response to the blower
 		// door control.
-		var fanTrans = model.getTransform('fan_blades');
+		var fanTrans = model.getTransforms('fan_blades')[0];
 		var fanRotator = new hemi.motion.Rotator(fanTrans, {
 			origin: [19.9943, 41.8675, 0]
 		});
@@ -569,35 +569,35 @@
 		tube5.setLocation(bedroom2);
         
         var tube1ShapeView = new hext.tools.ShapeView();
-        tube1ShapeView.addTransform(model.getTransform('greenTube'));
+        tube1ShapeView.addTransform(model.getTransforms('greenTube')[0]);
 		
 		var tube1Controller = new hext.tools.BaseController();
 		tube1Controller.setModel(tube1);
 		tube1Controller.setShapeView(tube1ShapeView);
 		
         var tube2ShapeView = new hext.tools.ShapeView();
-        tube2ShapeView.addTransform(model.getTransform('redTube'));
+        tube2ShapeView.addTransform(model.getTransforms('redTube')[0]);
 		
 		var tube2Controller = new hext.tools.BaseController();
 		tube2Controller.setModel(tube2);
 		tube2Controller.setShapeView(tube2ShapeView);
 		
         var tube3ShapeView = new hext.tools.ShapeView();
-        tube3ShapeView.addTransform(model.getTransform('tube_BA'));
+        tube3ShapeView.addTransform(model.getTransforms('tube_BA')[0]);
 		
 		var tube3Controller = new hext.tools.BaseController();
 		tube3Controller.setModel(tube3);
 		tube3Controller.setShapeView(tube3ShapeView);
 		
         var tube4ShapeView = new hext.tools.ShapeView();
-        tube4ShapeView.addTransform(model.getTransform('tube_B1'));
+        tube4ShapeView.addTransform(model.getTransforms('tube_B1')[0]);
 		
 		var tube4Controller = new hext.tools.BaseController();
 		tube4Controller.setModel(tube4);
 		tube4Controller.setShapeView(tube4ShapeView);
 		
         var tube5ShapeView = new hext.tools.ShapeView();
-        tube5ShapeView.addTransform(model.getTransform('tube_B2'));
+        tube5ShapeView.addTransform(model.getTransforms('tube_B2')[0]);
 		
 		var tube5Controller = new hext.tools.BaseController();
 		tube5Controller.setModel(tube5);
@@ -691,9 +691,9 @@
 		navTool.addArea('AT_soffitFrontShape', createViewpoint(model, 'camEye_BDCam', 'camTarget_BDCam'));
 		
 		// Add select transforms for zoom in
-		navTool.addZoomSelectTransform(model.getTransform('SO_BA_1'));
-		navTool.addZoomSelectTransform(model.getTransform('SO_B1_1'));
-		navTool.addZoomSelectTransform(model.getTransform('SO_B2_1'));
+		navTool.addZoomSelectTransform(model.getTransforms('SO_BA_1')[0]);
+		navTool.addZoomSelectTransform(model.getTransforms('SO_B1_1')[0]);
+		navTool.addZoomSelectTransform(model.getTransforms('SO_B2_1')[0]);
 		
 		var navToolbar = new hext.tools.NavigationToolbarView();
 		// The script calls for being "zoomed" in at the start, so disable the
@@ -1192,7 +1192,7 @@
 			open: open,
 			direction: direction,
 			rotator: rotator,
-			names: [rotator.transformObjs[0].offset.name],
+			names: [rotator.transformObjs[0].offTran.name],
 			addAltName: function(name) {
 				this.names.push(name);
 			},
@@ -1250,8 +1250,8 @@
 		var fp = 5000;
 		opt_fov = opt_fov || hemi.core.math.degToRad(40);
 		
-		var eyeTran = model.getTransform(eyeName);
-		var targetTran = model.getTransform(targetName);
+		var eyeTran = model.getTransforms(eyeName)[0];
+		var targetTran = model.getTransforms(targetName)[0];
 		
 		if (eyeTran != null && targetTran != null) {
 			var eye = hemi.core.math.matrix4.getTranslation(eyeTran.localMatrix);

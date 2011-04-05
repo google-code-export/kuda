@@ -71,7 +71,7 @@
 		var outside = hext.engines.createOutsideLocation();
 
 		blowerFan = {
-			rotator: new hemi.motion.Rotator(house.getTransform('fan_blades'), { origin: [19.9943, 41.8675, 0] }),
+			rotator: new hemi.motion.Rotator(house.getTransforms('fan_blades')[0], { origin: [19.9943, 41.8675, 0] }),
 			msgHandler: function(msg) {
 				blowerFan.rotator.setVel([0, 0, 0.3 * msg.data.speed]);
 			},
@@ -92,7 +92,7 @@
 		}.init();
 
 		houseWindow = {
-			transform: house.getTransform('SO_window'),
+			transform: house.getTransforms('SO_window')[0],
 			// Y always maps to the V coordinate, so this defines a Draggable on
 			// the YZ plane that can be dragged from 0 to 0 on the Z plane and 0
 			// to 55 on the Y plane.
@@ -111,7 +111,7 @@
 				var pickMat = hemi.core.material.createBasicMaterial(pack, hemi.view.viewInfo, [0, 0, 0, 0], true);
 				var pickBox = hemi.core.primitives.createBox(pack, pickMat, 10, 60, 80);
 				this.draggable.addTransform(this.transform);
-				this.draggable.addTransform(house.getTransform('tinyHouseWindow_sash'));
+				this.draggable.addTransform(house.getTransforms('tinyHouseWindow_sash')[0]);
 				this.draggable.subscribe(hemi.msg.drag, this.msgHandler);
 				return this;
 			}
