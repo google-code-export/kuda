@@ -47,10 +47,6 @@
 		initViewerStep2: function(clientElements) {
 			var defaults = editor.Defaults;
 			
-			// First: adjust the Hemi loader's path since this HTML file is in
-			// the editor directory.
-			hemi.loader.loadPath = '../';
-			
 			hemi.core.init(clientElements[0]);
 			
 			var cam = hemi.world.camera;
