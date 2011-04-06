@@ -2,27 +2,21 @@ var child = require('child_process'),
 	fs = require('fs'),
 	path = require('path'),
 	procFds = [process.stdin.fd, process.stdout.fd, process.stderr.fd],
-	filter = [],
-	genDoc = true,
-	compress = true;
+	filter = [];
 
-var copyAssets = function(fromDir, toDir) {
-	var dirs = ['audio', 'images', 'videos'],
-		mDirs = ['DigitalDisplay', 'DollHouse', 'house_v12',
-			'LightingHouse_v082', 'ScenarioB_v017', 'TinyHouse_v07'];
-	
-	for (var i = 0, il = dirs.length; i < il; i++) {
-		var dir = '/' + dirs[i];
-		copyFiles(fromDir + dir, toDir + dir, true);
+var createAssetsDir = function(fromDir, toDir) {
+	if (!path.existsSync(toDir)) {
+		var stat = fs.statSync(fromDir);
+		fs.mkdirSync(toDir, stat.mode);
 	}
 	
-	fromDir += '/webgl';
-	getDirContents(fromDir, [], dirs);
+	var data = fs.readFileSync(fromDir + '/LICENSE.cc'),
+		newFile = toDir + '/LICENSE.cc';
 	
-	for (var i = 0, il = mDirs.length; i < il; i++) {
-		var dir = '/' + mDirs[i];
-		copyFiles(fromDir + dir, toDir + dir, true);
-	}
+	fs.writeFileSync(newFile, data);
+	data = fs.readFileSync(fromDir + '/NOTICES'),
+	newFile = toDir + '/NOTICES';
+	fs.writeFileSync(newFile, data);
 };
 
 var copyFiles = function(fromDir, toDir, subDirs) {
@@ -93,49 +87,31 @@ var removeFiles = function(dir) {
 	fs.rmdirSync(dir);
 };
 
-var generateDocs = function(docDir, srcDirs, callback) {
-	if (genDoc) {
-		// Generate documentation
-		var jsdDir = '../jsdoc_toolkit-2.3.2/jsdoc-toolkit',
-			args = ['-jar', 'jsrun.jar', 'app/run.js', '-t=templates/codeview/',
-				'-d='+docDir, '-q', '-r', '-s'];
-		
-		for (var i = 0, il = srcDirs.length; i < il; i++) {
-			args.push(srcDirs[i]);
-		}
-		
-		var docChild = child.spawn('java', args, {customFds:procFds, cwd:jsdDir});
-		docChild.on('exit', callback);
-	} else {
-		callback();
-	}
-};
-
 var compressDir = function(toDir) {
-	if (compress) {
-		// Package and compress the created directory
-		var tarChild = child.spawn('tar', ['-czf', toDir + '.tgz', toDir],
-			{customFds: procFds});
-		
-		tarChild.on('exit', function (code) {
-			if (code === 0) {
-				// Clean up the created directory
-				filter = [];
-				removeFiles(toDir);
-			}
-		});
-	}
+	// Package and compress the created directory
+	var tarChild = child.spawn('tar', ['-czf', toDir + '.tgz', toDir],
+		{customFds: procFds});
+	
+	tarChild.on('exit', function (code) {
+		if (code === 0) {
+			// Clean up the created directory
+			filter = [];
+			removeFiles(toDir);
+		}
+	});
 };
 
-if (process.argv.length > 4) {
-	var ndx = 2;
+if (process.argv.length > 3) {
+	var ndx = 2,
+	docs = true,
+	compress = true;
 	// Check for flags
 	while(process.argv[ndx].substr(0, 2) === '--') {
 		var flag = process.argv[ndx++];
 		
 		switch (flag) {
 			case '--no-doc':
-				genDoc = false;
+				docs = false;
 				break;
 			case '--no-zip':
 				compress = false;
@@ -144,53 +120,43 @@ if (process.argv.length > 4) {
 	}
 	// Get build arguments
 	var type = process.argv[ndx++],
-		fromDir = process.argv[ndx++],
-		toDir = process.argv[ndx],
-		stat = fs.statSync(fromDir),
-		docDir, srcDirs;
+		toDir = process.argv[ndx];
 	
 	if (path.existsSync(toDir)) {
 		process.stdout.write('Cannot write to ' + toDir + ': already exists\n');
 		process.exit(-1);
 	}
 	// Set up our filter
-	filter = ['.svn'];
+	filter = ['.svn', '.hg', '.hgtags', '.project', '.settings'];
 	
 	if (type === 'core') {
-		// Set up documentation parameters
-		var prefix = '../../kuda/' + toDir;
-		docDir = prefix + '/doc';
-		srcDirs = [prefix + '/hemi', prefix + '/hext'];
 		// Copy only the core Hemi library
 		filter.push('app.js', 'editor');
-		copyFiles(fromDir, toDir, false);
-		copyFiles(fromDir + '/public/js', toDir, true);
-		// Create a doc directory since we didn't copy the existing one
-		var stat = fs.statSync(toDir);
-		fs.mkdirSync(toDir + '/doc', stat.mode);
+		copyFiles('.', toDir, false);
+		copyFiles('./public/js', toDir, true);
 	} else {
-		// Set up documentation parameters
-		var prefix = '../../kuda/' + toDir;
-		docDir = prefix + '/public/doc';
-		srcDirs = [prefix + '/public/js/hemi', prefix + '/public/js/hext'];
 		// Unless building a full package, do not copy samples
 		if (type !== 'full') {
 			filter.push('samples');
+			filter.push('assets');
+		}
+		if (!docs) {
+			filter.push('doc');
 		}
 		// Now copy the Kuda files
-		copyFiles(fromDir, toDir, true);
-		// If building a full package, copy sample assets
-		if (type === 'full') {
-			copyAssets('assets', toDir + '/public/assets');
+		copyFiles('.', toDir, true);
+		// If not building a full package, create an empty assets directory
+		if (type !== 'full') {
+			createAssetsDir('public/assets', toDir + '/public/assets');
 		}
 	}
 	
-	// Optionally generate documentation and/or compress
-	generateDocs(docDir, srcDirs, function(code){
+	// Optionally compress
+	if (compress) {
 		compressDir(toDir);
-	});
+	}
 } else {
-	process.stdout.write('Usage: node build.js [options] [type] [fromDir] [toDir]\n' +
+	process.stdout.write('Usage: node build.js [options] [type] [toDir]\n' +
 		'Valid options are: --no-doc, --no-zip\n' +
 		'Valid types are: core, editor, full\n');
 }
