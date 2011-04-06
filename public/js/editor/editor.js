@@ -401,7 +401,8 @@
             this.fileMenu.addMenuItem(newProject);
 			this.fileMenu.addMenuItem(openProject);
             this.fileMenu.addMenuItem(saveProject);
-            this.fileMenu.addMenuItem(preview);
+			// disabled for now
+            // this.fileMenu.addMenuItem(preview);
             this.fileMenu.addMenuItem(separator);
             this.fileMenu.addMenuItem(loadModel);
 			
