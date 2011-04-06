@@ -292,7 +292,17 @@
 						msg.hide();
 					},
 					error: function(xhr, status, err) {
-						msg.text(xhr.responseText);
+						if (xhr.status === 0) {
+							msg.text('Cannot get projects. Server is not running')
+								.addClass('errMsg').show();
+								
+							setTimeout(function() {
+								that.openPrjDlg.dialog('close');
+							}, 2000);
+						}
+						else {
+							msg.text(xhr.responseText);
+						}
 					}
 				});
 			})
@@ -712,7 +722,8 @@
 			jQuery.ajax({
 				url: '/saveProject',
 				data: data,
-				dataType: "json",
+				dataType: 'json',
+				type: 'post',
 				success: function(data, status, xhr) {
 					that.savePrjDlg.find('form').hide();
 					that.savePrjDlg.find('#savePrjMsg').text('Saved Project to ' + data.name)
@@ -725,20 +736,31 @@
 					}, 1500);
 				},
 				error: function(xhr, status, err) {
-					var data = JSON.parse(xhr.responseText),
-						msg = that.savePrjDlg.find('#savePrjMsg');
-					
-					if (data.errType === 'fileExists') {
-						msg.html(data.errMsg + '. <a id="saveErrReplace" href="#">Replace</a> the old project or type a new name below.');
+					var msg = that.savePrjDlg.find('#savePrjMsg');
+					try {
+						var data = JSON.parse(xhr.responseText); 
 						
-						var lnk = msg.find('#saveErrReplace');
-						
-						lnk.bind('click', function(){
-							var oldData = data.errData;
-							that.saveProject(oldData.name, oldData.octane);
-						});
-						
-						msg.show();
+						if (data.errType === 'fileExists') {
+							msg.html(data.errMsg + '. <a id="saveErrReplace" href="#">Replace</a> the old project or type a new name below.')
+								.removeClass('errMsg');
+							
+							var lnk = msg.find('#saveErrReplace');
+							
+							lnk.bind('click', function(){
+								var oldData = data.errData;
+								that.saveProject(oldData.name, oldData.octane);
+							});
+							
+							msg.show();
+						}
+					}
+					catch (e) {
+						msg.text("Can't save project. Server isn't running")
+							.addClass('errMsg').show();
+								
+						setTimeout(function() {
+							that.savePrjDlg.dialog('close');
+						}, 2000);
 					}
 				}
 			});
@@ -778,7 +800,8 @@
 					}, 1500);
 				},
 				error: function(xhr, status, err){
-					that.openPrjDlg.find('#loadPrjMsg').text(xhr.responseText).show();
+					that.openPrjDlg.find('#loadPrjMsg').text(xhr.responseText)
+						.removeClass('errMsg').show();
 				}
 			});
 		},
