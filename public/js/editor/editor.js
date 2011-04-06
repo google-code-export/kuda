@@ -292,7 +292,7 @@
 						msg.hide();
 					},
 					error: function(xhr, status, err) {
-						if (xhr.status === 0) {
+						if (xhr.status !== 400) {
 							msg.text('Cannot get projects. Server is not running')
 								.addClass('errMsg').show();
 								
