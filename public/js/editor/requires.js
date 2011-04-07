@@ -63,7 +63,6 @@ var editor = (function(base, jQuery) {
 	
 	o3djs.require('hemi.loader');
 	o3djs.require('hemi.handlers.valueCheck');
-	o3djs.require('hext.editor.handles');
 	
 	return base;
 })(editor || {}, jQuery);
