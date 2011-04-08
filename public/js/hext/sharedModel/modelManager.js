@@ -24,28 +24,32 @@ var hext = (function(hext) {
 	};
 	
 	hext.sharedModel.ModelManager.prototype = {
-		addModel: function(config, model) {
+		addModel: function(model) {
 			var fileName = model.fileName,
 				obj = this.models.get(fileName);
 			
 			// check if exists
 			if (obj) {
-				// then check if model is loaded				
+				// then check if model is loaded
 				// if loaded, simply notify the model
 				if (obj.config) {
 					model.loadConfig(obj.config);
-				}
-				// else start loading process
+				}	
+				// else, add to the list of models waiting
 				else {
-					this.loadModel(fileName);
-				}			
+					var modelList = obj.models;
+					modelList.push(model);
+				}	
 			}
 			// else add to the hash table 
 			else {
 				this.models.put(fileName, {
-					model: model,
+					models: [model],
 					config: null
 				});
+				
+				// start the loading process
+				this.loadModel(fileName);
 			}
 		},
 		
@@ -71,9 +75,12 @@ var hext = (function(hext) {
 		},
 		
 		notifyModelLoaded: function(fileName, config) {
-			var model = this.models.get(fileName);
+			var models = this.models.get(fileName).models;
 			
-			model.loadConfig(config);
+			for (var ndx = 0, len = models.length; ndx < len; ndx++) {
+				var model = models[ndx];
+				model.loadConfig(config);
+			}
 		}
 	};
 	
