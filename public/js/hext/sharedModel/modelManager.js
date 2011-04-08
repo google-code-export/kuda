@@ -20,6 +20,61 @@ var hext = (function(hext) {
 	hext.sharedModel = hext.sharedModel || {};
 	
 	hext.sharedModel.ModelManager = function() {
+		this.models = new Hashtable();
+	};
+	
+	hext.sharedModel.ModelManager.prototype = {
+		addModel: function(config, model) {
+			var fileName = model.fileName,
+				obj = this.models.get(fileName);
+			
+			// check if exists
+			if (obj) {
+				// then check if model is loaded				
+				// if loaded, simply notify the model
+				if (obj.config) {
+					model.loadConfig(obj.config);
+				}
+				// else start loading process
+				else {
+					this.loadModel(fileName);
+				}			
+			}
+			// else add to the hash table 
+			else {
+				this.models.put(fileName, {
+					model: model,
+					config: null
+				});
+			}
+		},
+		
+		loadModel: function(fileName) {
+			var mgr = this,
+				config = new hemi.model.ModelConfig();
+			
+			try {
+				hemi.loader.loadModel(
+					fileName,
+					config.pack,
+					config.rootTransform,
+					function(pack, parent) {
+						hemi.core.loaderCallback(pack);
+						mgr.models.get(fileName).config = config;
+						mgr.notifyModelLoaded(fileName, config);
+					},
+					{opt_animSource: config.animationTime});
+			} 
+			catch (e) {
+				alert('Loading failed: ' + e);
+			}
+		},
+		
+		notifyModelLoaded: function(fileName, config) {
+			var model = this.models.get(fileName);
+			
+			model.loadConfig(config);
+		}
 	};
 	
 	return hext;
