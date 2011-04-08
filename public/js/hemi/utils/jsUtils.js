@@ -19,6 +19,22 @@ var hemi = (function(hemi) {
 	hemi.utils = hemi.utils || {};
 	
 	/**
+	 * Create a copy of the given Object (or array).
+	 * 
+	 * @param {Object} src an Object (or array) to clone
+	 * @param {boolean} opt_deep optional flag to indicate if deep copying
+	 *     should be performed (default is deep copying)
+	 * @return {Object} the created Object (or array)
+	 */
+	hemi.utils.clone = function(src, opt_deep) {
+		var dest = hemi.utils.isArray(src) ? [] : {},
+			opt_deep = opt_deep == null ? true : opt_deep;
+		
+		hemi.utils.join(dest, src, opt_deep);
+		return dest;
+	};
+	
+	/**
 	 * Compare the two given arrays of numbers. The arrays should be the same
 	 * length.
 	 * 
@@ -111,33 +127,43 @@ var hemi = (function(hemi) {
 	 * Merge all of the properties of the given objects into the first object.
 	 * If any of the objects have properties with the same name, the later
 	 * properties will overwrite earlier ones. The exception to this is if both
-	 * properties are objects or arrays. In that case, they will be merged
-	 * recursively. This function performs deep copying.
+	 * properties are objects or arrays and the merge is doing a deep copy. In
+	 * that case, the properties will be merged recursively.
 	 * 
 	 * @param {Object} obj1 the first object which will receive all properties
 	 * @param {Object} objN any number of objects to copy properties from
+	 * @param {boolean} opt_deep optional flag to indicate if deep copying
+	 *     should be performed (default is deep copying)
 	 * @return {Object} the first object now merged with all other objects
 	 */
 	hemi.utils.join = function() {
-		var target = arguments[0];
+		var target = arguments[0],
+			il = arguments.length,
+			lastArg = arguments[il - 1],
+			deep = true;
 		
-		for (var i = 1, il = arguments.length; i < il; i++) {
+		if (typeof lastArg === 'boolean') {
+			deep = lastArg;
+			--il;
+		}
+		
+		for (var i = 1; i < il; i++) {
 			var obj = arguments[i];
 			
-			for (k in obj) {
-				var src = obj[k];
+			for (var j in obj) {
+				var src = obj[j];
 				
-				if (src != null && typeof src === 'object') {
-					var dest = target[k],
+				if (deep && src != null && typeof src === 'object') {
+					var dest = target[j],
 						srcArr = hemi.utils.isArray(src);
 					
 					if (dest == null || typeof dest !== 'object' || hemi.utils.isArray(dest) !== srcArr) {
 						dest = srcArr ? [] : {};
 					}
 					
-					target[k] = hemi.utils.join(dest, src);
+					target[j] = hemi.utils.join(dest, src);
 				} else {
-					target[k] = src;
+					target[j] = src;
 				}
 			}
 		}
