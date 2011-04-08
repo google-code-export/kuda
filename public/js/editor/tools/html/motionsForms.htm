@@ -1,0 +1,108 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+<div id="createMotionsDlg" title="Create Motion">
+    <form id="mtnForm" class="withSteps" method="post" action="">
+        <fieldset id="mtnType">
+            <legend>
+                Select Motion Type
+            </legend>
+            <ol>
+                <li>
+                    <select id="mtnTypeSelect">
+                        <option value="-1">Select Type</option>
+                        <option value="rot">Rotator</option>
+                        <option value="trans">Translator</option>
+                    </select>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mtnParams">
+            <legend>
+                Set Optional Parameters
+            </legend>
+            <ol>
+            	<li>
+                    <label for="mtnOrigin">
+                        Origin
+                    </label>
+					<input type="text" value="" id="mtnOriginX" class="vector" /><input type="text" value="" id="mtnOriginY" class="vector" /><input type="text" value="" id="mtnOriginZ" class="vector" />
+                </li>
+            	<li>
+                    <label for="mtnAngle">
+                        Angle
+                    </label>
+					<input type="text" value="" id="mtnAngleX" class="vector" /><input type="text" value="" id="mtnAngleY" class="vector" /><input type="text" value="" id="mtnAngleZ" class="vector" />
+                </li>
+            	<li>
+                    <label for="mtnPos">
+                        Position
+                    </label>
+                    <input type="text" value="" id="mtnPosX" class="vector" /><input type="text" value="" id="mtnPosY" class="vector" /><input type="text" value="" id="mtnPosZ" class="vector" />
+                </li>
+            	<li>
+                    <label for="mtnVel">
+                        Velocity
+                    </label>
+					<input type="text" value="" id="mtnVelX" class="vector" /><input type="text" value="" id="mtnVelY" class="vector" /><input type="text" value="" id="mtnVelZ" class="vector" />
+                </li>
+            	<li>
+                    <label for="mtnAccel">
+                        Acceleration
+                    </label>
+					<input type="text" value="" id="mtnAccelX" class="vector" /><input type="text" value="" id="mtnAccelY" class="vector" /><input type="text" value="" id="mtnAccelZ" class="vector" />
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mtnPreview">
+            <legend>
+                Preview Your Changes
+            </legend>
+            <ol>
+                <li>
+                    <button id="mtnPrevStartBtn">
+                        Start
+                    </button>
+                    <button id="mtnPrevStopBtn">
+                        Stop
+                    </button>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mtnSave">
+            <legend>
+                Save Your Motion
+            </legend>
+            <ol>
+                <li>
+                    <label for="mtnName">
+                        Name:
+                    </label>
+                    <input type="text" id="mtnName" class="name" autocomplete="off" />
+                    <div class="buttons">
+                        <button id="mtnSaveBtn" disabled="disabled">
+                            Save
+                        </button>
+                        <button id="mtnCancelBtn">
+                            Cancel
+                        </button>
+                    </div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
+</div>
