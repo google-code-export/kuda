@@ -19,11 +19,23 @@ var hext = (function(hext) {
 	
 	hext.sharedModel = hext.sharedModel || {};
 	
-	hext.sharedModel.ModelManager = function() {
+	hext.sharedModel.createModelManager = function() {
+		if (!window.parent.kuda) {
+			window.parent.kuda = {};	
+		} 
+		
+		if (!window.parent.kuda.modelManager) {
+			window.parent.kuda.modelManager = new ModelManager();
+		}
+		
+		return window.parent.kuda.modelManager;
+	};
+	
+	var ModelManager = function() {
 		this.models = new Hashtable();
 	};
 	
-	hext.sharedModel.ModelManager.prototype = {
+	ModelManager.prototype = {
 		addModel: function(model) {
 			var fileName = model.fileName,
 				obj = this.models.get(fileName);
