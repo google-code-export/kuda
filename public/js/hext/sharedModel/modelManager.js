@@ -87,7 +87,21 @@ var hext = (function(hext) {
 		},
 		
 		notifyModelLoaded: function(fileName, config) {
-			var models = this.models.get(fileName).models;
+			var models = this.models.get(fileName).models,
+				transforms = config.getTransforms(),
+				updates = models[0].transformUpdates,
+				id = -1;
+			
+			for (var t = 0, len = transforms.length; t < len; ++t) {
+				var transform = transforms[t],
+					oid = transform.createParam('ownerId', 'o3d.ParamInteger');
+				oid.value = id;
+			}
+			
+			for (var t = 0, len = updates.length; t < len; t++) {
+				var update = updates[t];
+				update.apply(this);
+			}
 			
 			for (var ndx = 0, len = models.length; ndx < len; ndx++) {
 				var model = models[ndx];
