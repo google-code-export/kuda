@@ -153,9 +153,8 @@ o3djs.webgl.webGlCanvasError = function(parentNode, unavailableElement) {
   background.style.width = '100%';
   background.style.height = '100%';
 
-  var messageHTML = '<br/><br/><a href="http://get.webgl.org">' +
-      'Your browser does not appear to support WebGL.<br/><br/>' +
-      'Check that WebGL is enabled or click here to upgrade your browser:' +
+  var messageHTML = '<br/><br/><a href="http://code.google.com/p/kuda/wiki/TroubleshootWebGL">' +
+      'Please check that WebGL is enabled or click here to troubleshoot' +
       '</a><br/>';
 
   background.innerHTML = messageHTML;
