@@ -19,7 +19,7 @@ var hext = (function(hext) {
 	
 	hext.sharedModel = hext.sharedModel || {};
 	
-	hext.sharedModel.createModelManager = function() {
+	hext.sharedModel.getModelManager = function() {
 		if (!window.parent.kuda) {
 			window.parent.kuda = {};	
 		} 
@@ -31,82 +31,104 @@ var hext = (function(hext) {
 		return window.parent.kuda.modelManager;
 	};
 	
+	// next override o3djs.scene.loadScene
+	o3djs.scene.loadScene = function(client, 
+									 pack, 
+									 parent, 
+									 url, 
+									 callback, 
+									 opt_options){
+									 			
+		var mgr = hext.sharedModel.getModelManager(),
+			archiveInfo = mgr.addArchive(url, o3djs, client, pack, parent, 
+				callback, opt_options);
+		
+		return archiveInfo;
+	}
+	
 	var ModelManager = function() {
-		this.models = new Hashtable();
+		this.archives = new Hashtable();
 	};
 	
 	ModelManager.prototype = {
-		addModel: function(model) {
-			var fileName = model.fileName,
-				obj = this.models.get(fileName);
-			
+		addArchive: function(url, o3d, client, pack, parent, callback, options) {
+			var obj = this.archives.get(url);
+		
 			// check if exists
 			if (obj) {
 				// then check if model is loaded
 				// if loaded, simply notify the model
-				if (obj.config) {
-					model.loadConfig(obj.config);
+				if (obj.loaded) {
+					var finishCallback = function(pack, parent, exception) {
+						config.callback(pack, parent, exception);
+					};
+					
+					o3d.serialization.deserializeArchive(obj.archive,
+						'scene.json', client, pack, parent,
+						callback, options);
 				}	
 				// else, add to the list of models waiting
 				else {
-					var modelList = obj.models;
-					modelList.push(model);
-				}	
+					var configs = obj.configs;
+					configs.push({
+						o3d: o3djs,
+						client: client,
+						pack: pack,
+						parent: parent,
+						callback: callback
+					});
+				}
+				return obj.archive;
 			}
 			// else add to the hash table 
 			else {
-				this.models.put(fileName, {
-					models: [model],
-					config: null
+				var archive = o3djs.io.loadArchive(pack, url, this.loadFinished);
+				
+				this.archives.put(fileName, {
+					configs: [{
+						o3d: o3djs,
+						client: client,
+						pack: pack,
+						parent: parent,
+						callback: callback
+					}],
+					archive: archive,
+					loaded: false
 				});
 				
-				// start the loading process
-				this.loadModel(fileName);
+				// start the loading process 
+				return archive;
 			}
 		},
 		
-		loadModel: function(fileName) {
-			var mgr = this,
-				config = new hemi.model.ModelConfig();
-			
-			try {
-				hemi.loader.loadModel(
-					fileName,
-					config.pack,
-					config.rootTransform,
-					function(pack, parent) {
-						hemi.core.loaderCallback(pack);
-						mgr.models.get(fileName).config = config;
-						mgr.notifyModelLoaded(fileName, config);
-					},
-					{opt_animSource: config.animationTime});
-			} 
-			catch (e) {
-				alert('Loading failed: ' + e);
+		loadFinished: function(archiveInfo, exception) {
+			if (!exception) {
+				notifyLoaded(archiveInfo.request_.uri);
+			}
+			else {
+//				archiveInfo.destroy();
+//				callback(pack, parent, exception);
 			}
 		},
 		
-		notifyModelLoaded: function(fileName, config) {
-			var models = this.models.get(fileName).models,
-				transforms = config.getTransforms(),
-				updates = models[0].transformUpdates,
-				id = -1;
+		notifyLoaded: function(url) {
+			var archiveObj = this.archives.get(url),
+				archiveInfo = archiveObj.archive,
+				list = archiveObj.configs;
 			
-			for (var t = 0, len = transforms.length; t < len; ++t) {
-				var transform = transforms[t],
-					oid = transform.createParam('ownerId', 'o3d.ParamInteger');
-				oid.value = id;
+			for (var ndx = 0, len = list.length; ndx < len; ndx++) {
+				var config = list[ndx],
+					o3dContext = config.o3d,
+					finishCallback = function(pack, parent, exception) {
+						config.callback(pack, parent, exception);
+					};
+					
+				o3dContext.serialization.deserializeArchive(archiveInfo,
+					'scene.json', config.client, config.pack, config.parent,
+					config.callback, config.options);
 			}
 			
-			for (var t = 0, len = updates.length; t < len; t++) {
-				var update = updates[t];
-				update.apply(this);
-			}
-			
-			for (var ndx = 0, len = models.length; ndx < len; ndx++) {
-				var model = models[ndx];
-				model.loadConfig(config);
-			}
+			archiveObj.loaded = true;
 		}
 	};
 	
