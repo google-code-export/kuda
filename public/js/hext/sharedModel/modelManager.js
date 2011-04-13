@@ -38,7 +38,8 @@ var hext = (function(hext) {
 									 url, 
 									 callback, 
 									 opt_options){
-									 			
+		
+		console.log(client + 'loading scene');							 			
 		var mgr = hext.sharedModel.getModelManager(),
 			archiveInfo = mgr.addArchive(url, o3djs, client, pack, parent, 
 				callback, opt_options);
@@ -52,23 +53,25 @@ var hext = (function(hext) {
 	
 	ModelManager.prototype = {
 		addArchive: function(url, o3d, client, pack, parent, callback, options) {
-			var obj = this.archives.get(url);
+			var obj = this.archives.get(url),
+				that = this;
 		
 			// check if exists
 			if (obj) {
 				// then check if model is loaded
 				// if loaded, simply notify the model
-				if (obj.loaded) {
+				if (obj.archiveInfo) {
 					var finishCallback = function(pack, parent, exception) {
 						config.callback(pack, parent, exception);
 					};
 					
-					o3d.serialization.deserializeArchive(obj.archive,
+					o3d.serialization.deserializeArchive(obj.archiveInfo,
 						'scene.json', client, pack, parent,
 						callback, options);
 				}	
 				// else, add to the list of models waiting
 				else {
+					console.log('adding to list');
 					var configs = obj.configs;
 					configs.push({
 						o3d: o3djs,
@@ -78,13 +81,22 @@ var hext = (function(hext) {
 						callback: callback
 					});
 				}
-				return obj.archive;
+				return obj.loadInfo;
 			}
 			// else add to the hash table 
 			else {
-				var archive = o3djs.io.loadArchive(pack, url, this.loadFinished);
+				console.log('loading archive: ' + url);
+				var loadInfo = o3djs.io.loadArchive(pack, url, function(archiveInfo, exception) {
+					if (!exception) {
+						that.notifyLoaded(archiveInfo);
+					}
+					else {
+						archiveInfo.destroy();
+						callback(pack, parent, exception);
+					}
+				});
 				
-				this.archives.put(fileName, {
+				this.archives.put(url, {
 					configs: [{
 						o3d: o3djs,
 						client: client,
@@ -92,28 +104,17 @@ var hext = (function(hext) {
 						parent: parent,
 						callback: callback
 					}],
-					archive: archive,
-					loaded: false
+					loadInfo: loadInfo,
+					archiveInfo: null
 				});
 				
-				// start the loading process 
-				return archive;
+				return loadInfo;
 			}
 		},
 		
-		loadFinished: function(archiveInfo, exception) {
-			if (!exception) {
-				notifyLoaded(archiveInfo.request_.uri);
-			}
-			else {
-//				archiveInfo.destroy();
-//				callback(pack, parent, exception);
-			}
-		},
-		
-		notifyLoaded: function(url) {
-			var archiveObj = this.archives.get(url),
-				archiveInfo = archiveObj.archive,
+		notifyLoaded: function(archiveInfo) {
+			var url = archiveInfo.request_.uri
+				archiveObj = this.archives.get(url),
 				list = archiveObj.configs;
 			
 			for (var ndx = 0, len = list.length; ndx < len; ndx++) {
@@ -128,7 +129,7 @@ var hext = (function(hext) {
 					config.callback, config.options);
 			}
 			
-			archiveObj.loaded = true;
+			archiveObj.archiveInfo = archiveInfo;
 		}
 	};
 	

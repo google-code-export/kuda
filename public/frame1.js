@@ -23,7 +23,6 @@
 (function() {
 	o3djs.require('o3djs.util');
 	o3djs.require('hext.sharedModel.modelManager');
-	o3djs.require('hext.sharedModel.model');
 
 	function init(clientElements) {
 		/**
@@ -57,7 +56,7 @@
 		 *		cameras, effects, etc. When we set the model's file name, it
 		 *		will begin loading that file.
 		 */
-		var house = new hext.sharedModel.Model();				// Create a new Model
+		var house = new hemi.model.Model();				// Create a new Model
 		house.setFileName('assets/house_v12/scene.json'); // Set the model file
 		console.log('frame1 loading');
 		
