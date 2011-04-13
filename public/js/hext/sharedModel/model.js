@@ -21,16 +21,25 @@ var hext = (function(hext) {
 		},
 		
 		loadConfig: function(config) {
-			var id = this.getId();
+			var id = this.getId(),
+				children = config.rootTransform.children;
 			
 			this.name = getModelName(this.fileName);
-			this.root = config.rootTransform;
+			this.pack = o3d.clone(config.pack);
+			this.pack.gl = hemi.core.client.gl;
+			this.pack.client = hemi.core.client;
+			
+			this.root = this.pack.createObject('Transform');
+			this.root.parent = hemi.model.modelRoot;
 			this.root.name = this.name;
+			this.test = config.rootTransform;
+			this.modelRoot = this.root.parent;
+//			config.rootTransform.parent = this.root;
+			
 			this.animParam = config.animationTime;
 			this.materials = config.getMaterials();
 			this.shapes = config.getShapes();
 			this.transforms = config.getTransforms();
-			this.pack = config.pack;
 
 			hemi.world.tranReg.distribute(this);
 			
