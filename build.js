@@ -134,6 +134,10 @@ if (process.argv.length > 3) {
 		filter.push('app.js', 'editor');
 		copyFiles('.', toDir, false);
 		copyFiles('./public/js', toDir, true);
+        
+        if (docs) {
+            copyFiles('./public/doc', toDir + '/doc', true);
+        }
 	} else {
 		// Unless building a full package, do not copy samples
 		if (type !== 'full') {

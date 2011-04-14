@@ -68,7 +68,7 @@ var editor = (function(module) {
 			}
 		},
 		
-		convertEvent: function(evt) {			
+		convertEvent: function(evt) {
 			var elem = jQuery(evt.target ? evt.target : evt.srcElement),
 				offset = elem.offset();
 			evt.x = evt.pageX - offset.left;
@@ -113,8 +113,8 @@ var editor = (function(module) {
 				return false;
 			}
 			
-			var x = evt.layerX,
-				y = evt.layerY,
+			var x = evt.x,
+				y = evt.y,
 				plane,
 				axis,
 				scaleAxis;
@@ -162,8 +162,8 @@ var editor = (function(module) {
 				return false;
 			}
 			
-			var x = evt.layerX,
-				y = evt.layerY,
+			var x = evt.x,
+				y = evt.y,
 				hovered = false;
 					
 			this.xArrow.hover = false;
@@ -241,17 +241,28 @@ var editor = (function(module) {
 			cvs.removeEventListener('mouseup', mouseUp, true);
 				
 			var newMouseDown = function(evt) {
-				if (!that.onMouseDown(evt)) {
+				// Create a writeable clone of the event and convert it
+				var wrEvt = hemi.utils.clone(evt, false);
+				that.convertEvent(wrEvt);
+				
+				if (!that.onMouseDown(wrEvt)) {
+					// Give the original handler the original event
 					mouseDown(evt);
 				}
 			};
 			var newMouseUp = function(evt) {
-				if (!that.onMouseUp(evt)) {
+				var wrEvt = hemi.utils.clone(evt, false);
+				that.convertEvent(wrEvt);
+				
+				if (!that.onMouseUp(wrEvt)) {
 					mouseUp(evt);
 				}
 			};
 			var newMouseMove = function(evt) {
-				if (!that.onMouseMove(evt)) {
+				var wrEvt = hemi.utils.clone(evt, false);
+				that.convertEvent(wrEvt);
+				
+				if (!that.onMouseMove(wrEvt)) {
 					mouseMove(evt);
 				}
 			};
@@ -291,7 +302,7 @@ var editor = (function(module) {
 						transform: this.transform
 					}
 				}
-			}, this.convertEvent(evt));
+			}, evt);
 		},
 		
 		startScale: function(axis, evt) {
@@ -311,7 +322,7 @@ var editor = (function(module) {
 						transform: this.transform
 					}
 				}
-			}, this.convertEvent(evt));
+			}, evt);
 		},
 		
 		startTranslate: function(plane, evt) {
@@ -340,7 +351,7 @@ var editor = (function(module) {
 						transform: this.transform
 					}
 				}
-			}, this.convertEvent(evt));
+			}, evt);
 		}
 	});
 	
