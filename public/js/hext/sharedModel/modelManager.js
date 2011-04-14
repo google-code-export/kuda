@@ -57,7 +57,7 @@ var hext = (function(hext) {
 									 url, 
 									 callback, 
 									 opt_options){
-						 			
+					 			
 		var mgr = hext.sharedModel.getModelManager(),
 			archiveInfo = mgr.addModel(url, o3djs, client, pack, parent, 
 				callback, opt_options);
@@ -101,10 +101,6 @@ var hext = (function(hext) {
 		
 			if (obj) {
 				if (obj.archiveInfo) {
-					var finishCallback = function(pack, parent, exception) {
-						config.callback(pack, parent, exception);
-					};
-					
 					o3d.serialization.deserializeArchive(obj.archiveInfo,
 						'scene.json', client, pack, parent,
 						callback, options);
@@ -162,10 +158,7 @@ var hext = (function(hext) {
 			
 			for (var ndx = 0, len = list.length; ndx < len; ndx++) {
 				var config = list[ndx],
-					o3dContext = config.o3d,
-					finishCallback = function(pack, parent, exception) {
-						config.callback(pack, parent, exception);
-					};
+					o3dContext = config.o3d;
 					
 				o3dContext.serialization.deserializeArchive(archiveInfo,
 					'scene.json', config.client, config.pack, config.parent,
