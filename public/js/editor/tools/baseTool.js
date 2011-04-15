@@ -104,7 +104,7 @@ var editor = (function(module) {
 				
 			this.config = jQuery.extend({}, module.tools.ToolViewDefaults, options);
 			this.toolbarWidget = null;
-			this.enabled = false;
+			this.enabled = true;
 			this.type;
 			this.mode = module.tools.ToolConstants.MODE_UP;
 			if (this.config.axnBarId) {
@@ -130,7 +130,7 @@ var editor = (function(module) {
 			if (this.enabled != enabled) {
 				this.enabled = enabled;
 				
-				if (this.container) {
+				if (this.toolbarWidget) {
 					if (enabled) {
 						this.toolbarWidget.attr('disabled', '');
 					}
@@ -138,7 +138,6 @@ var editor = (function(module) {
 						this.toolbarWidget.attr('disabled', 'disabled');
 					}
 				}
-				//				this.notifyListeners(base.tools.ToolEventType.Enable, enabled);
 			}
 		},
 		
