@@ -43,6 +43,17 @@ var editor = (function(module) {
 			}
 		},
 		
+		getActiveTool: function() {
+			for (var i = 0, il = this.tools.length; i < il; i++) {
+				var tool = this.tools[i];
+				if (tool.mode === module.tools.ToolConstants.MODE_DOWN) {
+					return tool;
+				}
+			}
+			
+			return null;
+		},
+		
 		removeTool: function(tool) {
 	        var found = null;
 	        var ndx = this.tools.indexOf(tool);
@@ -57,6 +68,12 @@ var editor = (function(module) {
 	        }
 	        
 	        return found;
+		},
+		
+		setEnabled: function(enabled) {
+			for (var i = 0, il = this.tools.length; i < il; i++) {
+				this.tools[i].setEnabled(enabled);
+			}
 		},
 		
 		notify: function(eventType, value) {
