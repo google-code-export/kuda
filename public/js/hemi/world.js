@@ -72,7 +72,7 @@ var hemi = (function(hemi) {
 		}
 		
 		return reserve;
-	}
+	};
 	
 	/**
 	 * @class A Citizen is a uniquely identifiable member of a World that is
