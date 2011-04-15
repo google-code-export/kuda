@@ -116,9 +116,10 @@ var editor = (function(module) {
 	
 	module.ui.Menu = module.ui.MenuItem.extend({
 		init: function(opt_title) {
-			var that = this;	
+			var that = this;
 			this.menuItems = [];
 			this.shown = false;
+			this.enabled = true;
 				
 			this._super();
 		
@@ -186,10 +187,17 @@ var editor = (function(module) {
 	    },
 	    
 	    setAction: function(callback) {
+			var that = this;
 	        this.titleLink.bind('click', function(evt) {
-	            callback(evt);
+	            if (that.enabled) {
+					callback(evt);
+				}
 	        });
 	    },
+		
+		setEnabled: function(enabled) {
+			this.enabled = enabled;
+		},
 	    
 	    hide: function() {
 	        this.list.hide(200);
@@ -228,7 +236,13 @@ var editor = (function(module) {
 	    },
 	    
 	    setAction: function(callback) {
-	    }
+	    },
+		
+		setEnabled: function(enabled) {
+			for (var i = 0, il = this.menuItems.length; i < il; i++) {
+				this.menuItems[i].setEnabled(enabled);
+			}
+		}
 	});
 	
 	module.ui.Separator = module.ui.MenuItem.extend({
