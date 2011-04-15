@@ -55,14 +55,16 @@
 			cam.clip.near = defaults.nearPlane;
 			cam.updateProjection();
 			
+			this.restoreState = null; // Restore state for previewing
 			this.extent = 2000;		// Grid will reach 2000 meters in each direction
 			this.fidelity = 1;		// Grid squares = 1 square meter
-						
+			
             this.layoutDialogs();
 			this.layoutGrid();
 			this.layoutToolbar();
 			this.layoutSidebar();
             this.layoutMenu();
+			this.layoutPreviewActionBar();
 			this.layoutProjectName();
 			
 			// For now, we do this here
@@ -176,7 +178,7 @@
 			var vd = hemi.view.createViewData(hemi.world.camera);
 			vd.eye = [0, 10, 40];
 			vd.target = [0, 0, 0];
-            hemi.world.camera.moveToView(vd);			
+            hemi.world.camera.moveToView(vd);
 		},
 		
 		layoutGrid: function() {
@@ -358,36 +360,7 @@
 			var preview = new editor.ui.MenuItem({
 				title: 'Preview',
 				action: function(evt){				
-					// close other dialogs
-					that.mdlLdrView.hideDialog();
-				
-					var win = jQuery(window),
-						windowWidth = window.innerWidth ? window.innerWidth 
-							: document.documentElement.offsetWidth,
-						windowHeight = win.height(),
-						inset = 20,
-						iframe = jQuery('<iframe src="preview.html"></iframe>');
-						
-					// Hide the currently rendered tree
-					var children = hemi.core.client.root.children;
-					
-					for (var ndx = 0; ndx < children.length; ndx++) {
-						children[ndx].parent = null;
-					}
-					
-					that.previewDlg.append(iframe).dialog('option', {
-						width: windowWidth - inset * 2,
-						height: windowHeight - inset * 2
-					}).dialog('open').bind('dialogclose', function(evt, ui){
-						// Restore the render tree
-						for (var ndx = 0; ndx < children.length; ndx++) {
-							children[ndx].parent = hemi.core.client.root;
-						}
-						
-						iframe.remove();
-					});
-					
-					iframe.height(that.previewDlg.height() - 4);
+					that.startPreview();
 				}
 			});
 			var separator = new editor.ui.Separator();
@@ -401,8 +374,7 @@
             this.fileMenu.addMenuItem(newProject);
 			this.fileMenu.addMenuItem(openProject);
             this.fileMenu.addMenuItem(saveProject);
-			// disabled for now
-            // this.fileMenu.addMenuItem(preview);
+            this.fileMenu.addMenuItem(preview);
             this.fileMenu.addMenuItem(separator);
             this.fileMenu.addMenuItem(loadModel);
 			
@@ -483,6 +455,40 @@
             // add the menus to the container
 			var container = jQuery('#menu');
 			container.append(this.menu.getUI());
+		},
+		
+		layoutPreviewActionBar: function() {
+			this.actionBar = new editor.ui.ActionBar({
+				containerId: 'pvActionBar'
+			});
+			this.actionBar.setVisible(false);
+			
+			var widget = new editor.ui.ActionBarWidget({
+				uiFile: 'js/editor/tools/html/previewAxnBar.htm',
+				immediateLayout: false
+			});
+			var that = this;
+			
+			widget.finishLayout = function() {
+				widget.find('form').submit(function() {
+		            return false;
+		        });
+		        
+		        widget.find('#pvStop').bind('click', function(evt) {
+		            that.stopPreview();
+		        });
+				
+				that.actionBar.addWidget(widget);
+			};
+			
+			widget.layout();
+			
+			this.pvwSB = new editor.ui.SidebarWidget({
+				name: 'previewSBWidget',
+				uiFile: 'js/editor/tools/html/previewSideBar.htm',
+				manualVisible: false
+			});
+			this.sidebar.addWidget(this.pvwSB);
 		},
 		
 		layoutProjectName: function() {
@@ -811,6 +817,150 @@
 			var url = $('#model').val();
 			var model = new hemi.model.Model();
 			model.setFileName(url);
+		},
+		
+		startPreview: function() {
+			// close other dialogs
+			this.mdlLdrView.hideDialog();
+			this.msgMdl.dispatchProxy.swap();
+			var data = hemi.world.toOctane();
+			this.msgMdl.dispatchProxy.unswap();
+			
+			// save current world props (and editor props)
+			var that = this,
+				hi = hemi.input,
+				hr = hemi.core.client.root,
+				hw = hemi.world,
+				tool = that.toolbar.getActiveTool();
+			
+			this.restoreState = {
+				camera: hw.camera,
+				citizens: hw.citizens,
+				loader: hw.loader,
+				pickGrabber: hw.pickGrabber,
+				tranReg: hw.tranReg,
+				fog: hw.fog,
+				nextId: hw.checkNextId(),
+				msgSpecs: hemi.dispatch.msgSpecs,
+				pickRoot: hemi.picking.pickRoot,
+				pickManager: hemi.picking.pickManager,
+				modelRoot: hemi.model.modelRoot,
+				children: hr.children,
+				rL: hemi.view.renderListeners,
+				mdL: hi.mouseDownListeners,
+				muL: hi.mouseUpListeners,
+				mmL: hi.mouseMoveListeners,
+				mwL: hi.mouseWheelListeners,
+		        kdL: hi.keyDownListeners,
+		        kuL: hi.keyUpListeners,
+		        kpL: hi.keyPressListeners,
+				tool: tool
+			};
+			
+			// Hide the currently rendered tree
+			var children = hr.children;
+			hr.children = [];
+			
+			for (var ndx = 0; ndx < children.length; ndx++) {
+				children[ndx].parent = null;
+			}
+			
+			// set the world to its initial state
+			hemi.view.renderListeners = [hemi.view.clientSize];
+			hi.mouseDownListeners = [];
+			hi.mouseUpListeners = [];
+			hi.mouseMoveListeners = [];
+			hi.mouseWheelListeners = [];
+	        hi.keyDownListeners = [];
+	        hi.keyUpListeners = [];
+	        hi.keyPressListeners = [];
+			hw.citizens = new hemi.utils.Hashtable();
+			hw.camera = null;
+			hw.loader = {finish: function(){}};
+			hw.pickGrabber = null;
+			hw.tranReg = new hemi.world.TransformRegistry();
+			hw.fog = null;
+			
+			hemi.dispatch.msgSpecs = new hemi.utils.Hashtable();
+			hemi.picking.init();
+			hemi.model.init();
+			hemi.shape.root = hemi.picking.pickRoot;
+			
+			if (tool != null) {
+				tool.setMode(editor.tools.ToolConstants.MODE_UP);
+			}
+			
+			this.toolbar.setEnabled(false);
+			this.menu.setEnabled(false);
+			this.sidebar.notify(editor.EventTypes.SBWidgetVisible, {
+				visible: true,
+				widget: this.pvwSB
+			});
+			this.pvwSB.setVisible(true);
+			
+			// now load the preview data
+			hemi.octane.createWorld(data);
+			this.actionBar.setVisible(true);
+			hemi.world.ready();
+		},
+		
+		stopPreview: function() {
+			var that = this,
+				hi = hemi.input,
+				hr = hemi.core.client.root,
+				hw = hemi.world,
+				rs = this.restoreState;
+			
+			// Clean up the preview world
+			this.actionBar.setVisible(false);
+			hw.cleanup();
+			hemi.dispatch.cleanup();
+			hw.camera.cleanup();
+			hemi.model.modelRoot.parent = null;
+			hemi.core.mainPack.removeObject(hemi.model.modelRoot);
+			hemi.picking.pickRoot.parent = null;
+			hemi.core.mainPack.removeObject(hemi.picking.pickRoot);
+			
+			this.sidebar.notify(editor.EventTypes.SBWidgetVisible, {
+				visible: false,
+				widget: this.pvwSB
+			});
+			this.pvwSB.setVisible(false);
+			this.toolbar.setEnabled(true);
+			this.menu.setEnabled(true);
+			
+			// restore the world back to original state
+			hemi.dispatch.msgSpecs = rs.msgSpecs;
+			hemi.picking.pickRoot = rs.pickRoot;
+			hemi.picking.pickManager = rs.pickManager;
+			hemi.model.modelRoot = rs.modelRoot;
+			hemi.shape.root = hemi.picking.pickRoot;
+			hw.fog = rs.fog;
+			hw.tranReg = rs.tranReg;
+			hw.pickGrabber = rs.pickGrabber;
+			hw.loader = rs.loader;
+			hw.camera = rs.camera;
+			hw.citizens = rs.citizens;
+			hw.setNextId(rs.nextId);
+			hi.mouseDownListeners = rs.mdL;
+			hi.mouseUpListeners = rs.muL;
+			hi.mouseMoveListeners = rs.mmL;
+			hi.mouseWheelListeners = rs.mwL;
+	        hi.keyDownListeners = rs.kdL;
+	        hi.keyUpListeners = rs.kuL;
+	        hi.keyPressListeners = rs.kpL;
+			hemi.view.renderListeners = rs.rL;
+			
+			// Restore the render tree
+			hr.children = rs.children;
+			
+			for (var ndx = 0; ndx < rs.children.length; ndx++) {
+				rs.children[ndx].parent = hr;
+			}
+			
+			if (rs.tool != null) {
+				rs.tool.setMode(editor.tools.ToolConstants.MODE_DOWN);
+			}
 		}
 	};
 	
