@@ -39,6 +39,25 @@
 				nearPlane: 0.5
 			};
 			
+			editor.enableMenuBar = function(enable) {
+				app.menu.setEnabled(enable);
+			};
+			
+			editor.enableToolBar = function(enable) {
+				app.toolbar.setEnabled(enable);
+			};
+			
+			editor.getActiveTool = function() {
+				return app.toolbar.getActiveTool();
+			};
+			
+			editor.getProjectOctane = function() {
+				app.msgMdl.dispatchProxy.swap();
+				var data = hemi.world.toOctane();
+				app.msgMdl.dispatchProxy.unswap();
+				return data;
+			};
+			
 			o3djs.webgl.makeClients(function(clientElements) {
 				app.initViewerStep2(clientElements);
 			}, options.join(','));
@@ -55,7 +74,6 @@
 			cam.clip.near = defaults.nearPlane;
 			cam.updateProjection();
 			
-			this.restoreState = null; // Restore state for previewing
 			this.extent = 2000;		// Grid will reach 2000 meters in each direction
 			this.fidelity = 1;		// Grid squares = 1 square meter
 			
@@ -64,7 +82,6 @@
 			this.layoutToolbar();
 			this.layoutSidebar();
             this.layoutMenu();
-			this.layoutPreviewActionBar();
 			this.layoutProjectName();
 			
 			// For now, we do this here
@@ -142,7 +159,7 @@
 				
 				// enable the tools now that all the ui is loaded
 				for (var ndx = 0, len = views.length; ndx < len; ndx++) {
-					views[ndx].getUI().removeAttr('disabled');
+					views[ndx].setEnabled(true);
 				}
 			});
 		},
@@ -309,13 +326,6 @@
 				});
 			})
 			.find('p#loadPrjMsg').hide();
-			
-			this.previewDlg = jQuery('<div title="Preview" id="previewDlg"></div>');
-			this.previewDlg.dialog({
-				autoOpen: false,
-				modal: true,
-				resizable: false
-			});
 		},
 		
 		layoutMenu: function() {
@@ -359,8 +369,8 @@
 			});
 			var preview = new editor.ui.MenuItem({
 				title: 'Preview',
-				action: function(evt){				
-					that.startPreview();
+				action: function(evt){
+					that.pvwMdl.startPreview();
 				}
 			});
 			var separator = new editor.ui.Separator();
@@ -457,40 +467,6 @@
 			container.append(this.menu.getUI());
 		},
 		
-		layoutPreviewActionBar: function() {
-			this.actionBar = new editor.ui.ActionBar({
-				containerId: 'pvActionBar'
-			});
-			this.actionBar.setVisible(false);
-			
-			var widget = new editor.ui.ActionBarWidget({
-				uiFile: 'js/editor/tools/html/previewAxnBar.htm',
-				immediateLayout: false
-			});
-			var that = this;
-			
-			widget.finishLayout = function() {
-				widget.find('form').submit(function() {
-		            return false;
-		        });
-		        
-		        widget.find('#pvStop').bind('click', function(evt) {
-		            that.stopPreview();
-		        });
-				
-				that.actionBar.addWidget(widget);
-			};
-			
-			widget.layout();
-			
-			this.pvwSB = new editor.ui.SidebarWidget({
-				name: 'previewSBWidget',
-				uiFile: 'js/editor/tools/html/previewSideBar.htm',
-				manualVisible: false
-			});
-			this.sidebar.addWidget(this.pvwSB);
-		},
-		
 		layoutProjectName: function() {
 			var container = jQuery('#menu'),
 				label = jQuery('<span class="label">Current Project:</span>');
@@ -545,6 +521,11 @@
 				pteCtr = new tools.ParticleFxMgrController();
 			this.pteMdl = new tools.ParticleFxMgrModel();
 			
+			// preview tool
+			var pvwView = new tools.PreviewView(),
+				pvwCtr = new tools.PreviewController();
+			this.pvwMdl = new tools.PreviewModel();
+			
 			// scenes
 			var scnView = new tools.SceneMgrView(),
 				scnCtr = new tools.SceneMgrController();
@@ -573,6 +554,7 @@
             this.toolbar.addTool(vptView);
             this.toolbar.addTool(msgView);
 			this.toolbar.addTool(pteView);
+			this.toolbar.addTool(pvwView);
 			this.toolbar.addTool(scnView);
 			this.toolbar.addTool(shpView);
 			this.toolbar.addTool(hudView);
@@ -605,6 +587,9 @@
 			pteCtr.setView(pteView);
 			pteCtr.setModel(this.pteMdl);
 			
+			pvwCtr.setView(pvwView);
+			pvwCtr.setModel(this.pvwMdl);
+			
 			scnCtr.setView(scnView);
 			scnCtr.setModel(this.scnMdl);
 			scnCtr.setMessagingModel(this.msgMdl);
@@ -629,7 +614,7 @@
 					widgets = view.sidebarWidgets;				
 				
 				// disable the tool to prevent selection before it's ready
-				view.getUI().attr('disabled', 'disabled');
+				view.setEnabled(false);
 				view.setSidebar(this.sidebar);
 				
 				for (var ndx2 = 0, len2 = widgets.length; ndx2 < len2; ndx2++) {
@@ -704,7 +689,6 @@
 		},
 		
 		saveProject: function(name, oldOctane) {
-			this.msgMdl.dispatchProxy.swap();
 			var data = null;
 			
 			if (oldOctane) {					
@@ -717,14 +701,12 @@
 			else {
 				data = {
 					name: name,
-					octane: JSON.stringify(hemi.world.toOctane()),
+					octane: JSON.stringify(editor.getProjectOctane()),
 					replace: false
 				};
 			}
 			
 			var that = this;
-				
-			this.msgMdl.dispatchProxy.unswap();
 			
 			jQuery.ajax({
 				url: '/saveProject',
@@ -817,150 +799,6 @@
 			var url = $('#model').val();
 			var model = new hemi.model.Model();
 			model.setFileName(url);
-		},
-		
-		startPreview: function() {
-			// close other dialogs
-			this.mdlLdrView.hideDialog();
-			this.msgMdl.dispatchProxy.swap();
-			var data = hemi.world.toOctane();
-			this.msgMdl.dispatchProxy.unswap();
-			
-			// save current world props (and editor props)
-			var that = this,
-				hi = hemi.input,
-				hr = hemi.core.client.root,
-				hw = hemi.world,
-				tool = that.toolbar.getActiveTool();
-			
-			this.restoreState = {
-				camera: hw.camera,
-				citizens: hw.citizens,
-				loader: hw.loader,
-				pickGrabber: hw.pickGrabber,
-				tranReg: hw.tranReg,
-				fog: hw.fog,
-				nextId: hw.checkNextId(),
-				msgSpecs: hemi.dispatch.msgSpecs,
-				pickRoot: hemi.picking.pickRoot,
-				pickManager: hemi.picking.pickManager,
-				modelRoot: hemi.model.modelRoot,
-				children: hr.children,
-				rL: hemi.view.renderListeners,
-				mdL: hi.mouseDownListeners,
-				muL: hi.mouseUpListeners,
-				mmL: hi.mouseMoveListeners,
-				mwL: hi.mouseWheelListeners,
-		        kdL: hi.keyDownListeners,
-		        kuL: hi.keyUpListeners,
-		        kpL: hi.keyPressListeners,
-				tool: tool
-			};
-			
-			// Hide the currently rendered tree
-			var children = hr.children;
-			hr.children = [];
-			
-			for (var ndx = 0; ndx < children.length; ndx++) {
-				children[ndx].parent = null;
-			}
-			
-			// set the world to its initial state
-			hemi.view.renderListeners = [hemi.view.clientSize];
-			hi.mouseDownListeners = [];
-			hi.mouseUpListeners = [];
-			hi.mouseMoveListeners = [];
-			hi.mouseWheelListeners = [];
-	        hi.keyDownListeners = [];
-	        hi.keyUpListeners = [];
-	        hi.keyPressListeners = [];
-			hw.citizens = new hemi.utils.Hashtable();
-			hw.camera = null;
-			hw.loader = {finish: function(){}};
-			hw.pickGrabber = null;
-			hw.tranReg = new hemi.world.TransformRegistry();
-			hw.fog = null;
-			
-			hemi.dispatch.msgSpecs = new hemi.utils.Hashtable();
-			hemi.picking.init();
-			hemi.model.init();
-			hemi.shape.root = hemi.picking.pickRoot;
-			
-			if (tool != null) {
-				tool.setMode(editor.tools.ToolConstants.MODE_UP);
-			}
-			
-			this.toolbar.setEnabled(false);
-			this.menu.setEnabled(false);
-			this.sidebar.notify(editor.EventTypes.SBWidgetVisible, {
-				visible: true,
-				widget: this.pvwSB
-			});
-			this.pvwSB.setVisible(true);
-			
-			// now load the preview data
-			hemi.octane.createWorld(data);
-			this.actionBar.setVisible(true);
-			hemi.world.ready();
-		},
-		
-		stopPreview: function() {
-			var that = this,
-				hi = hemi.input,
-				hr = hemi.core.client.root,
-				hw = hemi.world,
-				rs = this.restoreState;
-			
-			// Clean up the preview world
-			this.actionBar.setVisible(false);
-			hw.cleanup();
-			hemi.dispatch.cleanup();
-			hw.camera.cleanup();
-			hemi.model.modelRoot.parent = null;
-			hemi.core.mainPack.removeObject(hemi.model.modelRoot);
-			hemi.picking.pickRoot.parent = null;
-			hemi.core.mainPack.removeObject(hemi.picking.pickRoot);
-			
-			this.sidebar.notify(editor.EventTypes.SBWidgetVisible, {
-				visible: false,
-				widget: this.pvwSB
-			});
-			this.pvwSB.setVisible(false);
-			this.toolbar.setEnabled(true);
-			this.menu.setEnabled(true);
-			
-			// restore the world back to original state
-			hemi.dispatch.msgSpecs = rs.msgSpecs;
-			hemi.picking.pickRoot = rs.pickRoot;
-			hemi.picking.pickManager = rs.pickManager;
-			hemi.model.modelRoot = rs.modelRoot;
-			hemi.shape.root = hemi.picking.pickRoot;
-			hw.fog = rs.fog;
-			hw.tranReg = rs.tranReg;
-			hw.pickGrabber = rs.pickGrabber;
-			hw.loader = rs.loader;
-			hw.camera = rs.camera;
-			hw.citizens = rs.citizens;
-			hw.setNextId(rs.nextId);
-			hi.mouseDownListeners = rs.mdL;
-			hi.mouseUpListeners = rs.muL;
-			hi.mouseMoveListeners = rs.mmL;
-			hi.mouseWheelListeners = rs.mwL;
-	        hi.keyDownListeners = rs.kdL;
-	        hi.keyUpListeners = rs.kuL;
-	        hi.keyPressListeners = rs.kpL;
-			hemi.view.renderListeners = rs.rL;
-			
-			// Restore the render tree
-			hr.children = rs.children;
-			
-			for (var ndx = 0; ndx < rs.children.length; ndx++) {
-				rs.children[ndx].parent = hr;
-			}
-			
-			if (rs.tool != null) {
-				rs.tool.setMode(editor.tools.ToolConstants.MODE_DOWN);
-			}
 		}
 	};
 	

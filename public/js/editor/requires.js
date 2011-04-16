@@ -56,6 +56,7 @@ var editor = (function(base, jQuery) {
     o3djs.require('editor.tools.viewpoints');
     o3djs.require('editor.tools.modelLoader');
 	o3djs.require('editor.tools.particleEffects');
+	o3djs.require('editor.tools.preview');
 	o3djs.require('editor.tools.scenes');
 	o3djs.require('editor.tools.shapes');
 	o3djs.require('editor.tools.hudDisplays');
