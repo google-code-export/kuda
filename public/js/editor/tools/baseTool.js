@@ -84,7 +84,7 @@ var editor = (function(module) {
      * Configuration object for the ToolView.
      */
     module.tools.ToolViewDefaults = {
-        widgetId: 'tool',
+        widgetId: null,
         toolName: 'toolName',
 		toolTip: '',
         toolClass: 'toolBtn',
@@ -105,8 +105,10 @@ var editor = (function(module) {
 			this.config = jQuery.extend({}, module.tools.ToolViewDefaults, options);
 			this.toolbarWidget = null;
 			this.enabled = true;
-			this.type;
 			this.mode = module.tools.ToolConstants.MODE_UP;
+			this.sidebarWidgets = [];
+			this.visibleWidgets = [];
+			
 			if (this.config.axnBarId) {
 				this.actionBar = new module.ui.ActionBar({
 					containerId: this.config.axnBarId
@@ -114,9 +116,10 @@ var editor = (function(module) {
 			
 				this.actionBar.setVisible(false);
 			}
-			this.sidebarWidgets = [];
-			this.visibleWidgets = [];
-			this.layoutToolbarWidget();		 
+			if (this.config.widgetId) {
+				this.layoutToolbarWidget();
+			}
+			
 			this.layoutActionBar();
 		},
 		
@@ -149,10 +152,14 @@ var editor = (function(module) {
 		 *        editor.tools.ToolConstants.MODE_DOWN
 		 */
 		setMode: function(mode) {
-			this.toolbarWidget.removeClass(this.mode);
 			var oldMode = this.mode;
 			this.mode = mode;
-			this.toolbarWidget.addClass(this.mode);
+			
+			if (this.toolbarWidget) {
+				this.toolbarWidget.removeClass(oldMode);
+				this.toolbarWidget.addClass(this.mode);
+			}
+			
 			this.notifyListeners(module.EventTypes.ToolModeSet, {
 				oldMode: oldMode,
 				newMode: mode
