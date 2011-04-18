@@ -281,6 +281,8 @@ var editor = (function(module) {
 		
 		setDrawState: function(state) {
 			this.drawState = state;
+			// make sure the render handler is called at least once
+			this.onRender();
 		},
 		
 		setTransform: function(transform) {
