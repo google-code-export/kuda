@@ -142,7 +142,13 @@ var editor = (function(module) {
 			hemi.picking.pickManager = ws.pickManager;
 			hemi.model.modelRoot = ws.modelRoot;
 			hemi.shape.root = hemi.picking.pickRoot;
-			hw.fog = ws.fog;
+			hemi.shape.material.getParam('lightWorldPos').bind(ws.camera.light.position);
+			
+			if (ws.fog != null) {
+				hw.fog = ws.fog;
+				hemi.view.setBGColor(ws.fog.color);
+			}
+			
 			hw.tranReg = ws.tranReg;
 			hw.pickGrabber = ws.pickGrabber;
 			hw.loader = ws.loader;
