@@ -274,7 +274,7 @@ var hemi = (function(hemi) {
 		 * @return {[number]} XYZ coordinates of the eye
 		 */
 		getEye : function() {
-			return this.transforms.cam.worldMatrix[3].slice(0,3);
+			return this.transforms.cam.getUpdatedWorldMatrix()[3].slice(0,3);
 		},
 
 		/**
@@ -284,9 +284,9 @@ var hemi = (function(hemi) {
 		 */
 		getTarget : function() {
 			if (this.mode.fixed) {
-				return this.transforms.target.worldMatrix[3].slice(0,3);
+				return this.transforms.target.getUpdatedWorldMatrix()[3].slice(0,3);
 			} else {
-				return this.transforms.pan.worldMatrix[3].slice(0,3);
+				return this.transforms.pan.getUpdatedWorldMatrix()[3].slice(0,3);
 			}
 		},
 		
