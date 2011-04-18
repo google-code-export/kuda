@@ -54,6 +54,10 @@ var editor = (function(module) {
 				hw = hemi.world,
 				data = module.getProjectOctane();
 			
+			// make a deep copy, so the preview world created from the data
+			// won't affect the editor world
+			data = hemi.utils.clone(data);
+			
 			this.worldState = {
 				camera: hw.camera,
 				citizens: hw.citizens,
