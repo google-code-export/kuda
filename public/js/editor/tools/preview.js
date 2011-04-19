@@ -131,6 +131,7 @@ var editor = (function(module) {
 			hw.cleanup();
 			hemi.dispatch.cleanup();
 			hw.camera.cleanup();
+			hemi.hud.hudMgr.clearDisplay();
 			hemi.model.modelRoot.parent = null;
 			hemi.core.mainPack.removeObject(hemi.model.modelRoot);
 			hemi.picking.pickRoot.parent = null;
