@@ -73,7 +73,7 @@ app.get('/listProjects', function(req, res) {
 	}
 });
 
-app.get('/saveProject', function(req, res) {	
+app.post('/saveProject', function(req, res) {	
 	if (req.isXMLHttpRequest) {		
 		if (!path.existsSync(projectsPath)) {
 			fs.mkdirSync(projectsPath, 0755);
