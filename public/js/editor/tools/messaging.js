@@ -2192,12 +2192,12 @@ var editor = (function(module) {
 					vwrCols.each(function(index) {
 						var elem = jQuery(this);
 						
-						borderWidth += parseInt(elem.css('borderLeftWidth'))
-							+ parseInt(elem.css('borderRightWidth'));
-						paddingWidth += parseInt(elem.css('paddingLeft'))
-							+ parseInt(elem.css('paddingRight'));
-						marginWidth += parseInt(elem.css('marginLeft'))
-							+ parseInt(elem.css('marginRight'));
+						borderWidth += Math.ceil(parseFloat(elem.css('borderLeftWidth')))
+							+ Math.ceil(parseFloat(elem.css('borderRightWidth')));
+						paddingWidth += Math.ceil(parseFloat(elem.css('paddingLeft')))
+							+ Math.ceil(parseFloat(elem.css('paddingRight')));
+						marginWidth += Math.ceil(parseFloat(elem.css('marginLeft')))
+							+ Math.ceil(parseFloat(elem.css('marginRight')));
 					});
 					
 					colWidth = (width - borderWidth - marginWidth 

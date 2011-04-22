@@ -62,10 +62,10 @@ var editor = (function(module) {
 						sbr = sidebar.container,
 						
 						colHeight = col.innerHeight(),		
-						colPadding = parseInt(col.css('paddingTop')) 
-							+ parseInt(col.css('paddingBottom')),
-						sbrPadding = parseInt(sbr.css('paddingTop')) 
-							+ parseInt(sbr.css('paddingBottom')),
+						colPadding = Math.ceil(parseFloat(col.css('paddingTop'))) 
+							+ Math.ceil(parseFloat(col.css('paddingBottom'))),
+						sbrPadding = Math.ceil(parseFloat(sbr.css('paddingTop'))) 
+							+ Math.ceil(parseFloat(sbr.css('paddingBottom'))),
 						
 						newHeight = colHeight - colPadding - sbrPadding;
 						sbr.height(newHeight);
