@@ -59,7 +59,7 @@ var hemi = (function(hemi) {
 		// get the source
 		var gl = material.gl,
 			program = material.effect.program_,
-			shad = hemi.fx.getShaders(material),
+			shad = hemi.utils.getShaders(material),
 			fragShd = shad.fragShd,
 			fragSrc = shad.fragSrc,
 			vertShd = shad.vertShd,
@@ -82,7 +82,7 @@ var hemi = (function(hemi) {
 					}\
 					gl_Position = pos;";
 			
-			vertSrc = hemi.fx.combineSrc(vertHdr, vertEnd, 'gl_Position', 'vec4 pos', vertSrc);
+			vertSrc = hemi.utils.combineVertSrc(vertHdr, vertEnd, vertSrc, 'vec4 pos');
 			gl.detachShader(program, vertShd);
 			material.effect.loadVertexShaderFromString(vertSrc);
 		}
@@ -91,7 +91,7 @@ var hemi = (function(hemi) {
 					uniform vec4 fogColor;",
 				fragEnd = "gl_FragColor = (1.0 - fogAlpha)*clr + fogAlpha*fogColor;";
 			
-			fragSrc = hemi.fx.combineSrc(fragHdr, fragEnd, 'gl_FragColor', 'vec4 clr', fragSrc);
+			fragSrc = hemi.utils.combineFragSrc(fragHdr, fragEnd, fragSrc, 'vec4 clr');
 			gl.detachShader(program, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
 		}
@@ -115,7 +115,7 @@ var hemi = (function(hemi) {
 		// get the source
 		var gl = material.gl,
 			program = material.effect.program_,
-			shad = hemi.fx.getShaders(material),
+			shad = hemi.utils.getShaders(material),
 			fragShd = shad.fragShd,
 			fragSrc = shad.fragSrc;
 		
@@ -124,75 +124,13 @@ var hemi = (function(hemi) {
 			var fragHdr = 'uniform float opacity;',
 				fragEnd = 'gl_FragColor = vec4(clr.rgb, clr.a * opacity);';
 			
-			fragSrc = hemi.fx.combineSrc(fragHdr, fragEnd, 'gl_FragColor', 'vec4 clr', fragSrc);
+			fragSrc = hemi.utils.combineFragSrc(fragHdr, fragEnd, fragSrc, 'vec4 clr');
 			gl.detachShader(program, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
 		}
 		
 		material.effect.createUniformParameters(material);
 		return material.getParam('opacity');
-	};
-	
-	/*
-	 * Combine the given strings into one cohesive shader source string.
-	 * 
-	 * @param {string} head any source to insert before the main function
-	 * @param {string} tail any source to append to the end of main, typically
-	 *     setting the value of the global variable for the shader
-	 * @param {string} global the global variable previously being set by the
-	 *     main function
-	 * @param {string} local a new local variable to receive the value that was
-	 *     previously being set to the global variable
-	 * @param {string} src the original shader source string
-	 * @return {string} the new shader source string
-	 */
-	hemi.fx.combineSrc = function(head, tail, global, local, src) {
-		var hdrNdx = src.search('void main'),
-			endNdx = src.search(global),
-			end = '';
-		
-		src = src.replace(global, local);
-		end = src.slice(endNdx);
-		endNdx = endNdx + end.search(';') + 1;
-		src = src.slice(0, hdrNdx) + head
-			+ src.slice(hdrNdx, endNdx) + tail
-			+ src.slice(endNdx);
-		
-		return src;
-	};
-	
-	/*
-	 * Get the vertex and pixel shaders (as well as their source) for the given
-	 * Material.
-	 * 
-	 * @param {o3d.Material} material the material to get shaders for
-	 * @return {Object} object containing shaders and source strings
-	 */
-	hemi.fx.getShaders = function(material) {
-		var gl = material.gl,
-			program = material.effect.program_,
-			shaders = gl.getAttachedShaders(program),
-			source1 = gl.getShaderSource(shaders[0]),
-			source2 = gl.getShaderSource(shaders[1]),
-			obj;
-		
-		if (source1.search('gl_FragColor') > 0) {
-			obj = {
-				fragShd: shaders[0],
-				fragSrc: source1,
-				vertShd: shaders[1],
-				vertSrc: source2
-			};
-		} else {
-			obj = {
-				fragShd: shaders[1],
-				fragSrc: source2,
-				vertShd: shaders[0],
-				vertSrc: source1
-			};
-		}
-		
-		return obj;
 	};
 	
 	/*
