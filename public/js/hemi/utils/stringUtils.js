@@ -34,7 +34,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.utils.isNumeric = function(str) {
 		return !(str === null || isNaN(str) || str.length === 0);
-	}
+	};
 	
 	
 	/*

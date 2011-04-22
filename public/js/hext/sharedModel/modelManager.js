@@ -63,7 +63,7 @@ var hext = (function(hext) {
 				callback, opt_options);
 		
 		return archiveInfo;
-	}
+	};
 	
 	/**
 	 * The ModelManager manages all models, ensuring one copy per model url so
@@ -152,7 +152,7 @@ var hext = (function(hext) {
 		 * 		created when an archive is loaded.
 		 */
 		notifyLoaded: function(archiveInfo) {
-			var url = archiveInfo.request_.uri
+			var url = archiveInfo.request_.uri,
 				modelObj = this.models.get(url),
 				list = modelObj.configs;
 			
@@ -170,4 +170,4 @@ var hext = (function(hext) {
 	};
 	
 	return hext;
-})(hext || {})
+})(hext || {});
