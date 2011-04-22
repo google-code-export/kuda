@@ -1051,7 +1051,7 @@ var hemi = (function(hemi) {
 		'} \n';
 
 	hemi.curve.vertexEnd =
-		'gl_Position = getPtcPos(); \n';
+		'gl_Position = getPtcPos(); ';
 	
 	hemi.curve.GpuParticleSystem = function(cfg) {
 		this.active = false;
@@ -1208,7 +1208,7 @@ var hemi = (function(hemi) {
 	};
 	
 	var modifyMaterial = function(material, numBoxes, texNdx) {
-		var shads = hemi.fx.getShaders(material),
+		var shads = hemi.utils.getShaders(material),
 			vertShd = shads.vertShd,
 			vertSrc = shads.vertSrc;
 		
@@ -1218,7 +1218,7 @@ var hemi = (function(hemi) {
 				vertEnd = hemi.curve.vertexEnd;
 			
 			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
-			vertSrc = hemi.fx.combineSrc(vertHdr, vertEnd, 'gl_Position', 'vec4 ignore', vertSrc);
+			vertSrc = hemi.utils.combineVertSrc(vertHdr, vertEnd, vertSrc);
 			material.gl.detachShader(material.effect.program_, vertShd);
 			material.effect.loadVertexShaderFromString(vertSrc);
 			material.effect.createUniformParameters(material);
