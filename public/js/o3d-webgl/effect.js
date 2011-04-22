@@ -230,7 +230,7 @@ o3d.Effect.prototype.loadVertexShaderFromString =
   var success =
       this.loadShaderFromString(shaderString, this.gl.VERTEX_SHADER);
   this.vertexShaderLoaded_ = success;
-  o3d.Effect.prototype.bindAttributesAndLinkIfReady();
+  this.bindAttributesAndLinkIfReady();
   return success;
 };
 

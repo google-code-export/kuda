@@ -60,7 +60,215 @@ var hemi = (function(hemi) {
 		CUBE : 'cube',
 		SPHERE : 'sphere',
 		ARROW : 'arrow'
-	}
+	};
+
+	/**
+	 * Caculate the cubic hermite interpolation between two points with associated
+	 * 		tangents.
+	 *
+	 * @param {number} t Time, between 0 and 1
+	 * @param {number[]} p0 The first waypoint
+	 * @param {number[]} m0 The tangent through the first waypoint
+	 * @param {number[]} p1 The second waypoint
+	 * @param {number[]} m1 The tangent through the second waypoint
+	 */
+	hemi.curve.cubicHermite = function(t,p0,m0,p1,m1) {;
+		var tp0 = 2*t*t*t - 3*t*t + 1;
+		var tm0 = t*t*t - 2*t*t + t;
+		var tp1 = -2*t*t*t + 3*t*t;
+		var tm1 = t*t*t - t*t;
+		return tp0*p0 + tm0*m0 + tp1*p1 + tm1*m1;
+	};
+	
+	/**
+	 * Simple factorial function.
+	 *
+	 * @param {number} n Number to factorialize
+	 * @return {number} n!
+	 */
+	hemi.curve.factorial = function(n) {
+		var f = 1;
+		for(var x = 2; x <= n; x++) {
+			f = f*x;
+		}
+		return f;
+	};
+	
+	/** 
+	 * Simple choose function
+	 *
+	 * @param {number} n Top of choose input, n
+	 * @param {number} m Bottom of choose input, m
+	 * @return {number} Choose output, (n!)/(m!(n-m)!)
+	 */
+	hemi.curve.choose = function(n,m) {
+		return hemi.curve.factorial(n)/
+			   (hemi.curve.factorial(m)*hemi.curve.factorial(n-m));
+	};
+
+	/**
+	 * Render a 3D representation of a curve.
+	 *
+	 * @param {number[][]} points Array of points (not waypoints)
+	 * @param {hemi.config} config Configuration describing how the curve should look
+	 */
+	hemi.curve.drawCurve = function(points,config) {
+		var jshow = (config.joints == null) ? true : config.joints;
+		var jsize = config.jointSize || 10;
+		var jcolor = config.jointColor || [1,1,0,1];
+		var eshow = (config.edges == null) ? true : config.edges;
+		var esize = config.edgeSize || 2;
+		var ecolor = config.edgeColor || [0.5,0,0,1];
+		var ballMat = o3djs.material.createBasicMaterial(hemi.core.mainPack,hemi.view.viewInfo,jcolor);
+		var param = ballMat.getParam('lightWorldPos'); 
+		if(param) {
+			param.bind(hemi.world.camera.light.position);
+		}
+		var mainTransform = hemi.core.mainPack.createObject('Transform');
+		mainTransform.parent = hemi.core.client.root;
+		for (var i = 0; i < points.length; i++) {
+			if(jshow) {
+				var transform = hemi.core.mainPack.createObject('Transform');
+				transform.parent = mainTransform;
+				var joint = o3djs.primitives.createSphere(hemi.core.mainPack,ballMat,jsize,20,20);
+				transform.addShape(joint);
+				transform.translate(points[i]);
+			}
+			if (i < (points.length - 1) && eshow) {
+				this.drawLine(points[i],points[i+1],mainTransform,esize,ecolor);
+			}
+		}
+		return mainTransform;
+	};
+	
+	/**
+	 * Draw a line connecting two points.
+	 *
+	 * @param {number[]} p0 The first point
+	 * @param {number[]} p1 The second point
+	 * @param {number} opt_size Thickness of the line
+	 * @param {number[]} opt_color Color of the line
+	 */
+	hemi.curve.drawLine = function(p0,p1,pTrans,opt_size,opt_color) {
+		var size = opt_size || 2;
+		var color = opt_color || [0.5,0,0,1];
+		var lineMat = o3djs.material.createBasicMaterial(hemi.core.mainPack,hemi.view.viewInfo,color);
+		var param = lineMat.getParam('lightWorldPos'); 
+		if(param) {
+			param.bind(hemi.world.camera.light.position);
+		}
+		var dist = o3djs.math.distance(p0,p1);
+		var midpoint = [ (p0[0]+p1[0])/2, (p0[1]+p1[1])/2, (p0[2]+p1[2])/2 ];
+		var line = o3djs.primitives.createCylinder(hemi.core.mainPack,lineMat,size,dist,3,1);
+		var transform = hemi.core.mainPack.createObject('Transform');
+		transform.parent = pTrans;
+		transform.addShape(line);
+		transform.translate(midpoint);
+		transform = this.pointYAt(transform,midpoint,p0);
+	};
+	
+	/**
+	 * Point the y-up axis toward a given point
+	 *
+	 * @param {o3d.transform} t Transform to rotate
+	 * @param {number[]} mp Point from which to look (may be origin)
+	 * @param {number[]} p0 Point at which to aim the y axis
+	 * @return {o3d.transform} The rotated transform
+	 */
+	hemi.curve.pointYAt = function(t,mp,p0) {
+		var dx = p0[0] - mp[0];
+		var dy = p0[1] - mp[1];
+		var dz = p0[2] - mp[2];
+		var dxz = Math.sqrt(dx*dx + dz*dz);
+		var rotY = Math.atan2(dx,dz);
+		var rotX = Math.atan2(dxz,dy);
+		
+		t.rotateY(rotY);
+		t.rotateX(rotX);
+		
+		return t;
+	};
+	
+	/**
+	 * Generate a random point within a bounding box
+	 *
+	 * @param {number[]} min Minimum point of the bounding box
+	 * @param {number[]} max Maximum point of the bounding box
+	 * @param {function(number): number} opt_distribution Optional distribution function 
+	 *		(linear by default}(not yet implemented)
+	 * @return {number[]} Randomly generated point
+	 */
+	hemi.curve.randomPoint = function(min,max,opt_distribution) {
+		var xi = Math.random();
+		var yi = Math.random();
+		var zi = Math.random();
+		var x = xi*min[0] + (1-xi)*max[0];
+		var y = yi*min[1] + (1-yi)*max[1];
+		var z = zi*min[2] + (1-zi)*max[2];
+		return [x,y,z];
+	};
+		
+	/**
+	 * Render the bounding boxes which the curves run through, mostly for
+	 * 		debugging purposes.
+	 */
+	hemi.curve.showBoxes = function(system) {
+		var boxes = system.boxes,
+			pack = hemi.core.mainPack;
+		
+		if (this.dbgBoxTransforms.length > 0) {
+			this.hideBoxes();
+		}
+		
+		for (i = 0; i < boxes.length; i++) {
+			var transform = pack.createObject('Transform'),
+				b = boxes[i],
+				w = b[1][0] - b[0][0],
+				h = b[1][1] - b[0][1],
+				d = b[1][2] - b[0][2],
+				x = b[0][0] + w/2,
+				y = b[0][1] + h/2,
+				z = b[0][2] + d/2,
+				box = o3djs.primitives.createBox(pack, this.dbgBoxMat, w, h, d);
+			
+			transform.addShape(box);
+			transform.translate(x,y,z);
+			transform.parent = system.transform;
+			this.dbgBoxTransforms[i] = transform;
+		}
+	};
+	
+	/**
+	 * Remove the bounding boxes from view.
+	 */
+	hemi.curve.hideBoxes = function() {
+		var pack = hemi.core.mainPack;
+		
+		for (i = 0; i < this.dbgBoxTransforms.length; i++) {
+			var tran = this.dbgBoxTransforms[i],
+				shape = tran.shapes[0];
+			
+			tran.removeShape(shape);
+			tran.parent = null;
+			pack.removeObject(shape);
+			pack.removeObject(tran);
+		}
+		
+		this.dbgBoxTransforms = [];
+	};
+	
+	hemi.curve.init = function() {
+		this.dbgBoxMat = hemi.core.material.createConstantMaterial(
+			hemi.core.mainPack,
+			hemi.view.viewInfo,
+			[0, 0, 0.5, 1]);
+		
+		var state = hemi.core.mainPack.createObject('State');
+		state.getStateParam('PolygonOffset2').value = -1.0;
+		state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
+		this.dbgBoxMat.state = state;
+		this.dbgBoxTransforms = [];
+	};
 
 	/**
 	 * @class A Curve is used to represent and calculate different curves
@@ -290,152 +498,6 @@ var hemi = (function(hemi) {
 			return hemi.curve.drawCurve(points,config);
 		}
 		
-	};
-
-	/**
-	 * Caculate the cubic hermite interpolation between two points with associated
-	 * 		tangents.
-	 *
-	 * @param {number} t Time, between 0 and 1
-	 * @param {number[]} p0 The first waypoint
-	 * @param {number[]} m0 The tangent through the first waypoint
-	 * @param {number[]} p1 The second waypoint
-	 * @param {number[]} m1 The tangent through the second waypoint
-	 */
-	hemi.curve.cubicHermite = function(t,p0,m0,p1,m1) {;
-		var tp0 = 2*t*t*t - 3*t*t + 1;
-		var tm0 = t*t*t - 2*t*t + t;
-		var tp1 = -2*t*t*t + 3*t*t;
-		var tm1 = t*t*t - t*t;
-		return tp0*p0 + tm0*m0 + tp1*p1 + tm1*m1;
-	};
-	
-	/**
-	 * Simple factorial function.
-	 *
-	 * @param {number} n Number to factorialize
-	 * @return {number} n!
-	 */
-	hemi.curve.factorial = function(n) {
-		var f = 1;
-		for(var x = 2; x <= n; x++) {
-			f = f*x;
-		}
-		return f;
-	};
-	
-	/** 
-	 * Simple choose function
-	 *
-	 * @param {number} n Top of choose input, n
-	 * @param {number} m Bottom of choose input, m
-	 * @return {number} Choose output, (n!)/(m!(n-m)!)
-	 */
-	hemi.curve.choose = function(n,m) {
-		return hemi.curve.factorial(n)/
-			   (hemi.curve.factorial(m)*hemi.curve.factorial(n-m));
-	};
-
-	/**
-	 * Render a 3D representation of a curve.
-	 *
-	 * @param {number[][]} points Array of points (not waypoints)
-	 * @param {hemi.config} config Configuration describing how the curve should look
-	 */
-	hemi.curve.drawCurve = function(points,config) {
-		var jshow = (config.joints == null) ? true : config.joints;
-		var jsize = config.jointSize || 10;
-		var jcolor = config.jointColor || [1,1,0,1];
-		var eshow = (config.edges == null) ? true : config.edges;
-		var esize = config.edgeSize || 2;
-		var ecolor = config.edgeColor || [0.5,0,0,1];
-		var ballMat = o3djs.material.createBasicMaterial(hemi.core.mainPack,hemi.view.viewInfo,jcolor);
-		var param = ballMat.getParam('lightWorldPos'); 
-		if(param) {
-			param.bind(hemi.world.camera.light.position);
-		}
-		var mainTransform = hemi.core.mainPack.createObject('Transform');
-		mainTransform.parent = hemi.core.client.root;
-		for (var i = 0; i < points.length; i++) {
-			if(jshow) {
-				var transform = hemi.core.mainPack.createObject('Transform');
-				transform.parent = mainTransform;
-				var joint = o3djs.primitives.createSphere(hemi.core.mainPack,ballMat,jsize,20,20);
-				transform.addShape(joint);
-				transform.translate(points[i]);
-			}
-			if (i < (points.length - 1) && eshow) {
-				this.drawLine(points[i],points[i+1],mainTransform,esize,ecolor);
-			}
-		}
-		return mainTransform;
-	};
-	
-	/**
-	 * Draw a line connecting two points.
-	 *
-	 * @param {number[]} p0 The first point
-	 * @param {number[]} p1 The second point
-	 * @param {number} opt_size Thickness of the line
-	 * @param {number[]} opt_color Color of the line
-	 */
-	hemi.curve.drawLine = function(p0,p1,pTrans,opt_size,opt_color) {
-		var size = opt_size || 2;
-		var color = opt_color || [0.5,0,0,1];
-		var lineMat = o3djs.material.createBasicMaterial(hemi.core.mainPack,hemi.view.viewInfo,color);
-		var param = lineMat.getParam('lightWorldPos'); 
-		if(param) {
-			param.bind(hemi.world.camera.light.position);
-		}
-		var dist = o3djs.math.distance(p0,p1);
-		var midpoint = [ (p0[0]+p1[0])/2, (p0[1]+p1[1])/2, (p0[2]+p1[2])/2 ];
-		var line = o3djs.primitives.createCylinder(hemi.core.mainPack,lineMat,size,dist,3,1);
-		var transform = hemi.core.mainPack.createObject('Transform');
-		transform.parent = pTrans;
-		transform.addShape(line);
-		transform.translate(midpoint);
-		transform = this.pointYAt(transform,midpoint,p0);
-	};
-	
-	/**
-	 * Point the y-up axis toward a given point
-	 *
-	 * @param {o3d.transform} t Transform to rotate
-	 * @param {number[]} mp Point from which to look (may be origin)
-	 * @param {number[]} p0 Point at which to aim the y axis
-	 * @return {o3d.transform} The rotated transform
-	 */
-	hemi.curve.pointYAt = function(t,mp,p0) {
-		var dx = p0[0] - mp[0];
-		var dy = p0[1] - mp[1];
-		var dz = p0[2] - mp[2];
-		var dxz = Math.sqrt(dx*dx + dz*dz);
-		var rotY = Math.atan2(dx,dz);
-		var rotX = Math.atan2(dxz,dy);
-		
-		t.rotateY(rotY);
-		t.rotateX(rotX);
-		
-		return t;
-	};
-	
-	/**
-	 * Generate a random point within a bounding box
-	 *
-	 * @param {number[]} min Minimum point of the bounding box
-	 * @param {number[]} max Maximum point of the bounding box
-	 * @param {function(number): number} opt_distribution Optional distribution function 
-	 *		(linear by default}(not yet implemented)
-	 * @return {number[]} Randomly generated point
-	 */
-	hemi.curve.randomPoint = function(min,max,opt_distribution) {
-		var xi = Math.random();
-		var yi = Math.random();
-		var zi = Math.random();
-		var x = xi*min[0] + (1-xi)*max[0];
-		var y = yi*min[1] + (1-yi)*max[1];
-		var z = zi*min[2] + (1-zi)*max[2];
-		return [x,y,z];
 	};
 	
 	/**
@@ -687,8 +749,7 @@ var hemi = (function(hemi) {
 		this.pRate = config.rate || 5;
 		this.maxRate = this.pRate;
 		this.pLife = config.life || 5;
-		this.boxes = config.boundingBoxes;
-		this.boxTransforms = [];
+		this.boxes = config.boxes;
 		this.maxParticles = this.pRate * this.pLife;
 		this.particles = [];
 		this.pTimer = 0.0;
@@ -730,20 +791,8 @@ var hemi = (function(hemi) {
 		} else {
 			this.shapes.push(o3djs.primitives.createSphere(pack,this.shapeMaterial,0.5,12,12));
 		}
-
 		
-		this.boxMat = o3djs.material.createConstantMaterial(pack,view,[0,0,0.5,1]);
-		var state = pack.createObject('State');
-		state.getStateParam('PolygonOffset2').value = -1.0;
-		state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
-		this.boxMat.state = state;
-
-		hemi.view.addRenderListener(this);		
-		
-		for(i = 0; i < this.boxes.length; i++) {
-			this.boxTransforms[i] = pack.createObject('Transform');
-			this.boxTransforms[i].parent = this.transform;
-		}
+		hemi.view.addRenderListener(this);
 		
 		this.boxesOn = false;
 		
@@ -893,7 +942,7 @@ var hemi = (function(hemi) {
 		 */
 		changeRate : function(delta) {
 			this.setRate(this.pRate + delta);
-			return this.pRate
+			return this.pRate;
 		},
 		
 		/**
@@ -941,39 +990,258 @@ var hemi = (function(hemi) {
 				this.particles[i].setScales(scaleKeys);
 			}
 			return this;
+		}
+	};
+	
+	// START GPU PARTICLE SYSTEM
+	
+	hemi.curve.vertexHeader =
+		'uniform float ptcTime; \n' +
+		'uniform float numPtcs; \n' +
+		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
+		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
+		'attribute vec4 TEXCOORD; \n' +
+		'\n' +
+		'float rand(vec2 co) { \n' +
+		'  return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); \n' +
+		'} \n' +
+		'\n' +
+		'vec3 randXYZ(vec2 co, vec3 min, vec3 max) { \n' +
+		'  float rX = rand(vec2(co.x, co.x)); \n' +
+		'  float rY = rand(vec2(co.y, co.y)); \n' +
+		'  float rZ = rand(co); \n' +
+		'  return vec3(rX*min[0] + (1.0-rX)*max[0], \n' +
+		'              rY*min[1] + (1.0-rY)*max[1], \n' +
+		'              rZ*min[2] + (1.0-rZ)*max[2]); \n' +
+		'} \n' +
+		'\n' +
+		'vec4 getPtcPos() { \n' +
+		'  float pLen = float(NUM_BOXES-1); \n' +
+		'  float id = TEXCOORD[0]; \n' +
+		'  float offset = TEXCOORD[1]; \n' +
+		'  vec2 seed = vec2(id, numPtcs-id); \n' +
+		'  float vecTime = ptcTime + offset; \n' +
+		'  if (vecTime >= 1.0) { \n' +
+		'    vecTime = vecTime - 1.0; \n' +
+		'  } \n' +
+		'  int ndx = int(floor(pLen*vecTime)); \n' +
+		'  vec3 p0 = randXYZ(seed,minXYZ[ndx],maxXYZ[ndx]); \n' +
+		'  vec3 p1 = randXYZ(seed,minXYZ[ndx+1],maxXYZ[ndx+1]); \n' +
+		'  vec3 m0; \n' +
+		'  vec3 m1; \n' +
+		'  if (ndx == 0) { \n' +
+		'    m0 = vec3(0,0,0); \n' +
+		'  } else { \n' +
+		'    vec3 pm1 = randXYZ(seed,minXYZ[ndx-1],maxXYZ[ndx-1]); \n' +
+		'    m0 = vec3(p1[0]-pm1[0],p1[1]-pm1[1],p1[2]-pm1[2]); \n' +
+		'  } \n' +
+		'  if (ndx == 2) { \n' +
+		'    m1 = vec3(0,0,0); \n' +
+		'  } else { \n' +
+		'    vec3 p2 = randXYZ(seed,minXYZ[ndx+2],maxXYZ[ndx+2]); \n' +
+		'    m1 = vec3(p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]); \n' +
+		'  } \n' +
+		'  float t = pLen*vecTime - float(ndx); \n' +
+		'  float t2 = t*t; \n' +
+		'  float t3 = t2*t; \n' +
+		'  vec3 pos = position.xyz +  \n' +
+		'  	(2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
+		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
+		'  return worldViewProjection * vec4(pos, 1.0); \n' +
+		'} \n';
+
+	hemi.curve.vertexEnd =
+		'gl_Position = getPtcPos(); \n';
+	
+	hemi.curve.GpuParticleSystem = function(cfg) {
+		this.active = false;
+		this.boxes = cfg.boxes;
+		this.life = cfg.life;
+		this.transform = null;
+		
+		var type = cfg.shape || hemi.curve.shapeType.CUBE,
+			color = cfg.color || [0,0,1,1],
+			size = cfg.size || 0.3;
+		
+		switch (type) {
+			case hemi.curve.shapeType.ARROW:
+				this.transform = hemi.shape.create({
+					shape: 'arrow',
+					color: color,
+					size: size,
+					tail: size });
+				break;
+			case hemi.curve.shapeType.SPHERE:
+				this.transform = hemi.shape.create({
+					shape: 'sphere',
+					color: color,
+					radius: size });
+				break;
+			case hemi.curve.shapeType.CUBE:
+			default:
+				this.transform = hemi.shape.create({
+					shape: 'cube',
+					color: color,
+					size: size });
+				break;
+		}
+		
+		var shape = this.transform.shapes[0];
+		this.timeParam = modifyShape(shape, cfg.particles, cfg.boxes);
+	};
+	
+	hemi.curve.GpuParticleSystem.prototype = {
+		onRender : function(e) {
+			var delta = e.elapsedTime / this.life,
+				newTime = this.timeParam.value + delta;
+			
+			while (newTime > 1.0) {
+				--newTime;
+			}
+			
+			this.timeParam.value = newTime;
 		},
 		
-		/**
-		 * Render the bounding boxes which the curves run through, mostly for
-		 * 		debugging purposes.
-		 */
-		showBoxes : function() {
-			for (i = 0; i < this.boxes.length; i++) {
-				var b = this.boxes[i];
-				var w = b[1][0] - b[0][0];
-				var h = b[1][1] - b[0][1];
-				var d = b[1][2] - b[0][2];
-				var x = b[0][0] + w/2;
-				var y = b[0][1] + h/2;
-				var z = b[0][2] + d/2;
-				var box = o3djs.primitives.createBox(hemi.core.mainPack,this.boxMat,w,h,d);
-				this.boxTransforms[i].addShape(box);
-				this.boxTransforms[i].identity();
-				this.boxTransforms[i].translate(x,y,z);
-				}
+		setLife : function(life) {
+			if (life > 0) {
+				this.life = life;
+			}
 		},
 		
-		/**
-		 * Remove the bounding boxes from view.
-		 */
-		hideBoxes : function() {
-			for (i = 0; i < this.boxTransforms.length; i++) {
-				var t = this.boxTransforms[i];
-				if(t.shapes[0]) {
-					t.removeShape(t.shapes[0]);
-				}
+		start : function() {
+			if (!this.active) {
+				this.active = true;
+				hemi.view.addRenderListener(this);
+			}
+		},
+		
+		stop : function() {
+			if (this.active) {
+				this.active = false;
+				hemi.view.removeRenderListener(this);
 			}
 		}
+	};
+	
+	var modifyShape = function(shape, numParticles, boxes) {
+		var elements = shape.elements,
+			timeParam;
+		
+		for (var i = 0, il = elements.length; i < il; i++) {
+			var element = elements[i];
+			
+			if (element.className === 'Primitive') {
+				var texNdx = modifyPrimitive(element, numParticles);
+				var material = element.material;
+				modifyMaterial(material, boxes.length, texNdx);
+				material.getParam('numPtcs').value = numParticles;
+				setupBounds(material, boxes);
+				timeParam = material.getParam('ptcTime');
+			}
+		}
+		
+		return timeParam;
+	};
+	
+	var modifyPrimitive = function(primitive, numParticles) {
+		var TEXCOORD = hemi.core.o3d.Stream.TEXCOORD,
+			indexBuffer = primitive.indexBuffer,
+			streamBank = primitive.streamBank,
+			streams = streamBank.vertexStreams,
+			numVerts = streams[0].getMaxVertices_(),
+			vertexBuffer = streams[0].field.buffer,
+			origStreams = [],
+			idOffNdx = -1,
+			idOffStream;
+		
+		// Find the first unused texture coordinate stream and create it
+		do {
+			idOffStream = streamBank.getVertexStream(TEXCOORD, ++idOffNdx);
+		} while (idOffStream !== null);
+		
+		var idOffsetField = vertexBuffer.createField('FloatField', 2);
+		streamBank.setVertexStream(TEXCOORD, idOffNdx, idOffsetField, 0);
+		
+		// Copy the contents of all of the existing vertex streams
+		for (var i = 0, il = streams.length; i < il; i++) {
+			var stream = streams[i];
+			
+			origStreams.push({
+				stream: stream,
+				vals: stream.field.getAt(0, numVerts)
+			});
+		}
+		
+		vertexBuffer.allocateElements(numVerts * numParticles);
+		
+		// Create a copy of each stream's contents for each particle
+		var indexArr = indexBuffer.array_,
+			newIndexArr = [];
+		
+		for (var i = 0; i < numParticles; i++) {
+			// Index buffer entry
+			var vertOffset = i * numVerts,
+				timeOffset = i / numParticles;
+			
+			for (var j = 0, jl = indexArr.length; j < jl; j++) {
+				newIndexArr.push(indexArr[j] + vertOffset);
+			}
+			// Original vertex data
+			for (var j = 0, jl = origStreams.length; j < jl; j++) {
+				var obj = origStreams[j],
+					vals = obj.vals,
+					field = obj.stream.field;
+				
+				field.setAt(i * numVerts, vals);
+			}
+			// New "particle system" vertex data
+			for (var j = 0; j < numVerts; j++) {
+				idOffsetField.setAt(vertOffset + j, [i, timeOffset]);
+			}
+		}
+		
+		indexBuffer.set(newIndexArr);
+		// Update the primitive and vertex counts
+		primitive.numberPrimitives *= numParticles;
+  		primitive.numberVertices *= numParticles;
+		return idOffNdx;
+	};
+	
+	var modifyMaterial = function(material, numBoxes, texNdx) {
+		var shads = hemi.fx.getShaders(material),
+			vertShd = shads.vertShd,
+			vertSrc = shads.vertSrc;
+		
+		// modify the shader
+		if (vertSrc.search('getPtcPos') < 0) {
+			var vertHdr = hemi.curve.vertexHeader.replace(/NUM_BOXES/g, numBoxes),
+				vertEnd = hemi.curve.vertexEnd;
+			
+			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
+			vertSrc = hemi.fx.combineSrc(vertHdr, vertEnd, 'gl_Position', 'vec4 ignore', vertSrc);
+			material.gl.detachShader(material.effect.program_, vertShd);
+			material.effect.loadVertexShaderFromString(vertSrc);
+			material.effect.createUniformParameters(material);
+		}
+	};
+	
+	var setupBounds = function(material, boxes) {
+		var minParam = material.getParam('minXYZ'),
+			maxParam = material.getParam('maxXYZ'),
+			minArr = hemi.core.mainPack.createObject('ParamArray'),
+			maxArr = hemi.core.mainPack.createObject('ParamArray');
+		
+		minArr.resize(boxes.length, 'ParamFloat3');
+		maxArr.resize(boxes.length, 'ParamFloat3');
+		
+		for (var i = 0, il = boxes.length; i < il; ++i) {
+			var box = boxes[i];
+			minArr.getParam(i).value = box[0];
+			maxArr.getParam(i).value = box[1];
+		}
+		
+		minParam.value = minArr;
+		maxParam.value = maxArr;
 	};
 	
 	return hemi;

@@ -59,7 +59,7 @@ var hemi = (function(hemi) {
 		// get the source
 		var gl = material.gl,
 			program = material.effect.program_,
-			shad = getShaders(material),
+			shad = hemi.fx.getShaders(material),
 			fragShd = shad.fragShd,
 			fragSrc = shad.fragSrc,
 			vertShd = shad.vertShd,
@@ -82,7 +82,7 @@ var hemi = (function(hemi) {
 					}\
 					gl_Position = pos;";
 			
-			vertSrc = combineSrc(vertHdr, vertEnd, 'gl_Position', 'vec4 pos', vertSrc);
+			vertSrc = hemi.fx.combineSrc(vertHdr, vertEnd, 'gl_Position', 'vec4 pos', vertSrc);
 			gl.detachShader(program, vertShd);
 			material.effect.loadVertexShaderFromString(vertSrc);
 		}
@@ -91,7 +91,7 @@ var hemi = (function(hemi) {
 					uniform vec4 fogColor;",
 				fragEnd = "gl_FragColor = (1.0 - fogAlpha)*clr + fogAlpha*fogColor;";
 			
-			fragSrc = combineSrc(fragHdr, fragEnd, 'gl_FragColor', 'vec4 clr', fragSrc);
+			fragSrc = hemi.fx.combineSrc(fragHdr, fragEnd, 'gl_FragColor', 'vec4 clr', fragSrc);
 			gl.detachShader(program, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
 		}
@@ -115,7 +115,7 @@ var hemi = (function(hemi) {
 		// get the source
 		var gl = material.gl,
 			program = material.effect.program_,
-			shad = getShaders(material),
+			shad = hemi.fx.getShaders(material),
 			fragShd = shad.fragShd,
 			fragSrc = shad.fragSrc;
 		
@@ -124,7 +124,7 @@ var hemi = (function(hemi) {
 			var fragHdr = 'uniform float opacity;',
 				fragEnd = 'gl_FragColor = vec4(clr.rgb, clr.a * opacity);';
 			
-			fragSrc = combineSrc(fragHdr, fragEnd, 'gl_FragColor', 'vec4 clr', fragSrc);
+			fragSrc = hemi.fx.combineSrc(fragHdr, fragEnd, 'gl_FragColor', 'vec4 clr', fragSrc);
 			gl.detachShader(program, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
 		}
@@ -146,7 +146,7 @@ var hemi = (function(hemi) {
 	 * @param {string} src the original shader source string
 	 * @return {string} the new shader source string
 	 */
-	var combineSrc = function(head, tail, global, local, src) {
+	hemi.fx.combineSrc = function(head, tail, global, local, src) {
 		var hdrNdx = src.search('void main'),
 			endNdx = src.search(global),
 			end = '';
@@ -168,7 +168,7 @@ var hemi = (function(hemi) {
 	 * @param {o3d.Material} material the material to get shaders for
 	 * @return {Object} object containing shaders and source strings
 	 */
-	var getShaders = function(material) {
+	hemi.fx.getShaders = function(material) {
 		var gl = material.gl,
 			program = material.effect.program_,
 			shaders = gl.getAttachedShaders(program),
