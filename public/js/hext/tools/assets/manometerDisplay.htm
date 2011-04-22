@@ -1,0 +1,65 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+<div id="manometer">
+	<div class="display">
+	    <div class="toprow" id="device">
+	        BD3
+	    </div>
+	    <div class="toprow" id="config">
+	        OPEN
+	    </div>
+	    <div class="readout" id="left-text">
+	        0
+	    </div>
+	    <div class="readout" id="right-text">
+	        0
+	    </div>
+	    <div class="units" id="left-pa">
+	        Pa
+	    </div>
+	    <div class="units" id="right-cfm">
+	        CFM@50
+	    </div>
+	    <div class="units" id="right-pa">
+	        Pa
+	    </div>
+		<div class="mode" id="left-pr">
+			PR/
+		</div>
+		<div class="mode" id="right-pr">
+			PR
+		</div>
+		<div class="mode" id="right-fl">
+			FL@50
+		</div>
+	</div>
+	<div class="tube" id="ul"></div>
+    <div class="tube" id="ur"></div>
+    <div class="tube" id="ll"></div>
+    <div class="tube" id="lr"></div>
+	<div class="manometerMenu" id="placeTubeMenu">
+		<ul>
+			<li><a id="placeTube" href="#">Place Tube</a></li>
+		</ul>
+	</div>
+	<div class="manometerMenu" id="removeTubeMenu">
+		<ul>
+			<li><a id="removeTube" href="#">Remove Tube</a></li>
+		</ul>
+	</div>
+</div>
