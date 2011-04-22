@@ -145,6 +145,7 @@ var hemi = (function(hemi) {
 		hemi.picking.init();
 		hemi.input.init();
 		hemi.view.init();
+		hemi.curve.init();
 		hemi.model.init();
 		hemi.effect.init();
 		hemi.hud.init();
