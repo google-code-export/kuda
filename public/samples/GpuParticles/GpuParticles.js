@@ -20,10 +20,6 @@
  *		top of the hello world demo.
  */
 (function() {
-	o3djs.require('o3djs.util');
-	o3djs.require('hemi.motion');
-	o3djs.require('hemi.curve');
-	
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 0.7, 1]);
@@ -63,48 +59,30 @@
 		var box2 = [[-600,400,-200],[-400,600,0]];
 		var box3 = [[-10,790,180],[10,810,200]];
 		var box4 = [[400,450,-300],[600,650,-100]];
-		var box5 = [[490,-110,-10],[510,-90,10]];
-		
-		/* The colors these arrows will be as they move through:
-		 * Start out yellow and transparent, then turn red and opaque,
-		 * quickly turn to blue, then fade to black and transparent.
-		 */
-		var colorKey1 = {key: 0, value: [1,1,0,0.2]};
-		var colorKey2 = {key: 0.45, value: [1,0,0,1]};
-		var colorKey3 = {key: 0.55, value: [0,0,1,1]};
-		var colorKey4 = {key: 1, value: [0,0,0,0.2]};
-		
-		/* The scale of the arrows as they move through:
-		 * Start out infinitesimal, then grow to a decent size,
-		 * kind of stretched out, then shrink away again.
-		 */
-		var scaleKey1 = {key: 0, value: [10,10,10]};
-		var scaleKey2 = {key: 0.5, value: [50,80,50]};
-		var scaleKey3 = {key: 1, value: [10,10,10]};
+		var box5 = [[490,-110,-110],[510,-90,-90]];
+		var box6 = [[-30,140,-560],[30,260,-440]];
+		var box7 = [[-310,490,-10],[110,510,10]];
+		var box8 = [[90,190,590],[110,210,610]];
+		var box9 = [[-250,-250,270],[-150,-150,330]];
 		
 		/* Create a particle system configuration with the above parameters,
 		 * plus a rate of 20 particles per second, and a lifetime of
 		 * 5 seconds. Specify the shapes are arrows.
 		 */
-		var particleSystemConfig = {
+		var systemConfig = {
 			aim : true,
-			rate : 20,
-			life : 5,
-			boxes : [box1, box2, box3, box4, box5],
+			particles : 500,
+			life : 12,
+			boxes : [box1, box2, box3, box4, box5, box6, box7, box8, box9, box1],
 			shape : hemi.curve.shapeType.ARROW,
-			colorKeys : [colorKey1, colorKey2, colorKey3, colorKey4],
-			scaleKeys : [scaleKey1, scaleKey2, scaleKey3]
+			color : [0, 0, 1, 0.7],
+			size : 10
 		};
 		
 		/* Create the particle system with the above config, 
 		 * and make the root transform its parent.
 		 */
-		var particleSystem = new hemi.curve.ParticleSystem(
-			hemi.core.client.root, 
-			particleSystemConfig);
-		
-		/* Start the particle system off with no particles generating */
-		particleSystem.changeRate(-20);
+		var particleSystem = new hemi.curve.GpuParticleSystem(systemConfig);
 		
 		/* Start the particle system */
 		particleSystem.start();
@@ -121,10 +99,18 @@
 			onKeyDown : function(event) {
 				switch (event.keyCode) {
 					case (65):
-						particleSystem.changeRate(1);
+						var newLife = particleSystem.life - 1;
+						
+						if (newLife > 0) {
+							particleSystem.setLife(newLife);
+						}
 						break;
 					case (90):
-						particleSystem.changeRate(-1);
+						var newLife = particleSystem.life + 1;
+						
+						if (newLife < 30) {
+							particleSystem.setLife(newLife);
+						}
 						break;
 					case (32):
 						if (showBoxes) {
