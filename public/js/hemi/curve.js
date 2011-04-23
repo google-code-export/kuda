@@ -995,12 +995,15 @@ var hemi = (function(hemi) {
 	
 	// START GPU PARTICLE SYSTEM
 	
-	hemi.curve.vertexHeader =
+	hemi.curve.vertHeader =
 		'uniform float ptcTime; \n' +
+		'uniform float ptcMaxTime; \n' +
+		'uniform float ptcDec; \n' +
 		'uniform float numPtcs; \n' +
 		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
 		'attribute vec4 TEXCOORD; \n' +
+		'varying float ptcVis; \n' +
 		'\n' +
 		'float rand(vec2 co) { \n' +
 		'  return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); \n' +
@@ -1021,8 +1024,14 @@ var hemi = (function(hemi) {
 		'  float offset = TEXCOORD[1]; \n' +
 		'  vec2 seed = vec2(id, numPtcs-id); \n' +
 		'  float vecTime = ptcTime + offset; \n' +
-		'  if (vecTime >= 1.0) { \n' +
-		'    vecTime = vecTime - 1.0; \n' +
+		'  if (vecTime > ptcMaxTime) { \n' +
+		'    vecTime -= ptcDec; \n' +
+		'  } \n' +
+		'  if (vecTime > 1.0) { \n' +
+		'    ptcVis = -1.0; \n' +
+		'    vecTime = 0.0; \n' +
+		'  } else { \n' +
+		'    ptcVis = 1.0; \n' +
 		'  } \n' +
 		'  int ndx = int(floor(pLen*vecTime)); \n' +
 		'  vec3 p0 = randXYZ(seed,minXYZ[ndx],maxXYZ[ndx]); \n' +
@@ -1048,15 +1057,32 @@ var hemi = (function(hemi) {
 		'  	(2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
 		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
 		'  return worldViewProjection * vec4(pos, 1.0); \n' +
-		'} \n';
+		'} \n\n';
 
-	hemi.curve.vertexEnd =
+	hemi.curve.vertEnd =
 		'gl_Position = getPtcPos(); ';
+	
+	hemi.curve.fragHeader =
+		'varying float ptcVis; \n' +
+		'\n' +
+		'vec4 checkPtcVis(vec4 clr) { \n' +
+		'  if (ptcVis < 0.0) { \n' +
+		'    clr.a = 0.0; \n' +
+		'  } \n' +
+		'  return clr; \n' +
+		'} \n\n';
+
+	hemi.curve.fragEnd =
+		'gl_FragColor = checkPtcVis(preCheck); ';
 	
 	hemi.curve.GpuParticleSystem = function(cfg) {
 		this.active = false;
 		this.boxes = cfg.boxes;
+		this.endTime = 1.0;
 		this.life = cfg.life;
+		this.starting = false;
+		this.stopping = false;
+		this.trail = cfg.trail;
 		this.transform = null;
 		
 		var type = cfg.shape || hemi.curve.shapeType.CUBE,
@@ -1087,7 +1113,13 @@ var hemi = (function(hemi) {
 		}
 		
 		var shape = this.transform.shapes[0];
-		this.timeParam = modifyShape(shape, cfg.particles, cfg.boxes);
+		var material = modifyShape(shape, cfg.particles, cfg.boxes);
+		this.decParam = material.getParam('ptcDec');
+		this.decParam.value = 1.0;
+		this.maxTimeParam = material.getParam('ptcMaxTime');
+		this.maxTimeParam.value = 3.0;
+		this.timeParam = material.getParam('ptcTime');
+		this.timeParam.value = 1.1;
 	};
 	
 	hemi.curve.GpuParticleSystem.prototype = {
@@ -1095,8 +1127,26 @@ var hemi = (function(hemi) {
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
 			
-			while (newTime > 1.0) {
-				--newTime;
+			if (newTime > this.endTime) {
+				if (this.stopping) {
+					this.active = false;
+					this.stopping = false;
+					hemi.view.removeRenderListener(this);
+					newTime = 1.1;
+				} else {
+					if (this.starting) {
+						this.starting = false;
+						this.endTime = 1.0;
+						this.decParam.value = 1.0;
+						this.maxTimeParam.value = 1.0;
+					}
+					
+					while (--newTime > this.endTime) {}
+				}
+			}
+			
+			if (this.stopping) {
+				this.maxTimeParam.value += delta;
 			}
 			
 			this.timeParam.value = newTime;
@@ -1111,36 +1161,45 @@ var hemi = (function(hemi) {
 		start : function() {
 			if (!this.active) {
 				this.active = true;
+				this.starting = true;
+				this.stopping = false;
+				this.endTime = 2.0;
+				this.decParam.value = 2.0;
+				this.maxTimeParam.value = 2.0;
+				this.timeParam.value = 1.0;
 				hemi.view.addRenderListener(this);
 			}
 		},
 		
 		stop : function() {
-			if (this.active) {
-				this.active = false;
-				hemi.view.removeRenderListener(this);
+			if (this.active && !this.stopping) {
+				this.starting = false;
+				this.stopping = true;
+				this.endTime = this.timeParam.value + 1.0;
 			}
 		}
 	};
 	
 	var modifyShape = function(shape, numParticles, boxes) {
 		var elements = shape.elements,
-			timeParam;
+			material = null;
 		
 		for (var i = 0, il = elements.length; i < il; i++) {
 			var element = elements[i];
 			
 			if (element.className === 'Primitive') {
 				var texNdx = modifyPrimitive(element, numParticles);
-				var material = element.material;
-				modifyMaterial(material, boxes.length, texNdx);
-				material.getParam('numPtcs').value = numParticles;
-				setupBounds(material, boxes);
-				timeParam = material.getParam('ptcTime');
+				
+				if (material === null) {
+					material = element.material;
+					modifyMaterial(material, boxes.length, texNdx);
+					material.getParam('numPtcs').value = numParticles;
+					setupBounds(material, boxes);
+				}
 			}
 		}
 		
-		return timeParam;
+		return material;
 	};
 	
 	var modifyPrimitive = function(primitive, numParticles) {
@@ -1209,20 +1268,33 @@ var hemi = (function(hemi) {
 	
 	var modifyMaterial = function(material, numBoxes, texNdx) {
 		var shads = hemi.utils.getShaders(material),
+			fragShd = shads.fragShd,
+			fragSrc = shads.fragSrc;
 			vertShd = shads.vertShd,
 			vertSrc = shads.vertSrc;
 		
-		// modify the shader
+		// modify the vertex shader
 		if (vertSrc.search('getPtcPos') < 0) {
-			var vertHdr = hemi.curve.vertexHeader.replace(/NUM_BOXES/g, numBoxes),
-				vertEnd = hemi.curve.vertexEnd;
+			var vertHdr = hemi.curve.vertHeader.replace(/NUM_BOXES/g, numBoxes),
+				vertEnd = hemi.curve.vertEnd;
 			
 			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
 			vertSrc = hemi.utils.combineVertSrc(vertHdr, vertEnd, vertSrc);
 			material.gl.detachShader(material.effect.program_, vertShd);
 			material.effect.loadVertexShaderFromString(vertSrc);
-			material.effect.createUniformParameters(material);
 		}
+		
+		// modify the fragment shader
+		if (fragSrc.search('checkPtcVis') < 0) {
+			var fragHdr = hemi.curve.fragHeader,
+				fragEnd = hemi.curve.fragEnd;
+			
+			fragSrc = hemi.utils.combineFragSrc(fragHdr, fragEnd, fragSrc, 'vec4 preCheck');
+			material.gl.detachShader(material.effect.program_, fragShd);
+			material.effect.loadPixelShaderFromString(fragSrc);
+		}
+		
+		material.effect.createUniformParameters(material);
 	};
 	
 	var setupBounds = function(material, boxes) {
