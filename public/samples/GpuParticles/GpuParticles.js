@@ -73,6 +73,7 @@
 			aim : true,
 			particles : 500,
 			life : 12,
+			trail : true,
 			boxes : [box1, box2, box3, box4, box5, box6, box7, box8, box9, box1],
 			shape : hemi.curve.shapeType.ARROW,
 			color : [0, 0, 1, 0.7],
@@ -85,7 +86,7 @@
 		var particleSystem = new hemi.curve.GpuParticleSystem(systemConfig);
 		
 		/* Start the particle system */
-		particleSystem.start();
+//		particleSystem.start();
 	
 		var showBoxes = false;		// If boxes are being shown
 		
@@ -119,6 +120,13 @@
 						} else {
 							hemi.curve.showBoxes(particleSystem);
 							showBoxes = true;
+						}
+						break;
+					case (83):
+						if (particleSystem.active) {
+							particleSystem.stop();
+						} else {
+							particleSystem.start();
 						}
 						break;
 					default:
