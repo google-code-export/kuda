@@ -1131,6 +1131,7 @@ var hemi = (function(hemi) {
 				if (this.stopping) {
 					this.active = false;
 					this.stopping = false;
+					this.maxTimeParam.value = 3.0;
 					hemi.view.removeRenderListener(this);
 					newTime = 1.1;
 				} else {
@@ -1161,11 +1162,17 @@ var hemi = (function(hemi) {
 		start : function() {
 			if (!this.active) {
 				this.active = true;
-				this.starting = true;
-				this.stopping = false;
-				this.endTime = 2.0;
-				this.decParam.value = 2.0;
-				this.maxTimeParam.value = 2.0;
+				
+				if (this.trail) {
+					this.starting = true;
+					this.stopping = false;
+					this.endTime = 2.0;
+					this.decParam.value = 2.0;
+					this.maxTimeParam.value = 2.0;
+				} else {
+					this.maxTimeParam.value = 1.0;
+				}
+				
 				this.timeParam.value = 1.0;
 				hemi.view.addRenderListener(this);
 			}
@@ -1173,9 +1180,17 @@ var hemi = (function(hemi) {
 		
 		stop : function() {
 			if (this.active && !this.stopping) {
-				this.starting = false;
-				this.stopping = true;
-				this.endTime = this.timeParam.value + 1.0;
+				if (this.trail) {
+					this.starting = false;
+					this.stopping = true;
+					this.endTime = this.timeParam.value + 1.0;
+				} else {
+					this.active = false;
+					this.timeParam.value = 1.1;
+					this.maxTimeParam.value = 3.0;
+					hemi.view.removeRenderListener(this);
+				}
+				
 			}
 		}
 	};
