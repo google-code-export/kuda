@@ -84,10 +84,6 @@
 		 * and make the root transform its parent.
 		 */
 		var particleSystem = new hemi.curve.GpuParticleSystem(systemConfig);
-		
-		/* Start the particle system */
-//		particleSystem.start();
-	
 		var showBoxes = false;		// If boxes are being shown
 		
 		/* Register a keyDown listener:
