@@ -41,37 +41,24 @@ var hemi = (function(hemi) {
 			loadInfo: loadInfo
 		};
 		
-		knownFiles.put(url, obj);
-			
-		createIntervalFcn();
+		knownFiles.put(url, obj);			
+		attachProgressListener(url, loadInfo);
 	};
 	
-	var createIntervalFcn = function() {
-		if (intervalId == null) {
-			intervalId = window.setInterval(function(){
-				var keys = knownFiles.keys(),
-					percent = 0;
-				
-				for (var ndx = 0, len = keys.length; ndx < len; ndx++) {
-					var url = keys[ndx],
-						fileObj = knownFiles.get(url), 
-						loadInfo = fileObj.loadInfo;					
-					
-					// check for finished (may have finished very quickly)
-					fileObj.percent = loadInfo.request_ == null ? 100 : 
-						loadInfo.getKnownProgressInfoSoFar().percent;
-					hemi.world.send(hemi.msg.progress, {
-						url: url,
-						percent: fileObj.percent,
-						isTotal: false
-					});
-					
-					if (checkFinished()) {
-						break;
-					}
-				}
-			}, 50);
-		}
+	var attachProgressListener = function(url, loadInfo) {
+		loadInfo.request_.addProgressListener(function(evt) {
+			var fileObj = knownFiles.get(url);
+			
+			fileObj.percent = evt.loaded / evt.total * 100;
+			
+			hemi.world.send(hemi.msg.progress, {
+				url: url,
+				percent: fileObj.percent,
+				isTotal: false
+			});
+			
+			checkFinished();
+		});
 	};
 	
 	var updateTotal = function() {
@@ -263,6 +250,7 @@ var hemi = (function(hemi) {
 		var list = hemi.world.loader.loadInfo.children_,
 			loadInfo = list[list.length - 1];
 		
+		console.log('loading model...');
 		syncedIntervalFcn(url, loadInfo);
 	};
 

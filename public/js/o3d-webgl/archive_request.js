@@ -114,6 +114,7 @@ throw new SyntaxError('JSON.parse');};}}());
 o3d.ArchiveRequest = function() {
   o3d.ObjectBase.call(this);
   this.method_ = null;
+  this.listeners = [];
 };
 o3d.inherit('ArchiveRequest', 'ObjectBase');
 
@@ -156,6 +157,19 @@ o3d.ArchiveRequest.prototype.send = function() {
   this.done = false;
   this.success = true;
   this.error = null;
+	
+  var onprogress = function(evt) {
+  	var lst = that.listeners;
+  	for (var i = 0, il = lst.length; i < il; i++) {
+  	  if (lst.onProgressUpdate) {
+  		lst[i].onProgressUpdate(evt);
+      }
+      else {
+  		lst[i](evt);
+  	  }
+    }
+  };
+	
   var callback = function(sourceJSON, exc) {
     // Don't send down the original scene.json because 'eval' is used
     // elsewhere to reconstitute it, which is risky.
@@ -177,47 +191,48 @@ o3d.ArchiveRequest.prototype.send = function() {
 	
     // Plus one for the current request.
     that.pendingRequests_ = uris.length + 1;
+	
+    var rawFunc = function(uri) {
+      var completion = function(value, exc) {
+        var rawData = null;
+        if (exc == null) {
+          rawData = new o3d.RawData();
+          rawData.uri = uri;
+          rawData.stringValue = value;
+        }
+        that.resolvePendingRequest_(rawData, exc);
+      };
+      o3djs.io.loadTextFile(that.relativeToAbsoluteURI_(uri),
+                            completion, onprogress);  
+    };
+    var imgFunc = function(uri) {
+      var image = new Image();
+      image.onload = function() {
+        var rawData = new o3d.RawData();
+        rawData.uri = uri;
+        rawData.image_ = image;
+        that.resolvePendingRequest_(rawData, exc);
+      };
+      image.onerror = function() {
+        that.resolvePendingRequest_(null, exc);
+      }
+      image.src = that.relativeToAbsoluteURI_(uri);
+    };
 
     // Issue requests for each of these URIs.
     for (var ii = 0; ii < uris.length; ++ii) {
       if (that.stringEndsWith_(uris[ii], ".fx")) {
-        var func = function(uri) {
-          var completion = function(value, exc) {
-            var rawData = null;
-            if (exc == null) {
-              rawData = new o3d.RawData();
-              rawData.uri = uri;
-              rawData.stringValue = value;
-            }
-            that.resolvePendingRequest_(rawData, exc);
-          };
-          o3djs.io.loadTextFile(that.relativeToAbsoluteURI_(uri),
-                                completion);
-        };
-        func(uris[ii]);
+        rawFunc(uris[ii]);
       } else if (that.stringEndsWith_(uris[ii], ".png") ||
                  that.stringEndsWith_(uris[ii], ".jpg")) {
-        var func = function(uri) {
-          var image = new Image();
-          image.onload = function() {
-            var rawData = new o3d.RawData();
-            rawData.uri = uri;
-            rawData.image_ = image;
-            that.resolvePendingRequest_(rawData, exc);
-          };
-          image.onerror = function() {
-            that.resolvePendingRequest_(null, exc);
-          }
-          image.src = that.relativeToAbsoluteURI_(uri);
-        };
-        func(uris[ii]);
+        imgFunc(uris[ii]);
       }
     }
 
     that.resolvePendingRequest_(rawData);
   };
 
-  o3djs.io.loadTextFile(this.uri, callback);
+  o3djs.io.loadTextFile(this.uri, callback, onprogress);
 };
 
 /**
@@ -225,6 +240,10 @@ o3d.ArchiveRequest.prototype.send = function() {
  * @type {function(): void}
  */
 o3d.ArchiveRequest.prototype.onreadystatechange = null;
+
+o3d.ArchiveRequest.prototype.addProgressListener = function(listener) {
+	this.listeners.push(listener);
+};
 
 /**
  * A callback to call when each file comes in.

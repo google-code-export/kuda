@@ -270,9 +270,11 @@ o3djs.io.loadTextFileSynchronous = function(url) {
  * @param {string} url The url of the external file.
  * @param {function(string, *): void} callback A callback passed the loaded
  *     string and an exception which will be null on success.
+ * @param {function(object): void} onprogress A callback passed the onprogress
+ *     event.
  * @return {!o3djs.io.LoadInfo} A LoadInfo to track progress.
  */
-o3djs.io.loadTextFile = function(url, callback) {
+o3djs.io.loadTextFile = function(url, callback, onprogress) {
   o3djs.BROWSER_ONLY = true;
 
   var error = 'loadTextFile failed to load url "' + url + '"';
@@ -305,6 +307,7 @@ o3djs.io.loadTextFile = function(url, callback) {
     }
   };
   request.onreadystatechange = finish;
+  request.onprogress = onprogress;
   request.send(null);
   return loadInfo;
 };

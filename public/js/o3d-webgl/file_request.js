@@ -59,6 +59,7 @@
  */
 o3d.FileRequest = function() {
   this.method_ = "";
+  this.listeners = [];
   this.async_ = true;
   this.request_ = new XMLHttpRequest();
   var fileRequest = this;
@@ -75,6 +76,18 @@ o3d.FileRequest = function() {
     if (fileRequest.onreadystatechange)
       fileRequest.onreadystatechange.apply(fileRequest, arguments);
   }
+  this.request_.onprogress = function(evt) {
+    var lst = fileRequest.listeners;
+	for (var i = 0, il = lst.length; i < il; i++) {
+		if (lst[i].onProgressUpdate) {
+			lst[i].onProgressUpdate(evt);
+		}
+		else {
+			lst[i](evt);
+		}
+	}
+  };
+
 };
 o3d.inherit('FileRequest', 'NamedObject');
 
@@ -85,7 +98,9 @@ o3d.inherit('FileRequest', 'NamedObject');
  */
 o3d.FileRequest.prototype.onreadystatechange = null;
 
-
+o3d.FileRequest.prototype.addProgressListener = function(listener) {
+	this.listeners.push(listener);
+};
 
 /**
  * The URI this request is for.
