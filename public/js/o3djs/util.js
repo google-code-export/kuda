@@ -231,7 +231,7 @@ o3djs.util.getBoundingBoxOfTree = function(treeRoot) {
     var childBox = o3djs.util.getBoundingBoxOfTree(transform);
     if (childBox.valid) {
       // transform by the child local matrix.
-      childBox = childBox.mul(transform.localMatrix);
+//      childBox = childBox.mul(transform.localMatrix);
       if (box.valid) {
         box = box.add(childBox);
       } else {
