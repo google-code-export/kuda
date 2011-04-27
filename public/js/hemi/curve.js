@@ -1018,6 +1018,13 @@ var hemi = (function(hemi) {
 		'              rZ*min[2] + (1.0-rZ)*max[2]); \n' +
 		'} \n' +
 		'\n' +
+		'vec3 ptcInterp(float t, vec3 p0, vec3 p1, vec3 m0, vec3 m1) { \n' +
+		'  float t2 = t*t; \n' +
+		'  float t3 = t2*t; \n' +
+		'  return (2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
+		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
+		'} \n' +
+		'\n' +
 		'vec4 getPtcPos() { \n' +
 		'  float pLen = float(NUM_BOXES-1); \n' +
 		'  float id = TEXCOORD[0]; \n' +
@@ -1051,12 +1058,40 @@ var hemi = (function(hemi) {
 		'    m1 = vec3(p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]); \n' +
 		'  } \n' +
 		'  float t = pLen*vecTime - float(ndx); \n' +
-		'  float t2 = t*t; \n' +
-		'  float t3 = t2*t; \n' +
-		'  vec3 pos = position.xyz +  \n' +
-		'  	(2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
-		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
-		'  return worldViewProjection * vec4(pos, 1.0); \n' +
+		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n' +
+		// Start rotate
+		'  float tM = max(0.0,t-0.02); \n' +
+		'  float tP = min(1.0,t+0.02); \n' +
+		'  vec3 posM = ptcInterp(tM, p0, p1, m0, m1); \n' +
+		'  vec3 posP = ptcInterp(tP, p0, p1, m0, m1); \n' +
+		'  vec3 dPos = posP-posM; \n' +
+		'  float dxz = sqrt(pow(dPos[0],2.0)+pow(dPos[2],2.0)); \n' +
+		'  float dxyz = length(dPos); \n' +
+		'  float cx = dPos[1]/dxyz; \n' +
+		'  float cy = dPos[2]/dxz; \n' +
+		'  float sx = dxz/dxyz; \n' +
+		'  float sy = dPos[0]/dxz; \n' +
+		'  mat4 rMat = mat4(cy,0.0,-1.0*sy,0.0, \n' +
+		'   sx*sy,cx,sx*cy,0.0, \n' +
+		'   cx*sy,-1.0*sx,cx*cy,0.0, \n' +
+		'   0.0,0.0,0.0,1.0); \n' +
+		'  mat4 tMat = mat4(1.0,0.0,0.0,0.0, \n' +
+		'   0.0,1.0,0.0,0.0, \n' +
+		'   0.0,0.0,1.0,0.0, \n' +
+		'   pos.x,pos.y,pos.z,1.0); \n' +
+		'  mat4 tMatIT = mat4(1.0,0.0,0.0,-1.0*pos.x, \n' +
+		'   0.0,1.0,0.0,-1.0*pos.y, \n' +
+		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
+		'   0.0,0.0,0.0,1.0); \n' +
+		'  mat4 worldMat = tMat*rMat; \n' +
+		'  mat4 worldMatIT = tMatIT*rMat; \n' +
+		// End rotate
+		'  v_normal = (worldMatIT * vec4(normal, 0)).xyz; \n' +
+		'  mat4 myMat = worldViewProjection * worldMat; \n' +
+		'  vec4 newPos = myMat * position; \n' +
+		'  v_surfaceToLight = lightWorldPos - (worldMat * position).xyz; \n' +
+		'  v_surfaceToView = (viewInverse[3] - (worldMat * position)).xyz; \n' +
+		'  return newPos; \n' +
 		'} \n\n';
 
 	hemi.curve.vertEnd =
