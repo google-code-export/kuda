@@ -47,7 +47,7 @@ var editor = (function(module) {
 					&& this.isInView()) {
 //				var origin = this.transform.localMatrix[3],		FOR LOCAL
 				var origin = this.transform.getUpdatedWorldMatrix()[3], 
-					extent = this.extent / 2,
+					extent = this.getExtent() / 2,
 					x = origin[0], 
 					y = origin[1], 
 					z = origin[2], 
@@ -81,8 +81,8 @@ var editor = (function(module) {
 			var bdgBox = o3djs.util.getBoundingBoxOfTree(this.transform),
 //				minExt = bdgBox.minExtent,	FOR LOCAL
 //				maxExt = bdgBox.maxExtent,	FOR LOCAL
-				minExt = hemi.utils.pointAsWorld(this.transform, bdgBox.minExtent),
-				maxExt = hemi.utils.pointAsWorld(this.transform, bdgBox.maxExtent),
+				minExt = hemi.utils.pointAsWorld(this.transform.parent, bdgBox.minExtent),
+				maxExt = hemi.utils.pointAsWorld(this.transform.parent, bdgBox.maxExtent),
 				x = Math.abs(minExt[0] - maxExt[0]),
 				y = Math.abs(minExt[1] - maxExt[1]),
 				z = Math.abs(minExt[2] - maxExt[2]);
@@ -287,9 +287,6 @@ var editor = (function(module) {
 		
 		setTransform: function(transform) {
 			this.transform = transform;
-			if (transform) {
-				this.extent = this.getExtent();
-			}
 		},
 		
 		startRotate: function(axis, evt) {
@@ -680,7 +677,7 @@ var editor = (function(module) {
 					orgPnt: op,
 					endPnt: ep,
 					distance: d,
-					baseLength: (extent * 25) / (hemi.world.camera.distance),
+					baseLength: extent * 25 / hemi.world.camera.distance,
 					centerEye: ce,
 					centerArrow: ca,
 					plane: plane,
