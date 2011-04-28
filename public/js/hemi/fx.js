@@ -67,31 +67,45 @@ var hemi = (function(hemi) {
 		
 		// modify the shaders
 		if (vertSrc.search('fog') < 0) {
-			var vertHdr = "varying float fogAlpha;\
-					uniform float fogStart;\
-					uniform float fogEnd;",
-				vertEnd = "float z = pos[2];\
-					if (z <= fogStart) {\
-						fogAlpha = 0.0;\
-					}\
-					else if (z >= fogEnd) {\
-						fogAlpha = 1.0;\
-					}\
-					else {\
-						fogAlpha = (z - fogStart)/(fogEnd - fogStart);\
-					}\
-					gl_Position = pos;";
+			var vertHdr =
+					'uniform float fogStart; \n' +
+					'uniform float fogEnd; \n' +
+					'varying float fogAlpha; \n',
+				vertSprt =
+					'void setFogAlpha(float z) { \n' +
+					'  if (z <= fogStart) { \n' +
+					'    fogAlpha = 0.0; \n' +
+					'  } else if (z >= fogEnd) { \n' +
+					'    fogAlpha = 1.0; \n' +
+					'  } else { \n' +
+					'    fogAlpha = (z - fogStart)/(fogEnd - fogStart); \n' +
+					'  } \n' +
+					'} \n';
+				vertGlob =
+					'setFogAlpha(fogPos.z); \n' +
+					'gl_Position = fogPos;';
 			
-			vertSrc = hemi.utils.combineVertSrc(vertHdr, vertEnd, vertSrc, 'vec4 pos');
+			vertSrc = hemi.utils.combineVertSrc(vertSrc, {
+				hdr: vertHdr,
+				sprt: vertSprt,
+				glob: vertGlob,
+				local: 'vec4 fogPos'
+			});
 			gl.detachShader(program, vertShd);
 			material.effect.loadVertexShaderFromString(vertSrc);
 		}
 		if (fragSrc.search('fog') < 0) {
-			var fragHdr = "varying float fogAlpha;\
-					uniform vec4 fogColor;",
-				fragEnd = "gl_FragColor = (1.0 - fogAlpha)*clr + fogAlpha*fogColor;";
+			var fragHdr =
+					'uniform vec4 fogColor; \n' +
+					'varying float fogAlpha; \n',
+				fragGlob =
+					'gl_FragColor = (1.0 - fogAlpha)*preFogClr + fogAlpha*fogColor;';
 			
-			fragSrc = hemi.utils.combineFragSrc(fragHdr, fragEnd, fragSrc, 'vec4 clr');
+			fragSrc = hemi.utils.combineFragSrc(fragSrc, {
+				hdr: fragHdr,
+				glob: fragGlob,
+				local: 'vec4 preFogClr'
+			});
 			gl.detachShader(program, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
 		}
@@ -121,10 +135,14 @@ var hemi = (function(hemi) {
 		
 		// modify the pixel shader
 		if (fragSrc.search('opacity') < 0) {
-			var fragHdr = 'uniform float opacity;',
-				fragEnd = 'gl_FragColor = vec4(clr.rgb, clr.a * opacity);';
+			var fragHdr = 'uniform float opacity; \n',
+				fragGlob = 'gl_FragColor = vec4(preOpClr.rgb, preOpClr.a * opacity);';
 			
-			fragSrc = hemi.utils.combineFragSrc(fragHdr, fragEnd, fragSrc, 'vec4 clr');
+			fragSrc = hemi.utils.combineFragSrc(fragSrc, {
+				hdr: fragHdr,
+				glob: fragGlob,
+				local: 'vec4 preOpClr'
+			});
 			gl.detachShader(program, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
 		}
