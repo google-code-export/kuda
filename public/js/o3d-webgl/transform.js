@@ -973,8 +973,6 @@ o3d.Transform.axisRotateMatrix =
       r20 * m03 + r21 * m13 + r22 * m23);
 
   opt_target[3].splice(0, 4, m30, m31, m32, m33);
-	  
-  this.transformBoundingBox();
 };
 
 
