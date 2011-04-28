@@ -70,20 +70,21 @@
 		 * 5 seconds. Specify the shapes are arrows.
 		 */
 		var systemConfig = {
-			aim : true,
-			particles : 500,
-			life : 12,
-			trail : true,
-			boxes : [box1, box2, box3, box4, box5, box6, box7, box8, box9, box1],
-			shape : hemi.curve.shapeType.ARROW,
-			color : [0, 0, 1, 0.7],
-			size : 10
+			fast: true,
+			aim: true,
+			trail: true,
+			particles: 500,
+			life: 12,
+			boxes: [box1, box2, box3, box4, box5, box6, box7, box8, box9, box1],
+			shape: hemi.curve.shapeType.ARROW,
+			color: [0, 0, 1, 0.7],
+			size: 10
 		};
 		
 		/* Create the particle system with the above config, 
 		 * and make the root transform its parent.
 		 */
-		var particleSystem = new hemi.curve.GpuParticleSystem(systemConfig);
+		var particleSystem = hemi.curve.createSystem(systemConfig);
 		var showBoxes = false;		// If boxes are being shown
 		
 		/* Register a keyDown listener:

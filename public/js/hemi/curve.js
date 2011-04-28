@@ -257,6 +257,28 @@ var hemi = (function(hemi) {
 		this.dbgBoxTransforms = [];
 	};
 	
+	/**
+	 * Create a curve particle system with the given configuration.
+	 * 
+	 * @param {Object} cfg configuration options
+	 * @return {Object} the created particle system
+	 */
+	hemi.curve.createSystem = function(cfg) {
+		var system;
+		
+		if (cfg.fast) {
+			if (cfg.trail) {
+				system = new hemi.curve.GpuParticleTrail(cfg);
+			} else {
+				system = new hemi.curve.GpuParticleSystem(cfg);
+			}
+		} else {
+			system = new hemi.curve.ParticleSystem(cfg);
+		}
+		
+		return system;
+	};
+	
 	hemi.curve.init = function() {
 		this.dbgBoxMat = hemi.core.material.createConstantMaterial(
 			hemi.core.mainPack,
@@ -1003,12 +1025,12 @@ var hemi = (function(hemi) {
 		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
 		'attribute vec4 TEXCOORD; \n' +
-		'varying float ptcVis; \n' +
-		'\n' +
+		'varying float ptcVis; \n';
+	
+	hemi.curve.vertSupport =
 		'float rand(vec2 co) { \n' +
 		'  return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); \n' +
 		'} \n' +
-		'\n' +
 		'vec3 randXYZ(vec2 co, vec3 min, vec3 max) { \n' +
 		'  float rX = rand(vec2(co.x, co.x)); \n' +
 		'  float rY = rand(vec2(co.y, co.y)); \n' +
@@ -1017,8 +1039,33 @@ var hemi = (function(hemi) {
 		'              rY*min[1] + (1.0-rY)*max[1], \n' +
 		'              rZ*min[2] + (1.0-rZ)*max[2]); \n' +
 		'} \n' +
-		'\n' +
-		'vec4 getPtcPos() { \n' +
+		'vec3 ptcInterp(float t, vec3 p0, vec3 p1, vec3 m0, vec3 m1) { \n' +
+		'  float t2 = t*t; \n' +
+		'  float t3 = t2*t; \n' +
+		'  return (2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
+		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
+		'} \n';
+	
+	hemi.curve.vertSupportAim =
+		'mat4 getRotMat(float t, vec3 p0, vec3 p1, vec3 m0, vec3 m1) { \n' +
+		'  float tM = max(0.0,t-0.02); \n' +
+		'  float tP = min(1.0,t+0.02); \n' +
+		'  vec3 posM = ptcInterp(tM, p0, p1, m0, m1); \n' +
+		'  vec3 posP = ptcInterp(tP, p0, p1, m0, m1); \n' +
+		'  vec3 dPos = posP-posM; \n' +
+		'  float dxz = sqrt(pow(dPos[0],2.0)+pow(dPos[2],2.0)); \n' +
+		'  float dxyz = length(dPos); \n' +
+		'  float cx = dPos[1]/dxyz; \n' +
+		'  float cy = dPos[2]/dxz; \n' +
+		'  float sx = dxz/dxyz; \n' +
+		'  float sy = dPos[0]/dxz; \n' +
+		'  return mat4(cy,0.0,-1.0*sy,0.0, \n' +
+		'   sx*sy,cx,sx*cy,0.0, \n' +
+		'   cx*sy,-1.0*sx,cx*cy,0.0, \n' +
+		'   0.0,0.0,0.0,1.0); \n' +
+		'} \n';
+	
+	hemi.curve.vertBodySetup =
 		'  float pLen = float(NUM_BOXES-1); \n' +
 		'  float id = TEXCOORD[0]; \n' +
 		'  float offset = TEXCOORD[1]; \n' +
@@ -1044,46 +1091,75 @@ var hemi = (function(hemi) {
 		'    vec3 pm1 = randXYZ(seed,minXYZ[ndx-1],maxXYZ[ndx-1]); \n' +
 		'    m0 = vec3(p1[0]-pm1[0],p1[1]-pm1[1],p1[2]-pm1[2]); \n' +
 		'  } \n' +
-		'  if (ndx == 2) { \n' +
+		'  if (ndx == NUM_BOXES-2) { \n' +
 		'    m1 = vec3(0,0,0); \n' +
 		'  } else { \n' +
 		'    vec3 p2 = randXYZ(seed,minXYZ[ndx+2],maxXYZ[ndx+2]); \n' +
 		'    m1 = vec3(p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]); \n' +
 		'  } \n' +
 		'  float t = pLen*vecTime - float(ndx); \n' +
-		'  float t2 = t*t; \n' +
-		'  float t3 = t2*t; \n' +
-		'  vec3 pos = position.xyz +  \n' +
-		'  	(2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
-		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
-		'  return worldViewProjection * vec4(pos, 1.0); \n' +
-		'} \n\n';
+		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n';
+	
+	hemi.curve.vertBodyWMAim =
+		'  mat4 rMat = getRotMat(t, p0, p1, m0, m1); \n' +
+		'  mat4 tMat = mat4(1.0,0.0,0.0,0.0, \n' +
+		'   0.0,1.0,0.0,0.0, \n' +
+		'   0.0,0.0,1.0,0.0, \n' +
+		'   pos.x,pos.y,pos.z,1.0); \n' +
+		'  mat4 tMatIT = mat4(1.0,0.0,0.0,-1.0*pos.x, \n' +
+		'   0.0,1.0,0.0,-1.0*pos.y, \n' +
+		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
+		'   0.0,0.0,0.0,1.0); \n' +
+		'  mat4 worldMat = tMat*rMat; \n' +
+		'  mat4 worldMatIT = tMatIT*rMat; \n';
+	
+	hemi.curve.vertBodyWMNoAim =
+		'  mat4 worldMat = mat4(1.0,0.0,0.0,0.0, \n' +
+		'   0.0,1.0,0.0,0.0, \n' +
+		'   0.0,0.0,1.0,0.0, \n' +
+		'   pos.x,pos.y,pos.z,1.0); \n' +
+		'  mat4 worldMatIT = mat4(1.0,0.0,0.0,-1.0*pos.x, \n' +
+		'   0.0,1.0,0.0,-1.0*pos.y, \n' +
+		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
+		'   0.0,0.0,0.0,1.0); \n';
+	
+	hemi.curve.vertBodyAssign =
+		'  mat4 wvpMat = worldViewProjection * worldMat; \n' +
+		'  v_position = wvpMat * position; \n' +
+		'  v_normal = (worldMatIT * vec4(normal, 0)).xyz; \n' +
+		'  v_surfaceToLight = lightWorldPos - (worldMat * position).xyz; \n' +
+		'  v_surfaceToView = (viewInverse[3] - (worldMat * position)).xyz; \n';
 
-	hemi.curve.vertEnd =
-		'gl_Position = getPtcPos(); ';
+	hemi.curve.vertGlob =
+		'gl_Position = v_position; ';
 	
 	hemi.curve.fragHeader =
-		'varying float ptcVis; \n' +
-		'\n' +
+		'varying float ptcVis; \n';
+	
+	hemi.curve.fragSupport =
 		'vec4 checkPtcVis(vec4 clr) { \n' +
 		'  if (ptcVis < 0.0) { \n' +
 		'    clr.a = 0.0; \n' +
 		'  } \n' +
 		'  return clr; \n' +
-		'} \n\n';
+		'} \n';
 
-	hemi.curve.fragEnd =
+	hemi.curve.fragGlob =
 		'gl_FragColor = checkPtcVis(preCheck); ';
 	
 	hemi.curve.GpuParticleSystem = function(cfg) {
 		this.active = false;
-		this.boxes = cfg.boxes;
-		this.endTime = 1.0;
-		this.life = cfg.life;
-		this.starting = false;
-		this.stopping = false;
-		this.trail = cfg.trail;
+		this.boxes = null;
+		this.life = null;
 		this.transform = null;
+		this.decParam = null;
+		this.maxTimeParam = null;
+		this.timeParam = null;
+		
+		// TODO: remove this when inheritance scheme changes
+		if (!cfg) {
+			return;
+		}
 		
 		var type = cfg.shape || hemi.curve.shapeType.CUBE,
 			color = cfg.color || [0,0,1,1],
@@ -1113,7 +1189,9 @@ var hemi = (function(hemi) {
 		}
 		
 		var shape = this.transform.shapes[0];
-		var material = modifyShape(shape, cfg.particles, cfg.boxes);
+		var material = modifyShape(shape, cfg.particles, cfg.boxes, cfg.aim);
+		this.boxes = cfg.boxes;
+		this.life = cfg.life;
 		this.decParam = material.getParam('ptcDec');
 		this.decParam.value = 1.0;
 		this.maxTimeParam = material.getParam('ptcMaxTime');
@@ -1123,6 +1201,51 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.GpuParticleSystem.prototype = {
+		onRender : function(e) {
+			var delta = e.elapsedTime / this.life,
+				newTime = this.timeParam.value + delta;
+			
+			while (newTime > 1.0) {
+				--newTime;
+			}
+			
+			this.timeParam.value = newTime;
+		},
+		
+		setLife : function(life) {
+			if (life > 0) {
+				this.life = life;
+			}
+		},
+		
+		start : function() {
+			if (!this.active) {
+				this.active = true;
+				this.timeParam.value = 1.0;
+				this.maxTimeParam.value = 1.0;
+				hemi.view.addRenderListener(this);
+			}
+		},
+		
+		stop : function() {
+			if (this.active) {
+				this.active = false;
+				this.timeParam.value = 1.1;
+				this.maxTimeParam.value = 3.0;
+				hemi.view.removeRenderListener(this);
+			}
+		}
+	};
+	
+	hemi.curve.GpuParticleTrail = function(cfg) {
+		hemi.curve.GpuParticleSystem.call(this, cfg);
+		
+		this.endTime = 1.0;
+		this.starting = false;
+		this.stopping = false;
+	};
+	
+	hemi.curve.GpuParticleTrail.prototype = {
 		onRender : function(e) {
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
@@ -1153,26 +1276,14 @@ var hemi = (function(hemi) {
 			this.timeParam.value = newTime;
 		},
 		
-		setLife : function(life) {
-			if (life > 0) {
-				this.life = life;
-			}
-		},
-		
 		start : function() {
 			if (!this.active) {
 				this.active = true;
-				
-				if (this.trail) {
-					this.starting = true;
-					this.stopping = false;
-					this.endTime = 2.0;
-					this.decParam.value = 2.0;
-					this.maxTimeParam.value = 2.0;
-				} else {
-					this.maxTimeParam.value = 1.0;
-				}
-				
+				this.starting = true;
+				this.stopping = false;
+				this.endTime = 2.0;
+				this.decParam.value = 2.0;
+				this.maxTimeParam.value = 2.0;
 				this.timeParam.value = 1.0;
 				hemi.view.addRenderListener(this);
 			}
@@ -1180,22 +1291,17 @@ var hemi = (function(hemi) {
 		
 		stop : function() {
 			if (this.active && !this.stopping) {
-				if (this.trail) {
-					this.starting = false;
-					this.stopping = true;
-					this.endTime = this.timeParam.value + 1.0;
-				} else {
-					this.active = false;
-					this.timeParam.value = 1.1;
-					this.maxTimeParam.value = 3.0;
-					hemi.view.removeRenderListener(this);
-				}
+				this.starting = false;
+				this.stopping = true;
+				this.endTime = this.timeParam.value + 1.0;
 				
 			}
 		}
 	};
 	
-	var modifyShape = function(shape, numParticles, boxes) {
+	hemi.curve.GpuParticleTrail.inheritsFrom(hemi.curve.GpuParticleSystem);
+	
+	var modifyShape = function(shape, numParticles, boxes, aim) {
 		var elements = shape.elements,
 			material = null;
 		
@@ -1207,7 +1313,7 @@ var hemi = (function(hemi) {
 				
 				if (material === null) {
 					material = element.material;
-					modifyMaterial(material, boxes.length, texNdx);
+					modifyMaterial(material, boxes.length, texNdx, aim);
 					material.getParam('numPtcs').value = numParticles;
 					setupBounds(material, boxes);
 				}
@@ -1281,7 +1387,7 @@ var hemi = (function(hemi) {
 		return idOffNdx;
 	};
 	
-	var modifyMaterial = function(material, numBoxes, texNdx) {
+	var modifyMaterial = function(material, numBoxes, texNdx, aim) {
 		var shads = hemi.utils.getShaders(material),
 			fragShd = shads.fragShd,
 			fragSrc = shads.fragSrc;
@@ -1291,20 +1397,39 @@ var hemi = (function(hemi) {
 		// modify the vertex shader
 		if (vertSrc.search('getPtcPos') < 0) {
 			var vertHdr = hemi.curve.vertHeader.replace(/NUM_BOXES/g, numBoxes),
-				vertEnd = hemi.curve.vertEnd;
+				vertSprt = hemi.curve.vertSupport,
+				vertBody = hemi.curve.vertBodySetup.replace(/NUM_BOXES/g, numBoxes);
 			
 			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
-			vertSrc = hemi.utils.combineVertSrc(vertHdr, vertEnd, vertSrc);
+			vertBody = vertBody.replace(/TEXCOORD/g, 'texCoord' + texNdx);
+			
+			if (aim) {
+				vertSprt += hemi.curve.vertSupportAim;
+				vertBody += hemi.curve.vertBodyWMAim;
+			} else {
+				vertBody += hemi.curve.vertBodyWMNoAim;
+			}
+			
+			vertBody += hemi.curve.vertBodyAssign;
+			vertSrc = hemi.utils.combineVertSrc(vertSrc, {
+				hdr: vertHdr,
+				sprt: vertSprt,
+				body: vertBody,
+				glob: hemi.curve.vertGlob,
+				replaceBody: true
+			});
 			material.gl.detachShader(material.effect.program_, vertShd);
 			material.effect.loadVertexShaderFromString(vertSrc);
 		}
 		
 		// modify the fragment shader
 		if (fragSrc.search('checkPtcVis') < 0) {
-			var fragHdr = hemi.curve.fragHeader,
-				fragEnd = hemi.curve.fragEnd;
-			
-			fragSrc = hemi.utils.combineFragSrc(fragHdr, fragEnd, fragSrc, 'vec4 preCheck');
+			fragSrc = hemi.utils.combineFragSrc(fragSrc, {
+				hdr: hemi.curve.fragHeader,
+				sprt: hemi.curve.fragSupport,
+				glob: hemi.curve.fragGlob,
+				local: 'vec4 preCheck'
+			});
 			material.gl.detachShader(material.effect.program_, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
 		}
