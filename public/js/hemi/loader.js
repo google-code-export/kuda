@@ -250,7 +250,6 @@ var hemi = (function(hemi) {
 		var list = hemi.world.loader.loadInfo.children_,
 			loadInfo = list[list.length - 1];
 		
-		console.log('loading model...');
 		syncedIntervalFcn(url, loadInfo);
 	};
 
