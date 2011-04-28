@@ -22,67 +22,82 @@ var hemi = (function(hemi) {
 	 * Combine the given strings into one cohesive fragment shader source
 	 * string.
 	 * 
-	 * @param {string} head any source to insert before the main function
-	 * @param {string} tail any source to append to the end of main, typically
-	 *     setting the value of the global variable for the shader
 	 * @param {string} src the original shader source string
-	 * @param {string} opt_local an optional new local variable to receive the
-	 *     value that was previously being set to the global variable (otherwise
-	 *     the previous value is just overwritten)
+	 * @param {Object} cfg configuration object for how to build the new shader:
+	 *     hdr: optional new header source
+	 *     sprt: optional new support source
+	 *     body: optional new body source
+	 *     glob: optional new global variable assignment source
+	 *     local: optional local variable to assign old global variable value to
+	 *     replaceHdr: flag indicating if old header source should be removed
+	 *     replaceSprt: flag indicating if old support source should be removed
+	 *     replaceBody: flag indicating if old body source should be removed
 	 * @return {string} the new shader source string
 	 */
-	hemi.utils.combineFragSrc = function(head, tail, src, opt_local) {
-		return hemi.utils.combineSrc(head, tail, 'gl_FragColor', src, opt_local);
+	hemi.utils.combineFragSrc = function(src, cfg) {
+		cfg.globName = 'gl_FragColor';
+		return this.combineSrc(src, cfg);
 	};
 	
 	/**
 	 * Combine the given strings into one cohesive shader source string.
 	 * 
-	 * @param {string} head any source to insert before the main function
-	 * @param {string} tail any source to append to the end of main, typically
-	 *     setting the value of the global variable for the shader
-	 * @param {string} global the global variable previously being set by the
-	 *     main function
 	 * @param {string} src the original shader source string
-	 * @param {string} opt_local an optional new local variable to receive the
-	 *     value that was previously being set to the global variable (otherwise
-	 *     the previous value is just overwritten)
+	 * @param {Object} cfg configuration object for how to build the new shader:
+	 *     globName: name of the global variable to set in the main function
+	 *     hdr: optional new header source
+	 *     sprt: optional new support source
+	 *     body: optional new body source
+	 *     glob: optional new global variable assignment source
+	 *     local: optional local variable to assign old global variable value to
+	 *     replaceHdr: flag indicating if old header source should be removed
+	 *     replaceSprt: flag indicating if old support source should be removed
+	 *     replaceBody: flag indicating if old body source should be removed
 	 * @return {string} the new shader source string
 	 */
-	hemi.utils.combineSrc = function(head, tail, global, src, opt_local) {
-		var hdrNdx = src.search('void main'),
-			globNdx = src.search(global),
-			newHead = src.slice(0, hdrNdx) + head,
-			body = src.slice(hdrNdx, globNdx),
-			oldEnd = src.slice(globNdx),
-			endNdx = oldEnd.search(';') + 1,
-			newEnd = tail + src.slice(globNdx + endNdx);
+	hemi.utils.combineSrc = function(src, cfg) {
+		var parsed = this.parseSrc(src, cfg.globName),
+			newHdr = cfg.replaceHdr ? '' : parsed.hdr,
+			newSprt = cfg.replaceSprt ? '' : parsed.sprt,
+			newBody = cfg.replaceBody ? '' : parsed.body,
+			newGlob = cfg.glob ? cfg.glob : parsed.glob,
+			newSrc;
 		
-		if (opt_local) {
-			var oldGlobal = oldEnd.slice(0, endNdx),
-				newGlobal = oldGlobal.replace(global, opt_local);
-			
-			newEnd = newGlobal + '\n' + newEnd;
+		if (cfg.hdr) {
+			newHdr += cfg.hdr;
+		}
+		if (cfg.sprt) {
+			newSprt += cfg.sprt;
+		}
+		if (cfg.body) {
+			newBody += cfg.body;
+		}
+		if (cfg.local && cfg.glob) {
+			newGlob = parsed.glob.replace(cfg.globName, cfg.local) + '\n' + newGlob;
 		}
 		
-		src = newHead + body + newEnd;
-		return src;
+		newSrc = newHdr + newSprt + parsed.main + newBody + newGlob + parsed.end;
+		return newSrc;
 	};
 	
 	/**
 	 * Combine the given strings into one cohesive vertex shader source string.
 	 * 
-	 * @param {string} head any source to insert before the main function
-	 * @param {string} tail any source to append to the end of main, typically
-	 *     setting the value of the global variable for the shader
 	 * @param {string} src the original shader source string
-	 * @param {string} opt_local an optional new local variable to receive the
-	 *     value that was previously being set to the global variable (otherwise
-	 *     the previous value is just overwritten)
+	 * @param {Object} cfg configuration object for how to build the new shader:
+	 *     hdr: optional new header source
+	 *     sprt: optional new support source
+	 *     body: optional new body source
+	 *     glob: optional new global variable assignment source
+	 *     local: optional local variable to assign old global variable value to
+	 *     replaceHdr: flag indicating if old header source should be removed
+	 *     replaceSprt: flag indicating if old support source should be removed
+	 *     replaceBody: flag indicating if old body source should be removed
 	 * @return {string} the new shader source string
 	 */
-	hemi.utils.combineVertSrc = function(head, tail, src, opt_local) {
-		return hemi.utils.combineSrc(head, tail, 'gl_Position', src, opt_local);
+	hemi.utils.combineVertSrc = function(src, cfg) {
+		cfg.globName = 'gl_Position';
+		return this.combineSrc(src, cfg);
 	};
 	
 	/**
@@ -117,6 +132,65 @@ var hemi = (function(hemi) {
 		}
 		
 		return obj;
+	};
+	
+	/**
+	 * Parse the given shader source into logical groupings as follows:
+	 *   Header - uniform, attribute, and varying parameters
+	 *   Support - support/utility functions
+	 *   Body - all of the main function except Global
+	 *   Global - where the shader's global variable is assigned
+	 * 
+	 * Example:
+	 * (HEADER_START)
+	 * #ifdef MYVAR
+	 * #endif
+	 * uniform mat4 worldViewProjection;
+	 * attribute vec4 position;
+	 * (HEADER_END)
+	 * (SUPPORT_START)
+	 * float getOne() {
+	 *   return 1.0;
+	 * }
+	 * (SUPPORT_END)
+	 * void main() {
+	 *   (BODY_START)
+	 *   float one = getOne();
+	 *   vec4 realPos = worldViewProjection*position;
+	 *   (BODY_END)
+	 *   (GLOBAL_START)
+	 *   gl_Position = realPos;
+	 *   (GLOBAL_END)
+	 * }
+	 * 
+	 * @param {string} src full shader source
+	 * @param {string} global global variable assigned by shader
+	 * @return {Object} structure populated with parsed shader source
+	 */
+	hemi.utils.parseSrc = function(src, global) {
+		var hdrEnd = src.lastIndexOf(';', src.indexOf('{')) + 1,
+			sprtEnd = src.indexOf('void main', hdrEnd),
+			bodyStart = src.indexOf('{', sprtEnd) + 1,
+			bodyEnd = src.indexOf(global, bodyStart),
+			globEnd = src.indexOf(';', bodyEnd) + 1;
+		
+		if (src.charAt(hdrEnd) === '\n') {
+			++hdrEnd;
+		}
+		if (src.charAt(bodyStart) === '\n') {
+			++bodyStart;
+		}
+		
+		var parsedSrc = {
+			hdr: src.slice(0, hdrEnd),
+			sprt: src.slice(hdrEnd, sprtEnd),
+			main: src.slice(sprtEnd, bodyStart),
+			body: src.slice(bodyStart, bodyEnd),
+			glob: src.slice(bodyEnd, globEnd),
+			end: src.slice(globEnd)
+		};
+		
+		return parsedSrc;
 	};
 	
 	return hemi;
