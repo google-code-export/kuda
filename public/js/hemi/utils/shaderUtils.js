@@ -81,6 +81,60 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
+	 * Combine the given strings into one cohesive vertex shader source string.
+	 * 
+	 * @param {string} src the original shader source string
+	 * @param {Object} cfg configuration object for how to build the new shader:
+	 *     hdr: optional new header source
+	 *     sprt: optional new support source
+	 *     body: optional new body source
+	 *     glob: optional new global variable assignment source
+	 *     local: optional local variable to assign old global variable value to
+	 *     replaceHdr: flag indicating if old header source should be removed
+	 *     replaceSprt: flag indicating if old support source should be removed
+	 *     replaceBody: flag indicating if old body source should be removed
+	 * @return {string} the new shader source string
+	 */
+	hemi.utils.combineVertSrc = function(src, cfg) {
+		cfg.globName = 'gl_Position';
+		return this.combineSrc(src, cfg);
+	};
+	
+	/**
+	 * Get the vertex and pixel shaders (as well as their source) for the given
+	 * Material.
+	 * 
+	 * @param {o3d.Material} material the material to get shaders for
+	 * @return {Object} object containing shaders and source strings
+	 */
+	hemi.utils.getShaders = function(material) {
+		var gl = material.gl,
+			program = material.effect.program_,
+			shaders = gl.getAttachedShaders(program),
+			source1 = gl.getShaderSource(shaders[0]),
+			source2 = gl.getShaderSource(shaders[1]),
+			obj;
+		
+		if (source1.search('gl_FragColor') > 0) {
+			obj = {
+				fragShd: shaders[0],
+				fragSrc: source1,
+				vertShd: shaders[1],
+				vertSrc: source2
+			};
+		} else {
+			obj = {
+				fragShd: shaders[1],
+				fragSrc: source2,
+				vertShd: shaders[0],
+				vertSrc: source1
+			};
+		}
+		
+		return obj;
+	};
+	
+	/**
 	 * Parse the given shader source into logical groupings as follows:
 	 *   Header - uniform, attribute, and varying parameters
 	 *   Support - support/utility functions
@@ -137,60 +191,6 @@ var hemi = (function(hemi) {
 		};
 		
 		return parsedSrc;
-	};
-	
-	/**
-	 * Combine the given strings into one cohesive vertex shader source string.
-	 * 
-	 * @param {string} src the original shader source string
-	 * @param {Object} cfg configuration object for how to build the new shader:
-	 *     hdr: optional new header source
-	 *     sprt: optional new support source
-	 *     body: optional new body source
-	 *     glob: optional new global variable assignment source
-	 *     local: optional local variable to assign old global variable value to
-	 *     replaceHdr: flag indicating if old header source should be removed
-	 *     replaceSprt: flag indicating if old support source should be removed
-	 *     replaceBody: flag indicating if old body source should be removed
-	 * @return {string} the new shader source string
-	 */
-	hemi.utils.combineVertSrc = function(src, cfg) {
-		cfg.globName = 'gl_Position';
-		return this.combineSrc(src, cfg);
-	};
-	
-	/**
-	 * Get the vertex and pixel shaders (as well as their source) for the given
-	 * Material.
-	 * 
-	 * @param {o3d.Material} material the material to get shaders for
-	 * @return {Object} object containing shaders and source strings
-	 */
-	hemi.utils.getShaders = function(material) {
-		var gl = material.gl,
-			program = material.effect.program_,
-			shaders = gl.getAttachedShaders(program),
-			source1 = gl.getShaderSource(shaders[0]),
-			source2 = gl.getShaderSource(shaders[1]),
-			obj;
-		
-		if (source1.search('gl_FragColor') > 0) {
-			obj = {
-				fragShd: shaders[0],
-				fragSrc: source1,
-				vertShd: shaders[1],
-				vertSrc: source2
-			};
-		} else {
-			obj = {
-				fragShd: shaders[1],
-				fragSrc: source2,
-				vertShd: shaders[0],
-				vertSrc: source1
-			};
-		}
-		
-		return obj;
 	};
 	
 	return hemi;
