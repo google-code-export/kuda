@@ -1035,13 +1035,13 @@ var hemi = (function(hemi) {
 		'  float rX = rand(vec2(co.x, co.x)); \n' +
 		'  float rY = rand(vec2(co.y, co.y)); \n' +
 		'  float rZ = rand(co); \n' +
-		'  return vec3(rX*min[0] + (1.0-rX)*max[0], \n' +
-		'              rY*min[1] + (1.0-rY)*max[1], \n' +
-		'              rZ*min[2] + (1.0-rZ)*max[2]); \n' +
+		'  return vec3(mix(max.x, min.x, rX), \n' +
+		'              mix(max.y, min.y, rY), \n' +
+		'              mix(max.z, min.z, rZ)); \n' +
 		'} \n' +
 		'vec3 ptcInterp(float t, vec3 p0, vec3 p1, vec3 m0, vec3 m1) { \n' +
-		'  float t2 = t*t; \n' +
-		'  float t3 = t2*t; \n' +
+		'  float t2 = pow(t, 2.0); \n' +
+		'  float t3 = pow(t, 3.0); \n' +
 		'  return (2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
 		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
 		'} \n';
@@ -1053,12 +1053,12 @@ var hemi = (function(hemi) {
 		'  vec3 posM = ptcInterp(tM, p0, p1, m0, m1); \n' +
 		'  vec3 posP = ptcInterp(tP, p0, p1, m0, m1); \n' +
 		'  vec3 dPos = posP-posM; \n' +
-		'  float dxz = sqrt(pow(dPos[0],2.0)+pow(dPos[2],2.0)); \n' +
+		'  float dxz = sqrt(pow(dPos.x,2.0)+pow(dPos.z,2.0)); \n' +
 		'  float dxyz = length(dPos); \n' +
-		'  float cx = dPos[1]/dxyz; \n' +
-		'  float cy = dPos[2]/dxz; \n' +
+		'  float cx = dPos.y/dxyz; \n' +
+		'  float cy = dPos.z/dxz; \n' +
 		'  float sx = dxz/dxyz; \n' +
-		'  float sy = dPos[0]/dxz; \n' +
+		'  float sy = dPos.x/dxz; \n' +
 		'  return mat4(cy,0.0,-1.0*sy,0.0, \n' +
 		'   sx*sy,cx,sx*cy,0.0, \n' +
 		'   cx*sy,-1.0*sx,cx*cy,0.0, \n' +
@@ -1066,21 +1066,22 @@ var hemi = (function(hemi) {
 		'} \n';
 	
 	hemi.curve.vertBodySetup =
-		'  float pLen = float(NUM_BOXES-1); \n' +
 		'  float id = TEXCOORD[0]; \n' +
 		'  float offset = TEXCOORD[1]; \n' +
 		'  vec2 seed = vec2(id, numPtcs-id); \n' +
-		'  float vecTime = ptcTime + offset; \n' +
-		'  if (vecTime > ptcMaxTime) { \n' +
-		'    vecTime -= ptcDec; \n' +
+		'  float ptcT = ptcTime + offset; \n' +
+		'  if (ptcT > ptcMaxTime) { \n' +
+		'    ptcT -= ptcDec; \n' +
 		'  } \n' +
-		'  if (vecTime > 1.0) { \n' +
+		'  if (ptcT > 1.0) { \n' +
 		'    ptcVis = -1.0; \n' +
-		'    vecTime = 0.0; \n' +
+		'    ptcT = 0.0; \n' +
 		'  } else { \n' +
 		'    ptcVis = 1.0; \n' +
 		'  } \n' +
-		'  int ndx = int(floor(pLen*vecTime)); \n' +
+		'  float curveT = float(NUM_BOXES-1)*ptcT; \n' +
+		'  int ndx = int(floor(curveT)); \n' +
+		'  float t = fract(curveT); \n' +
 		'  vec3 p0 = randXYZ(seed,minXYZ[ndx],maxXYZ[ndx]); \n' +
 		'  vec3 p1 = randXYZ(seed,minXYZ[ndx+1],maxXYZ[ndx+1]); \n' +
 		'  vec3 m0; \n' +
@@ -1089,15 +1090,14 @@ var hemi = (function(hemi) {
 		'    m0 = vec3(0,0,0); \n' +
 		'  } else { \n' +
 		'    vec3 pm1 = randXYZ(seed,minXYZ[ndx-1],maxXYZ[ndx-1]); \n' +
-		'    m0 = vec3(p1[0]-pm1[0],p1[1]-pm1[1],p1[2]-pm1[2]); \n' +
+		'    m0 = p1 - pm1; \n' +
 		'  } \n' +
 		'  if (ndx == NUM_BOXES-2) { \n' +
 		'    m1 = vec3(0,0,0); \n' +
 		'  } else { \n' +
 		'    vec3 p2 = randXYZ(seed,minXYZ[ndx+2],maxXYZ[ndx+2]); \n' +
-		'    m1 = vec3(p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]); \n' +
+		'    m1 = p2 - p0; \n' +
 		'  } \n' +
-		'  float t = pLen*vecTime - float(ndx); \n' +
 		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n';
 	
 	hemi.curve.vertBodyWMAim =
@@ -1123,7 +1123,7 @@ var hemi = (function(hemi) {
 		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
 		'   0.0,0.0,0.0,1.0); \n';
 	
-	hemi.curve.vertBodyAssign =
+	hemi.curve.vertBodyEnd =
 		'  mat4 wvpMat = worldViewProjection * worldMat; \n' +
 		'  v_position = wvpMat * position; \n' +
 		'  v_normal = (worldMatIT * vec4(normal, 0)).xyz; \n' +
@@ -1410,7 +1410,7 @@ var hemi = (function(hemi) {
 				vertBody += hemi.curve.vertBodyWMNoAim;
 			}
 			
-			vertBody += hemi.curve.vertBodyAssign;
+			vertBody += hemi.curve.vertBodyEnd;
 			vertSrc = hemi.utils.combineVertSrc(vertSrc, {
 				hdr: vertHdr,
 				sprt: vertSprt,
