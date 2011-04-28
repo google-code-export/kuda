@@ -264,11 +264,19 @@ var hemi = (function(hemi) {
 	 * @return {Object} the created particle system
 	 */
 	hemi.curve.createSystem = function(cfg) {
+		var system;
+		
 		if (cfg.fast) {
-			return new hemi.curve.GpuParticleSystem(cfg);
+			if (cfg.trail) {
+				system = new hemi.curve.GpuParticleTrail(cfg);
+			} else {
+				system = new hemi.curve.GpuParticleSystem(cfg);
+			}
 		} else {
-			return new hemi.curve.ParticleSystem(cfg);
+			system = new hemi.curve.ParticleSystem(cfg);
 		}
+		
+		return system;
 	};
 	
 	hemi.curve.init = function() {
@@ -1141,13 +1149,17 @@ var hemi = (function(hemi) {
 	
 	hemi.curve.GpuParticleSystem = function(cfg) {
 		this.active = false;
-		this.boxes = cfg.boxes;
-		this.endTime = 1.0;
-		this.life = cfg.life;
-		this.starting = false;
-		this.stopping = false;
-		this.trail = cfg.trail;
+		this.boxes = null;
+		this.life = null;
 		this.transform = null;
+		this.decParam = null;
+		this.maxTimeParam = null;
+		this.timeParam = null;
+		
+		// TODO: remove this when inheritance scheme changes
+		if (!cfg) {
+			return;
+		}
 		
 		var type = cfg.shape || hemi.curve.shapeType.CUBE,
 			color = cfg.color || [0,0,1,1],
@@ -1178,6 +1190,8 @@ var hemi = (function(hemi) {
 		
 		var shape = this.transform.shapes[0];
 		var material = modifyShape(shape, cfg.particles, cfg.boxes, cfg.aim);
+		this.boxes = cfg.boxes;
+		this.life = cfg.life;
 		this.decParam = material.getParam('ptcDec');
 		this.decParam.value = 1.0;
 		this.maxTimeParam = material.getParam('ptcMaxTime');
@@ -1187,6 +1201,51 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.GpuParticleSystem.prototype = {
+		onRender : function(e) {
+			var delta = e.elapsedTime / this.life,
+				newTime = this.timeParam.value + delta;
+			
+			while (newTime > 1.0) {
+				--newTime;
+			}
+			
+			this.timeParam.value = newTime;
+		},
+		
+		setLife : function(life) {
+			if (life > 0) {
+				this.life = life;
+			}
+		},
+		
+		start : function() {
+			if (!this.active) {
+				this.active = true;
+				this.timeParam.value = 1.0;
+				this.maxTimeParam.value = 1.0;
+				hemi.view.addRenderListener(this);
+			}
+		},
+		
+		stop : function() {
+			if (this.active) {
+				this.active = false;
+				this.timeParam.value = 1.1;
+				this.maxTimeParam.value = 3.0;
+				hemi.view.removeRenderListener(this);
+			}
+		}
+	};
+	
+	hemi.curve.GpuParticleTrail = function(cfg) {
+		hemi.curve.GpuParticleSystem.call(this, cfg);
+		
+		this.endTime = 1.0;
+		this.starting = false;
+		this.stopping = false;
+	};
+	
+	hemi.curve.GpuParticleTrail.prototype = {
 		onRender : function(e) {
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
@@ -1217,26 +1276,14 @@ var hemi = (function(hemi) {
 			this.timeParam.value = newTime;
 		},
 		
-		setLife : function(life) {
-			if (life > 0) {
-				this.life = life;
-			}
-		},
-		
 		start : function() {
 			if (!this.active) {
 				this.active = true;
-				
-				if (this.trail) {
-					this.starting = true;
-					this.stopping = false;
-					this.endTime = 2.0;
-					this.decParam.value = 2.0;
-					this.maxTimeParam.value = 2.0;
-				} else {
-					this.maxTimeParam.value = 1.0;
-				}
-				
+				this.starting = true;
+				this.stopping = false;
+				this.endTime = 2.0;
+				this.decParam.value = 2.0;
+				this.maxTimeParam.value = 2.0;
 				this.timeParam.value = 1.0;
 				hemi.view.addRenderListener(this);
 			}
@@ -1244,20 +1291,15 @@ var hemi = (function(hemi) {
 		
 		stop : function() {
 			if (this.active && !this.stopping) {
-				if (this.trail) {
-					this.starting = false;
-					this.stopping = true;
-					this.endTime = this.timeParam.value + 1.0;
-				} else {
-					this.active = false;
-					this.timeParam.value = 1.1;
-					this.maxTimeParam.value = 3.0;
-					hemi.view.removeRenderListener(this);
-				}
+				this.starting = false;
+				this.stopping = true;
+				this.endTime = this.timeParam.value + 1.0;
 				
 			}
 		}
 	};
+	
+	hemi.curve.GpuParticleTrail.inheritsFrom(hemi.curve.GpuParticleSystem);
 	
 	var modifyShape = function(shape, numParticles, boxes, aim) {
 		var elements = shape.elements,
