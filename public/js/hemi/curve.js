@@ -1003,12 +1003,12 @@ var hemi = (function(hemi) {
 		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
 		'attribute vec4 TEXCOORD; \n' +
-		'varying float ptcVis; \n' +
-		'\n' +
+		'varying float ptcVis; \n';
+	
+	hemi.curve.vertSupport =
 		'float rand(vec2 co) { \n' +
 		'  return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); \n' +
 		'} \n' +
-		'\n' +
 		'vec3 randXYZ(vec2 co, vec3 min, vec3 max) { \n' +
 		'  float rX = rand(vec2(co.x, co.x)); \n' +
 		'  float rY = rand(vec2(co.y, co.y)); \n' +
@@ -1017,15 +1017,31 @@ var hemi = (function(hemi) {
 		'              rY*min[1] + (1.0-rY)*max[1], \n' +
 		'              rZ*min[2] + (1.0-rZ)*max[2]); \n' +
 		'} \n' +
-		'\n' +
 		'vec3 ptcInterp(float t, vec3 p0, vec3 p1, vec3 m0, vec3 m1) { \n' +
 		'  float t2 = t*t; \n' +
 		'  float t3 = t2*t; \n' +
 		'  return (2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
 		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
 		'} \n' +
-		'\n' +
-		'vec4 getPtcPos() { \n' +
+		'mat4 getRotMat(float t, vec3 p0, vec3 p1, vec3 m0, vec3 m1) { \n' +
+		'  float tM = max(0.0,t-0.02); \n' +
+		'  float tP = min(1.0,t+0.02); \n' +
+		'  vec3 posM = ptcInterp(tM, p0, p1, m0, m1); \n' +
+		'  vec3 posP = ptcInterp(tP, p0, p1, m0, m1); \n' +
+		'  vec3 dPos = posP-posM; \n' +
+		'  float dxz = sqrt(pow(dPos[0],2.0)+pow(dPos[2],2.0)); \n' +
+		'  float dxyz = length(dPos); \n' +
+		'  float cx = dPos[1]/dxyz; \n' +
+		'  float cy = dPos[2]/dxz; \n' +
+		'  float sx = dxz/dxyz; \n' +
+		'  float sy = dPos[0]/dxz; \n' +
+		'  return mat4(cy,0.0,-1.0*sy,0.0, \n' +
+		'   sx*sy,cx,sx*cy,0.0, \n' +
+		'   cx*sy,-1.0*sx,cx*cy,0.0, \n' +
+		'   0.0,0.0,0.0,1.0); \n' +
+		'} \n';
+	
+	hemi.curve.vertBody =
 		'  float pLen = float(NUM_BOXES-1); \n' +
 		'  float id = TEXCOORD[0]; \n' +
 		'  float offset = TEXCOORD[1]; \n' +
@@ -1051,7 +1067,7 @@ var hemi = (function(hemi) {
 		'    vec3 pm1 = randXYZ(seed,minXYZ[ndx-1],maxXYZ[ndx-1]); \n' +
 		'    m0 = vec3(p1[0]-pm1[0],p1[1]-pm1[1],p1[2]-pm1[2]); \n' +
 		'  } \n' +
-		'  if (ndx == 2) { \n' +
+		'  if (ndx == NUM_BOXES-2) { \n' +
 		'    m1 = vec3(0,0,0); \n' +
 		'  } else { \n' +
 		'    vec3 p2 = randXYZ(seed,minXYZ[ndx+2],maxXYZ[ndx+2]); \n' +
@@ -1059,22 +1075,7 @@ var hemi = (function(hemi) {
 		'  } \n' +
 		'  float t = pLen*vecTime - float(ndx); \n' +
 		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n' +
-		// Start rotate
-		'  float tM = max(0.0,t-0.02); \n' +
-		'  float tP = min(1.0,t+0.02); \n' +
-		'  vec3 posM = ptcInterp(tM, p0, p1, m0, m1); \n' +
-		'  vec3 posP = ptcInterp(tP, p0, p1, m0, m1); \n' +
-		'  vec3 dPos = posP-posM; \n' +
-		'  float dxz = sqrt(pow(dPos[0],2.0)+pow(dPos[2],2.0)); \n' +
-		'  float dxyz = length(dPos); \n' +
-		'  float cx = dPos[1]/dxyz; \n' +
-		'  float cy = dPos[2]/dxz; \n' +
-		'  float sx = dxz/dxyz; \n' +
-		'  float sy = dPos[0]/dxz; \n' +
-		'  mat4 rMat = mat4(cy,0.0,-1.0*sy,0.0, \n' +
-		'   sx*sy,cx,sx*cy,0.0, \n' +
-		'   cx*sy,-1.0*sx,cx*cy,0.0, \n' +
-		'   0.0,0.0,0.0,1.0); \n' +
+		'  mat4 rMat = getRotMat(t, p0, p1, m0, m1); \n' +
 		'  mat4 tMat = mat4(1.0,0.0,0.0,0.0, \n' +
 		'   0.0,1.0,0.0,0.0, \n' +
 		'   0.0,0.0,1.0,0.0, \n' +
@@ -1085,29 +1086,27 @@ var hemi = (function(hemi) {
 		'   0.0,0.0,0.0,1.0); \n' +
 		'  mat4 worldMat = tMat*rMat; \n' +
 		'  mat4 worldMatIT = tMatIT*rMat; \n' +
-		// End rotate
+		'  mat4 wvpMat = worldViewProjection * worldMat; \n' +
+		'  v_position = wvpMat * position; \n' +
 		'  v_normal = (worldMatIT * vec4(normal, 0)).xyz; \n' +
-		'  mat4 myMat = worldViewProjection * worldMat; \n' +
-		'  vec4 newPos = myMat * position; \n' +
 		'  v_surfaceToLight = lightWorldPos - (worldMat * position).xyz; \n' +
-		'  v_surfaceToView = (viewInverse[3] - (worldMat * position)).xyz; \n' +
-		'  return newPos; \n' +
-		'} \n\n';
+		'  v_surfaceToView = (viewInverse[3] - (worldMat * position)).xyz; \n';
 
-	hemi.curve.vertEnd =
-		'gl_Position = getPtcPos(); ';
+	hemi.curve.vertGlob =
+		'gl_Position = v_position; ';
 	
 	hemi.curve.fragHeader =
-		'varying float ptcVis; \n' +
-		'\n' +
+		'varying float ptcVis; \n';
+	
+	hemi.curve.fragSupport =
 		'vec4 checkPtcVis(vec4 clr) { \n' +
 		'  if (ptcVis < 0.0) { \n' +
 		'    clr.a = 0.0; \n' +
 		'  } \n' +
 		'  return clr; \n' +
-		'} \n\n';
+		'} \n';
 
-	hemi.curve.fragEnd =
+	hemi.curve.fragGlob =
 		'gl_FragColor = checkPtcVis(preCheck); ';
 	
 	hemi.curve.GpuParticleSystem = function(cfg) {
@@ -1326,20 +1325,30 @@ var hemi = (function(hemi) {
 		// modify the vertex shader
 		if (vertSrc.search('getPtcPos') < 0) {
 			var vertHdr = hemi.curve.vertHeader.replace(/NUM_BOXES/g, numBoxes),
-				vertEnd = hemi.curve.vertEnd;
+				vertBody = hemi.curve.vertBody.replace(/NUM_BOXES/g, numBoxes);
 			
 			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
-			vertSrc = hemi.utils.combineVertSrc(vertHdr, vertEnd, vertSrc);
+			vertBody = vertBody.replace(/TEXCOORD/g, 'texCoord' + texNdx);
+			
+			vertSrc = hemi.utils.combineVertSrc(vertSrc, {
+				hdr: vertHdr,
+				sprt: hemi.curve.vertSupport,
+				body: vertBody,
+				glob: hemi.curve.vertGlob,
+				replaceBody: true
+			});
 			material.gl.detachShader(material.effect.program_, vertShd);
 			material.effect.loadVertexShaderFromString(vertSrc);
 		}
 		
 		// modify the fragment shader
 		if (fragSrc.search('checkPtcVis') < 0) {
-			var fragHdr = hemi.curve.fragHeader,
-				fragEnd = hemi.curve.fragEnd;
-			
-			fragSrc = hemi.utils.combineFragSrc(fragHdr, fragEnd, fragSrc, 'vec4 preCheck');
+			fragSrc = hemi.utils.combineFragSrc(fragSrc, {
+				hdr: hemi.curve.fragHeader,
+				sprt: hemi.curve.fragSupport,
+				glob: hemi.curve.fragGlob,
+				local: 'vec4 preCheck'
+			});
 			material.gl.detachShader(material.effect.program_, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
 		}
