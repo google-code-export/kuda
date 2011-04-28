@@ -257,6 +257,20 @@ var hemi = (function(hemi) {
 		this.dbgBoxTransforms = [];
 	};
 	
+	/**
+	 * Create a curve particle system with the given configuration.
+	 * 
+	 * @param {Object} cfg configuration options
+	 * @return {Object} the created particle system
+	 */
+	hemi.curve.createSystem = function(cfg) {
+		if (cfg.fast) {
+			return new hemi.curve.GpuParticleSystem(cfg);
+		} else {
+			return new hemi.curve.ParticleSystem(cfg);
+		}
+	};
+	
 	hemi.curve.init = function() {
 		this.dbgBoxMat = hemi.core.material.createConstantMaterial(
 			hemi.core.mainPack,
@@ -1022,7 +1036,9 @@ var hemi = (function(hemi) {
 		'  float t3 = t2*t; \n' +
 		'  return (2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
 		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
-		'} \n' +
+		'} \n';
+	
+	hemi.curve.vertSupportAim =
 		'mat4 getRotMat(float t, vec3 p0, vec3 p1, vec3 m0, vec3 m1) { \n' +
 		'  float tM = max(0.0,t-0.02); \n' +
 		'  float tP = min(1.0,t+0.02); \n' +
@@ -1041,7 +1057,7 @@ var hemi = (function(hemi) {
 		'   0.0,0.0,0.0,1.0); \n' +
 		'} \n';
 	
-	hemi.curve.vertBody =
+	hemi.curve.vertBodySetup =
 		'  float pLen = float(NUM_BOXES-1); \n' +
 		'  float id = TEXCOORD[0]; \n' +
 		'  float offset = TEXCOORD[1]; \n' +
@@ -1074,7 +1090,9 @@ var hemi = (function(hemi) {
 		'    m1 = vec3(p2[0]-p0[0],p2[1]-p0[1],p2[2]-p0[2]); \n' +
 		'  } \n' +
 		'  float t = pLen*vecTime - float(ndx); \n' +
-		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n' +
+		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n';
+	
+	hemi.curve.vertBodyWMAim =
 		'  mat4 rMat = getRotMat(t, p0, p1, m0, m1); \n' +
 		'  mat4 tMat = mat4(1.0,0.0,0.0,0.0, \n' +
 		'   0.0,1.0,0.0,0.0, \n' +
@@ -1085,7 +1103,19 @@ var hemi = (function(hemi) {
 		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
 		'   0.0,0.0,0.0,1.0); \n' +
 		'  mat4 worldMat = tMat*rMat; \n' +
-		'  mat4 worldMatIT = tMatIT*rMat; \n' +
+		'  mat4 worldMatIT = tMatIT*rMat; \n';
+	
+	hemi.curve.vertBodyWMNoAim =
+		'  mat4 worldMat = mat4(1.0,0.0,0.0,0.0, \n' +
+		'   0.0,1.0,0.0,0.0, \n' +
+		'   0.0,0.0,1.0,0.0, \n' +
+		'   pos.x,pos.y,pos.z,1.0); \n' +
+		'  mat4 worldMatIT = mat4(1.0,0.0,0.0,-1.0*pos.x, \n' +
+		'   0.0,1.0,0.0,-1.0*pos.y, \n' +
+		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
+		'   0.0,0.0,0.0,1.0); \n';
+	
+	hemi.curve.vertBodyAssign =
 		'  mat4 wvpMat = worldViewProjection * worldMat; \n' +
 		'  v_position = wvpMat * position; \n' +
 		'  v_normal = (worldMatIT * vec4(normal, 0)).xyz; \n' +
@@ -1147,7 +1177,7 @@ var hemi = (function(hemi) {
 		}
 		
 		var shape = this.transform.shapes[0];
-		var material = modifyShape(shape, cfg.particles, cfg.boxes);
+		var material = modifyShape(shape, cfg.particles, cfg.boxes, cfg.aim);
 		this.decParam = material.getParam('ptcDec');
 		this.decParam.value = 1.0;
 		this.maxTimeParam = material.getParam('ptcMaxTime');
@@ -1229,7 +1259,7 @@ var hemi = (function(hemi) {
 		}
 	};
 	
-	var modifyShape = function(shape, numParticles, boxes) {
+	var modifyShape = function(shape, numParticles, boxes, aim) {
 		var elements = shape.elements,
 			material = null;
 		
@@ -1241,7 +1271,7 @@ var hemi = (function(hemi) {
 				
 				if (material === null) {
 					material = element.material;
-					modifyMaterial(material, boxes.length, texNdx);
+					modifyMaterial(material, boxes.length, texNdx, aim);
 					material.getParam('numPtcs').value = numParticles;
 					setupBounds(material, boxes);
 				}
@@ -1315,7 +1345,7 @@ var hemi = (function(hemi) {
 		return idOffNdx;
 	};
 	
-	var modifyMaterial = function(material, numBoxes, texNdx) {
+	var modifyMaterial = function(material, numBoxes, texNdx, aim) {
 		var shads = hemi.utils.getShaders(material),
 			fragShd = shads.fragShd,
 			fragSrc = shads.fragSrc;
@@ -1325,14 +1355,23 @@ var hemi = (function(hemi) {
 		// modify the vertex shader
 		if (vertSrc.search('getPtcPos') < 0) {
 			var vertHdr = hemi.curve.vertHeader.replace(/NUM_BOXES/g, numBoxes),
-				vertBody = hemi.curve.vertBody.replace(/NUM_BOXES/g, numBoxes);
+				vertSprt = hemi.curve.vertSupport,
+				vertBody = hemi.curve.vertBodySetup.replace(/NUM_BOXES/g, numBoxes);
 			
 			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
 			vertBody = vertBody.replace(/TEXCOORD/g, 'texCoord' + texNdx);
 			
+			if (aim) {
+				vertSprt += hemi.curve.vertSupportAim;
+				vertBody += hemi.curve.vertBodyWMAim;
+			} else {
+				vertBody += hemi.curve.vertBodyWMNoAim;
+			}
+			
+			vertBody += hemi.curve.vertBodyAssign;
 			vertSrc = hemi.utils.combineVertSrc(vertSrc, {
 				hdr: vertHdr,
-				sprt: hemi.curve.vertSupport,
+				sprt: vertSprt,
 				body: vertBody,
 				glob: hemi.curve.vertGlob,
 				replaceBody: true
