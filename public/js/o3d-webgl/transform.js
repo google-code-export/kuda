@@ -54,10 +54,19 @@ o3d.Transform =
   o3d.ParamObject.call(this);
 
   /**
+   * The BoundingBox for this Transform. If culling is on this
+   * bounding box will be tested against the view frustum of any draw
+   * context used to with this Transform.
+   * @type {!o3d.BoundingBox}
+   */
+  this.boundingBoxOrig = opt_boundingBox ||
+      new o3d.BoundingBox([-1, -1, -1], [1, 1, 1]);
+
+  /**
    * Local transformation matrix.
    * Default = Identity.
    */
-  this.localMatrix_ = opt_localMatrix ||
+  this.localMatrix = opt_localMatrix ||
       [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
 
   /**
@@ -79,20 +88,6 @@ o3d.Transform =
    * Default = true.
    */
   this.visible = opt_visible || true;
-
-  /**
-   * The BoundingBox for this Transform. If culling is on this
-   * bounding box will be tested against the view frustum of any draw
-   * context used to with this Transform.
-   * @type {!o3d.BoundingBox}
-   */
-  this.boundingBoxOrig = opt_boundingBox ||
-      new o3d.BoundingBox([-1, -1, -1], [1, 1, 1]);
-  
-  /**
-   * 
-   */
-  this.boundingBox = this.boundingBoxOrig.mul(this.localMatrix_);
 
   /**
    * The cull setting for this transform. If true this Transform will
@@ -169,14 +164,16 @@ o3d.Transform.prototype.__defineGetter__('parent',
 
 o3d.Transform.prototype.__defineSetter__('localMatrix', 
 	function(lm) {
-	  this.localMatrix_ = lm;
+      var param = this.getParam('localMatrix');
+	  param.value = lm;
 	  this.transformBoundingBox();
 	}
 );
 
 o3d.Transform.prototype.__defineGetter__('localMatrix',
 	function(lm) {
-		return this.localMatrix_;
+	    var param = this.getParam('localMatrix');
+		return param.value;
 	}
 );
 
@@ -253,7 +250,7 @@ o3d.Transform.prototype.getUpdatedWorldMatrix =
   } else {
     parentWorldMatrix = this.parent.getUpdatedWorldMatrix();
   }
-  o3d.Transform.compose(parentWorldMatrix, this.localMatrix_, this.worldMatrix);
+  o3d.Transform.compose(parentWorldMatrix, this.localMatrix, this.worldMatrix);
   return this.worldMatrix;
 };
 
@@ -271,7 +268,7 @@ o3d.Transform.prototype.recalculateBoundingBox = function() {
  * 
  */
 o3d.Transform.prototype.transformBoundingBox = function() {
-  this.boundingBox = this.boundingBoxOrig.mul(this.localMatrix_);
+  this.boundingBox = this.boundingBoxOrig.mul(this.localMatrix);
   
   if (this.parent) {
   	this.parent.trickleUp(this.boundingBox);
@@ -344,7 +341,7 @@ o3d.Transform.prototype.createDrawElements =
  * Sets the local matrix of this transform to the identity matrix.
  */
 o3d.Transform.prototype.identity = function() {
-  var m = this.localMatrix_;
+  var m = this.localMatrix;
   for (var i = 0; i < 4; ++i) {
     for (var j = 0; j < 4; ++j) {
       m[i][j] = i==j ? 1 : 0;
@@ -594,7 +591,7 @@ o3d.Transform.prototype.translate =
   } else {
     v = arguments[0];
   }
-  var m = this.localMatrix_;
+  var m = this.localMatrix;
 
   var v0 = v[0];
   var v1 = v[1];
@@ -638,7 +635,7 @@ o3d.Transform.prototype.translate =
  */
 o3d.Transform.prototype.rotateX =
     function(angle) {
-  var m = this.localMatrix_;
+  var m = this.localMatrix;
 
   var m0 = m[0];
   var m1 = m[1];
@@ -748,7 +745,7 @@ o3d.Transform.transformPointZOnly = function(m, v) {
  */
 o3d.Transform.prototype.rotateY =
     function(angle) {
-  var m = this.localMatrix_;
+  var m = this.localMatrix;
 
   var m0 = m[0];
   var m1 = m[1];
@@ -787,7 +784,7 @@ o3d.Transform.prototype.rotateY =
  */
 o3d.Transform.prototype.rotateZ =
     function(angle) {
-  var m = this.localMatrix_;
+  var m = this.localMatrix;
 
   var m0 = m[0];
   var m1 = m[1];
@@ -828,7 +825,7 @@ o3d.Transform.prototype.rotateZ =
  */
 o3d.Transform.prototype.rotateZYX =
     function(v) {
-  var m = this.localMatrix_;
+  var m = this.localMatrix;
 
   var sinX = Math.sin(v[0]);
   var cosX = Math.cos(v[0]);
@@ -905,7 +902,7 @@ o3d.Transform.prototype.rotateZYX =
  */
 o3d.Transform.prototype.axisRotate =
     function(axis, angle) {
-  o3d.Transform.axisRotateMatrix(this.localMatrix_, axis, angle);
+  o3d.Transform.axisRotateMatrix(this.localMatrix, axis, angle);
 };
 
 o3d.Transform.axisRotateMatrix =
@@ -990,7 +987,7 @@ o3d.Transform.axisRotateMatrix =
  */
 o3d.Transform.prototype.quaternionRotate =
     function(q) {
-   var m = this.localMatrix_;
+   var m = this.localMatrix;
 
   var qX = q[0];
   var qY = q[1];
@@ -1016,7 +1013,7 @@ o3d.Transform.prototype.quaternionRotate =
 
   var d = qWqW + qXqX + qYqY + qZqZ;
 
-  o3d.Transform.compose(this.localMatrix_, [
+  o3d.Transform.compose(this.localMatrix, [
     [(qWqW + qXqX - qYqY - qZqZ) / d,
      2 * (qWqZ + qXqY) / d,
      2 * (qXqZ - qWqY) / d, 0],
@@ -1046,7 +1043,7 @@ o3d.Transform.prototype.scale =
     v = arguments[0];
   }
 
-  var m = this.localMatrix_;
+  var m = this.localMatrix;
 
   var v0 = v[0];
   var v1 = v[1];
@@ -1101,7 +1098,7 @@ o3d.Transform.prototype.traverse =
           [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
 
   o3d.Transform.compose(
-      opt_parentWorldMatrix, this.localMatrix_, this.worldMatrix);
+      opt_parentWorldMatrix, this.localMatrix, this.worldMatrix);
 
   var remainingDrawListInfos = [];
 
