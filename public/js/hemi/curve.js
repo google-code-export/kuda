@@ -1018,14 +1018,15 @@ var hemi = (function(hemi) {
 	// START GPU PARTICLE SYSTEM
 	
 	hemi.curve.vertHeader =
-		'uniform float ptcTime; \n' +
+		'uniform float sysTime; \n' +
 		'uniform float ptcMaxTime; \n' +
 		'uniform float ptcDec; \n' +
 		'uniform float numPtcs; \n' +
 		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
+		'uniform vec4 ptcColors[NUM_COLORS]; \n' +
 		'attribute vec4 TEXCOORD; \n' +
-		'varying float ptcVis; \n';
+		'varying vec4 ptcColor; \n';
 	
 	hemi.curve.vertSupport =
 		'float rand(vec2 co) { \n' +
@@ -1044,6 +1045,18 @@ var hemi = (function(hemi) {
 		'  float t3 = pow(t, 3.0); \n' +
 		'  return (2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
 		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
+		'} \n' +
+		// Unfortunately we have to do this in the vertex shader since the
+		// pixel shader complains about non-constant indexing.
+		'void lerpPtcClr(float ptcTime) { \n' +
+		'  if (ptcTime > 1.0) { \n' +
+		'    ptcColor = vec4(0.0); \n' +
+		'  } else { \n' +
+		'    float clrT = float(NUM_COLORS-1)*ptcTime; \n' +
+		'    int ndx = int(floor(clrT)); \n' +
+		'    float t = fract(clrT); \n' +
+		'    ptcColor = mix(ptcColors[ndx], ptcColors[ndx+1], t); \n' +
+		'  } \n' +
 		'} \n';
 	
 	hemi.curve.vertSupportAim =
@@ -1069,19 +1082,17 @@ var hemi = (function(hemi) {
 		'  float id = TEXCOORD[0]; \n' +
 		'  float offset = TEXCOORD[1]; \n' +
 		'  vec2 seed = vec2(id, numPtcs-id); \n' +
-		'  float ptcT = ptcTime + offset; \n' +
-		'  if (ptcT > ptcMaxTime) { \n' +
-		'    ptcT -= ptcDec; \n' +
+		'  float ptcTime = sysTime + offset; \n' +
+		'  if (ptcTime > ptcMaxTime) { \n' +
+		'    ptcTime -= ptcDec; \n' +
 		'  } \n' +
-		'  if (ptcT > 1.0) { \n' +
-		'    ptcVis = -1.0; \n' +
-		'    ptcT = 0.0; \n' +
-		'  } else { \n' +
-		'    ptcVis = 1.0; \n' +
+		'  lerpPtcClr(ptcTime); \n' +
+		'  if (ptcTime > 1.0) { \n' +
+		'    ptcTime = 0.0; \n' +
 		'  } \n' +
-		'  float curveT = float(NUM_BOXES-1)*ptcT; \n' +
-		'  int ndx = int(floor(curveT)); \n' +
-		'  float t = fract(curveT); \n' +
+		'  float boxT = float(NUM_BOXES-1)*ptcTime; \n' +
+		'  int ndx = int(floor(boxT)); \n' +
+		'  float t = fract(boxT); \n' +
 		'  vec3 p0 = randXYZ(seed,minXYZ[ndx],maxXYZ[ndx]); \n' +
 		'  vec3 p1 = randXYZ(seed,minXYZ[ndx+1],maxXYZ[ndx+1]); \n' +
 		'  vec3 m0; \n' +
@@ -1134,18 +1145,13 @@ var hemi = (function(hemi) {
 		'gl_Position = v_position; ';
 	
 	hemi.curve.fragHeader =
-		'varying float ptcVis; \n';
+		'varying vec4 ptcColor; \n';
 	
-	hemi.curve.fragSupport =
-		'vec4 checkPtcVis(vec4 clr) { \n' +
-		'  if (ptcVis < 0.0) { \n' +
-		'    clr.a = 0.0; \n' +
-		'  } \n' +
-		'  return clr; \n' +
-		'} \n';
-
+	// Phong shader
 	hemi.curve.fragGlob =
-		'gl_FragColor = checkPtcVis(preCheck); ';
+		'gl_FragColor = vec4((emissive + lightColor * (ambient * ptcColor + ' +
+			'ptcColor * litR.y + specular * litR.z * specularFactor)).rgb, ' +
+			'ptcColor.a);';
 	
 	hemi.curve.GpuParticleSystem = function(cfg) {
 		this.active = false;
@@ -1162,41 +1168,37 @@ var hemi = (function(hemi) {
 		}
 		
 		var type = cfg.shape || hemi.curve.shapeType.CUBE,
-			color = cfg.color || [0,0,1,1],
 			size = cfg.size || 0.3;
 		
 		switch (type) {
 			case hemi.curve.shapeType.ARROW:
 				this.transform = hemi.shape.create({
 					shape: 'arrow',
-					color: color,
 					size: size,
 					tail: size });
 				break;
 			case hemi.curve.shapeType.SPHERE:
 				this.transform = hemi.shape.create({
 					shape: 'sphere',
-					color: color,
 					radius: size });
 				break;
 			case hemi.curve.shapeType.CUBE:
 			default:
 				this.transform = hemi.shape.create({
 					shape: 'cube',
-					color: color,
 					size: size });
 				break;
 		}
 		
 		var shape = this.transform.shapes[0];
-		var material = modifyShape(shape, cfg.particles, cfg.boxes, cfg.aim);
+		var material = modifyShape(shape, cfg);
 		this.boxes = cfg.boxes;
 		this.life = cfg.life;
 		this.decParam = material.getParam('ptcDec');
 		this.decParam.value = 1.0;
 		this.maxTimeParam = material.getParam('ptcMaxTime');
 		this.maxTimeParam.value = 3.0;
-		this.timeParam = material.getParam('ptcTime');
+		this.timeParam = material.getParam('sysTime');
 		this.timeParam.value = 1.1;
 	};
 	
@@ -1301,8 +1303,9 @@ var hemi = (function(hemi) {
 	
 	hemi.curve.GpuParticleTrail.inheritsFrom(hemi.curve.GpuParticleSystem);
 	
-	var modifyShape = function(shape, numParticles, boxes, aim) {
+	var modifyShape = function(shape, cfg) {
 		var elements = shape.elements,
+			numParticles = cfg.particles,
 			material = null;
 		
 		for (var i = 0, il = elements.length; i < il; i++) {
@@ -1313,9 +1316,10 @@ var hemi = (function(hemi) {
 				
 				if (material === null) {
 					material = element.material;
-					modifyMaterial(material, boxes.length, texNdx, aim);
+					modifyMaterial(material, cfg, texNdx);
 					material.getParam('numPtcs').value = numParticles;
-					setupBounds(material, boxes);
+					setupBounds(material, cfg.boxes);
+					setupColors(material, cfg.colors);
 				}
 			}
 		}
@@ -1387,23 +1391,26 @@ var hemi = (function(hemi) {
 		return idOffNdx;
 	};
 	
-	var modifyMaterial = function(material, numBoxes, texNdx, aim) {
+	var modifyMaterial = function(material, cfg, texNdx) {
 		var shads = hemi.utils.getShaders(material),
 			fragShd = shads.fragShd,
 			fragSrc = shads.fragSrc;
 			vertShd = shads.vertShd,
-			vertSrc = shads.vertSrc;
+			vertSrc = shads.vertSrc,
+			numBoxes = cfg.boxes.length,
+			numColors = cfg.colors.length;
 		
 		// modify the vertex shader
-		if (vertSrc.search('getPtcPos') < 0) {
+		if (vertSrc.search('ptcInterp') < 0) {
 			var vertHdr = hemi.curve.vertHeader.replace(/NUM_BOXES/g, numBoxes),
-				vertSprt = hemi.curve.vertSupport,
+				vertSprt = hemi.curve.vertSupport.replace(/NUM_COLORS/g, numColors),
 				vertBody = hemi.curve.vertBodySetup.replace(/NUM_BOXES/g, numBoxes);
 			
+			vertHdr = vertHdr.replace(/NUM_COLORS/g, numColors);
 			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
 			vertBody = vertBody.replace(/TEXCOORD/g, 'texCoord' + texNdx);
 			
-			if (aim) {
+			if (cfg.aim) {
 				vertSprt += hemi.curve.vertSupportAim;
 				vertBody += hemi.curve.vertBodyWMAim;
 			} else {
@@ -1423,12 +1430,10 @@ var hemi = (function(hemi) {
 		}
 		
 		// modify the fragment shader
-		if (fragSrc.search('checkPtcVis') < 0) {
+		if (fragSrc.search('ptcColor') < 0) {
 			fragSrc = hemi.utils.combineFragSrc(fragSrc, {
 				hdr: hemi.curve.fragHeader,
-				sprt: hemi.curve.fragSupport,
-				glob: hemi.curve.fragGlob,
-				local: 'vec4 preCheck'
+				glob: hemi.curve.fragGlob
 			});
 			material.gl.detachShader(material.effect.program_, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
@@ -1454,6 +1459,19 @@ var hemi = (function(hemi) {
 		
 		minParam.value = minArr;
 		maxParam.value = maxArr;
+	};
+	
+	var setupColors = function(material, colors) {
+		var clrParam = material.getParam('ptcColors'),
+			clrArr = hemi.core.mainPack.createObject('ParamArray');
+		
+		clrArr.resize(colors.length, 'ParamFloat4');
+		
+		for (var i = 0, il = colors.length; i < il; ++i) {
+			clrArr.getParam(i).value = colors[i];
+		}
+		
+		clrParam.value = clrArr;
 	};
 	
 	return hemi;
