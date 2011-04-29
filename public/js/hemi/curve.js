@@ -1024,9 +1024,11 @@ var hemi = (function(hemi) {
 		'uniform float numPtcs; \n' +
 		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
-		'uniform vec4 ptcColors[NUM_COLORS]; \n' +
 		'attribute vec4 TEXCOORD; \n' +
 		'varying vec4 ptcColor; \n';
+	
+	hemi.curve.vertHeaderColors =
+		'uniform vec4 ptcColors[NUM_COLORS]; \n';
 	
 	hemi.curve.vertSupport =
 		'float rand(vec2 co) { \n' +
@@ -1045,10 +1047,12 @@ var hemi = (function(hemi) {
 		'  float t3 = pow(t, 3.0); \n' +
 		'  return (2.0*t3 - 3.0*t2 + 1.0)*p0 + (t3 -2.0*t2 + t)*m0 + \n' +
 		'   (-2.0*t3 + 3.0*t2)*p1 + (t3-t2)*m1; \n' +
-		'} \n' +
-		// Unfortunately we have to do this in the vertex shader since the
-		// pixel shader complains about non-constant indexing.
-		'void lerpPtcClr(float ptcTime) { \n' +
+		'} \n';
+	
+	// Unfortunately we have to do this in the vertex shader since the pixel
+	// shader complains about non-constant indexing.
+	hemi.curve.vertSupportColors =
+		'void setPtcClr(float ptcTime) { \n' +
 		'  if (ptcTime > 1.0) { \n' +
 		'    ptcColor = vec4(0.0); \n' +
 		'  } else { \n' +
@@ -1056,6 +1060,15 @@ var hemi = (function(hemi) {
 		'    int ndx = int(floor(clrT)); \n' +
 		'    float t = fract(clrT); \n' +
 		'    ptcColor = mix(ptcColors[ndx], ptcColors[ndx+1], t); \n' +
+		'  } \n' +
+		'} \n';
+	
+	hemi.curve.vertSupportNoColors =
+		'void setPtcClr(float ptcTime) { \n' +
+		'  if (ptcTime > 1.0) { \n' +
+		'    ptcColor = vec4(0.0); \n' +
+		'  } else { \n' +
+		'    ptcColor = vec4(1.0); \n' +
 		'  } \n' +
 		'} \n';
 	
@@ -1086,7 +1099,7 @@ var hemi = (function(hemi) {
 		'  if (ptcTime > ptcMaxTime) { \n' +
 		'    ptcTime -= ptcDec; \n' +
 		'  } \n' +
-		'  lerpPtcClr(ptcTime); \n' +
+		'  setPtcClr(ptcTime); \n' +
 		'  if (ptcTime > 1.0) { \n' +
 		'    ptcTime = 0.0; \n' +
 		'  } \n' +
@@ -1140,6 +1153,9 @@ var hemi = (function(hemi) {
 	hemi.curve.fragHeader =
 		'varying vec4 ptcColor; \n';
 	
+	hemi.curve.fragGlobNoColors =
+		'gl_FragColor.a *= ptcColor.a; \n';
+	
 	hemi.curve.GpuParticleSystem = function(cfg) {
 		this.active = false;
 		this.boxes = null;
@@ -1179,6 +1195,14 @@ var hemi = (function(hemi) {
 					mat: material,
 					size: size });
 				break;
+		}
+		
+		if (!cfg.colors) {
+			cfg.colors = [];
+		} else if (cfg.colors.length === 1) {
+			// We need at least two to interpolate
+			var clr = cfg.colors[0];
+			cfg.colors = [clr, clr];
 		}
 		
 		var shape = this.transform.shapes[0];
@@ -1310,7 +1334,10 @@ var hemi = (function(hemi) {
 					modifyMaterial(material, cfg, texNdx);
 					material.getParam('numPtcs').value = numParticles;
 					setupBounds(material, cfg.boxes);
-					setupColors(material, cfg.colors);
+					
+					if (cfg.colors.length > 1) {
+						setupColors(material, cfg.colors);
+					}
 				}
 			}
 		}
@@ -1389,17 +1416,24 @@ var hemi = (function(hemi) {
 			vertShd = shads.vertShd,
 			vertSrc = shads.vertSrc,
 			numBoxes = cfg.boxes.length,
-			numColors = cfg.colors.length;
+			numColors = cfg.colors.length,
+			addColors = numColors > 1;
 		
 		// modify the vertex shader
 		if (vertSrc.search('ptcInterp') < 0) {
 			var vertHdr = hemi.curve.vertHeader.replace(/NUM_BOXES/g, numBoxes),
-				vertSprt = hemi.curve.vertSupport.replace(/NUM_COLORS/g, numColors),
+				vertSprt = hemi.curve.vertSupport,
 				vertPreBody = hemi.curve.vertBodySetup.replace(/NUM_BOXES/g, numBoxes);
 			
-			vertHdr = vertHdr.replace(/NUM_COLORS/g, numColors);
 			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
 			vertPreBody = vertPreBody.replace(/TEXCOORD/g, 'texCoord' + texNdx);
+			
+			if (addColors) {
+				vertHdr += hemi.curve.vertHeaderColors.replace(/NUM_COLORS/g, numColors);
+				vertSprt += hemi.curve.vertSupportColors.replace(/NUM_COLORS/g, numColors);
+			} else {
+				vertSprt += hemi.curve.vertSupportNoColors;
+			}
 			
 			if (cfg.aim) {
 				vertSprt += hemi.curve.vertSupportAim;
@@ -1432,10 +1466,14 @@ var hemi = (function(hemi) {
 			
 			parsedFrag.postHdr = hemi.curve.fragHeader;
 			
-			if (fragGlob.indexOf('diffuse') !== -1) {
-				parsedFrag.glob = fragGlob.replace(/diffuse/g, 'ptcColor');
+			if (addColors) {
+				if (fragGlob.indexOf('diffuse') !== -1) {
+					parsedFrag.glob = fragGlob.replace(/diffuse/g, 'ptcColor');
+				} else {
+					parsedFrag.glob = fragGlob.replace(/emissive/g, 'ptcColor');
+				}
 			} else {
-				parsedFrag.glob = fragGlob.replace(/emissive/g, 'ptcColor');
+				parsedFrag.postGlob = hemi.curve.fragGlobNoColors;
 			}
 			
 			fragSrc = hemi.utils.buildSrc(parsedFrag);
