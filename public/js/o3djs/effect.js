@@ -1080,7 +1080,7 @@ o3djs.effect.buildStandardShaderString = function(material,
         '((emissive +\n' +
         '  lightColor *' +
         ' (ambient * diffuse + diffuse * litR.y +\n' +
-        '                        + specular * litR.z *' +
+        '                        specular * litR.z *' +
         ' specularFactor)).rgb,\n' +
         '      diffuse.a)') +
         p.entryPoints() +
@@ -1136,7 +1136,7 @@ o3djs.effect.buildStandardShaderString = function(material,
         p.endPixelShaderMain(p.FLOAT4 +
         '((emissive +\n' +
         '  lightColor * (ambient * diffuse + diffuse * litR.y +\n' +
-        '                        + specular * litR.z *' +
+        '                        specular * litR.z *' +
         ' specularFactor)).rgb,\n' +
         '      diffuse.a)') +
         p.entryPoints() +
