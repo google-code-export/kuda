@@ -19,24 +19,66 @@ var hemi = (function(hemi) {
 	hemi.utils = hemi.utils || {};
 	
 	/**
+	 * Build a shader source string from the given parsed source structure.
+	 * 
+	 * @param {Object} parsed structure populated with parsed shader source:
+	 *     (all fields are optional)
+	 *     preHdr: source positioned before the header
+	 *     hdr: header source
+	 *     postHdr: source positioned after the header
+	 *     preSprt: source positioned before the support
+	 *     sprt: support source
+	 *     postSprt: source positioned after the support
+	 *     preBody: source positioned before the body
+	 *     body: body source
+	 *     postBody: source positioned after the body
+	 *     preGlob: source positioned before the global
+	 *     glob: global variable assignment source
+	 *     postGlob: source positioned after the global
+	 * @return {string} the new shader source string
+	 */
+	hemi.utils.buildSrc = function(parsed) {
+		var src = (parsed.preHdr ? parsed.preHdr : '') +
+			(parsed.hdr ? parsed.hdr : '') +
+			(parsed.postHdr ? parsed.postHdr : '') +
+			(parsed.preSprt ? parsed.preSprt : '') +
+			(parsed.sprt ? parsed.sprt : '') +
+			(parsed.postSprt ? parsed.postSprt : '') +
+			parsed.main +
+			(parsed.preBody ? parsed.preBody : '') +
+			(parsed.body ? parsed.body : '') +
+			(parsed.postBody ? parsed.postBody : '') +
+			(parsed.preGlob ? parsed.preGlob : '') +
+			(parsed.glob ? parsed.glob : '') +
+			(parsed.postGlob ? parsed.postGlob : '') +
+			parsed.end;
+		
+		return src;
+	};
+	
+	/**
 	 * Combine the given strings into one cohesive fragment shader source
 	 * string.
 	 * 
 	 * @param {string} src the original shader source string
 	 * @param {Object} cfg configuration object for how to build the new shader:
-	 *     hdr: optional new header source
-	 *     sprt: optional new support source
-	 *     body: optional new body source
-	 *     glob: optional new global variable assignment source
-	 *     local: optional local variable to assign old global variable value to
-	 *     replaceHdr: flag indicating if old header source should be removed
-	 *     replaceSprt: flag indicating if old support source should be removed
-	 *     replaceBody: flag indicating if old body source should be removed
+	 *     (all fields are optional)
+	 *     preHdr: source to prepend to the existing header
+	 *     hdr: source to replace the existing header
+	 *     postHdr: source to append to the existing header
+	 *     preSprt: source to prepend to the existing support
+	 *     sprt: source to replace the existing support
+	 *     postSprt: source to append to the existing support
+	 *     preBody: source to prepend to the existing body
+	 *     body: source to replace the existing body
+	 *     postBody: source to append to the existing body
+	 *     preGlob: source to prepend to the existing global
+	 *     glob: source to replace the existing global variable assignment
+	 *     postGlob: source to append to the existing global
 	 * @return {string} the new shader source string
 	 */
 	hemi.utils.combineFragSrc = function(src, cfg) {
-		cfg.globName = 'gl_FragColor';
-		return this.combineSrc(src, cfg);
+		return this.combineSrc(src, cfg, 'gl_FragColor');
 	};
 	
 	/**
@@ -44,40 +86,26 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {string} src the original shader source string
 	 * @param {Object} cfg configuration object for how to build the new shader:
-	 *     globName: name of the global variable to set in the main function
-	 *     hdr: optional new header source
-	 *     sprt: optional new support source
-	 *     body: optional new body source
-	 *     glob: optional new global variable assignment source
-	 *     local: optional local variable to assign old global variable value to
-	 *     replaceHdr: flag indicating if old header source should be removed
-	 *     replaceSprt: flag indicating if old support source should be removed
-	 *     replaceBody: flag indicating if old body source should be removed
+	 *     (all fields are optional)
+	 *     preHdr: source to prepend to the existing header
+	 *     hdr: source to replace the existing header
+	 *     postHdr: source to append to the existing header
+	 *     preSprt: source to prepend to the existing support
+	 *     sprt: source to replace the existing support
+	 *     postSprt: source to append to the existing support
+	 *     preBody: source to prepend to the existing body
+	 *     body: source to replace the existing body
+	 *     postBody: source to append to the existing body
+	 *     preGlob: source to prepend to the existing global
+	 *     glob: source to replace the existing global variable assignment
+	 *     postGlob: source to append to the existing global
+	 * @param {string} globName name of the global variable to set in main()
 	 * @return {string} the new shader source string
 	 */
-	hemi.utils.combineSrc = function(src, cfg) {
-		var parsed = this.parseSrc(src, cfg.globName),
-			newHdr = cfg.replaceHdr ? '' : parsed.hdr,
-			newSprt = cfg.replaceSprt ? '' : parsed.sprt,
-			newBody = cfg.replaceBody ? '' : parsed.body,
-			newGlob = cfg.glob ? cfg.glob : parsed.glob,
-			newSrc;
-		
-		if (cfg.hdr) {
-			newHdr += cfg.hdr;
-		}
-		if (cfg.sprt) {
-			newSprt += cfg.sprt;
-		}
-		if (cfg.body) {
-			newBody += cfg.body;
-		}
-		if (cfg.local && cfg.glob) {
-			newGlob = parsed.glob.replace(cfg.globName, cfg.local) + '\n' + newGlob;
-		}
-		
-		newSrc = newHdr + newSprt + parsed.main + newBody + newGlob + parsed.end;
-		return newSrc;
+	hemi.utils.combineSrc = function(src, cfg, globName) {
+		var parsed = this.parseSrc(src, globName);
+		hemi.utils.join(parsed, cfg);
+		return this.buildSrc(parsed);
 	};
 	
 	/**
@@ -85,19 +113,23 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {string} src the original shader source string
 	 * @param {Object} cfg configuration object for how to build the new shader:
-	 *     hdr: optional new header source
-	 *     sprt: optional new support source
-	 *     body: optional new body source
-	 *     glob: optional new global variable assignment source
-	 *     local: optional local variable to assign old global variable value to
-	 *     replaceHdr: flag indicating if old header source should be removed
-	 *     replaceSprt: flag indicating if old support source should be removed
-	 *     replaceBody: flag indicating if old body source should be removed
+	 *     (all fields are optional)
+	 *     preHdr: source to prepend to the existing header
+	 *     hdr: source to replace the existing header
+	 *     postHdr: source to append to the existing header
+	 *     preSprt: source to prepend to the existing support
+	 *     sprt: source to replace the existing support
+	 *     postSprt: source to append to the existing support
+	 *     preBody: source to prepend to the existing body
+	 *     body: source to replace the existing body
+	 *     postBody: source to append to the existing body
+	 *     preGlob: source to prepend to the existing global
+	 *     glob: source to replace the existing global variable assignment
+	 *     postGlob: source to append to the existing global
 	 * @return {string} the new shader source string
 	 */
 	hemi.utils.combineVertSrc = function(src, cfg) {
-		cfg.globName = 'gl_Position';
-		return this.combineSrc(src, cfg);
+		return this.combineSrc(src, cfg, 'gl_Position');
 	};
 	
 	/**
@@ -172,13 +204,19 @@ var hemi = (function(hemi) {
 			sprtEnd = src.indexOf('void main', hdrEnd),
 			bodyStart = src.indexOf('{', sprtEnd) + 1,
 			bodyEnd = src.indexOf(global, bodyStart),
-			globEnd = src.indexOf(';', bodyEnd) + 1;
+			globEnd = src.lastIndexOf(';') + 1;
 		
 		if (src.charAt(hdrEnd) === '\n') {
 			++hdrEnd;
 		}
 		if (src.charAt(bodyStart) === '\n') {
 			++bodyStart;
+		}
+		if (src.charAt(bodyEnd) === '\n') {
+			++bodyEnd;
+		}
+		if (src.charAt(globEnd) === '\n') {
+			++globEnd;
 		}
 		
 		var parsedSrc = {
