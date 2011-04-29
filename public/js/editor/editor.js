@@ -209,10 +209,30 @@
 			hemi.loader.loadPath = '';
 			hemi.loader.loadTexture(url, function(texture) {
 		    	var mat = hemi.core.material.createConstantMaterial(
-					hemi.core.mainPack, hemi.view.viewInfo, texture, true);	
+						hemi.core.mainPack, hemi.view.viewInfo, texture, true),
+					extent = 2*that.extent;	
 					
-				that.gridShape = hemi.shape.createBox(0, 2*that.extent, 
-					2*that.extent, mat);
+				// create a custom draw list that this grid goes on
+				var drawPassInfo = hemi.view.viewInfo.createDrawPass(
+			        o3djs.base.o3d.DrawList.BY_Z_ORDER);  
+					
+				var state = drawPassInfo.state;				
+
+				state.getStateParam('AlphaBlendEnable').value = true;
+				state.getStateParam('SourceBlendFunction').value =
+					o3djs.base.o3d.State.BLENDFUNC_SOURCE_ALPHA;
+				state.getStateParam('DestinationBlendFunction').value =
+					o3djs.base.o3d.State.BLENDFUNC_INVERSE_SOURCE_ALPHA;
+				state.getStateParam('AlphaTestEnable').value = true;
+				state.getStateParam('AlphaComparisonFunction').value =
+					o3djs.base.o3d.State.CMP_GREATER;
+					
+				mat.drawList = drawPassInfo.drawList;
+				
+				// create the actual shape
+				that.gridShape = hemi.core.mainPack.createObject('Transform');
+				that.gridShape.addShape(hemi.core.primitives.createPlane(
+					hemi.core.mainPack, mat, extent, extent, 1, 1));
 			
 				that.gridShape.parent = hemi.core.client.root;
 				that.resetGrid(that.extent, that.fidelity);
@@ -813,7 +833,7 @@
 			return results[1];
 	}
 	
-	var app = new Application();
+	app = new Application();
 	
 	window.onload = function() {		
 		app.sizeViewerPane();
