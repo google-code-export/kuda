@@ -204,8 +204,8 @@ var hemi = (function(hemi) {
 					this.dim),
 				newTran = hemi.shape.create(config),
 				oldTran = this.transform,
-				oldShapes = oldTran.shapes,
-				newShapes = newTran.shapes;
+				oldShapes = oldTran.shapes.slice(0),
+				newShapes = newTran.shapes.slice(0);
 			
 			while (oldShapes.length === 0) {
 				oldTran = oldTran.children[0];
