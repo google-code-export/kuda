@@ -48,12 +48,8 @@
 		
 		hemi.world.camera.enableControl();	// Enable camera mouse control
 		
-		/* The bounding boxes which the arrows will flow through:
-		 * Spawn from a small one to the lower left, flow through a 
-		 * large box in the upper left, go through a small bottleneck
-		 * directly above the house, spread out through another larfe
-		 * box in the upper right, then converge on a small box in the
-		 * bottom right.
+		/*
+		 * The bounding boxes which the arrows will flow through:
 		 */
 		var box1 = [[-510,-110,-10],[-490,-90,10]];
 		var box2 = [[-600,400,-200],[-400,600,0]];
@@ -65,6 +61,13 @@
 		var box8 = [[90,190,590],[110,210,610]];
 		var box9 = [[-250,-250,270],[-150,-150,330]];
 		
+		/*
+		 * The colors these arrows will be as they move along the curve:
+		 */
+		var blue = [0, 0, 1, 0.7];
+		var green = [0, 1, 0, 0.7];
+		var red = [1, 0, 0, 0.7];
+		
 		/* Create a particle system configuration with the above parameters,
 		 * plus a rate of 20 particles per second, and a lifetime of
 		 * 5 seconds. Specify the shapes are arrows.
@@ -75,9 +78,9 @@
 			trail: true,
 			particles: 500,
 			life: 12,
-			boxes: [box1, box2, box3, box4, box5, box6, box7, box8, box9, box1],
+			boxes: [box1,box2,box3,box4,box5,box6,box7,box8,box9,box1],
 			shape: hemi.curve.shapeType.ARROW,
-			color: [0, 0, 1, 0.7],
+			colors: [blue,green,red,blue],
 			size: 10
 		};
 		
