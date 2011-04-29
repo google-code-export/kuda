@@ -1121,37 +1121,24 @@ var hemi = (function(hemi) {
 		'   0.0,1.0,0.0,-1.0*pos.y, \n' +
 		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
 		'   0.0,0.0,0.0,1.0); \n' +
-		'  mat4 worldMat = tMat*rMat; \n' +
-		'  mat4 worldMatIT = tMatIT*rMat; \n';
+		'  mat4 ptcWorld = tMat*rMat; \n' +
+		'  mat4 ptcWorldIT = tMatIT*rMat; \n';
 	
 	hemi.curve.vertBodyWMNoAim =
-		'  mat4 worldMat = mat4(1.0,0.0,0.0,0.0, \n' +
+		'  mat4 ptcWorld = mat4(1.0,0.0,0.0,0.0, \n' +
 		'   0.0,1.0,0.0,0.0, \n' +
 		'   0.0,0.0,1.0,0.0, \n' +
 		'   pos.x,pos.y,pos.z,1.0); \n' +
-		'  mat4 worldMatIT = mat4(1.0,0.0,0.0,-1.0*pos.x, \n' +
+		'  mat4 ptcWorldIT = mat4(1.0,0.0,0.0,-1.0*pos.x, \n' +
 		'   0.0,1.0,0.0,-1.0*pos.y, \n' +
 		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
 		'   0.0,0.0,0.0,1.0); \n';
 	
 	hemi.curve.vertBodyEnd =
-		'  mat4 wvpMat = worldViewProjection * worldMat; \n' +
-		'  v_position = wvpMat * position; \n' +
-		'  v_normal = (worldMatIT * vec4(normal, 0)).xyz; \n' +
-		'  v_surfaceToLight = lightWorldPos - (worldMat * position).xyz; \n' +
-		'  v_surfaceToView = (viewInverse[3] - (worldMat * position)).xyz; \n';
-
-	hemi.curve.vertGlob =
-		'gl_Position = v_position; ';
+		'  mat4 ptcWorldVP = worldViewProjection * ptcWorld; \n';
 	
 	hemi.curve.fragHeader =
 		'varying vec4 ptcColor; \n';
-	
-	// Phong shader
-	hemi.curve.fragGlob =
-		'gl_FragColor = vec4((emissive + lightColor * (ambient * ptcColor + ' +
-			'ptcColor * litR.y + specular * litR.z * specularFactor)).rgb, ' +
-			'ptcColor.a);';
 	
 	hemi.curve.GpuParticleSystem = function(cfg) {
 		this.active = false;
@@ -1168,24 +1155,28 @@ var hemi = (function(hemi) {
 		}
 		
 		var type = cfg.shape || hemi.curve.shapeType.CUBE,
-			size = cfg.size || 0.3;
+			size = cfg.size || 1.0,
+			material = cfg.material || hemi.shape.material;
 		
 		switch (type) {
 			case hemi.curve.shapeType.ARROW:
 				this.transform = hemi.shape.create({
 					shape: 'arrow',
+					mat: material,
 					size: size,
 					tail: size });
 				break;
 			case hemi.curve.shapeType.SPHERE:
 				this.transform = hemi.shape.create({
 					shape: 'sphere',
+					mat: material,
 					radius: size });
 				break;
 			case hemi.curve.shapeType.CUBE:
 			default:
 				this.transform = hemi.shape.create({
 					shape: 'cube',
+					mat: material,
 					size: size });
 				break;
 		}
@@ -1404,37 +1395,50 @@ var hemi = (function(hemi) {
 		if (vertSrc.search('ptcInterp') < 0) {
 			var vertHdr = hemi.curve.vertHeader.replace(/NUM_BOXES/g, numBoxes),
 				vertSprt = hemi.curve.vertSupport.replace(/NUM_COLORS/g, numColors),
-				vertBody = hemi.curve.vertBodySetup.replace(/NUM_BOXES/g, numBoxes);
+				vertPreBody = hemi.curve.vertBodySetup.replace(/NUM_BOXES/g, numBoxes);
 			
 			vertHdr = vertHdr.replace(/NUM_COLORS/g, numColors);
 			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
-			vertBody = vertBody.replace(/TEXCOORD/g, 'texCoord' + texNdx);
+			vertPreBody = vertPreBody.replace(/TEXCOORD/g, 'texCoord' + texNdx);
 			
 			if (cfg.aim) {
 				vertSprt += hemi.curve.vertSupportAim;
-				vertBody += hemi.curve.vertBodyWMAim;
+				vertPreBody += hemi.curve.vertBodyWMAim;
 			} else {
-				vertBody += hemi.curve.vertBodyWMNoAim;
+				vertPreBody += hemi.curve.vertBodyWMNoAim;
 			}
 			
-			vertBody += hemi.curve.vertBodyEnd;
-			vertSrc = hemi.utils.combineVertSrc(vertSrc, {
-				hdr: vertHdr,
-				sprt: vertSprt,
-				body: vertBody,
-				glob: hemi.curve.vertGlob,
-				replaceBody: true
-			});
+			vertPreBody += hemi.curve.vertBodyEnd;
+			var parsedVert = hemi.utils.parseSrc(vertSrc, 'gl_Position'),
+				vertBody = parsedVert.body.replace(/world/g, 'ptcWorld')
+					.replace(/ViewProjection/g, 'VP')
+					.replace(/InverseTranspose/g, 'IT');
+			
+			parsedVert.postHdr = vertHdr;
+			parsedVert.postSprt = vertSprt;
+			parsedVert.postHdr = vertHdr;
+			parsedVert.preBody = vertPreBody;
+			parsedVert.body = vertBody;
+			vertSrc = hemi.utils.buildSrc(parsedVert);
+			
 			material.gl.detachShader(material.effect.program_, vertShd);
 			material.effect.loadVertexShaderFromString(vertSrc);
 		}
 		
 		// modify the fragment shader
 		if (fragSrc.search('ptcColor') < 0) {
-			fragSrc = hemi.utils.combineFragSrc(fragSrc, {
-				hdr: hemi.curve.fragHeader,
-				glob: hemi.curve.fragGlob
-			});
+			var parsedFrag = hemi.utils.parseSrc(fragSrc, 'gl_FragColor'),
+				fragGlob = parsedFrag.glob;
+			
+			parsedFrag.postHdr = hemi.curve.fragHeader;
+			
+			if (fragGlob.indexOf('diffuse') !== -1) {
+				parsedFrag.glob = fragGlob.replace(/diffuse/g, 'ptcColor');
+			} else {
+				parsedFrag.glob = fragGlob.replace(/emissive/g, 'ptcColor');
+			}
+			
+			fragSrc = hemi.utils.buildSrc(parsedFrag);
 			material.gl.detachShader(material.effect.program_, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
 		}
