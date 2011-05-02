@@ -1022,6 +1022,7 @@ var hemi = (function(hemi) {
 		'uniform float ptcMaxTime; \n' +
 		'uniform float ptcDec; \n' +
 		'uniform float numPtcs; \n' +
+		'uniform float tension; \n' +
 		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
 		'attribute vec4 TEXCOORD; \n' +
@@ -1114,13 +1115,13 @@ var hemi = (function(hemi) {
 		'    m0 = vec3(0,0,0); \n' +
 		'  } else { \n' +
 		'    vec3 pm1 = randXYZ(seed,minXYZ[ndx-1],maxXYZ[ndx-1]); \n' +
-		'    m0 = p1 - pm1; \n' +
+		'    m0 = (p1-pm1)*tension; \n' +
 		'  } \n' +
 		'  if (ndx == NUM_BOXES-2) { \n' +
 		'    m1 = vec3(0,0,0); \n' +
 		'  } else { \n' +
 		'    vec3 p2 = randXYZ(seed,minXYZ[ndx+2],maxXYZ[ndx+2]); \n' +
-		'    m1 = p2 - p0; \n' +
+		'    m1 = (p2-p0)*tension; \n' +
 		'  } \n' +
 		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n';
 	
@@ -1172,7 +1173,8 @@ var hemi = (function(hemi) {
 		
 		var type = cfg.shape || hemi.curve.shapeType.CUBE,
 			size = cfg.size || 1.0,
-			material = cfg.material || hemi.shape.material;
+			material = cfg.material || hemi.shape.material,
+			tension = cfg.tension || 0;
 		
 		switch (type) {
 			case hemi.curve.shapeType.ARROW:
@@ -1209,6 +1211,7 @@ var hemi = (function(hemi) {
 		var material = modifyShape(shape, cfg);
 		this.boxes = cfg.boxes;
 		this.life = cfg.life;
+		material.getParam('tension').value = (1 - tension) / 2;
 		this.decParam = material.getParam('ptcDec');
 		this.decParam.value = 1.0;
 		this.maxTimeParam = material.getParam('ptcMaxTime');
