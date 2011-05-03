@@ -192,7 +192,21 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a curve particle system with the given configuration.
 	 * 
-	 * @param {Object} cfg configuration options
+	 * @param {Object} cfg configuration options:
+	 *     aim: flag to indicate particles should orient with curve
+	 *     boxes: array of bounding boxes for particle curves to pass through
+	 *     fast: flag to indicate GPU-driven particle system should be used
+	 *     life: lifetime of particle system (in seconds)
+	 *     particles: number of particles to allocate for system
+	 *     shape: enumerator for type of shape to use for particles
+	 *     // JS particle system only
+	 *     colorKeys: array of time keys and values for particle color ramp
+	 *     scaleKeys: array of time keys and values for particle size ramp
+	 *     // GPU particle system only
+	 *     colors: color ramp for particles
+	 *     size: size of the particles
+	 *     tension: tension parameter for the curve (typically from -1 to 1)
+	 *     trail: flag to indicate system should have trailing start and stop
 	 * @return {Object} the created particle system
 	 */
 	hemi.curve.createSystem = function(cfg) {
@@ -682,12 +696,12 @@ var hemi = (function(hemi) {
 		this.transform = pack.createObject('Transform');
 		this.transform.parent = trans;
 		this.active = false;
-		this.pRate = config.rate || 5;
-		this.maxRate = this.pRate;
 		this.pLife = config.life || 5;
 		this.boxes = config.boxes;
-		this.maxParticles = this.pRate * this.pLife;
+		this.maxParticles = config.particles || 25;
+		this.maxRate = Math.ceil(this.maxParticles / this.pLife);
 		this.particles = [];
+		this.pRate = this.maxRate;
 		this.pTimer = 0.0;
 		this.pTimerMax = 1.0 / this.pRate;
 		this.pIndex = 0;
@@ -788,7 +802,7 @@ var hemi = (function(hemi) {
 		 * Function performed on each render. Update all existing particles, and emit
 		 * 		new ones if needed.
 		 *
-		 * @param {o3d.renderEvent} event Event object describing details of the render loop
+		 * @param {o3d.RenderEvent} event Event object describing details of the render loop
 		 */
 		onRender : function(event) {
 			for(i = 0; i < this.maxParticles; i++) {
@@ -1071,6 +1085,11 @@ var hemi = (function(hemi) {
 	hemi.curve.fragGlobNoColors =
 		'gl_FragColor.a *= ptcColor.a; \n';
 	
+	/**
+	 * A particle system that is GPU driven.
+	 * 
+	 * @param {Object} cfg the configuration object for the system
+	 */
 	hemi.curve.GpuParticleSystem = function(cfg) {
 		this.active = false;
 		this.boxes = null;
@@ -1124,7 +1143,7 @@ var hemi = (function(hemi) {
 		var shape = this.transform.shapes[0];
 		var material = modifyShape(shape, cfg);
 		this.boxes = cfg.boxes;
-		this.life = cfg.life;
+		this.life = cfg.life || 5;
 		material.getParam('tension').value = (1 - tension) / 2;
 		this.decParam = material.getParam('ptcDec');
 		this.decParam.value = 1.0;
@@ -1135,6 +1154,11 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.GpuParticleSystem.prototype = {
+		/**
+		 * Update the particles on each render.
+		 * 
+		 * @param {o3d.RenderEvent} e the render event
+		 */
 		onRender: function(e) {
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
@@ -1146,6 +1170,9 @@ var hemi = (function(hemi) {
 			this.timeParam.value = newTime;
 		},
 		
+		/**
+		 * Pause the particle system.
+		 */
 		pause: function() {
 			if (this.active) {
 				hemi.view.removeRenderListener(this);
@@ -1153,6 +1180,9 @@ var hemi = (function(hemi) {
 			}
 		},
 		
+		/**
+		 * Resume the particle system.
+		 */
 		play: function() {
 			if (!this.active) {
 				if (this.maxTimeParam.value === 1.0) {
@@ -1164,12 +1194,20 @@ var hemi = (function(hemi) {
 			}
 		},
 		
+		/**
+		 * Set the lifetime of the particle system.
+		 * 
+		 * @param {number} life the lifetime of the system in seconds
+		 */
 		setLife: function(life) {
 			if (life > 0) {
 				this.life = life;
 			}
 		},
 		
+		/**
+		 * Start the particle system.
+		 */
 		start: function() {
 			if (!this.active) {
 				this.active = true;
@@ -1179,6 +1217,9 @@ var hemi = (function(hemi) {
 			}
 		},
 		
+		/**
+		 * Stop the particle system.
+		 */
 		stop: function() {
 			if (this.active) {
 				this.active = false;
@@ -1189,6 +1230,11 @@ var hemi = (function(hemi) {
 		}
 	};
 	
+	/**
+	 * A GPU driven particle system that has trailing starts and stops.
+	 * 
+	 * @param {Object} cfg the configuration object for the system
+	 */
 	hemi.curve.GpuParticleTrail = function(cfg) {
 		hemi.curve.GpuParticleSystem.call(this, cfg);
 		
@@ -1198,6 +1244,11 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.GpuParticleTrail.prototype = {
+		/**
+		 * Update the particles on each render.
+		 * 
+		 * @param {o3d.RenderEvent} e the render event
+		 */
 		onRender: function(e) {
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
@@ -1228,6 +1279,9 @@ var hemi = (function(hemi) {
 			this.timeParam.value = newTime;
 		},
 		
+		/**
+		 * Resume the particle system.
+		 */
 		play: function() {
 			if (!this.active) {
 				if (this.starting || this.stopping || this.maxTimeParam.value === 1.0) {
@@ -1239,6 +1293,9 @@ var hemi = (function(hemi) {
 			}
 		},
 		
+		/**
+		 * Start the particle system.
+		 */
 		start: function() {
 			if (!this.active) {
 				this.active = true;
@@ -1252,6 +1309,9 @@ var hemi = (function(hemi) {
 			}
 		},
 		
+		/**
+		 * Stop the particle system.
+		 */
 		stop: function() {
 			if (this.active && !this.stopping) {
 				this.starting = false;
@@ -1266,7 +1326,7 @@ var hemi = (function(hemi) {
 	
 	var modifyShape = function(shape, cfg) {
 		var elements = shape.elements,
-			numParticles = cfg.particles,
+			numParticles = cfg.particles || 25,
 			material = null;
 		
 		for (var i = 0, il = elements.length; i < il; i++) {
