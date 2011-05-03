@@ -63,50 +63,6 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Caculate the cubic hermite interpolation between two points with associated
-	 * 		tangents.
-	 *
-	 * @param {number} t Time, between 0 and 1
-	 * @param {number[]} p0 The first waypoint
-	 * @param {number[]} m0 The tangent through the first waypoint
-	 * @param {number[]} p1 The second waypoint
-	 * @param {number[]} m1 The tangent through the second waypoint
-	 */
-	hemi.curve.cubicHermite = function(t,p0,m0,p1,m1) {;
-		var tp0 = 2*t*t*t - 3*t*t + 1;
-		var tm0 = t*t*t - 2*t*t + t;
-		var tp1 = -2*t*t*t + 3*t*t;
-		var tm1 = t*t*t - t*t;
-		return tp0*p0 + tm0*m0 + tp1*p1 + tm1*m1;
-	};
-	
-	/**
-	 * Simple factorial function.
-	 *
-	 * @param {number} n Number to factorialize
-	 * @return {number} n!
-	 */
-	hemi.curve.factorial = function(n) {
-		var f = 1;
-		for(var x = 2; x <= n; x++) {
-			f = f*x;
-		}
-		return f;
-	};
-	
-	/** 
-	 * Simple choose function
-	 *
-	 * @param {number} n Top of choose input, n
-	 * @param {number} m Bottom of choose input, m
-	 * @return {number} Choose output, (n!)/(m!(n-m)!)
-	 */
-	hemi.curve.choose = function(n,m) {
-		return hemi.curve.factorial(n)/
-			   (hemi.curve.factorial(m)*hemi.curve.factorial(n-m));
-	};
-
-	/**
 	 * Render a 3D representation of a curve.
 	 *
 	 * @param {number[][]} points Array of points (not waypoints)
@@ -164,29 +120,7 @@ var hemi = (function(hemi) {
 		transform.parent = pTrans;
 		transform.addShape(line);
 		transform.translate(midpoint);
-		transform = this.pointYAt(transform,midpoint,p0);
-	};
-	
-	/**
-	 * Point the y-up axis toward a given point
-	 *
-	 * @param {o3d.transform} t Transform to rotate
-	 * @param {number[]} mp Point from which to look (may be origin)
-	 * @param {number[]} p0 Point at which to aim the y axis
-	 * @return {o3d.transform} The rotated transform
-	 */
-	hemi.curve.pointYAt = function(t,mp,p0) {
-		var dx = p0[0] - mp[0];
-		var dy = p0[1] - mp[1];
-		var dz = p0[2] - mp[2];
-		var dxz = Math.sqrt(dx*dx + dz*dz);
-		var rotY = Math.atan2(dx,dz);
-		var rotX = Math.atan2(dxz,dy);
-		
-		t.rotateY(rotY);
-		t.rotateX(rotX);
-		
-		return t;
+		transform = hemi.utils.pointYAt(transform,midpoint,p0);
 	};
 	
 	/**
@@ -194,11 +128,9 @@ var hemi = (function(hemi) {
 	 *
 	 * @param {number[]} min Minimum point of the bounding box
 	 * @param {number[]} max Maximum point of the bounding box
-	 * @param {function(number): number} opt_distribution Optional distribution function 
-	 *		(linear by default}(not yet implemented)
 	 * @return {number[]} Randomly generated point
 	 */
-	hemi.curve.randomPoint = function(min,max,opt_distribution) {
+	hemi.curve.randomPoint = function(min,max) {
 		var xi = Math.random();
 		var yi = Math.random();
 		var zi = Math.random();
@@ -413,7 +345,7 @@ var hemi = (function(hemi) {
 			var n = this.count;
 			for(var i = 0; i < n; i++) {
 				var fac = this.weights[i]*
-				          hemi.curve.choose(n-1,i)*
+				          hemi.utils.choose(n-1,i)*
 					      Math.pow(t,i)*
 						  Math.pow((1-t),(n-1-i));
 				x += fac*this.xpts[i];
@@ -437,9 +369,9 @@ var hemi = (function(hemi) {
 			var ndx = Math.floor(t*n);
 			if (ndx >= n) ndx = n-1;
 			var tt = (t-ndx/n)/((ndx+1)/n-ndx/n);
-			var x = hemi.curve.cubicHermite(tt,this.xpts[ndx],this.xtans[ndx],this.xpts[ndx+1],this.xtans[ndx+1]);
-			var y = hemi.curve.cubicHermite(tt,this.ypts[ndx],this.ytans[ndx],this.ypts[ndx+1],this.ytans[ndx+1]);
-			var z = hemi.curve.cubicHermite(tt,this.zpts[ndx],this.ztans[ndx],this.zpts[ndx+1],this.ztans[ndx+1]);
+			var x = hemi.utils.cubicHermite(tt,this.xpts[ndx],this.xtans[ndx],this.xpts[ndx+1],this.xtans[ndx+1]);
+			var y = hemi.utils.cubicHermite(tt,this.ypts[ndx],this.ytans[ndx],this.ypts[ndx+1],this.ytans[ndx+1]);
+			var z = hemi.utils.cubicHermite(tt,this.zpts[ndx],this.ztans[ndx],this.zpts[ndx+1],this.ztans[ndx+1]);
 			return [x,y,z];
 		},
 		
@@ -550,14 +482,7 @@ var hemi = (function(hemi) {
 			var L = o3djs.math.matrix4.translation(points[i]);
 			
 			if (rotate) {
-				var dx = points[i+1][0] - points[i-1][0];
-				var dy = points[i+1][1] - points[i-1][1];
-				var dz = points[i+1][2] - points[i-1][2];
-				var dxz = Math.sqrt(dx*dx + dz*dz);
-				var rotY = Math.atan2(dx,dz);
-				var rotX = Math.atan2(dxz,dy);
-				L = o3djs.math.matrix4.rotateY(L,rotY);
-				L = o3djs.math.matrix4.rotateX(L,rotX);
+				hemi.utils.pointYAt(L, points[i-1], points[i+1]);
 			}
 			this.lt[i] = L;
 		}
