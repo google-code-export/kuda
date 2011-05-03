@@ -104,10 +104,7 @@
 			particleSystemConfig);
 		
 		/* Start the particle system off with no particles generating */
-		particleSystem.changeRate(-20);
-		
-		/* Start the particle system */
-		particleSystem.start();
+		particleSystem.setRate(0);
 	
 		var showBoxes = false;		// If boxes are being shown
 		
