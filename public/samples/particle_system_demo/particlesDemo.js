@@ -88,7 +88,7 @@
 		 */
 		var particleSystemConfig = {
 			aim : true,
-			rate : 20,
+			particles : 100,
 			life : 5,
 			boxes : [box1, box2, box3, box4, box5],
 			shape : hemi.curve.shapeType.ARROW,
