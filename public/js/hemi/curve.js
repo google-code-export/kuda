@@ -405,19 +405,6 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Build the vector to represent the tangent through a point on this Curve.
-		 *
-		 * @param {number} t Time, usually between 0 and 1
-		 * @return {number[]} Vector tangent, i.e. the velocity and direction of the 
-		 *		curve through this point
-		 */
-		tangent : function(t) {
-			var t0 = this.interpolate(t-0.001);
-			var t1 = this.interpolate(t+0.001);
-			return [t1[0]-t0[0],t1[1]-t0[1],t1[2]-t0[2]];
-		},
-		
-		/**
 		 * Calculate the tangents for a cardinal curve, which is a cubic hermite curve
 		 * 		where the tangents are defined by a single 'tension' factor.
 		 */
@@ -440,7 +427,7 @@ var hemi = (function(hemi) {
 		},
 		
 		getEnd : function() {
-			var end = this.xpts.length - 1;
+			var end = this.count - 1;
 			return [this.xpts[end],this.ypts[end],this.zpts[end]];
 		},
 		
@@ -1146,7 +1133,7 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.GpuParticleSystem.prototype = {
-		onRender : function(e) {
+		onRender: function(e) {
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
 			
@@ -1157,13 +1144,31 @@ var hemi = (function(hemi) {
 			this.timeParam.value = newTime;
 		},
 		
-		setLife : function(life) {
+		pause: function() {
+			if (this.active) {
+				hemi.view.removeRenderListener(this);
+				this.active = false;
+			}
+		},
+		
+		play: function() {
+			if (!this.active) {
+				if (this.maxTimeParam.value === 1.0) {
+					hemi.view.addRenderListener(this);
+					this.active = true;
+				} else {
+					this.start();
+				}
+			}
+		},
+		
+		setLife: function(life) {
 			if (life > 0) {
 				this.life = life;
 			}
 		},
 		
-		start : function() {
+		start: function() {
 			if (!this.active) {
 				this.active = true;
 				this.timeParam.value = 1.0;
@@ -1172,7 +1177,7 @@ var hemi = (function(hemi) {
 			}
 		},
 		
-		stop : function() {
+		stop: function() {
 			if (this.active) {
 				this.active = false;
 				this.timeParam.value = 1.1;
@@ -1191,7 +1196,7 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.GpuParticleTrail.prototype = {
-		onRender : function(e) {
+		onRender: function(e) {
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
 			
@@ -1221,7 +1226,18 @@ var hemi = (function(hemi) {
 			this.timeParam.value = newTime;
 		},
 		
-		start : function() {
+		play: function() {
+			if (!this.active) {
+				if (this.starting || this.stopping || this.maxTimeParam.value === 1.0) {
+					hemi.view.addRenderListener(this);
+					this.active = true;
+				} else {
+					this.start();
+				}
+			}
+		},
+		
+		start: function() {
 			if (!this.active) {
 				this.active = true;
 				this.starting = true;
@@ -1234,7 +1250,7 @@ var hemi = (function(hemi) {
 			}
 		},
 		
-		stop : function() {
+		stop: function() {
 			if (this.active && !this.stopping) {
 				this.starting = false;
 				this.stopping = true;
