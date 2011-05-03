@@ -623,19 +623,21 @@ var hemi = (function(hemi) {
 		 * Update the particle (called on each render).
 		 */
 		update : function() {
-			if (!this.active) return;				
-			var color = this.colors[this.frame];
-			var scale = this.scales[this.frame];		
+			if (!this.active) return;
+			
+			var f = this.frame,
+				color = this.colors[f],
+				scale = this.scales[f];
+					
 			this.transform.getParam('diffuse').value = color;
-			var f = this.frame;
 			this.transform.localMatrix = hemi.utils.copyArray(this.lt[f]);
 			this.transform.scale(scale);		
 			this.frame++;
 			this.transform.visible = true;
-			if(this.frame >= this.lastFrame) {
+			if (this.frame >= this.lastFrame) {
 				this.frame = 1;
 				this.loops--;
-				if(this.loops == 0) this.reset();
+				if (this.loops === 0) this.reset();
 			}
 		},
 		
@@ -687,6 +689,7 @@ var hemi = (function(hemi) {
 		this.maxParticles = this.pRate * this.pLife;
 		this.particles = [];
 		this.pTimer = 0.0;
+		this.pTimerMax = 1.0 / this.pRate;
 		this.pIndex = 0;
 		
 		var shapeColor = [1,0,0,1];
@@ -795,7 +798,7 @@ var hemi = (function(hemi) {
 			}
 			if(!this.active) return;
 			this.pTimer += event.elapsedTime;
-			if(this.pTimer >= (1.0/this.pRate)) {
+			if(this.pTimer >= this.pTimerMax) {
 				this.pTimer = 0;
 				var p = this.particles[this.pIndex];
 				if (p.ready) p.run(1);
@@ -875,8 +878,7 @@ var hemi = (function(hemi) {
 		 * @return {number} The new rate
 		 */
 		changeRate : function(delta) {
-			this.setRate(this.pRate + delta);
-			return this.pRate;
+			return this.setRate(this.pRate + delta);
 		},
 		
 		/**
@@ -886,20 +888,20 @@ var hemi = (function(hemi) {
 		 * @return (number) The new rate - may be different because of bounds
 		 */
 		setRate : function(rate) {
-			var newRate = rate;
-			if (newRate > this.maxRate) {
-				newRate = this.maxRate;
-			}
-			if (newRate <= 0) {
-				this.pRate = 0;
+			var newRate = hemi.utils.clamp(rate, 0, this.maxRate);
+			
+			if (newRate === 0) {
+				this.pTimerMax = 0;
 				this.stop();
-				return;
+			} else {
+				if (this.pRate === 0 && newRate > 0) {
+					this.start();
+				}
+				this.pTimerMax = 1.0 / newRate;
 			}
-			if (this.pRate == 0 && newRate > 0) {
-				this.start();
-			}
+			
 			this.pRate = newRate;
-			return this.pRate;
+			return newRate;
 		},
 		
 		/**

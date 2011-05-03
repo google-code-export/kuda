@@ -44,6 +44,18 @@ var hemi = (function(hemi) {
 	hemi.utils.choose = function(n, m) {
 		return hemi.utils.factorial(n, (n-m)+1) / hemi.utils.factorial(m);
 	};
+	
+	/** 
+	 * Clamp the given value between the given min and max.
+	 *
+	 * @param {number} val value to clamp
+	 * @param {number} min minimum for value
+	 * @param {number} max maximum for value
+	 * @return {number} the clamped value
+	 */
+	hemi.utils.clamp = function(val, min, max) {
+		return Math.min(max, Math.max(min, val));
+	};
 
 	/**
 	 * Calculate the cubic hermite interpolation between two points with
