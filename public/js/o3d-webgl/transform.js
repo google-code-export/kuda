@@ -265,7 +265,8 @@ o3d.Transform.prototype.recalculateBoundingBox = function() {
 };
 
 /**
- * 
+ * Multiplies the bounding box by the local matrix and saves it. Passes the 
+ * new bounding box up to parent transforms to update their bounding boxes.
  */
 o3d.Transform.prototype.transformBoundingBox = function() {
   this.boundingBox = this.boundingBoxOrig.mul(this.localMatrix);
@@ -276,8 +277,10 @@ o3d.Transform.prototype.transformBoundingBox = function() {
 };
 
 /**
+ * Called by children transforms when their bounding boxes have changed so that
+ * this can update it's bounding box.
  * 
- * @param {Object} box
+ * @param {Object} box the child bounding box
  */
 o3d.Transform.prototype.trickleUp = function(box) {
   this.boundingBox.add(box);
