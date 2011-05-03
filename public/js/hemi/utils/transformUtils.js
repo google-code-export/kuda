@@ -58,9 +58,9 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Point the y-up axis of the given transform toward the given point.
+	 * Point the y-up axis of the given transform/matrix toward the given point.
 	 *
-	 * @param {o3d.Transform} tran the transform to rotate
+	 * @param {o3d.Transform} tran the transform (or matrix) to rotate
 	 * @param {number[]} mp XYZ point from which to look (may be the origin)
 	 * @param {number[]} p0 XYZ point at which to aim the y axis
 	 * @return {o3d.Transform} the rotated transform
@@ -73,8 +73,14 @@ var hemi = (function(hemi) {
 			rotY = Math.atan2(dx,dz),
 			rotX = Math.atan2(dxz,dy);
 		
-		tran.rotateY(rotY);
-		tran.rotateX(rotX);
+		if (tran.rotateY) {
+			tran.rotateY(rotY);
+			tran.rotateX(rotX);
+		} else {
+			hemi.core.math.matrix4.rotateY(tran, rotY);
+			hemi.core.math.matrix4.rotateX(tran, rotX);
+		}
+		
 		return tran;
 	};
 	
