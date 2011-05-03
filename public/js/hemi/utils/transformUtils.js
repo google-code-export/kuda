@@ -58,6 +58,33 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
+	 * Point the y-up axis of the given transform/matrix toward the given point.
+	 *
+	 * @param {o3d.Transform} tran the transform (or matrix) to rotate
+	 * @param {number[]} mp XYZ point from which to look (may be the origin)
+	 * @param {number[]} p0 XYZ point at which to aim the y axis
+	 * @return {o3d.Transform} the rotated transform
+	 */
+	hemi.utils.pointYAt = function(tran, mp, p0) {
+		var dx = p0[0] - mp[0],
+			dy = p0[1] - mp[1],
+			dz = p0[2] - mp[2],
+			dxz = Math.sqrt(dx*dx + dz*dz),
+			rotY = Math.atan2(dx,dz),
+			rotX = Math.atan2(dxz,dy);
+		
+		if (tran.rotateY) {
+			tran.rotateY(rotY);
+			tran.rotateX(rotX);
+		} else {
+			hemi.core.math.matrix4.rotateY(tran, rotY);
+			hemi.core.math.matrix4.rotateX(tran, rotX);
+		}
+		
+		return tran;
+	};
+	
+	/**
 	 * Move all of the children and shapes off of the given foster Transform and
 	 * back to the original parent Transform. Destroy the foster Transform
 	 * 

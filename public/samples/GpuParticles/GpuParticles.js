@@ -99,20 +99,6 @@
 		hemi.input.addKeyDownListener({
 			onKeyDown : function(event) {
 				switch (event.keyCode) {
-					case (65):
-						var newLife = particleSystem.life - 1;
-						
-						if (newLife > 0) {
-							particleSystem.setLife(newLife);
-						}
-						break;
-					case (90):
-						var newLife = particleSystem.life + 1;
-						
-						if (newLife < 30) {
-							particleSystem.setLife(newLife);
-						}
-						break;
 					case (32):
 						if (showBoxes) {
 							hemi.curve.hideBoxes();
@@ -122,11 +108,32 @@
 							showBoxes = true;
 						}
 						break;
+					case (65):
+						var newLife = particleSystem.life - 1;
+						
+						if (newLife > 0) {
+							particleSystem.setLife(newLife);
+						}
+						break;
+					case (80):
+						if (particleSystem.active) {
+							particleSystem.pause();
+						} else {
+							particleSystem.play();
+						}
+						break;
 					case (83):
 						if (particleSystem.active) {
 							particleSystem.stop();
 						} else {
 							particleSystem.start();
+						}
+						break;
+					case (90):
+						var newLife = particleSystem.life + 1;
+						
+						if (newLife < 30) {
+							particleSystem.setLife(newLife);
 						}
 						break;
 					default:

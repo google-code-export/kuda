@@ -63,50 +63,6 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Caculate the cubic hermite interpolation between two points with associated
-	 * 		tangents.
-	 *
-	 * @param {number} t Time, between 0 and 1
-	 * @param {number[]} p0 The first waypoint
-	 * @param {number[]} m0 The tangent through the first waypoint
-	 * @param {number[]} p1 The second waypoint
-	 * @param {number[]} m1 The tangent through the second waypoint
-	 */
-	hemi.curve.cubicHermite = function(t,p0,m0,p1,m1) {;
-		var tp0 = 2*t*t*t - 3*t*t + 1;
-		var tm0 = t*t*t - 2*t*t + t;
-		var tp1 = -2*t*t*t + 3*t*t;
-		var tm1 = t*t*t - t*t;
-		return tp0*p0 + tm0*m0 + tp1*p1 + tm1*m1;
-	};
-	
-	/**
-	 * Simple factorial function.
-	 *
-	 * @param {number} n Number to factorialize
-	 * @return {number} n!
-	 */
-	hemi.curve.factorial = function(n) {
-		var f = 1;
-		for(var x = 2; x <= n; x++) {
-			f = f*x;
-		}
-		return f;
-	};
-	
-	/** 
-	 * Simple choose function
-	 *
-	 * @param {number} n Top of choose input, n
-	 * @param {number} m Bottom of choose input, m
-	 * @return {number} Choose output, (n!)/(m!(n-m)!)
-	 */
-	hemi.curve.choose = function(n,m) {
-		return hemi.curve.factorial(n)/
-			   (hemi.curve.factorial(m)*hemi.curve.factorial(n-m));
-	};
-
-	/**
 	 * Render a 3D representation of a curve.
 	 *
 	 * @param {number[][]} points Array of points (not waypoints)
@@ -164,29 +120,7 @@ var hemi = (function(hemi) {
 		transform.parent = pTrans;
 		transform.addShape(line);
 		transform.translate(midpoint);
-		transform = this.pointYAt(transform,midpoint,p0);
-	};
-	
-	/**
-	 * Point the y-up axis toward a given point
-	 *
-	 * @param {o3d.transform} t Transform to rotate
-	 * @param {number[]} mp Point from which to look (may be origin)
-	 * @param {number[]} p0 Point at which to aim the y axis
-	 * @return {o3d.transform} The rotated transform
-	 */
-	hemi.curve.pointYAt = function(t,mp,p0) {
-		var dx = p0[0] - mp[0];
-		var dy = p0[1] - mp[1];
-		var dz = p0[2] - mp[2];
-		var dxz = Math.sqrt(dx*dx + dz*dz);
-		var rotY = Math.atan2(dx,dz);
-		var rotX = Math.atan2(dxz,dy);
-		
-		t.rotateY(rotY);
-		t.rotateX(rotX);
-		
-		return t;
+		transform = hemi.utils.pointYAt(transform,midpoint,p0);
 	};
 	
 	/**
@@ -194,11 +128,9 @@ var hemi = (function(hemi) {
 	 *
 	 * @param {number[]} min Minimum point of the bounding box
 	 * @param {number[]} max Maximum point of the bounding box
-	 * @param {function(number): number} opt_distribution Optional distribution function 
-	 *		(linear by default}(not yet implemented)
 	 * @return {number[]} Randomly generated point
 	 */
-	hemi.curve.randomPoint = function(min,max,opt_distribution) {
+	hemi.curve.randomPoint = function(min,max) {
 		var xi = Math.random();
 		var yi = Math.random();
 		var zi = Math.random();
@@ -260,7 +192,21 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a curve particle system with the given configuration.
 	 * 
-	 * @param {Object} cfg configuration options
+	 * @param {Object} cfg configuration options:
+	 *     aim: flag to indicate particles should orient with curve
+	 *     boxes: array of bounding boxes for particle curves to pass through
+	 *     fast: flag to indicate GPU-driven particle system should be used
+	 *     life: lifetime of particle system (in seconds)
+	 *     particles: number of particles to allocate for system
+	 *     shape: enumerator for type of shape to use for particles
+	 *     // JS particle system only
+	 *     colorKeys: array of time keys and values for particle color ramp
+	 *     scaleKeys: array of time keys and values for particle size ramp
+	 *     // GPU particle system only
+	 *     colors: color ramp for particles
+	 *     size: size of the particles
+	 *     tension: tension parameter for the curve (typically from -1 to 1)
+	 *     trail: flag to indicate system should have trailing start and stop
 	 * @return {Object} the created particle system
 	 */
 	hemi.curve.createSystem = function(cfg) {
@@ -413,7 +359,7 @@ var hemi = (function(hemi) {
 			var n = this.count;
 			for(var i = 0; i < n; i++) {
 				var fac = this.weights[i]*
-				          hemi.curve.choose(n-1,i)*
+				          hemi.utils.choose(n-1,i)*
 					      Math.pow(t,i)*
 						  Math.pow((1-t),(n-1-i));
 				x += fac*this.xpts[i];
@@ -437,9 +383,9 @@ var hemi = (function(hemi) {
 			var ndx = Math.floor(t*n);
 			if (ndx >= n) ndx = n-1;
 			var tt = (t-ndx/n)/((ndx+1)/n-ndx/n);
-			var x = hemi.curve.cubicHermite(tt,this.xpts[ndx],this.xtans[ndx],this.xpts[ndx+1],this.xtans[ndx+1]);
-			var y = hemi.curve.cubicHermite(tt,this.ypts[ndx],this.ytans[ndx],this.ypts[ndx+1],this.ytans[ndx+1]);
-			var z = hemi.curve.cubicHermite(tt,this.zpts[ndx],this.ztans[ndx],this.zpts[ndx+1],this.ztans[ndx+1]);
+			var x = hemi.utils.cubicHermite(tt,this.xpts[ndx],this.xtans[ndx],this.xpts[ndx+1],this.xtans[ndx+1]);
+			var y = hemi.utils.cubicHermite(tt,this.ypts[ndx],this.ytans[ndx],this.ypts[ndx+1],this.ytans[ndx+1]);
+			var z = hemi.utils.cubicHermite(tt,this.zpts[ndx],this.ztans[ndx],this.zpts[ndx+1],this.ztans[ndx+1]);
 			return [x,y,z];
 		},
 		
@@ -473,19 +419,6 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Build the vector to represent the tangent through a point on this Curve.
-		 *
-		 * @param {number} t Time, usually between 0 and 1
-		 * @return {number[]} Vector tangent, i.e. the velocity and direction of the 
-		 *		curve through this point
-		 */
-		tangent : function(t) {
-			var t0 = this.interpolate(t-0.001);
-			var t1 = this.interpolate(t+0.001);
-			return [t1[0]-t0[0],t1[1]-t0[1],t1[2]-t0[2]];
-		},
-		
-		/**
 		 * Calculate the tangents for a cardinal curve, which is a cubic hermite curve
 		 * 		where the tangents are defined by a single 'tension' factor.
 		 */
@@ -508,7 +441,7 @@ var hemi = (function(hemi) {
 		},
 		
 		getEnd : function() {
-			var end = this.xpts.length - 1;
+			var end = this.count - 1;
 			return [this.xpts[end],this.ypts[end],this.zpts[end]];
 		},
 		
@@ -550,14 +483,7 @@ var hemi = (function(hemi) {
 			var L = o3djs.math.matrix4.translation(points[i]);
 			
 			if (rotate) {
-				var dx = points[i+1][0] - points[i-1][0];
-				var dy = points[i+1][1] - points[i-1][1];
-				var dz = points[i+1][2] - points[i-1][2];
-				var dxz = Math.sqrt(dx*dx + dz*dz);
-				var rotY = Math.atan2(dx,dz);
-				var rotX = Math.atan2(dxz,dy);
-				L = o3djs.math.matrix4.rotateY(L,rotY);
-				L = o3djs.math.matrix4.rotateX(L,rotX);
+				hemi.utils.pointYAt(L, points[i-1], points[i+1]);
 			}
 			this.lt[i] = L;
 		}
@@ -711,19 +637,21 @@ var hemi = (function(hemi) {
 		 * Update the particle (called on each render).
 		 */
 		update : function() {
-			if (!this.active) return;				
-			var color = this.colors[this.frame];
-			var scale = this.scales[this.frame];		
+			if (!this.active) return;
+			
+			var f = this.frame,
+				color = this.colors[f],
+				scale = this.scales[f];
+					
 			this.transform.getParam('diffuse').value = color;
-			var f = this.frame;
 			this.transform.localMatrix = hemi.utils.copyArray(this.lt[f]);
 			this.transform.scale(scale);		
 			this.frame++;
 			this.transform.visible = true;
-			if(this.frame >= this.lastFrame) {
+			if (this.frame >= this.lastFrame) {
 				this.frame = 1;
 				this.loops--;
-				if(this.loops == 0) this.reset();
+				if (this.loops === 0) this.reset();
 			}
 		},
 		
@@ -768,13 +696,14 @@ var hemi = (function(hemi) {
 		this.transform = pack.createObject('Transform');
 		this.transform.parent = trans;
 		this.active = false;
-		this.pRate = config.rate || 5;
-		this.maxRate = this.pRate;
 		this.pLife = config.life || 5;
 		this.boxes = config.boxes;
-		this.maxParticles = this.pRate * this.pLife;
+		this.maxParticles = config.particles || 25;
+		this.maxRate = Math.ceil(this.maxParticles / this.pLife);
 		this.particles = [];
+		this.pRate = this.maxRate;
 		this.pTimer = 0.0;
+		this.pTimerMax = 1.0 / this.pRate;
 		this.pIndex = 0;
 		
 		var shapeColor = [1,0,0,1];
@@ -873,7 +802,7 @@ var hemi = (function(hemi) {
 		 * Function performed on each render. Update all existing particles, and emit
 		 * 		new ones if needed.
 		 *
-		 * @param {o3d.renderEvent} event Event object describing details of the render loop
+		 * @param {o3d.RenderEvent} event Event object describing details of the render loop
 		 */
 		onRender : function(event) {
 			for(i = 0; i < this.maxParticles; i++) {
@@ -883,7 +812,7 @@ var hemi = (function(hemi) {
 			}
 			if(!this.active) return;
 			this.pTimer += event.elapsedTime;
-			if(this.pTimer >= (1.0/this.pRate)) {
+			if(this.pTimer >= this.pTimerMax) {
 				this.pTimer = 0;
 				var p = this.particles[this.pIndex];
 				if (p.ready) p.run(1);
@@ -963,8 +892,7 @@ var hemi = (function(hemi) {
 		 * @return {number} The new rate
 		 */
 		changeRate : function(delta) {
-			this.setRate(this.pRate + delta);
-			return this.pRate;
+			return this.setRate(this.pRate + delta);
 		},
 		
 		/**
@@ -974,20 +902,20 @@ var hemi = (function(hemi) {
 		 * @return (number) The new rate - may be different because of bounds
 		 */
 		setRate : function(rate) {
-			var newRate = rate;
-			if (newRate > this.maxRate) {
-				newRate = this.maxRate;
-			}
-			if (newRate <= 0) {
-				this.pRate = 0;
+			var newRate = hemi.utils.clamp(rate, 0, this.maxRate);
+			
+			if (newRate === 0) {
+				this.pTimerMax = 0;
 				this.stop();
-				return;
+			} else {
+				if (this.pRate === 0 && newRate > 0) {
+					this.start();
+				}
+				this.pTimerMax = 1.0 / newRate;
 			}
-			if (this.pRate == 0 && newRate > 0) {
-				this.start();
-			}
+			
 			this.pRate = newRate;
-			return this.pRate;
+			return newRate;
 		},
 		
 		/**
@@ -1022,6 +950,7 @@ var hemi = (function(hemi) {
 		'uniform float ptcMaxTime; \n' +
 		'uniform float ptcDec; \n' +
 		'uniform float numPtcs; \n' +
+		'uniform float tension; \n' +
 		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
 		'attribute vec4 TEXCOORD; \n' +
@@ -1114,13 +1043,13 @@ var hemi = (function(hemi) {
 		'    m0 = vec3(0,0,0); \n' +
 		'  } else { \n' +
 		'    vec3 pm1 = randXYZ(seed,minXYZ[ndx-1],maxXYZ[ndx-1]); \n' +
-		'    m0 = p1 - pm1; \n' +
+		'    m0 = (p1-pm1)*tension; \n' +
 		'  } \n' +
 		'  if (ndx == NUM_BOXES-2) { \n' +
 		'    m1 = vec3(0,0,0); \n' +
 		'  } else { \n' +
 		'    vec3 p2 = randXYZ(seed,minXYZ[ndx+2],maxXYZ[ndx+2]); \n' +
-		'    m1 = p2 - p0; \n' +
+		'    m1 = (p2-p0)*tension; \n' +
 		'  } \n' +
 		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n';
 	
@@ -1156,6 +1085,11 @@ var hemi = (function(hemi) {
 	hemi.curve.fragGlobNoColors =
 		'gl_FragColor.a *= ptcColor.a; \n';
 	
+	/**
+	 * A particle system that is GPU driven.
+	 * 
+	 * @param {Object} cfg the configuration object for the system
+	 */
 	hemi.curve.GpuParticleSystem = function(cfg) {
 		this.active = false;
 		this.boxes = null;
@@ -1172,7 +1106,8 @@ var hemi = (function(hemi) {
 		
 		var type = cfg.shape || hemi.curve.shapeType.CUBE,
 			size = cfg.size || 1.0,
-			material = cfg.material || hemi.shape.material;
+			material = cfg.material || hemi.shape.material,
+			tension = cfg.tension || 0;
 		
 		switch (type) {
 			case hemi.curve.shapeType.ARROW:
@@ -1208,7 +1143,8 @@ var hemi = (function(hemi) {
 		var shape = this.transform.shapes[0];
 		var material = modifyShape(shape, cfg);
 		this.boxes = cfg.boxes;
-		this.life = cfg.life;
+		this.life = cfg.life || 5;
+		material.getParam('tension').value = (1 - tension) / 2;
 		this.decParam = material.getParam('ptcDec');
 		this.decParam.value = 1.0;
 		this.maxTimeParam = material.getParam('ptcMaxTime');
@@ -1218,7 +1154,12 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.GpuParticleSystem.prototype = {
-		onRender : function(e) {
+		/**
+		 * Update the particles on each render.
+		 * 
+		 * @param {o3d.RenderEvent} e the render event
+		 */
+		onRender: function(e) {
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
 			
@@ -1229,13 +1170,45 @@ var hemi = (function(hemi) {
 			this.timeParam.value = newTime;
 		},
 		
-		setLife : function(life) {
+		/**
+		 * Pause the particle system.
+		 */
+		pause: function() {
+			if (this.active) {
+				hemi.view.removeRenderListener(this);
+				this.active = false;
+			}
+		},
+		
+		/**
+		 * Resume the particle system.
+		 */
+		play: function() {
+			if (!this.active) {
+				if (this.maxTimeParam.value === 1.0) {
+					hemi.view.addRenderListener(this);
+					this.active = true;
+				} else {
+					this.start();
+				}
+			}
+		},
+		
+		/**
+		 * Set the lifetime of the particle system.
+		 * 
+		 * @param {number} life the lifetime of the system in seconds
+		 */
+		setLife: function(life) {
 			if (life > 0) {
 				this.life = life;
 			}
 		},
 		
-		start : function() {
+		/**
+		 * Start the particle system.
+		 */
+		start: function() {
 			if (!this.active) {
 				this.active = true;
 				this.timeParam.value = 1.0;
@@ -1244,7 +1217,10 @@ var hemi = (function(hemi) {
 			}
 		},
 		
-		stop : function() {
+		/**
+		 * Stop the particle system.
+		 */
+		stop: function() {
 			if (this.active) {
 				this.active = false;
 				this.timeParam.value = 1.1;
@@ -1254,6 +1230,11 @@ var hemi = (function(hemi) {
 		}
 	};
 	
+	/**
+	 * A GPU driven particle system that has trailing starts and stops.
+	 * 
+	 * @param {Object} cfg the configuration object for the system
+	 */
 	hemi.curve.GpuParticleTrail = function(cfg) {
 		hemi.curve.GpuParticleSystem.call(this, cfg);
 		
@@ -1263,7 +1244,12 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.GpuParticleTrail.prototype = {
-		onRender : function(e) {
+		/**
+		 * Update the particles on each render.
+		 * 
+		 * @param {o3d.RenderEvent} e the render event
+		 */
+		onRender: function(e) {
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
 			
@@ -1293,7 +1279,24 @@ var hemi = (function(hemi) {
 			this.timeParam.value = newTime;
 		},
 		
-		start : function() {
+		/**
+		 * Resume the particle system.
+		 */
+		play: function() {
+			if (!this.active) {
+				if (this.starting || this.stopping || this.maxTimeParam.value === 1.0) {
+					hemi.view.addRenderListener(this);
+					this.active = true;
+				} else {
+					this.start();
+				}
+			}
+		},
+		
+		/**
+		 * Start the particle system.
+		 */
+		start: function() {
 			if (!this.active) {
 				this.active = true;
 				this.starting = true;
@@ -1306,7 +1309,10 @@ var hemi = (function(hemi) {
 			}
 		},
 		
-		stop : function() {
+		/**
+		 * Stop the particle system.
+		 */
+		stop: function() {
 			if (this.active && !this.stopping) {
 				this.starting = false;
 				this.stopping = true;
@@ -1320,7 +1326,7 @@ var hemi = (function(hemi) {
 	
 	var modifyShape = function(shape, cfg) {
 		var elements = shape.elements,
-			numParticles = cfg.particles,
+			numParticles = cfg.particles || 25,
 			material = null;
 		
 		for (var i = 0, il = elements.length; i < il; i++) {

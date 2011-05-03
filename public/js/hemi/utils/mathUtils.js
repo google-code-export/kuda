@@ -34,6 +34,70 @@ var hemi = (function(hemi) {
 		return [r,theta,phi];	
 	};
 	
+	/** 
+	 * A choose function (also called the binomial coefficient).
+	 *
+	 * @param {number} n top input of choose
+	 * @param {number} m bottom input of choose
+	 * @return {number} choose output, (n!)/(m!*(n-m)!)
+	 */
+	hemi.utils.choose = function(n, m) {
+		return hemi.utils.factorial(n, (n-m)+1) / hemi.utils.factorial(m);
+	};
+	
+	/** 
+	 * Clamp the given value between the given min and max.
+	 *
+	 * @param {number} val value to clamp
+	 * @param {number} min minimum for value
+	 * @param {number} max maximum for value
+	 * @return {number} the clamped value
+	 */
+	hemi.utils.clamp = function(val, min, max) {
+		return Math.min(max, Math.max(min, val));
+	};
+
+	/**
+	 * Calculate the cubic hermite interpolation between two points with
+	 * associated tangents.
+	 *
+	 * @param {float} t time (between 0 and 1)
+	 * @param {float[3]} p0 the first waypoint
+	 * @param {float[3]} m0 the tangent through the first waypoint
+	 * @param {float[3]} p1 the second waypoint
+	 * @param {float[3]} m1 the tangent through the second waypoint
+	 * @return {float[3]} the interpolated point
+	 */
+	hemi.utils.cubicHermite = function(t,p0,m0,p1,m1) {;
+		var t2 = t*t,
+			t3 = t2*t,
+			tp0 = 2*t3 - 3*t2 + 1,
+			tm0 = t3 - 2*t2 + t,
+			tp1 = -2*t3 + 3*t2,
+			tm1 = t3 - t2;
+		
+		return tp0*p0 + tm0*m0 + tp1*p1 + tm1*m1;
+	};
+	
+	/**
+	 * Calculate the factorial of the given number.
+	 *
+	 * @param {number} num number to factorialize
+	 * @param {number} opt_stop optional number to stop the factorial at (if it
+	 *     should be stopped before 1
+	 * @return {number} (num!) or (num! - opt_stop!)
+	 */
+	hemi.utils.factorial = function(num, opt_stop) {
+		var f = 1,
+			x = opt_stop ? opt_stop : 2;
+		
+		while (x <= num) {
+			f *= x++;
+		}
+		
+		return f;
+	};
+	
 	/**
 	 * Calculate the intersection between a ray and a plane.
 	 * 
