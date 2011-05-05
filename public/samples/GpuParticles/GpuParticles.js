@@ -14,6 +14,8 @@
  * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
  * Boston, MA 02110-1301 USA.
  */
+	
+o3djs.require('hext.progressUI.progressBar');
 
 /**
  * This is a demo to show how to use the Kuda particle system, built on 
@@ -27,7 +29,9 @@
 		createWorld();
 	};
 	
-	function createWorld() {		
+	function createWorld() {
+		// instantiate the progress bar
+		var pBar = new hext.progressUI.bar();
 		var house = new hemi.model.Model();				// Create a new Model
 		house.setFileName('assets/house_v12/scene.json'); // Set the model file
 		
