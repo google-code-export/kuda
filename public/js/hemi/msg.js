@@ -111,15 +111,15 @@ var hemi = (function(hemi) {
 		 */
 		pick: 'hemi.pick',
 		/**
-		 * The Message sent when progress data has been updated.
+		 * The Message sent when a task's progress data has been updated.
 		 * @type string
 		 * @constant
 		 * @example
-		 * Sent by hemi.world, data = number indicating the percentage complete
 		 * Sent by hemi.world, data = 
 		 * {
-		 * 		url: load info url,
-		 * 		percent: number indicating the percentage complete
+		 *     isTotal: (flag indicating if percent is for all current tasks)
+		 *     percent: (number indicating the percentage complete, 0-100)
+		 *     task: (id for the task, typically url of the file being loaded)
 		 * }
 		 */
 		progress: 'hemi.progress',
