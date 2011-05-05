@@ -193,11 +193,6 @@ o3djs.require('hext.progressUI.progressBar');
 				});
 		}
 	}
-	
-	function update(percent) {
-		var progress = (ndx - 1 + (percent / 100)) / maps.length * 100;
-		pbar.update(progress);
-	}
 
 	jQuery(window).load(function() {
 		o3djs.webgl.makeClients(initStep);
@@ -208,15 +203,4 @@ o3djs.require('hext.progressUI.progressBar');
 			hemi.core.client.cleanup();
 		}
 	});
-	
-	function getParam(name) {
-		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-		var regexS = "[\\?&]"+name+"=([^&#]*)";
-		var regex = new RegExp( regexS );
-		var results = regex.exec( window.location.href );
-		if( results == null )
-			return "";
-		else
-			return results[1];
-	}
 })();
