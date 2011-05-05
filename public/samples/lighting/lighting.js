@@ -109,22 +109,12 @@ o3djs.require('hext.progressUI.progressBar');
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		hemi.loader.loadPath = '../../';
+		
+		// instantiate the progress bar
+		pbar = new hext.progressUI.bar();
+		
 		houseModel = new hemi.model.Model();
 		houseModel.setFileName('assets/LightingHouse_v082/scene.json');
-		
-		// get whether to show full progress or not
-		full = getParam('fullProgress').toLowerCase() == 'true';
-		// instantiate the progress bar
-		pbar = new hext.progressUI.bar(full);	
-		// if full progress, we're going to subscribe to world messages ourselves
-		// to get subprogress
-		if (full) {
-			hemi.world.subscribe(hemi.msg.progress, function(msg){
-				if (msg.data.isTotal) {
-					update(msg.data.percent);
-				}
-			});
-		}
 		
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {
