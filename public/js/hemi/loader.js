@@ -34,26 +34,17 @@ var hemi = (function(hemi) {
 	var progressTable = new Hashtable();
 	
 	var syncedIntervalFcn = function(url, loadInfo) {
-		var task = hemi.loader.createTask(url, loadInfo);
+		var created = hemi.loader.createTask(url, loadInfo);
 		
-		if (task !== null) {
+		if (created) {
 			attachProgressListener(url, loadInfo);
 		}
 	};
 	
 	var attachProgressListener = function(url, loadInfo) {
 		loadInfo.request_.addProgressListener(function(evt) {
-			var fileObj = progressTable.get(url);
-			
-			fileObj.percent = evt.loaded / evt.total * 100;
-			
-			hemi.world.send(hemi.msg.progress, {
-				task: url,
-				percent: fileObj.percent,
-				isTotal: false
-			});
-			
-			hemi.loader.updateTotal();
+			var pct = evt.loaded / evt.total * 100;
+			hemi.loader.updateTask(url, pct);
 		});
 	};
 	
@@ -100,11 +91,8 @@ var hemi = (function(hemi) {
 				} else {
 					callback(bitmaps);
 				}
-				var fileObj = progressTable.get(url);
 				
-				if (fileObj)
-					fileObj.percent = 100;
-				hemi.loader.updateTotal();
+				hemi.loader.updateTask(url, 100);
 			});
 		
 		var list = hemi.world.loader.loadInfo.children_,
@@ -164,11 +152,7 @@ var hemi = (function(hemi) {
 					alert(exception);
 				}
 
-				var fileObj = progressTable.get(url);
-				
-				if (fileObj)
-					fileObj.percent = 100;
-				hemi.loader.updateTotal();
+				hemi.loader.updateTask(url, 100);
 				onLoadTexture.call(opt_this, texture);
 			});
 		
@@ -204,11 +188,8 @@ var hemi = (function(hemi) {
 				} else if (opt_callback) {
 					opt_callback(pack, parent);
 				}
-				var fileObj = progressTable.get(url);
 				
-				if (fileObj)
-					fileObj.percent = 100;
-				hemi.loader.updateTotal();
+				hemi.loader.updateTask(url, 100);
 			}, opt_options);
 		
 		var list = hemi.world.loader.loadInfo.children_,
@@ -282,12 +263,12 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {string} name the unique name of the task
 	 * @param {Object} data any data updated by the task
-	 * @return {Object} the created task object or null if a task with the given
-	 *     name already exists
+	 * @return {boolean} true if the task was created successfully, false if
+	 *      another task with the given name already exists
 	 */
 	hemi.loader.createTask = function(name, data) {
 		if (progressTable.get(name) !== null) {
-			return null;
+			return false;
 		}
 		
 		var obj = {
@@ -296,7 +277,34 @@ var hemi = (function(hemi) {
 		};
 		
 		progressTable.put(name, obj);
-		return obj;
+		this.updateTotal();
+		return true;
+	};
+	
+	/**
+	 * Update the progress of the task with the given name to the given percent.
+	 * 
+	 * @param {string} name name of the task to update
+	 * @param {number} percent percent to set the task's progress to (0-100)
+	 * @return {boolean} true if the task was found and updated
+	 */
+	hemi.loader.updateTask = function(name, percent) {
+		var task = progressTable.get(name),
+			update = task !== null;
+		
+		if (update) {
+			task.percent = percent;
+			
+			hemi.world.send(hemi.msg.progress, {
+				task: name,
+				percent: percent,
+				isTotal: false
+			});
+			
+			hemi.loader.updateTotal();
+		}
+		
+		return update;
 	};
 	
 	/**
