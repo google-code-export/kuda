@@ -34,6 +34,8 @@ var editor = (function(module) {
 	// curve edit widget specific
 	module.EventTypes.SetParam = "Curves.SetParam";
 	module.EventTypes.AddBox = "Curves.AddBox";
+	module.EventTypes.StartPreview = "Curves.StartPreview";
+	module.EventTypes.StopPreview = "Curves.StopPreview";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -52,7 +54,9 @@ var editor = (function(module) {
 			};
 	    },
 		
-		addBox: function(position, width, height, depth) {
+		addBox: function(position, width, height, depth) {			
+			this.stopPreview();
+			
 			var x = position[0],
 				y = position[1],
 				z = position[2],
@@ -132,9 +136,10 @@ var editor = (function(module) {
 		},
 		
 		startPreview: function() {
-			if (!this.currentSystem) {
-				this.createSystem();
+			if (this.currentSystem) {
+				this.currentSystem.cleanup();
 			}
+			this.createSystem();
 			this.currentSystem.start();
 		},
 		
@@ -179,10 +184,11 @@ var editor = (function(module) {
 				cancelBtn = this.find('#crvCancelBtn'),
 				sysTypeSel = this.find('#crvSystemTypeSelect'),
 				shpTypeSel = this.find('#crvShapeSelect'),
+				inputs = this.find('input:not(#crvName, .box)'),
 				boxAddBtn = this.find('#crvAddSaveBoxBtn'),
 				boxWidthIpt = this.find('#crvWidth'),
-				boxHeightIpt = this.find('#crvWidth'),
-				boxDepthIpt = this.find('#crvWidth'),
+				boxHeightIpt = this.find('#crvHeight'),
+				boxDepthIpt = this.find('#crvDepth'),
 				nameIpt = this.find('#crvName'),
 				startPreviewBtn = this.find('#crvPreviewStartBtn'),
 				stopPreviewBtn = this.find('#crvPreviewStopBtn'),
@@ -224,10 +230,20 @@ var editor = (function(module) {
 				wgt.notifyListeners(module.EventTypes.StopPreview);
 			});
 			
+			inputs.bind('change', function(evt) {
+				var elem = jQuery(this),
+					id = elem.attr('id');
+					
+				wgt.notifyListeners(module.EventTypes.SetParam, {
+					paramName: id.replace('crv', '').toLowerCase(),
+					paramValue: parseFloat(elem.val())
+				});
+			});
+			
 			sysTypeSel.bind('change', function(evt) {
 				wgt.notifyListeners(module.EventTypes.SetParam, {
 					paramName: 'trail',
-					paramValue: jQuery(this).val() == trail
+					paramValue: jQuery(this).val() == 'trail'
 				});
 			});
 			
@@ -239,13 +255,13 @@ var editor = (function(module) {
 			});
 			
 			boxAddBtn.bind('click', function(evt) {
-				var pos = wgt.position.getValues();
+				var pos = wgt.position.getValue();
 				
 				wgt.notifyListeners(module.EventTypes.AddBox, {
 					position: [pos.x, pos.y, pos.z],
-					width: boxWidthIpt.val(),
-					height: boxHeightIpt.val(),
-					depth: boxDepthIpt.val()
+					width: parseFloat(boxWidthIpt.val()),
+					height: parseFloat(boxHeightIpt.val()),
+					depth: parseFloat(boxDepthIpt.val())
 				});
 				
 				startPreviewBtn.removeAttr('disabled');
@@ -383,6 +399,12 @@ var editor = (function(module) {
 			});
 			edtCrvWgt.addListener(module.EventTypes.SetParam, function(paramObj) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
+			});
+			edtCrvWgt.addListener(module.EventTypes.StartPreview, function() {
+				model.startPreview();
+			});
+			edtCrvWgt.addListener(module.EventTypes.StopPreview, function() {
+				model.stopPreview();
 			});
 			
 			// curve list widget specific
