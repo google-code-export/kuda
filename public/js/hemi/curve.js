@@ -51,12 +51,12 @@ var hemi = (function(hemi) {
 	/**
 	 * Predefined values for common shapes.
 	 * <ul><pre>
-	 * <li>hemi.curve.shapeType.CUBE
-	 * <li>hemi.curve.shapeType.SPHERE
-	 * <li>hemi.curve.shapeType.ARROW
+	 * <li>hemi.curve.ShapeType.CUBE
+	 * <li>hemi.curve.ShapeType.SPHERE
+	 * <li>hemi.curve.ShapeType.ARROW
 	 * </ul></pre>
 	 */
-	hemi.curve.shapeType = {
+	hemi.curve.ShapeType = {
 		CUBE : 'cube',
 		SPHERE : 'sphere',
 		ARROW : 'arrow'
@@ -75,18 +75,18 @@ var hemi = (function(hemi) {
 		var eshow = (config.edges == null) ? true : config.edges;
 		var esize = config.edgeSize || 2;
 		var ecolor = config.edgeColor || [0.5,0,0,1];
-		var ballMat = o3djs.material.createBasicMaterial(hemi.core.mainPack,hemi.view.viewInfo,jcolor);
+		var ballMat = o3djs.material.createBasicMaterial(hemi.curve.pack,hemi.view.viewInfo,jcolor);
 		var param = ballMat.getParam('lightWorldPos'); 
 		if(param) {
 			param.bind(hemi.world.camera.light.position);
 		}
-		var mainTransform = hemi.core.mainPack.createObject('Transform');
+		var mainTransform = hemi.curve.pack.createObject('Transform');
 		mainTransform.parent = hemi.core.client.root;
 		for (var i = 0; i < points.length; i++) {
 			if(jshow) {
-				var transform = hemi.core.mainPack.createObject('Transform');
+				var transform = hemi.curve.pack.createObject('Transform');
 				transform.parent = mainTransform;
-				var joint = o3djs.primitives.createSphere(hemi.core.mainPack,ballMat,jsize,20,20);
+				var joint = o3djs.primitives.createSphere(hemi.curve.pack,ballMat,jsize,20,20);
 				transform.addShape(joint);
 				transform.translate(points[i]);
 			}
@@ -108,15 +108,15 @@ var hemi = (function(hemi) {
 	hemi.curve.drawLine = function(p0,p1,pTrans,opt_size,opt_color) {
 		var size = opt_size || 2;
 		var color = opt_color || [0.5,0,0,1];
-		var lineMat = o3djs.material.createBasicMaterial(hemi.core.mainPack,hemi.view.viewInfo,color);
+		var lineMat = o3djs.material.createBasicMaterial(hemi.curve.pack,hemi.view.viewInfo,color);
 		var param = lineMat.getParam('lightWorldPos'); 
 		if(param) {
 			param.bind(hemi.world.camera.light.position);
 		}
 		var dist = o3djs.math.distance(p0,p1);
 		var midpoint = [ (p0[0]+p1[0])/2, (p0[1]+p1[1])/2, (p0[2]+p1[2])/2 ];
-		var line = o3djs.primitives.createCylinder(hemi.core.mainPack,lineMat,size,dist,3,1);
-		var transform = hemi.core.mainPack.createObject('Transform');
+		var line = o3djs.primitives.createCylinder(hemi.curve.pack,lineMat,size,dist,3,1);
+		var transform = hemi.curve.pack.createObject('Transform');
 		transform.parent = pTrans;
 		transform.addShape(line);
 		transform.translate(midpoint);
@@ -146,7 +146,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.curve.showBoxes = function(system) {
 		var boxes = system.boxes,
-			pack = hemi.core.mainPack;
+			pack = hemi.curve.pack;
 		
 		if (this.dbgBoxTransforms.length > 0) {
 			this.hideBoxes();
@@ -174,7 +174,7 @@ var hemi = (function(hemi) {
 	 * Remove the bounding boxes from view.
 	 */
 	hemi.curve.hideBoxes = function() {
-		var pack = hemi.core.mainPack;
+		var pack = hemi.curve.pack;
 		
 		for (i = 0; i < this.dbgBoxTransforms.length; i++) {
 			var tran = this.dbgBoxTransforms[i],
@@ -225,13 +225,22 @@ var hemi = (function(hemi) {
 		return system;
 	};
 	
+	hemi.curve.newMaterial = function() {
+		return hemi.core.material.createBasicMaterial(
+			this.pack,
+			hemi.view.viewInfo,
+			[0,0,0,1],
+			true);
+	};
+	
 	hemi.curve.init = function() {
+		this.pack = hemi.core.client.createPack();
 		this.dbgBoxMat = hemi.core.material.createConstantMaterial(
-			hemi.core.mainPack,
+			this.pack,
 			hemi.view.viewInfo,
 			[0, 0, 0.5, 1]);
 		
-		var state = hemi.core.mainPack.createObject('State');
+		var state = this.pack.createObject('State');
 		state.getStateParam('PolygonOffset2').value = -1.0;
 		state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
 		this.dbgBoxMat.state = state;
@@ -469,7 +478,7 @@ var hemi = (function(hemi) {
 	 *      it travels along the points
 	 */
 	hemi.curve.Particle = function(trans,points,colorKeys,scaleKeys,rotate) {	
-		var pack = hemi.core.mainPack;
+		var pack = hemi.curve.pack;
 		this.transform = pack.createObject('Transform');
 		this.transform.parent = trans;
 		this.frame = 1;
@@ -664,7 +673,7 @@ var hemi = (function(hemi) {
 			for(var i = (t.shapes.length-1); i >= 0; i--) {
 				t.removeShape(t.shapes[i]);
 			}
-			hemi.core.mainPack.removeObject(t);
+			hemi.curve.pack.removeObject(t);
 			this.transform = null;
 			this.curve = null;
 			this.destroyed = true;
@@ -691,7 +700,7 @@ var hemi = (function(hemi) {
 	 * @param {hemi.config} config Configuration object describing this system
 	 */
 	hemi.curve.ParticleSystem = function(trans,config) {
-		var pack = hemi.core.mainPack;
+		var pack = hemi.curve.pack;
 		var view = hemi.view.viewInfo;
 		this.transform = pack.createObject('Transform');
 		this.transform.parent = trans;
@@ -724,16 +733,16 @@ var hemi = (function(hemi) {
 		
 		if (config.shape) {
 			switch (config.shape) {
-				case (hemi.curve.shapeType.ARROW):
+				case (hemi.curve.ShapeType.ARROW):
 					var arrowHeadXY = [[-0.4,0],[0.4,0],[0,0.6]];
 					var arrowBaseXY = [[-0.2,0],[-0.2,-0.4],[0.2,-0.4],[0.2,0]];
 					this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowHeadXY,0.2));
 					this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowBaseXY,0.2));
 					break;
-				case (hemi.curve.shapeType.SPHERE):
+				case (hemi.curve.ShapeType.SPHERE):
 					this.shapes.push(o3djs.primitives.createSphere(pack,this.shapeMaterial,0.5,12,12));
 					break;
-				case (hemi.curve.shapeType.CUBE):
+				case (hemi.curve.ShapeType.CUBE):
 					this.shapes.push(o3djs.primitives.createCube(pack,this.shapeMaterial,1));
 					break;
 				default:
@@ -857,20 +866,20 @@ var hemi = (function(hemi) {
 		 * 		predefined shape to add
 		 */
 		addShape : function(shape) {
-			var pack = hemi.core.mainPack;
+			var pack = hemi.curve.pack;
 			var startndx = this.shapes.length;
 			if (typeof shape == 'string') {
 				switch (shape) {
-					case (hemi.curve.shapeType.ARROW):
+					case (hemi.curve.ShapeType.ARROW):
 						var arrowHeadXY = [[-0.4,0],[0.4,0],[0,0.6]];
 						var arrowBaseXY = [[-0.2,0],[-0.2,-0.4],[0.2,-0.4],[0.2,0]];
 						this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowHeadXY,0.2));
 						this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowBaseXY,0.2));
 						break;
-					case (hemi.curve.shapeType.CUBE):
+					case (hemi.curve.ShapeType.CUBE):
 						this.shapes.push(o3djs.primitives.createCube(pack,this.shapeMaterial,1));
 						break;
-					case (hemi.curve.shapeType.SPHERE):
+					case (hemi.curve.ShapeType.SPHERE):
 					default:
 						this.shapes.push(o3djs.primitives.createSphere(pack,this.shapeMaterial,0.5,12,12));
 						break;
@@ -1088,72 +1097,72 @@ var hemi = (function(hemi) {
 	/**
 	 * A particle system that is GPU driven.
 	 * 
-	 * @param {Object} cfg the configuration object for the system
+	 * @param {Object} opt_cfg optional configuration object for the system
 	 */
-	hemi.curve.GpuParticleSystem = function(cfg) {
+	hemi.curve.GpuParticleSystem = function(opt_cfg) {
+		hemi.world.Citizen.call(this);
 		this.active = false;
-		this.boxes = null;
-		this.life = null;
-		this.transform = null;
+		this.aim = false;
+		this.boxes = [];
+		this.colors = [];
 		this.decParam = null;
+		this.life = 0;
+		this.material = null;
+		this.materialSrc = null;
 		this.maxTimeParam = null;
+		this.particles = 0;
+		this.ptcShape = 0;
+		this.size = 0;
+		this.tension = 0;
+		this.texNdx = -1;
 		this.timeParam = null;
+		this.transform = null;
 		
-		// TODO: remove this when inheritance scheme changes
-		if (!cfg) {
-			return;
+		if (opt_cfg) {
+			this.loadConfig(opt_cfg);
 		}
-		
-		var type = cfg.shape || hemi.curve.shapeType.CUBE,
-			size = cfg.size || 1.0,
-			material = cfg.material || hemi.shape.material,
-			tension = cfg.tension || 0;
-		
-		switch (type) {
-			case hemi.curve.shapeType.ARROW:
-				this.transform = hemi.shape.create({
-					shape: 'arrow',
-					mat: material,
-					size: size,
-					tail: size });
-				break;
-			case hemi.curve.shapeType.SPHERE:
-				this.transform = hemi.shape.create({
-					shape: 'sphere',
-					mat: material,
-					radius: size });
-				break;
-			case hemi.curve.shapeType.CUBE:
-			default:
-				this.transform = hemi.shape.create({
-					shape: 'cube',
-					mat: material,
-					size: size });
-				break;
-		}
-		
-		if (!cfg.colors) {
-			cfg.colors = [];
-		} else if (cfg.colors.length === 1) {
-			// We need at least two to interpolate
-			var clr = cfg.colors[0];
-			cfg.colors = [clr, clr];
-		}
-		
-		var shape = this.transform.shapes[0];
-		var material = modifyShape(shape, cfg);
-		this.boxes = cfg.boxes;
-		this.life = cfg.life || 5;
-		material.getParam('tension').value = (1 - tension) / 2;
-		this.decParam = material.getParam('ptcDec');
-		this.decParam.value = 1.0;
-		this.maxTimeParam = material.getParam('ptcMaxTime');
-		this.maxTimeParam.value = 3.0;
-		this.timeParam = material.getParam('sysTime');
-		this.timeParam.value = 1.1;
 	};
 	
 	hemi.curve.GpuParticleSystem.prototype = {
+        /**
+         * Overwrites hemi.world.Citizen.citizenType.
+         */
+        citizenType: 'hemi.curve.GpuParticleSystem',
+		
+		/**
+		 * Send a cleanup Message and remove all references in the GpuParticleSystem.
+		 */
+		cleanup: function() {
+			hemi.world.Citizen.prototype.cleanup.call(this);
+		},
+		
+		/**
+		 * Load the given configuration object and set up the GpuParticleSystem.
+		 * 
+		 * @param {Object} cfg configuration object
+		 */
+		loadConfig: function(cfg) {
+			this.aim = cfg.aim == null ? false : cfg.aim;
+			this.boxes = cfg.boxes || [];
+			this.life = cfg.life || 5;
+			this.particles = cfg.particles || 1;
+			this.size = cfg.size || 1;
+			this.tension = cfg.tension || 0;
+			
+			if (!cfg.colors) {
+				this.colors = [];
+			} else if (cfg.colors.length === 1) {
+				// We need at least two to interpolate
+				var clr = cfg.colors[0];
+				this.colors = [clr, clr];
+			} else {
+				this.colors = cfg.colors;
+			}
+			
+			this.setMaterial(cfg.material || hemi.curve.newMaterial());
+			this.setParticleShape(cfg.shape || hemi.curve.ShapeType.CUBE);
+		},
+		
 		/**
 		 * Update the particles on each render.
 		 * 
@@ -1195,6 +1204,41 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
+		 * Set whether or not particles should orient themselves along the curve
+		 * they are following.
+		 * 
+		 * @param {boolean} aim flag indicating if particles should aim
+		 */
+		setAim: function(aim) {
+			if (this.aim !== aim) {
+				this.aim = aim;
+				this.setupShaders();
+			}
+		},
+		
+		/**
+		 * Set the bounding boxes that define waypoints for the particle
+		 * system's curves.
+		 * 
+		 * @param {number[3][2][]} boxes array of pairs of XYZ coordinates, the
+		 *     first as minimum values and the second as maximum
+		 */
+		setBoxes: function(boxes) {
+			this.boxes = boxes;
+			this.setupShaders();
+		},
+		
+		/**
+		 * Set the color ramp for the particles as they travel along the curve.
+		 * 
+		 * @param {number[4][]} colors array of RGBA color values
+		 */
+		setColors: function(colors) {
+			this.colors = colors;
+			this.setupShaders();
+		},
+		
+		/**
 		 * Set the lifetime of the particle system.
 		 * 
 		 * @param {number} life the lifetime of the system in seconds
@@ -1202,6 +1246,227 @@ var hemi = (function(hemi) {
 		setLife: function(life) {
 			if (life > 0) {
 				this.life = life;
+			}
+		},
+		
+		/**
+		 * Set the material to use for the particles. Note that the material's
+		 * shader will be modified for the particle system.
+		 * 
+		 * @param {o3d.Material} material the material to use for particles
+		 */
+		setMaterial: function(material) {
+			var shads = hemi.utils.getShaders(material);
+			
+			if (this.material) {
+				hemi.curve.pack.removeObject(this.material);
+			}
+			
+			this.material = material;
+			this.materialSrc = {
+				frag: shads.fragSrc,
+				vert: shads.vertSrc
+			};
+			this.setupShaders();
+		},
+		
+		/**
+		 * Set the total number of particles for the system to create.
+		 *  
+		 * @param {number} numPtcs number of particles
+		 */
+		setParticleCount: function(numPtcs) {
+			this.particles = numPtcs;
+			
+			if (this.ptcShape) {
+				// Recreate the custom vertex buffers
+				this.setParticleShape(this.ptcShape);
+			}
+		},
+		
+		/**
+		 * Set the size of each individual particle. For example, this would be
+		 * the radius if the particles are spheres.
+		 * 
+		 * @param {number} size size of the particles
+		 */
+		setParticleSize: function(size) {
+			this.size = size;
+			
+			if (this.ptcShape) {
+				// Recreate the custom vertex buffers
+				this.setParticleShape(this.ptcShape);
+			}
+		},
+		
+		/**
+		 * Set the shape of the particles to one of the predefined shapes. This
+		 * may take some time as a new vertex buffer gets created.
+		 * 
+		 * @param {hemi.curve.ShapeType} type the type of shape to use
+		 */
+		setParticleShape: function(type) {
+			this.ptcShape = type;
+			
+			if (this.transform) {
+				this.transform.parent = null;
+				hemi.shape.pack.removeObject(this.transform.shapes[0]);
+				hemi.shape.pack.removeObject(this.transform);
+				this.transform = null;
+			}
+			
+			this.material = this.material || hemi.curve.newMaterial();
+			this.particles = this.particles || 1;
+			
+			switch (type) {
+				case hemi.curve.ShapeType.ARROW:
+					this.transform = hemi.shape.create({
+						shape: 'arrow',
+						mat: this.material,
+						size: this.size,
+						tail: this.size });
+					break;
+				case hemi.curve.ShapeType.SPHERE:
+					this.transform = hemi.shape.create({
+						shape: 'sphere',
+						mat: this.material,
+						radius: this.size });
+					break;
+				case hemi.curve.ShapeType.CUBE:
+				default:
+					this.transform = hemi.shape.create({
+						shape: 'cube',
+						mat: this.material,
+						size: this.size });
+					break;
+			}
+			
+			var shape = this.transform.shapes[0],
+				elements = shape.elements;
+			
+			for (var i = 0, il = elements.length; i < il; i++) {
+				var element = elements[i];
+				
+				if (element.className === 'Primitive') {
+					this.texNdx = modifyPrimitive(element, this.particles);
+				}
+			}
+			
+			this.setupShaders();
+		},
+		
+		/**
+		 * Set the tension parameter for the curve. This controls how round or
+		 * straight the curve sections are.
+		 * 
+		 * @param {number} tension tension value (typically from -1 to 1)
+		 */
+		setTension: function(tension) {
+			this.tension = tension;
+			
+			if (this.material) {
+				this.material.getParam('tension').value = (1 - this.tension) / 2;
+			}
+		},
+		
+		/**
+		 * Modify the particle material's shaders so that the particle system
+		 * can be rendered using its current configuration. At a minimum, the
+		 * material, custom texture index, and curve boxes need to be defined.
+		 */
+		setupShaders: function() {
+			if (!this.material || !this.materialSrc || this.texNdx === -1 || this.boxes.length < 2) {
+				return;
+			}
+			
+			var material = this.material,
+				fragSrc = this.materialSrc.frag,
+				vertSrc = this.materialSrc.vert,
+				numBoxes = this.boxes.length,
+				numColors = this.colors.length,
+				texNdx = this.texNdx,
+				addColors = numColors > 1,
+				shads = hemi.utils.getShaders(material),
+				fragShd = shads.fragShd,
+				vertShd = shads.vertShd;
+			
+			// modify the vertex shader
+			if (vertSrc.search('ptcInterp') < 0) {
+				var vertHdr = hemi.curve.vertHeader.replace(/NUM_BOXES/g, numBoxes),
+					vertSprt = hemi.curve.vertSupport,
+					vertPreBody = hemi.curve.vertBodySetup.replace(/NUM_BOXES/g, numBoxes);
+				
+				vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
+				vertPreBody = vertPreBody.replace(/TEXCOORD/g, 'texCoord' + texNdx);
+				
+				if (addColors) {
+					vertHdr += hemi.curve.vertHeaderColors.replace(/NUM_COLORS/g, numColors);
+					vertSprt += hemi.curve.vertSupportColors.replace(/NUM_COLORS/g, numColors);
+				} else {
+					vertSprt += hemi.curve.vertSupportNoColors;
+				}
+				
+				if (this.aim) {
+					vertSprt += hemi.curve.vertSupportAim;
+					vertPreBody += hemi.curve.vertBodyWMAim;
+				} else {
+					vertPreBody += hemi.curve.vertBodyWMNoAim;
+				}
+				
+				vertPreBody += hemi.curve.vertBodyEnd;
+				var parsedVert = hemi.utils.parseSrc(vertSrc, 'gl_Position'),
+					vertBody = parsedVert.body.replace(/world/g, 'ptcWorld')
+						.replace(/ViewProjection/g, 'VP')
+						.replace(/InverseTranspose/g, 'IT');
+				
+				parsedVert.postHdr = vertHdr;
+				parsedVert.postSprt = vertSprt;
+				parsedVert.postHdr = vertHdr;
+				parsedVert.preBody = vertPreBody;
+				parsedVert.body = vertBody;
+				vertSrc = hemi.utils.buildSrc(parsedVert);
+				
+				material.gl.detachShader(material.effect.program_, vertShd);
+				material.effect.loadVertexShaderFromString(vertSrc);
+			}
+			
+			// modify the fragment shader
+			if (fragSrc.search('ptcColor') < 0) {
+				var parsedFrag = hemi.utils.parseSrc(fragSrc, 'gl_FragColor'),
+					fragGlob = parsedFrag.glob;
+				
+				parsedFrag.postHdr = hemi.curve.fragHeader;
+				
+				if (addColors) {
+					if (fragGlob.indexOf('diffuse') !== -1) {
+						parsedFrag.glob = fragGlob.replace(/diffuse/g, 'ptcColor');
+					} else {
+						parsedFrag.glob = fragGlob.replace(/emissive/g, 'ptcColor');
+					}
+				} else {
+					parsedFrag.postGlob = hemi.curve.fragGlobNoColors;
+				}
+				
+				fragSrc = hemi.utils.buildSrc(parsedFrag);
+				material.gl.detachShader(material.effect.program_, fragShd);
+				material.effect.loadPixelShaderFromString(fragSrc);
+			}
+			
+			material.effect.createUniformParameters(material);
+			
+			// Setup params
+			material.getParam('numPtcs').value = this.particles;
+			material.getParam('tension').value = (1 - this.tension) / 2;
+			this.decParam = material.getParam('ptcDec');
+			this.maxTimeParam = material.getParam('ptcMaxTime');
+			this.timeParam = material.getParam('sysTime');
+			this.decParam.value = 1.0;
+			this.maxTimeParam.value = 3.0;
+			this.timeParam.value = 1.1;
+			setupBounds(material, this.boxes);
+			
+			if (addColors) {
+				setupColors(material, this.colors);
 			}
 		},
 		
@@ -1227,16 +1492,44 @@ var hemi = (function(hemi) {
 				this.maxTimeParam.value = 3.0;
 				hemi.view.removeRenderListener(this);
 			}
+		},
+		
+		/**
+		 * Get the Octane structure for the GpuParticleSystem.
+	     *
+	     * @return {Object} the Octane structure representing the
+	     *     GpuParticleSystem
+		 */
+		toOctane: function(){
+			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			
+			octane.props.push({
+				name: 'loadConfig',
+				arg: [{
+					aim: this.aim,
+					boxes: this.boxes,
+					colors: this.colors,
+					life: this.life,
+					particles: this.particles,
+					shape: this.ptcShape,
+					size: this.size,
+					tension: this.tension
+				}]
+			});
+			
+			return octane;
 		}
 	};
+
+	hemi.curve.GpuParticleSystem.inheritsFrom(hemi.world.Citizen);
 	
 	/**
 	 * A GPU driven particle system that has trailing starts and stops.
 	 * 
-	 * @param {Object} cfg the configuration object for the system
+	 * @param {Object} opt_cfg the configuration object for the system
 	 */
-	hemi.curve.GpuParticleTrail = function(cfg) {
-		hemi.curve.GpuParticleSystem.call(this, cfg);
+	hemi.curve.GpuParticleTrail = function(opt_cfg) {
+		hemi.curve.GpuParticleSystem.call(this, opt_cfg);
 		
 		this.endTime = 1.0;
 		this.starting = false;
@@ -1324,33 +1617,16 @@ var hemi = (function(hemi) {
 	
 	hemi.curve.GpuParticleTrail.inheritsFrom(hemi.curve.GpuParticleSystem);
 	
-	var modifyShape = function(shape, cfg) {
-		var elements = shape.elements,
-			numParticles = cfg.particles || 25,
-			material = null;
-		
-		for (var i = 0, il = elements.length; i < il; i++) {
-			var element = elements[i];
-			
-			if (element.className === 'Primitive') {
-				var texNdx = modifyPrimitive(element, numParticles);
-				
-				if (material === null) {
-					material = element.material;
-					modifyMaterial(material, cfg, texNdx);
-					material.getParam('numPtcs').value = numParticles;
-					setupBounds(material, cfg.boxes);
-					
-					if (cfg.colors.length > 1) {
-						setupColors(material, cfg.colors);
-					}
-				}
-			}
-		}
-		
-		return material;
-	};
-	
+	/*
+	 * Take the existing vertex buffer in the given primitive and copy the data
+	 * once for each of the desired number of particles. Add a texture
+	 * coordinate stream to feed particle id/offset data through.
+	 * 
+	 * @param {o3d.Primitive} primitive the primitive to modify
+	 * @param {number} numParticles the number of particles to create vertex
+	 *     data for
+	 * @return {number} the id of the created texture coordinate stream
+	 */
 	var modifyPrimitive = function(primitive, numParticles) {
 		var TEXCOORD = hemi.core.o3d.Stream.TEXCOORD,
 			indexBuffer = primitive.indexBuffer,
@@ -1431,86 +1707,18 @@ var hemi = (function(hemi) {
 		return idOffNdx;
 	};
 	
-	var modifyMaterial = function(material, cfg, texNdx) {
-		var shads = hemi.utils.getShaders(material),
-			fragShd = shads.fragShd,
-			fragSrc = shads.fragSrc;
-			vertShd = shads.vertShd,
-			vertSrc = shads.vertSrc,
-			numBoxes = cfg.boxes.length,
-			numColors = cfg.colors.length,
-			addColors = numColors > 1;
-		
-		// modify the vertex shader
-		if (vertSrc.search('ptcInterp') < 0) {
-			var vertHdr = hemi.curve.vertHeader.replace(/NUM_BOXES/g, numBoxes),
-				vertSprt = hemi.curve.vertSupport,
-				vertPreBody = hemi.curve.vertBodySetup.replace(/NUM_BOXES/g, numBoxes);
-			
-			vertHdr = vertHdr.replace(/TEXCOORD/g, 'texCoord' + texNdx);
-			vertPreBody = vertPreBody.replace(/TEXCOORD/g, 'texCoord' + texNdx);
-			
-			if (addColors) {
-				vertHdr += hemi.curve.vertHeaderColors.replace(/NUM_COLORS/g, numColors);
-				vertSprt += hemi.curve.vertSupportColors.replace(/NUM_COLORS/g, numColors);
-			} else {
-				vertSprt += hemi.curve.vertSupportNoColors;
-			}
-			
-			if (cfg.aim) {
-				vertSprt += hemi.curve.vertSupportAim;
-				vertPreBody += hemi.curve.vertBodyWMAim;
-			} else {
-				vertPreBody += hemi.curve.vertBodyWMNoAim;
-			}
-			
-			vertPreBody += hemi.curve.vertBodyEnd;
-			var parsedVert = hemi.utils.parseSrc(vertSrc, 'gl_Position'),
-				vertBody = parsedVert.body.replace(/world/g, 'ptcWorld')
-					.replace(/ViewProjection/g, 'VP')
-					.replace(/InverseTranspose/g, 'IT');
-			
-			parsedVert.postHdr = vertHdr;
-			parsedVert.postSprt = vertSprt;
-			parsedVert.postHdr = vertHdr;
-			parsedVert.preBody = vertPreBody;
-			parsedVert.body = vertBody;
-			vertSrc = hemi.utils.buildSrc(parsedVert);
-			
-			material.gl.detachShader(material.effect.program_, vertShd);
-			material.effect.loadVertexShaderFromString(vertSrc);
-		}
-		
-		// modify the fragment shader
-		if (fragSrc.search('ptcColor') < 0) {
-			var parsedFrag = hemi.utils.parseSrc(fragSrc, 'gl_FragColor'),
-				fragGlob = parsedFrag.glob;
-			
-			parsedFrag.postHdr = hemi.curve.fragHeader;
-			
-			if (addColors) {
-				if (fragGlob.indexOf('diffuse') !== -1) {
-					parsedFrag.glob = fragGlob.replace(/diffuse/g, 'ptcColor');
-				} else {
-					parsedFrag.glob = fragGlob.replace(/emissive/g, 'ptcColor');
-				}
-			} else {
-				parsedFrag.postGlob = hemi.curve.fragGlobNoColors;
-			}
-			
-			fragSrc = hemi.utils.buildSrc(parsedFrag);
-			material.gl.detachShader(material.effect.program_, fragShd);
-			material.effect.loadPixelShaderFromString(fragSrc);
-		}
-		
-		material.effect.createUniformParameters(material);
-	};
-	
+	/*
+	 * Set the parameters for the given Material so that it supports a curve
+	 * through the given bounding boxes.
+	 * 
+	 * @param {o3d.Material} material material to set parameters for
+	 * @param {number[3][2][]} boxes array of min and max XYZ coordinates
+	 */
 	var setupBounds = function(material, boxes) {
 		var minParam = material.getParam('minXYZ'),
 			maxParam = material.getParam('maxXYZ'),
-			minArr = hemi.core.mainPack.createObject('ParamArray'),
-			maxArr = hemi.core.mainPack.createObject('ParamArray');
+			minArr = hemi.curve.pack.createObject('ParamArray'),
+			maxArr = hemi.curve.pack.createObject('ParamArray');
 		
 		minArr.resize(boxes.length, 'ParamFloat3');
 		maxArr.resize(boxes.length, 'ParamFloat3');
@@ -1525,9 +1733,16 @@ var hemi = (function(hemi) {
 		maxParam.value = maxArr;
 	};
 	
+	/*
+	 * Set the parameters for the given Material so that it adds a color ramp to
+	 * the particles using it.
+	 * 
+	 * @param {o3d.Material} material material to set parameters for
+	 * @param {Object} colors array of RGBA color values
+	 */
 	var setupColors = function(material, colors) {
 		var clrParam = material.getParam('ptcColors'),
-			clrArr = hemi.core.mainPack.createObject('ParamArray');
+			clrArr = hemi.curve.pack.createObject('ParamArray');
 		
 		clrArr.resize(colors.length, 'ParamFloat4');
 		
