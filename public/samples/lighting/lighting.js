@@ -25,6 +25,8 @@ o3djs.require('hext.progressUI.progressBar');
 
 (function() {
 	var	houseModel,
+		loadTask = 'LoadTextures',
+		loadProg = 0,
 		emissiveSamplers = {},
 		skin = {},
 		maps = [{
@@ -102,7 +104,8 @@ o3djs.require('hext.progressUI.progressBar');
 			window_b1: 'assets/images/TimeMaps/Window_B1_1725.jpg',
 			window_ki: 'assets/images/TimeMaps/Window_KI_1725.jpg',
 			window_lr4: 'assets/images/TimeMaps/Window_LR4_1725.jpg'
-		}];
+		}],
+	numAssets = (maps.length * 14) + 1; // textures and the model file
 
 	function initStep(clientElements) {
 		bindJavaScript();
@@ -110,8 +113,28 @@ o3djs.require('hext.progressUI.progressBar');
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		hemi.loader.loadPath = '../../';
 		
-		// instantiate the progress bar
-		pbar = new hext.progressUI.bar();
+		// Check if we should display one load bar for all loading
+		var full = getParam('fullProgress').toLowerCase() == 'true';
+		
+		if (full) {
+			// instantiate the progress bar to receive our progress updates
+			pbar = new hext.progressUI.bar(loadTask);
+			hemi.loader.createTask(loadTask, null);
+			
+			hemi.world.subscribe(hemi.msg.progress, function(msg) {
+				if (!msg.data.isTotal && msg.data.task !== loadTask) {
+					var pct = msg.data.percent / numAssets;
+					hemi.loader.updateTask(loadTask, loadProg + pct);
+					
+					if (msg.data.percent === 100) {
+						loadProg += pct;
+					}
+				}
+			});
+		} else {
+			// instantiate the progress bar to receive total progress updates
+			pbar = new hext.progressUI.bar();
+		}
 		
 		houseModel = new hemi.model.Model();
 		houseModel.setFileName('assets/LightingHouse_v082/scene.json');
@@ -192,6 +215,17 @@ o3djs.require('hext.progressUI.progressBar');
 					loadTextures(maps.shift());
 				});
 		}
+	}
+	
+	function getParam(name) {
+		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		var regexS = "[\\?&]"+name+"=([^&#]*)";
+		var regex = new RegExp( regexS );
+		var results = regex.exec( window.location.href );
+		if( results == null )
+			return "";
+		else
+			return results[1];
 	}
 
 	jQuery(window).load(function() {
