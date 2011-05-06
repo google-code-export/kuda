@@ -36,6 +36,7 @@ var editor = (function(module) {
 	module.EventTypes.AddBox = "Curves.AddBox";
 	module.EventTypes.StartPreview = "Curves.StartPreview";
 	module.EventTypes.StopPreview = "Curves.StopPreview";
+	module.EventTypes.SetCurveColor = "Curves.SetCurveColor";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -50,7 +51,12 @@ var editor = (function(module) {
 			this._super();
 			this.config = {
 				fast: true,
-				boxes: []
+				boxes: [],
+				material: hemi.core.material.createBasicMaterial(
+					hemi.shape.pack,
+					hemi.view.viewInfo,
+					[0,0,0,1],
+					true)
 			};
 	    },
 		
@@ -68,6 +74,34 @@ var editor = (function(module) {
 				
 			this.config.boxes.push([minExtent, maxExtent]);
 			this.notifyListeners(module.EventTypes.BoxAdded, null);
+			
+			this.stopPreview();
+			if (this.currentSystem) {
+//				this.currentSystem.cleanup();
+				hemi.shape.pack.removeObject(this.config.material);
+			
+				this.config.material = hemi.core.material.createBasicMaterial(
+					hemi.shape.pack,
+					hemi.view.viewInfo,
+					[0,0,0,1],
+					true);
+			}
+			this.createSystem();
+			hemi.curve.showBoxes(this.currentSystem);
+		},
+		
+		addToColorRamp: function(ndx, color) {
+			var colors = this.config.colors;
+			
+			if (colors == null) {
+				this.config.colors = colors = [];
+			}
+			if (colors.length < ndx) {
+				colors.push(color);	
+			}
+			else {
+				colors[ndx] = color;
+			}
 		},
 		
 		cancel: function() {
@@ -99,10 +133,17 @@ var editor = (function(module) {
 		},
 		
 		reset: function() {
+			hemi.shape.pack.removeObject(this.config.material);
+			
 			this.currentSystem = null;
 			this.config = {
 				fast: true,
-				boxes: []
+				boxes: [],
+				material: hemi.core.material.createBasicMaterial(
+					hemi.shape.pack,
+					hemi.view.viewInfo,
+					[0,0,0,1],
+					true)
 			};
 			this.isUpdate = false;
 		},
@@ -137,7 +178,14 @@ var editor = (function(module) {
 		
 		startPreview: function() {
 			if (this.currentSystem) {
-				this.currentSystem.cleanup();
+//				this.currentSystem.cleanup();
+				hemi.shape.pack.removeObject(this.config.material);
+			
+				this.config.material = hemi.core.material.createBasicMaterial(
+					hemi.shape.pack,
+					hemi.view.viewInfo,
+					[0,0,0,1],
+					true);
 			}
 			this.createSystem();
 			this.currentSystem.start();
@@ -174,6 +222,8 @@ var editor = (function(module) {
 			var newOpts = jQuery.extend({}, 
 				module.tools.EditCrvSBWidgetDefaults, options);
 		    this._super(newOpts);
+			
+			this.colorPickers = [];
 		},
 		
 		finishLayout: function() {
@@ -266,13 +316,148 @@ var editor = (function(module) {
 				
 				startPreviewBtn.removeAttr('disabled');
 			});
+			
+			this.setupColorPicker();
+		},
+		
+		addColorInput: function() {
+			var colorAdder = this.find('#crvAddColorToRamp'),
+				ndx = colorAdder.data('ndx'),
+				wgt = this,
+				colorPicker;
+			
+			if (this.colorPickers.length <= ndx) {
+				colorPicker = new module.ui.ColorPicker({
+					inputId: 'crvColorRamp' + ndx,
+					containerClass: 'colorRampAdd',
+					buttonId: 'crvColorRamp' + ndx + 'Picker'
+				});			
+				
+				colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
+					wgt.notifyListeners(module.EventTypes.SetCurveColor, {
+						color: clr,
+						ndx: ndx
+					});
+				});
+			
+				this.colorPickers.push(colorPicker);
+			}
+			else {
+				colorPicker = this.colorPickers[ndx];
+			}
+			
+			colorAdder.before(colorPicker.getUI());
+			colorAdder.data('ndx', ndx+1);
 		},
 		
 		reset: function() {		
+			// remove additional color ramp values
+			this.find('.colorRampAdd').remove();
+			var colorRampPicker = this.colorPickers[0];
+			this.find('#pteAddColorToRamp').data('ndx', 1);
+		},
+		
+		resize: function(maxHeight) {
+			this._super(maxHeight);	
+			
+			var form = this.find('form:visible'),
+				padding = parseInt(form.css('paddingTop')) 
+					+ parseInt(form.css('paddingBottom')),
+				newHeight = maxHeight - padding,
+				oldHeight = form.outerHeight(true);
+			
+			if (oldHeight > newHeight) {
+				form.addClass('scrolling');
+			}
+			else {
+				form.removeClass('scrolling');
+			}
+			if (newHeight > 0) {
+				this.find('form:visible').height(newHeight);
+			}
 		},
 		
 		set: function(curve) {
-		}
+			this.reset();
+			
+			if (curve) {
+				var params = curve.params, 
+					type = curve.type ? curve.type 
+						: curve.citizenType.replace('hemi.effect.', ''), 
+					colorRamp = curve.colorRamp, 
+					state = curve.state, 
+					fireInt = curve.fireInterval, 
+					numColors = colorRamp.length / 4, 
+					colorAdder = this.find('#crvAddColorToRamp');
+				
+				this.find('#crvSystemTypeSelect').val(type).change();
+				this.find('#crvName').val(curve.name);
+				
+				for (var paramName in params) {
+					var val = params[paramName];
+					
+					if (paramName.match(/position/)) {							
+						this[paramName].setValue({
+							x: val[0],
+							y: val[1],
+							z: val[2]
+						});
+					}
+					else {
+						this.find('#crv' + paramName).val(val);
+					}
+				}
+								
+				var count = 1;
+				while (count++ < numColors) {
+					this.addColorInput();
+				}
+				
+				for (var ndx = 0; ndx < numColors; ndx++) {
+					var rampNdx = ndx * 4, 
+						r = colorRamp[rampNdx], 
+						g = colorRamp[rampNdx + 1], 
+						b = colorRamp[rampNdx + 2], 
+						a = colorRamp[rampNdx + 3];
+					
+					var picker = this.colorPickers[ndx];
+					picker.setColor([r, g, b, a]);
+				}
+				
+				this.canSave();
+			}
+			
+			this.invalidate();
+		},
+		
+		setupColorPicker: function() {
+			var wgt = this,
+				colorAdder = this.find('#crvAddColorToRamp');			
+			
+			var colorRampPicker = new module.ui.ColorPicker({
+				inputId: 'crvColorRamp0',	
+				containerClass: 'long',
+				buttonId: 'crvColorRamp0Picker'			
+			});
+			
+			this.find('#crvColorRamp0Lbl').after(colorRampPicker.getUI());
+			
+			// add listeners			
+			colorRampPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
+				wgt.notifyListeners(module.EventTypes.SetCurveColor, {
+					color: clr,
+					ndx: 0
+				});
+			});
+			
+			// setup the color ramp adder
+			colorAdder.bind('click', function(evt) {
+				wgt.addColorInput();
+			})
+			.data('ndx', 1);
+			
+			this.colorPickers.push(colorRampPicker);
+		},
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -399,6 +584,9 @@ var editor = (function(module) {
 			});
 			edtCrvWgt.addListener(module.EventTypes.SetParam, function(paramObj) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
+			});
+			edtCrvWgt.addListener(module.EventTypes.SetCurveColor, function(colorObj) {
+				model.addToColorRamp(colorObj.ndx, colorObj.color);
 			});
 			edtCrvWgt.addListener(module.EventTypes.StartPreview, function() {
 				model.startPreview();
