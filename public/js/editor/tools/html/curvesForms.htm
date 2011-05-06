@@ -16,14 +16,14 @@
 -->
 
 <div id="editCurvesDlg" title="Edit Curves">
-    <form id="crvForm" class="withSteps" method="post" action="">
+    <form id="crvForm" method="post" action="">
         <fieldset id="crvCurveParams">
             <legend>
                 Set Curve Parameters
             </legend>
             <ol>
                 <li>
-                    <label for="crvSystemTypeSelect">
+                    <label for="crvSystemTypeSelect" class="long">
                         System Type
                     </label>
                     <select id="crvSystemTypeSelect">
@@ -33,7 +33,7 @@
                     </select>
                 </li>
                 <li>
-                    <label for="crvShapeSelect">
+                    <label for="crvShapeSelect" class="long">
                         Particle Shape
                     </label>
                     <select id="crvShapeSelect">
@@ -44,28 +44,44 @@
                     </select>
                 </li>
 				<li>
-					<label for="crvParticles">
+					<label for="crvParticles" class="long">
 						Number of Particles
 					</label>
                     <input type="text" value="" id="crvParticles" class="short" />
 				</li>
+                <li>
+                    <label for="crvColorRamp0R" class="long" id="crvColorRamp0Lbl">
+                        Color Ramp
+                    </label>
+                    <div id="crvColorRampWrapper" class="long">
+                        <button id="crvAddColorToRamp">
+                            Add Color
+                        </button>
+                    </div>
+                </li>
 				<li>
-					<label for="crvLife">
+					<label for="crvLife" class="long">
 						System Life Time
 					</label>
                     <input type="text" value="" id="crvLife" class="short" />
 				</li>
 				<li>
-					<label for="crvSize">
-						Particle Size (in meters)
+					<label for="crvSize" class="long">
+						Particle Size
 					</label>
                     <input type="text" value="" id="crvSize" class="short" />
 				</li>
 				<li>
-					<label for="crvTension">
-						Tension of Hermite Curve
+					<label for="crvTension" class="long">
+						Tension
 					</label>
                     <input type="text" value="" id="crvTension" class="short" />
+				</li>
+				<li>
+					<label for="crvAim" class="long">
+						Aim Particles
+					</label>
+                    <input type="checkBox" value="1" id="crvAim" class="short" />
 				</li>
 			</ol>
         </fieldset>
