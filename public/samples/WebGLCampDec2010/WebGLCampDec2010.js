@@ -88,6 +88,10 @@ o3djs.require('hext.progressUI.progressBar');
 		camera = null;
 
 	function init(clientElements) {
+		// Example of using the experimental support for requestAnimationFrame
+		// clearInterval(o3d.Renderer.render_callback_interval_);
+		// o3d.Renderer.installRequestAnimationFrame();
+		// window.requestAnimationFrame(o3d.Renderer.renderClients);
 		core.init(clientElements[0]);
 		view.setBGColor([1, 1, 1, 1]);
 		pbar = new hext.progressUI.bar();
