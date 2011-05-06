@@ -93,11 +93,11 @@ o3d.Renderer.clients_ = [];
 
 /**
  * Create the requestAnimationFrame function if needed. Each browser implements
- * it as d different name currently. Default to a a timeout if not supported.
+ * it as d different name currently. Default to a timeout if not supported.
  * Credit to http://paulirish.com/2011/requestanimationframe-for-smart-animating/
  * and others...
  */
-if (!window.requestAnimationFrame) {
+o3d.Renderer.installRequestAnimationFrame = function() {
   window.requestAnimationFrame = (function() {
     return window.mozRequestAnimationFrame    ||
            window.webkitRequestAnimationFrame ||
@@ -105,8 +105,16 @@ if (!window.requestAnimationFrame) {
            window.msRequestAnimationFrame     ||
            function(callback, element) {
              setTimeout(callback, 1000 / 60);
-           }
-  })();
+           };
+    })();
+};
+
+
+/**
+ * Add the browser specific function to the window if it does no exist.
+ */
+if (!window.requestAnimationFrame) {
+  o3d.Renderer.installRequestAnimationFrame();
 }
 
 
@@ -128,9 +136,10 @@ o3d.Renderer.renderClients = function(time) {
 /**
  * Sets a timer to traverse the rendergraph every sixtieth of a second.
  */
-o3d.Renderer.installRenderInterval = function(element) {
+o3d.Renderer.installRenderInterval = function() {
   o3d.Renderer.render_callback_interval_ = setInterval(
       "o3d.Renderer.renderClients()", 1000.0 / 60.0);
+  window.requestAnimationFrame = function() {}; // Clear the browser version, using an interval instead
 };
 
 
@@ -244,7 +253,9 @@ o3d.Client = function() {
   this.counter_manager_ = new o3d.CounterManager;
 
   if (o3d.Renderer.clients_.length == 0)
-    window.requestAnimationFrame(o3d.Renderer.renderClients);
+    o3d.Renderer.installRenderInterval();
+    // 05/06/11 JPP switch to this when Chrome testing does not throw an exception which may not be Chrome's fault. 
+    // window.requestAnimationFrame(o3d.Renderer.renderClients);
 
   o3d.Renderer.clients_.push(this);
 
