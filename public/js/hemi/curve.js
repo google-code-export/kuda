@@ -1224,8 +1224,14 @@ var hemi = (function(hemi) {
 		 *     first as minimum values and the second as maximum
 		 */
 		setBoxes: function(boxes) {
+			var oldLength = this.boxes.length;
 			this.boxes = boxes;
-			this.setupShaders();
+			
+			if (this.boxes.length === oldLength) {
+				setupBounds(this.material, this.boxes);
+			} else {
+				this.setupShaders();
+			}
 		},
 		
 		/**
