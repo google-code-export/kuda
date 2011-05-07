@@ -19,7 +19,9 @@ var editor = (function(module) {
     module.ui = module.ui || {};
 	module.ui.trans = module.ui.trans || {};
 	
-	var EXTENT = 5;
+	var EXTENT = 5,
+		MAX_EXTENT = 10;
+		MIN_EXTENT = 2;
 	
 	module.ui.trans.DrawState = {
 		TRANSLATE: 0,
@@ -85,9 +87,11 @@ var editor = (function(module) {
 				maxExt = hemi.utils.pointAsWorld(this.transform.parent, bdgBox.maxExtent),
 				x = Math.abs(minExt[0] - maxExt[0]),
 				y = Math.abs(minExt[1] - maxExt[1]),
-				z = Math.abs(minExt[2] - maxExt[2]);
+				z = Math.abs(minExt[2] - maxExt[2]),
+				realExt = (x + y + z) / 3;
 				
-			return (x + y + z) / 3;
+			return realExt < MIN_EXTENT ? MIN_EXTENT : realExt > MAX_EXTENT ? 
+				MAX_EXTENT : realExt;
 		},
 		
 		isInView: function() {
