@@ -24,7 +24,11 @@ var editor = (function(module) {
     module.EventTypes.CurveRemoved = "Curves.CurveRemoved";
     module.EventTypes.CurveUpdated = "Curves.CurveUpdated";
     module.EventTypes.CurveSet = "Curves.CurveSet";
-    module.EventTypes.BoxAdded = "Curves.BoxAdded";
+    module.EventTypes.BoxesUpdated = "Curves.BoxesUpdated";
+    module.EventTypes.BoxSelected = "Curves.BoxSelected";
+	
+	// view specific
+	module.EventTypes.BoxManipState = "Curves.BoxManipState";
 	
 	// curve list widget specific
 	module.EventTypes.CreateCurve = "Curves.CreateCurve";
@@ -58,6 +62,14 @@ var editor = (function(module) {
 					[0,0,0,1],
 					true)
 			};
+			
+			this.msgHandler = hemi.world.subscribe(
+				hemi.msg.pick, 
+				this, 
+				"onPick", 
+				[
+					hemi.dispatch.MSG_ARG + "data.pickInfo"
+				]);
 	    },
 		
 		addBox: function(position, width, height, depth) {			
@@ -73,21 +85,14 @@ var editor = (function(module) {
 				maxExtent = [x + halfWidth, y + halfHeight, z + halfDepth];
 				
 			this.config.boxes.push([minExtent, maxExtent]);
-			this.notifyListeners(module.EventTypes.BoxAdded, null);
 			
 			this.stopPreview();
-			if (this.currentSystem) {
-//				this.currentSystem.cleanup();
-				hemi.shape.pack.removeObject(this.config.material);
+			hemi.curve.showBoxes(this.config.boxes);
+			this.changed = true;
 			
-				this.config.material = hemi.core.material.createBasicMaterial(
-					hemi.shape.pack,
-					hemi.view.viewInfo,
-					[0,0,0,1],
-					true);
-			}
-			this.createSystem();
-			hemi.curve.showBoxes(this.currentSystem);
+			this.notifyListeners(module.EventTypes.BoxesUpdated, {
+				size: this.config.boxes.length
+			});
 		},
 		
 		addToColorRamp: function(ndx, color) {
@@ -102,6 +107,8 @@ var editor = (function(module) {
 			else {
 				colors[ndx] = color;
 			}
+			
+			this.changed = true;
 		},
 		
 		cancel: function() {
@@ -125,6 +132,25 @@ var editor = (function(module) {
 			this.notifyListeners(module.EventTypes.CurveSet, this.currentSystem);
 		},
 		
+	    onPick: function(pickInfo) {
+			var transform = pickInfo.shapeInfo.parent.transform,
+				found = -1,
+				list = hemi.curve.dbgBoxTransforms;
+			
+			for (var i = 0, il = list.length; i < il && found === -1; i++) {
+				if (list[i].clientId === transform.clientId) {
+					found = i;
+				}
+			}
+			
+			if (found !== -1) {
+				this.notifyListeners(module.EventTypes.BoxSelected, {
+					transform: transform,
+					ndx: found
+				});
+			}
+	    },
+		
 		remove: function(system) {
 			this.stopPreview();
 			this.currentSystem.cleanup();
@@ -146,6 +172,7 @@ var editor = (function(module) {
 					true)
 			};
 			this.isUpdate = false;
+			this.changed = false;
 		},
 		
 		save: function(name) {
@@ -174,27 +201,38 @@ var editor = (function(module) {
 				this.config[paramName] = paramValue;
 			}
 			this.stopPreview();
+			this.changed = true;
 		},
 		
 		startPreview: function() {
-			if (this.currentSystem) {
-//				this.currentSystem.cleanup();
-				hemi.shape.pack.removeObject(this.config.material);
-			
-				this.config.material = hemi.core.material.createBasicMaterial(
-					hemi.shape.pack,
-					hemi.view.viewInfo,
-					[0,0,0,1],
-					true);
+			if (!this.previewing) {
+				if (this.currentSystem && this.changed) {
+//					this.currentSystem.cleanup();
+					hemi.shape.pack.removeObject(this.config.material);
+					
+					this.config.material = hemi.core.material.createBasicMaterial(
+						hemi.shape.pack, 
+						hemi.view.viewInfo, 
+						[0, 0, 0, 1], 
+						true);	
+										
+					this.createSystem();
+				} 
+				else if (this.changed) {						
+					this.createSystem();
+				}
+				
+				this.currentSystem.start();
+				this.previewing = true;
+				this.changed = false;
 			}
-			this.createSystem();
-			this.currentSystem.start();
 		},
 		
 		stopPreview: function() {
 			if (this.currentSystem) {
 				this.currentSystem.stop();
 			}
+			this.previewing = false;
 		},
 		
 	    worldCleaned: function() {
@@ -224,6 +262,8 @@ var editor = (function(module) {
 		    this._super(newOpts);
 			
 			this.colorPickers = [];
+			this.boxHandles = new editor.ui.TransHandles();
+			this.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
 		},
 		
 		finishLayout: function() {
@@ -286,7 +326,8 @@ var editor = (function(module) {
 					
 				wgt.notifyListeners(module.EventTypes.SetParam, {
 					paramName: id.replace('crv', '').toLowerCase(),
-					paramValue: parseFloat(elem.val())
+					paramValue: id === 'crvAim' ? elem.val() == 1 : 
+						parseFloat(elem.val())
 				});
 			});
 			
@@ -306,6 +347,8 @@ var editor = (function(module) {
 			
 			boxAddBtn.bind('click', function(evt) {
 				var pos = wgt.position.getValue();
+				wgt.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
+				wgt.boxHandles.setTransform(null);
 				
 				wgt.notifyListeners(module.EventTypes.AddBox, {
 					position: [pos.x, pos.y, pos.z],
@@ -313,8 +356,6 @@ var editor = (function(module) {
 					height: parseFloat(boxHeightIpt.val()),
 					depth: parseFloat(boxDepthIpt.val())
 				});
-				
-				startPreviewBtn.removeAttr('disabled');
 			});
 			
 			this.setupColorPicker();
@@ -348,6 +389,28 @@ var editor = (function(module) {
 			
 			colorAdder.before(colorPicker.getUI());
 			colorAdder.data('ndx', ndx+1);
+		},
+		
+		boxesUpdated: function(params) {
+			var btn = this.find('#crvPreviewStartBtn');
+			
+			if (params.size > 1) {				
+				btn.removeAttr('disabled');
+			}
+			else {
+				btn.attr('disabled', 'disabled');
+			}
+		},
+		
+		boxSelected: function(transform) {
+			this.boxHandles.setTransform(transform);
+			this.boxHandles.setDrawState(editor.ui.trans.DrawState.TRANSLATE);
+		},
+		
+		cleanup: function() {
+			for (var i = 0, il = this.transHandles.length; i < il; i++) {
+				this.transHandles[i].cleanup();
+			}
 		},
 		
 		reset: function() {		
@@ -524,6 +587,7 @@ var editor = (function(module) {
      * Configuration object for the CurveEditorView.
      */
     module.tools.CurveEditorViewDefaults = {
+		axnBarId: 'crvActionBar',
         toolName: 'Curves',
 		toolTip: 'Curves: Create and edit curves',
         widgetId: 'curvesBtn'
@@ -543,6 +607,73 @@ var editor = (function(module) {
 			
 			this.addSidebarWidget(new module.tools.EditCrvSBWidget());
 			this.addSidebarWidget(new module.tools.CrvListSBWidget());
+		},
+		
+		layoutActionBar: function() {
+			var widget = new module.ui.ActionBarWidget({
+				uiFile: 'js/editor/tools/html/curvesAxnBar.htm',
+				immediateLayout: false
+			});
+			var view = this;
+			
+			widget.finishLayout = function() {
+				var manipBtns = widget.find('#crvTranslate, #crvScale'),
+					tBtn = manipBtns.filter('#crvTranslate'),
+					sBtn = manipBtns.filter('#crvScale'),
+					down = module.tools.ToolConstants.MODE_DOWN;
+				
+				this.boxNumberTxt = widget.find('#crvBoxNumber');
+				
+		        widget.find('form').submit(function() {
+		            return false;
+		        });
+		        
+		        manipBtns.bind('click', function(evt) {
+					var elem = jQuery(this),
+						id = elem.attr('id'),
+						isDown = elem.data('isDown'),
+						msg;
+						
+					switch(id) {
+						case 'crvTranslate':
+						    msg = module.ui.trans.DrawState.TRANSLATE;
+							sBtn.data('isDown', false).removeClass(down);
+							break;
+						case 'crvScale':
+						    msg = module.ui.trans.DrawState.SCALE;
+							tBtn.data('isDown', false).removeClass(down);
+							break;
+					}
+					
+					if (isDown) {						
+						msg = module.ui.trans.DrawState.NONE;
+					}
+						
+		            view.notifyListeners(module.EventTypes.BoxManipState, msg);
+					elem.data('isDown', !isDown);
+					
+					if (isDown) {
+						elem.removeClass(down);
+					}
+					else {
+						elem.addClass(down);
+					}
+		        })
+		        .data('isDown', false);
+				
+				view.actionBar.addWidget(widget);
+				widget.setVisible(false);
+			};
+			
+			widget.layout();
+			
+			this.actionWgt = widget;
+		},
+		
+		boxSelected: function(transform, ndx) {
+			this.actionWgt.setVisible(true);
+			this.actionWgt.transform = transform;
+			this.actionWgt.boxNumberTxt.text(ndx+1);
 		}
 	});
 	
@@ -613,8 +744,15 @@ var editor = (function(module) {
 			// view specific
 	        
 			// model specific	
-			model.addListener(module.EventTypes.BoxAdded, function() {
-				
+			model.addListener(module.EventTypes.BoxesUpdated, function(params) {
+				edtCrvWgt.boxesUpdated(params);
+			});
+			model.addListener(module.EventTypes.BoxSelected, function(vals) {
+				var transform = vals.transform,
+					ndx = vals.ndx;
+					
+				edtCrvWgt.boxSelected(transform);
+				view.boxSelected(transform, ndx);
 			});
 			model.addListener(module.EventTypes.CurveCreated, function(curve) {
 				lstWgt.add(curve);

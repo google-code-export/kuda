@@ -144,9 +144,8 @@ var hemi = (function(hemi) {
 	 * Render the bounding boxes which the curves run through, mostly for
 	 * 		debugging purposes.
 	 */
-	hemi.curve.showBoxes = function(system) {
-		var boxes = system.boxes,
-			pack = hemi.core.mainPack;
+	hemi.curve.showBoxes = function(boxes) {
+		var pack = hemi.core.mainPack;
 		
 		if (this.dbgBoxTransforms.length > 0) {
 			this.hideBoxes();
@@ -165,7 +164,7 @@ var hemi = (function(hemi) {
 			
 			transform.addShape(box);
 			transform.translate(x,y,z);
-			transform.parent = system.transform;
+			transform.parent = hemi.picking.pickRoot;
 			this.dbgBoxTransforms[i] = transform;
 		}
 	};
