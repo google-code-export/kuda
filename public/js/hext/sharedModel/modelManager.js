@@ -112,8 +112,7 @@ var hext = (function(hext) {
 						client: client,
 						pack: pack,
 						parent: parent,
-						callback: callback,
-						options: options
+						callback: callback
 					});
 				}
 				return obj.loadInfo;
@@ -135,8 +134,7 @@ var hext = (function(hext) {
 						client: client,
 						pack: pack,
 						parent: parent,
-						callback: callback,
-						options: options
+						callback: callback
 					}],
 					loadInfo: loadInfo,
 					archiveInfo: null

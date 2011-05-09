@@ -223,7 +223,6 @@ var hemi = (function(hemi) {
 			}
 			
 			applyColor(this.transform, this.color);
-			
 			destroyTransform(newTran);
 		},
 		
@@ -391,11 +390,6 @@ var hemi = (function(hemi) {
 			hemi.shape.pack,
 			hemi.view.viewInfo,
 			[0,0,0,1],
-			false);
-		hemi.shape.transMaterial = hemi.core.material.createBasicMaterial(
-			hemi.shape.pack,
-			hemi.view.viewInfo,
-			[0,0,0,1],
 			true);
 		
 		hemi.world.addCamCallback(function(camera) {
@@ -439,13 +433,7 @@ var hemi = (function(hemi) {
 			}
 		} else {
 			color = shapeInfo.color;
-			
-			if (color[3] < 1) {
-				material = hemi.shape.transMaterial;
-			}
-			else {
-				material = hemi.shape.material;
-			}
+			material = hemi.shape.material;
 		}
 		
 		switch (shapeType.toLowerCase()) {
