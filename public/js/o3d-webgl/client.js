@@ -92,16 +92,44 @@ o3d.Renderer.clients_ = [];
 
 
 /**
+ * Create the requestAnimationFrame function if needed. Each browser implements
+ * it as d different name currently. Default to a timeout if not supported.
+ * Credit to http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+ * and others...
+ */
+o3d.Renderer.installRequestAnimationFrame = function() {
+  window.requestAnimationFrame = (function() {
+    return window.mozRequestAnimationFrame    ||
+           window.webkitRequestAnimationFrame ||
+           window.oRequestAnimationFrame      ||
+           window.msRequestAnimationFrame     ||
+           function(callback, element) {
+             setTimeout(callback, 1000 / 60);
+           };
+    })();
+};
+
+
+/**
+ * Add the browser specific function to the window if it does no exist.
+ */
+if (!window.requestAnimationFrame) {
+  o3d.Renderer.installRequestAnimationFrame();
+}
+
+
+/**
  * Renders all clients associated with this renderer.
  */
-o3d.Renderer.renderClients = function() {
+o3d.Renderer.renderClients = function(time) {
   for (var i = 0; i < o3d.Renderer.clients_.length; ++i) {
     var client = o3d.Renderer.clients_[i];
     client.counter_manager_.tick();
     if (client.renderMode == o3d.Client.RENDERMODE_CONTINUOUS) {
-      client.render();
+      client.render(time);
     }
   }
+  window.requestAnimationFrame(o3d.Renderer.renderClients);
 };
 
 
@@ -111,6 +139,7 @@ o3d.Renderer.renderClients = function() {
 o3d.Renderer.installRenderInterval = function() {
   o3d.Renderer.render_callback_interval_ = setInterval(
       "o3d.Renderer.renderClients()", 1000.0 / 60.0);
+  window.requestAnimationFrame = function() {}; // Clear the browser version, using an interval instead
 };
 
 
@@ -225,6 +254,8 @@ o3d.Client = function() {
 
   if (o3d.Renderer.clients_.length == 0)
     o3d.Renderer.installRenderInterval();
+    // 05/06/11 JPP switch to this when Chrome testing does not throw an exception which may not be Chrome's fault. 
+    // window.requestAnimationFrame(o3d.Renderer.renderClients);
 
   o3d.Renderer.clients_.push(this);
 
@@ -453,7 +484,7 @@ o3d.Client.prototype.renderMode = o3d.Client.RENDERMODE_CONTINUOUS;
  * Forces a render of the current scene if the current render mode is
  * RENDERMODE_ON_DEMAND.
  */
-o3d.Client.prototype.render = function() {
+o3d.Client.prototype.render = function(now) {
   if (!this.gl) {
     return;
   }
@@ -463,7 +494,10 @@ o3d.Client.prototype.render = function() {
 
   this.clearStateStack_();
 
-  var now = (new Date()).getTime() * 0.001;
+  if (!now) {
+    now = new Date().getTime();
+  }
+  now *= 0.001;
   if(this.then_ == 0.0)
     render_event.elapsedTime = 0.0;
   else
@@ -602,13 +636,13 @@ o3d.Client.prototype.fullscreen = false;
  */
 o3d.Client.prototype.__defineGetter__('width',
     function() {
-      return this.gl.hack_canvas.width;
+      return this.gl.canvas.width;
     }
 );
 
 o3d.Client.prototype.__defineSetter__('width',
     function(x) {
-      this.gl.hack_canvas.width = x;
+      this.gl.canvas.width = x;
     }
 );
 
@@ -619,13 +653,13 @@ o3d.Client.prototype.__defineSetter__('width',
  */
 o3d.Client.prototype.__defineGetter__('height',
     function() {
-      return this.gl.hack_canvas.height;
+      return this.gl.canvas.height;
     }
 );
 
 o3d.Client.prototype.__defineSetter__('height',
     function(x) {
-      this.gl.hack_canvas.height = x;
+      this.gl.canvas.height = x;
     }
 );
 
@@ -664,9 +698,6 @@ o3d.Client.prototype.initWithCanvas = function(canvas) {
     return false;
   }
 
-  // TODO(petersont): Remove this workaround once WebGLRenderingContext.canvas
-  // is implemented in Firefox.
-  gl.hack_canvas = canvas;
   this.gl = gl;
   this.root.gl = gl;
   this.renderGraphRoot.gl = gl;
@@ -749,9 +780,6 @@ o3d.Client.prototype.initErrorTextures_ = function() {
  */
 o3d.Client.prototype.setRenderCallback =
     function(render_callback) {
-  if (this.render_callback) {
-    this.clearRenderCallback();
-  }
   this.render_callback = render_callback;
 };
 
@@ -760,7 +788,6 @@ o3d.Client.prototype.setRenderCallback =
  * Clears the per frame render callback.
  */
 o3d.Client.prototype.clearRenderCallback = function() {
-  clearInterval(this.render_callback_interval_);
   this.render_callback = null;
 };
 
@@ -926,7 +953,7 @@ o3d.Client.wrapEventCallback_ = function(handler, doCancelEvent) {
  */
 o3d.Client.prototype.setEventCallback =
     function(type, handler) {
-  var listener = this.gl.hack_canvas;
+  var listener = this.gl.canvas;
   // TODO(petersont): Figure out a way for a canvas to listen to a key event
   // directly.
 
@@ -953,7 +980,7 @@ o3d.Client.prototype.setEventCallback =
 o3d.Client.prototype.clearEventCallback =
     function(type) {
   //TODO(petersont): Same as TODO in setEventCallback above.
-  var listener = this.gl.hack_canvas;
+  var listener = this.gl.canvas;
 
   var isWheelEvent = type == 'wheel';
   var forKeyEvent = type.substr(0, 3) == 'key';

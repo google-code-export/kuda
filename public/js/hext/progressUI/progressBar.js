@@ -205,15 +205,10 @@ var hext = (function(hext) {
 	 * the page to the client width and height with the bar set to 20 pixels 
 	 * in height and 1/3 the client width.
 	 * 
-	 * @param dontSubscribe flag indicating whether to subscribe to world
-	 * 			messages for progress.  Default is to subscribe.
+	 * @param {string} opt_taskName optional name of the task to get progress
+	 *     updates for (otherwise display bar only updates for total progress)
 	 */
-	hext.progressUI.bar = function(dontSubscribe) {
-		// register for the progress message
-		if (!dontSubscribe) {
-			hemi.world.subscribe(hemi.msg.progress, this, 'msgUpdate');
-		}
-		
+	hext.progressUI.bar = function(opt_taskName) {
 		var width = parseInt(hemi.core.client.width),
 			height = parseInt(hemi.core.client.height),
 			barHeight = 20,
@@ -234,8 +229,11 @@ var hext = (function(hext) {
 			right: width / 2 + barWidth / 2
 		});
 		
+		this.progress = -1;
+		this.task = opt_taskName;
 		// immediately update
 		this.update(0);
+		hemi.world.subscribe(hemi.msg.progress, this, 'msgUpdate');
 	};
 	
 	/*
@@ -253,13 +251,11 @@ var hext = (function(hext) {
 		msgUpdate: function(progressMsg) {
 			var progressInfo = progressMsg.data,
 				percent = this.progress;
-				
-			// get the info, but test the data type first
-			if (progressInfo.isTotal) {
-				percent = progressInfo.percent;
-			}
 			
-			this.update(percent);
+			if ((progressInfo.isTotal && this.task == null) || progressInfo.task === this.task) {
+				percent = progressInfo.percent;
+				this.update(percent);
+			}
 		},
 		
 		/**
@@ -268,18 +264,20 @@ var hext = (function(hext) {
 		 * @param {number} progress the progress in percent.
 		 */
 		update: function(progress) {
-			this.progress = progress;
-			
-			// update the ui
-			hemi.hud.hudMgr.clearDisplay();
-			this.pageUI.draw();
-			this.barUI.update(this.progress);
-			
-			// if percent is 100, stop drawing this
-			if (this.progress >= 99.9) {
-				setTimeout(function() {
-					hemi.hud.hudMgr.clearDisplay();
-				}, 100);
+			if (this.progress !== progress) {
+				this.progress = progress;
+				
+				// update the ui
+				hemi.hud.hudMgr.clearDisplay();
+				this.pageUI.draw();
+				this.barUI.update(this.progress);
+				
+				// if percent is 100, stop drawing this
+				if (this.progress >= 99.9) {
+					setTimeout(function() {
+						hemi.hud.hudMgr.clearDisplay();
+					}, 100);
+				}
 			}	
 		}
 	};
