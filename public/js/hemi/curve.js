@@ -1361,6 +1361,14 @@ var hemi = (function(hemi) {
 			idOffNdx = -1,
 			idOffStream;
 		
+		// Create progress task for this
+		var taskName = 'GpuParticles',
+			taskDiv = numParticles / 3,
+			taskInc = 0,
+			taskProg = 10;
+		
+		hemi.loader.createTask(taskName, vertexBuffer);
+		
 		// Find the first unused texture coordinate stream and create it
 		do {
 			idOffStream = streamBank.getVertexStream(TEXCOORD, ++idOffNdx);
@@ -1380,6 +1388,7 @@ var hemi = (function(hemi) {
 		}
 		
 		vertexBuffer.allocateElements(numVerts * numParticles);
+		hemi.loader.updateTask(taskName, taskProg);
 		
 		// Create a copy of each stream's contents for each particle
 		var indexArr = indexBuffer.array_,
@@ -1405,12 +1414,19 @@ var hemi = (function(hemi) {
 			for (var j = 0; j < numVerts; j++) {
 				idOffsetField.setAt(vertOffset + j, [i, timeOffset]);
 			}
+			
+			if (++taskInc >= taskDiv) {
+				taskInc = 0;
+				taskProg += 30;
+				hemi.loader.updateTask(taskName, taskProg);
+			}
 		}
 		
 		indexBuffer.set(newIndexArr);
 		// Update the primitive and vertex counts
 		primitive.numberPrimitives *= numParticles;
   		primitive.numberVertices *= numParticles;
+		hemi.loader.updateTask(taskName, 100);
 		return idOffNdx;
 	};
 	

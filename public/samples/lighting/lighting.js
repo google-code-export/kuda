@@ -25,6 +25,8 @@ o3djs.require('hext.progressUI.progressBar');
 
 (function() {
 	var	houseModel,
+		loadTask = 'LoadTextures',
+		loadProg = 0,
 		emissiveSamplers = {},
 		skin = {},
 		maps = [{
@@ -102,29 +104,40 @@ o3djs.require('hext.progressUI.progressBar');
 			window_b1: 'assets/images/TimeMaps/Window_B1_1725.jpg',
 			window_ki: 'assets/images/TimeMaps/Window_KI_1725.jpg',
 			window_lr4: 'assets/images/TimeMaps/Window_LR4_1725.jpg'
-		}];
+		}],
+	numAssets = (maps.length * 14) + 1; // textures and the model file
 
 	function initStep(clientElements) {
 		bindJavaScript();
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		hemi.loader.loadPath = '../../';
-		houseModel = new hemi.model.Model();
-		houseModel.setFileName('assets/LightingHouse_v082/scene.json');
 		
-		// get whether to show full progress or not
-		full = getParam('fullProgress').toLowerCase() == 'true';
-		// instantiate the progress bar
-		pbar = new hext.progressUI.bar(full);	
-		// if full progress, we're going to subscribe to world messages ourselves
-		// to get subprogress
+		// Check if we should display one load bar for all loading
+		var full = getParam('fullProgress').toLowerCase() == 'true';
+		
 		if (full) {
-			hemi.world.subscribe(hemi.msg.progress, function(msg){
-				if (msg.data.isTotal) {
-					update(msg.data.percent);
+			// instantiate the progress bar to receive our progress updates
+			pbar = new hext.progressUI.bar(loadTask);
+			hemi.loader.createTask(loadTask, null);
+			
+			hemi.world.subscribe(hemi.msg.progress, function(msg) {
+				if (!msg.data.isTotal && msg.data.task !== loadTask) {
+					var pct = msg.data.percent / numAssets;
+					hemi.loader.updateTask(loadTask, loadProg + pct);
+					
+					if (msg.data.percent === 100) {
+						loadProg += pct;
+					}
 				}
 			});
+		} else {
+			// instantiate the progress bar to receive total progress updates
+			pbar = new hext.progressUI.bar();
 		}
+		
+		houseModel = new hemi.model.Model();
+		houseModel.setFileName('assets/LightingHouse_v082/scene.json');
 		
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {
@@ -204,9 +217,15 @@ o3djs.require('hext.progressUI.progressBar');
 		}
 	}
 	
-	function update(percent) {
-		var progress = (ndx - 1 + (percent / 100)) / maps.length * 100;
-		pbar.update(progress);
+	function getParam(name) {
+		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
+		var regexS = "[\\?&]"+name+"=([^&#]*)";
+		var regex = new RegExp( regexS );
+		var results = regex.exec( window.location.href );
+		if( results == null )
+			return "";
+		else
+			return results[1];
 	}
 
 	jQuery(window).load(function() {
@@ -218,15 +237,4 @@ o3djs.require('hext.progressUI.progressBar');
 			hemi.core.client.cleanup();
 		}
 	});
-	
-	function getParam(name) {
-		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-		var regexS = "[\\?&]"+name+"=([^&#]*)";
-		var regex = new RegExp( regexS );
-		var results = regex.exec( window.location.href );
-		if( results == null )
-			return "";
-		else
-			return results[1];
-	}
 })();
