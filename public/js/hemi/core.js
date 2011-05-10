@@ -57,7 +57,7 @@ o3djs.require('hemi.texture');
 var hemi = (function(hemi) {
 	
 	/**
-	 * The version of Hemi released: 5/6/11
+	 * The version of Hemi released: 5/10/11
 	 * @constant
 	 */
 	hemi.version = '1.3.1';
