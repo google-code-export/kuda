@@ -172,6 +172,8 @@ var editor = (function(module) {
 				ws.children[ndx].parent = hr;
 			}
 			
+			hw.camera.update();
+			hw.camera.updateProjection();
 			this.notifyListeners(module.EventTypes.PreviewStopped, null);
 			this.worldState = null;
 		}

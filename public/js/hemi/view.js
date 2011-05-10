@@ -685,24 +685,21 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing this Camera
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
+				curView = hemi.view.createViewData(this);
 			
 			octane.props.push({
 				name: this.mode.control ? 'enableControl' : 'disableControl',
 				arg: []
 			});
-			
-			var valNames = ['pan', 'tilt', 'fov', 'camPan', 'camTilt',
-				'distance', 'up', 'mode', 'clip'];
-			
-			for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
-				var name = valNames[ndx];
-				
-				octane.props.push({
-					name: name,
-					val: this[name]
-				});
-			};
+			octane.props.push({
+				name: 'mode',
+				val: this.mode
+			});
+			octane.props.push({
+				name: 'moveToView',
+				arg: [curView, 0]
+			});
 
 			return octane;
 		},
