@@ -55,12 +55,7 @@ var editor = (function(module) {
 			this._super();
 			this.config = {
 				fast: true,
-				boxes: [],
-				material: hemi.core.material.createBasicMaterial(
-					hemi.shape.pack,
-					hemi.view.viewInfo,
-					[0,0,0,1],
-					true)
+				boxes: []
 			};
 			
 			this.msgHandler = hemi.world.subscribe(
@@ -88,7 +83,7 @@ var editor = (function(module) {
 			
 			this.stopPreview();
 			hemi.curve.showBoxes(this.config.boxes);
-			this.changed = true;
+			this.updateSystem('boxes', this.config.boxes);
 			
 			this.notifyListeners(module.EventTypes.BoxesUpdated, {
 				size: this.config.boxes.length
@@ -108,7 +103,7 @@ var editor = (function(module) {
 				colors[ndx] = color;
 			}
 			
-			this.changed = true;
+			this.updateSystem('colors', colors);
 		},
 		
 		cancel: function() {
@@ -164,12 +159,7 @@ var editor = (function(module) {
 			this.currentSystem = null;
 			this.config = {
 				fast: true,
-				boxes: [],
-				material: hemi.core.material.createBasicMaterial(
-					hemi.shape.pack,
-					hemi.view.viewInfo,
-					[0,0,0,1],
-					true)
+				boxes: []
 			};
 			this.isUpdate = false;
 			this.changed = false;
@@ -200,27 +190,16 @@ var editor = (function(module) {
 			else {
 				this.config[paramName] = paramValue;
 			}
-			this.stopPreview();
-			this.changed = true;
+//			this.stopPreview();
+			
+			this.updateSystem(paramName, paramValue);
 		},
 		
 		startPreview: function() {
 			if (!this.previewing) {
-				if (this.currentSystem && this.changed) {
-//					this.currentSystem.cleanup();
-					hemi.shape.pack.removeObject(this.config.material);
-					
-					this.config.material = hemi.core.material.createBasicMaterial(
-						hemi.shape.pack, 
-						hemi.view.viewInfo, 
-						[0, 0, 0, 1], 
-						true);	
-										
-					this.createSystem();
+				if (!this.currentSystem) {
+					this.createSystem();	
 				} 
-				else if (this.changed) {						
-					this.createSystem();
-				}
 				
 				this.currentSystem.start();
 				this.previewing = true;
@@ -233,6 +212,14 @@ var editor = (function(module) {
 				this.currentSystem.stop();
 			}
 			this.previewing = false;
+		},
+		
+		updateSystem: function(param, value) {
+			if (this.currentSystem) {
+				var method = this.currentSystem['set' + param.capitalize()];
+				console.log('method: ' + method + ' value: ' + value);
+				method.apply(this.currentSystem, [value]);
+			}
 		},
 		
 	    worldCleaned: function() {
@@ -322,11 +309,12 @@ var editor = (function(module) {
 			
 			inputs.bind('change', function(evt) {
 				var elem = jQuery(this),
-					id = elem.attr('id');
+					id = elem.attr('id'),
+					param = id.replace('crv', '');
 					
 				wgt.notifyListeners(module.EventTypes.SetParam, {
-					paramName: id.replace('crv', '').toLowerCase(),
-					paramValue: id === 'crvAim' ? elem.val() == 1 : 
+					paramName: param.charAt(0).toLowerCase() + param.slice(1),
+					paramValue: id === 'crvAim' ? elem.is(':checked') : 
 						parseFloat(elem.val())
 				});
 			});
