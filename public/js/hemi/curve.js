@@ -1394,7 +1394,17 @@ var hemi = (function(hemi) {
 				addColors = numColors > 1,
 				shads = hemi.utils.getShaders(material),
 				fragShd = shads.fragShd,
-				vertShd = shads.vertShd;
+				vertShd = shads.vertShd,
+				uniforms = ['sysTime', 'ptcMaxTime', 'ptcDec', 'numPtcs',
+					'tension', 'minXYZ', 'maxXYZ', 'ptcColors'];
+			
+			// Remove any previously existing uniforms that we created
+			for (var i = 0, il = uniforms.length; i < il; i++) {
+				var param = material.getParam(uniforms[i]);
+				if (param) {
+					material.removeParam(param);
+				}
+			}
 			
 			// modify the vertex shader
 			if (vertSrc.search('ptcInterp') < 0) {
