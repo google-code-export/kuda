@@ -24,8 +24,8 @@ var hemi = (function(hemi) {
 	hemi.audio = hemi.audio || {};
 
 	/**
-	 * @class A HudVideo contains a texture and display options for a single
-	 * image on the HUD.
+	 * @class An Audio contains an audio DOM element that can be played, paused,
+	 * etc.
 	 * @extends hemi.world.Citizen
 	 */
 	hemi.audio.Audio = function() {
