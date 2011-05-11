@@ -1395,13 +1395,26 @@ var hemi = (function(hemi) {
 				shads = hemi.utils.getShaders(material),
 				fragShd = shads.fragShd,
 				vertShd = shads.vertShd,
+				dec = 1.0,
+				maxTime = 3.0,
+				time = 1.1,
 				uniforms = ['sysTime', 'ptcMaxTime', 'ptcDec', 'numPtcs',
 					'tension', 'minXYZ', 'maxXYZ', 'ptcColors'];
 			
 			// Remove any previously existing uniforms that we created
 			for (var i = 0, il = uniforms.length; i < il; i++) {
-				var param = material.getParam(uniforms[i]);
+				var name = uniforms[i],
+					param = material.getParam(name);
+				
 				if (param) {
+					if (name === 'ptcDec') {
+						dec = param.value;
+					} else if (name === 'ptcMaxTime') {
+						maxTime = param.value;
+					} else if (name === 'sysTime') {
+						time = param.value;
+					}
+					
 					material.removeParam(param);
 				}
 			}
@@ -1476,9 +1489,9 @@ var hemi = (function(hemi) {
 			this.decParam = material.getParam('ptcDec');
 			this.maxTimeParam = material.getParam('ptcMaxTime');
 			this.timeParam = material.getParam('sysTime');
-			this.decParam.value = 1.0;
-			this.maxTimeParam.value = 3.0;
-			this.timeParam.value = 1.1;
+			this.decParam.value = dec;
+			this.maxTimeParam.value = maxTime;
+			this.timeParam.value = time;
 			setupBounds(material, this.boxes);
 			
 			if (addColors) {
