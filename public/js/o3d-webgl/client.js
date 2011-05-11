@@ -253,9 +253,7 @@ o3d.Client = function() {
   this.counter_manager_ = new o3d.CounterManager;
 
   if (o3d.Renderer.clients_.length == 0)
-    o3d.Renderer.installRenderInterval();
-    // 05/06/11 JPP switch to this when Chrome testing does not throw an exception which may not be Chrome's fault. 
-    // window.requestAnimationFrame(o3d.Renderer.renderClients);
+    window.requestAnimationFrame(o3d.Renderer.renderClients);
 
   o3d.Renderer.clients_.push(this);
 
