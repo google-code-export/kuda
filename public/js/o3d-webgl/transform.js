@@ -585,12 +585,7 @@ o3d.Transform.inverse = function(m, opt_target) {
  */
 o3d.Transform.prototype.translate =
     function() {
-  var v;
-  if (arguments.length == 3) {
-    v = arguments;
-  } else {
-    v = arguments[0];
-  }
+  var v = arguments.length != 3 ? arguments[0] : arguments;
   var m = this.localMatrix;
 
   var v0 = v[0];
