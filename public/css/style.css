@@ -255,14 +255,14 @@ input.error {
     font: bold 13px / 18pt "Myriad Pro", Helvetica, Arial, sans-serif;
 }
 
-#actionBar > div > div a, #actionBar > div > div span {
+#actionBar > div > div a, #actionBar > div > div span:not(#crvBoxNumber) {
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.25);
     text-decoration: none;
     color: #535353;
     display: block;
 }
 
-#actionBar > div > div span {
+#actionBar > div > div span:not(#crvBoxNumber) {
     float: left;
     margin-right: 5px;
 }

@@ -133,6 +133,17 @@ var hemi = (function(hemi) {
 		 */
         ready: 'hemi.ready',
 		/**
+		 * The Message sent when a Scalable has been scaled.
+		 * @type string
+		 * @constant
+		 * @example
+		 * Sent by hemi.manip.Scalable, data =
+		 * {
+		 *     scale: (the new scale)
+		 * }
+		 */
+        scale: 'hemi.scale',
+		/**
 		 * The Message sent when a process starts.
 		 * @type string
 		 * @constant
