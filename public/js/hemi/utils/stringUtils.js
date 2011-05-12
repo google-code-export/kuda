@@ -26,6 +26,13 @@ var hemi = (function(hemi) {
 		return this.replace(/^\s*/, "").replace(/\s*$/, "");
 	};
 	
+	/*
+	 * Adds a method to the Javascript string to capitalize the first letter 
+	 */
+	String.prototype.capitalize = function() {
+		return this.charAt(0).toUpperCase() + this.slice(1);
+	};
+	
 	/**
 	 * Test if the given string is numeric.
 	 *  

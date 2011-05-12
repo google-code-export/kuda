@@ -919,6 +919,8 @@ var hemi = (function(hemi) {
 			}
 			
 			this.scale = scale;
+			
+			this.send(hemi.msg.scale, { scale: scale });
 		},
 		onMouseUp : function() {
 			this.dragAxis = null;
