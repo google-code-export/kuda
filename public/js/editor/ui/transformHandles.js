@@ -30,8 +30,12 @@ var editor = (function(module) {
 		NONE: 3
 	};
 	
-	module.ui.TransHandles = module.Class.extend({
+    module.EventTypes = module.EventTypes || {};
+    module.EventTypes.TransChanged = "TransHandles.TransChanged";
+	
+	module.ui.TransHandles = module.utils.Listenable.extend({
 		init: function() {
+			this._super();
 			this.canvas = hemi.hud.hudMgr.canvas;
 			this.drawCallback = null;
 			
@@ -45,8 +49,7 @@ var editor = (function(module) {
 		},
 		
 		drawHandles: function() {
-			if (this.drawState !== module.ui.trans.DrawState.NONE
-					&& this.isInView()) {
+			if (this.drawState !== module.ui.trans.DrawState.NONE) {
 //				var origin = this.transform.localMatrix[3],		FOR LOCAL
 				var origin = this.transform.getUpdatedWorldMatrix()[3], 
 					extent = this.getExtent() / 2,
@@ -97,7 +100,7 @@ var editor = (function(module) {
 		isInView: function() {
 			var worldViewProjection = [[], [], [], []],
 				transform = this.transform,
-				bdgBox = o3djs.util.getBoundingBoxOfTree(this.transform);
+				bdgBox = this.transform.boundingBox;
         	
 			o3d.Transform.compose(hemi.view.viewInfo.drawContext.view,
 				transform.getUpdatedWorldMatrix(),
@@ -109,6 +112,10 @@ var editor = (function(module) {
 			var onScreen = transform.boundingBox.inFrustum(worldViewProjection);
 
 			return onScreen;
+		},
+		
+		onChange: function(val) {
+			this.notifyListeners(module.EventTypes.TransChanged, val);
 		},
 		
 		onMouseDown: function(evt) {
@@ -208,14 +215,17 @@ var editor = (function(module) {
 			hemi.world.camera.enableControl();
 			
 			// make the changes octanable
-			var param = this.transform.getParam('ownerId'),
-				owner = hemi.world.getCitizenById(param.value);
+			var param = this.transform.getParam('ownerId');
 			
-			if (owner.setTransformMatrix) {
-				owner.setTransformMatrix(this.transform, 
-					this.transform.localMatrix);
-			} else if (owner.setMatrix) {
-				owner.setMatrix(this.transform.localMatrix);
+			if (param) {
+				owner = hemi.world.getCitizenById(param.value);
+				
+				if (owner.setTransformMatrix) {
+					owner.setTransformMatrix(this.transform, 
+						this.transform.localMatrix);
+				} else if (owner.setMatrix) {
+					owner.setMatrix(this.transform.localMatrix);
+				}
 			}
 			
 			return true;
@@ -312,6 +322,14 @@ var editor = (function(module) {
 			hemi.world.camera.disableControl();
 			this.scalable = new hemi.manip.Scalable(axis);
 			this.scalable.addTransform(this.transform);
+			this.scalable.subscribe(
+				hemi.msg.scale,
+				this,
+				"onChange",
+				[
+					hemi.dispatch.MSG_ARG + "data.scale"
+				]);
+			
 			
 			if (evt.shiftKey) {
 				this.scalable.axis = [1, 1, 1];
@@ -333,6 +351,13 @@ var editor = (function(module) {
 			this.dragger = new hemi.manip.Draggable();
 			this.dragger.name = module.tools.ToolConstants.EDITOR_PREFIX + 'Dragger';
 			this.dragger.setPlane(plane);
+			this.dragger.subscribe(
+				hemi.msg.drag,
+				this,
+				"onChange",
+				[
+					hemi.dispatch.MSG_ARG + "data.drag"
+				]);
 			
 			switch(plane) {
 				case hemi.manip.Plane.XY:
