@@ -75,9 +75,7 @@ var editor = (function(module) {
 				]);
 	    },
 		
-		addBox: function(position, width, height, depth) {			
-			this.stopPreview();
-			
+		addBox: function(position, width, height, depth) {					
 			var x = position[0],
 				y = position[1],
 				z = position[2],
@@ -85,17 +83,23 @@ var editor = (function(module) {
 				halfHeight = height/2,
 				halfDepth = depth/2,
 				minExtent = [x - halfWidth, y - halfHeight, z - halfDepth],
-				maxExtent = [x + halfWidth, y + halfHeight, z + halfDepth];
+				maxExtent = [x + halfWidth, y + halfHeight, z + halfDepth],
+				previewing = this.previewing;
+				
+			this.stopPreview();
 				
 			this.config.boxes.push([minExtent, maxExtent]);
 			
-			this.stopPreview();
 			hemi.curve.showBoxes(this.config.boxes);
 			this.updateSystem('boxes', this.config.boxes);
 			
 			this.notifyListeners(module.EventTypes.BoxesUpdated, {
 				size: this.config.boxes.length
 			});
+						
+			if (previewing) {
+				this.startPreview();
+			}
 		},
 		
 		addToColorRamp: function(ndx, color) {
@@ -202,7 +206,6 @@ var editor = (function(module) {
 			else {
 				this.config[paramName] = paramValue;
 			}
-//			this.stopPreview();
 			
 			if (paramName != 'trail') {
 				this.updateSystem(paramName, paramValue);
@@ -242,7 +245,6 @@ var editor = (function(module) {
 		updateSystem: function(param, value) {
 			if (this.currentSystem) {
 				var method = this.currentSystem['set' + param.capitalize()];
-				console.log('method: ' + method + ' value: ' + value);
 				method.apply(this.currentSystem, [value]);
 			}
 		},
