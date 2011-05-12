@@ -1142,10 +1142,10 @@ var hemi = (function(hemi) {
 		 */
 		loadConfig: function(cfg) {
 			this.aim = cfg.aim == null ? false : cfg.aim;
-			this.boxes = cfg.boxes || [];
+			this.boxes = cfg.boxes ? hemi.utils.clone(cfg.boxes) : [];
 			this.life = cfg.life || 5;
-			this.particles = cfg.particles || 1;
-			this.size = cfg.size || 1;
+			this.particles = cfg.particleCount || 1;
+			this.size = cfg.particleSize || 1;
 			this.tension = cfg.tension || 0;
 			
 			if (!cfg.colors) {
@@ -1159,7 +1159,7 @@ var hemi = (function(hemi) {
 			}
 			
 			this.setMaterial(cfg.material || hemi.curve.newMaterial());
-			this.setParticleShape(cfg.shape || hemi.curve.ShapeType.CUBE);
+			this.setParticleShape(cfg.particleShape || hemi.curve.ShapeType.CUBE);
 		},
 		
 		/**
@@ -1224,7 +1224,7 @@ var hemi = (function(hemi) {
 		 */
 		setBoxes: function(boxes) {
 			var oldLength = this.boxes.length;
-			this.boxes = boxes;
+			this.boxes = hemi.utils.clone(boxes);
 			
 			if (this.boxes.length === oldLength) {
 				setupBounds(this.material, this.boxes);
