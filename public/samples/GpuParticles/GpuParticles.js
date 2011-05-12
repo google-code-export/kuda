@@ -83,7 +83,7 @@ o3djs.require('hext.progressUI.progressBar');
 			particles: 500,
 			life: 12,
 			boxes: [box1,box2,box3,box4,box5,box6,box7,box8,box9,box1],
-			shape: hemi.curve.shapeType.ARROW,
+			shape: hemi.curve.ShapeType.ARROW,
 			colors: [blue,green,red,blue],
 			size: 10
 		};
