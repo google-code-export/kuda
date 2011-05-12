@@ -183,6 +183,7 @@ var hemi = (function(hemi) {
 				hemi.input.removeKeyDownListener(this);
 				hemi.input.removeKeyUpListener(this);	
 				this.mode.control = false;
+				this.state.mouse = false;
 				return true;
 			}
 		},
