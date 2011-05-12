@@ -565,6 +565,11 @@
 			var fogView = new tools.FogView(),
 				fogCtr = new tools.FogController();
 			this.fogMdl = new tools.FogModel();
+			
+			// curves
+			var crvView = new tools.CurveEditorView(),
+				crvCtr = new tools.CurveEditorController();
+			this.crvMdl = new tools.CurveEditorModel();
             
 			// add to the toolbars
             this.toolbar.addTool(mbrView);
@@ -579,6 +584,7 @@
 			this.toolbar.addTool(shpView);
 			this.toolbar.addTool(hudView);
 			this.toolbar.addTool(fogView);
+			this.toolbar.addTool(crvView);
                         			
 			// finally, bind all the view/model/controllers together
             mbrCtr.setView(mbrView);
@@ -622,6 +628,9 @@
 			
 			fogCtr.setView(fogView);
 			fogCtr.setModel(this.fogMdl);
+			
+			crvCtr.setView(crvView);
+			crvCtr.setModel(this.crvMdl);
 		},
 		
 		layoutSidebar: function() {
