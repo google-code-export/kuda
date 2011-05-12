@@ -65,6 +65,14 @@ var editor = (function(module) {
 				[
 					hemi.dispatch.MSG_ARG + "data.pickInfo"
 				]);
+				
+			hemi.world.subscribe(
+				hemi.msg.drag,
+				this,
+				"onDrag",
+				[
+					hemi.dispatch.MSG_ARG + "data.xyzDelta"
+				]);
 	    },
 		
 		addBox: function(position, width, height, depth) {			
@@ -125,6 +133,10 @@ var editor = (function(module) {
 			this.isUpdate = true;
 			
 			this.notifyListeners(module.EventTypes.CurveSet, this.currentSystem);
+		},
+		
+		onDrag: function(xyzDelta) {
+			console.log(xyzDelta);
 		},
 		
 	    onPick: function(pickInfo) {
@@ -192,7 +204,20 @@ var editor = (function(module) {
 			}
 //			this.stopPreview();
 			
-			this.updateSystem(paramName, paramValue);
+			if (paramName != 'trail') {
+				this.updateSystem(paramName, paramValue);
+			}
+			else if (this.currentSystem){
+				var previewing = this.previewing;
+				
+				this.stopPreview();
+				this.currentSystem.cleanup();
+				this.createSystem();
+				
+				if (previewing) {
+					this.startPreview();
+				}
+			}
 		},
 		
 		startPreview: function() {
@@ -328,7 +353,7 @@ var editor = (function(module) {
 			
 			shpTypeSel.bind('change', function(evt) {
 				wgt.notifyListeners(module.EventTypes.SetParam, {
-					paramName: 'shape',
+					paramName: 'particleShape',
 					paramValue: jQuery(this).val()
 				});
 			});
