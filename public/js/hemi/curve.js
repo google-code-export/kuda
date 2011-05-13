@@ -224,6 +224,14 @@ var hemi = (function(hemi) {
 		
 		return system;
 	};
+ 	
+	hemi.curve.newMaterial = function() {
+		return hemi.core.material.createBasicMaterial(
+			hemi.core.mainPack,
+			hemi.view.viewInfo,
+			[0,0,0,1],
+			true);
+	};
 	
 	hemi.curve.init = function() {
 		this.dbgBoxMat = hemi.core.material.createConstantMaterial(
@@ -1106,7 +1114,7 @@ var hemi = (function(hemi) {
 		
 		var type = cfg.shape || hemi.curve.shapeType.CUBE,
 			size = cfg.size || 1.0,
-			material = cfg.material || hemi.shape.material,
+			material = cfg.material || hemi.curve.newMaterial(),
 			tension = cfg.tension || 0;
 		
 		switch (type) {
