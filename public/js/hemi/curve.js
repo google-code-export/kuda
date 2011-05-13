@@ -1093,6 +1093,11 @@ var hemi = (function(hemi) {
 	hemi.curve.fragHeader =
 		'varying vec4 ptcColor; \n';
 	
+	hemi.curve.fragPreBody =
+		'  if (ptcColor.a == 0.0) {\n' +
+		'    discard;\n' +
+		'  }\n';
+	
 	hemi.curve.fragGlobNoColors =
 		'gl_FragColor.a *= ptcColor.a; \n';
 	
@@ -1467,6 +1472,7 @@ var hemi = (function(hemi) {
 					fragGlob = parsedFrag.glob;
 				
 				parsedFrag.postHdr = hemi.curve.fragHeader;
+				parsedFrag.preBody = hemi.curve.fragPreBody;
 				
 				if (addColors) {
 					if (fragGlob.indexOf('diffuse') !== -1) {
