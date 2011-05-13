@@ -200,7 +200,7 @@ var hemi = (function(hemi) {
 	 *     fast: flag to indicate GPU-driven particle system should be used
 	 *     life: lifetime of particle system (in seconds)
 	 *     particleCount: number of particles to allocate for system
-	 *     shape: enumerator for type of shape to use for particles
+	 *     particleShape: enumerator for type of shape to use for particles
 	 *     // JS particle system only
 	 *     colorKeys: array of time keys and values for particle color ramp
 	 *     scaleKeys: array of time keys and values for particle size ramp
@@ -733,8 +733,8 @@ var hemi = (function(hemi) {
 		
 		this.shapes = [];
 		
-		if (config.shape) {
-			switch (config.shape) {
+		if (config.particleShape) {
+			switch (config.particleShape) {
 				case (hemi.curve.ShapeType.ARROW):
 					var arrowHeadXY = [[-0.4,0],[0.4,0],[0,0.6]];
 					var arrowBaseXY = [[-0.2,0],[-0.2,-0.4],[0.2,-0.4],[0.2,0]];
@@ -1541,9 +1541,9 @@ var hemi = (function(hemi) {
 					boxes: this.boxes,
 					colors: this.colors,
 					life: this.life,
-					particles: this.particles,
-					shape: this.ptcShape,
-					size: this.size,
+					particleCount: this.particles,
+					particleShape: this.ptcShape,
+					particleSize: this.size,
 					tension: this.tension
 				}]
 			});
