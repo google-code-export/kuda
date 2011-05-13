@@ -80,12 +80,12 @@ o3djs.require('hext.progressUI.progressBar');
 			fast: true,
 			aim: true,
 			trail: true,
-			particles: 500,
+			particleCount: 500,
 			life: 12,
 			boxes: [box1,box2,box3,box4,box5,box6,box7,box8,box9,box1],
 			shape: hemi.curve.ShapeType.ARROW,
 			colors: [blue,green,red,blue],
-			size: 10
+			particleSize: 10
 		};
 		
 		/* Create the particle system with the above config, 
