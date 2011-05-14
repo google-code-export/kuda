@@ -1722,7 +1722,7 @@ var hemi = (function(hemi) {
 					vals = obj.vals,
 					field = obj.stream.field;
 				
-				field.setAt(i * numVerts, vals);
+				field.setAt(vertOffset, vals);
 			}
 			// New "particle system" vertex data
 			for (var j = 0; j < numVerts; j++) {
