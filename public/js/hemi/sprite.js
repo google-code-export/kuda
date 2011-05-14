@@ -118,7 +118,7 @@ var hemi = (function(hemi) {
 				var localP = this.transform.localMatrix[3].slice(0,3);
 				this.transform.identity();
 				this.transform.translate(localP);
-				hemi.curve.pointYAt(
+				hemi.utils.pointYAt(
 						this.transform,
 						p0,
 						hemi.world.camera.getEye());
