@@ -1,0 +1,220 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+<div id="hudEditDlg">
+    <div id="hudDpyEditor">
+        <h1 class="displayName">HUD Display Name</h1>
+        <form id="hudDpyForm" method="post">
+            <button id="hudDpyAddPageBtn">
+                Add Page
+            </button>
+            <button id="hudDpyRemoveBtn">
+                Remove
+            </button>
+        </form>
+    </div>
+    <div id="hudPgeEditor">
+        <h1 class="displayName">HUD Page Name</h1>
+        <form id="hudPgeForm" method="post">
+			<fieldset id="hudPgeParams">
+				<legend>
+					Set Page Properties
+				</legend>
+				<ol>
+	                <li class="multipInput">
+	                    <label id="hudPgeColorLbl">Color</label>
+                        <div class="buttons">
+                            <button id="hudPgeSaveBtn" disabled="disabled">
+                                Save
+                            </button>
+                            <button id="hudPgeCancelBtn">
+                                Cancel
+                            </button>
+                        </div>
+	                </li>
+				</ol>
+			</fieldset>	
+			<fieldset id="hudPgeOptions">
+				<legend>
+					Page Options
+				</legend>
+	            <ol>
+	                <li>
+			            <button id="hudPgeAddTextBtn">
+			                Add Text
+			            </button>
+			            <button id="hudPgeAddImageBtn">
+			                Add Image
+			            </button>
+			            <button id="hudPgeRemoveBtn">
+			                Remove
+			            </button>
+	                </li>
+	            </ol>
+	        </fieldset>
+        </form>
+    </div>
+    <div id="hudTxtEditor">
+        <h1 class="displayName">HUD Text Name</h1>
+        <form id="hudTxtForm" class="sidebarForm" method="post" action="">
+            <fieldset id="hudTxtProps">
+                <legend>
+                    Set Text Properties
+                </legend>
+                <ol>
+                    <li>
+                        <label for="hudTxtPositionX">
+                            Position
+                        </label>
+                        <input type="text" value="" id="hudTxtPositionX" class="vector xNdx" />
+						<input type="text" value="" id="hudTxtPositionY" class="vector yNdx" />
+                    </li>
+	                <li class="multipInput">
+	                    <label id="hudTxtColorLbl">Color</label>
+	                </li>
+                    <li>
+                        <label for="hudTxtSize">
+                            Size
+                        </label>
+                        <input type="text" value="" id="hudTxtSize" class="optional short" />
+                    </li>
+                    <li>
+                        <label for="hudTxtFont">
+                            Font
+                        </label>
+                        <select id="hudTxtFont" class="optional">
+							<option value="-1">Select a Font</option>
+							<option>Arial</option>
+                        	<option>Helvetica</option>
+							<option>Tahoma</option>
+							<option>Times New Roman</option>
+							<option>Verdana</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label for="hudTxtStyle">
+                            Style
+                        </label>
+                        <select id="hudTxtStyle" class="optional">
+							<option value="-1">Select a Style</option>
+							<option value="normal">Normal</option>
+                        	<option value="bold">Bold</option>
+							<option value="italic">Italic</option>
+							<option value="bold italic">Bold Italic</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label for="hudTxtAlign">
+                            Alignment
+                        </label>
+                        <select id="hudTxtAlign" class="optional">
+							<option value="-1">Select an Alignment</option>
+							<option value="left">Left</option>
+							<option value="center">Center</option>
+                        	<option value="right">Right</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label for="hudTxtText">
+                            Text
+                        </label>
+                        <textarea id="hudTxtText"></textarea>
+                    </li>
+                    <li>
+                        <label for="hudTxtWidth">
+                            Width
+                        </label>
+                        <input type="text" value="" id="hudTxtWidth" class="short" />
+                    </li>
+                </ol>
+            </fieldset>
+            <fieldset id="hudTxtSave">
+                <legend>
+                    Save Your Text
+                </legend>
+                <ol>
+                    <li>
+                        <label for="hudTxtName">
+                            Name:
+                        </label>
+                        <input type="text" id="hudTxtName" class="name" autocomplete="off" />
+                        <div class="buttons">
+                            <button id="hudTxtSaveBtn" disabled="disabled">
+                                Save
+                            </button>
+                            <button id="hudTxtCancelBtn">
+                                Cancel
+                            </button>
+                            <button id="hudTxtRemoveBtn">
+                                Remove
+                            </button>
+                        </div>
+                    </li>
+                </ol>
+            </fieldset>
+        </form>
+    </div>
+    <div id="hudImgEditor">
+        <h1 class="displayName">HUD Image Name</h1>
+        <form id="hudImgForm" class="sidebarForm" method="post" action="">
+            <fieldset id="hudImgProps">
+                <legend>
+                    Set Image Properties
+                </legend>
+                <ol>
+                    <li>
+                        <label for="hudImgPosition">
+                            Position
+                        </label>
+                        <input type="text" value="" id="hudImgPositionX" class="vector xNdx" />
+						<input type="text" value="" id="hudImgPositionY" class="vector yNdx" />
+                    </li>
+                    <li>
+                        <label for="hudImgUrl">
+                            URL
+                        </label>
+                        <input type="text" value="" id="hudImgUrl" class="optional" />
+                    </li>
+                </ol>
+            </fieldset>
+            <fieldset id="hudImgSave">
+                <legend>
+                    Save Your Image
+                </legend>
+                <ol>
+                    <li>
+                        <label for="hudImgName">
+                            Name:
+                        </label>
+                        <input type="text" id="hudImgName" class="name" autocomplete="off" />
+                        <div class="buttons">
+                            <button id="hudImgSaveBtn" disabled="disabled">
+                                Save
+                            </button>
+                            <button id="hudImgCancelBtn">
+                                Cancel
+                            </button>
+                            <button id="hudImgRemoveBtn">
+                                Remove
+                            </button>
+                        </div>
+                    </li>
+                </ol>
+            </fieldset>
+        </form>
+    </div>
+</div>
