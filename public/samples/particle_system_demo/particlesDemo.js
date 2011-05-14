@@ -88,10 +88,10 @@
 		 */
 		var particleSystemConfig = {
 			aim : true,
-			particles : 100,
+			particleCount : 100,
 			life : 5,
 			boxes : [box1, box2, box3, box4, box5],
-			shape : hemi.curve.ShapeType.ARROW,
+			particleShape : hemi.curve.ShapeType.ARROW,
 			colorKeys : [colorKey1, colorKey2, colorKey3, colorKey4],
 			scaleKeys : [scaleKey1, scaleKey2, scaleKey3]
 		};
