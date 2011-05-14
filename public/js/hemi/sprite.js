@@ -42,22 +42,13 @@ var hemi = (function(hemi) {
 		var core = hemi.core;
 		var pack = core.mainPack;
 		var viewInfo = hemi.view.viewInfo;
-		this.transform = pack.createObject('Transform');
 		this.material = pack.createObject('Material');
 		this.material.createParam('emissiveSampler','o3d.ParamSampler');
-		// TODO: check if this is necessary
-		o3djs.material.attachStandardEffect(
-			hemi.core.mainPack, 
-			this.material, 
-			hemi.view.viewInfo, 
-			'constant');		
 		core.material.attachStandardEffect(pack,this.material,viewInfo,'constant');
 		this.material.getParam('o3d.drawList').value = viewInfo.zOrderedDrawList;
 		this.material.effect.createUniformParameters(this.material);
-		var m4 = core.math.matrix4.identity();
-		core.math.matrix4.rotateX(m4,Math.PI/2);
-		this.plane = core.primitives.createPlane(pack,this.material,width,height,1,1,m4);
-		//this.plane = hemi.core.primitives.createCube(pack,this.material,width);
+		this.plane = core.primitives.createPlane(pack,this.material,width,height,1,1);
+		this.transform = pack.createObject('Transform');
 		this.transform.addShape(this.plane);
 		this.parent(core.client.root);
 		this.cycle = 0;
