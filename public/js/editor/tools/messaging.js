@@ -49,6 +49,27 @@ var editor = (function(module) {
 		'toOctane'
 	];
 	
+	var commonMethods = {
+		'hemi.animation.Animation': ['reset', 'start', 'stop'],
+		'hemi.audio.Audio': ['pause', 'play', 'seek', 'setVolume'],
+		'hemi.effect.Burst': ['trigger'],
+		'hemi.effect.Emitter': ['hide', 'show'],
+		'hemi.effect.Trail': ['start', 'stop'],
+		'hemi.hud.HudDisplay': ['hide', 'nextPage', 'previousPage', 'show'],
+		'hemi.hud.Theme': ['load'],
+		'hemi.manip.Draggable': ['disable', 'enable'],
+		'hemi.manip.Scalable': ['disable', 'enable'],
+		'hemi.manip.Turnable': ['disable', 'enable'],
+		'hemi.model.Model': ['load', 'unload'],
+		'hemi.motion.Rotator': ['disable', 'enable', 'setAccel', 'setAngle',
+			'setVel'],
+		'hemi.motion.Translator': ['disable', 'enable', 'setAccel', 'setPos',
+			'setVel'],
+		'hemi.scene.Scene': ['load', 'nextScene', 'previousScene', 'unload'],
+		'hemi.view.Camera': ['disableControl', 'enableControl', 'moveToView',
+			'orbit', 'rotate', 'setLight', 'truck']
+	};
+	
 	var CAUSE_PREFIX = 'ca_',
 		CAUSE_WRAPPER = '#causeTreeWrapper',
 		EFFECT_PREFIX = 'ef_',
@@ -60,6 +81,22 @@ var editor = (function(module) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Utilities                                  //
 ////////////////////////////////////////////////////////////////////////////////
+	var isCommon = function(citizen, method) {
+		var type = citizen.getCitizenType ? citizen.getCitizenType() : citizen.name,
+			methList = commonMethods[type],
+			common = false;
+		
+		if (citizen.parent != null) {
+			common = isCommon(citizen.parent, method);
+		}
+		
+		if (!common && methList != null) {
+			common = methList.indexOf(method) !== -1;
+		}
+		
+		return common;
+	};
+	
 	var createShapePickCitizen = function(model) {
 		var spc = {
 			shapePick: true,
@@ -208,6 +245,7 @@ var editor = (function(module) {
 	
 	var createEffectJson = function(citizen) {
 		var methods = [],
+			moreMethods = [],
 			id = citizen.getId();
 		
 		for (propName in citizen) {
@@ -215,23 +253,51 @@ var editor = (function(module) {
 			
 			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
 				var name = getNodeName(citizen, {
-					option: propName,
+						option: propName,
+						prefix: EFFECT_PREFIX,
+						id: id
+					}),
+					node = {
+						data: propName,
+						attr: {
+							id: name,
+							rel: 'method'
+						},
+						metadata: {
+							type: 'method',
+							parent: citizen
+						}
+					};
+				
+				if (isCommon(citizen, propName)) {
+					methods.push(node);
+				} else {
+					moreMethods.push(node);
+				}
+			}
+		}
+		
+		if (methods.length > 0) {
+			var moreName = getNodeName(citizen, {
+					option: null,
 					prefix: EFFECT_PREFIX,
 					id: id
-				});
-				
-				methods.push({
-					data: propName,
-					attr: {
-						id: name,
-						rel: 'method'
-					},
-					metadata: {
-						type: 'method',
-						parent: citizen
-					}
-				});
-			}
+				}) + '_MORE';
+			var moreNode = {
+				data: 'More...',
+				attr: {
+					id: moreName,
+					rel: 'other'
+				},
+				state: 'closed',
+				children: moreMethods,
+				metadata: {
+					type: 'citType'
+				}
+			};
+			methods.push(moreNode);
+		} else {
+			methods = moreMethods;
 		}
 		
 		var node = createCitizenJson(citizen, EFFECT_PREFIX);
@@ -1444,7 +1510,9 @@ var editor = (function(module) {
 					if (metadata.type === 'method') {
 						var path = that.effectTree.jstree('get_path', elem, true);
 						var parentName = path[path.length - 2] + '_';
-						var name = elem.attr('id').replace(parentName, '');
+						var parId = metadata.parent.getId() + '';
+						parentName = parentName.replace(parId + '_MORE', parId);
+						var name = elemId.replace(parentName, '');
 						
 						that.notifyListeners(module.EventTypes.SelectEffect, {
 							citizen: metadata.parent,
@@ -1488,7 +1556,8 @@ var editor = (function(module) {
 								'image': 'images/treeSprite.png',
 								'position': '-64px 0'
 							}
-						}
+						},
+						'other': {}
 					}
 				},
 				'themes': {

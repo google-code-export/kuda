@@ -143,6 +143,9 @@ var hemi = (function(hemi) {
 	/**
 	 * Render the bounding boxes which the curves run through, mostly for
 	 * 		debugging purposes.
+	 * 
+	 * @param {number[3][2][]} boxes array of pairs of XYZ coordinates, the
+	 *     first as minimum values and the second as maximum
 	 */
 	hemi.curve.showBoxes = function(boxes) {
 		var pack = hemi.curve.pack;
@@ -196,14 +199,14 @@ var hemi = (function(hemi) {
 	 *     boxes: array of bounding boxes for particle curves to pass through
 	 *     fast: flag to indicate GPU-driven particle system should be used
 	 *     life: lifetime of particle system (in seconds)
-	 *     particles: number of particles to allocate for system
-	 *     shape: enumerator for type of shape to use for particles
+	 *     particleCount: number of particles to allocate for system
+	 *     particleShape: enumerator for type of shape to use for particles
 	 *     // JS particle system only
 	 *     colorKeys: array of time keys and values for particle color ramp
 	 *     scaleKeys: array of time keys and values for particle size ramp
 	 *     // GPU particle system only
 	 *     colors: color ramp for particles
-	 *     size: size of the particles
+	 *     particleSize: size of the particles
 	 *     tension: tension parameter for the curve (typically from -1 to 1)
 	 *     trail: flag to indicate system should have trailing start and stop
 	 * @return {Object} the created particle system
@@ -706,7 +709,7 @@ var hemi = (function(hemi) {
 		this.active = false;
 		this.pLife = config.life || 5;
 		this.boxes = config.boxes;
-		this.maxParticles = config.particles || 25;
+		this.maxParticles = config.particleCount || 25;
 		this.maxRate = Math.ceil(this.maxParticles / this.pLife);
 		this.particles = [];
 		this.pRate = this.maxRate;
@@ -730,8 +733,8 @@ var hemi = (function(hemi) {
 		
 		this.shapes = [];
 		
-		if (config.shape) {
-			switch (config.shape) {
+		if (config.particleShape) {
+			switch (config.particleShape) {
 				case (hemi.curve.ShapeType.ARROW):
 					var arrowHeadXY = [[-0.4,0],[0.4,0],[0,0.6]];
 					var arrowBaseXY = [[-0.2,0],[-0.2,-0.4],[0.2,-0.4],[0.2,0]];
@@ -1089,6 +1092,11 @@ var hemi = (function(hemi) {
 	
 	hemi.curve.fragHeader =
 		'varying vec4 ptcColor; \n';
+	
+	hemi.curve.fragPreBody =
+		'  if (ptcColor.a == 0.0) {\n' +
+		'    discard;\n' +
+		'  }\n';
 	
 	hemi.curve.fragGlobNoColors =
 		'gl_FragColor.a *= ptcColor.a; \n';
@@ -1464,6 +1472,7 @@ var hemi = (function(hemi) {
 					fragGlob = parsedFrag.glob;
 				
 				parsedFrag.postHdr = hemi.curve.fragHeader;
+				parsedFrag.preBody = hemi.curve.fragPreBody;
 				
 				if (addColors) {
 					if (fragGlob.indexOf('diffuse') !== -1) {
@@ -1538,9 +1547,9 @@ var hemi = (function(hemi) {
 					boxes: this.boxes,
 					colors: this.colors,
 					life: this.life,
-					particles: this.particles,
-					shape: this.ptcShape,
-					size: this.size,
+					particleCount: this.particles,
+					particleShape: this.ptcShape,
+					particleSize: this.size,
 					tension: this.tension
 				}]
 			});
@@ -1713,7 +1722,7 @@ var hemi = (function(hemi) {
 					vals = obj.vals,
 					field = obj.stream.field;
 				
-				field.setAt(i * numVerts, vals);
+				field.setAt(vertOffset, vals);
 			}
 			// New "particle system" vertex data
 			for (var j = 0; j < numVerts; j++) {
