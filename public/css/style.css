@@ -336,6 +336,7 @@ input.error {
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.25);
     margin-left: 5px;
     margin-bottom: 0;
+	margin-top: 0;
 }
 
 #actionBar button:hover, #actionBar button.down:hover {
@@ -925,7 +926,6 @@ form div.modelRep span {
 }
 
 form div.buttons {
-	margin-top: 5px;
     float: right;
     padding: 0;
 	width: auto;
@@ -1173,6 +1173,10 @@ form button:first-child {
     margin-left: 0;
 }
 
+form button {	
+	margin-top: 5px;
+}
+
 form button:not([disabled], .icon):hover {
     background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eaeaea);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dadada), to(#eaeaea));
@@ -1327,7 +1331,8 @@ form button.removeBtn:hover {
  * Animation dialog
  */
 #anmLoopList .loopSlider {
-	width: 204px;	
+	width: 184px;
+	margin-right: 5px;	
 }
 #anmLoopList button.removeBtn {
 	position: absolute;
@@ -1841,6 +1846,14 @@ ul.scnEvtList li.button {
 	float: left;
 	background: none;
 	margin-left: 10px;
+}
+
+/**
+ * Curves dialog
+ */
+#crvAddSaveBoxBtn {
+	float: left;
+	margin: 5px 0 5px 125px;
 }
 
 /*

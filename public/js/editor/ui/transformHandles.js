@@ -21,7 +21,7 @@ var editor = (function(module) {
 	
 	var EXTENT = 5,
 		MAX_EXTENT = 10;
-		MIN_EXTENT = 2;
+		MIN_EXTENT = 4;
 	
 	module.ui.trans.DrawState = {
 		TRANSLATE: 0,
@@ -459,7 +459,8 @@ var editor = (function(module) {
 				cvs.lineTo(pnt[0], pnt[1]);
 			}
 			cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
-			cvs.lineWidth = cfg.lineWidth;
+			cvs.lineWidth = cfg.lineWidth * 3;
+			cvs.lineCap = 'round';
 			cvs.stroke();
 			
 			// save coordinates
@@ -487,7 +488,7 @@ var editor = (function(module) {
 			var cfg = this.config,
 				origin = cfg.origin,
 				vector = cfg.vector,
-				size = cfg.extent / 15,  
+				size = cfg.extent / 8,  
 				points = [],
 				cvs = this.canvas,
 				clr = this.hover ? this.hvrClr : this.clr,
@@ -592,12 +593,12 @@ var editor = (function(module) {
 				vector = cfg.vector,
 				increment = Math.PI / 90,  // 2 degrees
 				startAngle = Math.PI / 2,
-				radius = cfg.extent / 25,
+				radius = cfg.extent / 10,
 				endPnt = hemi.core.math.copyVector(vector),
 				angles = 180,
 				angle = 0,
 				points = [],
-				size = cfg.extent / 10,  
+				size = cfg.extent / 5,  
 				cvs = this.canvas,
 				clr = this.hover ? this.hvrClr : this.clr,
 				ndx1 = 0,
@@ -706,12 +707,11 @@ var editor = (function(module) {
 					orgPnt: op,
 					endPnt: ep,
 					distance: d,
-					baseLength: extent * 25 / hemi.world.camera.distance,
 					centerEye: ce,
 					centerArrow: ca,
 					plane: plane,
 					extent: extent,
-					lineWidth: 100 / hemi.world.camera.distance
+					lineWidth: 3
 				};
 				
 				this.drawLine();

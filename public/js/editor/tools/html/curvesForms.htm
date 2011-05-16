@@ -89,33 +89,18 @@
 			<legend>
 				Configure Curve Boxes
 			</legend>
-			<ol>				
+			<ol id="crvBoxList">				
                 <li>
-                    <label for="crvPosition">
+                    <label for="crvPosition" class="long">
                         Position
                     </label>
 					<div id="crvPositionDiv">
 					</div>
-                </li>
-                <li>
-                    <label for="crvHeight">
-                        Height
+                    <label for="crvDimensions" class="long">
+                        Dimensions
                     </label>
-                    <input type="text" value="" id="crvHeight" class="box short" />
-                </li>
-                <li>
-                    <label for="crvWidth">
-                        Width
-                    </label>
-                    <input type="text" value="" id="crvWidth" class="box short" />
-                </li>
-                <li>
-                    <label for="crvDepth">
-                        Depth
-                    </label>
-                    <input type="text" value="" id="crvDepth" class="box short" />
-                </li>
-                <li>
+					<div id="crvDimensionsDiv">
+					</div>
                     <button id="crvAddSaveBoxBtn">
                         Add
                     </button>
