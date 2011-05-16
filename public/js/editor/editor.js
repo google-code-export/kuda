@@ -74,7 +74,7 @@
 			cam.clip.near = defaults.nearPlane;
 			cam.updateProjection();
 			
-			this.extent = 2000;		// Grid will reach 2000 meters in each direction
+			this.extent = 50;		// Grid will reach 2000 meters in each direction
 			this.fidelity = 1;		// Grid squares = 1 square meter
 			
             this.layoutDialogs();
@@ -198,65 +198,16 @@
             hemi.world.camera.moveToView(vd);
 		},
 		
-		layoutGrid: function() {
-			var url = "images/grid.png",
-				oldPath = hemi.loader.loadPath;
-				that = this;
-			this.db = hemi.core.debug.createDebugHelper(hemi.core.mainPack, 
-				hemi.view.viewInfo);
-			this.db.addAxis(hemi.core.client.root);
-			
-			hemi.loader.loadPath = '';
-			hemi.loader.loadTexture(url, function(texture) {
-		    	var mat = hemi.core.material.createConstantMaterial(
-						hemi.core.mainPack, hemi.view.viewInfo, texture, true),
-					extent = 2*that.extent;	
-					
-				// create a custom draw list that this grid goes on
-				var drawPassInfo = hemi.view.viewInfo.createDrawPass(
-			        o3djs.base.o3d.DrawList.BY_Z_ORDER);  
-					
-				var state = drawPassInfo.state;				
-
-				state.getStateParam('AlphaBlendEnable').value = true;
-				state.getStateParam('SourceBlendFunction').value =
-					o3djs.base.o3d.State.BLENDFUNC_SOURCE_ALPHA;
-				state.getStateParam('DestinationBlendFunction').value =
-					o3djs.base.o3d.State.BLENDFUNC_INVERSE_SOURCE_ALPHA;
-				state.getStateParam('AlphaTestEnable').value = true;
-				state.getStateParam('AlphaComparisonFunction').value =
-					o3djs.base.o3d.State.CMP_GREATER;
-					
-				mat.drawList = drawPassInfo.drawList;
-				
-				// create the actual shape
-				that.gridShape = hemi.core.mainPack.createObject('Transform');
-				that.gridShape.addShape(hemi.core.primitives.createPlane(
-					hemi.core.mainPack, mat, extent, extent, 1, 1));
-			
-				that.gridShape.parent = hemi.core.client.root;
-				that.resetGrid(that.extent, that.fidelity);
-		  	});
-				
-			hemi.loader.loadPath = oldPath;
+		layoutGrid: function() {			
+			this.grid = new editor.ui.GridPlane(this.extent, this.fidelity);
 		},
 		
 		showGrid: function() {
-			this.db.addAxis(hemi.core.client.root);
-			this.gridShape.visible = true;
-			this.resetGrid(this.extent, this.fidelity);
-		},
-		
-		resetGrid: function(extent, fidelity) {
-			this.db.setAxisScale(extent, fidelity/10);
-			var fullExtent = extent * 2;
-			hemi.texture.scale(this.gridShape.shapes[0].elements[0], 
-				fullExtent/fidelity, fullExtent/fidelity);
+			this.grid.setVisible(true);
 		},
 		
 		removeGrid: function() {
-			this.gridShape.visible = false;
-			this.db.removeAxes(hemi.core.client.root);
+			this.grid.setVisible(false);
 		},
 		
 		uninitViewer: function() {

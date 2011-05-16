@@ -297,14 +297,15 @@ var editor = (function(module) {
 				shpTypeSel = this.find('#crvShapeSelect'),
 				inputs = this.find('input:not(#crvName, .box)'),
 				boxAddBtn = this.find('#crvAddSaveBoxBtn'),
-				boxWidthIpt = this.find('#crvWidth'),
-				boxHeightIpt = this.find('#crvHeight'),
-				boxDepthIpt = this.find('#crvDepth'),
+//				boxWidthIpt = this.find('#crvWidth'),
+//				boxHeightIpt = this.find('#crvHeight'),
+//				boxDepthIpt = this.find('#crvDepth'),
 				nameIpt = this.find('#crvName'),
 				startPreviewBtn = this.find('#crvPreviewStartBtn'),
 				stopPreviewBtn = this.find('#crvPreviewStopBtn'),
 				wgt = this;
 			
+			this.boxList = this.find('#crvBoxList');
 			this.position = new module.ui.Vector({
 				container: wgt.find('#crvPositionDiv'),
 				paramName: 'position',
@@ -314,6 +315,24 @@ var editor = (function(module) {
 						
 					if (val !== '' && !hemi.utils.isNumeric(val)) {
 						msg = 'must be a number';
+					}
+					
+					return msg;
+				})
+			});
+			this.dimensions = new module.ui.Vector({
+				container: wgt.find('#crvDimensionsDiv'),
+				paramName: 'dimensions',
+				inputs: ['h', 'w', 'd'],
+				validator: new module.ui.Validator(null, function(elem) {
+					var val = elem.val(),
+						msg = null;
+						
+					if (val !== '' && !hemi.utils.isNumeric(val)) {
+						msg = 'must be a number';
+					}
+					else if (parseFloat(val) < 0) {
+						msg = 'must be > 0';
 					}
 					
 					return msg;
@@ -369,14 +388,15 @@ var editor = (function(module) {
 			
 			boxAddBtn.bind('click', function(evt) {
 				var pos = wgt.position.getValue();
+				var dim = wgt.dimensions.getValue();
 				wgt.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
 				wgt.boxHandles.setTransform(null);
 				
 				wgt.notifyListeners(module.EventTypes.AddBox, {
 					position: [pos.x, pos.y, pos.z],
-					width: parseFloat(boxWidthIpt.val()),
-					height: parseFloat(boxHeightIpt.val()),
-					depth: parseFloat(boxDepthIpt.val())
+					width: dim.w,
+					height: dim.h,
+					depth: dim.d
 				});
 			});
 			
@@ -411,6 +431,23 @@ var editor = (function(module) {
 			
 			colorAdder.before(colorPicker.getUI());
 			colorAdder.data('ndx', ndx+1);
+		},
+		
+		boxAdded: function(box, ndx) {
+			var wgt = this,
+				wrapper = jQuery('<li class="crvBoxEditor"></li>'),
+				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>');
+							
+			removeBtn.bind('click', function(evt) {
+				var loop = wrapper.data('obj');
+				
+				wrapper.remove();
+				wgt.notifyListeners(module.EventTypes.RemoveAnmLoop, loop);
+			});
+			
+			wrapper.append(removeBtn).data('obj', ndx);
+			
+			this.boxList.append(wrapper);
 		},
 		
 		boxesUpdated: function(params) {
