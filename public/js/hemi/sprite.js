@@ -29,11 +29,9 @@ var hemi = (function(hemi) {
 	
 	hemi.sprite.header =
 		'uniform mat4 projection; \n' +
-		'uniform mat4 view; \n' +
-		'uniform mat4 world; \n';
+		'uniform mat4 worldView; \n';
 	
 	hemi.sprite.vertBody =
-		'  mat4 worldView = view*world; \n' +
 		'  vec4 pos = position + vec4(worldView[3].xyz,0); \n';
 	
 	hemi.sprite.vertGlob =

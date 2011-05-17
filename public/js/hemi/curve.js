@@ -964,6 +964,7 @@ var hemi = (function(hemi) {
 		'uniform float tension; \n' +
 		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
+		'uniform mat4 viewProjection; \n' +
 		'attribute vec4 TEXCOORD; \n' +
 		'varying vec4 ptcColor; \n';
 	
@@ -1088,7 +1089,7 @@ var hemi = (function(hemi) {
 		'   0.0,0.0,0.0,1.0); \n';
 	
 	hemi.curve.vertBodyEnd =
-		'  mat4 ptcWorldVP = worldViewProjection * ptcWorld; \n';
+		'  mat4 ptcWorldVP = viewProjection * ptcWorld; \n';
 	
 	hemi.curve.fragHeader =
 		'varying vec4 ptcColor; \n';
