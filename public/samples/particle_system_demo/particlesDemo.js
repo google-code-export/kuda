@@ -128,7 +128,7 @@
 							hemi.curve.hideBoxes();
 							showBoxes = false;
 						} else {
-							hemi.curve.showBoxes(particleSystem);
+							hemi.curve.showBoxes(particleSystem.boxes);
 							showBoxes = true;
 						}
 						break;
