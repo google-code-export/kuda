@@ -51,13 +51,13 @@ o3djs.require('hext.house.structure');
 			init: function() {
 				// Since browsers don't all support the same formats, we add a
 				// URL for both an MP3 and an OGG version of each audio.
-				this.door.addUrl('assets/audio/door.mp3', 'mp3');
+//				this.door.addUrl('assets/audio/door.mp3', 'mp3');
 				this.door.addUrl('assets/audio/door.ogg', 'ogg');
-				this.fireplace.addUrl('assets/audio/fireplace.mp3', 'mp3');
+//				this.fireplace.addUrl('assets/audio/fireplace.mp3', 'mp3');
 				this.fireplace.addUrl('assets/audio/fireplace.ogg', 'ogg');
-				this.winLeft.addUrl('assets/audio/window.mp3', 'mp3');
+//				this.winLeft.addUrl('assets/audio/window.mp3', 'mp3');
 				this.winLeft.addUrl('assets/audio/window.ogg', 'ogg');
-				this.winRight.addUrl('assets/audio/window.mp3', 'mp3');
+//				this.winRight.addUrl('assets/audio/window.mp3', 'mp3');
 				this.winRight.addUrl('assets/audio/window.ogg', 'ogg');
 				return this;
 			}
