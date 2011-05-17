@@ -26,8 +26,10 @@ var editor = (function(module) {
     module.EventTypes.CurveRemoved = "Curves.CurveRemoved";
     module.EventTypes.CurveUpdated = "Curves.CurveUpdated";
     module.EventTypes.CurveSet = "Curves.CurveSet";
-    module.EventTypes.BoxesUpdated = "Curves.BoxesUpdated";
+    module.EventTypes.BoxAdded = "Curves.BoxAdded";
     module.EventTypes.BoxSelected = "Curves.BoxSelected";
+    module.EventTypes.BoxRemoved = "Curves.BoxRemoved";
+    module.EventTypes.BoxUpdated = "Curves.BoxUpdated";
 	
 	// view specific
 	module.EventTypes.BoxManipState = "Curves.BoxManipState";
@@ -40,6 +42,8 @@ var editor = (function(module) {
 	// curve edit widget specific
 	module.EventTypes.SetParam = "Curves.SetParam";
 	module.EventTypes.AddBox = "Curves.AddBox";
+	module.EventTypes.RemoveBox = "Curves.RemoveBox";
+	module.EventTypes.UpdateBox = "Curves.UpdateBox";
 	module.EventTypes.UpdateBoxes = "Curves.UpdateBoxes";
 	module.EventTypes.StartPreview = "Curves.StartPreview";
 	module.EventTypes.StopPreview = "Curves.StopPreview";
@@ -88,7 +92,10 @@ var editor = (function(module) {
 			hemi.curve.showBoxes(this.config.boxes);
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(module.EventTypes.BoxesUpdated, {
+			this.notifyListeners(module.EventTypes.BoxAdded, {
+				ndx: this.config.boxes.length - 1,
+				position: position,
+				dimensions: [height, width, depth],
 				size: this.config.boxes.length
 			});
 						
@@ -158,6 +165,26 @@ var editor = (function(module) {
 			this.currentSystem.cleanup();
 			
 			this.reset();
+		},
+		
+		removeBox: function(ndx) {				
+			var previewing = this.previewing,
+				boxes = this.config.boxes;
+				
+			this.stopPreview();
+			
+			boxes.splice(ndx, 1);
+			
+			hemi.curve.showBoxes(this.config.boxes);
+			this.updateSystem('boxes', this.config.boxes);
+			
+			this.notifyListeners(module.EventTypes.BoxRemoved, {
+				size: this.config.boxes.length
+			});
+						
+			if (previewing) {
+				this.startPreview();
+			}
 		},
 		
 		reset: function() {
@@ -233,19 +260,62 @@ var editor = (function(module) {
 			this.previewing = false;
 		},
 		
+		updateBox: function(ndx, position, width, height, depth) {			
+			var x = position[0],
+				y = position[1],
+				z = position[2],
+				halfWidth = width/2,
+				halfHeight = height/2,
+				halfDepth = depth/2,
+				minExtent = [x - halfWidth, y - halfHeight, z - halfDepth],
+				maxExtent = [x + halfWidth, y + halfHeight, z + halfDepth],
+				previewing = this.previewing;
+				
+			this.stopPreview();
+				
+			this.config.boxes[ndx] = [minExtent, maxExtent];
+			
+			hemi.curve.showBoxes(this.config.boxes);
+			this.updateSystem('boxes', this.config.boxes);
+			
+			this.notifyListeners(module.EventTypes.BoxUpdated, {
+				ndx: this.config.boxes.length - 1,
+				position: position,
+				dimensions: [height, width, depth]
+			});
+						
+			if (previewing) {
+				this.startPreview();
+			}
+		},
+		
 		updateBoxes: function() {		
 			var boxes = hemi.curve.dbgBoxTransforms
 				newBoxes = [];
 			
 			for (var i = 0, il = boxes.length; i < il; i++) {
 				var box = boxes[i],
-					boundingBox = box.boundingBox;
+					boundingBox = box.boundingBox,
+					minExtent = boundingBox.minExtent,
+					maxExtent = boundingBox.maxExtent,
+					height = maxExtent[1] - minExtent[1],
+					width = maxExtent[0] - minExtent[0],
+					depth = maxExtent[2] - minExtent[2],
+					position = box.getUpdatedWorldMatrix()[3];
 				
-				newBoxes.push([hemi.utils.clone(boundingBox.minExtent),
-					hemi.utils.clone(boundingBox.maxExtent)]);
+				newBoxes.push([hemi.utils.clone(minExtent),
+					hemi.utils.clone(maxExtent)]);
+				
+				this.notifyListeners(module.EventTypes.BoxUpdated, {
+					ndx: i,
+					position: [position[0], position[1], position[2]],
+					dimensions: [height, width, depth]
+				})
 			}
 			this.config.boxes = newBoxes;			
 			this.updateSystem('boxes', newBoxes);
+			
+			// TODO: notify of box update so that list updates in real time
 		},
 		
 		updateSystem: function(param, value) {
@@ -265,7 +335,7 @@ var editor = (function(module) {
 ////////////////////////////////////////////////////////////////////////////////
 //                     		Edit Curve Sidebar Widget                         //
 //////////////////////////////////////////////////////////////////////////////// 
-	
+		
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
@@ -285,6 +355,7 @@ var editor = (function(module) {
 			this.boxHandles = new editor.ui.TransHandles();
 			this.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
 			this.boxHandles.addListener(module.EventTypes.TransChanged, this);
+			this.boxes = [];
 		},
 		
 		finishLayout: function() {
@@ -297,14 +368,13 @@ var editor = (function(module) {
 				shpTypeSel = this.find('#crvShapeSelect'),
 				inputs = this.find('input:not(#crvName, .box)'),
 				boxAddBtn = this.find('#crvAddSaveBoxBtn'),
-//				boxWidthIpt = this.find('#crvWidth'),
-//				boxHeightIpt = this.find('#crvHeight'),
-//				boxDepthIpt = this.find('#crvDepth'),
 				nameIpt = this.find('#crvName'),
 				startPreviewBtn = this.find('#crvPreviewStartBtn'),
 				stopPreviewBtn = this.find('#crvPreviewStopBtn'),
 				wgt = this;
 			
+			this.boxAddBtn = boxAddBtn;
+			this.boxForms = this.find('#crvBoxForms');
 			this.boxList = this.find('#crvBoxList');
 			this.position = new module.ui.Vector({
 				container: wgt.find('#crvPositionDiv'),
@@ -345,10 +415,12 @@ var editor = (function(module) {
 			
 			saveBtn.bind('click', function(evt) {
 				wgt.notifyListeners();
+				wgt.reset();
 			});
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.notifyListeners();
+				wgt.reset();
 			});
 			
 			startPreviewBtn.bind('click', function(evt) {
@@ -387,18 +459,28 @@ var editor = (function(module) {
 			});
 			
 			boxAddBtn.bind('click', function(evt) {
-				var pos = wgt.position.getValue();
-				var dim = wgt.dimensions.getValue();
+				var ndx = boxAddBtn.data('ndx'),
+					pos = wgt.position.getValue(),
+					dim = wgt.dimensions.getValue(),
+					msgType = ndx == -1 ? module.EventTypes.AddBox 
+						: module.EventTypes.UpdateBox,
+					data = {
+							position: [pos.x, pos.y, pos.z],
+							width: dim.w,
+							height: dim.h,
+							depth: dim.d,
+							ndx: ndx
+						};
+					
 				wgt.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
 				wgt.boxHandles.setTransform(null);
 				
-				wgt.notifyListeners(module.EventTypes.AddBox, {
-					position: [pos.x, pos.y, pos.z],
-					width: dim.w,
-					height: dim.h,
-					depth: dim.d
-				});
-			});
+				wgt.notifyListeners(msgType, data);
+				
+				wgt.position.reset();
+				wgt.dimensions.reset();
+				boxAddBtn.data('ndx', -1);
+			}).data('ndx', -1);
 			
 			this.setupColorPicker();
 		},
@@ -433,27 +515,54 @@ var editor = (function(module) {
 			colorAdder.data('ndx', ndx+1);
 		},
 		
-		boxAdded: function(box, ndx) {
-			var wgt = this,
-				wrapper = jQuery('<li class="crvBoxEditor"></li>'),
-				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>');
+		boxAdded: function(boxObj) {
+			var ndx = boxObj.ndx,
+				position = boxObj.position,
+				dimensions = boxObj.dimensions,
+				wgt = this,
+				wrapper = jQuery('<li class="crvBoxEditor"><span>Box at [' + position.join(',') + ']</span></li>'),
+				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>'),
+				editBtn = jQuery('<button class="icon editBtn">Edit</button>');
 							
 			removeBtn.bind('click', function(evt) {
-				var loop = wrapper.data('obj');
+				var boxNdx = wrapper.data('obj');
 				
 				wrapper.remove();
-				wgt.notifyListeners(module.EventTypes.RemoveAnmLoop, loop);
+				wgt.notifyListeners(module.EventTypes.RemoveBox, boxNdx);
 			});
 			
-			wrapper.append(removeBtn).data('obj', ndx);
+			editBtn.bind('click', function(evt) {
+				var dta = wrapper.data('obj'),
+					pos = dta.position,
+					dim = dta.dimensions;
+					
+				wgt.boxAddBtn.text('Update').data('ndx', ndx);
+				wgt.position.setValue({
+					x: pos[0],
+					y: pos[1],
+					z: pos[2]
+				});
+				wgt.dimensions.setValue({
+					h: dim[0],
+					w: dim[1],
+					d: dim[2]
+				});
+				
+				// a jquery bug here that doesn't test for css rgba
+				// wgt.boxForms.effect('highlight');
+			});
+			
+			wrapper.append(editBtn).append(removeBtn).data('obj', boxObj);
 			
 			this.boxList.append(wrapper);
+			this.boxesUpdated(boxObj.size);
+			this.boxes.push(wrapper);
 		},
 		
-		boxesUpdated: function(params) {
+		boxesUpdated: function(size) {
 			var btn = this.find('#crvPreviewStartBtn');
 			
-			if (params.size > 1) {				
+			if (size > 1) {				
 				btn.removeAttr('disabled');
 			}
 			else {
@@ -464,6 +573,37 @@ var editor = (function(module) {
 		boxSelected: function(drawState, transform) {
 			this.boxHandles.setTransform(transform);
 			this.boxHandles.setDrawState(drawState);
+		},
+		
+		boxUpdated: function(boxObj) {
+			var rndFnc = module.utils.roundNumber,
+				ndx = boxObj.ndx,
+				position = boxObj.position,
+				dimensions = boxObj.dimensions,
+				wgt = this,
+				boxUI = this.boxes[ndx];
+				
+			for (var i = 0, il = position.length; i < il; i++) {
+				position[i] = rndFnc(position[i], 2);
+				dimensions[i] = rndFnc(dimensions[i], 2);
+			}
+			
+			boxUI.data('obj', boxObj);
+			
+			if (this.boxAddBtn.data('ndx') === ndx) {
+				this.position.setValue({
+					x: position[0],
+					y: position[1],
+					z: position[2]
+				});
+				this.dimensions.setValue({
+					h: dimensions[0],
+					w: dimensions[1],
+					d: dimensions[2]
+				});
+			}
+			
+			boxUI.find('span').text('Box at [' + position.join(',') + ']');
 		},
 		
 		cleanup: function() {
@@ -482,7 +622,14 @@ var editor = (function(module) {
 			// remove additional color ramp values
 			this.find('.colorRampAdd').remove();
 			var colorRampPicker = this.colorPickers[0];
-			this.find('#pteAddColorToRamp').data('ndx', 1);
+			this.find('#crvAddColorToRamp').data('ndx', 1);
+			
+			this.find('#crvSystemTypeSelect').val(-1);
+			this.find('#crvShapeSelect').val(-1);
+			this.find('input').val('');
+			
+			this.position.reset();
+			this.dimensions.reset();			
 		},
 		
 		resize: function(maxHeight) {
@@ -742,7 +889,10 @@ var editor = (function(module) {
 		boxSelected: function(transform, ndx) {
 			this.actionWgt.setVisible(true);
 			this.actionWgt.transform = transform;
-			this.actionWgt.tBtn.click();
+			if (!this.actionWgt.tBtn.data('isDown') 
+					&& !this.actionWgt.sBtn.data('isDown')) {
+				this.actionWgt.tBtn.click();
+			}
 			this.actionWgt.boxNumberTxt.text(ndx+1);
 		}
 	});
@@ -786,6 +936,9 @@ var editor = (function(module) {
 				model.addBox(boxParams.position, boxParams.width, 
 					boxParams.height, boxParams.depth);
 			});
+			edtCrvWgt.addListener(module.EventTypes.RemoveBox, function(ndx) {
+				model.removeBox(ndx);
+			});
 			edtCrvWgt.addListener(module.EventTypes.SetParam, function(paramObj) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
 			});
@@ -797,6 +950,10 @@ var editor = (function(module) {
 			});
 			edtCrvWgt.addListener(module.EventTypes.StopPreview, function() {
 				model.stopPreview();
+			});
+			edtCrvWgt.addListener(module.EventTypes.UpdateBox, function(params) {
+				model.updateBox(params.ndx, params.position, params.width, 
+					params.height, params.depth);
 			});
 			edtCrvWgt.addListener(module.EventTypes.UpdateBoxes, function() {
 				model.updateBoxes();
@@ -820,15 +977,19 @@ var editor = (function(module) {
 			// view specific
 	        
 			// model specific	
-			model.addListener(module.EventTypes.BoxesUpdated, function(params) {
-				edtCrvWgt.boxesUpdated(params);
+			model.addListener(module.EventTypes.BoxAdded, function(obj) {
+				edtCrvWgt.boxAdded(obj);
+			});
+			model.addListener(module.EventTypes.BoxRemoved, function(ndx) {
 			});
 			model.addListener(module.EventTypes.BoxSelected, function(vals) {
 				var transform = vals.transform,
 					ndx = vals.ndx;
 					
-//				edtCrvWgt.boxSelected(transform);
 				view.boxSelected(transform, ndx);
+			});
+			model.addListener(module.EventTypes.BoxUpdated, function(vals) {
+				edtCrvWgt.boxUpdated(vals);
 			});
 			model.addListener(module.EventTypes.CurveCreated, function(curve) {
 				lstWgt.add(curve);
