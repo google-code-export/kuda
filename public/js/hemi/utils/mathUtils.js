@@ -179,38 +179,6 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Interprets a point in world space into local space.
-	 */
-	hemi.utils.pointAsLocal = function(transform,point) {
-		var m4 = hemi.core.math.matrix4;
-		var W = m4.inverse(transform.getUpdatedWorldMatrix());
-		return m4.transformPoint(W,point);
-	};
-	
-	/**
-	 * Interprets a point in local space into world space.
-	 */
-	hemi.utils.pointAsWorld = function(transform, point) {
-		var m4 = hemi.core.math.matrix4;
-		return m4.transformPoint(transform.getUpdatedWorldMatrix(),point);
-	};
-	
-	/**
-	 * Point the positive z-axis of the transform at the point in local space.
-	 */
-	hemi.utils.pointZAt = function(transform, point) {
-		var pos = transform.localMatrix[3].slice(0,3);
-		transform.identity();
-		transform.translate(pos);
-		
-		var xyz = hemi.core.math.subVector(point, pos);
-		transform.rotateY(Math.atan2(xyz[0],xyz[2]));
-		transform.rotateX(-Math.asin(
-			xyz[1]/hemi.core.math.distance([0,0,0],xyz)));
-
-	};
-	
-	/**
 	 * A container for all the common penner easing equations - 
 	 * 		linear
 	 *		quadratic 
@@ -368,51 +336,6 @@ var hemi = (function(hemi) {
 			vf = hMath.mulScalarVector(uv[1], hMath.subVector(plane[2], plane[0]));
 			pos = hMath.addVector(plane[0], hMath.addVector(uf, vf));
 		return pos;
-	};
-	
-	/**
-	 * Rotate the transform by the given angle along the given world space axis.
-	 *
-	 * @param {number[]} axis rotation axis defined as an XYZ vector
-	 * @param {number} angle amount to rotate by in radians
-	 * @param {o3d.Transform} transform the transform to rotate
-	 */
-	hemi.utils.worldRotate = function(axis, angle, transform) {
-		var m4 = hemi.core.math.matrix4,
-			iW = m4.inverse(transform.getUpdatedWorldMatrix()),
-			lA = m4.transformDirection(iW, axis);
-		transform.axisRotate(lA, angle);
-	};
-	
-	/**
-	 * Scale the transform by the given scale amounts in world space.
-	 *
-	 * @param {number[]} scale scale factors defined as an XYZ vector
-	 * @param {o3d.Transform} transform the transform to scale
-	 */
-	hemi.utils.worldScale = function(scale, transform) {
-		var m4 = hemi.core.math.matrix4,
-			newMatrix = m4.mul(
-				m4.mul(
-					m4.mul(
-						transform.getUpdatedWorldMatrix(),
-						m4.scaling(scale)),
-					m4.inverse(transform.getUpdatedWorldMatrix())),
-				transform.localMatrix);
-		transform.localMatrix = newMatrix;
-	};
-	
-	/**
-	 * Translate the transform by the given world space vector.
-	 *
-	 * @param {number[]} v XYZ vector to translate by
-	 * @param {o3d.Transform} transform the transform to translate
-	 */
-	hemi.utils.worldTranslate = function(v, transform) {
-		var m4 = hemi.core.math.matrix4,
-			iW = m4.inverse(transform.getUpdatedWorldMatrix()),
-			lV = m4.transformDirection(iW, v);
-		transform.translate(lV);
 	};
 	
 	/**
