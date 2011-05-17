@@ -1248,7 +1248,7 @@
 		var up = hemi.world.camera.up;
 		var np = 5;
 		var fp = 5000;
-		opt_fov = opt_fov || hemi.core.math.degToRad(40);
+		opt_fov = hemi.core.math.degToRad(opt_fov) || hemi.core.math.degToRad(40);
 		
 		var eyeTran = model.getTransforms(eyeName)[0];
 		var targetTran = model.getTransforms(targetName)[0];
