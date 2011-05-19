@@ -142,12 +142,13 @@ var hemi = (function(hemi) {
 		
 	/**
 	 * Render the bounding boxes which the curves run through, mostly for
-	 * 		debugging purposes.
+	 * debugging purposes.
 	 * 
 	 * @param {number[3][2][]} boxes array of pairs of XYZ coordinates, the
 	 *     first as minimum values and the second as maximum
+	 * @param {o3d.Transform} opt_trans optional parent transform for the boxes
 	 */
-	hemi.curve.showBoxes = function(boxes) {
+	hemi.curve.showBoxes = function(boxes, opt_trans) {
 		var pack = hemi.curve.pack;
 		
 		if (this.dbgBoxTransforms.length > 0) {
@@ -167,7 +168,7 @@ var hemi = (function(hemi) {
 			
 			transform.addShape(box);
 			transform.translate(x,y,z);
-			transform.parent = hemi.picking.pickRoot;
+			transform.parent = opt_trans || hemi.picking.pickRoot;
 			this.dbgBoxTransforms[i] = transform;
 		}
 	};

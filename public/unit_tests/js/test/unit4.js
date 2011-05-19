@@ -143,7 +143,7 @@
 		 */
 		unitTest4.particleSystem = hemi.curve.createSystem(particleSystemConfig);
 		
-		hemi.curve.showBoxes(unitTest4.particleSystem.boxes);
+		hemi.curve.showBoxes(unitTest4.particleSystem.boxes, rootShape);
 
 	//	var t  = hemi.curve.dbgBoxTransforms;
 		
