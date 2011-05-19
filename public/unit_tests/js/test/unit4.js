@@ -26,49 +26,49 @@
 	o3djs.require('o3djs.util');
 
 
-	var unit3 = unit3 || {};
-	var unitTest3 = unitTest3 || {};
+	var unit4 = unit4 || {};
+	var unitTest4 = unitTest4 || {};
 
 	
-	unit3.start = function(onCompleteCallback) {
+	unit4.start = function(onCompleteCallback) {
 		this.onCompleteCallback = onCompleteCallback;
 		
-		jqUnit.module('UNIT 3'); 
-		jqUnit.test("particle system", unitTest3.step_1);
+		jqUnit.module('UNIT 4'); 
+		jqUnit.test("particle system", unitTest4.step_1);
 
 	};
 	
-	unit3.step_2 = function() {
-		var result = unitTest3.model.unsubscribe(unitTest3.loadSubscription, hemi.msg.load);
-		jqUnit.test("particle system 2", unitTest3.step_2);
+	unit4.step_2 = function() {
+		var result = unitTest4.model.unsubscribe(unitTest4.loadSubscription, hemi.msg.load);
+		jqUnit.test("particle system 2", unitTest4.step_2);
 
 	};
 	
-	unit3.step_3 = function() {
-		hemi.world.camera.unsubscribe(unitTest3.cameraStopSubscription, hemi.msg.stop);
+	unit4.step_3 = function() {
+		hemi.world.camera.unsubscribe(unitTest4.subscription, hemi.msg.stop);
 		this.onCompleteCallback.call();
 	};
 	
-	unit3.cleanup = function() {
-		unitTest3.model.cleanup();
-		unitTest3.particleSystem.stop();
-		//unitTest3.particleSystem.cleanup();
+	unit4.cleanup = function() {
+		unitTest4.model.cleanup();
+		unitTest4.particleSystem.stop();
+		//unitTest4.particleSystem.cleanup();
 	};
 	
 	
 
-	unitTest3.step_1 = function()   {
+	unitTest4.step_1 = function()   {
 		
 		jqUnit.expect(1);
 		
-		unitTest3.model = new hemi.model.Model();				// Create a new Model
-		jqMock.assertThat(unitTest3.model , is.instanceOf(hemi.model.Model));
+		unitTest4.model = new hemi.model.Model();				// Create a new Model
+		jqMock.assertThat(unitTest4.model , is.instanceOf(hemi.model.Model));
 		
-		unitTest3.model.setFileName('house_v12/scene.json'); // Set the model file
+		unitTest4.model.setFileName('house_v12/scene.json'); // Set the model file
 		
-		unitTest3.loadSubscription = unitTest3.model.subscribe(
+		unitTest4.loadSubscription = unitTest4.model.subscribe(
 			hemi.msg.load,
-			unit3,
+			unit4,
 			'step_2'
 		);
 		
@@ -79,9 +79,9 @@
 	};
 
 
-	unitTest3.step_2 = function() {
+	unitTest4.step_2 = function() {
 
-		jqMock.assertThat(unitTest3.model , is.instanceOf(hemi.model.Model));
+		jqMock.assertThat(unitTest4.model , is.instanceOf(hemi.model.Model));
 
 		var vp = new hemi.view.Viewpoint();		// Create a new Viewpoint
 		vp.eye = [-10,800,1800];					// Set viewpoint eye
@@ -116,7 +116,6 @@
 		 * plus a rate of 20 particles per second, and a lifetime of
 		 * 5 seconds. Specify the shapes are arrows.
 		 */
-
 		var particleSystemConfig = {
 			aim : true,
 			particleCount : 100,
@@ -126,23 +125,35 @@
 			colorKeys : [colorKey1, colorKey2, colorKey3, colorKey4],
 			scaleKeys : [scaleKey1, scaleKey2, scaleKey3]
 		};
+	
+		var rootShape = hemi.shape.create (
+			{shape: 'box',
+			color: [1,1,0,0.3],
+			h:1,w:1,d:1}
+			);
+			
+		rootShape.translate(500,500,500);
+		
 		
 		/* Create the particle system with the above config, 
 		 * and make the root transform its parent.
 		 */
-		unitTest3.particleSystem = new hemi.curve.ParticleSystem(
-			hemi.core.client.root, 
+		unitTest4.particleSystem = new hemi.curve.ParticleSystem(
+			rootShape, 
 			particleSystemConfig);
 		
+		hemi.curve.showBoxes(unitTest4.particleSystem.boxes);
 
-		unitTest3.particleSystem.start();
+	//	var t  = hemi.curve.dbgBoxTransforms;
+		
+		unitTest4.particleSystem.start();
 		
 
 		hemi.world.camera.moveToView(vp,60);
 		
-		unitTest3.cameraStopSubscription = hemi.world.camera.subscribe(
+		unitTest4.subscription = hemi.world.camera.subscribe(
 				hemi.msg.stop,
-				unit3,
+				unit4,
 				'step_3');
 
 	};
