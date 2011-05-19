@@ -475,7 +475,46 @@ var hemi = (function(hemi) {
 			
 			return transUp;
 		},
-
+		
+		/**
+		 * Calculates the center point of the model's bounding box
+		 * @return {Array} [x,y,z] point in 3D space
+		 */
+		getCenterPoint: function() {
+			var boundingBox = this.getBoundingBox();
+			
+			var xSpan = boundingBox.maxExtent[0] - boundingBox.minExtent[0];
+			var ySpan = boundingBox.maxExtent[1] - boundingBox.minExtent[1];
+			var zSpan = boundingBox.maxExtent[2] - boundingBox.minExtent[2]; 
+ 
+			var center = [xSpan / 2, ySpan / 2, zSpan / 2];
+			
+			return center;
+		},
+		
+		/**
+		 * Calculates the bounding box of the model considering all the 
+		 * shapes that it contains. The value is not cached in any
+		 * way.
+		 * @return {o3d.BoundingBox}
+		 */
+		getBoundingBox : function(){
+		
+			var boundingBox = new o3d.BoundingBox();
+			
+			var shapesLen = this.shapes.length;
+			for (var i = 0; i < shapesLen; i++) {
+				var shape = this.shapes[i];
+				
+				var elementsLen = shape.elements.length;
+				for (var j = 0; j < elementsLen; j++) {
+					var element = shape.elements[j];
+					boundingBox = boundingBox.add(element.boundingBox);
+				}
+			};
+			
+			return boundingBox;
+		},
 		/**
 		 * Set the pickable flag for the Transforms in the Model.
 		 *
