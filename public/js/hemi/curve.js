@@ -203,6 +203,7 @@ var hemi = (function(hemi) {
 	 *     particleShape: enumerator for type of shape to use for particles
 	 *     // JS particle system only
 	 *     colorKeys: array of time keys and values for particle color ramp
+	 *     parent: transform to parent the particle system under
 	 *     scaleKeys: array of time keys and values for particle size ramp
 	 *     // GPU particle system only
 	 *     colors: color ramp for particles
@@ -698,14 +699,13 @@ var hemi = (function(hemi) {
 	 * @class A ParticleSystem manages a set of Particle objects, and fires
 	 * them at the appropriate intervals.
 	 * 
-	 * @param {o3d.transform} trans The transform which will be the parent of this system
 	 * @param {hemi.config} config Configuration object describing this system
 	 */
-	hemi.curve.ParticleSystem = function(trans,config) {
+	hemi.curve.ParticleSystem = function(config) {
 		var pack = hemi.curve.pack;
 		var view = hemi.view.viewInfo;
 		this.transform = pack.createObject('Transform');
-		this.transform.parent = trans;
+		this.transform.parent = config.parent || hemi.core.client.root;
 		this.active = false;
 		this.pLife = config.life || 5;
 		this.boxes = config.boxes;

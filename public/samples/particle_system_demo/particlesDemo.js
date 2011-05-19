@@ -99,9 +99,7 @@
 		/* Create the particle system with the above config, 
 		 * and make the root transform its parent.
 		 */
-		var particleSystem = new hemi.curve.ParticleSystem(
-			hemi.core.client.root, 
-			particleSystemConfig);
+		var particleSystem = hemi.curve.createSystem(particleSystemConfig);
 		
 		/* Start the particle system off with no particles generating */
 		particleSystem.setRate(0);

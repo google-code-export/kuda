@@ -130,9 +130,7 @@
 		/* Create the particle system with the above config, 
 		 * and make the root transform its parent.
 		 */
-		unitTest3.particleSystem = new hemi.curve.ParticleSystem(
-			hemi.core.client.root, 
-			particleSystemConfig);
+		unitTest3.particleSystem = hemi.curve.createSystem(particleSystemConfig);
 		
 
 		unitTest3.particleSystem.start();
