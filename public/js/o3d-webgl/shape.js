@@ -188,4 +188,29 @@ o3d.Shape.prototype.writeToDrawLists =
   }
 };
 
-
+/**
+ * Calculate the bounding box of the Shape based upon its Elements.
+ * 
+ * @param {boolean} opt_force optional flag indicating that Primitives should be
+ *     forced to recalculate their bounding box even if they think it is valid
+ * @return {o3d.BoundingBox} the bounding box of the Shape
+ */
+o3d.Shape.prototype.getBoundingBox = function(force) {
+	var elements = this.elements,
+		box = new o3d.BoundingBox();
+	
+	for (var i = 0, il = elements.length; i < il; ++i) {
+		var element = elements[i],
+			elementBox = element.boundingBox;
+		if (force || !elementBox.valid) {
+			elementBox = element.getBoundingBox(0);
+		}
+		if (box.valid) {
+			box = box.add(elementBox);
+		} else {
+			box = elementBox;
+		}
+	}
+	
+	return box;
+};
