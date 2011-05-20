@@ -296,6 +296,9 @@ var hemi = (function(hemi) {
 			this.name = getModelName(this.fileName);
 			this.root = config.rootTransform;
 			this.root.name = this.name;
+			// The deserialization process sets bad values for bounding boxes of
+			// transforms, so force them to be recalculated.
+			this.root.recalculateBoundingBox(true);
 			this.animParam = config.animationTime;
 			this.materials = config.getMaterials();
 			this.shapes = config.getShapes();
@@ -475,7 +478,33 @@ var hemi = (function(hemi) {
 			
 			return transUp;
 		},
-
+		
+		/**
+		 * Calculate the center point of the Model's bounding box.
+		 * 
+		 * @return {Array} [x,y,z] point in 3D space
+		 */
+		getCenterPoint: function() {
+			var boundingBox = this.root.boundingBox;
+			
+			var xSpan = boundingBox.maxExtent[0] - boundingBox.minExtent[0];
+			var ySpan = boundingBox.maxExtent[1] - boundingBox.minExtent[1];
+			var zSpan = boundingBox.maxExtent[2] - boundingBox.minExtent[2]; 
+ 
+			var center = [xSpan / 2, ySpan / 2, zSpan / 2];
+			
+			return center;
+		},
+		
+		/**
+		 * Get the bounding box of the Model's root Transform.
+		 * 
+		 * @return {o3d.BoundingBox} bounding box for the entire Model
+		 */
+		getBoundingBox : function(){
+			return this.root.boundingBox;
+		},
+		
 		/**
 		 * Set the pickable flag for the Transforms in the Model.
 		 *

@@ -171,7 +171,12 @@ o3d.ArchiveRequest.prototype.send = function() {
   };
 	
   var callback = function(sourceJSON, exc) {
-    // Don't send down the original scene.json because 'eval' is used
+    if (exc != null) {
+		that.pendingRequests_ = 1;
+		that.resolvePendingRequest_(null, exc);
+		return;
+	}
+	// Don't send down the original scene.json because 'eval' is used
     // elsewhere to reconstitute it, which is risky.
     var filteredJSON = JSON.stringify(JSON.parse(sourceJSON));
     var rawData = new o3d.RawData();

@@ -54,13 +54,19 @@ o3d.Transform =
   o3d.ParamObject.call(this);
 
   /**
+   * The local BoundingBox for this Transform. This is the bounding box before
+   * the Transform's local matrix has been applied to it.
+   * @type {!o3d.BoundingBox}
+   */
+  this.boundingBoxLocal = opt_boundingBox || new o3d.BoundingBox();
+
+  /**
    * The BoundingBox for this Transform. If culling is on this
    * bounding box will be tested against the view frustum of any draw
    * context used to with this Transform.
    * @type {!o3d.BoundingBox}
    */
-  this.boundingBoxOrig = opt_boundingBox ||
-      new o3d.BoundingBox([-1, -1, -1], [1, 1, 1]);
+  this.boundingBox = null; // Will be set immediately with the local matrix
 
   /**
    * Local transformation matrix.
@@ -148,6 +154,7 @@ o3d.Transform.prototype.__defineSetter__('parent',
     function(p) {
       if (this.parent_ != null) {
         o3d.removeFromArray(this.parent_.children, this);
+		this.parent_.recalculateBoundingBox();
       }
       this.parent_ = p;
       if (p) {
@@ -166,7 +173,7 @@ o3d.Transform.prototype.__defineSetter__('localMatrix',
 	function(lm) {
       var param = this.getParam('localMatrix');
 	  param.value = lm;
-	  this.transformBoundingBox();
+	  this._transformBoundingBox();
 	}
 );
 
@@ -174,6 +181,19 @@ o3d.Transform.prototype.__defineGetter__('localMatrix',
 	function(lm) {
 	    var param = this.getParam('localMatrix');
 		return param.value;
+	}
+);
+
+o3d.Transform.prototype.__defineSetter__('shapes', 
+	function(s) {
+      this.shapes_ = s;
+	  this.recalculateBoundingBox();
+	}
+);
+
+o3d.Transform.prototype.__defineGetter__('shapes', 
+	function(s) {
+      return this.shapes_;
 	}
 );
 
@@ -255,23 +275,67 @@ o3d.Transform.prototype.getUpdatedWorldMatrix =
 };
 
 /**
- * Recalculates the bounding box of this transform
+ * Recalculates the bounding box of this transform and potentially its children.
+ * 
+ * @param {boolean} opt_forceTran optional flag indicating that child transforms
+ *     should be forced to recalculate their bounding box even if they think it
+ *     is valid (may be necessary)
+ * @param {boolean} opt_forceShape optional flag indicating that shapes should
+ *     be forced to recalculate the bounding boxes of their primitives even if
+ *     they think they are valid (typically not necessary)
  */
-o3d.Transform.prototype.recalculateBoundingBox = function() {	
-  this.boundingBox.valid = false;
-  this.boundingBoxOrig = o3djs.util.getBoundingBoxOfTree(this);
+o3d.Transform.prototype.recalculateBoundingBox =
+    function(opt_forceTran, opt_forceShape) {
+  var box = this.boundingBox,
+      transforms = this.children,
+	  shapes = this.shapes;
   
-  this.transformBoundingBox();
+  box.valid = false;
+  // Create the bounding box as the union of all the children bounding boxes and
+  // all the shape bounding boxes.
+  for (var i = 0; i < transforms.length; ++i) {
+    var transform = transforms[i],
+    	childBox = transform.boundingBox;
+	
+	if (opt_forceTran || !childBox.valid) {
+		transform.recalculateBoundingBox(opt_forceTran, opt_forceShape);
+		childBox = transform.boundingBox;
+	}
+    if (childBox.valid) {
+      if (box.valid) {
+        box = box.add(childBox);
+      } else {
+        box = childBox;
+      }
+    }
+  }
+  
+  for (var i = 0; i < shapes.length; ++i) {
+    var shape = shapes[i],
+		shapeBox = shape.getBoundingBox(opt_forceShape);
+    
+    if (shapeBox.valid) {
+      if (box.valid) {
+        box = box.add(shapeBox);
+      } else {
+        box = shapeBox;
+      }
+    }
+  }
+  
+  this.boundingBoxLocal = box;
+  this._transformBoundingBox();
 };
 
 /**
  * 
  */
-o3d.Transform.prototype.transformBoundingBox = function() {
-  this.boundingBox = this.boundingBoxOrig.mul(this.localMatrix);
+o3d.Transform.prototype._transformBoundingBox = function() {
+  var newBox = this.boundingBoxLocal.mul(this.localMatrix);
+  this.boundingBox = newBox;
   
-  if (this.parent) {
-  	this.parent.trickleUp(this.boundingBox);
+  if (this.parent && newBox.valid) {
+  	this.parent._trickleUp(this.boundingBox);
   }
 };
 
@@ -279,10 +343,10 @@ o3d.Transform.prototype.transformBoundingBox = function() {
  * 
  * @param {Object} box
  */
-o3d.Transform.prototype.trickleUp = function(box) {
-  this.boundingBox.add(box);
-  if (this.parent) {
-  	this.parent.trickleUp(this.boundingBox);
+o3d.Transform.prototype._trickleUp = function(box) {
+  if (this.boundingBox.valid) {
+  	this.boundingBoxLocal = this.boundingBoxLocal.add(box);
+    this._transformBoundingBox();
   }
 };
 
@@ -348,7 +412,7 @@ o3d.Transform.prototype.identity = function() {
     }
   }
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -617,7 +681,7 @@ o3d.Transform.prototype.translate =
                   m02 * v0 + m12 * v1 + m22 * v2 + m32,
                   m03 * v0 + m13 * v1 + m23 * v2 + m33);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -656,7 +720,7 @@ o3d.Transform.prototype.rotateX =
                   c * m22 - s * m12,
                   c * m23 - s * m13);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -766,7 +830,7 @@ o3d.Transform.prototype.rotateY =
                   c * m22 + s * m02,
                   c * m23 + s * m03);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -805,7 +869,7 @@ o3d.Transform.prototype.rotateZ =
                   c * m12 - s * m02,
                   c * m13 - s * m03);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -882,7 +946,7 @@ o3d.Transform.prototype.rotateZYX =
       r20 * m02 + r21 * m12 + r22 * m22,
       r20 * m03 + r21 * m13 + r22 * m23);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -1018,7 +1082,7 @@ o3d.Transform.prototype.quaternionRotate =
      (qWqW - qXqX - qYqY + qZqZ) / d, 0],
     [0, 0, 0, 1]]);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -1051,7 +1115,7 @@ o3d.Transform.prototype.scale =
   m1.splice(0, 4, v1 * m1[0], v1 * m1[1], v1 * m1[2], v1 * m1[3]);
   m2.splice(0, 4, v2 * m2[0], v2 * m2[1], v2 * m2[2], v2 * m2[3]);
   
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 

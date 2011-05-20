@@ -132,7 +132,9 @@ o3d.BoundingBox.prototype.mul =
     new_corners.push(o3d.Transform.transformPoint(matrix, corners[i]));
   }
 
-  return o3d.BoundingBox.fitBoxToPoints_(new_corners);
+  var newBox = o3d.BoundingBox.fitBoxToPoints_(new_corners);
+  newBox.valid = this.valid;
+  return newBox;
 };
 
 
@@ -144,13 +146,16 @@ o3d.BoundingBox.prototype.mul =
  */
 o3d.BoundingBox.prototype.add =
     function(box) {
-  return new o3d.BoundingBox(
+  var newBox = new o3d.BoundingBox(
     [Math.min(box.minExtent[0], this.minExtent[0]),
      Math.min(box.minExtent[1], this.minExtent[1]),
      Math.min(box.minExtent[2], this.minExtent[2])],
     [Math.max(box.maxExtent[0], this.maxExtent[0]),
      Math.max(box.maxExtent[1], this.maxExtent[1]),
      Math.max(box.maxExtent[2], this.maxExtent[2])]);
+  
+  newBox.valid = this.valid && box.valid;
+  return newBox;
 };
 
 
