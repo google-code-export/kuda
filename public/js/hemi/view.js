@@ -631,10 +631,11 @@ var hemi = (function(hemi) {
 			t.tilt.identity();
 			t.tilt.rotateX(this.tilt.current);
 			
+			var camPos = [0, 0, this.distance];
 			t.cam.identity();
-			t.cam.translate([0,0,this.distance]);
+			t.cam.translate(camPos);
 			
-			hemi.utils.pointZAt(t.cam,hemi.utils.pointAsLocal(t.cam,target));
+			hemi.utils.pointZAt(t.cam, camPos, hemi.utils.pointAsLocal(t.cam,target));
 			t.cam.rotateY(Math.PI);
 			this.camPan.current = 0;
 			this.camTilt.current = 0;			

@@ -26,6 +26,20 @@ var hemi = (function(hemi) {
 	 * @namespace A module for defining animated sprites and billboards.
 	 */
 	hemi.sprite = hemi.sprite || {};
+	
+	hemi.sprite.header =
+		'uniform mat4 projection; \n' +
+		'uniform mat4 worldView; \n';
+	
+	hemi.sprite.vertBody =
+		'  vec4 pos = position + vec4(worldView[3].xyz,0); \n';
+	
+	hemi.sprite.vertGlob =
+		'  gl_Position = pos*projection; \n';
+	
+	hemi.sprite.init = function() {
+		this.pack = hemi.core.client.createPack();
+	};
 
 	/**
 	 * @class A Sprite can display a 2d image on a plane with several options.
@@ -40,14 +54,20 @@ var hemi = (function(hemi) {
 	 */
 	hemi.sprite.Sprite = function(width,height,opt_source) {
 		var core = hemi.core;
-		var pack = core.mainPack;
+		var pack = hemi.sprite.pack;
 		var viewInfo = hemi.view.viewInfo;
 		this.material = pack.createObject('Material');
 		this.material.createParam('emissiveSampler','o3d.ParamSampler');
 		core.material.attachStandardEffect(pack,this.material,viewInfo,'constant');
 		this.material.getParam('o3d.drawList').value = viewInfo.zOrderedDrawList;
-		this.material.effect.createUniformParameters(this.material);
-		this.plane = core.primitives.createPlane(pack,this.material,width,height,1,1);
+		var shads = hemi.utils.getShaders(this.material);
+		this.materialSrc = {
+			frag: shads.fragSrc,
+			vert: shads.vertSrc
+		};
+		// Rotate the Sprite's plane so that it faces the Z axis
+		var m4 = core.math.matrix4.rotationX(Math.PI/2);
+		this.plane = core.primitives.createPlane(pack,this.material,width,height,1,1,m4);
 		this.transform = pack.createObject('Transform');
 		this.transform.addShape(this.plane);
 		this.parent(core.client.root);
@@ -72,7 +92,7 @@ var hemi = (function(hemi) {
 		addFrame : function(path, opt_callback) {
 			hemi.loader.loadTexture(path,
 				function(texture) {
-					var sampler = hemi.core.mainPack.createObject('Sampler');
+					var sampler = hemi.sprite.pack.createObject('Sampler');
 					sampler.texture = texture;
 					this.samplers.push(sampler);
 					if (opt_callback) opt_callback(this.samplers.length - 1, this);
@@ -94,7 +114,37 @@ var hemi = (function(hemi) {
 		 * @param {boolean} enable If true, always look at camera
 		 */
 		lookAtCamera : function(enable) {
-			this.lookAtCam = enable;
+			if (this.lookAtCam !== enable) {
+				var material = this.material,
+					shads = hemi.utils.getShaders(material),
+					vertShd = shads.vertShd,
+					vertSrc = this.materialSrc.vert,
+					uniforms = [];
+				
+				// Remove any previously existing uniforms that we created
+				for (var i = 0, il = uniforms.length; i < il; i++) {
+					var name = uniforms[i],
+						param = material.getParam(name);
+					
+					if (param) {
+						material.removeParam(param);
+					}
+				}
+				
+				if (enable) {
+					// modify the vertex shader
+					vertSrc = hemi.utils.combineVertSrc(vertSrc, {
+						postHdr: hemi.sprite.header,
+						preBody: hemi.sprite.vertBody,
+						glob: hemi.sprite.vertGlob
+					});
+				}
+				
+				material.gl.detachShader(material.effect.program_, vertShd);
+				material.effect.loadVertexShaderFromString(vertSrc);
+				material.effect.createUniformParameters(material);
+				this.lookAtCam = enable;
+			}
 		},
 
 		/**
@@ -105,19 +155,11 @@ var hemi = (function(hemi) {
 		 */
 		onRender : function(e) {
 			var p0 = this.transform.getUpdatedWorldMatrix()[3].slice(0,3);
-			if (this.lookAtCam) {
-				var localP = this.transform.localMatrix[3].slice(0,3);
-				this.transform.identity();
-				this.transform.translate(localP);
-				hemi.utils.pointYAt(
-						this.transform,
-						p0,
-						hemi.world.camera.getEye());
-			}
 			if (this.constSize) {
-				var scale = hemi.core.math.distance(hemi.world.camera.getEye(),p0) *
-							Math.asin(hemi.world.camera.fov.current);
-				this.transform.scale([scale,1,scale]);
+				//TODO: Implement in shader
+//				var scale = hemi.core.math.distance(hemi.world.camera.getEye(),p0) *
+//							Math.asin(hemi.world.camera.fov.current);
+//				this.transform.scale([scale,1,scale]);
 			}
 			if (!this.running) {
 				return;

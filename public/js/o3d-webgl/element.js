@@ -59,8 +59,7 @@ o3d.Element =
    * used to render this Element.
    * @type {o3d.BoundingBox}
    */
-  this.boundingBox = opt_boundingBox ||
-      new o3d.BoundingBox([-1, -1, -1], [1, 1, 1]);
+  this.boundingBox = opt_boundingBox || new o3d.BoundingBox();
 
   /**
    * The z sort point for this element. If this Element is drawn by a DrawPass

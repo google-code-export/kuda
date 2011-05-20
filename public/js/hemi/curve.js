@@ -142,12 +142,13 @@ var hemi = (function(hemi) {
 		
 	/**
 	 * Render the bounding boxes which the curves run through, mostly for
-	 * 		debugging purposes.
+	 * debugging purposes.
 	 * 
 	 * @param {number[3][2][]} boxes array of pairs of XYZ coordinates, the
 	 *     first as minimum values and the second as maximum
+	 * @param {o3d.Transform} opt_trans optional parent transform for the boxes
 	 */
-	hemi.curve.showBoxes = function(boxes) {
+	hemi.curve.showBoxes = function(boxes, opt_trans) {
 		var pack = hemi.curve.pack;
 		
 		if (this.dbgBoxTransforms.length > 0) {
@@ -167,7 +168,7 @@ var hemi = (function(hemi) {
 			
 			transform.addShape(box);
 			transform.translate(x,y,z);
-			transform.parent = hemi.picking.pickRoot;
+			transform.parent = opt_trans || hemi.picking.pickRoot;
 			this.dbgBoxTransforms[i] = transform;
 		}
 	};
@@ -203,6 +204,7 @@ var hemi = (function(hemi) {
 	 *     particleShape: enumerator for type of shape to use for particles
 	 *     // JS particle system only
 	 *     colorKeys: array of time keys and values for particle color ramp
+	 *     parent: transform to parent the particle system under
 	 *     scaleKeys: array of time keys and values for particle size ramp
 	 *     // GPU particle system only
 	 *     colors: color ramp for particles
@@ -698,14 +700,13 @@ var hemi = (function(hemi) {
 	 * @class A ParticleSystem manages a set of Particle objects, and fires
 	 * them at the appropriate intervals.
 	 * 
-	 * @param {o3d.transform} trans The transform which will be the parent of this system
 	 * @param {hemi.config} config Configuration object describing this system
 	 */
-	hemi.curve.ParticleSystem = function(trans,config) {
+	hemi.curve.ParticleSystem = function(config) {
 		var pack = hemi.curve.pack;
 		var view = hemi.view.viewInfo;
 		this.transform = pack.createObject('Transform');
-		this.transform.parent = trans;
+		this.transform.parent = config.parent || hemi.core.client.root;
 		this.active = false;
 		this.pLife = config.life || 5;
 		this.boxes = config.boxes;
@@ -964,6 +965,7 @@ var hemi = (function(hemi) {
 		'uniform float tension; \n' +
 		'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 		'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
+		'uniform mat4 viewProjection; \n' +
 		'attribute vec4 TEXCOORD; \n' +
 		'varying vec4 ptcColor; \n';
 	
@@ -1088,7 +1090,7 @@ var hemi = (function(hemi) {
 		'   0.0,0.0,0.0,1.0); \n';
 	
 	hemi.curve.vertBodyEnd =
-		'  mat4 ptcWorldVP = worldViewProjection * ptcWorld; \n';
+		'  mat4 ptcWorldVP = viewProjection * ptcWorld; \n';
 	
 	hemi.curve.fragHeader =
 		'varying vec4 ptcColor; \n';
