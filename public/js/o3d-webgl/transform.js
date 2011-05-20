@@ -58,8 +58,7 @@ o3d.Transform =
    * the Transform's local matrix has been applied to it.
    * @type {!o3d.BoundingBox}
    */
-  this.boundingBoxLocal = opt_boundingBox ||
-      new o3d.BoundingBox([-1, -1, -1], [1, 1, 1]);
+  this.boundingBoxLocal = opt_boundingBox || new o3d.BoundingBox();
 
   /**
    * The BoundingBox for this Transform. If culling is on this
