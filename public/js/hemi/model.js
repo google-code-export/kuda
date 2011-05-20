@@ -296,6 +296,9 @@ var hemi = (function(hemi) {
 			this.name = getModelName(this.fileName);
 			this.root = config.rootTransform;
 			this.root.name = this.name;
+			// The deserialization process sets bad values for bounding boxes of
+			// transforms, so force them to be recalculated.
+			this.root.recalculateBoundingBox(true);
 			this.animParam = config.animationTime;
 			this.materials = config.getMaterials();
 			this.shapes = config.getShapes();
