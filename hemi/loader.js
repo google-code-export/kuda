@@ -113,18 +113,15 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {string} url the url of the file to load relative to the Kuda
 	 *     directory
-	 * @param {function(string):void} callback a function to pass the string of
-	 *     data that was loaded
+	 * @param {function(string, *):void} callback a function to pass the string of
+	 *     data that was loaded and status === "error" or null. Get the status text
+	 *     with xhr.statusText.
 	 */
 	hemi.loader.loadHtml = function(url, callback) {
 		url = getPath(url);
 		
 		jQuery.get(url, function(data, status, xhr) {
-			if (status === 'error') {
-				alert(xhr.statusText);
-			} else {
-				callback(data);
-			}
+			callback(data, status, xhr);
 		});
 	};
 
@@ -136,21 +133,17 @@ var hemi = (function(hemi) {
 	 * @param {string} url the url of the file to load relative to the Kuda
 	 *     directory
 	 * @param {o3d.Pack} pack the Pack to load bitmaps into
-	 * @param {function(o3d.Bitmap[]):void} callback a function to pass an array
-	 *     of the loaded bitmaps
+	 * @param {function(o3d.Bitmap[], *):void} callback a function to pass an array
+	 *     of the loaded bitmaps and an exception which will be null on success.
 	 */
 	hemi.loader.loadImage = function(url, pack, callback) {
 		url = getPath(url);
 
 		hemi.world.loader.loadBitmaps(pack, url,
 			function(bitmaps, exception){
-				if (exception) {
-					alert('Loading failed: ' + exception);
-				} else {
-					callback(bitmaps);
-				}
+				callback(bitmaps, exception);
 				var fileObj = knownFiles.get(url);
-				
+
 				if (fileObj)
 					fileObj.percent = 100;
 				checkFinished();
@@ -168,8 +161,8 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {string} url the url of the file to load relative to the Kuda
 	 *     directory
-	 * @param {function(o3d.Texture):void} onLoadTexture a function to pass the
-	 *     loaded texture
+	 * @param {function(o3d.Texture, *):void} onLoadTexture a function to pass the
+	 *     loaded texture and an exception which will be null on success.
 	 * @param {thisArg} opt_this the value for this inside the onLoadTexture
 	 *     function 
 	 * @param {o3d.Pack} opt_pack the Pack to load bitmaps into
@@ -180,16 +173,12 @@ var hemi = (function(hemi) {
 
 		hemi.world.loader.loadTexture(pack, url,
 			function(texture, exception) {
-				if (exception) {
-					alert(exception);
-				}
-				
 				var fileObj = knownFiles.get(url);
 				
 				if (fileObj)
 					fileObj.percent = 100;
 				checkFinished();
-				onLoadTexture.call(opt_this, texture);
+				onLoadTexture.call(opt_this, texture, exception);
 			});
 		
 		var list = hemi.world.loader.loadInfo.children_,
@@ -209,8 +198,9 @@ var hemi = (function(hemi) {
 	 *     directory
 	 * @param {o3d.Pack} pack the Pack to load textures, shapes, etc into
 	 * @param {o3d.Transform} parent the Transform to parent the Model under
-	 * @param {function(o3d.Pack, o3d.Transform):void} opt_callback a function
-	 *     to pass the Pack and Transform loaded with data from the file
+	 * @param {function(o3d.Pack, o3d.Transform, *):void} opt_callback a function
+	 *     to pass the Pack and Transform loaded with data from the file and an
+	 *     exception which will be null on success.
 	 * @param {o3djs.serialization.Options} opt_options options for the loader
 	 */
 	hemi.loader.loadModel = function(url, pack, parent, opt_callback, opt_options) {
@@ -219,11 +209,7 @@ var hemi = (function(hemi) {
 
 		hemi.world.loader.loadScene(hemi.core.client, pack, parent, url,
 			function(pack, parent, exception) {
-				if (exception) {
-					alert('Loading failed: ' + exception);
-				} else if (opt_callback) {
-					opt_callback(pack, parent);
-				}
+				opt_callback(pack, parent, exception);
 				var fileObj = knownFiles.get(url);
 				
 				if (fileObj)
