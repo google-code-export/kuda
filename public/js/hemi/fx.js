@@ -136,10 +136,16 @@ var hemi = (function(hemi) {
 			});
 			gl.detachShader(program, fragShd);
 			material.effect.loadPixelShaderFromString(fragSrc);
+			
+			material.effect.createUniformParameters(material);
+			material.getParam('o3d.drawList').value = hemi.view.viewInfo.zOrderedDrawList;
 		}
 		
-		material.effect.createUniformParameters(material);
-		return material.getParam('opacity');
+		
+		var opacity = material.getParam('opacity');
+		opacity.value = 1.0;		
+		
+		return opacity;
 	};
 	
 	/*

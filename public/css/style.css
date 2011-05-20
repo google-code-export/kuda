@@ -1417,6 +1417,9 @@ form #anmLoops label {
 	width: 30px;
 	float: left;
 }
+#mbActionBar #mbTransparencySlider {
+	width: 200px;
+}
 #modelBrowserTree .dlgSection:not(last-child) {
 	border-bottom: 1px solid #fafafa;
 }
@@ -1513,6 +1516,7 @@ form #anmLoops label {
 	width: 165px;
 	float: left;
 	margin-right: 5px;
+	margin-top: 5px;
 }
 .simpleDialog form label {
 	width: auto;
