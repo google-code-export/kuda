@@ -932,7 +932,10 @@ form div.buttons {
 }
 
 form div.buttons button {
-    margin: 2px;
+    margin-right: 2px;
+}
+form div.buttons button:nth-child(n+1) {
+	margin-left: 2px;
 }
 
 form ol ol li {
