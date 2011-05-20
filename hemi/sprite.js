@@ -66,20 +66,39 @@ var hemi = (function(hemi) {
 
 	hemi.sprite.Sprite.prototype = {
 		/**
+		 * Cleanup and remove all references in the sprite.
+		 */
+		cleanup: function() {
+			if (this.material !== null) {
+				hemi.core.pack.removeObject(this.material);
+			}
+
+			if (this.transform !== null) {
+				this.transform.parent = null;
+				hemi.core.pack.removeObject(this.transform);
+			}
+
+			this.samplers = null;
+			this.material = null;
+			this.transform = null;
+		},
+
+		/**
 		 * Add an image to be used as a frame in the animation, or as a standalone image.
 		 *
 		 * @param {string} path The path to the image source
-		 * @param {function(number,hemi.sprite.Sprite):void} opt_callback a
-		 * function to call and pass the index and sprite
+		 * @param {function(number,hemi.sprite.Sprite, *):void} opt_callback a
+		 * function to call and pass the index, sprite, and an exception which
+		 * will be null on success.
 		 */
 		addFrame : function(path, opt_callback) {
 			var url = o3djs.util.getCurrentURI() + path;
 			hemi.loader.loadTexture(url,
-				function(texture) {
+				function(texture, exception) {
 					var sampler = hemi.core.mainPack.createObject('Sampler');
 					sampler.texture = texture;
 					this.samplers.push(sampler);
-					if (opt_callback) opt_callback(this.samplers.length - 1, this);
+					if (opt_callback) opt_callback(this.samplers.length - 1, this, exception);
 				}, this);
 		},
 
@@ -108,14 +127,15 @@ var hemi = (function(hemi) {
 		 *	@param {o3d.renderEvent} e Message describing this render loop
 		 */
 		onRender : function(e) {
-			var p0 = this.transform.worldMatrix[3].slice(0,3);
+			// NOTE: Changed to use pointZAt which assumed the transform as the eye which is fine for the sprite
+			//var p0 = this.transform.worldMatrix[3].slice(0,3);
 			if (this.lookAtCam) {
 				var localP = this.transform.localMatrix[3].slice(0,3);
 				this.transform.identity();
 				this.transform.translate(localP);
-				hemi.curve.pointYAt(
+				hemi.utils.pointZAt(
 						this.transform,
-						p0,
+						//p0,
 						hemi.world.camera.getEye());
 			}
 			if (this.constSize) {
