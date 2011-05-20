@@ -135,6 +135,8 @@
 			this.hudMdl.addListener(editor.EventTypes.ElementCreated, addFunc);
 			this.hudMdl.addListener(editor.EventTypes.ElementUpdated, updateFunc);
 			this.hudMdl.addListener(editor.EventTypes.PageCreated, addFunc);
+			this.crvMdl.addListener(editor.EventTypes.CurveCreated, addFunc);
+			this.crvMdl.addListener(editor.EventTypes.CurveUpdated, updateFunc);
 			
 			// special model browser listeners
 			this.shpMdl.addListener(editor.EventTypes.ShapeCreated, function(shape) {
@@ -177,6 +179,7 @@
 			this.hudMdl.worldCleaned();
 			this.fogMdl.worldCleaned();
 			this.selMdl.worldCleaned();
+			this.crvMdl.worldCleaned();
 		},
 		
 		worldLoaded: function() {
@@ -191,6 +194,7 @@
 			this.shpMdl.worldLoaded();
 			this.hudMdl.worldLoaded();
 			this.fogMdl.worldLoaded();
+			this.crvMdl.worldLoaded();
             
 			var vd = hemi.view.createViewData(hemi.world.camera);
 			vd.eye = [0, 10, 40];
