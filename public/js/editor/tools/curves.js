@@ -48,10 +48,47 @@ var editor = (function(module) {
 	module.EventTypes.StartPreview = "Curves.StartPreview";
 	module.EventTypes.StopPreview = "Curves.StopPreview";
 	module.EventTypes.SetCurveColor = "Curves.SetCurveColor";
+	module.EventTypes.Cancel = "Curves.Cancel";
+	module.EventTypes.Save = "Curves.Save";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
 ////////////////////////////////////////////////////////////////////////////////
+
+	var Box = function(position, dimensions) {
+		this.update(position, dimensions);
+	};
+	
+	Box.prototype = {
+		getExtents: function() {
+			return [this.minExtent, this.maxExtent];
+		},
+		
+		update: function(position, dimensions) {
+			this.position = position;
+			this.dimensions = dimensions;
+			
+			var x = position[0],
+				y = position[1],
+				z = position[2],
+				halfWidth = dimensions[1]/2,
+				halfHeight = dimensions[0]/2,
+				halfDepth = dimensions[2]/2;
+				
+			this.minExtent = [x - halfWidth, y - halfHeight, z - halfDepth],
+			this.maxExtent = [x + halfWidth, y + halfHeight, z + halfDepth];
+		}
+	};
+	
+	var getExtentsList = function(boxes) {
+		var list = [];
+		
+		for (var i = 0, il = boxes.length; i < il; i++) {
+			list.push(boxes[i].getExtents());
+		}
+		
+		return list;
+	};
     
     /**
      * An CurveEditorModel handles the creation and playing of animations as well
@@ -64,6 +101,15 @@ var editor = (function(module) {
 				fast: true,
 				boxes: []
 			};
+			this.boxes = [];
+			this.boxMat = hemi.core.material.createConstantMaterial(
+				hemi.curve.pack,
+				hemi.view.viewInfo,
+				[0, 0, 0.5, 1]);
+			var state = hemi.curve.pack.createObject('State');
+			state.getStateParam('PolygonOffset2').value = -1.0;
+			state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
+			this.boxMat.state = state;
 			
 			this.msgHandler = hemi.world.subscribe(
 				hemi.msg.pick, 
@@ -74,30 +120,19 @@ var editor = (function(module) {
 				]);
 	    },
 		
-		addBox: function(position, width, height, depth) {					
-			var x = position[0],
-				y = position[1],
-				z = position[2],
-				halfWidth = width/2,
-				halfHeight = height/2,
-				halfDepth = depth/2,
-				minExtent = [x - halfWidth, y - halfHeight, z - halfDepth],
-				maxExtent = [x + halfWidth, y + halfHeight, z + halfDepth],
+		addBox: function(position, dimensions) {
+			var box = new Box(position, dimensions),
 				previewing = this.previewing;
 				
 			this.stopPreview();
-				
-			this.config.boxes.push([minExtent, maxExtent]);
 			
-			hemi.curve.showBoxes(this.config.boxes);
+			this.boxes.push(box);
+			this.config.boxes = getExtentsList(this.boxes);
+			
+			this.showBoxWireframes();
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(module.EventTypes.BoxAdded, {
-				ndx: this.config.boxes.length - 1,
-				position: position,
-				dimensions: [height, width, depth],
-				size: this.config.boxes.length
-			});
+			this.notifyListeners(module.EventTypes.BoxAdded, box);
 						
 			if (previewing) {
 				this.startPreview();
@@ -138,16 +173,42 @@ var editor = (function(module) {
 			this.currentSystem = system;
 			this.isUpdate = true;
 			
+			this.config.trail = this.currentSystem instanceof hemi.curve.GpuParticleTrail;
+			this.config.colors = this.currentSystem.colors;
+			this.config.aim = this.currentSystem.aim;
+			this.config.particleCount = this.currentSystem.particles;
+			this.config.particleSize = this.currentSystem.size;
+			this.config.life = this.currentSystem.life;
+			this.config.particleShape = this.currentSystem.particleShape;
+			
+			var boxes = this.currentSystem.boxes;
+			for (var i = 0, il = boxes.length; i < il; i++) {
+				var b = boxes[i],
+					minExtent = b[0],
+					maxExtent = b[1],
+					height = maxExtent[1] - minExtent[1],
+					width = maxExtent[0] - minExtent[0],
+					depth = maxExtent[2] - minExtent[2],
+					position = [minExtent[0] + width/2, 
+						minExtent[1] + height/2, minExtent[2] + depth/2],
+					box = new Box(position, [height, width, depth]);
+					
+				this.boxes.push(box);					
+			}			
+			
+			this.config.boxes = getExtentsList(this.boxes);
+			this.showBoxWireframes();
+			
 			this.notifyListeners(module.EventTypes.CurveSet, this.currentSystem);
 		},
 		
 	    onPick: function(pickInfo) {
 			var transform = pickInfo.shapeInfo.parent.transform,
 				found = -1,
-				list = hemi.curve.dbgBoxTransforms;
+				list = this.boxes;
 			
 			for (var i = 0, il = list.length; i < il && found === -1; i++) {
-				if (list[i].clientId === transform.clientId) {
+				if (list[i].transform.clientId === transform.clientId) {
 					found = i;
 				}
 			}
@@ -167,29 +228,33 @@ var editor = (function(module) {
 			this.reset();
 		},
 		
-		removeBox: function(ndx) {				
+		removeBox: function(box) {				
 			var previewing = this.previewing,
-				boxes = this.config.boxes;
+				found = -1;
 				
 			this.stopPreview();
 			
-			boxes.splice(ndx, 1);
+			for (var i = 0, il = this.boxes.length; i < il && found === -1; i++) {
+				var b = this.boxes[i];				
+				found = b == box ? i : -1;
+			}
 			
-			hemi.curve.showBoxes(this.config.boxes);
+			this.boxes.splice(found, 1);
+			this.config.boxes = getExtentsList(this.boxes);
+			
+			this.showBoxWireframes();
 			this.updateSystem('boxes', this.config.boxes);
 			
 			this.notifyListeners(module.EventTypes.BoxRemoved, {
 				size: this.config.boxes.length
 			});
 						
-			if (previewing) {
+			if (previewing && this.config.boxes.length > 1) {
 				this.startPreview();
 			}
 		},
 		
 		reset: function() {
-			hemi.shape.pack.removeObject(this.config.material);
-			
 			this.currentSystem = null;
 			this.config = {
 				fast: true,
@@ -197,6 +262,24 @@ var editor = (function(module) {
 			};
 			this.isUpdate = false;
 			this.changed = false;
+			
+			// clean up transforms
+			var pack = hemi.curve.pack;
+		
+			for (i = 0, il = this.boxes.length; i < il; i++) {
+				var box = this.boxes[i],
+					tran = box.transform,
+					shape = tran.shapes[0];
+				
+				console.log(tran.clientId);
+				tran.removeShape(shape);
+				tran.parent = null;
+				pack.removeObject(shape);
+				pack.removeObject(tran);
+				box.transform = null;
+			}
+			
+			this.boxes = [];
 		},
 		
 		save: function(name) {
@@ -204,13 +287,14 @@ var editor = (function(module) {
 			var msgType = this.isUpdate ? module.EventTypes.CurveUpdated :
 				module.EventTypes.CurveCreated;
 			
-			if (this.currentSystem && !this.isUpdate) {
-				this.currentSystem.cleanup();
+			if (!this.currentSystem) {
+				this.createSystem();
+			}
+			else if (this.isUpdate) {
+				this.update();
 			}
 			
-			this.createSystem();
-			this.currentSystem.name = name;
-			
+			this.currentSystem.name = name;			
 			this.notifyListeners(msgType, this.currentSystem);
 			
 			// reset
@@ -241,6 +325,32 @@ var editor = (function(module) {
 			}
 		},
 		
+		showBoxWireframes: function() {
+			var pack = hemi.curve.pack,
+				boxes = this.boxes;
+			
+			for (i = 0; i < boxes.length; i++) {
+				var b = boxes[i];
+				
+				if (b.transform == null) {
+					var transform = pack.createObject('Transform'), 
+						w = b.dimensions[1], 
+						h = b.dimensions[0], 
+						d = b.dimensions[2], 
+						x = b.position[0], 
+						y = b.position[1], 
+						z = b.position[2], 
+						box = o3djs.primitives.createBox(pack, this.boxMat, w, 
+							h, d);
+				
+					transform.addShape(box);
+					transform.translate(x,y,z);
+					transform.parent = hemi.picking.pickRoot;
+					b.transform = transform;
+				}
+			}
+		},
+		
 		startPreview: function() {
 			if (!this.previewing) {
 				if (!this.currentSystem) {
@@ -260,62 +370,46 @@ var editor = (function(module) {
 			this.previewing = false;
 		},
 		
-		updateBox: function(ndx, position, width, height, depth) {			
-			var x = position[0],
-				y = position[1],
-				z = position[2],
-				halfWidth = width/2,
-				halfHeight = height/2,
-				halfDepth = depth/2,
-				minExtent = [x - halfWidth, y - halfHeight, z - halfDepth],
-				maxExtent = [x + halfWidth, y + halfHeight, z + halfDepth],
-				previewing = this.previewing;
-				
+		update: function() {
+			if (this.currentSystem) {
+				this.currentSystem.loadConfig(this.config);
+			}
+		},
+		
+		updateBox: function(box, position, dimensions) {
+			var	previewing = this.previewing;
+							
+			box.update(position, dimensions);
 			this.stopPreview();
 				
-			this.config.boxes[ndx] = [minExtent, maxExtent];
-			
-			hemi.curve.showBoxes(this.config.boxes);
+			this.config.boxes = getExtentsList(this.boxes);
+			this.showBoxWireframes();
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(module.EventTypes.BoxUpdated, {
-				ndx: this.config.boxes.length - 1,
-				position: position,
-				dimensions: [height, width, depth]
-			});
+			this.notifyListeners(module.EventTypes.BoxUpdated, box);
 						
 			if (previewing) {
 				this.startPreview();
 			}
 		},
 		
-		updateBoxes: function() {		
-			var boxes = hemi.curve.dbgBoxTransforms
-				newBoxes = [];
-			
-			for (var i = 0, il = boxes.length; i < il; i++) {
-				var box = boxes[i],
-					boundingBox = box.boundingBox,
-					minExtent = boundingBox.minExtent,
-					maxExtent = boundingBox.maxExtent,
+		updateBoxes: function() {				
+			for (var i = 0, il = this.boxes.length; i < il; i++) {
+				var box = this.boxes[i],
+					transform = box.transform,
+					minExtent = transform.boundingBox.minExtent,
+					maxExtent = transform.boundingBox.maxExtent,
 					height = maxExtent[1] - minExtent[1],
 					width = maxExtent[0] - minExtent[0],
 					depth = maxExtent[2] - minExtent[2],
-					position = box.getUpdatedWorldMatrix()[3];
+					position = transform.getUpdatedWorldMatrix()[3];
 				
-				newBoxes.push([hemi.utils.clone(minExtent),
-					hemi.utils.clone(maxExtent)]);
-				
-				this.notifyListeners(module.EventTypes.BoxUpdated, {
-					ndx: i,
-					position: [position[0], position[1], position[2]],
-					dimensions: [height, width, depth]
-				})
+				box.update(position, [height, width, depth]);
+								
+				this.notifyListeners(module.EventTypes.BoxUpdated, box)
 			}
-			this.config.boxes = newBoxes;			
-			this.updateSystem('boxes', newBoxes);
-			
-			// TODO: notify of box update so that list updates in real time
+			this.config.boxes = getExtentsList(this.boxes);			
+			this.updateSystem('boxes', this.config.boxes);
 		},
 		
 		updateSystem: function(param, value) {
@@ -345,7 +439,7 @@ var editor = (function(module) {
 		manualVisible: true
 	};
 	
-	module.tools.EditCrvSBWidget = module.ui.SidebarWidget.extend({
+	module.tools.EditCrvSBWidget = module.ui.FormSBWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
 				module.tools.EditCrvSBWidgetDefaults, options);
@@ -355,7 +449,7 @@ var editor = (function(module) {
 			this.boxHandles = new editor.ui.TransHandles();
 			this.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
 			this.boxHandles.addListener(module.EventTypes.TransChanged, this);
-			this.boxes = [];
+			this.boxes = new Hashtable();
 		},
 		
 		finishLayout: function() {
@@ -371,6 +465,10 @@ var editor = (function(module) {
 				nameIpt = this.find('#crvName'),
 				startPreviewBtn = this.find('#crvPreviewStartBtn'),
 				stopPreviewBtn = this.find('#crvPreviewStopBtn'),
+			 	tensionVdr = module.ui.createDefaultValidator(-1, 1),
+			 	numPrtVdr = module.ui.createDefaultValidator(1),
+				sizeVdr = module.ui.createDefaultValidator(0.01),
+				isNumVdr = module.ui.createDefaultValidator();
 				wgt = this;
 			
 			this.boxAddBtn = boxAddBtn;
@@ -379,47 +477,40 @@ var editor = (function(module) {
 			this.position = new module.ui.Vector({
 				container: wgt.find('#crvPositionDiv'),
 				paramName: 'position',
-				validator: new module.ui.Validator(null, function(elem) {
-					var val = elem.val(),
-						msg = null;
-						
-					if (val !== '' && !hemi.utils.isNumeric(val)) {
-						msg = 'must be a number';
-					}
-					
-					return msg;
-				})
+				validator: module.ui.createDefaultValidator()
 			});
 			this.dimensions = new module.ui.Vector({
 				container: wgt.find('#crvDimensionsDiv'),
 				paramName: 'dimensions',
 				inputs: ['h', 'w', 'd'],
-				validator: new module.ui.Validator(null, function(elem) {
-					var val = elem.val(),
-						msg = null;
-						
-					if (val !== '' && !hemi.utils.isNumeric(val)) {
-						msg = 'must be a number';
-					}
-					else if (parseFloat(val) < 0) {
-						msg = 'must be > 0';
-					}
-					
-					return msg;
-				})
+				validator: module.ui.createDefaultValidator(0.1)
 			});
+			this.saveBtn = saveBtn;
 			
+			// set validators
+			tensionVdr.setElements(inputs.filter('#crvTension'));
+			numPrtVdr.setElements(inputs.filter('#crvParticleCount'));
+			sizeVdr.setElements(inputs.filter('#crvParticleSize, #crvLife'));
+			isNumVdr.setElements(inputs.filter(':not(#crvTension, #crvParticleCount, #crvParticleSize)'));
+			
+			// bind buttons and inputs
 			form.submit(function() {
 				return false;
 			});
 			
+			nameIpt.bind('keyup', function(evt) {		
+				wgt.checkSaveButton();
+			});
+			
 			saveBtn.bind('click', function(evt) {
-				wgt.notifyListeners();
+				var name = nameIpt.val();
+				
+				wgt.notifyListeners(module.EventTypes.Save, name);
 				wgt.reset();
 			});
 			
 			cancelBtn.bind('click', function(evt) {
-				wgt.notifyListeners();
+				wgt.notifyListeners(module.EventTypes.Cancel);
 				wgt.reset();
 			});
 			
@@ -442,7 +533,7 @@ var editor = (function(module) {
 					paramValue: id === 'crvAim' ? elem.is(':checked') : 
 						parseFloat(elem.val())
 				});
-			});
+			});			
 			
 			sysTypeSel.bind('change', function(evt) {
 				wgt.notifyListeners(module.EventTypes.SetParam, {
@@ -459,17 +550,15 @@ var editor = (function(module) {
 			});
 			
 			boxAddBtn.bind('click', function(evt) {
-				var ndx = boxAddBtn.data('ndx'),
+				var box = boxAddBtn.data('box'),
 					pos = wgt.position.getValue(),
 					dim = wgt.dimensions.getValue(),
-					msgType = ndx == -1 ? module.EventTypes.AddBox 
+					msgType = box == null ? module.EventTypes.AddBox 
 						: module.EventTypes.UpdateBox,
 					data = {
 							position: [pos.x, pos.y, pos.z],
-							width: dim.w,
-							height: dim.h,
-							depth: dim.d,
-							ndx: ndx
+							dimensions: [dim.h, dim.w, dim.d],
+							box: box
 						};
 					
 				wgt.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
@@ -479,10 +568,18 @@ var editor = (function(module) {
 				
 				wgt.position.reset();
 				wgt.dimensions.reset();
-				boxAddBtn.data('ndx', -1);
-			}).data('ndx', -1);
+				wgt.checkSaveButton();
+				boxAddBtn.data('box', null);
+			}).data('box', null);
+			
+			var checker = new module.ui.InputChecker(this.boxes);
+			checker.saveable = function() {
+				return this.input.size() >= 2;
+			};			
 			
 			this.setupColorPicker();
+			this.addInputsToCheck(nameIpt);
+			this.addInputsToCheck(checker);
 		},
 		
 		addColorInput: function() {
@@ -515,28 +612,27 @@ var editor = (function(module) {
 			colorAdder.data('ndx', ndx+1);
 		},
 		
-		boxAdded: function(boxObj) {
-			var ndx = boxObj.ndx,
-				position = boxObj.position,
-				dimensions = boxObj.dimensions,
+		boxAdded: function(box) {
+			var position = box.position,
+				dimensions = box.dimensions,
 				wgt = this,
 				wrapper = jQuery('<li class="crvBoxEditor"><span>Box at [' + position.join(',') + ']</span></li>'),
 				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>'),
 				editBtn = jQuery('<button class="icon editBtn">Edit</button>');
 							
 			removeBtn.bind('click', function(evt) {
-				var boxNdx = wrapper.data('obj');
+				var box = wrapper.data('box');
 				
 				wrapper.remove();
-				wgt.notifyListeners(module.EventTypes.RemoveBox, boxNdx);
+				wgt.notifyListeners(module.EventTypes.RemoveBox, box);
 			});
 			
 			editBtn.bind('click', function(evt) {
-				var dta = wrapper.data('obj'),
-					pos = dta.position,
-					dim = dta.dimensions;
+				var b = wrapper.data('box'),
+					pos = b.position,
+					dim = b.dimensions;
 					
-				wgt.boxAddBtn.text('Update').data('ndx', ndx);
+				wgt.boxAddBtn.text('Update').data('box', box);
 				wgt.position.setValue({
 					x: pos[0],
 					y: pos[1],
@@ -552,11 +648,11 @@ var editor = (function(module) {
 				// wgt.boxForms.effect('highlight');
 			});
 			
-			wrapper.append(editBtn).append(removeBtn).data('obj', boxObj);
+			wrapper.append(editBtn).append(removeBtn).data('box', box);
 			
+			this.boxes.put(box, wrapper);
 			this.boxList.append(wrapper);
-			this.boxesUpdated(boxObj.size);
-			this.boxes.push(wrapper);
+			this.boxesUpdated(this.boxes.size());
 		},
 		
 		boxesUpdated: function(size) {
@@ -575,22 +671,21 @@ var editor = (function(module) {
 			this.boxHandles.setDrawState(drawState);
 		},
 		
-		boxUpdated: function(boxObj) {
+		boxUpdated: function(box) {
 			var rndFnc = module.utils.roundNumber,
-				ndx = boxObj.ndx,
-				position = boxObj.position,
-				dimensions = boxObj.dimensions,
+				position = box.position,
+				dimensions = box.dimensions,
 				wgt = this,
-				boxUI = this.boxes[ndx];
+				boxUI = this.boxes.get(box);
 				
 			for (var i = 0, il = position.length; i < il; i++) {
 				position[i] = rndFnc(position[i], 2);
 				dimensions[i] = rndFnc(dimensions[i], 2);
 			}
 			
-			boxUI.data('obj', boxObj);
+			boxUI.data('box', box);
 			
-			if (this.boxAddBtn.data('ndx') === ndx) {
+			if (this.boxAddBtn.data('box') === box) {
 				this.position.setValue({
 					x: position[0],
 					y: position[1],
@@ -604,6 +699,18 @@ var editor = (function(module) {
 			}
 			
 			boxUI.find('span').text('Box at [' + position.join(',') + ']');
+		},
+		
+		checkSaveButton: function() {
+			var btn = this.saveBtn,
+				saveable = this.checkSaveable();
+			
+			if (saveable) {
+				btn.removeAttr('disabled');
+			}
+			else {
+				btn.attr('disabled', 'disabled');
+			}
 		},
 		
 		cleanup: function() {
@@ -624,9 +731,20 @@ var editor = (function(module) {
 			var colorRampPicker = this.colorPickers[0];
 			this.find('#crvAddColorToRamp').data('ndx', 1);
 			
+			// reset selects
 			this.find('#crvSystemTypeSelect').val(-1);
 			this.find('#crvShapeSelect').val(-1);
-			this.find('input').val('');
+			this.find('input:not(.color, .box)').val('');
+			
+			// reset checkboxes
+			this.find('#crvAim').attr('checked', false);
+						
+			// reset the colorPicker
+			colorRampPicker.reset();
+			
+			// reset the box list
+			this.boxList.find('li:not(#crvBoxForms)').remove();
+			this.boxes.clear();
 			
 			this.position.reset();
 			this.dimensions.reset();			
@@ -653,53 +771,52 @@ var editor = (function(module) {
 		},
 		
 		set: function(curve) {
-			this.reset();
-			
 			if (curve) {
-				var params = curve.params, 
-					type = curve.type ? curve.type 
-						: curve.citizenType.replace('hemi.effect.', ''), 
-					colorRamp = curve.colorRamp, 
-					state = curve.state, 
-					fireInt = curve.fireInterval, 
-					numColors = colorRamp.length / 4, 
-					colorAdder = this.find('#crvAddColorToRamp');
+				var colorAdder = this.find('#crvAddColorToRamp'),
+					type = curve instanceof hemi.curve.GpuParticleTrail ?
+						'trail' : 'emitter',
+					colors = curve.colors,
+					boxes = curve.boxes;
 				
-				this.find('#crvSystemTypeSelect').val(type).change();
+				this.find('#crvSystemTypeSelect').val(type);
+				this.find('#crvShapeSelect').val(curve.ptcShape);
 				this.find('#crvName').val(curve.name);
+				this.find('#crvLife').val(curve.life);
+				this.find('#crvParticleCount').val(curve.particles);
+				this.find('#crvParticleSize').val(curve.size);
+				this.find('#crvTension').val(curve.tension);
 				
-				for (var paramName in params) {
-					var val = params[paramName];
-					
-					if (paramName.match(/position/)) {							
-						this[paramName].setValue({
-							x: val[0],
-							y: val[1],
-							z: val[2]
-						});
-					}
-					else {
-						this.find('#crv' + paramName).val(val);
-					}
+				if (curve.aim) {
+					this.find('#crvAim').attr('checked', true);
 				}
 								
-				var count = 1;
+				var count = 1,
+					numColors = colors.length;
+					
 				while (count++ < numColors) {
 					this.addColorInput();
 				}
 				
-				for (var ndx = 0; ndx < numColors; ndx++) {
-					var rampNdx = ndx * 4, 
-						r = colorRamp[rampNdx], 
-						g = colorRamp[rampNdx + 1], 
-						b = colorRamp[rampNdx + 2], 
-						a = colorRamp[rampNdx + 3];
-					
-					var picker = this.colorPickers[ndx];
-					picker.setColor([r, g, b, a]);
+				for (var i = 0; i < numColors; i++) {
+					var picker = this.colorPickers[i];
+					picker.setColor(colors[i]);
 				}
 				
-				this.canSave();
+				for (var i = 0, il = boxes.length; i < il; i++) {
+					var b = boxes[i],
+						minExtent = b[0],
+						maxExtent = b[1],
+						height = maxExtent[1] - minExtent[1],
+						width = maxExtent[0] - minExtent[0],
+						depth = maxExtent[2] - minExtent[2],
+						position = [minExtent[0] + width/2, 
+							minExtent[1] + height/2, minExtent[2] + depth/2],
+						box = new Box(position, [height, width, depth]);
+					
+					this.boxAdded(box);
+				}
+				
+				this.checkSaveButton();
 			}
 			
 			this.invalidate();
@@ -933,11 +1050,18 @@ var editor = (function(module) {
 			
 			// edit curve widget specific
 			edtCrvWgt.addListener(module.EventTypes.AddBox, function(boxParams) {
-				model.addBox(boxParams.position, boxParams.width, 
-					boxParams.height, boxParams.depth);
+				model.addBox(boxParams.position, boxParams.dimensions);
 			});
-			edtCrvWgt.addListener(module.EventTypes.RemoveBox, function(ndx) {
-				model.removeBox(ndx);
+			edtCrvWgt.addListener(module.EventTypes.Cancel, function() {
+				model.reset();
+				edtCrvWgt.setVisible(false);
+				lstWgt.setVisible(true);
+			});
+			edtCrvWgt.addListener(module.EventTypes.RemoveBox, function(box) {
+				model.removeBox(box);
+			});
+			edtCrvWgt.addListener(module.EventTypes.Save, function(name) {
+				model.save(name);
 			});
 			edtCrvWgt.addListener(module.EventTypes.SetParam, function(paramObj) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
@@ -952,8 +1076,7 @@ var editor = (function(module) {
 				model.stopPreview();
 			});
 			edtCrvWgt.addListener(module.EventTypes.UpdateBox, function(params) {
-				model.updateBox(params.ndx, params.position, params.width, 
-					params.height, params.depth);
+				model.updateBox(params.box, params.position, params.dimensions);
 			});
 			edtCrvWgt.addListener(module.EventTypes.UpdateBoxes, function() {
 				model.updateBoxes();
@@ -977,8 +1100,8 @@ var editor = (function(module) {
 			// view specific
 	        
 			// model specific	
-			model.addListener(module.EventTypes.BoxAdded, function(obj) {
-				edtCrvWgt.boxAdded(obj);
+			model.addListener(module.EventTypes.BoxAdded, function(box) {
+				edtCrvWgt.boxAdded(box);
 			});
 			model.addListener(module.EventTypes.BoxRemoved, function(ndx) {
 			});
@@ -988,18 +1111,20 @@ var editor = (function(module) {
 					
 				view.boxSelected(transform, ndx);
 			});
-			model.addListener(module.EventTypes.BoxUpdated, function(vals) {
-				edtCrvWgt.boxUpdated(vals);
+			model.addListener(module.EventTypes.BoxUpdated, function(box) {
+				edtCrvWgt.boxUpdated(box);
 			});
 			model.addListener(module.EventTypes.CurveCreated, function(curve) {
 				lstWgt.add(curve);
+				edtCrvWgt.setVisible(false);
+				lstWgt.setVisible(true);
 			});
 			model.addListener(module.EventTypes.CurveRemoved, function(curve) {
 				lstWgt.remove(curve);
 			});
 			model.addListener(module.EventTypes.CurveSet, function(curve) {
 				if (curve != null) {
-					crtWgt.set(curve);
+					edtCrvWgt.set(curve);
 				}
 			});
 			model.addListener(module.EventTypes.CurveUpdated, function(curve) {

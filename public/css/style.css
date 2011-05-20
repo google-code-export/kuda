@@ -1337,6 +1337,10 @@ form button.removeBtn:hover {
 #anmLoopList button.removeBtn {
 	position: absolute;
 	top: 2px;
+	right: 5px;
+}
+#anmLoopList .loopForms {
+	margin-top: 5px;
 }
 
 /**
@@ -1854,6 +1858,11 @@ ul.scnEvtList li.button {
 #crvAddSaveBoxBtn {
 	float: left;
 	margin: 5px 0 5px 125px;
+}
+.crvBoxEditor span {
+	float: left;
+	color: #555;
+	width: 195px;
 }
 
 /*
