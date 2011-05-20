@@ -99,19 +99,10 @@
 		/* Get the material used on the walls, add an opacity variable to its
 		 * shader, and get the parameter that controls that opacity.
 		 */
-		var wallT = house.getTransforms('wallFront')[0],
-			brickMat = wallT.shapes[0].elements[0].material;
+		var wallT = house.getTransforms('wallFront')[0],		
+			opacity = 1.0;
 		
-		brickMat.getParam('o3d.drawList').value = hemi.view.viewInfo.zOrderedDrawList;
-		var brickOpacity = hemi.fx.addOpacity(brickMat);
-		brickOpacity.value = 1.0;
-		
-		/* Create a transform-level opacity paramater that will override the
-		 * material-level opacity parameter. That way, we can make this wall
-		 * fade without fading every object that uses the wall material.
-		 */
-		var opacity = wallT.createParam('opacity','ParamFloat');
-		opacity.value = 1.0;
+		house.setTransformOpacity(wallT, opacity);
 		
 		/* On any keyDown, begin the fading. Reverse the direction each time */
 		hemi.input.addKeyDownListener({
@@ -126,7 +117,8 @@
 		hemi.view.addRenderListener({
 			onRender : function(e) {
 				if (count > 0) {
-					opacity.value += dir*0.02;
+					opacity += dir*0.02;
+					house.setTransformOpacity(wallT, opacity);
 					count--;
 				}
 			}});

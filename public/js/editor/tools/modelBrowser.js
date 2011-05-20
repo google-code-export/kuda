@@ -43,6 +43,7 @@ var editor = (function(module) {
 	// view events
     module.EventTypes.ShowPicked = "modelbrowser.ShowPicked";
     module.EventTypes.ManipState = "modelbrowser.ManipState";
+    module.EventTypes.SetTransOpacity = "modelbrowser.SetTransOpacity";
 	
 	// selector model events
 	module.EventTypes.ShapeSelected = "selector.ShapeSelected";
@@ -242,6 +243,7 @@ var editor = (function(module) {
 	        this.highlightedShapes = new Hashtable();
 			this.rotationAmount = 0.785398163; // 45 degrees
 			this.currentShape = null;
+			this.currentTransform = null;
 			this.msgHandler = null;
 			this.shapHighlightMat = null;
 	        this.tranHighlightMat = null;
@@ -309,6 +311,10 @@ var editor = (function(module) {
 					this.unhighlightTransform(transform);
 					this.notifyListeners(module.EventTypes.TransformDeselected, transform);
 				}
+			}
+			
+			if (this.currentTransform === transform) {
+				this.currentTransform = null;
 			}
 		},
 		
@@ -531,10 +537,20 @@ var editor = (function(module) {
 						
 			this.highlightTransform(transform);
 			this.notifyListeners(module.EventTypes.TransformSelected, transform);
+			this.currentTransform = transform;
 		},
 		
 		setManipState: function(state) {
 			this.curHandle.setDrawState(state);
+		},
+		
+		setOpacity: function(opacity) {
+			if (this.currentTransform) {				
+				var owner = hemi.world.getTranOwner(this.currentTransform);
+				if (owner instanceof hemi.model.Model) {
+					owner.setTransformOpacity(this.currentTransform, opacity);
+				}
+			}
 		},
 	    
 	    showSelected: function() {
@@ -1475,6 +1491,18 @@ var editor = (function(module) {
 		            var isVisible = view.hiddenItemsSBWidget.isVisible();
 		            view.hiddenItemsSBWidget.setVisible(!isVisible);
 		        });
+				
+				this.slider = widget.find('#mbTransparencySlider');
+				this.slider.slider({
+					value: 100,
+					slide: function(evt, ui) {								
+						view.notifyListeners(module.EventTypes.SetTransOpacity, 
+							ui.value/100);
+					}
+				});
+				
+				this.manipSection = widget.find('#mbManipSection').hide();
+				this.effectsSection = widget.find('#mbEffectsSection').hide();
 		        
 		        manipBtns.bind('click', function(evt) {
 					var elem = jQuery(this),
@@ -1519,7 +1547,25 @@ var editor = (function(module) {
 				view.actionBar.addWidget(widget);
 			};
 			
-			widget.layout();		
+			widget.layout();
+			
+			this.abWgt = widget;		
+		},
+		
+		transformDeselected: function() {
+			var wgt = this.abWgt;
+			
+			wgt.manipSection.hide();
+			wgt.effectsSection.hide();
+		},
+		
+		transformSelected: function(transform) {
+			var param = transform.getParam('opacity'),
+				wgt = this.abWgt;
+			
+			wgt.manipSection.show();
+			wgt.effectsSection.show();
+			wgt.slider.slider('value', param == null ? 100 : param.value * 100); 
 		}
 	});
 	
@@ -1642,6 +1688,9 @@ var editor = (function(module) {
 	        view.addListener(module.EventTypes.ManipState, function(state) {
 				selModel.setManipState(state);
 	        });
+	        view.addListener(module.EventTypes.SetTransOpacity, function(opacity) {
+				selModel.setOpacity(opacity);
+	        });
 	        view.addListener(module.EventTypes.ShowPicked, function(value) {
 				if (value) {
 	                selModel.showSelected();
@@ -1724,6 +1773,7 @@ var editor = (function(module) {
 			});			
 			selModel.addListener(module.EventTypes.TransformDeselected, function(transform) {
 				mbrWgt.deselectNode(getNodeId(transform));
+				view.transformDeselected();
 			});	        
 	        selModel.addListener(module.EventTypes.TransformHidden, function(obj) {
 				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
@@ -1732,6 +1782,7 @@ var editor = (function(module) {
 	        });			
 			selModel.addListener(module.EventTypes.TransformSelected, function(transform) {
 				mbrWgt.selectNode(getNodeId(transform));
+				view.transformSelected(transform);
 			});	        
 	        selModel.addListener(module.EventTypes.TransformShown, function(transform) {
 	            hidWgt.removeHiddenItem(transform);
