@@ -242,7 +242,18 @@ var editor = (function(module) {
 			this.boxes.splice(found, 1);
 			this.config.boxes = getExtentsList(this.boxes);
 			
-			this.showBoxWireframes();
+			if (box.transform) {
+				var tran = box.transform,
+					shape = tran.shapes[0],
+					pack = hemi.curve.pack;
+				
+				tran.removeShape(shape);
+				tran.parent = null;
+				pack.removeObject(shape);
+				pack.removeObject(tran);
+				box.transform = null;
+			}			
+			
 			this.updateSystem('boxes', this.config.boxes);
 			
 			this.notifyListeners(module.EventTypes.BoxRemoved, {
@@ -271,7 +282,6 @@ var editor = (function(module) {
 					tran = box.transform,
 					shape = tran.shapes[0];
 				
-				console.log(tran.clientId);
 				tran.removeShape(shape);
 				tran.parent = null;
 				pack.removeObject(shape);
@@ -430,6 +440,9 @@ var editor = (function(module) {
 //                     		Edit Curve Sidebar Widget                         //
 //////////////////////////////////////////////////////////////////////////////// 
 		
+	var ADD_BOX_TEXT = 'Add',
+		UPDATE_BOX_TEXT = 'Update';
+		
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
@@ -462,6 +475,7 @@ var editor = (function(module) {
 				shpTypeSel = this.find('#crvShapeSelect'),
 				inputs = this.find('input:not(#crvName, .box)'),
 				boxAddBtn = this.find('#crvAddSaveBoxBtn'),
+				boxCancelBtn = this.find('#crvCancelBoxBtn'),
 				nameIpt = this.find('#crvName'),
 				startPreviewBtn = this.find('#crvPreviewStartBtn'),
 				stopPreviewBtn = this.find('#crvPreviewStopBtn'),
@@ -472,6 +486,7 @@ var editor = (function(module) {
 				wgt = this;
 			
 			this.boxAddBtn = boxAddBtn;
+			this.boxCancelBtn = boxCancelBtn;
 			this.boxForms = this.find('#crvBoxForms');
 			this.boxList = this.find('#crvBoxList');
 			this.position = new module.ui.Vector({
@@ -552,25 +567,36 @@ var editor = (function(module) {
 			boxAddBtn.bind('click', function(evt) {
 				var box = boxAddBtn.data('box'),
 					pos = wgt.position.getValue(),
-					dim = wgt.dimensions.getValue(),
-					msgType = box == null ? module.EventTypes.AddBox 
-						: module.EventTypes.UpdateBox,
-					data = {
-							position: [pos.x, pos.y, pos.z],
-							dimensions: [dim.h, dim.w, dim.d],
-							box: box
-						};
+					dim = wgt.dimensions.getValue();
 					
-				wgt.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
-				wgt.boxHandles.setTransform(null);
-				
-				wgt.notifyListeners(msgType, data);
-				
+				if (pos != null && dim != null) {
+					var msgType = box == null ? module.EventTypes.AddBox 
+							: module.EventTypes.UpdateBox, 
+						data = {
+								position: [pos.x, pos.y, pos.z],
+								dimensions: [dim.h, dim.w, dim.d],
+								box: box
+							};
+					
+					wgt.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
+					wgt.boxHandles.setTransform(null);
+					
+					wgt.notifyListeners(msgType, data);
+					
+					wgt.position.reset();
+					wgt.dimensions.reset();
+					wgt.checkSaveButton();
+					boxAddBtn.data('box', null).text(ADD_BOX_TEXT);
+					boxCancelBtn.hide();
+				}
+			}).data('box', null);
+			
+			boxCancelBtn.bind('click', function(evt) {
 				wgt.position.reset();
 				wgt.dimensions.reset();
-				wgt.checkSaveButton();
-				boxAddBtn.data('box', null);
-			}).data('box', null);
+				boxAddBtn.text(ADD_BOX_TEXT).data('box', null);
+				boxCancelBtn.hide();
+			}).hide();
 			
 			var checker = new module.ui.InputChecker(this.boxes);
 			checker.saveable = function() {
@@ -632,7 +658,9 @@ var editor = (function(module) {
 					pos = b.position,
 					dim = b.dimensions;
 					
-				wgt.boxAddBtn.text('Update').data('box', box);
+				wgt.boxAddBtn.text(UPDATE_BOX_TEXT).data('box', box);
+				wgt.boxCancelBtn.show();
+				
 				wgt.position.setValue({
 					x: pos[0],
 					y: pos[1],
@@ -1129,6 +1157,8 @@ var editor = (function(module) {
 			});
 			model.addListener(module.EventTypes.CurveUpdated, function(curve) {
 				lstWgt.update(curve);
+				edtCrvWgt.setVisible(false);
+				lstWgt.setVisible(true);
 			});
 	    }
 	});

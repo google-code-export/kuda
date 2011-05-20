@@ -89,7 +89,8 @@ var editor = (function(module) {
 			.bind('blur', function(evt) {
 				var elem = jQuery(this),
 					val = elem.val(),
-					ndx = elem.data('ndx');
+					ndx = elem.data('ndx'),
+					totVal = wgt.getValue();
 				
 				if (val === '') {
 					elem.val(ndx).addClass('vectorHelper');
@@ -97,6 +98,10 @@ var editor = (function(module) {
 				if (wgt.config.onBlur) {
 					wgt.config.onBlur(elem, evt, wgt);
 				}	
+				else if (totVal != null) {
+					wgt.notifyListeners(module.EventTypes.VectorValueSet, 
+						totVal);
+				}
 			})
 			.bind('focus', function(evt) {
 				var elem = jQuery(this),
