@@ -65,17 +65,13 @@
 
 
 	unitTest1.boundingBox = function()   {
-		jqUnit.expect(5);
+		jqUnit.expect(3);
 		var boundingBox = unitTest1.model.getBoundingBox();
 		
 		jqMock.assertThat(boundingBox, is.instanceOf(o3d.BoundingBox));
 		
-		jqMock.assertThat(boundingBox.minExtent, [-308.3550109863281, -766.7760009765625, -315.0270080566406]);
-		jqMock.assertThat(boundingBox.maxExtent, [681.6920166015625, 334.6929931640625, 439.8169860839844]);
-		
-		jqMock.assertThat( unitTest1.model.root.boundingBox.minExtent, [-308.3550109863281, -766.7760009765625, -315.0270080566406]);
-		jqMock.assertThat( unitTest1.model.root.boundingBox.maxExtent, [681.6920166015625, 334.6929931640625, 439.8169860839844]);
-		
+		jqMock.assertThat(boundingBox.minExtent, [-260.0360107421875, -1.661682125231323e-7, -315.0270080566406]);
+		jqMock.assertThat(boundingBox.maxExtent, [260.1830139160156, 334.6929931640625, 768.6312638657104]);
 	};
 	
 	
