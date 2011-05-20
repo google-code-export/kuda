@@ -125,7 +125,7 @@ var editor = (function(module, jQuery) {
 			
 			setTimeout(function() {
 				wgt.hideMessage(id);
-			}, 1000);
+			}, 2000);
 		},
 		
 		hideMessage: function(id) {
@@ -161,7 +161,7 @@ var editor = (function(module, jQuery) {
 		setElements: function(elements) {	
 			var vld = this;
 					
-			elements.bind('blur.errEvt', function(evt) {
+			elements.bind('change.errEvt', function(evt) {
 				var elem = jQuery(this),
 					msg = null;
 								
@@ -176,6 +176,42 @@ var editor = (function(module, jQuery) {
 			});
 		}
 	});
+		
+	module.ui.createDefaultValidator = function(opt_min, opt_max) {
+		var validator = new module.ui.Validator(null, function(elem) {
+			var val = elem.val(),
+				msg = null;
+				
+			if (!checkNumber(val)) {
+				msg = 'must be a number';
+			}
+			else if ((this.min != null || this.max != null) 
+					&& !checkRange(val, this.min, this.max)) {						
+				msg = this.min != null && this.max != null ? 
+					'must be between ' + this.min + ' and ' + this.max
+					: this.min != null ? 'must be greater than or equal to ' + this.min 
+					: 'must be less than or equal to ' + this.max;
+			}
+			
+			return msg;
+		});
+		
+		validator.min = opt_min;
+		validator.max = opt_max;
+		
+		return validator;	
+	};
+	
+	var checkNumber = function(val) {	
+		return val === '' || hemi.utils.isNumeric(val);
+	};
+		
+	var checkRange = function(val, min, max) {
+		var num = parseFloat(val);					
+		return val === '' || (min != null && max != null 
+			? num >= min && num <= max 
+			: min != null && max == null ? num >= min : num <= max);
+	};
 	
 	return module;
 })(editor || {}, jQuery);

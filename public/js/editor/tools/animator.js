@@ -422,6 +422,7 @@ var editor = (function(module) {
 				endLbl = jQuery('<label>To</label>'),
 				itrLbl = jQuery('<label># Times</label>'),
 				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>'),
+				formDiv = jQuery('<div class="loopForms"></div>'),
 				slider = jQuery('<div class="loopSlider"></div>').slider({
 						range: true,
 						min: min,
@@ -491,9 +492,10 @@ var editor = (function(module) {
 				wgt.notifyListeners(module.EventTypes.RemoveAnmLoop, loop);
 			});
 			
-			wrapper.append(slider).append(startLbl).append(startInput)
-				.append(endLbl).append(endInput).append(itrLbl)
-				.append(itrInput).append(removeBtn).data('obj', loop);
+			formDiv.append(startLbl).append(startInput).append(endLbl)
+				.append(endInput).append(itrLbl).append(itrInput);
+			wrapper.append(slider).append(formDiv).append(removeBtn)
+				.data('obj', loop);
 				
 			// add validation
 			var checkFcn = function(elem) {

@@ -487,6 +487,78 @@ var editor = (function(module) {
 			return retVal;
 		}
 	});
+   
+////////////////////////////////////////////////////////////////////////////////
+//                     	Convenient Forms Sidebar Widget                   	  //
+////////////////////////////////////////////////////////////////////////////////     
+		
+	module.ui.FormSBWidget = module.ui.SidebarWidget.extend({
+		init: function(options) {
+			var newOpts = jQuery.extend({}, module.tools.SidebarWidgetDefaults, options);			
+			this.checkers = [];
+			
+		    this._super(newOpts);	
+		},
+		
+		addInputsToCheck: function(inputs) {
+			var wgt = this;
+			
+			if (inputs instanceof editor.ui.ColorPicker) {
+				var checker = {
+					input: inputs,
+					saveable: function() {
+						return this.input.getColor() != null;
+					}
+				}
+				this.checkers.push(checker);
+			}
+			else if (inputs instanceof editor.ui.Vector) {
+				var checker = {
+					input: inputs,
+					saveable: function() {
+						return this.input.getValue() != null;
+					}
+				}
+				this.checkers.push(checker);
+			}
+			else if (inputs instanceof editor.ui.InputChecker) {
+				this.checkers.push(inputs);
+			}
+			else if (inputs.each){
+				inputs.each(function(ndx, elem) {
+					var input = jQuery(elem),
+						checker = {
+								input: input,
+								saveable: function() {
+									return this.input.val() !== '';
+								}
+							};
+					wgt.checkers.push(checker);
+				});
+			}
+		},
+		
+		checkSaveable: function() {
+			var list = this.checkers,
+				isSafe = true;
+			
+			for (var ndx = 0, len = list.length; ndx < len && isSafe; ndx++) {
+				isSafe = list[ndx].saveable();
+			}
+			
+			return isSafe;
+		}
+	});
+	
+	module.ui.InputChecker = function(input) {
+		this.input = input;
+	};
+	
+	module.ui.InputChecker.prototype = {
+		saveable: function() {
+			
+		}
+	};
 	
 	return module;
 })(editor || {});
