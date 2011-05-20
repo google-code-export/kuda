@@ -58,7 +58,7 @@ o3d.Transform =
    * the Transform's local matrix has been applied to it.
    * @type {!o3d.BoundingBox}
    */
-  this.boundingBoxOrig = opt_boundingBox ||
+  this.boundingBoxLocal = opt_boundingBox ||
       new o3d.BoundingBox([-1, -1, -1], [1, 1, 1]);
 
   /**
@@ -174,7 +174,7 @@ o3d.Transform.prototype.__defineSetter__('localMatrix',
 	function(lm) {
       var param = this.getParam('localMatrix');
 	  param.value = lm;
-	  this.transformBoundingBox();
+	  this._transformBoundingBox();
 	}
 );
 
@@ -324,19 +324,19 @@ o3d.Transform.prototype.recalculateBoundingBox =
     }
   }
   
-  this.boundingBoxOrig = box;
-  this.transformBoundingBox();
+  this.boundingBoxLocal = box;
+  this._transformBoundingBox();
 };
 
 /**
  * 
  */
-o3d.Transform.prototype.transformBoundingBox = function() {
-  var newBox = this.boundingBoxOrig.mul(this.localMatrix);
+o3d.Transform.prototype._transformBoundingBox = function() {
+  var newBox = this.boundingBoxLocal.mul(this.localMatrix);
   this.boundingBox = newBox;
   
   if (this.parent && newBox.valid) {
-  	this.parent.trickleUp(this.boundingBox);
+  	this.parent._trickleUp(this.boundingBox);
   }
 };
 
@@ -344,10 +344,10 @@ o3d.Transform.prototype.transformBoundingBox = function() {
  * 
  * @param {Object} box
  */
-o3d.Transform.prototype.trickleUp = function(box) {
+o3d.Transform.prototype._trickleUp = function(box) {
   if (this.boundingBox.valid) {
-  	this.boundingBoxOrig = this.boundingBoxOrig.add(box);
-    this.transformBoundingBox();
+  	this.boundingBoxLocal = this.boundingBoxLocal.add(box);
+    this._transformBoundingBox();
   }
 };
 
@@ -413,7 +413,7 @@ o3d.Transform.prototype.identity = function() {
     }
   }
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -682,7 +682,7 @@ o3d.Transform.prototype.translate =
                   m02 * v0 + m12 * v1 + m22 * v2 + m32,
                   m03 * v0 + m13 * v1 + m23 * v2 + m33);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -721,7 +721,7 @@ o3d.Transform.prototype.rotateX =
                   c * m22 - s * m12,
                   c * m23 - s * m13);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -831,7 +831,7 @@ o3d.Transform.prototype.rotateY =
                   c * m22 + s * m02,
                   c * m23 + s * m03);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -870,7 +870,7 @@ o3d.Transform.prototype.rotateZ =
                   c * m12 - s * m02,
                   c * m13 - s * m03);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -947,7 +947,7 @@ o3d.Transform.prototype.rotateZYX =
       r20 * m02 + r21 * m12 + r22 * m22,
       r20 * m03 + r21 * m13 + r22 * m23);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -1083,7 +1083,7 @@ o3d.Transform.prototype.quaternionRotate =
      (qWqW - qXqX - qYqY + qZqZ) / d, 0],
     [0, 0, 0, 1]]);
 	  
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
@@ -1116,7 +1116,7 @@ o3d.Transform.prototype.scale =
   m1.splice(0, 4, v1 * m1[0], v1 * m1[1], v1 * m1[2], v1 * m1[3]);
   m2.splice(0, 4, v2 * m2[0], v2 * m2[1], v2 * m2[2], v2 * m2[3]);
   
-  this.transformBoundingBox();
+  this._transformBoundingBox();
 };
 
 
