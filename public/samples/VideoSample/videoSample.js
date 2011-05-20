@@ -58,25 +58,7 @@ o3djs.require('hext.house.structure');
 		jQuery('#enter').attr('disabled', 'disabled');
 
 		var o3dElem = jQuery('#o3d');
-		var iframeBtn = jQuery('#iframeBased');
 		var divBtn = jQuery('#divBased');
-
-		iframeBtn.click(function(evt) {
-			var elem = jQuery(this);
-			var showing = elem.data('showing');
-			var iframe = jQuery('#videoOverlay');
-
-			if (!showing) {
-				iframe.show();
-				divBtn.attr('disabled', 'disabled');
-			}
-			else {
-				iframe.hide();
-				divBtn.removeAttr('disabled');
-			}
-
-			elem.data('showing', !showing);
-		}).data('showing', false);
 
 		divBtn.click(function(evt) {
 			var elem = jQuery(this);
@@ -85,10 +67,8 @@ o3djs.require('hext.house.structure');
 
 			if (!showing) {
 				div.show();
-				iframeBtn.attr('disabled', 'disabled');
 			} else {
 				div.hide();
-				iframeBtn.removeAttr('disabled');
 			}
 
 			elem.data('showing', !showing);
