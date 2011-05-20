@@ -30,6 +30,7 @@ var editor = (function(module) {
     module.EventTypes.BoxSelected = "Curves.BoxSelected";
     module.EventTypes.BoxRemoved = "Curves.BoxRemoved";
     module.EventTypes.BoxUpdated = "Curves.BoxUpdated";
+    module.EventTypes.CurveWorldCleaned = "Curves.CurveWorldCleaned";
 	
 	// view specific
 	module.EventTypes.BoxManipState = "Curves.BoxManipState";
@@ -223,9 +224,9 @@ var editor = (function(module) {
 		
 		remove: function(system) {
 			this.stopPreview();
-			this.currentSystem.cleanup();
-			
+			system.cleanup();			
 			this.reset();
+			this.notifyListeners(module.EventTypes.CurveRemoved, system);
 		},
 		
 		removeBox: function(box) {				
@@ -430,9 +431,27 @@ var editor = (function(module) {
 		},
 		
 	    worldCleaned: function() {
+			var systems = hemi.world.getCitizens({
+				citizenType: hemi.curve.GpuParticleSystem.prototype.citizenType
+			});
+			
+			this.reset();
+			
+			for (var i = 0, il = systems.length; i < il; i++) {
+				this.notifyListeners(module.EventTypes.CurveRemoved, systems[i]);
+			}
+			
+			this.notifyListeners(module.EventTypes.CurveWorldCleaned);
 	    },
 		
 	    worldLoaded: function() {
+			var systems = hemi.world.getCitizens({
+				citizenType: hemi.curve.GpuParticleSystem.prototype.citizenType
+			});
+			
+			for (var i = 0, il = systems.length; i < il; i++) {
+				this.notifyListeners(module.EventTypes.CurveCreated, systems[i]);
+			}
 	    }
 	});
 	
@@ -1143,9 +1162,10 @@ var editor = (function(module) {
 				edtCrvWgt.boxUpdated(box);
 			});
 			model.addListener(module.EventTypes.CurveCreated, function(curve) {
+				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
 				lstWgt.add(curve);
 				edtCrvWgt.setVisible(false);
-				lstWgt.setVisible(true);
+				lstWgt.setVisible(isDown && true);
 			});
 			model.addListener(module.EventTypes.CurveRemoved, function(curve) {
 				lstWgt.remove(curve);
@@ -1159,6 +1179,12 @@ var editor = (function(module) {
 				lstWgt.update(curve);
 				edtCrvWgt.setVisible(false);
 				lstWgt.setVisible(true);
+			});
+			model.addListener(module.EventTypes.CurveWorldCleaned, function() {
+				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+				edtCrvWgt.reset();
+				edtCrvWgt.setVisible(false);
+				lstWgt.setVisible(isDown && true);
 			});
 	    }
 	});
