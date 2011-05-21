@@ -717,7 +717,9 @@ var hemi = (function(hemi) {
 		this.pTimer = 0.0;
 		this.pTimerMax = 1.0 / this.pRate;
 		this.pIndex = 0;
+		this.dbgBoxTransforms = [];
 		
+			
 		var shapeColor = [1,0,0,1];
 		this.shapeMaterial = o3djs.material.createBasicMaterial(pack,view,shapeColor,true);
 		var param = this.shapeMaterial.getParam('lightWorldPos'); 
@@ -952,7 +954,52 @@ var hemi = (function(hemi) {
 				this.particles[i].setScales(scaleKeys);
 			}
 			return this;
+		},
+		
+		/**
+		 */		
+		showBoxes : function() {
+			var pack = hemi.curve.pack;
+			
+			for (i = 0; i < this.boxes.length; i++) {
+				var transform = pack.createObject('Transform'),
+					b = this.boxes[i],
+					w = b[1][0] - b[0][0],
+					h = b[1][1] - b[0][1],
+					d = b[1][2] - b[0][2],
+					x = b[0][0] + w/2,
+					y = b[0][1] + h/2,
+					z = b[0][2] + d/2,
+					box = o3djs.primitives.createBox(pack, hemi.curve.dbgBoxMat, w, h, d);
+				
+				transform.addShape(box);
+				transform.translate(x,y,z);
+				transform.parent = this.transform;
+				this.dbgBoxTransforms[i] = transform;
+			}
+		},
+	
+		/*
+		 * Remove the bounding boxes from view.
+		 */
+		hideBoxes : function() {
+			var pack = hemi.curve.pack;
+			
+			var len = this.dbgBoxTransforms.length;
+			for (var i = 0; i < len; i++) {
+				var tran = this.dbgBoxTransforms[i],
+					shape = tran.shapes[0];
+				
+				tran.removeShape(shape);
+				tran.parent = null;
+				pack.removeObject(shape);
+				pack.removeObject(tran);
+			}
+			
+			this.dbgBoxTransforms = [];
 		}
+		
+		
 	};
 	
 	// START GPU PARTICLE SYSTEM
