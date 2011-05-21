@@ -381,7 +381,7 @@ input.error {
 	padding: 10px 0;
     position: relative;
     float: left;
-    width: 76px;
+    width: 56px;
 	border-right: 1px solid #ddd;
 }
 
@@ -422,8 +422,6 @@ input.error {
  * Toolbars
  */
 .toolbar {
-    padding: 4px;
-    margin: 0 10px;
     width: 48px;
 	float: left;
 }
@@ -440,22 +438,21 @@ input.error {
  * Toolbar buttons
  */
 .toolBtn {
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
-    -khtml-border-radius: 4px;
-    background: -moz-linear-gradient(100% 100% 90deg, #eee, #fafafa);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fafafa));
-	-moz-box-shadow: 0 1px 1px #fafafa;
-	box-shadow: 0 1px 1px #fff;
+	position: relative;
+    border: none;
+    border-radius: 0;
+    background: none;
+	box-shadow: none;
     color: #fff;
-    margin-bottom: 4px;
+	margin: 0;
     text-indent: -5000px;
-	padding: 0;
+	padding: 0 4px;
 	text-align: left;
-	width: 48px;
+	width: 56px;
 	height: 48px;
+	-webkit-transition: background-color 0.25s ease-in-out;
+	-moz-transition: background-color 0.25s ease-in-out;
+	-o-transition: background-color 0.25s ease-in-out;
 }
 
 #complexTools .toolBtn {
@@ -471,8 +468,7 @@ input.error {
 }
 
 .toolBtn:hover {
-	background: -moz-linear-gradient(100% 100% 90deg, #ddd, #eee);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#eee));
+	background-color: #dedede;
 }
 
 .toolBtn:last-child {
@@ -483,7 +479,7 @@ input.error {
 	background-position: 0 0;
 }
 
-#modelBrowserBtn:hover span {
+#modelBrowserBtn:hover span, #modelBrowserBtn.down span {
     background-position: 0 -48px;
 }
 
@@ -491,7 +487,7 @@ input.error {
 	background-position: -48px 0;
 }
 
-#animationsBtn:hover span {
+#animationsBtn:hover span, #animationsBtn.down span {
     background-position: -48px -48px;
 }
 
@@ -499,7 +495,7 @@ input.error {
 	background-position: -96px 0;
 }
 
-#viewpointsBtn:hover span {
+#viewpointsBtn:hover span, #viewpointsBtn.down span {
     background-position: -96px -48px;
 }
 
@@ -507,7 +503,7 @@ input.error {
 	background-position: -192px 0;
 }
 
-#messagingBtn:hover span {
+#messagingBtn:hover span, #messagingBtn.down span {
     background-position: -192px -48px;
 }
 
@@ -515,7 +511,7 @@ input.error {
 	background-position: -240px 0;
 }
 
-#scenesBtn:hover span {
+#scenesBtn:hover span, #scenesBtn.down span {
     background-position: -240px -48px;
 }
 
@@ -523,7 +519,7 @@ input.error {
 	background-position: -288px 0;
 }
 
-#particleEffectsBtn:hover span {
+#particleEffectsBtn:hover span, #particleEffectsBtn.down span {
 	background-position: -288px -48px;
 }
 
@@ -531,7 +527,7 @@ input.error {
 	background-position: -336px 0;
 }
 
-#shapesBtn:hover span {
+#shapesBtn:hover span, #shapesBtn.down span {
 	background-position: -336px -48px;
 }
 
@@ -539,7 +535,7 @@ input.error {
 	background-position: -384px 0;
 }
 
-#hudBtn:hover span {
+#hudBtn:hover span, #hudBtn.down span {
 	background-position: -384px -48px;
 }
 
@@ -547,7 +543,7 @@ input.error {
 	background-position: -432px 0;
 }
 
-#fogBtn:hover span {
+#fogBtn:hover span, #fogBtn.down span {
 	background-position: -432px -48px;
 }
 
@@ -555,7 +551,7 @@ input.error {
 	background-position: -144px 0;
 }
 
-#motionsBtn:hover span {
+#motionsBtn:hover span, #motionsBtn.down span {
 	background-position: -144px -48px;
 }
 
@@ -568,8 +564,9 @@ input.error {
 }
 
 .toolBtn.down {
-    background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eaeaea);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dadada), to(#eaeaea));
+	background: #bbddff;   
+	border: 1px solid #ccc;
+	border-width: 1px 0;
 }
 
 /**
