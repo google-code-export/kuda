@@ -772,15 +772,19 @@ var hemi = (function(hemi) {
 	var getModelName = function(fileName) {
 		// Currently, file names are of the form:
 		// [path to directory]/[model name]/scene.json
-		var name = '',
-			end = fileName.lastIndexOf('/');
-			start = fileName.lastIndexOf('/', end - 1);
+		var end = fileName.lastIndexOf('/');
 		
-		if (start >= 0 && end > start) {
-			name = fileName.substring(start + 1, end);
+		if (end < 1) {
+			end = fileName.length;
 		}
 		
-		return name;
+		var start = fileName.lastIndexOf('/', end - 1) + 1;
+		
+		if (start >= end) {
+			start = 0;
+		}
+		
+		return fileName.substring(start, end);
 	};
 
 	return hemi;
