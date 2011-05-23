@@ -74,9 +74,6 @@ var hext = (function(hext) {
 		hemi.world.removeCitizen(this.leftNav);
 		hemi.world.removeCitizen(this.rightNav);
 		
-		this.leftNav.width = this.rightNav.width = this.imageWidth;
-		this.leftNav.height = this.rightNav.height = this.imageHeight;
-		
 		var that = this;
 		this.leftNav.mouseDown = function(mouseEvent) {
 			that.previousPage();
@@ -113,28 +110,44 @@ var hext = (function(hext) {
 		 * Load up the images and create textures for paging navigation icons.
 		 */
 		loadPagingImages: function() {
-			var that = this;
+			var width = this.imageWidth,
+				height = this.imageHeight,
+				that = this;
+			
+			this.leftNav.setCoords({
+				enabled: [0, 0],
+				disabled: [0, height],
+				hover: [0, 2*height]
+			});
+			this.rightNav.setCoords({
+				enabled: [width, 0],
+				disabled: [width, height],
+				hover: [width, 2*height]
+			});
+			
+			this.leftNav.enabledImg.width =
+			this.leftNav.disabledImg.width =
+			this.leftNav.hoverImg.width =
+			this.rightNav.enabledImg.width =
+			this.rightNav.disabledImg.width =
+			this.rightNav.hoverImg.width = this.imageWidth;
+			
+			this.leftNav.enabledImg.height =
+			this.leftNav.disabledImg.height =
+			this.leftNav.hoverImg.height =
+			this.rightNav.enabledImg.height =
+			this.rightNav.disabledImg.height =
+			this.rightNav.hoverImg.height = this.imageHeight;
 			
 			hemi.loader.loadImage(
 				this.imageFile,
 				function(image) {
-					var width = that.imageWidth,
-						height = that.imageHeight;
-					
-					that.leftNav.image = image;
-					that.rightNav.image = image;
-					// Create the left arrow
-					that.leftNav.enabledCoords = [0, 0];
-					// Create the right arrow
-					that.rightNav.enabledCoords = [width, 0];
-					// Create the left disabled arrow
-					that.leftNav.disabledCoords = [0, height];
-					// Create the right disabled arrow
-					that.rightNav.disabledCoords = [width, height];
-					// Create the left hover arrow
-					that.leftNav.hoverCoords = [0, 2*height];
-					// Create the right hover arrow
-					that.rightNav.hoverCoords = [width, 2*height];
+					that.leftNav.enabledImg.image =
+					that.leftNav.disabledImg.image =
+					that.leftNav.hoverImg.image =
+					that.rightNav.enabledImg.image =
+					that.rightNav.disabledImg.image =
+					that.rightNav.hoverImg.image = image;
 				});
 		},
 		
