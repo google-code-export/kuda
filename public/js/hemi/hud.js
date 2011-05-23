@@ -686,6 +686,20 @@ var hemi = (function(hemi) {
 		this.y = 0;
 		
 		/**
+		 * The x-coordinate of the source image to pull image data from.
+		 * @type number
+		 * @default 0
+		 */
+		this.srcX = 0;
+		
+		/**
+		 * The y-coordinate of the source image to pull image data from.
+		 * @type number
+		 * @default 0
+		 */
+		this.srcY = 0;
+		
+		/**
 		 * The height of the image. This property is calculated when the image
 		 * URL is loaded. It should typically not be set directly.
 		 * @type number
@@ -734,6 +748,14 @@ var hemi = (function(hemi) {
 				val: this.y
 			});
 			octane.props.push({
+				name: 'srcX',
+				val: this.srcX
+			});
+			octane.props.push({
+				name: 'srcY',
+				val: this.srcY
+			});
+			octane.props.push({
 				name: 'setImageUrl',
 				arg: [this.url]
 			});
@@ -757,9 +779,12 @@ var hemi = (function(hemi) {
 		 * @see hemi.hud.HudElement#draw
 		 */
 		draw: function() {
-			if (this.width !== this.image.width || this.height !== this.image.height) {
+			if (this.width !== this.image.width ||
+				this.height !== this.image.height || this.srcX !== 0 ||
+				this.srcY !== 0) {
 				hemi.hud.hudMgr.createImageOverlay(this.image, this.config,
-					this.x, this.y, 0, 0, this.width, this.height);
+					this.x, this.y, this.srcX, this.srcY, this.width,
+					this.height);
 			} else {
 				hemi.hud.hudMgr.createImageOverlay(this.image, this.config,
 					this.x, this.y);
@@ -818,7 +843,21 @@ var hemi = (function(hemi) {
 	 * @extends hemi.hud.HudImage
 	 */
 	hemi.hud.HudButton = function() {
-		hemi.hud.HudImage.call(this);
+		hemi.hud.HudElement.call(this);
+		
+		/**
+		 * The x-coordinate of the left side of the HudButton.
+		 * @type number
+		 * @default 0
+		 */
+		this.x = 0;
+		
+		/**
+		 * The y-coordinate of the top of the HudButton.
+		 * @type number
+		 * @default 0
+		 */
+		this.y = 0;
 		
 		/**
 		 * Flag indicating if the HudButton is enabled.
@@ -835,23 +874,23 @@ var hemi = (function(hemi) {
 		this.hovering = false;
 		
 		/**
-		 * The XY coords to use for the HudButton when it is enabled.
-		 * @type number[2]
+		 * The HudImage to use for the HudButton when it is enabled.
+		 * @type hemi.hud.HudImage
 		 */
-		this.enabledCoords = [0, 0];
+		this.enabledImg = null;
 		
 		/**
-		 * The XY coords to use for the HudButton when it is disabled.
-		 * @type number[2]
+		 * The HudImage to use for the HudButton when it is disabled.
+		 * @type hemi.hud.HudImage
 		 */
-		this.disabledCoords = [0, 0];
+		this.disabledImg = null;
 		
 		/**
-		 * The XY coords to use for the HudButton when it is enabled and the
+		 * The HudImage to use for the HudButton when it is enabled and the
 		 * mouse cursor is hovering.
-		 * @type number[2]
+		 * @type hemi.hud.HudImage
 		 */
-		this.hoverCoords = [0, 0];
+		this.hoverImg = null;
 		
 		var that = this;
 		
@@ -885,6 +924,63 @@ var hemi = (function(hemi) {
 		cleanup: function() {
 			hemi.hud.HudElement.prototype.cleanup.call(this);
 			this.mouseMove = null;
+			
+			if (this.enabledImg) {
+				this.enabledImg.cleanup();
+				this.enabledImg = null;
+			}
+			if (this.disabledImg) {
+				this.disabledImg.cleanup();
+				this.disabledImg = null;
+			}
+			if (this.hoverImg) {
+				this.hoverImg.cleanup();
+				this.hoverImg = null;
+			}
+		},
+		
+		/**
+		 * Get the Octane structure for the HudButton.
+	     *
+	     * @return {Object} the Octane structure representing the HudButton
+		 */
+		toOctane: function() {
+			var octane = hemi.hud.HudElement.prototype.toOctane.call(this);
+			
+			octane.props.push({
+				name: 'x',
+				val: this.x
+			});
+			octane.props.push({
+				name: 'y',
+				val: this.y
+			});
+			octane.props.push({
+				name: 'enabledImg',
+				id: this.enabledImg.getId()
+			});
+			octane.props.push({
+				name: 'disabledImg',
+				id: this.disabledImg.getId()
+			});
+			octane.props.push({
+				name: 'hoverImg',
+				id: this.hoverImg.getId()
+			});
+			
+			return octane;
+		},
+		
+		/**
+		 * Calculate the bounds of the button.
+		 * @see hemi.hud.HudElement#calculateBounds
+		 */
+		calculateBounds: function() {
+			var img = this.getImage();
+			this.top = this.y;
+			this.bottom = this.top + img.height;
+			this.left = this.x;
+			this.right = this.left + img.width;
 		},
 		
 		/**
@@ -893,24 +989,119 @@ var hemi = (function(hemi) {
 		 * @see hemi.hud.HudImage#draw
 		 */
 		draw: function() {
-			var coords;
+			var img = this.getImage();
+			img.x = this.x;
+			img.y = this.y;
+			img.draw();
+		},
+		
+		/**
+		 * Get the image that represents the HudButton in its current state.
+		 * 
+		 * @return {hemi.hud.HudImage} the image to draw for the HudButton
+		 */
+		getImage: function() {
+			var img = this.enabledImg;
 			
-			if (this.enabled) {
-				if (this.hovering) {
-					coords = this.hoverCoords;
-				} else {
-					coords = this.enabledCoords;
+			if (!this.enabled) {
+				if (this.disabledImg) {
+					img = this.disabledImg;
 				}
-			} else {
-				coords = this.disabledCoords;
+			} else if (this.hovering) {
+				if (this.hoverImg) {
+					img = this.hoverImg;
+				}
 			}
 			
-			hemi.hud.hudMgr.createImageOverlay(this.image, this.config, this.x,
-				this.y, coords[0], coords[1], this.width, this.height);
+			return img;
+		},
+		
+		/**
+		 * Set the source x and y coordinates for the HudButtons images.
+		 * 
+		 * @param {Object} coords structure with optional coordinates for
+		 *     different images
+		 */
+		setCoords: function(coords) {
+			var disabledCoords = coords.disabled,
+				enabledCoords = coords.enabled,
+				hoverCoords = coords.hover;
+			
+			if (this.enabledImg === null) {
+				this.enabledImg = new hemi.hud.HudImage();
+			}
+			if (this.disabledImg === null) {
+				this.disabledImg = new hemi.hud.HudImage();
+			}
+			if (this.hoverImg === null) {
+				this.hoverImg = new hemi.hud.HudImage();
+			}
+			if (enabledCoords != null) {
+				this.enabledImg.srcX = enabledCoords[0];
+				this.enabledImg.srcY = enabledCoords[1];
+			}
+			if (disabledCoords != null) {
+				this.disabledImg.srcX = disabledCoords[0];
+				this.disabledImg.srcY = disabledCoords[1];
+			}
+			if (hoverCoords != null) {
+				this.hoverImg.srcX = hoverCoords[0];
+				this.hoverImg.srcY = hoverCoords[1];
+			}
+		},
+		
+		/**
+		 * Set the image urls for the HudButtons images.
+		 * 
+		 * @param {Object} urls structure with optional urls for different
+		 *     images
+		 */
+		setUrls: function(urls) {
+			var disabledUrl = urls.disabled,
+				enabledUrl = urls.enabled,
+				hoverUrl = urls.hover,
+				that = this;
+			
+			if (!enabledUrl) {
+				return;
+			}
+			if (this.enabledImg === null) {
+				this.enabledImg = new hemi.hud.HudImage();
+			}
+			if (this.disabledImg === null) {
+				this.disabledImg = new hemi.hud.HudImage();
+			}
+			if (this.hoverImg === null) {
+				this.hoverImg = new hemi.hud.HudImage();
+			}
+			
+			var enMsg = this.enabledImg.subscribe(hemi.msg.load, function(evt) {
+				if (that.disabledImg.url === null) {
+					that.disabledImg.url = enabledUrl;
+					that.disabledImg.image = that.enabledImg.image;
+					that.disabledImg.height = that.enabledImg.height;
+					that.disabledImg.width = that.enabledImg.width;
+				}
+				if (that.hoverImg.url === null) {
+					that.hoverImg.url = enabledUrl;
+					that.hoverImg.image = that.enabledImg.image;
+					that.hoverImg.height = that.enabledImg.height;
+					that.hoverImg.width = that.enabledImg.width;
+				}
+				that.enabledImg.unsubscribe(enMsg);
+			});
+			
+			if (disabledUrl != null && disabledUrl !== enabledUrl) {
+				this.disabledImg.setImageUrl(disabledUrl);
+			}
+			if (hoverUrl != null && hoverUrl !== enabledUrl) {
+				this.hoverImg.setImageUrl(hoverUrl);
+			}
+			this.enabledImg.setImageUrl(enabledUrl);
 		}
 	};
 	
-	hemi.hud.HudButton.inheritsFrom(hemi.hud.HudImage);
+	hemi.hud.HudButton.inheritsFrom(hemi.hud.HudElement);
 	
 	/**
 	 * @class A HudVideo contains a texture and display options for a single
