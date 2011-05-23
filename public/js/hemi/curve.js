@@ -149,13 +149,11 @@ var hemi = (function(hemi) {
 	 * @param {o3d.Transform} opt_trans optional parent transform for the boxes
 	 */
 	hemi.curve.showBoxes = function(boxes, opt_trans) {
-		var pack = hemi.curve.pack;
+		var pack = hemi.curve.pack,
+			opt_trans = opt_trans || hemi.picking.pickRoot,
+			trans = this.dbgBoxTransforms[opt_trans.clientId] || [];
 		
-		if (this.dbgBoxTransforms.length > 0) {
-			this.hideBoxes();
-		}
-		
-		for (i = 0; i < boxes.length; i++) {
+		for (var i = 0; i < boxes.length; i++) {
 			var transform = pack.createObject('Transform'),
 				b = boxes[i],
 				w = b[1][0] - b[0][0],
@@ -168,28 +166,43 @@ var hemi = (function(hemi) {
 			
 			transform.addShape(box);
 			transform.translate(x,y,z);
-			transform.parent = opt_trans || hemi.picking.pickRoot;
-			this.dbgBoxTransforms[i] = transform;
+			transform.parent = opt_trans;
+			trans.push(transform);
 		}
+		
+		this.dbgBoxTransforms[opt_trans.clientId] = trans;
 	};
 	
 	/**
-	 * Remove the bounding boxes from view.
+	 * Remove the bounding boxes from view. If a parent transform is given, only
+	 * the bounding boxes under it will be removed. Otherwise all boxes will be
+	 * removed.
+	 * 
+	 * @param {o3d.Transform} opt_trans optional parent transform for the boxes
 	 */
-	hemi.curve.hideBoxes = function() {
+	hemi.curve.hideBoxes = function(opt_trans) {
 		var pack = hemi.curve.pack;
 		
-		for (i = 0; i < this.dbgBoxTransforms.length; i++) {
-			var tran = this.dbgBoxTransforms[i],
-				shape = tran.shapes[0];
+		if (opt_trans) {
+			var trans = this.dbgBoxTransforms[opt_trans.clientId] || [];
 			
-			tran.removeShape(shape);
-			tran.parent = null;
-			pack.removeObject(shape);
-			pack.removeObject(tran);
+			for (var i = 0; i < trans.length; i++) {
+				var tran = trans[i],
+					shape = tran.shapes[0];
+				
+				tran.parent = null;
+				tran.removeShape(shape);
+				pack.removeObject(shape);
+				pack.removeObject(tran);
+			}
+			
+			delete this.dbgBoxTransforms[opt_trans.clientId];
+		} else {
+			// Create fake transforms and clear all the boxes out
+			for (var id in this.dbgBoxTransforms) {
+				this.hideBoxes({clientId: id});
+			}
 		}
-		
-		this.dbgBoxTransforms = [];
 	};
 	
 	/**
@@ -248,7 +261,7 @@ var hemi = (function(hemi) {
 		state.getStateParam('PolygonOffset2').value = -1.0;
 		state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
 		this.dbgBoxMat.state = state;
-		this.dbgBoxTransforms = [];
+		this.dbgBoxTransforms = {};
 	};
 
 	/**
@@ -717,8 +730,6 @@ var hemi = (function(hemi) {
 		this.pTimer = 0.0;
 		this.pTimerMax = 1.0 / this.pRate;
 		this.pIndex = 0;
-		this.dbgBoxTransforms = [];
-		
 			
 		var shapeColor = [1,0,0,1];
 		this.shapeMaterial = o3djs.material.createBasicMaterial(pack,view,shapeColor,true);
@@ -957,49 +968,19 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 */		
+		 * Render the bounding boxes which the particle system's curves run
+		 * through (helpful for debugging).
+		 */
 		showBoxes : function() {
-			var pack = hemi.curve.pack;
-			
-			for (i = 0; i < this.boxes.length; i++) {
-				var transform = pack.createObject('Transform'),
-					b = this.boxes[i],
-					w = b[1][0] - b[0][0],
-					h = b[1][1] - b[0][1],
-					d = b[1][2] - b[0][2],
-					x = b[0][0] + w/2,
-					y = b[0][1] + h/2,
-					z = b[0][2] + d/2,
-					box = o3djs.primitives.createBox(pack, hemi.curve.dbgBoxMat, w, h, d);
-				
-				transform.addShape(box);
-				transform.translate(x,y,z);
-				transform.parent = this.transform;
-				this.dbgBoxTransforms[i] = transform;
-			}
+			hemi.curve.showBoxes(this.boxes, this.transform);
 		},
 	
-		/*
-		 * Remove the bounding boxes from view.
+		/**
+		 * Hide the particle system's bounding boxes from view.
 		 */
 		hideBoxes : function() {
-			var pack = hemi.curve.pack;
-			
-			var len = this.dbgBoxTransforms.length;
-			for (var i = 0; i < len; i++) {
-				var tran = this.dbgBoxTransforms[i],
-					shape = tran.shapes[0];
-				
-				tran.removeShape(shape);
-				tran.parent = null;
-				pack.removeObject(shape);
-				pack.removeObject(tran);
-			}
-			
-			this.dbgBoxTransforms = [];
+			hemi.curve.hideBoxes(this.transform);
 		}
-		
-		
 	};
 	
 	// START GPU PARTICLE SYSTEM
@@ -1190,6 +1171,13 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			hemi.world.Citizen.prototype.cleanup.call(this);
+		},
+	
+		/**
+		 * Hide the particle system's bounding boxes from view.
+		 */
+		hideBoxes : function() {
+			hemi.curve.hideBoxes(this.transform);
 		},
 		
 		/**
@@ -1554,6 +1542,14 @@ var hemi = (function(hemi) {
 			if (addColors) {
 				setupColors(material, this.colors);
 			}
+		},
+		
+		/**
+		 * Render the bounding boxes which the particle system's curves run
+		 * through (helpful for debugging).
+		 */
+		showBoxes : function() {
+			hemi.curve.showBoxes(this.boxes, this.transform);
 		},
 		
 		/**
