@@ -179,16 +179,43 @@ var editor = (function(module) {
 		 * Performs the layout of the toolbar widget.
 		 */
 		layoutToolbarWidget: function() {
-			var view = this;
+			var view = this,
+				left = 70;
 			
 			this.toolbarWidget = jQuery('<button id="' + this.config.widgetId 
                 + '" class="' + this.config.toolClass + ' ' + this.mode 
 				+ '" title="' + this.config.toolTip + '"><span>' 
 				+ this.config.toolName + '</span></button>');
 			
+			
+			this.toolHover = jQuery('<div class="toolHover">' + this.config.toolName + '</div>')
+				.data('set', false);
+			this.toolbarWidget.append(this.toolHover);
+			
 			this.toolbarWidget.bind('click', function() {
                 view.notifyListeners(module.EventTypes.ToolClicked, view);
                 view.setMode(module.tools.ToolConstants.MODE_DOWN);
+			})
+			.bind('mouseover', function(evt) {
+				if (!view.toolHover.data('set')) {
+					var elem = jQuery(this), 
+						offset = elem.offset(), 
+						top = offset.top, 
+						height = elem.height();
+					
+					view.toolHover.offset({
+						top: height / 2 - view.toolHover.outerHeight() / 2,
+						left: left
+					})
+					.data('set', true);
+				}
+				
+				if (view.mode !== module.tools.ToolConstants.MODE_DOWN) {
+					view.toolHover.fadeIn(200);
+				}
+			})
+			.bind('mouseout', function(evt) {
+				view.toolHover.hide();
 			});
 		},
 		
