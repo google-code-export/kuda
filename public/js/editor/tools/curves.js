@@ -200,7 +200,10 @@ var editor = (function(module) {
 			this.config.boxes = getExtentsList(this.boxes);
 			this.showBoxWireframes();
 			
-			this.notifyListeners(module.EventTypes.CurveSet, this.currentSystem);
+			this.notifyListeners(module.EventTypes.CurveSet, {
+				system: this.currentSystem,
+				boxes: this.boxes
+			});
 		},
 		
 	    onPick: function(pickInfo) {
@@ -817,13 +820,12 @@ var editor = (function(module) {
 			}
 		},
 		
-		set: function(curve) {
+		set: function(curve, boxes) {
 			if (curve) {
 				var colorAdder = this.find('#crvAddColorToRamp'),
 					type = curve instanceof hemi.curve.GpuParticleTrail ?
 						'trail' : 'emitter',
-					colors = curve.colors,
-					boxes = curve.boxes;
+					colors = curve.colors;
 				
 				this.find('#crvSystemTypeSelect').val(type);
 				this.find('#crvShapeSelect').val(curve.ptcShape);
@@ -849,18 +851,8 @@ var editor = (function(module) {
 					picker.setColor(colors[i]);
 				}
 				
-				for (var i = 0, il = boxes.length; i < il; i++) {
-					var b = boxes[i],
-						minExtent = b[0],
-						maxExtent = b[1],
-						height = maxExtent[1] - minExtent[1],
-						width = maxExtent[0] - minExtent[0],
-						depth = maxExtent[2] - minExtent[2],
-						position = [minExtent[0] + width/2, 
-							minExtent[1] + height/2, minExtent[2] + depth/2],
-						box = new Box(position, [height, width, depth]);
-					
-					this.boxAdded(box);
+				for (var i = 0, il = boxes.length; i < il; i++) {					
+					this.boxAdded(boxes[i]);
 				}
 				
 				this.checkSaveButton();
@@ -1171,8 +1163,8 @@ var editor = (function(module) {
 				lstWgt.remove(curve);
 			});
 			model.addListener(module.EventTypes.CurveSet, function(curve) {
-				if (curve != null) {
-					edtCrvWgt.set(curve);
+				if (curve.system != null) {
+					edtCrvWgt.set(curve.system, curve.boxes);
 				}
 			});
 			model.addListener(module.EventTypes.CurveUpdated, function(curve) {
