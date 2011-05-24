@@ -473,13 +473,14 @@ input.error {
 #complexTools .toolBtn {
     float: right;
 }
-.toolBtn span {
+.toolBtn:after {
+	content: '';
     background: url(../images/toolbarSprite.png) no-repeat 0 0;
 	display: block;
 	width: 48px;
 	height: 48px;
 	float: left;
-	margin: -3px 0 0 -3px;
+	margin-top: -3px;
 }
 
 .toolBtn:hover {
@@ -492,91 +493,91 @@ input.error {
     margin-bottom: 0;
 }
 
-#modelBrowserBtn span {
+#modelBrowserBtn:after {
 	background-position: 0 0;
 }
 
-#modelBrowserBtn:hover span, #modelBrowserBtn.down span {
+#modelBrowserBtn:hover:after, #modelBrowserBtn.down:after {
     background-position: 0 -48px;
 }
 
-#animationsBtn span {
+#animationsBtn:after {
 	background-position: -48px 0;
 }
 
-#animationsBtn:hover span, #animationsBtn.down span {
+#animationsBtn:hover:after, #animationsBtn.down:after {
     background-position: -48px -48px;
 }
 
-#viewpointsBtn span {
+#viewpointsBtn:after {
 	background-position: -96px 0;
 }
 
-#viewpointsBtn:hover span, #viewpointsBtn.down span {
+#viewpointsBtn:hover:after, #viewpointsBtn.down:after {
     background-position: -96px -48px;
 }
 
-#messagingBtn span {
+#messagingBtn:after {
 	background-position: -192px 0;
 }
 
-#messagingBtn:hover span, #messagingBtn.down span {
+#messagingBtn:hover:after, #messagingBtn.down:after {
     background-position: -192px -48px;
 }
 
-#scenesBtn span {
+#scenesBtn:after {
 	background-position: -240px 0;
 }
 
-#scenesBtn:hover span, #scenesBtn.down span {
+#scenesBtn:hover:after, #scenesBtn.down:after {
     background-position: -240px -48px;
 }
 
-#particleEffectsBtn span {
+#particleEffectsBtn:after {
 	background-position: -288px 0;
 }
 
-#particleEffectsBtn:hover span, #particleEffectsBtn.down span {
+#particleEffectsBtn:hover:after, #particleEffectsBtn.down:after {
 	background-position: -288px -48px;
 }
 
-#shapesBtn span {
+#shapesBtn:after {
 	background-position: -336px 0;
 }
 
-#shapesBtn:hover span, #shapesBtn.down span {
+#shapesBtn:hover:after, #shapesBtn.down:after {
 	background-position: -336px -48px;
 }
 
-#hudBtn span {
+#hudBtn:after {
 	background-position: -384px 0;
 }
 
-#hudBtn:hover span, #hudBtn.down span {
+#hudBtn:hover:after, #hudBtn.down:after {
 	background-position: -384px -48px;
 }
 
-#fogBtn span {
+#fogBtn:after {
 	background-position: -432px 0;
 }
 
-#fogBtn:hover span, #fogBtn.down span {
+#fogBtn:hover:after, #fogBtn.down:after {
 	background-position: -432px -48px;
 }
 
-#motionsBtn span {
+#motionsBtn:after {
 	background-position: -144px 0;
 }
 
-#motionsBtn:hover span, #motionsBtn.down span {
+#motionsBtn:hover:after, #motionsBtn.down:after  {
 	background-position: -144px -48px;
 }
 
-#manipsBtn span {
+#manipsBtn:after {
 	background-position: -480px 0;
 }
 
-#manipsBtn:hover span, #manipsBtn.down span {
+#manipsBtn:hover:after, #manipsBtn.down:after {
 	background-position: -480px -48px;
 }
 

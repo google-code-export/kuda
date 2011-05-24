@@ -135,7 +135,7 @@ var editor = (function(module) {
 				
 				if (this.toolbarWidget) {
 					if (enabled) {
-						this.toolbarWidget.attr('disabled', '');
+						this.toolbarWidget.removeAttr('disabled');
 					}
 					else {
 						this.toolbarWidget.attr('disabled', 'disabled');
@@ -184,9 +184,8 @@ var editor = (function(module) {
 			
 			this.toolbarWidget = jQuery('<button id="' + this.config.widgetId 
                 + '" class="' + this.config.toolClass + ' ' + this.mode 
-				+ '" title="' + this.config.toolTip + '"><span>' 
-				+ this.config.toolName + '</span></button>');
-			
+				+ '" title="' + this.config.toolTip + '">' 
+				+ this.config.toolName + '</button>');			
 			
 			this.toolHover = jQuery('<div class="toolHover">' + this.config.toolName + '</div>')
 				.data('set', false);
@@ -215,7 +214,9 @@ var editor = (function(module) {
 				}
 			})
 			.bind('mouseout', function(evt) {
-				view.toolHover.hide();
+				view.toolHover.promise().done(function() {
+					view.toolHover.hide();
+				});
 			});
 		},
 		
