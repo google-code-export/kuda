@@ -601,13 +601,13 @@ input.error {
 }
 
 #sidebar.minimized {
-	width: 19px;
+	width: 24px;
 }
 
 #minMaxBtn {
 	background: url(../images/minMax.png) no-repeat 0 0;
-	width: 19px;
-	height: 16px;
+	width: 24px;
+	height: 20px;
 	text-indent: -5000px;
 	outline: none;
 	border: none;
@@ -616,7 +616,7 @@ input.error {
 	margin: 0 10px 0;
 }
 #minMaxBtn.minimized {
-	background-position: -19px 0;
+	background-position: -24px 0;
 	margin-left: 0;
 }
 
@@ -820,6 +820,7 @@ ol.listWidget li span {
 	text-indent: 30px;
 	width: 30px;
 	height: 27px;
+	margin-top: 0;
 }
 .treeSelectorBtn:hover {
 	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
@@ -904,7 +905,7 @@ form ol > li {
 .sidebarForm ol > li {
 	width: 255px;
 }
-.sidebarForm ol > li > div {
+.sidebarForm ol > li > div:not(.buttons) {
 	float: left;
 }
 .sidebarForm li > div.ui-slider {
@@ -951,6 +952,7 @@ form div.buttons {
 
 form div.buttons button {
     margin-right: 2px;
+	margin-top: 5px;
 }
 form div.buttons button:nth-child(n+1) {
 	margin-left: 2px;
@@ -1194,7 +1196,7 @@ form button:first-child {
     margin-left: 0;
 }
 
-form button {	
+form button:not(.inlineBtn, .treeSelectorBtn) {	
 	margin-top: 5px;
 }
 
@@ -1888,6 +1890,10 @@ ul.scnEvtList li.button {
 	float: left;
 	color: #555;
 	width: 195px;
+}
+
+#crvPositionDiv, #crvDimensionsDiv {
+	float: right;
 }
 
 /*
