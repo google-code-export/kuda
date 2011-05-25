@@ -672,7 +672,7 @@ var editor = (function(module) {
 		layoutExtra: function() {
 			this.form = jQuery('<form method="post"></form>');
 			this.nameInput = jQuery('<input type="text" id="scnName" />');
-			this.addBtn = jQuery('<button id="scnCreate">Add Scene</button>');
+			this.addBtn = jQuery('<button id="scnCreate" class="inlineBtn">Add Scene</button>');
 			var wgt = this;
 			
 			this.addBtn.bind('click', function(evt) {
