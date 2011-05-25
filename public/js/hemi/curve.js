@@ -211,16 +211,16 @@ var hemi = (function(hemi) {
 	 * @param {Object} cfg configuration options:
 	 *     aim: flag to indicate particles should orient with curve
 	 *     boxes: array of bounding boxes for particle curves to pass through
+	 *     colors: array of values for particle color ramp (use this or colorKeys)
+	 *     colorKeys: array of time keys and values for particle color ramp
 	 *     fast: flag to indicate GPU-driven particle system should be used
 	 *     life: lifetime of particle system (in seconds)
 	 *     particleCount: number of particles to allocate for system
 	 *     particleShape: enumerator for type of shape to use for particles
 	 *     // JS particle system only
-	 *     colorKeys: array of time keys and values for particle color ramp
 	 *     parent: transform to parent the particle system under
 	 *     scaleKeys: array of time keys and values for particle size ramp
 	 *     // GPU particle system only
-	 *     colors: color ramp for particles
 	 *     particleSize: size of the particles
 	 *     tension: tension parameter for the curve (typically from -1 to 1)
 	 *     trail: flag to indicate system should have trailing start and stop
@@ -737,13 +737,6 @@ var hemi = (function(hemi) {
 		if(param) {
 			param.bind(hemi.world.camera.light.position);
 		}
-
-		var mState = pack.createObject('State');
-				// Use these when we figure out how...
-		//mState.getStateParam('o3d.BlendEquation').value = hemi.core.o3d.State.BLEND_ADD;
-		//mState.getStateParam('o3d.SourceBlendFunction').value = hemi.core.o3d.State.BLENDFUNC_SOURCE_ALPHA;
-		//mState.getStateParam('o3d.DestinationBlendFunction').value = hemi.core.o3d.State.BLENDFUNC_ONE;		
-		this.shapeMaterial.state = mState;
 		
 		this.shapes = [];
 		
@@ -783,11 +776,29 @@ var hemi = (function(hemi) {
 			}
 		}
 		
+		var colorKeys = null;
+		
+		if (config.colorKeys) {
+			colorKeys = config.colorKeys;
+		} else if (config.colors) {
+			var len = config.colors.length,
+				step = len === 1 ? 1 : 1 / (len - 1),
+			
+			colorKeys = [];
+			
+			for (var i = 0; i < len; i++) {
+				colorKeys.push({
+					key: i * step,
+					value: config.colors[i]
+				});
+			}
+		}
+		
 		for (i = 0; i < this.maxParticles; i++) {
 			this.particles[i] = new hemi.curve.Particle(
 				this.transform,
 				this.points[i],
-				config.colorKeys,
+				colorKeys,
 				config.scaleKeys,
 				config.aim);
 			for (var j = 0; j < this.shapes.length; j++) {
@@ -998,7 +1009,8 @@ var hemi = (function(hemi) {
 		'varying vec4 ptcColor; \n';
 	
 	hemi.curve.vertHeaderColors =
-		'uniform vec4 ptcColors[NUM_COLORS]; \n';
+		'uniform vec4 ptcColors[NUM_COLORS]; \n' +
+		'uniform float ptcColorKeys[NUM_COLORS]; \n';
 	
 	hemi.curve.vertSupport =
 		'float rand(vec2 co) { \n' +
@@ -1026,9 +1038,15 @@ var hemi = (function(hemi) {
 		'  if (ptcTime > 1.0) { \n' +
 		'    ptcColor = vec4(0.0); \n' +
 		'  } else { \n' +
-		'    float clrT = float(NUM_COLORS-1)*ptcTime; \n' +
-		'    int ndx = int(floor(clrT)); \n' +
-		'    float t = fract(clrT); \n' +
+		'    int ndx; \n' +
+		'    float key; \n' +
+		'    for (int i = 0; i < NUM_COLORS-1; i++) { \n' +
+		'      if (ptcColorKeys[i] < ptcTime) { \n' +
+		'        ndx = i; \n' +
+		'        key = ptcColorKeys[i]; \n' +
+		'      } \n' +
+		'    } \n' +
+		'    float t = (ptcTime - key)/(ptcColorKeys[ndx+1] - key); \n' +
 		'    ptcColor = mix(ptcColors[ndx], ptcColors[ndx+1], t); \n' +
 		'  } \n' +
 		'} \n';
@@ -1193,14 +1211,12 @@ var hemi = (function(hemi) {
 			this.size = cfg.particleSize || 1;
 			this.tension = cfg.tension || 0;
 			
-			if (!cfg.colors) {
-				this.colors = [];
-			} else if (cfg.colors.length === 1) {
-				// We need at least two to interpolate
-				var clr = cfg.colors[0];
-				this.colors = [clr, clr];
+			if (cfg.colorKeys) {
+				this.setColorKeys(cfg.colorKeys);
+			} else if (cfg.colors) {
+				this.setColors(cfg.colors);
 			} else {
-				this.colors = cfg.colors;
+				this.colors = [];
 			}
 			
 			this.setMaterial(cfg.material || hemi.curve.newMaterial());
@@ -1284,7 +1300,50 @@ var hemi = (function(hemi) {
 		 * @param {number[4][]} colors array of RGBA color values
 		 */
 		setColors: function(colors) {
-			this.colors = colors;
+			var len = colors.length,
+				step = len === 1 ? 1 : 1 / (len - 1),
+				colorKeys = [];
+			
+			for (var i = 0; i < len; i++) {
+				colorKeys.push({
+					key: i * step,
+					value: colors[i]
+				});
+			}
+			
+			this.setColorKeys(colorKeys);
+		},
+		
+		/**
+		 * Set the color ramp for the particles as they travel along the curve,
+		 * specifying the interpolation times for each color. Each entry in the
+		 * given array should be of the form:
+		 * {
+		 *   key: number between 0 and 1 indicating time key for color
+		 *   value: RGBA array indicating the color value
+		 * }
+		 * 
+		 * @param {Object[]} colorKeys array of color key objects, sorted into
+		 *     ascending key order
+		 */
+		setColorKeys: function(colorKeys) {
+			if (colorKeys.length === 1) {
+				// We need at least two to interpolate
+				var clr = colorKeys[0].value;
+				this.colors = [{
+					key: 0,
+					value: clr
+				}, {
+					key: 1,
+					value: clr
+				}];
+			} else {
+				// Just make sure the keys run from 0 to 1
+				colorKeys[0].key = 0;
+				colorKeys[colorKeys.length - 1].key = 1;
+				this.colors = colorKeys;
+			}
+			
 			this.setupShaders();
 		},
 		
@@ -1443,7 +1502,7 @@ var hemi = (function(hemi) {
 				maxTime = 3.0,
 				time = 1.1,
 				uniforms = ['sysTime', 'ptcMaxTime', 'ptcDec', 'numPtcs',
-					'tension', 'minXYZ', 'maxXYZ', 'ptcColors'];
+					'tension', 'minXYZ', 'maxXYZ', 'ptcColors', 'ptcColorKeys'];
 			
 			// Remove any previously existing uniforms that we created
 			for (var i = 0, il = uniforms.length; i < il; i++) {
@@ -1824,15 +1883,20 @@ var hemi = (function(hemi) {
 	 */
 	var setupColors = function(material, colors) {
 		var clrParam = material.getParam('ptcColors'),
-			clrArr = hemi.curve.pack.createObject('ParamArray');
+			keyParam = material.getParam('ptcColorKeys'),
+			clrArr = hemi.curve.pack.createObject('ParamArray'),
+			keyArr = hemi.curve.pack.createObject('ParamArray');
 		
 		clrArr.resize(colors.length, 'ParamFloat4');
+		keyArr.resize(colors.length, 'ParamFloat');
 		
 		for (var i = 0, il = colors.length; i < il; ++i) {
-			clrArr.getParam(i).value = colors[i];
+			clrArr.getParam(i).value = colors[i].value;
+			keyArr.getParam(i).value = colors[i].key;
 		}
 		
 		clrParam.value = clrArr;
+		keyParam.value = keyArr;
 	};
 	
 	return hemi;
