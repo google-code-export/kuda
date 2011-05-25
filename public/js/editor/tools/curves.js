@@ -420,7 +420,7 @@ var editor = (function(module) {
 				
 				box.update(position, [height, width, depth]);
 								
-				this.notifyListeners(module.EventTypes.BoxUpdated, box)
+				this.notifyListeners(module.EventTypes.BoxUpdated, box);
 			}
 			this.config.boxes = getExtentsList(this.boxes);			
 			this.updateSystem('boxes', this.config.boxes);
@@ -888,7 +888,7 @@ var editor = (function(module) {
 			.data('ndx', 1);
 			
 			this.colorPickers.push(colorRampPicker);
-		},
+		}
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -1182,4 +1182,4 @@ var editor = (function(module) {
 	});
 	
 	return module;
-})(editor || {})
+})(editor || {});
