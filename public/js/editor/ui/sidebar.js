@@ -509,7 +509,7 @@ var editor = (function(module) {
 					saveable: function() {
 						return this.input.getColor() != null;
 					}
-				}
+				};
 				this.checkers.push(checker);
 			}
 			else if (inputs instanceof editor.ui.Vector) {
@@ -518,7 +518,7 @@ var editor = (function(module) {
 					saveable: function() {
 						return this.input.getValue() != null;
 					}
-				}
+				};
 				this.checkers.push(checker);
 			}
 			else if (inputs instanceof editor.ui.InputChecker) {
