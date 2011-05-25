@@ -105,10 +105,10 @@ o3djs.require('hext.progressUI.progressBar');
 				switch (event.keyCode) {
 					case (32):
 						if (showBoxes) {
-							hemi.curve.hideBoxes();
+							particleSystem.hideBoxes();
 							showBoxes = false;
 						} else {
-							hemi.curve.showBoxes(particleSystem.boxes);
+							particleSystem.showBoxes();
 							showBoxes = true;
 						}
 						break;
