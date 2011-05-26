@@ -217,12 +217,12 @@ var hemi = (function(hemi) {
 	 *     life: lifetime of particle system (in seconds)
 	 *     particleCount: number of particles to allocate for system
 	 *     particleShape: enumerator for type of shape to use for particles
+	 *     particleSize: size of the particles
 	 *     scales: array of values for particle scale ramp (use this or scaleKeys)
 	 *     scaleKeys: array of time keys and values for particle size ramp
 	 *     // JS particle system only
 	 *     parent: transform to parent the particle system under
 	 *     // GPU particle system only
-	 *     particleSize: size of the particles
 	 *     tension: tension parameter for the curve (typically from -1 to 1)
 	 *     trail: flag to indicate system should have trailing start and stop
 	 * @return {Object} the created particle system
@@ -739,27 +739,30 @@ var hemi = (function(hemi) {
 			param.bind(hemi.world.camera.light.position);
 		}
 		
+		var type = config.particleShape || hemi.curve.ShapeType.CUBE,
+			size = config.particleSize || 1;
 		this.shapes = [];
+		this.size = size;
 		
-		if (config.particleShape) {
-			switch (config.particleShape) {
-				case (hemi.curve.ShapeType.ARROW):
-					var arrowHeadXY = [[-0.4,0],[0.4,0],[0,0.6]];
-					var arrowBaseXY = [[-0.2,0],[-0.2,-0.4],[0.2,-0.4],[0.2,0]];
-					this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowHeadXY,0.2));
-					this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowBaseXY,0.2));
-					break;
-				case (hemi.curve.ShapeType.SPHERE):
-					this.shapes.push(o3djs.primitives.createSphere(pack,this.shapeMaterial,0.5,12,12));
-					break;
-				case (hemi.curve.ShapeType.CUBE):
-					this.shapes.push(o3djs.primitives.createCube(pack,this.shapeMaterial,1));
-					break;
-				default:
-					break;
-			}
-		} else {
-			this.shapes.push(o3djs.primitives.createSphere(pack,this.shapeMaterial,0.5,12,12));
+		switch (type) {
+			case (hemi.curve.ShapeType.ARROW):
+//				var arrowHeadXY = [[-0.4,0],[0.4,0],[0,0.6]];
+//				var arrowBaseXY = [[-0.2,0],[-0.2,-0.4],[0.2,-0.4],[0.2,0]];
+//				this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowHeadXY,0.2));
+//				this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowBaseXY,0.2));
+				var halfSize = size / 2;
+				this.shapes.push(hemi.core.primitives.createPrism(pack, this.shapeMaterial,
+					[[0, size], [-size, 0], [-halfSize, 0], [-halfSize, -size],
+					[halfSize, -size], [halfSize, 0], [size, 0]], size));
+				break;
+			case (hemi.curve.ShapeType.SPHERE):
+				this.shapes.push(hemi.core.primitives.createSphere(pack,
+					this.shapeMaterial,size,24,12));
+				break;
+			case (hemi.curve.ShapeType.CUBE):
+				this.shapes.push(hemi.core.primitives.createCube(pack,
+					this.shapeMaterial,size));
+				break;
 		}
 		
 		hemi.view.addRenderListener(this);
@@ -913,19 +916,22 @@ var hemi = (function(hemi) {
 			var pack = hemi.curve.pack;
 			var startndx = this.shapes.length;
 			if (typeof shape == 'string') {
+				var size = this.size;
+				
 				switch (shape) {
 					case (hemi.curve.ShapeType.ARROW):
-						var arrowHeadXY = [[-0.4,0],[0.4,0],[0,0.6]];
-						var arrowBaseXY = [[-0.2,0],[-0.2,-0.4],[0.2,-0.4],[0.2,0]];
-						this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowHeadXY,0.2));
-						this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowBaseXY,0.2));
-						break;
-					case (hemi.curve.ShapeType.CUBE):
-						this.shapes.push(o3djs.primitives.createCube(pack,this.shapeMaterial,1));
+						var halfSize = size / 2;
+						this.shapes.push(hemi.core.primitives.createPrism(pack, this.shapeMaterial,
+							[[0, size], [-size, 0], [-halfSize, 0], [-halfSize, -size],
+							[halfSize, -size], [halfSize, 0], [size, 0]], size));
 						break;
 					case (hemi.curve.ShapeType.SPHERE):
-					default:
-						this.shapes.push(o3djs.primitives.createSphere(pack,this.shapeMaterial,0.5,12,12));
+						this.shapes.push(hemi.core.primitives.createSphere(pack,
+							this.shapeMaterial,size,24,12));
+						break;
+					case (hemi.curve.ShapeType.CUBE):
+						this.shapes.push(hemi.core.primitives.createCube(pack,
+							this.shapeMaterial,size));
 						break;
 				}
 			} else {
