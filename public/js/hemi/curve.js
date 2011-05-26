@@ -220,10 +220,10 @@ var hemi = (function(hemi) {
 	 *     particleSize: size of the particles
 	 *     scales: array of values for particle scale ramp (use this or scaleKeys)
 	 *     scaleKeys: array of time keys and values for particle size ramp
+	 *     tension: tension parameter for the curve (typically from -1 to 1)
 	 *     // JS particle system only
 	 *     parent: transform to parent the particle system under
 	 *     // GPU particle system only
-	 *     tension: tension parameter for the curve (typically from -1 to 1)
 	 *     trail: flag to indicate system should have trailing start and stop
 	 * @return {Object} the created particle system
 	 */
@@ -746,10 +746,6 @@ var hemi = (function(hemi) {
 		
 		switch (type) {
 			case (hemi.curve.ShapeType.ARROW):
-//				var arrowHeadXY = [[-0.4,0],[0.4,0],[0,0.6]];
-//				var arrowBaseXY = [[-0.2,0],[-0.2,-0.4],[0.2,-0.4],[0.2,0]];
-//				this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowHeadXY,0.2));
-//				this.shapes.push(o3djs.primitives.createPrism(pack,this.shapeMaterial,arrowBaseXY,0.2));
 				var halfSize = size / 2;
 				this.shapes.push(hemi.core.primitives.createPrism(pack, this.shapeMaterial,
 					[[0, size], [-size, 0], [-halfSize, 0], [-halfSize, -size],
@@ -773,7 +769,7 @@ var hemi = (function(hemi) {
 		this.frames = config.frames || this.pLife*hemi.view.FPS;
 		
 		for(j = 0; j < this.maxParticles; j++) {
-			var curve = this.newCurve();
+			var curve = this.newCurve(config.tension || 0);
 			this.points[j] = [];
 			for(i=0; i < this.frames; i++) {
 				this.points[j][i] = curve.interpolate((i)/this.frames);
@@ -879,10 +875,11 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Generate a new curve running through the system's bounding boxes.
-		 *
+		 * 
+		 * @param {number} tension tension parameter for the curve
 		 * @return {hemi.curve.Curve} The randomly generated Curve object.
 		 */
-		newCurve : function() {
+		newCurve : function(tension) {
 			var points = [];
 			var num = this.boxes.length;
 			for (i = 0; i < num; i++) {
@@ -892,7 +889,8 @@ var hemi = (function(hemi) {
 			}
 			points[0] = points[1].slice(0,3);
 			points[num+1] = points[num].slice(0,3);
-			var curve = new hemi.curve.Curve(points,hemi.curve.curveType.Cardinal);
+			var curve = new hemi.curve.Curve(points,
+				hemi.curve.curveType.Cardinal, {tension: tension});
 			return curve;
 		},
 		

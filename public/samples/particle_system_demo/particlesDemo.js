@@ -79,7 +79,7 @@
 		 * kind of stretched out, then shrink away again.
 		 */
 		var scale1 = [1,1,1];
-		var scale2 = [5,8,5];
+		var scale2 = [4,8,4];
 		var scale3 = [1,1,1];
 		
 		/* Create a particle system configuration with the above parameters,
