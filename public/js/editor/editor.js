@@ -77,6 +77,7 @@
 			this.extent = 50;		// Grid will reach 2000 meters in each direction
 			this.fidelity = 1;		// Grid squares = 1 square meter
 			
+			this.createCommonWidgets();
             this.layoutDialogs();
 			this.layoutGrid();
 			this.layoutToolbar();
@@ -89,7 +90,7 @@
 			hemi.msg.subscribe(hemi.msg.load,
 				function(msg) {
 					if (msg.src instanceof hemi.model.Model) {
-						that.msgMdl.addCitizen(msg.src);
+						editor.ui.TreeModel.addCitizen(msg.src);
 						that.scnMdl.addCitizen(msg.src);
 						that.editorStateChanged();
 					}
@@ -98,7 +99,7 @@
 				function(msg) {
 					if (msg.src.name != null &&
 						msg.src.name.match(editor.tools.ToolConstants.EDITOR_PREFIX) === null) {
-						that.msgMdl.removeCitizen(msg.src);
+						editor.ui.TreeModel.removeCitizen(msg.src);
 						that.scnMdl.removeCitizen(msg.src);
 						that.editorStateChanged();
 					}
@@ -108,12 +109,12 @@
 			hemi.world.subscribe(hemi.msg.ready, this, 'worldLoaded');
 			
 			var addFunc = function(citizen) {
-				that.msgMdl.addCitizen(citizen);
+				editor.ui.TreeModel.addCitizen(citizen);
 				that.scnMdl.addCitizen(citizen);
 				that.editorStateChanged();
 			};
 			var updateFunc = function(citizen) {
-				that.msgMdl.updateCitizen(citizen);
+				editor.ui.TreeModel.updateCitizen(citizen);
 				that.scnMdl.updateCitizen(citizen);
 				that.editorStateChanged();
 			};
@@ -218,6 +219,12 @@
 			if (hemi.core.client) {
 				hemi.core.client.cleanup();
 			}
+		},
+		
+		createCommonWidgets: function() {
+			this.citizensTree = editor.ui.createCitizensTree();
+			this.triggersTree = editor.ui.createTriggersTree();
+			this.actionsTree = editor.ui.createActionsTree();
 		},
 		
 		layoutDialogs: function() {
@@ -487,7 +494,8 @@
             this.vptMdl = new tools.ViewpointsModel();
             
 			// message handling
-            var msgView = new tools.MessagingView(),
+            var msgView = new tools.MessagingView(this.triggersTree,
+					this.actionsTree, this.citizensTree),
             	msgCtr = new tools.MessagingController();
             this.msgMdl = new tools.MessagingModel();
 			

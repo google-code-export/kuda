@@ -46,6 +46,7 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.ui.validator');
 	o3djs.require('editor.ui.transformHandles');
 	o3djs.require('editor.ui.gridPlane');
+	o3djs.require('editor.ui.trees');
 
     o3djs.require('editor.tools.baseTool');
     o3djs.require('editor.tools.animator');
