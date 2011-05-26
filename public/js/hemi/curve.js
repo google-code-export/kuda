@@ -217,9 +217,10 @@ var hemi = (function(hemi) {
 	 *     life: lifetime of particle system (in seconds)
 	 *     particleCount: number of particles to allocate for system
 	 *     particleShape: enumerator for type of shape to use for particles
+	 *     scales: array of values for particle scale ramp (use this or scaleKeys)
+	 *     scaleKeys: array of time keys and values for particle size ramp
 	 *     // JS particle system only
 	 *     parent: transform to parent the particle system under
-	 *     scaleKeys: array of time keys and values for particle size ramp
 	 *     // GPU particle system only
 	 *     particleSize: size of the particles
 	 *     tension: tension parameter for the curve (typically from -1 to 1)
@@ -776,7 +777,8 @@ var hemi = (function(hemi) {
 			}
 		}
 		
-		var colorKeys = null;
+		var colorKeys = null,
+			scaleKeys = null;
 		
 		if (config.colorKeys) {
 			colorKeys = config.colorKeys;
@@ -793,13 +795,28 @@ var hemi = (function(hemi) {
 				});
 			}
 		}
+		if (config.scaleKeys) {
+			scaleKeys = config.scaleKeys;
+		} else if (config.scales) {
+			var len = config.scales.length,
+				step = len === 1 ? 1 : 1 / (len - 1),
+			
+			scaleKeys = [];
+			
+			for (var i = 0; i < len; i++) {
+				scaleKeys.push({
+					key: i * step,
+					value: config.scales[i]
+				});
+			}
+		}
 		
 		for (i = 0; i < this.maxParticles; i++) {
 			this.particles[i] = new hemi.curve.Particle(
 				this.transform,
 				this.points[i],
 				colorKeys,
-				config.scaleKeys,
+				scaleKeys,
 				config.aim);
 			for (var j = 0; j < this.shapes.length; j++) {
 				this.particles[i].addShape(this.shapes[j]);
@@ -1012,6 +1029,10 @@ var hemi = (function(hemi) {
 		'uniform vec4 ptcColors[NUM_COLORS]; \n' +
 		'uniform float ptcColorKeys[NUM_COLORS]; \n';
 	
+	hemi.curve.vertHeaderScales =
+		'uniform vec3 ptcScales[NUM_SCALES]; \n' +
+		'uniform float ptcScaleKeys[NUM_SCALES]; \n';
+	
 	hemi.curve.vertSupport =
 		'float rand(vec2 co) { \n' +
 		'  return fract(sin(dot(co.xy, vec2(12.9898,78.233))) * 43758.5453); \n' +
@@ -1079,6 +1100,24 @@ var hemi = (function(hemi) {
 		'   0.0,0.0,0.0,1.0); \n' +
 		'} \n';
 	
+	hemi.curve.vertSupportScale =
+		'vec3 getScale(float ptcTime) { \n' +
+		'  if (ptcTime > 1.0) { \n' +
+		'    return vec3(1.0); \n' +
+		'  } else { \n' +
+		'    int ndx; \n' +
+		'    float key; \n' +
+		'    for (int i = 0; i < NUM_SCALES-1; i++) { \n' +
+		'      if (ptcScaleKeys[i] < ptcTime) { \n' +
+		'        ndx = i; \n' +
+		'        key = ptcScaleKeys[i]; \n' +
+		'      } \n' +
+		'    } \n' +
+		'    float t = (ptcTime - key)/(ptcScaleKeys[ndx+1] - key); \n' +
+		'    return mix(ptcScales[ndx], ptcScales[ndx+1], t); \n' +
+		'  } \n' +
+		'} \n';
+	
 	hemi.curve.vertBodySetup =
 		'  float id = TEXCOORD[0]; \n' +
 		'  float offset = TEXCOORD[1]; \n' +
@@ -1110,10 +1149,7 @@ var hemi = (function(hemi) {
 		'    vec3 p2 = randXYZ(seed,minXYZ[ndx+2],maxXYZ[ndx+2]); \n' +
 		'    m1 = (p2-p0)*tension; \n' +
 		'  } \n' +
-		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n';
-	
-	hemi.curve.vertBodyWMAim =
-		'  mat4 rMat = getRotMat(t, p0, p1, m0, m1); \n' +
+		'  vec3 pos = ptcInterp(t, p0, p1, m0, m1); \n' +
 		'  mat4 tMat = mat4(1.0,0.0,0.0,0.0, \n' +
 		'   0.0,1.0,0.0,0.0, \n' +
 		'   0.0,0.0,1.0,0.0, \n' +
@@ -1121,21 +1157,27 @@ var hemi = (function(hemi) {
 		'  mat4 tMatIT = mat4(1.0,0.0,0.0,-1.0*pos.x, \n' +
 		'   0.0,1.0,0.0,-1.0*pos.y, \n' +
 		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
-		'   0.0,0.0,0.0,1.0); \n' +
-		'  mat4 ptcWorld = tMat*rMat; \n' +
-		'  mat4 ptcWorldIT = tMatIT*rMat; \n';
-	
-	hemi.curve.vertBodyWMNoAim =
-		'  mat4 ptcWorld = mat4(1.0,0.0,0.0,0.0, \n' +
-		'   0.0,1.0,0.0,0.0, \n' +
-		'   0.0,0.0,1.0,0.0, \n' +
-		'   pos.x,pos.y,pos.z,1.0); \n' +
-		'  mat4 ptcWorldIT = mat4(1.0,0.0,0.0,-1.0*pos.x, \n' +
-		'   0.0,1.0,0.0,-1.0*pos.y, \n' +
-		'   0.0,0.0,1.0,-1.0*pos.z, \n' +
 		'   0.0,0.0,0.0,1.0); \n';
 	
+	hemi.curve.vertBodyAim =
+		'  mat4 rMat = getRotMat(t, p0, p1, m0, m1); \n';
+	
+	hemi.curve.vertBodyNoAim =
+		'  mat4 rMat = mat4(1.0); \n';
+	
+	hemi.curve.vertBodyScale =
+		'  vec3 scale = getScale(ptcTime); \n' +
+		'  mat4 sMat = mat4(scale.x,0.0,0.0,0.0, \n' +
+		'   0.0,scale.y,0.0,0.0, \n' +
+		'   0.0,0.0,scale.z,0.0, \n' +
+		'   0.0,0.0,0.0,1.0); \n';
+	
+	hemi.curve.vertBodyNoScale =
+		'  mat4 sMat = mat4(1.0); \n';
+	
 	hemi.curve.vertBodyEnd =
+		'  mat4 ptcWorld = tMat*rMat*sMat; \n' +
+		'  mat4 ptcWorldIT = tMatIT*rMat*sMat; \n' +
 		'  mat4 ptcWorldVP = viewProjection * ptcWorld; \n';
 	
 	hemi.curve.fragHeader =
@@ -1167,6 +1209,7 @@ var hemi = (function(hemi) {
 		this.maxTimeParam = null;
 		this.particles = 0;
 		this.ptcShape = 0;
+		this.scales = [];
 		this.size = 0;
 		this.tension = 0;
 		this.texNdx = -1;
@@ -1217,6 +1260,14 @@ var hemi = (function(hemi) {
 				this.setColors(cfg.colors);
 			} else {
 				this.colors = [];
+			}
+			
+			if (cfg.scaleKeys) {
+				this.setScaleKeys(cfg.scaleKeys);
+			} else if (cfg.scales) {
+				this.setScales(cfg.scales);
+			} else {
+				this.scales = [];
 			}
 			
 			this.setMaterial(cfg.material || hemi.curve.newMaterial());
@@ -1465,6 +1516,59 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
+		 * Set the scale ramp for the particles as they travel along the curve.
+		 * 
+		 * @param {number[3][]} scales array of XYZ scale values
+		 */
+		setScales: function(scales) {
+			var len = scales.length,
+				step = len === 1 ? 1 : 1 / (len - 1),
+				scaleKeys = [];
+			
+			for (var i = 0; i < len; i++) {
+				scaleKeys.push({
+					key: i * step,
+					value: scales[i]
+				});
+			}
+			
+			this.setScaleKeys(scaleKeys);
+		},
+		
+		/**
+		 * Set the scale ramp for the particles as they travel along the curve,
+		 * specifying the interpolation times for each scale. Each entry in the
+		 * given array should be of the form:
+		 * {
+		 *   key: number between 0 and 1 indicating time key for scale
+		 *   value: XYZ array indicating the scale value
+		 * }
+		 * 
+		 * @param {Object[]} scaleKeys array of scale key objects, sorted into
+		 *     ascending key order
+		 */
+		setScaleKeys: function(scaleKeys) {
+			if (scaleKeys.length === 1) {
+				// We need at least two to interpolate
+				var scl = scaleKeys[0].value;
+				this.scales = [{
+					key: 0,
+					value: scl
+				}, {
+					key: 1,
+					value: scl
+				}];
+			} else {
+				// Just make sure the keys run from 0 to 1
+				scaleKeys[0].key = 0;
+				scaleKeys[scaleKeys.length - 1].key = 1;
+				this.scales = scaleKeys;
+			}
+			
+			this.setupShaders();
+		},
+		
+		/**
 		 * Set the tension parameter for the curve. This controls how round or
 		 * straight the curve sections are.
 		 * 
@@ -1493,8 +1597,10 @@ var hemi = (function(hemi) {
 				vertSrc = this.materialSrc.vert,
 				numBoxes = this.boxes.length,
 				numColors = this.colors.length,
+				numScales = this.scales.length,
 				texNdx = this.texNdx,
 				addColors = numColors > 1,
+				addScale = numScales > 1,
 				shads = hemi.utils.getShaders(material),
 				fragShd = shads.fragShd,
 				vertShd = shads.vertShd,
@@ -1502,7 +1608,8 @@ var hemi = (function(hemi) {
 				maxTime = 3.0,
 				time = 1.1,
 				uniforms = ['sysTime', 'ptcMaxTime', 'ptcDec', 'numPtcs',
-					'tension', 'minXYZ', 'maxXYZ', 'ptcColors', 'ptcColorKeys'];
+					'tension', 'ptcScales', 'ptcScaleKeys', 'minXYZ', 'maxXYZ',
+					'ptcColors', 'ptcColorKeys'];
 			
 			// Remove any previously existing uniforms that we created
 			for (var i = 0, il = uniforms.length; i < il; i++) {
@@ -1540,9 +1647,17 @@ var hemi = (function(hemi) {
 				
 				if (this.aim) {
 					vertSprt += hemi.curve.vertSupportAim;
-					vertPreBody += hemi.curve.vertBodyWMAim;
+					vertPreBody += hemi.curve.vertBodyAim;
 				} else {
-					vertPreBody += hemi.curve.vertBodyWMNoAim;
+					vertPreBody += hemi.curve.vertBodyNoAim;
+				}
+				
+				if (addScale) {
+					vertHdr += hemi.curve.vertHeaderScales.replace(/NUM_SCALES/g, numScales);
+					vertSprt += hemi.curve.vertSupportScale.replace(/NUM_SCALES/g, numScales);
+					vertPreBody += hemi.curve.vertBodyScale;
+				} else {
+					vertPreBody += hemi.curve.vertBodyNoScale;
 				}
 				
 				vertPreBody += hemi.curve.vertBodyEnd;
@@ -1601,6 +1716,9 @@ var hemi = (function(hemi) {
 			if (addColors) {
 				setupColors(material, this.colors);
 			}
+			if (addScale) {
+				setupScales(material, this.scales);
+			}
 		},
 		
 		/**
@@ -1654,6 +1772,7 @@ var hemi = (function(hemi) {
 					particleCount: this.particles,
 					particleShape: this.ptcShape,
 					particleSize: this.size,
+					scales: this.scales,
 					tension: this.tension
 				}]
 			});
@@ -1879,7 +1998,7 @@ var hemi = (function(hemi) {
 	 * the particles using it.
 	 * 
 	 * @param {o3d.Material} material material to set parameters for
-	 * @param {Object} colors array of RGBA color values
+	 * @param {Object[]} colors array of RGBA color values and keys
 	 */
 	var setupColors = function(material, colors) {
 		var clrParam = material.getParam('ptcColors'),
@@ -1896,6 +2015,31 @@ var hemi = (function(hemi) {
 		}
 		
 		clrParam.value = clrArr;
+		keyParam.value = keyArr;
+	};
+	
+	/*
+	 * Set the parameters for the given Material so that it adds a scale ramp to
+	 * the particles using it.
+	 * 
+	 * @param {o3d.Material} material material to set parameters for
+	 * @param {Object[]} scales array of XYZ scale values and keys
+	 */
+	var setupScales = function(material, scales) {
+		var sclParam = material.getParam('ptcScales'),
+			keyParam = material.getParam('ptcScaleKeys'),
+			sclArr = hemi.curve.pack.createObject('ParamArray'),
+			keyArr = hemi.curve.pack.createObject('ParamArray');
+		
+		sclArr.resize(scales.length, 'ParamFloat3');
+		keyArr.resize(scales.length, 'ParamFloat');
+		
+		for (var i = 0, il = scales.length; i < il; ++i) {
+			sclArr.getParam(i).value = scales[i].value;
+			keyArr.getParam(i).value = scales[i].key;
+		}
+		
+		sclParam.value = sclArr;
 		keyParam.value = keyArr;
 	};
 	
