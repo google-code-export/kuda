@@ -508,7 +508,6 @@ var hemi = (function(hemi) {
 		this.lt = [];
 		this.matrices = [];
 		this.setColors(colorKeys);
-		this.setScales(scaleKeys);
 		
 		for (var i = this.frame; i <= this.lastFrame; i++) {
 			var L = m4.translation(points[i]);
@@ -518,8 +517,8 @@ var hemi = (function(hemi) {
 			}
 			
 			this.lt[i] = L;
-			this.matrices[i] = m4.scale(hemi.utils.copyArray(L), this.scales[i]);
 		}
+		this.setScales(scaleKeys);
 		this.ready = true;
 		this.active = false;
 	};
