@@ -22,246 +22,39 @@ var editor = (function(module) {
 	
     module.EventTypes = module.EventTypes || {};
 	
-	// model specific
-	module.EventTypes.SceneAdded = "scenes.SceneAdded";
-	module.EventTypes.SceneRemoved = "scenes.SceneRemoved";
-	module.EventTypes.SceneUpdated = "scenes.SceneUpdated";
-	module.EventTypes.ScnCitizenAdded = "scenes.ScnCitizenAdded";
-	module.EventTypes.ScnCitizenRemoved = "scenes.ScnCitizenRemoved";
-	module.EventTypes.ScnCitizenUpdated = "scenes.ScnCitizenUpdated";
-	module.EventTypes.ScnEventCreated = "scenes.ScnEventCreated";
-	
-	// scene list widget specific
-    module.EventTypes.AddScene = "scenes.AddScene";
-	module.EventTypes.EditScene = "scenes.SelectScene";
-    module.EventTypes.UpdateScene = "scenes.UpdateScene";
-    module.EventTypes.RemoveScene = "scenes.RemoveScene";
-    module.EventTypes.ReorderScene = "scenes.ReorderScene";
-	
-	// scene list item widget specific
-	module.EventTypes.EditSceneEvent = "scenes.EditSceneEvent";
-	module.EventTypes.RemoveSceneEvent = "scenes.RemoveSceneEvent";
-	module.EventTypes.AddLoadEvent = "scenes.AddLoadEvent";
-	module.EventTypes.AddUnLoadEvent = "scenes.AddUnLoadEvent";		
-	
-	// scene event editor widget specific
-	module.EventTypes.CancelScnEvtEdit = "scenes.CancelScnEvtEdit";
-	module.EventTypes.SaveSceneEvent = "scenes.SaveSceneEvent";
+	module.EventTypes.Scenes = {
+		// model specific
+		SceneAdded: "scenes.SceneAdded",
+		SceneRemoved: "scenes.SceneRemoved",
+		SceneUpdated: "scenes.SceneUpdated",
+		ScnCitizenAdded: "scenes.ScnCitizenAdded",
+		ScnCitizenRemoved: "scenes.ScnCitizenRemoved",
+		ScnCitizenUpdated: "scenes.ScnCitizenUpdated",
+		ScnEventCreated: "scenes.ScnEventCreated",
+		
+		// scene list widget specific
+	    AddScene: "scenes.AddScene",
+		EditScene: "scenes.SelectScene",
+	    UpdateScene: "scenes.UpdateScene",
+	    RemoveScene: "scenes.RemoveScene",
+	    ReorderScene: "scenes.ReorderScene",
+		
+		// scene list item widget specific
+		EditSceneEvent: "scenes.EditSceneEvent",
+		RemoveSceneEvent: "scenes.RemoveSceneEvent",
+		AddLoadEvent: "scenes.AddLoadEvent",
+		AddUnLoadEvent: "scenes.AddUnLoadEvent",		
+		
+		// scene event editor widget specific
+		CancelScnEvtEdit: "scenes.CancelScnEvtEdit",
+		SaveSceneEvent: "scenes.SaveSceneEvent"
+	};
+    	
+	var CITIZEN_WRAPPER = '#scnEvtCitizensPnl';
     
 ////////////////////////////////////////////////////////////////////////////////
 //                             Helper Methods                                 //
 ////////////////////////////////////////////////////////////////////////////////
-	
-	var CAUSE_PREFIX = 'scnCa_',
-		CAUSE_WRAPPER = '#causeTreeWrapper',
-		EFFECT_PREFIX = 'scnEf_',
-		EFFECT_WRAPPER = '#effectTreeWrapper',
-		CITIZEN_PREFIX = 'scnCi_',
-		CITIZEN_WRAPPER = '#scnEvtCitizensPnl',
-		MSG_WILDCARD = 'Any';
-		
-	var methodsToRemove = [
-        'constructor',
-		'getId',
-		'setId',
-		'getCitizenType',
-		'setCitizenType',
-		'toOctane'
-	];
-	
-	var commonMethods = {
-		'hemi.animation.Animation': ['reset', 'start', 'stop'],
-		'hemi.audio.Audio': ['pause', 'play', 'seek', 'setVolume'],
-		'hemi.effect.Burst': ['trigger'],
-		'hemi.effect.Emitter': ['hide', 'show'],
-		'hemi.effect.Trail': ['start', 'stop'],
-		'hemi.hud.HudDisplay': ['hide', 'nextPage', 'previousPage', 'show'],
-		'hemi.hud.Theme': ['load'],
-		'hemi.manip.Draggable': ['disable', 'enable'],
-		'hemi.manip.Scalable': ['disable', 'enable'],
-		'hemi.manip.Turnable': ['disable', 'enable'],
-		'hemi.model.Model': ['load', 'unload'],
-		'hemi.motion.Rotator': ['disable', 'enable', 'setAccel', 'setAngle',
-			'setVel'],
-		'hemi.motion.Translator': ['disable', 'enable', 'setAccel', 'setPos',
-			'setVel'],
-		'hemi.scene.Scene': ['load', 'nextScene', 'previousScene', 'unload'],
-		'hemi.view.Camera': ['disableControl', 'enableControl', 'moveToView',
-			'orbit', 'rotate', 'setLight', 'truck']
-	};
-	
-	var isCommon = function(citizen, method) {
-		var type = citizen.getCitizenType ? citizen.getCitizenType() : citizen.name,
-			methList = commonMethods[type],
-			common = false;
-		
-		if (citizen.parent != null) {
-			common = isCommon(citizen.parent, method);
-		}
-		
-		if (!common && methList != null) {
-			common = methList.indexOf(method) !== -1;
-		}
-		
-		return common;
-	};
-	
-	var createCitizenJson = function(citizen, prefix) {
-		var name = getNodeName(citizen, {
-			option: null,
-			prefix: prefix,
-			id: citizen.getId()
-		});
-		
-		var node = {
-			data: citizen.name,
-			attr: {
-				id: name,
-				rel: 'citizen'
-			},
-			metadata: {
-				type: 'citizen',
-				citizen: citizen
-			}
-		};
-		
-		return node;
-	};
-	
-	var createCitizenTypeJson = function(citizen, prefix) {
-		var type = citizen.getCitizenType().split('.').pop(),
-			name = getNodeName(citizen, {
-				option: null,
-				prefix: prefix
-			});
-		
-		var node = {
-			data: type,
-			attr: {
-				id: name,
-				rel: 'citType'
-			},
-			state: 'closed',
-			children: [],
-			metadata: {
-				type: 'citType'
-			}
-		};
-		
-		return node;
-	};
-	
-	var createEffectJson = function(citizen) {
-		var methods = [],
-			moreMethods = [],
-			id = citizen.getId();
-		
-		for (propName in citizen) {
-			var prop = citizen[propName];
-			
-			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
-				var name = getNodeName(citizen, {
-						option: propName,
-						prefix: EFFECT_PREFIX,
-						id: id
-					}),
-					node = {
-						data: propName,
-						attr: {
-							id: name,
-							rel: 'method'
-						},
-						metadata: {
-							type: 'method',
-							parent: citizen
-						}
-					};
-				
-				if (isCommon(citizen, propName)) {
-					methods.push(node);
-				} else {
-					moreMethods.push(node);
-				}
-			}
-		}
-		
-		if (methods.length > 0) {
-			var moreName = getNodeName(citizen, {
-					option: null,
-					prefix: EFFECT_PREFIX,
-					id: id
-				}) + '_MORE';
-			var moreNode = {
-				data: 'More...',
-				attr: {
-					id: moreName,
-				rel: 'other'
-				},
-				state: 'closed',
-				children: moreMethods,
-				metadata: {
-					type: 'citType'
-				}
-			};
-			methods.push(moreNode);
-		} else {
-			methods = moreMethods;
-		}
-		
-		var node = createCitizenJson(citizen, EFFECT_PREFIX);
-		node.children = methods;
-		node.state = 'closed';
-		return node;
-	};
-	
-	var createModuleJson = function(module) {
-		var methods = [];
-		
-		for (propName in module) {
-			var prop = module[propName];
-			
-			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
-				var name = getNodeName(module, {
-					option: propName,
-					prefix: EFFECT_PREFIX,
-					id: module.getId()
-				});
-				
-				methods.push({
-					data: propName,
-					attr: {
-						id: name,
-						rel: 'method'
-					},
-					metadata: {
-						type: 'method',
-						parent: module
-					}
-				});
-			}
-		}
-		
-		var name = getNodeName(module, {
-			prefix: EFFECT_PREFIX,
-			id: module.getId()
-		});
-		
-		var node = {
-			data: module.name,
-			attr: {
-				id: name,
-				rel: 'citType'
-			},
-			metadata: {
-				type: 'citType',
-				citizen: module
-			}
-		};
-		
-		node.children = methods;
-		node.state = 'closed';
-		return node;
-	};
 	
 	/**
 	 * Returns the list of parameters for a function
@@ -269,29 +62,6 @@ var editor = (function(module) {
 	var getFunctionParams = function(func) {
 		return func.toString().match(/\((.*?)\)/)[1].match(/[\w]+/g) || [];
     };
-	
-	var getNodeName = function(citizen, config) {
-		var nodeName = config.prefix;
-		
-		if (citizen === null) {
-			return null;
-		} else if (citizen === MSG_WILDCARD) {
-			nodeName += citizen;
-		} else if (citizen.getCitizenType !== undefined) {
-			nodeName += citizen.getCitizenType().split('.').pop();
-		} else if (citizen.name) {
-			nodeName += citizen.name;
-		}
-		
-		if (config.id != null) {
-			nodeName += '_' + config.id;
-		}
-		if (config.option != null) {
-			nodeName += '_' + config.option;
-		}
-		
-		return nodeName.replace(' ', '_').replace('.', '_');
-	};
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -313,35 +83,6 @@ var editor = (function(module) {
 			// TODO: share the dispatch proxy with messaging
 			this.dispatchProxy = new module.tools.DispatchProxy();
 	    },
-		
-		addCitizen: function(citizen) {
-			if (citizen instanceof hemi.handlers.ValueCheck) {
-				return;
-			}
-			
-			var type = citizen.getCitizenType().split('.').pop(),
-				citizens = this.citizenTypes.get(type),
-				createType = citizens === null,
-				add = createType;
-			
-			if (createType) {
-				this.citizenTypes.put(type, [citizen]);
-			} else {
-				add = citizens.indexOf(citizen) === -1;
-				
-				if (add) {
-					citizens.push(citizen);
-					this.citizenTypes.put(type, citizens);
-				}
-			}
-			
-			if (add) {
-				this.notifyListeners(module.EventTypes.ScnCitizenAdded, {
-					citizen: citizen,
-					createType: createType
-				});
-			}
-		},
 	    
 	    addScene: function(sceneName) {
 			var scene = new hemi.scene.Scene();
@@ -352,34 +93,8 @@ var editor = (function(module) {
 				scene.prev = this.lastScene;
 			}
 			this.lastScene = scene;
-			this.notifyListeners(module.EventTypes.SceneAdded, scene);
+			this.notifyListeners(module.EventTypes.Scenes.SceneAdded, scene);
 	    },
-		
-		removeCitizen: function(citizen) {
-			var type = citizen.getCitizenType().split('.').pop(),
-				citizens = this.citizenTypes.get(type),
-				removeType = citizens !== null && citizens.length === 1,
-				remove = removeType;
-			
-			if (removeType) {
-				this.citizenTypes.remove(type);
-			} else if (citizens !== null) {
-				var ndx = citizens.indexOf(citizen);
-				
-				if (ndx !== -1) {
-					remove = true;
-					citizens.splice(ndx, 1);
-					this.citizenTypes.put(type, citizens);
-				}
-			}
-			
-			if (remove) {
-				this.notifyListeners(module.EventTypes.ScnCitizenRemoved, {
-					citizen: citizen,
-					removeType: removeType
-				});
-			}
-		},
 	    
 	    removeScene: function(scene) {
 			if (this.lastScene === scene) {
@@ -387,7 +102,7 @@ var editor = (function(module) {
 			}
 			
 			scene.cleanup();
-			this.notifyListeners(module.EventTypes.SceneRemoved, scene);
+			this.notifyListeners(module.EventTypes.Scenes.SceneRemoved, scene);
 	    },
 		
 		reorderScenes: function(scene, previous, next) {
@@ -415,13 +130,9 @@ var editor = (function(module) {
 			this.editScene = scene;
 		},
 		
-		updateCitizen: function(citizen) {
-			this.notifyListeners(module.EventTypes.ScnCitizenUpdated, citizen);
-		},
-		
 		updateScene: function(sceneName) {
 			this.editScene.name = sceneName;
-			this.notifyListeners(module.EventTypes.SceneUpdated, this.editScene);
+			this.notifyListeners(module.EventTypes.Scenes.SceneUpdated, this.editScene);
 			this.editScene = null;
 		},
 	    
@@ -430,17 +141,8 @@ var editor = (function(module) {
 	    },
 		    
 	    worldLoaded: function() {
-			var citizens = hemi.world.getCitizens(),
-				scenes = hemi.world.getScenes(),
+			var scenes = hemi.world.getScenes(),
 				nextScene = null;
-			
-			for (var ndx = 0, len = citizens.length; ndx < len; ndx++) {
-				var citizen = citizens[ndx];
-				
-				if (citizen.name.match(module.tools.ToolConstants.EDITOR_PREFIX) === null) {
-					this.addCitizen(citizen);
-				}
-			}
 			
 			for (var ndx = 0, len = scenes.length; ndx < len; ndx++) {
 				var scene = scenes[ndx];
@@ -455,13 +157,13 @@ var editor = (function(module) {
 			}
 			
 			while (nextScene !== null) {
-				this.notifyListeners(module.EventTypes.SceneAdded, nextScene);
+				this.notifyListeners(module.EventTypes.Scenes.SceneAdded, nextScene);
 				var target = hemi.dispatch.getTargets({
 							src: nextScene
 						}),
 					spec = hemi.dispatch.getSpec(target);
 					
-				this.notifyListeners(module.EventTypes.ScnEventCreated, {
+				this.notifyListeners(module.EventTypes.Scenes.ScnEventCreated, {
 					scene: nextScene,
 					type: spec.msg,
 					msgTarget: target
@@ -518,7 +220,7 @@ var editor = (function(module) {
 					scn = wgt.getAttachedObject(),
 					typ = wgt.events.get(evt.dispatchId).type;
 				
-				wgt.notifyListeners(module.EventTypes.EditSceneEvent, {
+				wgt.notifyListeners(module.EventTypes.Scenes.EditSceneEvent, {
 					scene: scn,
 					event: evt,
 					type: typ
@@ -527,7 +229,7 @@ var editor = (function(module) {
 			
 			li.removeBtn.bind('click', function(evt) {
 				var evt = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.RemoveSceneEvent, evt);
+				wgt.notifyListeners(module.EventTypes.Scenes.RemoveSceneEvent, evt);
 			});
 		},
 		
@@ -553,11 +255,11 @@ var editor = (function(module) {
 			this.unloadAdd = this.createAddBtnLi();
 			
 			this.loadAdd.addBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.AddLoadEvent, 
+				wgt.notifyListeners(module.EventTypes.Scenes.AddLoadEvent, 
 					wgt.getAttachedObject());
 			});
 			this.unloadAdd.addBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.AddUnLoadEvent, 
+				wgt.notifyListeners(module.EventTypes.Scenes.AddUnLoadEvent, 
 					wgt.getAttachedObject());
 			});
 			
@@ -667,14 +369,14 @@ var editor = (function(module) {
 				var scn = li.getAttachedObject();
 				
 				wgt.nameInput.val(scn.name).width(SAVE_WIDTH);
-				wgt.notifyListeners(module.EventTypes.EditScene, scn);
+				wgt.notifyListeners(module.EventTypes.Scenes.EditScene, scn);
 				wgt.addBtn.text(SAVE_TXT).data('isEditing', true)
 					.data('scene', scn).removeAttr('disabled');
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var scn = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.RemoveScene, scn);
+				wgt.notifyListeners(module.EventTypes.Scenes.RemoveScene, scn);
 				
 				if (wgt.addBtn.data('scene') === scn) {
 					wgt.addBtn.text(ADD_TXT).data('isEditing', false)
@@ -698,7 +400,7 @@ var editor = (function(module) {
 					prev = elem.prev().data('obj'),
 					next = elem.next().data('obj');
 				
-				wgt.notifyListeners(module.EventTypes.ReorderScene, {
+				wgt.notifyListeners(module.EventTypes.Scenes.ReorderScene, {
 					scene: scene,
 					prev: prev ? prev : null,
 					next: next ? next : null
@@ -745,8 +447,8 @@ var editor = (function(module) {
 				var btn = jQuery(this),
 					name = wgt.nameInput.val(),
 					isEditing = btn.data('isEditing'),
-					msgType = isEditing ? module.EventTypes.UpdateScene 
-						: module.EventTypes.AddScene,
+					msgType = isEditing ? module.EventTypes.Scenes.UpdateScene 
+						: module.EventTypes.Scenes.AddScene,
 					data = isEditing ? {
 						scene: btn.data('scene'),
 						name: name
@@ -794,58 +496,23 @@ var editor = (function(module) {
 	module.tools.ScnEvtEdtSBWidget = module.ui.SidebarWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-				module.tools.ScnEvtEdtSBWidgetDefaults, options);
+					module.tools.ScnEvtEdtSBWidgetDefaults, options),
+				wgt = this;
+				
+			this.actionsTree = module.ui.createActionsTree(true);
+			this.citizensTree = module.ui.createCitizensTree();
+			
+			this.citizensTree.addListener(module.EventTypes.Trees.TreeCreated, 
+				function(treeUI) {
+					var citizenWrapper = wgt.find(CITIZEN_WRAPPER);				
+					citizenWrapper.append(treeUI);
+				});
+			
 		    this._super(newOpts);
 		},
 		
-		addCitizen: function(citizen, createType) {
-			if (createType) {
-				this.addCitizenType(citizen);
-			}
-			
-			var citizenNode = createCitizenJson(citizen, CITIZEN_PREFIX),
-				type = citizen.getCitizenType().split('.').pop();
-				
-			this.citizenTree.jstree('create_node', '#' + CITIZEN_PREFIX + type, 'inside', {
-				json_data: citizenNode
-			});
-		},
-		
-		addCitizenType: function(citizen) {
-			var json = createCitizenTypeJson(citizen, CITIZEN_PREFIX);
-			
-			if (this.citizenTree == null) {
-				this.createCitizenTree([json]);
-			} else {
-				this.citizenTree.jstree('create_node', -1, 'last', {
-					json_data: json
-				});
-			}
-		},
-		
-		addEffect: function(citizen, createType) {
-			if (createType) {
-				this.addEffectType(citizen);
-			}
-			
-			var effectNode = createEffectJson(citizen),
-				type = citizen.getCitizenType().split('.').pop();
-				
-			this.effectChooser.tree.jstree('create_node', '#' + EFFECT_PREFIX + type, 'inside', {
-				json_data: effectNode
-			});
-		},
-		
-		addEffectType: function(citizen) {
-			var json = createCitizenTypeJson(citizen, EFFECT_PREFIX);
-			
-			this.effectChooser.tree.jstree('create_node', -1, 'last', {
-				json_data: json
-			});
-		},
-		
 		canSave: function() {
-			var isSaveable = this.effectChooser.getSelection()  != null 
+			var isSaveable = this.actionChooser.getSelection()  != null 
 				&& this.name.val() !== '';
 				
 			if (isSaveable) {
@@ -854,72 +521,6 @@ var editor = (function(module) {
 			else {
 				this.saveBtn.attr('disabled', 'disabled');
 			}
-		},
-		
-		createCitizenTree: function(json) {
-			var that = this,
-				citizenWrapper = this.find(CITIZEN_WRAPPER);
-				
-			this.citizenTree = jQuery('<div id="scnEvtCitizensTree"></div>');
-			citizenWrapper.append(this.citizenTree);
-			
-			this.citizenTree.bind('select_node.jstree', function(evt, data) {
-				var elem = data.rslt.obj,
-					metadata = elem.data('jstree'),
-					paramIn = that.currentParamIn,
-					citParam;
-					
-				if (metadata.type === 'citizen') {
-					citParam = hemi.dispatch.ID_ARG + metadata.citizen.getId();
-					jQuery(this).parent().hide(200);
-					that.citizenTree.jstree('close_all').jstree('deselect_all');
-					that.currentParamIn = null;
-				} else if (metadata.type === 'citType') {
-					citParam = '';
-					that.citizenTree.jstree('toggle_node', elem);
-				}
-				
-				if (paramIn !== null) {
-					paramIn.val(citParam);
-					
-					that.notifyListeners(module.EventTypes.SetArgument, {
-						name: paramIn.data('paramName'),
-						value: citParam
-					});
-				}
-			})
-			.jstree({
-				'json_data': {
-					'data': json
-				},
-				'types': {
-					'types': {
-						'citizen': {
-							'icon': {
-								'image': 'images/treeSprite.png',
-								'position': '-48px 0'
-							}
-						},
-						'citType': {
-							'icon': {
-								'image': 'images/treeSprite.png',
-								'position': '-64px 0'
-							}
-						}
-					}
-				},
-				'themes': {
-					'dots': false
-				},
-				'ui': {
-					'select_limit': 1,
-					'selected_parent_close': 'false'
-				},
-				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
-			});
-			
-			citizenWrapper.css('position', 'absolute').data('curElem', null)
-				.hide();
 		},
 		
 		fillParams: function(args, vals) {
@@ -934,7 +535,7 @@ var editor = (function(module) {
 					if (citTreePnl.is(':visible') && oldElem 
 							&& elem[0] === oldElem[0]) {
 						citTreePnl.hide(200).data('curElem', null);
-						wgt.currentParamIn = null;
+						wgt.citizensTree.currentParamIpt = null;
 						
 						jQuery(document).unbind('click.scnEvtCitTree');
 						citTreePnl.data('docBound', false);
@@ -962,7 +563,7 @@ var editor = (function(module) {
 							citTreePnl.data('docBound', true);
 						}
 						
-						wgt.currentParamIn = btn.data('paramIn');
+						wgt.citizensTree.currentParamIpt = btn.data('paramIn');
 					}
 				};
 			
@@ -987,7 +588,8 @@ var editor = (function(module) {
 	            this.list.append(li);
 	            li.append(lb).append(ip).append(cb);
 				
-	            var windowHeight = window.innerHeight ? window.innerHeight : document.documentElement.offsetHeight,
+	            var windowHeight = window.innerHeight ? window.innerHeight 
+						: document.documentElement.offsetHeight,
 					position = li.offset(),
 					height = windowHeight - position.top;			
 				
@@ -1022,35 +624,14 @@ var editor = (function(module) {
 			
 			this.paramsSet.hide();
 			
-			this.effectChooser = new module.ui.TreeSelector({
+			this.actionChooser = new module.ui.TreeSelector({
 				buttonId: 'scnEvtTreeSelector',
 				containerClass: 'scnEvtEffectDiv',
-				types: {
-					'method': {
-						'icon': {
-							'image': 'images/treeSprite.png',
-							'position': '-80px 0'
-						}
-					},
-					'citizen': {
-						'icon': {
-							'image': 'images/treeSprite.png',
-							'position': '-48px 0'
-						}
-					},
-					'citType': {
-						'icon': {
-							'image': 'images/treeSprite.png',
-							'position': '-64px 0'
-						}
-					},
-					'other': {}
-				},
-				json: {},
+				tree: this.actionsTree,
 				select: function(data, selector) {
 					var elem = data.rslt.obj,
 						metadata = elem.data('jstree'),
-						path = wgt.effectChooser.tree.jstree('get_path', elem);
+						path = wgt.actionChooser.tree.jstree('get_path', elem);
 					
 					if (metadata.type === 'citType' 
 							|| metadata.type === 'citizen') {
@@ -1074,28 +655,32 @@ var editor = (function(module) {
 				}
 			});
 			
-			container.append(this.effectChooser.getUI());
+			container.append(this.actionChooser.getUI());
 			
 			this.find('form').submit(function() { return false; });
 			
 			this.cancelBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.CancelScnEvtEdit, null);
+				wgt.notifyListeners(module.EventTypes.Scenes.CancelScnEvtEdit, null);
 			});
 			
 			this.saveBtn.bind('click', function(evt) {
-				var selVal = wgt.effectChooser.getSelection(),
+				var selVal = wgt.actionChooser.getSelection(),
 					saveObj = jQuery.extend(selVal, {
 						args: wgt.getArgs(),
 						type: wgt.type,
 						name: wgt.name.val(),
 						scene: wgt.scene
 					});
-				wgt.notifyListeners(module.EventTypes.SaveSceneEvent, saveObj);
+				wgt.notifyListeners(module.EventTypes.Scenes.SaveSceneEvent, saveObj);
 			});
 			
 			this.name.bind('keyup', function(evt) {
 				wgt.canSave();
 			});
+			
+			var citizenWrapper = this.find(CITIZEN_WRAPPER);			
+			citizenWrapper.css('position', 'absolute').data('curElem', null)
+				.hide();
 		},		
 		
 		getArgs: function() {
@@ -1119,62 +704,12 @@ var editor = (function(module) {
 			return args;
 		},
 		
-		removeCitizen: function(citizen, removeType) {
-			var nodeName = getNodeName(citizen, {
-				option: null,
-				prefix: CITIZEN_PREFIX,
-				id: citizen.getId()
-			});
-			
-			var node = jQuery('#' + nodeName);
-			this.citizenTree.jstree('delete_node', node);
-			
-			if (removeType) {
-				this.removeCitizenType(citizen);
-			}
-		},
-		
-		removeCitizenType: function(citizen) {
-			var nodeName = getNodeName(citizen, {
-				option: null,
-				prefix: CITIZEN_PREFIX
-			});
-			
-			var node = jQuery('#' + nodeName);
-			this.citizenTree.jstree('delete_node', node);
-		},
-		
-		removeEffect: function(citizen, removeType) {
-			var nodeName = getNodeName(citizen, {
-				option: null,
-				prefix: EFFECT_PREFIX,
-				id: citizen.getId()
-			});
-			
-			var node = jQuery('#' + nodeName);
-			this.effectChooser.tree.jstree('delete_node', node);
-			
-			if (removeType) {
-				this.removeEffectType(citizen);
-			}
-		},
-		
-		removeEffectType: function(citizen) {
-			var nodeName = getNodeName(citizen, {
-				option: null,
-				prefix: EFFECT_PREFIX
-			});
-			
-			var node = jQuery('#' + nodeName);
-			this.effectChooser.tree.jstree('delete_node', node);
-		},
-		
 		reset: function() {
 			this.scene = null;
 			this.type = null;
 			this.name.val('');
 			this.curArgs = [];
-			this.effectChooser.reset();
+			this.actionChooser.reset();
 			this.list.empty();
 			this.paramsSet.hide();
 			this.saveBtn.attr('disabled', 'disabled');
@@ -1191,7 +726,7 @@ var editor = (function(module) {
 					id: target.handler.getId()
 				});
 				
-				this.effectChooser.select(node);
+				this.actionChooser.select(node);
 				
 				for (var ndx = 0, len = target.args.length; ndx < len; ndx++) {
 					this.curArgs[ndx].val(target.args[ndx]);
@@ -1201,26 +736,10 @@ var editor = (function(module) {
 			}
 		},
 		
-		updateCitizen: function(citizen) {
-			var nodeName = getNodeName(citizen, {
-					option: null,
-					prefix: CITIZEN_PREFIX,
-					id: citizen.getId()
-				}),
-				node = jQuery('#' + nodeName);
-			
-			this.citizenTree.jstree('rename_node', node, citizen.name);
-		},
-		
-		updateEffect: function(citizen) {
-			var nodeName = getNodeName(citizen, {
-					option: null,
-					prefix: EFFECT_PREFIX,
-					id: citizen.getId()
-				}),
-				node = jQuery('#' + nodeName);
-			
-			this.effectChooser.tree.jstree('rename_node', node, citizen.name);
+		setArgument: function(argName, argValue) {
+			var id = '#scnEvtParam_' + argName,
+				input = this.mainPanel.find(id);
+			input.val(argValue);
 		},
 		
 		validate: function() {	
@@ -1279,7 +798,7 @@ var editor = (function(module) {
 				edtWgt = view.scnEvtEdtSBWidget,
 	        	that = this,
 				addSceneListeners = function(scnWgt) {
-					scnWgt.addListener(module.EventTypes.AddLoadEvent, 
+					scnWgt.addListener(module.EventTypes.Scenes.AddLoadEvent, 
 						function(scn) {
 							// show the editor
 							edtWgt.setVisible(true);
@@ -1287,7 +806,7 @@ var editor = (function(module) {
 							// hide the scene list
 							scnLst.setVisible(false);
 						});
-					scnWgt.addListener(module.EventTypes.AddUnLoadEvent, 
+					scnWgt.addListener(module.EventTypes.Scenes.AddUnLoadEvent, 
 						function(scn) {
 							// show the editor
 							edtWgt.setVisible(true);
@@ -1295,7 +814,7 @@ var editor = (function(module) {
 							// hide the scene list
 							scnLst.setVisible(false);
 						});
-					scnWgt.addListener(module.EventTypes.EditSceneEvent, 
+					scnWgt.addListener(module.EventTypes.Scenes.EditSceneEvent, 
 						function(scnEvt) {
 							// show the editor
 							edtWgt.setVisible(true);
@@ -1307,7 +826,7 @@ var editor = (function(module) {
 							// hide the scene list
 							scnLst.setVisible(false);
 						});
-					scnWgt.addListener(module.EventTypes.RemoveSceneEvent, 
+					scnWgt.addListener(module.EventTypes.Scenes.RemoveSceneEvent, 
 						function(scnEvt) {
 							// let the model know
 							msgMdl.removeTarget(scnEvt);
@@ -1320,13 +839,13 @@ var editor = (function(module) {
 	        });
 	        			
 			// scene list widget specific
-			scnLst.addListener(module.EventTypes.AddScene, function(sceneName) {
+			scnLst.addListener(module.EventTypes.Scenes.AddScene, function(sceneName) {
 				model.addScene(sceneName);
 			});			
-			scnLst.addListener(module.EventTypes.EditScene, function(scene) {
+			scnLst.addListener(module.EventTypes.Scenes.EditScene, function(scene) {
 				model.setScene(scene);
 			});			
-			scnLst.addListener(module.EventTypes.RemoveScene, function(scene) {
+			scnLst.addListener(module.EventTypes.Scenes.RemoveScene, function(scene) {
 				// get the scene's events
 				var targets = msgMdl.dispatchProxy.getTargets(scene.getId());
 				
@@ -1335,22 +854,22 @@ var editor = (function(module) {
 				}
 				model.removeScene(scene);
 			});			
-			scnLst.addListener(module.EventTypes.ReorderScene, function(scnObj) {
+			scnLst.addListener(module.EventTypes.Scenes.ReorderScene, function(scnObj) {
 				model.reorderScenes(scnObj.scene, scnObj.prev, scnObj.next);
 			});			
-			scnLst.addListener(module.EventTypes.UpdateScene, function(scnObj) {
+			scnLst.addListener(module.EventTypes.Scenes.UpdateScene, function(scnObj) {
 				model.updateScene(scnObj.name);
 				model.setScene(null);
 			});
 			
 			// edit widget specific
-			edtWgt.addListener(module.EventTypes.CancelScnEvtEdit, function() {
+			edtWgt.addListener(module.EventTypes.Scenes.CancelScnEvtEdit, function() {
 				msgMdl.msgTarget = null;
 				edtWgt.reset();
 				edtWgt.setVisible(false);
 				scnLst.setVisible(true);
 			});
-			edtWgt.addListener(module.EventTypes.SaveSceneEvent, function(saveObj) {
+			edtWgt.addListener(module.EventTypes.Scenes.SaveSceneEvent, function(saveObj) {
 				var args = saveObj.args || [];
 				
 				msgMdl.setMessageSource(saveObj.scene);
@@ -1367,30 +886,25 @@ var editor = (function(module) {
 				msgMdl.save(saveObj.name);
 			});
 			
+			// edit widget trees specific
+			edtWgt.actionsTree.addListener(module.EventTypes.Trees.SelectAction, 
+				function(data){
+					model.setMessageHandler(data.citizen);
+					model.setMethod(data.method);
+				});	
+			
 			// model specific
-			model.addListener(module.EventTypes.SceneAdded, function(scene) {
+			model.addListener(module.EventTypes.Scenes.SceneAdded, function(scene) {
 				var li = scnLst.add(scene);
 				addSceneListeners(li);
 			});		
-			model.addListener(module.EventTypes.SceneUpdated, function(scene) {
+			model.addListener(module.EventTypes.Scenes.SceneUpdated, function(scene) {
 				scnLst.update(scene);
 			});		
-			model.addListener(module.EventTypes.SceneRemoved, function(scene) {
+			model.addListener(module.EventTypes.Scenes.SceneRemoved, function(scene) {
 				model.editScene = null;
 				scnLst.remove(scene);
-			});		
-			model.addListener(module.EventTypes.ScnCitizenAdded, function(citData) {
-				edtWgt.addEffect(citData.citizen, citData.createType);
-				edtWgt.addCitizen(citData.citizen, citData.createType);
-			});		
-			model.addListener(module.EventTypes.ScnCitizenRemoved, function(citData) {
-				edtWgt.removeEffect(citData.citizen, citData.removeType);
-				edtWgt.removeCitizen(citData.citizen, citData.removeType);
-			});			
-			model.addListener(module.EventTypes.ScnCitizenUpdated, function(citizen) {
-				edtWgt.updateEffect(citizen);
-				edtWgt.updateCitizen(citizen);
-			});				
+			});					
 			model.addListener(module.EventTypes.WorldCleaned, function() {
 				scnLst.clear();
 			});
