@@ -28,6 +28,7 @@ var editor = (function(module) {
 	module.ui.TreeSelectorDefaults = {
 		containerClass: '',
 		panelHeight: 400,
+		tree: null,
 		types: {},
 		json: {},
 		select: null
@@ -88,19 +89,8 @@ var editor = (function(module) {
 			this.input = jQuery('<input type="text" id="' + this.inputId + ' "class="treeSelectorIpt" readonly="readonly" />');
 			this.picker = jQuery('<button id="' + this.buttonId + '" class="treeSelectorBtn">Selector</button>');
 			this.panel = jQuery('<div id="' + this.panelId + '" class="treeSelectorPnl"></div>');
-			this.tree = jQuery('<div></div>');
 			
-			this.container.addClass(this.config.containerClass);
-			
-			jQuery('body').append(this.panel);
-			this.container.append(this.input).append(this.picker);
-			this.panel.css({
-				maxHeight: this.config.panelHeight,
-				position: 'absolute'
-			}).append(this.tree).hide();
-			
-			// setup the tree
-			this.tree.bind('select_node.jstree', function(evt, data) {	
+			var selFcn = function(evt, data){
 				if (wgt.config.select) {
 					if (wgt.config.select(data, wgt)) {
 						wgt.picker.removeClass('selected');
@@ -108,31 +98,55 @@ var editor = (function(module) {
 					}
 				}
 				else {
-					var elem = data.rslt.obj,					 
-						val = elem.find('a').text();	
+					var elem = data.rslt.obj, val = elem.find('a').text();
 					
-					wgt.input.val(val);	
+					wgt.input.val(val);
 					wgt.hidePanel();
 					wgt.picker.removeClass('selected');
 					wgt.setSelection(val);
 				}
-			})
-			.jstree({
-				'json_data': {
-					'data': this.config.json
-				},
-				'types': {
-					'types': this.config.types
-				},
-				'themes': {
-					'dots': false
-				},
-				'ui': {
-					'select_limit': 1,
-					'selected_parent_close': 'false'
-				},
-				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
-			});
+			};
+			
+			if (this.config.tree) {			
+				this.config.tree.addListener(module.EventTypes.Trees.TreeCreated, 
+					function(treeUI) {
+						wgt.tree = treeUI;
+						wgt.tree.bind('select_node.jstree', selFcn);
+				
+						wgt.panel.append(wgt.tree);
+					});
+				}
+			else {
+				this.tree = jQuery('<div></div>');
+				
+				// setup the tree
+				this.tree.bind('select_node.jstree', selFcn).jstree({
+					'json_data': {
+						'data': this.config.json
+					},
+					'types': {
+						'types': this.config.types
+					},
+					'themes': {
+						'dots': false
+					},
+					'ui': {
+						'select_limit': 1,
+						'selected_parent_close': 'false'
+					},
+					'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
+				});
+				
+				this.panel.append(this.tree);
+			}		
+			this.container.addClass(this.config.containerClass);
+			
+			jQuery('body').append(this.panel);
+			this.container.append(this.input).append(this.picker);
+			this.panel.css({
+				maxHeight: this.config.panelHeight,
+				position: 'absolute'
+			}).hide();
 			
 			this.picker.bind('click', toggleFcn);
 			this.input.bind('click', toggleFcn);

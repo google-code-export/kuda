@@ -527,14 +527,14 @@ var editor = (function(module) {
      *         editor.tools.MessagingViewDefaults as default options
      */
     module.tools.MessagingView = module.tools.ToolView.extend({
-		init: function(triggersTree, actionsTree, citizensTree, options) {
+		init: function(options) {
 	        var newOpts = jQuery.extend({}, module.tools.MessagingViewDefaults, 
 				options);
 	        this._super(newOpts);
 			
-			this.triggersTree = triggersTree;
-			this.actionsTree = actionsTree;
-			this.citizensTree = citizensTree;
+			this.triggersTree = module.ui.createTriggersTree();
+			this.actionsTree = module.ui.createActionsTree();
+			this.citizensTree = module.ui.createCitizensTree();
 			this.chainParent = null;
 			this.chainTable = createChainTable();
 			
