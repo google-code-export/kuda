@@ -495,24 +495,30 @@ var hemi = (function(hemi) {
 	 * @param {boolean} rotate flag indicating if the transform should rotate as
 	 *      it travels along the points
 	 */
-	hemi.curve.Particle = function(trans,points,colorKeys,scaleKeys,rotate) {	
-		var pack = hemi.curve.pack;
+	hemi.curve.Particle = function(trans,points,colorKeys,scaleKeys,rotate) {
+		var pack = hemi.curve.pack,
+			m4 = hemi.core.math.matrix4;
+		
 		this.transform = pack.createObject('Transform');
 		this.transform.parent = trans;
 		this.frame = 1;
 		this.lastFrame = points.length - 2;
 		this.destroyed = false;
         this.transform.createParam('diffuse', 'ParamFloat4').value = [0,0,0,0];		
-		this.lt = [];		
+		this.lt = [];
+		this.matrices = [];
 		this.setColors(colorKeys);
-		this.setScales(scaleKeys);	
+		this.setScales(scaleKeys);
+		
 		for (var i = this.frame; i <= this.lastFrame; i++) {
-			var L = o3djs.math.matrix4.translation(points[i]);
+			var L = m4.translation(points[i]);
 			
 			if (rotate) {
 				hemi.utils.pointYAt(L, points[i-1], points[i+1]);
 			}
+			
 			this.lt[i] = L;
+			this.matrices[i] = m4.scale(hemi.utils.copyArray(L), this.scales[i]);
 		}
 		this.ready = true;
 		this.active = false;
@@ -596,6 +602,7 @@ var hemi = (function(hemi) {
 		 * @param {key[]} scaleKeys Array of scale key pairs
 		 */
 		setScales : function(scaleKeys) {
+			var m4 = hemi.core.math.matrix4;
 			this.scales = [];
 			if(scaleKeys) {
 				var sKeys = [];
@@ -626,10 +633,12 @@ var hemi = (function(hemi) {
 					{key:1,value:[1,1,1]}
 				];
 			}
-			for (var i = 1; i <= this.lastFrame; i++) {		
-				var time = (i-1)/(this.lastFrame-2);				
-				this.scales[i] = this.lerpValue(time,sKeys);				
-			}	
+			for (var i = 1; i <= this.lastFrame; i++) {
+				var time = (i-1)/(this.lastFrame-2);
+				this.scales[i] = this.lerpValue(time,sKeys);
+				this.matrices[i] = m4.scale(hemi.utils.copyArray(this.lt[i]),
+					this.scales[i]);
+			}
 			return this;
 		},
 	
@@ -666,15 +675,12 @@ var hemi = (function(hemi) {
 		update : function() {
 			if (!this.active) return;
 			
-			var f = this.frame,
-				color = this.colors[f],
-				scale = this.scales[f];
-					
-			this.transform.getParam('diffuse').value = color;
-			this.transform.localMatrix = hemi.utils.copyArray(this.lt[f]);
-			this.transform.scale(scale);		
+			var f = this.frame;
+			this.transform.getParam('diffuse').value = this.colors[f];
+			this.transform.localMatrix = this.matrices[f];
 			this.frame++;
 			this.transform.visible = true;
+			
 			if (this.frame >= this.lastFrame) {
 				this.frame = 1;
 				this.loops--;
