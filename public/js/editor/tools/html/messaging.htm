@@ -17,25 +17,25 @@
 
 <div>
 	<div id="msgCauses" class="msgColumn">
-		<h1 class="msgColTitle">Causes</h1>
+		<h1 class="msgColTitle">Triggers</h1>
 		<div id="causeTreeWrapper" class="msgColWrapper">
 		</div>
 	</div>
 	<div id="msgEffects" class="msgColumn">
-		<h1 class="msgColTitle">Effects</h1>
+		<h1 class="msgColTitle">Actions</h1>
 		<div id="effectTreeWrapper" class="msgColWrapper">
 		</div>		
 	</div>
 	<div id="msgEvents" class="msgColumn">
-		<h1 class="msgColTitle">Events</h1>
+		<h1 class="msgColTitle">Behaviors</h1>
 		<div class="msgColWrapper">
-			<button id="msgAddEventBtn" class="dialogBtn">Register Event</button>
+			<button id="msgAddEventBtn" class="dialogBtn">Create Behavior</button>
 		</div>
 		<div id="msgEditor">
 			<form class="noSteps" action="" method="post">
 		        <fieldset id="msgEdtCause">
 		            <legend>
-		                Cause
+		                Trigger
 		            </legend>
 					<ol>
 						<li>
@@ -45,7 +45,7 @@
 		        </fieldset>
 		        <fieldset id="msgEdtEffect">
 		            <legend>
-		                Effect
+		                Action
 		            </legend>
 					<ol>
 						<li>
@@ -55,18 +55,16 @@
 				</fieldset>
 				<fieldset id="msgEdtParams">
 					<legend>
-						Effect Method Parameters
+						Action Method Parameters
 					</legend>
 		            <ol>
-		                <li>
-		                    <ul id="msgEdtTargetParams">
-		                    </ul>
+		                <li id="msgEdtTargetParamsList">
 		                </li>
 		            </ol>
 		        </fieldset>
 		        <fieldset id="msgEdtButtons">
 		            <legend>
-		                Save Event
+		                Save Behavior
 		            </legend>
 		            <ol>
 		                <li>
@@ -84,8 +82,6 @@
 		            </ol>
 		        </fieldset>
 			</form>
-		</div>
-		<div id="msgEdtCitizensPnl">
 		</div>
 	</div>
 </div>

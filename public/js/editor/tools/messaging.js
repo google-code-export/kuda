@@ -25,9 +25,6 @@ var editor = (function(module) {
     module.EventTypes = module.EventTypes || {};
 	module.EventTypes.ArgumentSet = "messaging.ArgumentSet";
 	module.EventTypes.TriggerSet = "messaging.TriggerSet";
-	module.EventTypes.CitizenAdded = "messaging.CitizenAdded";
-	module.EventTypes.CitizenRemoved = "messaging.CitizenRemoved";
-	module.EventTypes.CitizenUpdated = "messaging.CitizenUpdated";
 	module.EventTypes.ActionSet = "messaging.ActionSet";
 	module.EventTypes.TargetCreated = "messaging.TargetCreated";
     module.EventTypes.TargetRemoved = "messaging.TargetRemoved";
@@ -35,10 +32,9 @@ var editor = (function(module) {
     module.EventTypes.EditTarget = "messaging.view.EditTarget";
     module.EventTypes.RemoveTarget = "messaging.eventList.RemoveTarget";
     module.EventTypes.SaveTarget = "messaging.view.SaveTarget";
-	module.EventTypes.SelectCause = "messaging.SelectCause";
-	module.EventTypes.SelectEffect = "messaging.SelectEffect";
+	module.EventTypes.SelectTrigger = "messaging.SelectTrigger";
+	module.EventTypes.SelectAction = "messaging.SelectAction";
 	module.EventTypes.SelectTarget = "messaging.SelectTarget";
-	module.EventTypes.SetArgument = "messaging.SetArgument";
 	
 	var methodsToRemove = [
         'constructor',
@@ -70,12 +66,8 @@ var editor = (function(module) {
 			'orbit', 'rotate', 'setLight', 'truck']
 	};
 	
-	var CAUSE_PREFIX = 'ca_',
-		CAUSE_WRAPPER = '#causeTreeWrapper',
-		EFFECT_PREFIX = 'ef_',
-		EFFECT_WRAPPER = '#effectTreeWrapper',
-		CITIZEN_PREFIX = 'ci_',
-		CITIZEN_WRAPPER = '#msgEdtCitizensPnl',
+	var TRIGGER_WRAPPER = '#causeTreeWrapper',
+		ACTION_WRAPPER = '#effectTreeWrapper',
 		MSG_WILDCARD = 'Any';
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -513,10 +505,10 @@ var editor = (function(module) {
      * Configuration object for the MessagingView.
      */
     module.tools.MessagingViewDefaults = {
-        toolName: 'Messaging',
-        toolTip: 'Message Targets: Create and edit message targets',
+        toolName: 'Behaviors',
+        toolTip: 'Behavior Editing: Create and edit behaviors',
         widgetId: 'messagingBtn',
-        listInstructions: "List is empty.  Click 'Create New Message Target' to add to this list."
+        listInstructions: "List is empty.  Click 'Create New Behavior' to add to this list."
     };
     
     /**
@@ -534,7 +526,6 @@ var editor = (function(module) {
 			
 			this.triggersTree = module.ui.createTriggersTree();
 			this.actionsTree = module.ui.createActionsTree();
-			this.citizensTree = module.ui.createCitizensTree();
 			this.chainParent = null;
 			this.chainTable = createChainTable();
 			
@@ -549,23 +540,23 @@ var editor = (function(module) {
 				uiFile: 'js/editor/tools/html/messaging.htm',
 				immediateLayout: false
 			});
+					
+			this.paramsWgt = new module.ui.ParamWidget({
+				containerId: 'msgEdtTargetParams',
+				prefix: 'msgEdt'
+			});
 			
 			this.layoutMainPanel();
 			
 			this.triggersTree.addListener(module.EventTypes.Trees.TreeCreated, 
 				function(treeUI) {
-					var causeWrapper = pnl.find(CAUSE_WRAPPER);				
+					var causeWrapper = pnl.find(TRIGGER_WRAPPER);				
 					causeWrapper.append(treeUI);
 				});
 			this.actionsTree.addListener(module.EventTypes.Trees.TreeCreated, 
 				function(treeUI) {
-					var effectWrapper = pnl.find(EFFECT_WRAPPER);				
+					var effectWrapper = pnl.find(ACTION_WRAPPER);				
 					effectWrapper.append(treeUI);
-				});
-			this.citizensTree.addListener(module.EventTypes.Trees.TreeCreated, 
-				function(treeUI) {
-					var citizenWrapper = pnl.find(CITIZEN_WRAPPER);				
-					citizenWrapper.append(treeUI);
 				});
 	    },
 		
@@ -691,7 +682,7 @@ var editor = (function(module) {
 					view.restrictSelection(view.triggersTree.tree, handler, 
 						messages);
 					view.chainParent = li;
-					view.notifyListeners(module.EventTypes.SelectCause, {
+					view.notifyListeners(module.EventTypes.SelectTrigger, {
 						source: handler,
 						message: messages[0]
 					});
@@ -750,7 +741,10 @@ var editor = (function(module) {
 					editorCancelBtn = editorPnl.find('#msgEdtCancelBtn'),
 					addBtn = pnl.find('#msgAddEventBtn'),
 					replacementPnl = jQuery('#o3d'),
+					list = pnl.find('#msgEdtTargetParamsList'),
 					panelUI = pnl.getUI();
+				
+				list.append(view.paramsWgt.getUI());
 				
 				editListPnl.append(evtLst.getUI());
 				editorForm.bind('submit', function(evt) {
@@ -863,12 +857,6 @@ var editor = (function(module) {
 			}
 		},
 		
-		setArgument: function(argName, argValue) {
-			var id = '#msgParam_' + argName,
-				input = this.mainPanel.find(id);
-			input.val(argValue);
-		},
-		
 		unrestrictSelection: function(tree, citizen, msgs) {
 			tree.removeClass('restricted');
 			
@@ -903,103 +891,6 @@ var editor = (function(module) {
 				'msgTarget_' + target.dispatchId,
 				target,
 				target.name);
-		},
-		
-		fillParams: function(argHash, autocomplete) {
-			var list = this.mainPanel.find('#msgEdtTargetParams'),
-				args = [],
-				that = this;
-			
-			list.empty();
-			argHash.each(function(key, value) {
-				args[value.ndx] = {
-					name: key,
-					val: value.value
-				};
-			});
-			
-			for (var ndx = 0, len = args.length; ndx < len; ndx++) {
-				var li = jQuery('<li></li>'),
-					ip = jQuery('<input type="text"></input>'),
-					lb = jQuery('<label></label>'),
-					cb = jQuery('<button class="msgEdtCitTreeBtn dialogBtn">Citizens</button>'),
-					arg = args[ndx],
-					id = 'msgParam_' + arg.name;
-				
-	            list.append(li);
-	            li.append(lb).append(ip).append(cb);
-				
-	            var windowHeight = window.innerHeight ? window.innerHeight 
-						: document.documentElement.offsetHeight,
-					position = li.offset(),
-					height = windowHeight - position.top;			
-				
-				cb.data('paramIn', ip)
-				.bind('click', function(evt) {
-					var citTreePnl = jQuery(CITIZEN_WRAPPER),
-						oldElem = citTreePnl.data('curElem'),
-						elem = jQuery(this);
-					
-					if (citTreePnl.is(':visible') && elem[0] === oldElem[0]) {
-						citTreePnl.hide(200).data('curElem', null);
-						that.citizensTree.currentParamIpt = null;
-						
-						jQuery(document).unbind('click.msgCitTree');
-						citTreePnl.data('docBound', false);
-					}
-					else {
-						var position = elem.offset(),
-							isDocBound = citTreePnl.data('docBound');
-						
-						position.top += elem.outerHeight();
-						citTreePnl.hide().show(200).data('curElem', elem)
-							.offset(position).css('right', position.left);
-						
-						if (!isDocBound) {
-							jQuery(document).bind('click.msgCitTree', function(evt){
-								var target = jQuery(evt.target),
-									parent = target.parents(CITIZEN_WRAPPER),
-									id = target.attr('id');
-								
-								if (parent.size() == 0 
-									&& id != 'msgEdtCitizensPnl' 
-									&& !target.hasClass('msgEdtCitTreeBtn')) {
-									citTreePnl.hide();
-								}
-							});
-							citTreePnl.data('docBound', true);
-						}
-						
-						that.citizensTree.currentParamIpt = elem.data('paramIn');
-					}
-				});
-				
-				lb.text(arg.name + ':');
-				lb.attr('for', id);
-				ip.attr('id', id)
-				.data('paramName', arg.name)
-				.css('maxHeight', height)
-				.blur(function(event, ui) {
-					var elem = jQuery(this),
-						val = elem.val();
-					
-					if (hemi.utils.isNumeric(val)) {
-						val = parseFloat(val);
-					}
-					
-					that.notifyListeners(module.EventTypes.SetArgument, {
-						name: elem.data('paramName'),
-						value: val
-					});
-					return false;
-				});
-				
-				if (arg.val !== null) {
-					ip.val(arg.val);
-				} else {
-					ip.val('');
-				}
-			}
 		}
 	});
 	
@@ -1098,23 +989,30 @@ var editor = (function(module) {
 					model.setMessageSource(data.source);
 					model.setMessageType(data.message);
 				});
-			view.citizensTree.addListener(module.EventTypes.Trees.SelectCitizen, 
+			view.paramsWgt.addListener(module.EventTypes.Params.SetArgument, 
 				function(data){
 					model.setArgument(data.name, data.value);
 				});
 			
 			// model specific
 			model.addListener(module.EventTypes.ArgumentSet, function(data){
-				view.setArgument(data.name, data.value);
+				view.paramsWgt.setArgument(data.name, data.value);
 			});			
 			model.addListener(module.EventTypes.TriggerSet, function(data){
 				view.triggersTree.select(data);
 				view.updateSaveButton();
 			});			
 			model.addListener(module.EventTypes.ActionSet, function(data){
+				var args = [],
+					vals = [];
+					
 				view.actionsTree.select(data);
 				view.updateSaveButton();
-				view.fillParams(model.args, model.autoCompleteList);
+				model.args.each(function(key, value) {
+					args[value.ndx] = key;
+					vals[value.ndx] = value.value;
+				});
+				view.paramsWgt.fillParams(args, vals);
 			});			
 			model.addListener(module.EventTypes.TargetCreated, function(target){
 				view.addTarget(target);

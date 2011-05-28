@@ -631,10 +631,10 @@ var editor = (function(module) {
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var TreeView = module.ui.Component.extend({
-		init: function(type, noBind) {
+		init: function(type, noDefaultBind) {
 			this._super();
 			this.type = type;
-			this.noBind = noBind || false;
+			this.noDefaultBind = noDefaultBind || false;
 			this.tree = null;
 		},
 		
@@ -844,7 +844,7 @@ var editor = (function(module) {
 		createActionTree = function(json) {
 			var that = this;
 				
-			this.tree = jQuery('<div id="effectTree"></div>');
+			this.tree = jQuery('<div class="sharedTree"></div>');
 			this.container = this.tree;
 			
 			this.tree.jstree({
@@ -884,7 +884,7 @@ var editor = (function(module) {
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
 			
-			if (!this.noBind) {
+			if (!this.noDefaultBind) {
 				this.tree.bind('select_node.jstree', function(evt, data) {
 					var elem = data.rslt.obj,
 						metadata = elem.data('jstree'),
@@ -931,7 +931,7 @@ var editor = (function(module) {
 		createCitizenTree = function(json) {
 			var that = this;
 				
-			this.tree = jQuery('<div id="msgEdtCitizensTree"></div>');
+			this.tree = jQuery('<div></div>');
 			this.container = this.tree;
 			
 			this.tree.jstree({
@@ -964,12 +964,12 @@ var editor = (function(module) {
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
 			
-			if (!this.noBind) {
+			if (!this.noDefaultBind) {
 				this.tree.bind('select_node.jstree', function(evt, data) {
 					var elem = data.rslt.obj,
 						metadata = elem.data('jstree'),
 						paramIpt = that.currentParamIpt,
-						citParam;
+						citParam = '';
 						
 					if (metadata.type === 'citizen') {
 						citParam = hemi.dispatch.ID_ARG + metadata.citizen.getId();
@@ -977,13 +977,11 @@ var editor = (function(module) {
 						that.tree.jstree('close_all').jstree('deselect_all');
 						that.currentParamIpt = null;
 					} else if (metadata.type === 'citType') {
-						citParam = '';
 						that.tree.jstree('toggle_node', elem);
 					}
 					
-					if (paramIpt != null) {
+					if (paramIpt != null && citParam != '') {
 						paramIpt.val(citParam);
-						
 						that.notifyListeners(module.EventTypes.Trees.SelectCitizen, {
 							name: paramIpt.data('paramName'),
 							value: citParam
@@ -1000,7 +998,7 @@ var editor = (function(module) {
 				wildcardTrigger = createWildcardJson();
 			
 			json.unshift(wildcardTrigger);
-			this.tree = jQuery('<div id="causeTree"></div>');
+			this.tree = jQuery('<div class="sharedTree"></div>');
 			this.container = this.tree;
 			
 			this.tree.jstree({
@@ -1039,7 +1037,7 @@ var editor = (function(module) {
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
 			
-			if (!this.noBind) {
+			if (!this.noDefaultBind) {
 				this.tree.bind('select_node.jstree', function(evt, data) {
 					var elem = data.rslt.obj,
 						metadata = elem.data('jstree'),
@@ -1332,8 +1330,8 @@ var editor = (function(module) {
 	
 	module.ui.TreeModel = new TreeModel();
 	
-	module.ui.createCitizensTree = function(noBind) {
-		var tree = new TreeView(CITIZEN_PREFIX, noBind);
+	module.ui.createCitizensTree = function(noDefaultBind) {
+		var tree = new TreeView(CITIZEN_PREFIX, noDefaultBind);
 		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
 		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
 		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
@@ -1341,8 +1339,8 @@ var editor = (function(module) {
 		return tree;
 	};
 	
-	module.ui.createActionsTree = function(noBind) {
-		var tree = new TreeView(ACTION_PREFIX, noBind);
+	module.ui.createActionsTree = function(noDefaultBind) {
+		var tree = new TreeView(ACTION_PREFIX, noDefaultBind);
 		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
 		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
 		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
@@ -1350,8 +1348,8 @@ var editor = (function(module) {
 		return tree;
 	};
 	
-	module.ui.createTriggersTree = function(noBind) {
-		var tree = new TreeView(TRIGGER_PREFIX, noBind);
+	module.ui.createTriggersTree = function(noDefaultBind) {
+		var tree = new TreeView(TRIGGER_PREFIX, noDefaultBind);
 		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
 		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
 		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
