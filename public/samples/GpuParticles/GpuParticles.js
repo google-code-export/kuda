@@ -72,6 +72,14 @@ o3djs.require('hext.progressUI.progressBar');
 		var green = [0, 1, 0, 0.7];
 		var red = [1, 0, 0, 0.7];
 		
+		/* How much to scale these arrows as they move along the curve:
+		 */
+		var scaleKey1 = {key: 0, value: [1,1,1]};
+		var scaleKey2 = {key: 0.6, value: [1,1,1]};
+		var scaleKey3 = {key: 0.7, value: [3,3,1]};  // Lengthen as they come over the roof
+		var scaleKey4 = {key: 0.8, value: [1,1,1]};
+		var scaleKey5 = {key: 1, value: [1,1,1]};
+		
 		/* Create a particle system configuration with the above parameters,
 		 * plus a rate of 20 particles per second, and a lifetime of
 		 * 5 seconds. Specify the shapes are arrows.
@@ -85,6 +93,7 @@ o3djs.require('hext.progressUI.progressBar');
 			boxes: [box1,box2,box3,box4,box5,box6,box7,box8,box9,box1],
 			particleShape: hemi.curve.ShapeType.ARROW,
 			colors: [blue,green,red,blue],
+			scaleKeys: [scaleKey1,scaleKey2,scaleKey3,scaleKey4,scaleKey5],
 			particleSize: 10
 		};
 		
