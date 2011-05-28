@@ -500,13 +500,6 @@ var editor = (function(module) {
 				wgt = this;
 				
 			this.actionsTree = module.ui.createActionsTree(true);
-			this.citizensTree = module.ui.createCitizensTree();
-			
-			this.citizensTree.addListener(module.EventTypes.Trees.TreeCreated, 
-				function(treeUI) {
-					var citizenWrapper = wgt.find(CITIZEN_WRAPPER);				
-					citizenWrapper.append(treeUI);
-				});
 			
 		    this._super(newOpts);
 		},
@@ -523,93 +516,6 @@ var editor = (function(module) {
 			}
 		},
 		
-		fillParams: function(args, vals) {
-			var wgt = this, 
-				toggleFcn = function(evt){
-					var citTreePnl = wgt.find(CITIZEN_WRAPPER), 
-						oldElem = citTreePnl.data('curElem'), 
-						elem = jQuery(this).parent(), 
-						btn = elem.children('button'), 
-						ipt = elem.children('input');
-					
-					if (citTreePnl.is(':visible') && oldElem 
-							&& elem[0] === oldElem[0]) {
-						citTreePnl.hide(200).data('curElem', null);
-						wgt.citizensTree.currentParamIpt = null;
-						
-						jQuery(document).unbind('click.scnEvtCitTree');
-						citTreePnl.data('docBound', false);
-					}
-					else {
-						var position = ipt.offset(), 
-							isDocBound = citTreePnl.data('docBound');
-						
-						position.top += ipt.outerHeight();
-						citTreePnl.hide().show(200).data('curElem', elem).offset(position);
-						
-						if (!isDocBound) {
-							jQuery(document).bind('click.scnEvtCitTree', function(evt){
-								var target = jQuery(evt.target), 
-									parent = target.parents(CITIZEN_WRAPPER), 
-									id = target.attr('id');
-								
-								if (parent.size() == 0 
-										&& id != 'scnEvtCitizensPnl' 
-										&& !target.hasClass('scnEvtCitTreeBtn')
-										&& !target.hasClass('scnEvtCitTreeIpt')) {
-									citTreePnl.hide();
-								}
-							});
-							citTreePnl.data('docBound', true);
-						}
-						
-						wgt.citizensTree.currentParamIpt = btn.data('paramIn');
-					}
-				};
-			
-			this.list.empty();
-			this.curArgs = [];
-			
-			if (args.length > 0) {
-				this.paramsSet.show(100);
-			}
-			else {
-				this.paramsSet.hide(100);
-			}
-			
-			for (var ndx = 0, len = args.length; ndx < len; ndx++) {
-				var li = jQuery('<li></li>'),
-					ip = jQuery('<input type="text" class="scnEvtCitTreeIpt"></input>'),
-					lb = jQuery('<label></label>'),
-					cb = jQuery('<button class="scnEvtCitTreeBtn">Citizens</button>'),
-					arg = args[ndx],
-					id = 'scnEvtParam_' + arg;
-				
-	            this.list.append(li);
-	            li.append(lb).append(ip).append(cb);
-				
-	            var windowHeight = window.innerHeight ? window.innerHeight 
-						: document.documentElement.offsetHeight,
-					position = li.offset(),
-					height = windowHeight - position.top;			
-				
-				cb.data('paramIn', ip).bind('click', toggleFcn);
-				ip.bind('click', toggleFcn);
-				
-				lb.text(arg + ':');
-				lb.attr('for', id);
-				ip.attr('id', id).data('name', arg).css('maxHeight', height);
-				
-				if (vals && vals[ndx] !== null) {
-					ip.val(vals[ndx]);
-				} else {
-					ip.val('');
-				}
-				
-				this.curArgs.push(ip);
-			}
-		},
-		
 		finishLayout: function() {
 			this._super();
 			
@@ -619,10 +525,16 @@ var editor = (function(module) {
 			this.saveBtn = this.find('#scnEvtSaveBtn');
 			this.cancelBtn = this.find('#scnEvtCancelBtn');
 			this.name = this.find('#scnEvtName');
-			this.list = this.find('#scnEvtTargetParams');
+			this.list = this.find('#scnEvtTargetParamsList');
 			this.paramsSet = this.find('#scnEvtParams');
+			this.paramsWgt = new module.ui.ParamWidget({
+				containerId: 'scnEvtTargetParams',
+				prefix: 'scnEvt',
+				sendsNotifications: false
+			});
 			
 			this.paramsSet.hide();
+			this.list.append(this.paramsWgt.getUI());
 			
 			this.actionChooser = new module.ui.TreeSelector({
 				buttonId: 'scnEvtTreeSelector',
@@ -641,8 +553,9 @@ var editor = (function(module) {
 					else {					
 						var cit = metadata.parent,
 							method = path[path.length-1];
-							
-						wgt.fillParams(getFunctionParams(cit[method]));
+						
+						wgt.paramsSet.show(200);	
+						wgt.paramsWgt.fillParams(getFunctionParams(cit[method]));
 						selector.input.val(path.join('.').replace('.More...', ''));
 						selector.setSelection({
 							obj: cit,
@@ -666,7 +579,7 @@ var editor = (function(module) {
 			this.saveBtn.bind('click', function(evt) {
 				var selVal = wgt.actionChooser.getSelection(),
 					saveObj = jQuery.extend(selVal, {
-						args: wgt.getArgs(),
+						args: wgt.paramsWgt.getArgs(),
 						type: wgt.type,
 						name: wgt.name.val(),
 						scene: wgt.scene
@@ -677,32 +590,7 @@ var editor = (function(module) {
 			this.name.bind('keyup', function(evt) {
 				wgt.canSave();
 			});
-			
-			var citizenWrapper = this.find(CITIZEN_WRAPPER);			
-			citizenWrapper.css('position', 'absolute').data('curElem', null)
-				.hide();
 		},		
-		
-		getArgs: function() {
-			var argsIpt = this.curArgs,
-				args = [];
-			
-			for (var ndx = 0, len = argsIpt.length; ndx < len; ndx++) {
-				var ipt = argsIpt[ndx],
-					val = ipt.val();
-				
-				if (hemi.utils.isNumeric(val)) {
-					val = parseFloat(val);
-				}
-				
-				args.push({
-					name: ipt.data('name'),
-					value: val
-				});				
-			}
-			
-			return args;
-		},
 		
 		reset: function() {
 			this.scene = null;

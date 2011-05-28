@@ -642,6 +642,7 @@ input.error {
 .sidebarWidget h2 {
     text-align: left;
     font: bold 12px / 14px Helvetica, Arial, sans-serif;
+	padding: 5px 0;
 }
 
 .sidebarWidget>p {
@@ -799,48 +800,9 @@ ol.listWidget li span {
 	background-position: -16px -96px;
 }
 
-/**
- * Tree selector widget
- */
-.treeSelector {
-	width: 100%;
-}
-.treeSelectorPnl {
-	background: #fff;
-	border: 1px solid #ccc;
-	overflow: auto;
-}
-.treeSelector input.treeSelectorIpt {
-	width: 213px;
-	float: left;
-}
-.treeSelectorBtn {
-	padding: 8px 11px;
-	overflow: hidden;
-	text-indent: 30px;
-	width: 30px;
-	height: 27px;
-	margin-top: 0;
-}
-.treeSelectorBtn:hover {
-	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fff));
-}
-.treeSelectorBtn:before {
-	background: url(../images/listOptionsSprite.png) -32px 0 no-repeat;
-	height: 7px;
-	width: 8px;
-	float: left;
-	margin-left: 6px;
-	transform: rotate(180deg);
-	-moz-transform: rotate(180deg);
-	-webkit-transform: rotate(180deg);
-	content: "";
-}
-.treeSelectorBtn.selected:before {
-	transform: none;
-	-moz-transform: none;
-	-webkit-transform: none;
+form input.prmWgtCitTreeIpt, form input.treeSelectorIpt {
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
 }
 
 /**
@@ -1018,6 +980,7 @@ form input:not([type=radio]), form textarea {
     padding: 5px;
     width: 188px;
     color: #555;
+	margin: 0;
 }
 form.scrolling input:not([type=radio]), form.scrolling textarea {
 	width: 170px;
@@ -1225,6 +1188,93 @@ form button.removeBtn {
 }
 form button.removeBtn:hover {
 	background-position: -16px -32px;
+}
+form button {
+	height: 25px;
+}
+
+/**
+ * Tree selector widget
+ */
+.treeSelector {
+	width: 100%;
+}
+.treeSelectorPnl {
+	background: #fff;
+	border: 1px solid #ddd;
+	overflow: auto;
+	border-top-width: 0;
+	padding: 5px 10px;
+	border-radius: 0 0 3px 3px;
+}
+.treeSelector input.treeSelectorIpt {
+	width: 213px;
+	float: left;
+}
+.treeSelectorBtn:hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fff));
+}
+.treeSelectorBtn.selected:before {
+	transform: none;
+	-moz-transform: none;
+	-webkit-transform: none;
+}
+
+/**
+ * Trees
+ */
+
+.sharedTree {
+	background: none !important;
+}
+
+/**
+ * Parameters widget
+ */
+
+.prmWgtCitTreeBtn, .treeSelectorBtn {
+	padding: 0;
+	overflow: hidden;
+	text-indent: -500px;
+	width: 25px;
+	height: 25px;
+	border-bottom-left-radius: 0;
+	border-top-left-radius: 0;
+	border-left-width: 0;
+}
+.prmWgtCitTreeBtn::-moz-focus-inner, .treeSelectorBtn::-moz-focus-inner { 
+	border: 0; 
+	padding: 0; 
+	margin:0; 
+}
+.prmWgtCitTreeBtn:after, .treeSelectorBtn:after {
+	background: url(../images/listOptionsSprite.png) -32px -7px no-repeat;
+	height: 7px;
+	width: 8px;
+	float: left;
+	margin: 5px 0 0 8px;
+	padding: 0;
+	content: "";
+}
+.prmWgtCitTreeBtn.open:after, .treeSelectorBtn.open:after {
+	background-position: -32px 0px;
+}
+.prmWgtCitTreeBtn.open, form input.open, .treeSelectorBtn.open {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+#prmWgtCitTreePnl {
+	float: left;
+	position: absolute;
+	border: 1px solid #ddd;
+	border-top-width: 0;
+	background: #fff;
+	padding: 5px 10px;
+	border-radius: 0 0 3px 3px;
+}
+#prmWgtCitTree {
 }
 
 /**
@@ -1639,9 +1689,6 @@ form #msgEdtName {
 	display: none;
 	padding: 10px;
 }
-#causeTree, #effectTree {
-	background: none;
-}
 #msgEvtList {
 	list-style: none;
 	padding: 0;
@@ -1680,18 +1727,6 @@ li.even>ul>li:nth-child(even)>div {
 }
 #msgEdtHandlerParams li {
 	float: left;
-}
-#msgEdtCitizensPnl {
-	display: none;
-	position: absolute;
-}
-#msgEdtCitizensTree {
-	float: left;
-	position: relative;
-	border: 1px solid #aaa;
-	background: #ddd;
-	min-width: 150px;
-	padding: 5px 10px;
 }
 .msgEdtItemTitle {
 	cursor: pointer;
@@ -1758,7 +1793,7 @@ li.even>ul>li:nth-child(even)>div {
 	float: left;
 	width: 259px;
 	margin: 0 0 0 -30px;
-	padding: 5px 10px 15px 30px;
+	padding: 20px 10px 15px 30px;
 	background: #fffdf2;
 	box-shadow: 0 0 3px #ddd;
 	-moz-box-shadow: 0 0 3px #ddd;  
