@@ -66,7 +66,7 @@ var hemi = (function(hemi) {
 	 * Render a 3D representation of a curve.
 	 *
 	 * @param {number[][]} points Array of points (not waypoints)
-	 * @param {hemi.config} config Configuration describing how the curve should look
+	 * @param {Object} config Configuration describing how the curve should look
 	 */
 	hemi.curve.drawCurve = function(points,config) {
 		var jshow = (config.joints == null) ? true : config.joints;
@@ -243,12 +243,13 @@ var hemi = (function(hemi) {
 		return system;
 	};
 	
-	hemi.curve.newMaterial = function() {
+	hemi.curve.newMaterial = function(opt_trans) {
+		var trans = opt_trans == null ? true : opt_trans;
 		return hemi.core.material.createBasicMaterial(
 			this.pack,
 			hemi.view.viewInfo,
 			[0,0,0,1],
-			true);
+			trans);
 	};
 	
 	hemi.curve.init = function() {
@@ -257,6 +258,7 @@ var hemi = (function(hemi) {
 			this.pack,
 			hemi.view.viewInfo,
 			[0, 0, 0.5, 1]);
+		this.dbgLineMat = this.newMaterial(false);
 		
 		var state = this.pack.createObject('State');
 		state.getStateParam('PolygonOffset2').value = -1.0;
@@ -274,73 +276,88 @@ var hemi = (function(hemi) {
 	 * @param {hemi.config} opt_config Configuration object specific to this curve
 	 */
 	hemi.curve.Curve = function(points,opt_type,opt_config) {
-
-		this.type = opt_type || hemi.curve.curveType.Linear;
-		this.xpts = {};		
-		this.ypts = {};
-		this.zpts = {};
-		this.xtans = {};
-		this.ytans = {};
-		this.ztans = {};
-		this.weights = {};
+		this.count = 0;
 		this.tension = 0;
-		this.count = points.length;
-
-		for (var i = 0; i < this.count; i++) {
-			this.xpts[i] = points[i][0];
-			this.ypts[i] = points[i][1];
-			this.zpts[i] = points[i][2];
-			this.xtans[i] = 0;
-			this.ytans[i] = 0;
-			this.ztans[i] = 0;
-			this.weights[i] = 1;
-		}
-
-		switch (this.type) {
-			case hemi.curve.curveType.Linear:
-				this.interpolate = this.linear;
-				break;
-			case hemi.curve.curveType.Bezier:
-				this.interpolate = this.bezier;
-				break;
-			case hemi.curve.curveType.CubicHermite:
-			case hemi.curve.curveType.Cardinal:
-				this.interpolate = this.cubicHermite;
-				break;
-			case hemi.curve.curveType.LinearNorm:
-				this.interpolate = this.linearNorm;
-				break;
-			case hemi.curve.curveType.Custom:
-				break;
-			default:
-		}
+		this.type = opt_type;
+		this.weights = [];
+		this.xpts = [];
+		this.xtans = [];
+		this.ypts = [];
+		this.ytans = [];
+		this.zpts = [];
+		this.ztans = [];
 		
-		if (opt_config) {
-			if (opt_config.weights) {
+		if (points) {
+			opt_config = opt_config || {};
+			opt_config.points = points;
+			this.loadConfig(opt_config);
+		}
+	};
+
+	hemi.curve.Curve.prototype = {
+		
+		toOctane : function() {
+			var names = ['count', 'tension', 'type', 'weights', 'xpts', 'xtans',
+					'ypts', 'ytans', 'zpts', 'ztans'],
+				octane = {
+					type: 'hemi.curve.Curve',
+					props: []
+				};
+			
+			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
+				var name = names[ndx];
+				
+				octane.props.push({
+					name: name,
+					val: this[name]
+				});
+			}
+			
+			return octane;
+		},
+		
+		loadConfig : function(cfg) {
+			var points = cfg.points,
+				type = cfg.type || this.type || hemi.curve.curveType.Linear;
+			
+			this.setType(type);
+			
+			if (points) {
+				this.count = points.length;
+				
 				for (var i = 0; i < this.count; i++) {
-					this.weights[i] = (opt_config.weights[i] != null) ? opt_config.weights[i] : 1;
+					this.xpts[i] = points[i][0];
+					this.ypts[i] = points[i][1];
+					this.zpts[i] = points[i][2];
+					this.xtans[i] = 0;
+					this.ytans[i] = 0;
+					this.ztans[i] = 0;
+					this.weights[i] = 1;
 				}
 			}
 			
-			if (opt_config.tangents) {
+			if (cfg.weights) {
 				for (var i = 0; i < this.count; i++) {
-					if(opt_config.tangents[i]) {
-						this.xtans[i] = opt_config.tangents[i][0] || 0;
-						this.ytans[i] = opt_config.tangents[i][1] || 0;
-						this.ztans[i] = opt_config.tangents[i][2] || 0;
+					this.weights[i] = (cfg.weights[i] != null) ? cfg.weights[i] : 1;
+				}
+			}
+			
+			if (cfg.tangents) {
+				for (var i = 0; i < this.count; i++) {
+					if(cfg.tangents[i]) {
+						this.xtans[i] = cfg.tangents[i][0] || 0;
+						this.ytans[i] = cfg.tangents[i][1] || 0;
+						this.ztans[i] = cfg.tangents[i][2] || 0;
 					}	
 				}
 			}
 			
-			if(opt_config.tension) {
-				this.tension = opt_config.tension;
+			if(cfg.tension) {
+				this.tension = cfg.tension;
 			}
-		}
-		
-		this.setTangents();
-	};
-
-	hemi.curve.Curve.prototype = {
+			
+			this.setTangents();
+		},
 		
 		/**
 		 * Base interpolation function for this curve. Usually overwritten.
@@ -451,15 +468,46 @@ var hemi = (function(hemi) {
 		 */
 		setTangents : function() {
 			if (this.type == hemi.curve.curveType.Cardinal) {
-				for (var i = 0; i < this.count - 2; i++) {
-					this.xtans[i] = (1-this.tension)*(this.xpts[i+2]-this.xpts[i])/2;
-					this.ytans[i] = (1-this.tension)*(this.ypts[i+2]-this.ypts[i])/2;
-					this.ztans[i] = (1-this.tension)*(this.zpts[i+2]-this.zpts[i])/2;
-					this.xpts[i] = this.xpts[i+1];
-					this.ypts[i] = this.ypts[i+1];
-					this.zpts[i] = this.zpts[i+1];
+				var xpts = hemi.utils.clone(this.xpts),
+					ypts = hemi.utils.clone(this.ypts),
+					zpts = hemi.utils.clone(this.zpts);
+				
+				// Copy the first and last points in order to calculate tangents
+				xpts.unshift(xpts[0]);
+				xpts.push(xpts[xpts.length - 1]);
+				ypts.unshift(ypts[0]);
+				ypts.push(ypts[ypts.length - 1]);
+				zpts.unshift(zpts[0]);
+				zpts.push(zpts[zpts.length - 1]);
+				
+				for (var i = 0; i < this.count; i++) {
+					this.xtans[i] = (1-this.tension)*(xpts[i+2]-xpts[i])/2;
+					this.ytans[i] = (1-this.tension)*(ypts[i+2]-ypts[i])/2;
+					this.ztans[i] = (1-this.tension)*(zpts[i+2]-zpts[i])/2;
 				}
-				this.count = this.count - 2;
+			}
+		},
+		
+		setType : function(type) {
+			this.type = type;
+			
+			switch (type) {
+				case hemi.curve.curveType.Linear:
+					this.interpolate = this.linear;
+					break;
+				case hemi.curve.curveType.Bezier:
+					this.interpolate = this.bezier;
+					break;
+				case hemi.curve.curveType.CubicHermite:
+				case hemi.curve.curveType.Cardinal:
+					this.interpolate = this.cubicHermite;
+					break;
+				case hemi.curve.curveType.LinearNorm:
+					this.interpolate = this.linearNorm;
+					break;
+				case hemi.curve.curveType.Custom:
+				default:
+					break;
 			}
 		},
 		
