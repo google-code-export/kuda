@@ -51,7 +51,7 @@ var editor = (function(module) {
 		drawHandles: function() {
 			if (this.drawState !== module.ui.trans.DrawState.NONE) {
 //				var origin = this.transform.localMatrix[3],		FOR LOCAL
-				var origin = this.transform.getUpdatedWorldMatrix()[3], 
+				var origin = this.transform.boundingBox.getCenterOfGeometry(), 
 					extent = this.getExtent() / 2,
 					x = origin[0], 
 					y = origin[1], 
@@ -93,8 +93,7 @@ var editor = (function(module) {
 				z = Math.abs(minExt[2] - maxExt[2]),
 				realExt = (x + y + z) / 3;
 				
-			return realExt < MIN_EXTENT ? MIN_EXTENT : realExt > MAX_EXTENT ? 
-				MAX_EXTENT : realExt;
+			return realExt < MIN_EXTENT ? MIN_EXTENT : realExt;
 		},
 		
 		isInView: function() {

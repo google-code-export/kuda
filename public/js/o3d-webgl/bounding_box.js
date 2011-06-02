@@ -303,4 +303,11 @@ o3d.BoundingBox.prototype.inFrustum =
   return (bb_test == 0);
 };
 
+o3d.BoundingBox.prototype.getCenterOfGeometry = function() {
+	var x = this.minExtent[0] + Math.abs(this.minExtent[0] - this.maxExtent[0])/2,
+		y = this.minExtent[1] + Math.abs(this.minExtent[1] - this.maxExtent[1])/2,
+		z = this.minExtent[2] + Math.abs(this.minExtent[2] - this.maxExtent[2])/2;
+	return [x, y, z];
+};
+
 
