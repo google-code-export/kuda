@@ -302,11 +302,10 @@ var hemi = (function(hemi) {
 		/**
 		 * Move the camera along a curve.
 		 *
-		 * @param {hemi.curve.Curve} eyeCurve Curve for camera eye to follow
-		 * @param {hemi.curve.Curve} targetCurve Curve for camera target to follow
+		 * @param {hemi.view.CameraCurve} curve curve for camera eye and target to follow
 		 * @param {number} opt_frames Number of frames to take for this movement
 		 */
-		moveOnCurve : function(eyeCurve, targetCurve, opt_time) {
+		moveOnCurve : function(curve, opt_time) {
 			if (this.vd.current !== null) {
 				this.vd.last = this.vd.current;
 			} else {
@@ -314,14 +313,14 @@ var hemi = (function(hemi) {
 			}
 			
 			this.vd.current = new hemi.view.ViewData({
-				eye: eyeCurve.getEnd(),
-				target: targetCurve.getEnd(),
+				eye: curve.eye.getEnd(),
+				target: curve.target.getEnd(),
 				up: this.up,
 				fov: this.fov.current,
 				np: this.clip.near,
 				fp: this.clip.far
 			});
-			this.state.curve = { eye: eyeCurve, target: targetCurve };
+			this.state.curve = curve;
 			this.state.moving = true;
 			this.state.vp = null;
 			var t = (opt_time == null) ? 1.0 : (opt_time > 0) ? opt_time : 0.001;
@@ -403,6 +402,7 @@ var hemi = (function(hemi) {
 			}
 			
 			this.vd.last = hemi.view.createViewData(this);
+			this.state.curve = null;
 			this.state.time.end = (t > 0) ? t : 0.001;
 			this.state.time.current = 0.0;
 			this.state.moving = true;
@@ -806,7 +806,59 @@ var hemi = (function(hemi) {
 		hemi.view.Camera.prototype.msgSent.concat([
 			hemi.msg.start,
 			hemi.msg.stop]);
+	
+	/**
+	 * @class A CameraCurve contains an "eye" Curve and a "target" Curve that
+	 * allow a Camera to follow a smooth path through several waypoints.
+	 * @extends hemi.world.Citizen
+	 * 
+	 * @param {hemi.curve.Curve} eye curve for camera eye to follow
+	 * @param {hemi.curve.Curve} target curve for camera target to follow
+	 */
+	hemi.view.CameraCurve = function(eye, target) {
+		hemi.world.Citizen.call(this);
+		this.eye = eye;
+		this.target = target;
+	};
+	
+	hemi.view.CameraCurve.prototype = {
+		/**
+         * Overwrites hemi.world.Citizen.citizenType
+         */
+		citizenType: 'hemi.view.CameraCurve',
+		
+		/**
+		 * Send a cleanup Message and remove all references in the CameraCurve.
+		 */
+		cleanup: function() {
+			hemi.world.Citizen.prototype.cleanup.call(this);			
+			this.eye = null;
+			this.target = null;
+		},
+		
+		/**
+		 * Get the Octane structure for this CameraCurve.
+	     *
+	     * @return {Object} the Octane structure representing this CameraCurve
+		 */
+		toOctane: function() {
+			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			
+			octane.props.push({
+				name: 'eye',
+				oct: this.eye.toOctane()
+			});
+			octane.props.push({
+				name: 'target',
+				oct: this.target.toOctane()
+			});
 
+			return octane;
+		}
+	};
+	
+	hemi.view.CameraCurve.inheritsFrom(hemi.world.Citizen);
+	
 	hemi.view.ViewData = function(config) {
 		var cfg = config || {};
 		this.eye = cfg.eye || [0,0,-1];
