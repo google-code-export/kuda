@@ -702,7 +702,6 @@ var editor = (function(module) {
 					wgt.notifyListeners(msgType, data);
 					wgt.position.reset();
 					wgt.target.reset();
-					wgt.checkSaveButton();
 					pntAddBtn.data('waypoint', null).text(ADD_TXT);
 					pntCancelBtn.hide();
 				}
@@ -802,6 +801,7 @@ var editor = (function(module) {
 			this.waypoints.push(waypoint);
 			this.pntList.append(wrapper);
 			this.checkPreview();
+			this.checkSaveButton();
 		},
 		
 		waypointRemoved: function(waypoint) {
@@ -812,6 +812,7 @@ var editor = (function(module) {
 				waypoint.ui.remove();
 				waypoint.ui = null;
 				this.checkPreview();
+				this.checkSaveButton();
 			}
 		},
 		
