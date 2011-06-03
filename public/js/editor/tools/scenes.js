@@ -537,7 +537,6 @@ var editor = (function(module) {
 			this.list.append(this.paramsWgt.getUI());
 			
 			this.actionChooser = new module.ui.TreeSelector({
-				buttonId: 'scnEvtTreeSelector',
 				containerClass: 'scnEvtEffectDiv',
 				tree: this.actionsTree,
 				select: function(data, selector) {

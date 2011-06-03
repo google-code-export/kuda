@@ -31,14 +31,15 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.inheritance');
 	
     o3djs.require('editor.utils.listener');
-	o3djs.require('editor.utils.math');
+	o3djs.require('editor.utils.misc');
+	o3djs.require('editor.utils.treeData');
 	
     o3djs.require('editor.ui.component');
+    o3djs.require('editor.ui.menu');
 	o3djs.require('editor.ui.listWidget');
 	o3djs.require('editor.ui.toolbar');
 	o3djs.require('editor.ui.sidebar');
     o3djs.require('editor.ui.actionbar');
-    o3djs.require('editor.ui.menu');
 	o3djs.require('editor.ui.dialog');
 	o3djs.require('editor.ui.colorpicker');
 	o3djs.require('editor.ui.vector');
@@ -46,7 +47,7 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.ui.validator');
 	o3djs.require('editor.ui.transformHandles');
 	o3djs.require('editor.ui.gridPlane');
-	o3djs.require('editor.ui.trees');
+	o3djs.require('editor.ui.behaviorTrees');
 	o3djs.require('editor.ui.param');
 
     o3djs.require('editor.tools.baseTool');

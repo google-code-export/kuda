@@ -127,8 +127,8 @@ var editor = (function(module, jQuery) {
 	});
 		
 	module.ui.ListItemWidget = module.ui.Component.extend({
-		init: function() {
-			this._super();
+		init: function(options) {
+			this._super(options);
 		},
 		
 		attachObject: function(object) {
@@ -181,19 +181,33 @@ var editor = (function(module, jQuery) {
 		}
 	});
 	
+	module.ui.EdtLiWgtDefaultOptions = {
+		removable: true,
+		editable: true,
+		behavior: false
+	};
+	
 	module.ui.EditableListItemWidget = module.ui.ListItemWidget.extend({
-		init: function() {
-			this._super();
+		init: function(options) {
+			var newOpts = jQuery.extend({}, module.ui.EdtLiWgtDefaultOptions, options);
+			this._super(newOpts);
 		},
 						
 		finishLayout: function() {
-			this.container = jQuery('<div></div>');
-			this.title = jQuery('<span></span>');
-			this.editBtn = jQuery('<button class="editBtn">Edit</button>');
-			this.removeBtn = jQuery('<button class="removeBtn">Remove</button>');
 			var btnDiv = jQuery('<div class="buttonContainer"></div>');
 			
-			btnDiv.append(this.editBtn).append(this.removeBtn);
+			this.container = jQuery('<div></div>');
+			this.title = jQuery('<span></span>');
+			
+			if (this.config.editable) {
+				this.editBtn = jQuery('<button class="editBtn">Edit</button>');
+				btnDiv.append(this.editBtn);
+			}
+			if (this.config.removable) {
+				this.removeBtn = jQuery('<button class="removeBtn">Remove</button>');
+				btnDiv.append(this.removeBtn);				
+			}
+			
 			this.container.append(this.title).append(btnDiv);
 		},
 		
@@ -201,6 +215,20 @@ var editor = (function(module, jQuery) {
 			this.title.text(text);
 		}
 	});
+	
+	var behaviorMenu = new module.ui.Menu(),
+		addTrigger = new module.ui.MenuItem({
+			title: 'Trigger a behavior',
+			action: function(evt) {
+				// get the valid messages from the associated object
+			}
+		}),
+		addAction = new module.ui.MenuItem({
+			title: 'Respond to a trigger',
+			action: function(evt) {
+				// get the methods from the associated object
+			}
+		});
 	
 	return module;
 })(editor || {}, jQuery);

@@ -960,8 +960,8 @@ var editor = (function(module) {
      * Configuration object for the HudDisplaysView.
      */
     module.tools.HudDisplaysViewDefaults = {
-        toolName: 'HudDisplays',
-		toolTip: 'HudDisplays: Create and edit HudDisplays',
+        toolName: 'Simple Hud',
+		toolTip: 'Simple Hud: Create and edit Hud Displays',
 		widgetId: 'hudBtn',
 		axnBarId: 'hudActionBar'
     };

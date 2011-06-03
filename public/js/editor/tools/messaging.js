@@ -241,9 +241,9 @@ var editor = (function(module) {
 					var modelName = type.split('.').shift(),
 						models = hemi.world.getModels({name:modelName});
 					
-					source = createShapePickCitizen(models[0]);
+					source = module.treeData.createShapePickCitizen(models[0]);
 				} else {
-					source = createCamMoveCitizen(hemi.world.camera);
+					source = module.treeData.createCamMoveCitizen(hemi.world.camera);
 				}
 			} else {
 				source = spec.src;
@@ -284,16 +284,16 @@ var editor = (function(module) {
 	    setMessageSource: function(source) {
 			if (source === null || source.getId != null) {
 				this.source = source;
-			} else if (source === hemi.dispatch.WILDCARD || source === MSG_WILDCARD) {
-				this.source = MSG_WILDCARD;
+			} else if (source === hemi.dispatch.WILDCARD || source === module.treeData.MSG_WILDCARD) {
+				this.source = module.treeData.MSG_WILDCARD;
 			} else {
 				this.source = hemi.world.getCitizenById(source);
 			}
 	    },
 	    
 	    setMessageType: function(type) {
-			if (type === hemi.dispatch.WILDCARD || type === MSG_WILDCARD) {
-				this.type = MSG_WILDCARD;
+			if (type === hemi.dispatch.WILDCARD || type === module.treeData.MSG_WILDCARD) {
+				this.type = module.treeData.MSG_WILDCARD;
 			} else {
 				this.type = type;
 			}
@@ -387,9 +387,9 @@ var editor = (function(module) {
 				this.dispatchProxy.unswap();
 			}
 			else {
-				var src = this.source === MSG_WILDCARD ? hemi.dispatch.WILDCARD 
+				var src = this.source === module.treeData.MSG_WILDCARD ? hemi.dispatch.WILDCARD 
 						: this.source.getId(),
-					type = this.type === MSG_WILDCARD ? hemi.dispatch.WILDCARD 
+					type = this.type === module.treeData.MSG_WILDCARD ? hemi.dispatch.WILDCARD 
 						: this.type;
 				
 				newTarget = this.dispatchProxy.registerTarget(
@@ -675,7 +675,7 @@ var editor = (function(module) {
 					
 					// special case
 					if (target.func === 'moveToView') {
-						handler = createCamMoveCitizen(hemi.world.camera);
+						handler = module.treeData.createCamMoveCitizen(hemi.world.camera);
 						messages = [parseInt(target.args[0].replace(
 							hemi.dispatch.ID_ARG, ''))];
 					}
@@ -778,7 +778,7 @@ var editor = (function(module) {
 						
 						// special case
 						if (target.func === 'moveToView') {
-							handler = createCamMoveCitizen(hemi.world.camera);
+							handler = module.treeData.createCamMoveCitizen(hemi.world.camera);
 							messages = [parseInt(target.args[0].replace(
 								hemi.dispatch.ID_ARG, ''))];
 						}
@@ -806,7 +806,7 @@ var editor = (function(module) {
 						
 						// special case
 						if (target.func === 'moveToView') {
-							handler = createCamMoveCitizen(hemi.world.camera);
+							handler = module.treeData.createCamMoveCitizen(hemi.world.camera);
 							messages = [parseInt(target.args[0].replace(
 								hemi.dispatch.ID_ARG, ''))];
 						}
@@ -846,9 +846,9 @@ var editor = (function(module) {
 			
 			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
 				var id = citizen.getId ? citizen.getId() : null,
-					nodeName = getNodeName(citizen, {
+					nodeName = module.treeData.getNodeName(citizen, {
 						option: msgs[ndx],
-						prefix: CAUSE_PREFIX,
+						prefix: module.treeData.TRIGGER_PREFIX,
 						id: id
 					}),
 					node = jQuery('#' + nodeName);
@@ -862,9 +862,9 @@ var editor = (function(module) {
 			
 			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
 				var id = citizen.getId ? citizen.getId() : null,
-					nodeName = getNodeName(citizen, {
+					nodeName = module.treeData.getNodeName(citizen, {
 						option: msgs[ndx],
-						prefix: CAUSE_PREFIX,
+						prefix: module.treeData.TRIGGER_PREFIX,
 						id: id
 					}),
 					node = jQuery('#' + nodeName);

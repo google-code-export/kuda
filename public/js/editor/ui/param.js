@@ -87,8 +87,10 @@ var editor = (function(module) {
 		},
 		
 		fillParams: function(args, vals) {
+			this.reset();
+			
 			var list = this.container,
-				that = this,
+				wgt = this,
 				prefix = this.config.prefix,
 				toggleFcn = function(evt){
 					var oldElem = prmCitTreePnl.data('curElem'),
@@ -140,10 +142,7 @@ var editor = (function(module) {
 						
 						prmCitTree.currentParamIpt = btn.data('paramIn');
 					}
-				};;
-				
-			this.curArgs.clear();			
-			list.empty();
+				};
 			
 			for (var ndx = 0, len = args.length; ndx < len; ndx++) {
 				var li = jQuery('<li></li>'),
@@ -205,6 +204,11 @@ var editor = (function(module) {
 			}
 			
 			return args;
+		},
+		
+		reset: function() {				
+			this.curArgs.clear();			
+			this.container.empty();
 		},
 		
 		setArgument: function(argName, argValue) {

@@ -37,506 +37,6 @@ var editor = (function(module) {
 		CITIZEN_PREFIX = 'ci_',
 		MSG_WILDCARD = 'Any';
 	
-	var methodsToRemove = [
-        'constructor',
-		'getId',
-		'setId',
-		'getCitizenType',
-		'setCitizenType',
-		'toOctane'
-	];
-	
-	var commonMethods = {
-		'hemi.animation.Animation': ['reset', 'start', 'stop'],
-		'hemi.audio.Audio': ['pause', 'play', 'seek', 'setVolume'],
-		'hemi.effect.Burst': ['trigger'],
-		'hemi.effect.Emitter': ['hide', 'show'],
-		'hemi.effect.Trail': ['start', 'stop'],
-		'hemi.hud.HudDisplay': ['hide', 'nextPage', 'previousPage', 'show'],
-		'hemi.hud.Theme': ['load'],
-		'hemi.manip.Draggable': ['disable', 'enable'],
-		'hemi.manip.Scalable': ['disable', 'enable'],
-		'hemi.manip.Turnable': ['disable', 'enable'],
-		'hemi.model.Model': ['load', 'unload'],
-		'hemi.motion.Rotator': ['disable', 'enable', 'setAccel', 'setAngle',
-			'setVel'],
-		'hemi.motion.Translator': ['disable', 'enable', 'setAccel', 'setPos',
-			'setVel'],
-		'hemi.scene.Scene': ['load', 'nextScene', 'previousScene', 'unload'],
-		'hemi.view.Camera': ['disableControl', 'enableControl', 'moveToView',
-			'orbit', 'rotate', 'setLight', 'truck']
-	};
-	
-////////////////////////////////////////////////////////////////////////////////
-//                                 Utilities                                  //
-////////////////////////////////////////////////////////////////////////////////
-
-	var isCommon = function(citizen, method) {
-		var type = citizen.getCitizenType ? citizen.getCitizenType() : citizen.name,
-			methList = commonMethods[type],
-			common = false;
-		
-		if (citizen.parent != null) {
-			common = isCommon(citizen.parent, method);
-		}
-		
-		if (!common && methList != null) {
-			common = methList.indexOf(method) !== -1;
-		}
-		
-		return common;
-	};
-	
-	var createShapePickCitizen = function(model) {
-		return {
-			shapePick: true,
-			name: 'Picked Shape:',
-			citizen: model,
-			getCitizenType: function() {
-				return module.tools.ToolConstants.SHAPE_PICK;
-			},
-			getId: function() {
-				return this.citizen.getId();
-			}
-		};
-	};
-	
-	var createCamMoveCitizen = function(camera) {
-		return {
-			camMove: true,
-			name: 'Camera Move:',
-			citizen: camera,
-			getCitizenType: function() {
-				return module.tools.ToolConstants.CAM_MOVE;
-			},
-			getId: function() {
-				return this.citizen.getId();
-			}
-		};
-	};
-	
-	var getNodeName = function(citizen, config) {
-		var nodeName = config.prefix;
-		
-		if (citizen === null) {
-			return null;
-		} else if (citizen === MSG_WILDCARD) {
-			nodeName += citizen;
-		} else if (citizen.getCitizenType !== undefined) {
-			nodeName += citizen.getCitizenType().split('.').pop();
-		}
-		
-		if (config.id != null) {
-			nodeName += '_' + config.id;
-		}
-		if (config.option != null) {
-			nodeName += '_' + config.option;
-		}
-		
-		return nodeName.replace(' ', '_').replace('.', '_');
-	};
-	
-	var createCitizenTypeJson = function(citizen, prefix) {
-		var type = citizen.getCitizenType().split('.').pop(),
-			name = getNodeName(citizen, {
-				option: null,
-				prefix: prefix
-			});
-		
-		return {
-			data: type,
-			attr: {
-				id: name,
-				rel: 'citType'
-			},
-			state: 'closed',
-			children: [],
-			metadata: {
-				type: 'citType'
-			}
-		};
-	};
-	
-	var createCitizenJson = function(citizen, prefix) {
-		var name = getNodeName(citizen, {
-			option: null,
-			prefix: prefix,
-			id: citizen.getId()
-		});
-		
-		return {
-			data: citizen.name,
-			attr: {
-				id: name,
-				rel: 'citizen'
-			},
-			metadata: {
-				type: 'citizen',
-				citizen: citizen
-			}
-		};
-	};
-	
-	var createTriggerJson = function(citizen) {
-		var id = citizen.getId(),
-			name = getNodeName(citizen, {
-				option: MSG_WILDCARD,
-				prefix: TRIGGER_PREFIX,
-				id: id
-			}),
-			msgs = [{
-				data: '[Any message]',
-				attr: {
-					id: name,
-					rel: 'message'
-				},
-				metadata: {
-					type: 'message',
-					parent: citizen,
-					msg: MSG_WILDCARD
-				}
-			}];
-		
-		for (var ndx = 0, len = citizen.msgSent.length; ndx < len; ndx++) {
-			var msg = citizen.msgSent[ndx],
-				name = getNodeName(citizen, {
-					option: msg,
-					prefix: TRIGGER_PREFIX,
-					id: id
-				});
-			
-			msgs.push({
-				data: msg.split('.').pop(),
-				attr: {
-					id: name,
-					rel: 'message'
-				},
-				metadata: {
-					type: 'message',
-					parent: citizen,
-					msg: msg
-				}
-			});
-		}
-		
-		var node = createCitizenJson(citizen, TRIGGER_PREFIX);
-		node.children = msgs;
-		node.state = 'closed';
-		return node;
-	};
-	
-	var createActionJson = function(citizen) {
-		var methods = [],
-			moreMethods = [],
-			id = citizen.getId();
-		
-		for (propName in citizen) {
-			var prop = citizen[propName];
-			
-			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
-				var name = getNodeName(citizen, {
-						option: propName,
-						prefix: ACTION_PREFIX,
-						id: id
-					}),
-					node = {
-						data: propName,
-						attr: {
-							id: name,
-							rel: 'method'
-						},
-						metadata: {
-							type: 'method',
-							parent: citizen
-						}
-					};
-				
-				if (isCommon(citizen, propName)) {
-					methods.push(node);
-				} else {
-					moreMethods.push(node);
-				}
-			}
-		}
-		
-		if (methods.length > 0) {
-			var moreName = getNodeName(citizen, {
-					option: null,
-					prefix: ACTION_PREFIX,
-					id: id
-				}) + '_MORE';
-			var moreNode = {
-				data: 'More...',
-				attr: {
-					id: moreName,
-					rel: 'other'
-				},
-				state: 'closed',
-				children: moreMethods,
-				metadata: {
-					type: 'citType'
-				}
-			};
-			methods.push(moreNode);
-		} else {
-			methods = moreMethods;
-		}
-		
-		var node = createCitizenJson(citizen, ACTION_PREFIX);
-		node.children = methods;
-		node.state = 'closed';
-		return node;
-	};
-	
-	var createModuleJson = function(module) {
-		var methods = [];
-		
-		for (propName in module) {
-			var prop = module[propName];
-			
-			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
-				var name = getNodeName(module, {
-					option: propName,
-					prefix: ACTION_PREFIX,
-					id: module.getId()
-				});
-				
-				methods.push({
-					data: propName,
-					attr: {
-						id: name,
-						rel: 'method'
-					},
-					metadata: {
-						type: 'method',
-						parent: module
-					}
-				});
-			}
-		}
-		
-		var name = getNodeName(module, {
-			prefix: ACTION_PREFIX,
-			id: module.getId()
-		});
-		
-		return {
-			data: module.name,
-			attr: {
-				id: name,
-				rel: 'citType'
-			},
-			metadata: {
-				type: 'citType',
-				citizen: module
-			},
-			children: methods,
-			state: 'closed'
-		};
-	};
-	
-	var createCamMoveJson = function(cmCit) {
-		var camera = cmCit.citizen,
-			viewpoints = hemi.world.getViewpoints(),
-			vpList = [];
-		
-		for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
-			var node = createViewpointJson(cmCit, viewpoints[ndx]);
-			viewpoints.push(node);
-		}
-		
-		var name = getNodeName(cmCit, {
-			option: null,
-			prefix: TRIGGER_PREFIX,
-			id: cmCit.getId()
-		});
-		
-		return {
-			data: camera.name,
-			attr: {
-				id: name,
-				rel: 'citizen'
-			},
-			children: viewpoints,
-			state: 'closed',
-			metadata: {
-				type: 'citizen',
-				citizen: cmCit
-			}
-		};
-	};
-	
-	var createCamMoveTypeJson = function(cmCit) {
-		var name = getNodeName(cmCit, {
-			option: null,
-			prefix: TRIGGER_PREFIX
-		});
-		
-		return {
-			data: 'Camera Move',
-			attr: {
-				id: name,
-				rel: 'citType'
-			},
-			state: 'closed',
-			children: [],
-			metadata: {
-				type: 'citType'
-			}
-		};
-	};
-	
-	var createViewpointJson = function(cmCit, viewpoint) {
-		var name = getNodeName(cmCit, {
-				option: viewpoint.getId(),
-				prefix: TRIGGER_PREFIX,
-				id: cmCit.getId()
-			});
-			
-		return {
-			data: viewpoint.name,
-			attr: {
-				id: name,
-				rel: 'message'
-			},
-			metadata: {
-				type: 'message',
-				parent: cmCit,
-				msg: viewpoint.getId()
-			}
-		};
-	};
-	
-	var createShapePickJson = function(spCit) {
-		var model = spCit.citizen,
-			id = spCit.getId(),
-			shapes = [];
-		
-		for (var ndx = 0, len = model.shapes.length; ndx < len; ndx++) {
-			var shape = model.shapes[ndx],
-				name = getNodeName(spCit, {
-					option: shape.name,
-					prefix: TRIGGER_PREFIX,
-					id: id
-				});
-			
-			shapes.push({
-				data: shape.name,
-				attr: {
-					id: name,
-					rel: 'message'
-				},
-				metadata: {
-					type: 'message',
-					parent: spCit,
-					msg: shape.name
-				}
-			});
-		}
-		
-		var name = getNodeName(spCit, {
-			option: null,
-			prefix: TRIGGER_PREFIX,
-			id: id
-		});
-		
-		return {
-			data: model.name,
-			attr: {
-				id: name,
-				rel: 'citizen'
-			},
-			children: shapes,
-			state: 'closed',
-			metadata: {
-				type: 'citizen',
-				citizen: spCit
-			}
-		};
-	};
-	
-	var createShapePickTypeJson = function(spCit) {
-		var name = getNodeName(spCit, {
-			option: null,
-			prefix: TRIGGER_PREFIX
-		});
-		
-		return {
-			data: 'Picked Shape',
-			attr: {
-				id: name,
-				rel: 'citType'
-			},
-			state: 'closed',
-			children: [],
-			metadata: {
-				type: 'citType'
-			}
-		};
-	};
-	
-	var createWildcardJson = function() {
-		var name = getNodeName(MSG_WILDCARD, {
-				option: MSG_WILDCARD,
-				prefix: TRIGGER_PREFIX
-			}),
-			msgs = [{
-				data: '[Any message]',
-				attr: {
-					id: name,
-					rel: 'message'
-				},
-				metadata: {
-					type: 'message',
-					parent: MSG_WILDCARD,
-					msg: MSG_WILDCARD
-				}
-			}];
-		
-		for (var ndx in hemi.msg) {
-			var msg = hemi.msg[ndx];
-			
-			if (!jQuery.isFunction(msg)) {
-				name = getNodeName(MSG_WILDCARD, {
-					option: msg,
-					prefix: TRIGGER_PREFIX
-				});
-				
-				msgs.push({
-					data: msg.split('.').pop(),
-					attr: {
-						id: name,
-						rel: 'message'
-					},
-					metadata: {
-						type: 'message',
-						parent: MSG_WILDCARD,
-						msg: msg
-					}
-				});
-			}
-		}
-		
-		name = getNodeName(MSG_WILDCARD, {
-			option: null,
-			prefix: TRIGGER_PREFIX
-		});
-		
-		return {
-			data: '[Any source]',
-			attr: {
-				id: name,
-				rel: 'citizen'
-			},
-			state: 'closed',
-			children: msgs,
-			metadata: {
-				type: 'citizen',
-				citizen: MSG_WILDCARD
-			}
-		};
-	};
-	
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Tree Model                                 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -699,7 +199,7 @@ var editor = (function(module) {
 		},
 		
 		update: function(citizen) {
-			var nodeName = getNodeName(citizen, {
+			var nodeName = module.treeData.getNodeName(citizen, {
 						option: null,
 						prefix: this.type,
 						id: citizen.getId()
@@ -719,7 +219,7 @@ var editor = (function(module) {
 				addActionType.call(this, citizen);
 			}
 			
-			var actionNode = createActionJson(citizen),
+			var actionNode = module.treeData.createActionJson(citizen),
 				type = citizen.getCitizenType().split('.').pop();
 				
 			this.tree.jstree('create_node', '#' + ACTION_PREFIX + type, 'inside', {
@@ -728,7 +228,7 @@ var editor = (function(module) {
 		},
 		
 		addActionType = function(citizen) {
-			var json = createCitizenTypeJson(citizen, ACTION_PREFIX);
+			var json = module.treeData.createCitizenTypeJson(citizen, ACTION_PREFIX);
 			
 			if (this.tree == null) {
 				createActionTree.call(this, [json]);
@@ -744,7 +244,7 @@ var editor = (function(module) {
 				addCitizenType.call(this, citizen);
 			}
 			
-			var citizenNode = createCitizenJson(citizen, CITIZEN_PREFIX),
+			var citizenNode = module.treeData.createCitizenJson(citizen, CITIZEN_PREFIX),
 				type = citizen.getCitizenType().split('.').pop();
 				
 			this.tree.jstree('create_node', '#' + CITIZEN_PREFIX + type, 'inside', {
@@ -753,7 +253,7 @@ var editor = (function(module) {
 		},	
 		
 		addCitizenType = function(citizen) {
-			var json = createCitizenTypeJson(citizen, CITIZEN_PREFIX);
+			var json = module.treeData.createCitizenTypeJson(citizen, CITIZEN_PREFIX);
 			
 			if (this.tree == null) {
 				createCitizenTree.call(this, [json]);
@@ -769,7 +269,7 @@ var editor = (function(module) {
 				addTriggerType.call(this, citizen);
 			}
 			
-			var triggerNode = createTriggerJson(citizen),
+			var triggerNode = module.treeData.createTriggerJson(citizen),
 				type = citizen.getCitizenType().split('.').pop();
 				
 			this.tree.jstree('create_node', '#' + TRIGGER_PREFIX + type, 'inside', {
@@ -777,16 +277,16 @@ var editor = (function(module) {
 			});
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = createShapePickCitizen(citizen);
-				triggerNode = createShapePickJson(spc);
+				var spc = module.treeData.createShapePickCitizen(citizen);
+				triggerNode = module.treeData.createShapePickJson(spc);
 				type = spc.getCitizenType().split('.').pop();
 				
 				this.tree.jstree('create_node', '#' + TRIGGER_PREFIX + type, 'inside', {
 					json_data: triggerNode
 				});
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = createCamMoveCitizen(citizen);
-				triggerNode = createCamMoveJson(cmc);
+				var cmc = module.treeData.createCamMoveCitizen(citizen);
+				triggerNode = module.treeData.createCamMoveJson(cmc);
 				type = cmc.getCitizenType().split('.').pop();
 				
 				this.tree.jstree('create_node', '#' + TRIGGER_PREFIX + type, 'inside', {
@@ -795,8 +295,8 @@ var editor = (function(module) {
 			} else if (citizen instanceof hemi.view.Viewpoint) {
 				// In future if we support multiple cameras, this will need to
 				// be updated
-				var cmc = createCamMoveCitizen(hemi.world.camera),
-					nodeName = getNodeName(cmc, {
+				var cmc = module.treeData.createCamMoveCitizen(hemi.world.camera),
+					nodeName = module.treeData.getNodeName(cmc, {
 						option: null,
 						prefix: TRIGGER_PREFIX,
 						id: cmc.getId()
@@ -804,7 +304,7 @@ var editor = (function(module) {
 					node = jQuery('#' + nodeName);
 				
 				if (node.length > 0) {
-					triggerNode = createViewpointJson(cmc, citizen);
+					triggerNode = module.treeData.createViewpointJson(cmc, citizen);
 					
 					this.tree.jstree('create_node', node, 'inside', {
 						json_data: triggerNode
@@ -814,7 +314,7 @@ var editor = (function(module) {
 		},
 		
 		addTriggerType = function(citizen) {
-			var json = createCitizenTypeJson(citizen, TRIGGER_PREFIX);
+			var json = module.treeData.createCitizenTypeJson(citizen, TRIGGER_PREFIX);
 			
 			if (this.tree == null) {
 				createTriggerTree.call(this, [json]);
@@ -825,15 +325,15 @@ var editor = (function(module) {
 			}
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = createShapePickCitizen(citizen);
-				json = createShapePickTypeJson(spc);
+				var spc = module.treeData.createShapePickCitizen(citizen);
+				json = module.treeData.createShapePickTypeJson(spc);
 				
 				this.tree.jstree('create_node', -1, 'last', {
 					json_data: json
 				});
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = createCamMoveCitizen(citizen);
-				json = createCamMoveTypeJson(cmc);
+				var cmc = module.treeData.createCamMoveCitizen(citizen);
+				json = module.treeData.createCamMoveTypeJson(cmc);
 				
 				this.tree.jstree('create_node', -1, 'last', {
 					json_data: json
@@ -995,7 +495,7 @@ var editor = (function(module) {
 				
 		createTriggerTree = function(json) {
 			var that = this,
-				wildcardTrigger = createWildcardJson();
+				wildcardTrigger = module.treeData.createWildcardJson();
 			
 			json.unshift(wildcardTrigger);
 			this.tree = jQuery('<div class="sharedTree"></div>');
@@ -1084,7 +584,7 @@ var editor = (function(module) {
 		deselectAction = function(data) {
 			var citizen = data.citizen, 
 				method = data.method,
-				nodeName = getNodeName(citizen, {
+				nodeName = module.treeData.getNodeName(citizen, {
 					option: method,
 					prefix: ACTION_PREFIX,
 					id: citizen.getId()
@@ -1100,7 +600,7 @@ var editor = (function(module) {
 			var citizen = data.citizen, 
 				message = data.message,
 				id = citizen.getId ? citizen.getId() : null,
-				nodeName = getNodeName(citizen, {
+				nodeName = module.treeData.getNodeName(citizen, {
 					option: message,
 					prefix: TRIGGER_PREFIX,
 					id: id
@@ -1113,7 +613,7 @@ var editor = (function(module) {
 		},
 		
 		removeAction = function(citizen, removeType) {
-			var nodeName = getNodeName(citizen, {
+			var nodeName = module.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: ACTION_PREFIX,
 				id: citizen.getId()
@@ -1128,7 +628,7 @@ var editor = (function(module) {
 		},
 		
 		removeActionType = function(citizen) {
-			var nodeName = getNodeName(citizen, {
+			var nodeName = module.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: ACTION_PREFIX
 			});
@@ -1138,7 +638,7 @@ var editor = (function(module) {
 		},
 		
 		removeCitizen = function(citizen, removeType) {
-			var nodeName = getNodeName(citizen, {
+			var nodeName = module.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: CITIZEN_PREFIX,
 				id: citizen.getId()
@@ -1153,7 +653,7 @@ var editor = (function(module) {
 		},
 		
 		removeCitizenType = function(citizen) {
-			var nodeName = getNodeName(citizen, {
+			var nodeName = module.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: CITIZEN_PREFIX
 			});
@@ -1164,7 +664,7 @@ var editor = (function(module) {
 		
 		removeTrigger = function(citizen, removeType) {
 			var id = citizen.getId ? citizen.getId() : null,
-				nodeName = getNodeName(citizen, {
+				nodeName = module.treeData.getNodeName(citizen, {
 					option: null,
 					prefix: TRIGGER_PREFIX,
 					id: id
@@ -1175,7 +675,7 @@ var editor = (function(module) {
 			
 			if (citizen instanceof hemi.model.Model) {
 				var spc = createShapePickCitizen(citizen);
-				nodeName = getNodeName(spc, {
+				nodeName = module.treeData.getNodeName(spc, {
 					option: null,
 					prefix: TRIGGER_PREFIX,
 					id: id
@@ -1184,8 +684,8 @@ var editor = (function(module) {
 				node = jQuery('#' + nodeName);
 				this.tree.jstree('delete_node', node);
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = createCamMoveCitizen(citizen);
-				nodeName = getNodeName(cmc, {
+				var cmc = module.treeData.createCamMoveCitizen(citizen);
+				nodeName = module.treeData.getNodeName(cmc, {
 					option: null,
 					prefix: TRIGGER_PREFIX,
 					id: id
@@ -1196,8 +696,8 @@ var editor = (function(module) {
 			} else if (citizen instanceof hemi.view.Viewpoint) {
 				// In future if we support multiple cameras, this will need to
 				// be updated
-				var cmc = createCamMoveCitizen(hemi.world.camera);
-				nodeName = getNodeName(cmc, {
+				var cmc = module.treeData.createCamMoveCitizen(hemi.world.camera);
+				nodeName = module.treeData.getNodeName(cmc, {
 					option: id,
 					prefix: TRIGGER_PREFIX,
 					id: id
@@ -1213,7 +713,7 @@ var editor = (function(module) {
 		},
 		
 		removeTriggerType = function(citizen) {
-			var nodeName = getNodeName(citizen, {
+			var nodeName = module.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: TRIGGER_PREFIX
 			});
@@ -1223,7 +723,7 @@ var editor = (function(module) {
 			
 			if (citizen instanceof hemi.model.Model) {
 				var spc = createShapePickCitizen(citizen);
-				nodeName = getNodeName(spc, {
+				nodeName = module.treeData.getNodeName(spc, {
 					option: null,
 					prefix: TRIGGER_PREFIX
 				});
@@ -1231,8 +731,8 @@ var editor = (function(module) {
 				node = jQuery('#' + nodeName);
 				this.tree.jstree('delete_node', node);
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = createCamMoveCitizen(citizen);
-				nodeName = getNodeName(cmc, {
+				var cmc = module.treeData.createCamMoveCitizen(citizen);
+				nodeName = module.treeData.getNodeName(cmc, {
 					option: null,
 					prefix: TRIGGER_PREFIX
 				});
@@ -1251,7 +751,7 @@ var editor = (function(module) {
 			if (citizen === null || method === null) {
 				actionText.text('');
 			} else {
-				nodeName = getNodeName(citizen, {
+				nodeName = module.treeData.getNodeName(citizen, {
 					option: method,
 					prefix: ACTION_PREFIX,
 					id: citizen.getId ? citizen.getId() : null
@@ -1292,7 +792,7 @@ var editor = (function(module) {
 				var name = citizen === MSG_WILDCARD ? citizen : citizen.name,
 					msg;
 				
-				nodeName = getNodeName(citizen, {
+				nodeName = module.treeData.getNodeName(citizen, {
 					option: message,
 					prefix: TRIGGER_PREFIX,
 					id: citizen.getId ? citizen.getId() : null

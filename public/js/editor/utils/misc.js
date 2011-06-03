@@ -23,5 +23,12 @@ var editor = (function(module, jQuery) {
 	    return result;
 	};
 	
+	/**
+	 * Returns the list of parameters for a function
+	 */
+	module.utils.getFunctionParams = function(func) {
+		return func.toString().match(/\((.*?)\)/)[1].match(/[\w]+/g) || [];
+    };
+	
 	return module;
 })(editor || {}, jQuery);
