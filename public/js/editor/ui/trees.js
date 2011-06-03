@@ -63,8 +63,8 @@ var editor = (function(module) {
 		'hemi.motion.Translator': ['disable', 'enable', 'setAccel', 'setPos',
 			'setVel'],
 		'hemi.scene.Scene': ['load', 'nextScene', 'previousScene', 'unload'],
-		'hemi.view.Camera': ['disableControl', 'enableControl', 'moveToView',
-			'orbit', 'rotate', 'setLight', 'truck']
+		'hemi.view.Camera': ['disableControl', 'enableControl', 'moveOnCurve',
+			'moveToView', 'orbit', 'rotate', 'setLight', 'truck']
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
