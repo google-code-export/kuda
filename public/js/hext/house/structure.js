@@ -22,7 +22,7 @@ var hext = (function(hext) {
 	 * 		behaviors attached.
 	 */
 	hext.house = hext.house || {};
-	
+
 	/**
 	 * @class Door is a standard door that swings 90 degrees when clicked on.
 	 * @extends hemi.world.Citizen
@@ -37,7 +37,7 @@ var hext = (function(hext) {
 		this.time = opt_time || 1;
 		var that = this;
 		hemi.world.subscribe(hemi.msg.pick, function(msg) {
-				that.pickCallback(msg);
+				that.pickCallback.call(that, msg);
 			});
 	};
 	
@@ -140,10 +140,9 @@ var hext = (function(hext) {
 		 * @param {hemi.dispatch.Message} msg Message generated describing a pick event
 		 */
 		pickCallback : function(msg) {
-			var that = this;
 			if (msg.data.pickInfo.shapeInfo.parent.transform.clientId ==
-					that.rotator.offsetTransform.clientId) {
-				this.swing();
+				this.rotator.transformObjs[0].offTran.clientId) {
+					this.swing();
 			}
 		}
 	
@@ -163,7 +162,7 @@ var hext = (function(hext) {
 		this.closed = true;
 		var that = this;
 		hemi.world.subscribe(hemi.msg.pick, function(msg) {
-				that.pickCallback(msg);
+				that.pickCallback.call(that, msg);
 			});		
 	};
 	
@@ -250,8 +249,8 @@ var hext = (function(hext) {
 			var that = this;
 			this.translator.subscribe(hemi.msg.stop, function(msg) {
 				if (that.closed) callback(msg);
-			});			
-		},	
+			});
+		},
 
 		/**
 		 * Set the callback to be executed when a pick message comes in from the world.
@@ -266,10 +265,9 @@ var hext = (function(hext) {
 		 * @param {hemi.dispatch.Message} msg Message generated describing a pick event
 		 */
 		pickCallback : function(msg) {
-			var that = this;
 			if (msg.data.pickInfo.shapeInfo.parent.transform.clientId ==
-					that.translator.transform.clientId) {
-				this.slide();
+				this.translator.transformObjs[0].tran.clientId) {
+					this.slide();
 			}
 		}		
 	
