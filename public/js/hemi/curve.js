@@ -68,33 +68,43 @@ var hemi = (function(hemi) {
 	 * @param {number[][]} points Array of points (not waypoints)
 	 * @param {Object} config Configuration describing how the curve should look
 	 */
-	hemi.curve.drawCurve = function(points,config) {
-		var jshow = (config.joints == null) ? true : config.joints;
-		var jsize = config.jointSize || 10;
-		var jcolor = config.jointColor || [1,1,0,1];
-		var eshow = (config.edges == null) ? true : config.edges;
-		var esize = config.edgeSize || 2;
-		var ecolor = config.edgeColor || [0.5,0,0,1];
-		var ballMat = o3djs.material.createBasicMaterial(hemi.curve.pack,hemi.view.viewInfo,jcolor);
-		var param = ballMat.getParam('lightWorldPos'); 
-		if(param) {
-			param.bind(hemi.world.camera.light.position);
+	hemi.curve.drawCurve = function(points, config) {
+		if (!this.dbgLineMat) {
+			this.dbgLineMat = this.newMaterial(false);
+			this.dbgLineMat.getParam('lightWorldPos').bind(hemi.world.camera.light.position);
 		}
-		var mainTransform = hemi.curve.pack.createObject('Transform');
-		mainTransform.parent = hemi.core.client.root;
+		
+		var eShow = (config.edges == null) ? true : config.edges,
+			eSize = config.edgeSize || 1,
+			eColor = config.edgeColor || [0.5,0,0,1],
+			jShow = (config.joints == null) ? true : config.joints,
+			jSize = config.jointSize || 1,
+			jColor = config.jointColor,
+			crvTransform = this.pack.createObject('Transform');
+		
 		for (var i = 0; i < points.length; i++) {
-			if(jshow) {
-				var transform = hemi.curve.pack.createObject('Transform');
-				transform.parent = mainTransform;
-				var joint = o3djs.primitives.createSphere(hemi.curve.pack,ballMat,jsize,20,20);
+			if(jShow) {
+				var transform = this.pack.createObject('Transform'),
+					joint = hemi.core.primitives.createSphere(this.pack,
+						this.dbgLineMat, jSize, 20, 20);
+				
+				transform.parent = crvTransform;
 				transform.addShape(joint);
 				transform.translate(points[i]);
+				
+				if (jColor) {
+					var param = transform.createParam('diffuse', 'o3d.ParamFloat4');
+					param.value = jColor;
+				}
 			}
-			if (i < (points.length - 1) && eshow) {
-				this.drawLine(points[i],points[i+1],mainTransform,esize,ecolor);
+			if (eShow && i < (points.length - 1)) {
+				var edgeTran = this.drawLine(points[i], points[i+1], eSize, eColor);
+				edgeTran.parent = crvTransform;
 			}
 		}
-		return mainTransform;
+		
+		crvTransform.parent = hemi.core.client.root;
+		this.dbgLineTransforms.push(crvTransform);
 	};
 	
 	/**
@@ -104,23 +114,61 @@ var hemi = (function(hemi) {
 	 * @param {number[]} p1 The second point
 	 * @param {number} opt_size Thickness of the line
 	 * @param {number[]} opt_color Color of the line
+	 * @return {o3d.Transform} the Transform containing the line shape
 	 */
-	hemi.curve.drawLine = function(p0,p1,pTrans,opt_size,opt_color) {
-		var size = opt_size || 2;
-		var color = opt_color || [0.5,0,0,1];
-		var lineMat = o3djs.material.createBasicMaterial(hemi.curve.pack,hemi.view.viewInfo,color);
-		var param = lineMat.getParam('lightWorldPos'); 
-		if(param) {
-			param.bind(hemi.world.camera.light.position);
+	hemi.curve.drawLine = function(p0, p1, opt_size, opt_color) {
+		if (!this.dbgLineMat) {
+			this.dbgLineMat = this.newMaterial(false);
+			this.dbgLineMat.getParam('lightWorldPos').bind(hemi.world.camera.light.position);
 		}
-		var dist = o3djs.math.distance(p0,p1);
-		var midpoint = [ (p0[0]+p1[0])/2, (p0[1]+p1[1])/2, (p0[2]+p1[2])/2 ];
-		var line = o3djs.primitives.createCylinder(hemi.curve.pack,lineMat,size,dist,3,1);
-		var transform = hemi.curve.pack.createObject('Transform');
-		transform.parent = pTrans;
+		
+		var size = opt_size || 1,
+			dist = hemi.core.math.distance(p0,p1),
+			midpoint = [ (p0[0]+p1[0])/2, (p0[1]+p1[1])/2, (p0[2]+p1[2])/2 ],
+			line = hemi.core.primitives.createCylinder(this.pack,
+				this.dbgLineMat, size, dist, 3, 1),
+			transform = this.pack.createObject('Transform');
+		
 		transform.addShape(line);
 		transform.translate(midpoint);
 		transform = hemi.utils.pointYAt(transform,midpoint,p0);
+		
+		if (opt_color) {
+			var param = transform.createParam('diffuse', 'o3d.ParamFloat4');
+			param.value = opt_color;
+		}
+		
+		return transform;
+	};
+	
+	/**
+	 * Remove the given curve line Transform, its shapes, and its children.
+	 * 
+	 * @param {o3d.Transform} opt_trans optional Transform to clean up
+	 */
+	hemi.curve.hideCurves = function(opt_trans) {
+		if (opt_trans) {
+			var children = opt_trans.children,
+				shapes = opt_trans.shapes;
+			
+			for (var i = 0; i < children.length; i++) {
+				this.hideCurves(children[i]);
+			}
+			for (var i = 0; i < shapes.length; i++) {
+				var shape = shapes[i];
+				opt_trans.removeShape(shape);
+				this.pack.removeObject(shape);
+			}
+			
+			opt_trans.parent = null;
+			this.pack.removeObject(opt_trans);
+		} else {
+			for (var i = 0; i < this.dbgLineTransforms.length; i++) {
+				this.hideCurves(this.dbgLineTransforms[i]);
+			}
+			
+			this.dbgLineTransforms = [];
+		}
 	};
 	
 	/**
@@ -258,13 +306,14 @@ var hemi = (function(hemi) {
 			this.pack,
 			hemi.view.viewInfo,
 			[0, 0, 0.5, 1]);
-		this.dbgLineMat = this.newMaterial(false);
+		this.dbgLineMat = null;
 		
 		var state = this.pack.createObject('State');
 		state.getStateParam('PolygonOffset2').value = -1.0;
 		state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
 		this.dbgBoxMat.state = state;
 		this.dbgBoxTransforms = {};
+		this.dbgLineTransforms = [];
 	};
 
 	/**
@@ -520,12 +569,12 @@ var hemi = (function(hemi) {
 			return [this.xpts[end],this.ypts[end],this.zpts[end]];
 		},
 		
-		draw : function(samples,config) {
+		draw : function(samples, config) {
 			var points = [];
 			for (var i = 0; i < samples+2; i++) {
 				points[i] = this.interpolate(i/(samples+1));
 			}
-			return hemi.curve.drawCurve(points,config);
+			hemi.curve.drawCurve(points,config);
 		}
 		
 	};
