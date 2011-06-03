@@ -73,8 +73,8 @@ o3djs.require('hext.house.structure');
 
 		var hMath = hemi.core.math;
 		hemi.world.camera.fixEye();
-		hemi.world.camera.setLookAroundLimits(null, null, hMath.degToRad(-50),
-			hMath.degToRad(50));
+		hemi.world.camera.setLookAroundLimits(null, null, hemi.core.math.degToRad(-50),
+			hemi.core.math.degToRad(50));
 		hemi.world.camera.enableControl();
 
 		door = new hext.house.Door(house.getTransforms('door')[0]);
@@ -88,7 +88,7 @@ o3djs.require('hext.house.structure');
 				break;
 			}
 		});
-		
+
 		window1Left = new hext.house.Window(house.getTransforms('window1_sashLeft')[0],[0,60,0]);
 		window1Left.onPick(function(msg) {
 			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
