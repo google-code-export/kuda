@@ -28,6 +28,7 @@ var editor = (function(module) {
 	module.EventTypes.CamCurveRemoved = "viewpoints.CamCurveRemoved";
 	module.EventTypes.CamCurveUpdated = "viewpoints.CamCurveUpdated";
 	module.EventTypes.WaypointAdded = "viewpoints.WaypointAdded";
+	module.EventTypes.WaypointRemoved = "viewpoints.WaypointRemoved";
 	module.EventTypes.WaypointUpdated = "viewpoints.WaypointUpdated";
 	
 	// Create Viewpoint Sidebar Widget events
@@ -36,20 +37,21 @@ var editor = (function(module) {
 	module.EventTypes.PreviewViewpoint = "viewpoints.PreviewViewpoint";
 	
 	// Create Camera Curve Sidebar Widget events
+	module.EventTypes.AddWaypoint = "viewpoints.AddWaypoint";
 	module.EventTypes.CancelCamCurve = "viewpoints.CancelCamCurve";
+	module.EventTypes.RemoveWaypoint = "viewpoints.RemoveWaypoint";
 	module.EventTypes.SaveCamCurve = "viewpoints.SaveCamCurve";
 	module.EventTypes.StartCurvePreview = "viewpoints.StartCurvePreview";
 	module.EventTypes.StopCurvePreview = "viewpoints.StopCurvePreview";
+	module.EventTypes.UpdateWaypoint = "viewpoints.UpdateWaypoint";
 	
 	// Viewpoint List Sidebar Widget events
     module.EventTypes.AddViewpoint = "viewpoints.AddViewpoint";
     module.EventTypes.EditViewpoint = "viewpoints.EditViewpoint";
     module.EventTypes.RemoveViewpoint = "viewpoints.RemoveViewpoint";
 	module.EventTypes.AddCamCurve = "viewpoints.AddCamCurve";
-	module.EventTypes.AddWaypoint = "viewpoints.AddWaypoint";
 	module.EventTypes.EditCamCurve = "viewpoints.EditCamCurve";
 	module.EventTypes.RemoveCamCurve = "viewpoints.RemoveCamCurve";
-	module.EventTypes.UpdateWaypoint = "viewpoints.UpdateWaypoint";
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -62,9 +64,11 @@ var editor = (function(module) {
 	module.tools.ViewpointsModel = module.tools.ToolModel.extend({
 		init: function() {
 			this._super();
-			this.previewing = false;
 			this.camData = null;
 			this.curve = null;
+			this.prevHandler = null;
+			this.prevCurve = null;
+			this.previewing = false;
 			this.waypoints = [];
 		},
 		
@@ -75,6 +79,7 @@ var editor = (function(module) {
 					ui: null
 				};
 			this.waypoints.push(wp);
+			this.updatePreviewCurve();
 			this.notifyListeners(module.EventTypes.WaypointAdded, wp);
 		},
 		
@@ -139,6 +144,16 @@ var editor = (function(module) {
 			viewpoint.cleanup();
 		},
 		
+		removeWaypoint: function(waypoint) {
+			var ndx = this.waypoints.indexOf(waypoint);
+			
+			if (ndx >= 0) {
+				this.waypoints.splice(ndx, 1);
+				this.updatePreviewCurve();
+				this.notifyListeners(module.EventTypes.WaypointRemoved, waypoint);
+			}
+		},
+		
 		saveCamCurve: function(name) {
 			this.stopPreview();
 			var msgType = this.curve ? module.EventTypes.CamCurveUpdated :
@@ -155,6 +170,7 @@ var editor = (function(module) {
 			// reset
 			this.curve = null;
 			this.waypoints = [];
+			this.updatePreviewCurve();
 		},
 		
 		saveViewpoint: function(params) {
@@ -176,6 +192,7 @@ var editor = (function(module) {
 			this.stopPreview();
 			this.curve = curve;
 			this.waypoints = [];
+			this.updatePreviewCurve();
 			
 			if (curve) {
 				var eye = curve.eye,
@@ -197,19 +214,15 @@ var editor = (function(module) {
 		startPreview: function() {
 			if (!this.previewing) {
 				var t = Math.max(this.waypoints.length / 3, 5) * hemi.view.FPS,
-					oldCurve = this.curve,
 					that = this;
 				
-				this.camData = hemi.view.createViewData(hemi.world.camera);
-				this.curve = {};
-				this.updateCurve();
 				this.previewing = true;
 				this.prevHandler = hemi.world.camera.subscribe(hemi.msg.stop,
 					function(msg) {
 						that.stopPreview();
 					});
-				hemi.world.camera.moveOnCurve(this.curve, t);
-				this.curve = oldCurve;
+				this.camData = hemi.view.createViewData(hemi.world.camera);
+				hemi.world.camera.moveOnCurve(this.prevCurve, t);
 			}
 		},
 		
@@ -239,14 +252,54 @@ var editor = (function(module) {
 			this.curve.target = new hemi.curve.Curve(targets, hemi.curve.curveType.Cardinal);
 		},
 		
+		updatePreviewCurve: function() {
+			if (this.waypoints.length > 1) {
+				var saveCurve = this.curve,
+					posDist = 0,
+					tgtDist = 0;
+				
+				for (var i = 1; i < this.waypoints.length; i++) {
+					var wp0 = this.waypoints[i-1],
+						wp1 = this.waypoints[i];
+					
+					posDist += hemi.core.math.distance(wp0.pos, wp1.pos);
+					tgtDist += hemi.core.math.distance(wp0.tgt, wp1.tgt);
+				}
+				
+				var eSamp = Math.ceil(posDist / 5),
+					tSamp = Math.ceil(tgtDist / 5),
+					eSize = posDist / 1000,
+					tSize = tgtDist / 1000;
+				
+				this.curve = {};
+				this.updateCurve();
+				this.prevCurve = this.curve;
+				this.curve = saveCurve;
+				hemi.curve.hideCurves();
+				this.prevCurve.eye.draw(eSamp, {
+					edgeColor: [0,0,1,1],
+					edgeSize: eSize,
+					joints: false
+				});
+				this.prevCurve.target.draw(tSamp, {
+					edgeColor: [1,1,0,1],
+					edgeSize: tSize,
+					joints: false
+				});
+			} else if (this.prevCurve) {
+				hemi.curve.hideCurves();
+				this.prevCurve = null;
+			}
+		},
+		
 		updateWaypoint: function(waypoint, position, target) {
 			var previewing = this.previewing;
 			this.stopPreview();
 			
 			waypoint.pos = position;
 			waypoint.tgt = target;
-				
-			this.updateCurve();
+			
+			this.updatePreviewCurve();
 			this.notifyListeners(module.EventTypes.WaypointUpdated, waypoint);
 						
 			if (previewing) {
@@ -717,8 +770,6 @@ var editor = (function(module) {
 			
 			removeBtn.bind('click', function(evt){
 				var wp = wrapper.data('waypoint');
-				wrapper.remove();
-				wgt.checkPreview();
 				wgt.notifyListeners(module.EventTypes.RemoveWaypoint, wp);
 			});
 			
@@ -751,6 +802,17 @@ var editor = (function(module) {
 			this.waypoints.push(waypoint);
 			this.pntList.append(wrapper);
 			this.checkPreview();
+		},
+		
+		waypointRemoved: function(waypoint) {
+			var ndx = this.waypoints.indexOf(waypoint);
+			
+			if (ndx >= 0) {
+				this.waypoints.splice(ndx, 1);
+				waypoint.ui.remove();
+				waypoint.ui = null;
+				this.checkPreview();
+			}
 		},
 		
 		waypointUpdated: function(waypoint) {
@@ -981,6 +1043,9 @@ var editor = (function(module) {
 				vptLstWgt.setVisible(true);
 				crvLstWgt.setVisible(true);
 			});
+			crtCrvWgt.addListener(module.EventTypes.RemoveWaypoint, function(wp) {
+				model.removeWaypoint(wp);
+			});
 			crtCrvWgt.addListener(module.EventTypes.SaveCamCurve, function(name) {
 				model.saveCamCurve(name);
 			});
@@ -1051,6 +1116,9 @@ var editor = (function(module) {
 			});
 			model.addListener(module.EventTypes.WaypointAdded, function(wp) {
 				crtCrvWgt.waypointAdded(wp);
+			});
+			model.addListener(module.EventTypes.WaypointRemoved, function(wp) {
+				crtCrvWgt.waypointRemoved(wp);
 			});
 			model.addListener(module.EventTypes.WaypointUpdated, function(wp) {
 				crtCrvWgt.waypointUpdated(wp);
