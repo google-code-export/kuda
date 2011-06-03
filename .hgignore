@@ -1,0 +1,4 @@
+glob:public/assets/
+
+syntax: regexp
+^\.project$
