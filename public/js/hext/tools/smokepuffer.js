@@ -134,7 +134,7 @@ var hext = (function(hext) {
 			if (this.puffs.containsKey(key)) {
 				puff = this.puffs.get(key);
 			} else {
-				puff = hemi.effect.createSmokePuff(
+				puff = hext.tools.createSmokePuff(
 					config.size,
 					config.position,
 					config.wind,
@@ -146,6 +146,40 @@ var hext = (function(hext) {
 			
 			this.pickNames.put(shapeName, puff);
 		}
+	};
+	
+	hext.tools.createSmokePuff = function(scale,position,opt_wind,opt_windRange) {
+		var wind = opt_wind || [0,0,0];
+		var windRange = opt_windRange || [0,0,0];
+		var pfSpecs = new hemi.effect.ParticleFunction();
+		pfSpecs.name = hemi.effect.ParticleFunctions.Puff;
+		pfSpecs.options.wind = wind;
+		pfSpecs.options.size = scale;
+		
+		var state = hemi.core.particles.ParticleStateIds.ADD;
+		var colorRamp = 
+			[0.6, 0.6, 0.6, 0.6,
+			0.9, 0.9, 0.9, 0.2,
+			0.95,0.95,0.95,0.1,
+			1,1,1,0];
+		var params = {
+			numParticles: 60,
+			lifeTime: 2.3,
+			startTime: 0,
+			startSize: 0.5*scale,
+			endSize: 3.0*scale,
+			endSizeRange: 1.0*scale,
+			position: position,
+			spinSpeedRange: 10,
+			accelerationRange: windRange};
+
+		var smokepuff = hemi.effect.createBurst(
+			state,
+			colorRamp,
+			params,
+			pfSpecs);
+		
+		return smokepuff;
 	};
 	
 	return hext;
