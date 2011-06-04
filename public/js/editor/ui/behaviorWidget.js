@@ -18,26 +18,126 @@
 var editor = (function(module) {
 	module.ui = module.ui || {};
 	
+	module.EventTypes.Behavior = {
+		Save: 'behavior.save',
+		Cancel: 'behavior.cancel'
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                                Constants	    	                          //
+////////////////////////////////////////////////////////////////////////////////
+	
 	module.ui.BehaviorTypes = {
 		TRIGGER: 'trigger',
 		ACTION: 'action',
 		NA: 'na'
 	};
 	
-	module.ui.BehaviorWidgetDefaults = {
+////////////////////////////////////////////////////////////////////////////////
+//                              Widget Helpers                                //
+////////////////////////////////////////////////////////////////////////////////
 		
-	};
+	var getMessages = function(citizen) {
+			var msgs = ['Any'],
+				id = citizen.getId();
+			
+			for (var ndx = 0, len = citizen.msgSent.length; ndx < len; ndx++) {	
+				msgs.push(citizen.msgSent[ndx]);
+			}
+			
+			return msgs;
+		},
+		
+		getMethods = function(citizen) {		
+			var methods = [],
+				hasMore = false;
+
+			for (propName in citizen) {
+				var prop = citizen[propName];
+				
+				if (jQuery.isFunction(prop) && module.treeData.methodsToRemove.indexOf(propName) === -1) {					
+					hasMore = !module.treeData.isCommon(citizen, propName);
+					methods.push(propName);
+				}
+			}
+			
+			if (hasMore) {
+				methods.push('MORE');
+			}
+			
+			return methods;
+		},
+		
+		openNode = function(tree, citizen, prefix) {
+			var nodeName = module.treeData.getNodeName(citizen, {
+					prefix: prefix,
+					id: citizen.getId()
+				}),
+				node = jQuery('#' + nodeName),
+				path = tree.jstree('get_path', node, true);
+			
+			for (var i = 0, il = path.length; i < il; i++) {
+				var n = jQuery('#' + path[i]);
+				tree.jstree('open_node', n, false, true);
+			}	
+		},
+		
+		reset = function(tree) {
+			tree.removeClass('restricted');
+			tree.find('a').removeClass('restrictedSelectable');
+			tree.jstree('close_all');
+		},
+			
+		restrictSelection = function(tree, citizen, prefix, options) {
+			tree.addClass('restricted');
+			
+			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
+				var id = citizen.getId ? citizen.getId() : null,
+					nodeName = module.treeData.getNodeName(citizen, {
+						option: options[ndx],
+						prefix: prefix,
+						id: id
+					}),
+					node = jQuery('#' + nodeName);
+				
+				node.find('a').addClass('restrictedSelectable');
+			}
+		},
+		
+		unrestrictSelection = function(tree, citizen, prefix, options) {
+			tree.removeClass('restricted');
+			
+			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
+				var id = citizen.getId ? citizen.getId() : null,
+					nodeName = module.treeData.getNodeName(citizen, {
+						option: options[ndx],
+						prefix: prefix,
+						id: id
+					}),
+					node = jQuery('#' + nodeName);
+				
+				node.find('a').removeClass('restrictedSelectable');
+			}
+		};
 	
-	module.ui.BehaviorWidget = module.ui.FormSBWidget.extend({
+////////////////////////////////////////////////////////////////////////////////
+//                                	Widget		                              //
+////////////////////////////////////////////////////////////////////////////////
+		
+	var BehaviorWidget = module.ui.FormSBWidget.extend({
 		init: function() {
-			this._super();
+			this._super({
+				name: 'behaviorSBWidget',
+				manualVisible: true
+			});
 		},
 		
 		finishLayout: function() {
+			this.container = jQuery('<div id="behaviorWgt"></div>');
 			var form = jQuery('<form class="noSteps" action="" method="post"></form>'), 
-				triggerFieldset = jQuery('<fieldset><legend>Triggers</legend><ol></ol></fieldset>'), 
-				actionFieldset = jQuery('<fieldset><legend>Actions</legend><ol></ol></fieldset>'), 
-				paramsFieldset = jQuery('<fieldset><legend>Action Parameters</legend><ol><li></li></ol></fieldset>'), 
+				triggerFieldset = jQuery('<fieldset><legend>Select a Trigger</legend><ol></ol></fieldset>'), 
+				actionFieldset = jQuery('<fieldset><legend>Select an Action</legend><ol></ol></fieldset>'), 
+				paramsFieldset = jQuery('<fieldset id="behaviorAxnParams"><legend>Set Action Parameters</legend><ol><li></li></ol></fieldset>'), 
 				saveFieldset = jQuery('<fieldset><legend>Save Behavior</legend><ol>' +
 					'<li>' +
 					'    <label>Name:</label>' +
@@ -54,7 +154,9 @@ var editor = (function(module) {
 				selFcn = function(data, selector){
 					var elem = data.rslt.obj, 
 						metadata = elem.data('jstree'), 
-						path = selector.tree.jstree('get_path', elem);
+						path = selector.tree.jstree('get_path', elem),
+						isRestricted = selector.tree.hasClass('restricted'),
+						isSelectable = elem.children('a').hasClass('restrictedSelectable');
 					
 					if (metadata.type === 'citType' ||
 							metadata.type === 'citizen') {
@@ -62,30 +164,40 @@ var editor = (function(module) {
 						return false;
 					}
 					else {
-						var cit = metadata.parent, 
-							method = path[path.length - 1];
+						var obj1 = metadata.parent, 
+							obj2 = path[path.length - 1],
+							data = {};
 						
-						wgt.prmfieldset.show(200);
-						wgt.prmWgt.fillParams(module.util.getFunctionParams(cit[method]));
-						selector.input.val(path.join('.').replace('.More...', ''));
-						selector.setSelection({
-							citizen: cit,
-							method: method
-						});
-						
-						return true;
+						if (!isSelectable && isRestricted) {
+							return false;
+						}
+						else {
+							if (selector === wgt.axnChooser) {
+								wgt.prmFieldset.show(200);
+								wgt.prmWgt.fillParams(module.utils.getFunctionParams(obj1[obj2]));
+								data.handler = obj1;
+								data.method = obj2;
+							}
+							else {
+								data.citizen = obj1;
+								data.type = obj2;
+							}
+							selector.input.val(path.join('.').replace('.More...', ''));
+							selector.setSelection(data);
+							
+							return true;
+						}
 					}
 				};
 			
 			this.trgFieldset = triggerFieldset;
 			this.axnFieldset = actionFieldset;
 			this.prmFieldset = paramsFieldset;
+			this.savFieldset = saveFieldset;
 			
-			this.axnTree = module.ui.createActionsTree();
-			this.trgTree = module.ui.createTriggersTree();
-			
-			this.axnTree.addListener()
-				
+			this.axnTree = module.ui.createActionsTree(true);
+			this.trgTree = module.ui.createTriggersTree(true);
+							
 			this.prmWgt = new module.ui.ParamWidget({
 					prefix: 'bhvEdt'
 				});
@@ -124,15 +236,31 @@ var editor = (function(module) {
 					action: wgt.axnChooser.getSelection(),
 					args: wgt.prmWgt.getArgs(),
 					name: nameIpt.val()
-				}
+				};
 				
 				wgt.notifyListeners(module.EventTypes.Behavior.Save, data);
 				wgt.reset();
+				wgt.setVisible(false);
 			});
 			
 			cancelBtn.bind('click', function(evt) {
+				wgt.notifyListeners(module.EventTypes.Behavior.Cancel);
 				wgt.reset();
+				wgt.setVisible(false);
 			});
+			
+			nameIpt.bind('keyUp', function(evt) {
+				
+			});
+			
+			form.submit(function() { return false; });
+			
+			form.append(triggerFieldset).append(actionFieldset)
+				.append(paramsFieldset).append(saveFieldset);
+			this.container.append(form);
+			
+			// save checking
+//			this.addInputToCheck(nameIpt);
 		},
 		
 		reset: function() {
@@ -143,28 +271,86 @@ var editor = (function(module) {
 			this.trgFieldset.hide();
 			this.axnFieldset.hide();
 			this.prmFieldset.hide();
+			this.savFieldset.hide();
+			
+			reset(this.trgTree.getUI());
+			reset(this.axnTree.getUI());
 		},
 		
 		setActor: function(actor, type, msgObj) {
+			this.reset();
+			
 			this.type = type;
 			this.actor = actor;
 			
+		    this.axnFieldset.show();
+			this.trgFieldset.show();
+			this.savFieldset.show();
+			
 			switch(type) {
 				case module.ui.BehaviorTypes.ACTION:
-					this.trgFieldset.hide();
-				    this.axnFieldset.show();
+					// get the list of functions
+					restrictSelection(this.axnTree.getUI(), actor, 
+						this.axnTree.pre, getMethods(actor));
+					// open up to the actor's node
+					openNode(this.axnTree.getUI(), actor, this.axnTree.pre);
 					break;
 				case module.ui.BehaviorTypes.TRIGGER:
-				    this.axnFieldset.hide();
-					this.trgFieldset.show();				    
-					break;
-				default:
-				    this.axnFieldset.show();
-					this.trgFieldset.show();	
+					restrictSelection(this.trgTree.getUI(), actor, 
+						this.trgTree.pre, getMessages(actor));	
+					openNode(this.trgTree.getUI(), actor, this.trgTree.pre);		    
 					break;
 			}
 		}
 	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//                                	   Setup	                              //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var behaviorWidget = null,
+		behaviorMenu = new module.ui.PopupMenu(),
+		addTriggerMnuItm = new module.ui.MenuItem({
+			title: 'Trigger a behavior',
+			action: function(evt) {
+				behaviorWidget.setActor(behaviorMenu.actor, 
+					module.ui.BehaviorTypes.TRIGGER);
+				behaviorWidget.setVisible(true);
+			}
+		}),
+		addActionMnuItm = new module.ui.MenuItem({
+			title: 'Respond to a trigger',
+			action: function(evt) {
+				behaviorWidget.setActor(behaviorMenu.actor, 
+					module.ui.BehaviorTypes.ACTION);
+				behaviorWidget.setVisible(true);
+			}
+		});
+		
+	behaviorMenu.addMenuItem(addTriggerMnuItm);
+	behaviorMenu.addMenuItem(addActionMnuItm);
+	behaviorMenu.container.attr('id', 'behaviorMenu');
+	
+	module.ui.getBehaviorWidget = function() {
+		var body = jQuery('body'),
+			menuAdded = body.data('menuAdded');
+			
+		if (!menuAdded) {
+			body.append(behaviorMenu.getUI()).data('menuAdded', true);
+			behaviorWidget = new BehaviorWidget();
+		}
+		
+		return behaviorWidget;
+	};
+		
+	module.ui.showBehaviorMenu = function(parBtn, actor) {		
+		var position = parBtn.offset();
+		
+		position.top += parBtn.outerHeight();
+		position.left -= behaviorMenu.container.width() - parBtn.width();
+		behaviorMenu.show(position);
+		behaviorMenu.actor = actor;
+	};
 	
 	return module;
 })(editor || {})

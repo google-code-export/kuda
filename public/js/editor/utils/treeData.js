@@ -18,12 +18,68 @@
 var editor = (function(module, jQuery) {
 	module.treeData = module.treeData || {};
 	
+////////////////////////////////////////////////////////////////////////////////
+//                                 Constants                                  //
+////////////////////////////////////////////////////////////////////////////////
+	
 	var TRIGGER_PREFIX = module.treeData.TRIGGER_PREFIX = 'tr_',
 		ACTION_PREFIX = module.treeData.ACTION_PREFIX = 'ac_',
 		CITIZEN_PREFIX = module.treeData.CITIZEN_PREFIX = 'ci_',
 		MSG_WILDCARD = module.treeData.MSG_WILDCARD = 'Any';
 	
-	var methodsToRemove = [
+	module.treeData.chainTable = (function() {
+		var chainTable = new Hashtable();
+		// Animation
+		chainTable.put('hemi.animation.Animation' + '_' + 'onRender', [hemi.msg.stop]); // Calls stop()
+		chainTable.put('hemi.animation.Animation' + '_' + 'start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
+		chainTable.put('hemi.animation.Animation' + '_' + 'stop', [hemi.msg.stop]);
+		// Burst
+		chainTable.put('hemi.effect.Burst' + '_' + 'trigger', [hemi.msg.burst]);
+		// Emitter
+		chainTable.put('hemi.effect.Emitter' + '_' + 'hide', [hemi.msg.visible]);
+		chainTable.put('hemi.effect.Emitter' + '_' + 'show', [hemi.msg.visible]);
+		// Trail
+		chainTable.put('hemi.effect.Trail' + '_' + 'start', [hemi.msg.start]);
+		chainTable.put('hemi.effect.Trail' + '_' + 'stop', [hemi.msg.stop]);
+		// HudDisplay
+		chainTable.put('hemi.hud.HudDisplay' + '_' + 'clearPages', [hemi.msg.visible]); // Calls hide()
+		chainTable.put('hemi.hud.HudDisplay' + '_' + 'hide', [hemi.msg.visible]);
+		chainTable.put('hemi.hud.HudDisplay' + '_' + 'nextPage', [hemi.msg.visible]); // Calls showPage()
+		chainTable.put('hemi.hud.HudDisplay' + '_' + 'previousPage', [hemi.msg.visible]); // Calls showPage()
+		chainTable.put('hemi.hud.HudDisplay' + '_' + 'show', [hemi.msg.visible]); // Calls showPage()
+		chainTable.put('hemi.hud.HudDisplay' + '_' + 'showPage', [hemi.msg.visible]);
+		// Draggable
+		chainTable.put('hemi.manip.Draggable' + '_' + 'onMouseMove', [hemi.msg.drag]);
+		chainTable.put('hemi.manip.Draggable' + '_' + 'onPick', [hemi.msg.drag]); // Calls onMouseMove()
+		// Model
+		chainTable.put('hemi.model.Model' + '_' + 'incrementAnimationTime', [hemi.msg.animate]); // Calls setAnimationTime()
+		chainTable.put('hemi.model.Model' + '_' + 'loadConfig', [hemi.msg.load]);
+		chainTable.put('hemi.model.Model' + '_' + 'loadModel', [hemi.msg.load]); // Calls loadConfig()
+		chainTable.put('hemi.model.Model' + '_' + 'setAnimationTime', [hemi.msg.animate]);
+		chainTable.put('hemi.model.Model' + '_' + 'setFileName', [hemi.msg.load]); // Calls loadModel()
+		// Rotator
+		chainTable.put('hemi.motion.Rotator' + '_' + 'rotate', [hemi.msg.start, hemi.msg.stop]); // Leads to onRender()
+		chainTable.put('hemi.motion.Rotator' + '_' + 'onRender', [hemi.msg.stop]);
+		// Translator
+		chainTable.put('hemi.motion.Translator' + '_' + 'move', [hemi.msg.start, hemi.msg.stop]); // Leads to onRender()
+		chainTable.put('hemi.motion.Translator' + '_' + 'onRender', [hemi.msg.stop]);
+		// Scene
+		chainTable.put('hemi.scene.Scene' + '_' + 'load', [hemi.msg.load]);
+		chainTable.put('hemi.scene.Scene' + '_' + 'nextScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.scene.Scene' + '_' + 'previousScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.scene.Scene' + '_' + 'unload', [hemi.msg.unload]);
+		// Camera
+		chainTable.put('hemi.view.Camera' + '_' + 'moveOnCurve', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
+		chainTable.put('hemi.view.Camera' + '_' + 'moveToView', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
+		chainTable.put('hemi.view.Camera' + '_' + 'onRender', [hemi.msg.stop]); // Calls update()
+		chainTable.put('hemi.view.Camera' + '_' + 'update', [hemi.msg.stop]);
+		// Citizen
+		chainTable.put('hemi.world.Citizen' + '_' + 'cleanup', [hemi.msg.cleanup]);
+		
+		return chainTable;
+	})();
+	
+	var methodsToRemove = module.treeData.methodsToRemove = [
         'constructor',
 		'getId',
 		'setId',
@@ -31,6 +87,10 @@ var editor = (function(module, jQuery) {
 		'setCitizenType',
 		'toOctane'
 	];
+		
+////////////////////////////////////////////////////////////////////////////////
+//                               Local Variables                              //
+////////////////////////////////////////////////////////////////////////////////
 	
 	var commonMethods = {
 		'hemi.animation.Animation': ['reset', 'start', 'stop'],
@@ -54,7 +114,7 @@ var editor = (function(module, jQuery) {
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                                 Utilities                                  //
+//                                  Methods                                   //
 ////////////////////////////////////////////////////////////////////////////////
 
 	var isCommon = function(citizen, method) {
@@ -116,6 +176,7 @@ var editor = (function(module, jQuery) {
 	
 	module.treeData.getNodeName = getNodeName;
 	module.treeData.createCitizenJson = createCitizenJson;
+	module.treeData.isCommon = isCommon;
 	
 	module.treeData.createShapePickCitizen = function(model) {
 		return {
@@ -166,11 +227,11 @@ var editor = (function(module, jQuery) {
 		};
 	};
 	
-	module.treeData.createTriggerJson = function(citizen) {
+	module.treeData.createTriggerJson = function(citizen, prefix) {
 		var id = citizen.getId(),
 			name = getNodeName(citizen, {
 				option: MSG_WILDCARD,
-				prefix: TRIGGER_PREFIX,
+				prefix: prefix,
 				id: id
 			}),
 			msgs = [{
@@ -190,7 +251,7 @@ var editor = (function(module, jQuery) {
 			var msg = citizen.msgSent[ndx],
 				name = getNodeName(citizen, {
 					option: msg,
-					prefix: TRIGGER_PREFIX,
+					prefix: prefix,
 					id: id
 				});
 			
@@ -208,13 +269,13 @@ var editor = (function(module, jQuery) {
 			});
 		}
 		
-		var node = createCitizenJson(citizen, TRIGGER_PREFIX);
+		var node = createCitizenJson(citizen, prefix);
 		node.children = msgs;
 		node.state = 'closed';
 		return node;
 	};
 	
-	module.treeData.createActionJson = function(citizen) {
+	module.treeData.createActionJson = function(citizen, prefix) {
 		var methods = [],
 			moreMethods = [],
 			id = citizen.getId();
@@ -225,7 +286,7 @@ var editor = (function(module, jQuery) {
 			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
 				var name = getNodeName(citizen, {
 						option: propName,
-						prefix: ACTION_PREFIX,
+						prefix: prefix,
 						id: id
 					}),
 					node = {
@@ -251,7 +312,7 @@ var editor = (function(module, jQuery) {
 		if (methods.length > 0) {
 			var moreName = getNodeName(citizen, {
 					option: null,
-					prefix: ACTION_PREFIX,
+					prefix: prefix,
 					id: id
 				}) + '_MORE';
 			var moreNode = {
@@ -271,13 +332,13 @@ var editor = (function(module, jQuery) {
 			methods = moreMethods;
 		}
 		
-		var node = createCitizenJson(citizen, ACTION_PREFIX);
+		var node = createCitizenJson(citizen, prefix);
 		node.children = methods;
 		node.state = 'closed';
 		return node;
 	};
 	
-	module.treeData.createModuleJson = function(module) {
+	module.treeData.createModuleJson = function(module, prefix) {
 		var methods = [];
 		
 		for (propName in module) {
@@ -286,7 +347,7 @@ var editor = (function(module, jQuery) {
 			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
 				var name = getNodeName(module, {
 					option: propName,
-					prefix: ACTION_PREFIX,
+					prefix: prefix,
 					id: module.getId()
 				});
 				
@@ -305,7 +366,7 @@ var editor = (function(module, jQuery) {
 		}
 		
 		var name = getNodeName(module, {
-			prefix: ACTION_PREFIX,
+			prefix: prefix,
 			id: module.getId()
 		});
 		
@@ -324,7 +385,7 @@ var editor = (function(module, jQuery) {
 		};
 	};
 	
-	module.treeData.createCamMoveJson = function(cmCit) {
+	module.treeData.createCamMoveJson = function(cmCit, prefix) {
 		var camera = cmCit.citizen,
 			viewpoints = hemi.world.getViewpoints(),
 			vpList = [];
@@ -336,7 +397,7 @@ var editor = (function(module, jQuery) {
 		
 		var name = getNodeName(cmCit, {
 			option: null,
-			prefix: TRIGGER_PREFIX,
+			prefix: prefix,
 			id: cmCit.getId()
 		});
 		
@@ -355,10 +416,10 @@ var editor = (function(module, jQuery) {
 		};
 	};
 	
-	module.treeData.createCamMoveTypeJson = function(cmCit) {
+	module.treeData.createCamMoveTypeJson = function(cmCit, prefix) {
 		var name = getNodeName(cmCit, {
 			option: null,
-			prefix: TRIGGER_PREFIX
+			prefix: prefix
 		});
 		
 		return {
@@ -375,10 +436,10 @@ var editor = (function(module, jQuery) {
 		};
 	};
 	
-	module.treeData.createViewpointJson = function(cmCit, viewpoint) {
+	module.treeData.createViewpointJson = function(cmCit, viewpoint, prefix) {
 		var name = getNodeName(cmCit, {
 				option: viewpoint.getId(),
-				prefix: TRIGGER_PREFIX,
+				prefix: prefix,
 				id: cmCit.getId()
 			});
 			
@@ -396,7 +457,7 @@ var editor = (function(module, jQuery) {
 		};
 	};
 	
-	module.treeData.createShapePickJson = function(spCit) {
+	module.treeData.createShapePickJson = function(spCit, prefix) {
 		var model = spCit.citizen,
 			id = spCit.getId(),
 			shapes = [];
@@ -405,7 +466,7 @@ var editor = (function(module, jQuery) {
 			var shape = model.shapes[ndx],
 				name = getNodeName(spCit, {
 					option: shape.name,
-					prefix: TRIGGER_PREFIX,
+					prefix: prefix,
 					id: id
 				});
 			
@@ -425,7 +486,7 @@ var editor = (function(module, jQuery) {
 		
 		var name = getNodeName(spCit, {
 			option: null,
-			prefix: TRIGGER_PREFIX,
+			prefix: prefix,
 			id: id
 		});
 		
@@ -444,10 +505,10 @@ var editor = (function(module, jQuery) {
 		};
 	};
 	
-	module.treeData.createShapePickTypeJson = function(spCit) {
+	module.treeData.createShapePickTypeJson = function(spCit, prefix) {
 		var name = getNodeName(spCit, {
 			option: null,
-			prefix: TRIGGER_PREFIX
+			prefix: prefix
 		});
 		
 		return {
@@ -464,10 +525,10 @@ var editor = (function(module, jQuery) {
 		};
 	};
 	
-	module.treeData.createWildcardJson = function() {
+	module.treeData.createWildcardJson = function(prefix) {
 		var name = getNodeName(MSG_WILDCARD, {
 				option: MSG_WILDCARD,
-				prefix: TRIGGER_PREFIX
+				prefix: prefix
 			}),
 			msgs = [{
 				data: '[Any message]',
@@ -488,7 +549,7 @@ var editor = (function(module, jQuery) {
 			if (!jQuery.isFunction(msg)) {
 				name = getNodeName(MSG_WILDCARD, {
 					option: msg,
-					prefix: TRIGGER_PREFIX
+					prefix: prefix
 				});
 				
 				msgs.push({
@@ -508,7 +569,7 @@ var editor = (function(module, jQuery) {
 		
 		name = getNodeName(MSG_WILDCARD, {
 			option: null,
-			prefix: TRIGGER_PREFIX
+			prefix: prefix
 		});
 		
 		return {

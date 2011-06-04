@@ -209,6 +209,31 @@ var editor = (function(module) {
 	        this.shown = true;
 	    }
 	});
+	
+	module.ui.PopupMenu = module.ui.Menu.extend({
+		init: function(opt_title) {
+			this._super(opt_title);
+		},
+		
+		finishLayout: function() {
+			this._super();
+			this.container.hide();
+			this.list.show();
+		},
+		
+		hide: function() {
+			this.container.hide(200);
+			this.shown = false;
+		},
+		
+		show: function(position) {
+			this.container.css({
+				top: position.top,
+				left: position.left
+			}).show(200);
+			this.shown = true;
+		}
+	});
     
     module.ui.MenuBar = module.ui.Menu.extend({
 		init: function() {

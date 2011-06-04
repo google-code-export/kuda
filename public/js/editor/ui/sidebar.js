@@ -22,15 +22,16 @@ var editor = (function(module) {
 		MIN_TXT = 'Minimize';
 		
 	module.EventTypes = module.EventTypes || {};
-	
-	// sidebar widget specific
-	module.EventTypes.SBWidgetVisible = "sidebar.SBWidgetVisible";
-	module.EventTypes.SBWidgetInvalidate = "sidebar.SBWidgetInvalidate";
-	module.EventTypes.SBWidgetLoaded = "sidebar.SBWidgetLoaded";
-	
-	// sidebar specific
-	module.EventTypes.SidebarMinimized = "sidebar.SidebarMinimized";
-	module.EventTypes.SidebarFinishedLoading = "sidebar.SidebarFinishedLoading";
+	module.EventTypes.Sidebar = {
+		// sidebar widget specific
+		WidgetVisible: "sidebar.WidgetVisible",
+		WidgetInvalidate: "sidebar.WidgetInvalidate",
+		WidgetLoaded: "sidebar.WidgetLoaded",
+		
+		// sidebar specific
+		Minimized: "sidebar.Minimized",
+		FinishedLoading: "sidebar.FinishedLoading"
+	};
    
 ////////////////////////////////////////////////////////////////////////////////
 //                     				Sidebar				                   	  //
@@ -107,11 +108,11 @@ var editor = (function(module) {
 						
 						waiting = [];
 						sidebar.notifyListeners(
-							module.EventTypes.SidebarFinishedLoading, null);
+							module.EventTypes.Sidebar.FinishedLoading, null);
 					};
 					
 					if (!widgetUI) {
-						widget.addListener(module.EventTypes.SBWidgetLoaded, 
+						widget.addListener(module.EventTypes.Sidebar.WidgetLoaded, 
 							function(wgt){
 								var ndx = jQuery.inArray(wgt, waiting);
 								
@@ -126,8 +127,8 @@ var editor = (function(module) {
 					
 					list.push(widget);
 					
-					widget.addListener(module.EventTypes.SBWidgetVisible, this);
-					widget.addListener(module.EventTypes.SBWidgetInvalidate, 
+					widget.addListener(module.EventTypes.Sidebar.WidgetVisible, this);
+					widget.addListener(module.EventTypes.Sidebar.WidgetInvalidate, 
 						this);
 					
 					if (waiting.length === 0) {
@@ -150,8 +151,8 @@ var editor = (function(module) {
 	            }
 	        }
 	        
-			found.removeListener(module.EventTypes.SBWidgetVisible, this);
-			found.removeListener(module.EventTypes.SBWidgetInvalidate, this);
+			found.removeListener(module.EventTypes.Sidebar.WidgetVisible, this);
+			found.removeListener(module.EventTypes.Sidebar.WidgetInvalidate, this);
 	        return found;
 		},
 		
@@ -170,7 +171,7 @@ var editor = (function(module) {
 				this.minimizedWidgets[ndx].setVisible(false);
 			}
 			
-			this.notifyListeners(module.EventTypes.SidebarMinimized, true);
+			this.notifyListeners(module.EventTypes.Sidebar.Minimized, true);
 		},
 		
 		maximize: function() {
@@ -182,11 +183,11 @@ var editor = (function(module) {
 				this.minimizedWidgets[ndx].setVisible(true);
 			}
 			
-			this.notifyListeners(module.EventTypes.SidebarMinimized, false);
+			this.notifyListeners(module.EventTypes.Sidebar.Minimized, false);
 		},
 		
 		notify: function(eventType, value) {
-			if (eventType === module.EventTypes.SBWidgetVisible) {
+			if (eventType === module.EventTypes.Sidebar.WidgetVisible) {
 				var visible = value.visible,
 					widget = value.widget;
 					
@@ -204,7 +205,7 @@ var editor = (function(module) {
 				}
 				this.layoutWidgets();
 			}
-			else if (eventType === module.EventTypes.SBWidgetInvalidate) {
+			else if (eventType === module.EventTypes.Sidebar.WidgetInvalidate) {
 				this.layoutWidgets();
 			}
 		},
@@ -309,7 +310,7 @@ var editor = (function(module) {
 					cmp.container = jQuery(cleaned);
 					cmp.finishLayout();
 					
-					cmp.notifyListeners(module.EventTypes.SBWidgetLoaded, cmp);
+					cmp.notifyListeners(module.EventTypes.Sidebar.WidgetLoaded, cmp);
 				});
 			}
 		},
@@ -318,7 +319,7 @@ var editor = (function(module) {
 			this._super(visible);
 			var wgt = this;
 			
-			this.notifyListeners(module.EventTypes.SBWidgetVisible, {
+			this.notifyListeners(module.EventTypes.Sidebar.WidgetVisible, {
 				widget: wgt,
 				visible: visible
 			});
@@ -344,7 +345,7 @@ var editor = (function(module) {
 		},
 		
 		invalidate: function() {
-			this.notifyListeners(module.EventTypes.SBWidgetInvalidate, null);
+			this.notifyListeners(module.EventTypes.Sidebar.WidgetInvalidate, null);
 		},
 		
 		getName: function() {
@@ -494,7 +495,7 @@ var editor = (function(module) {
 		
 	module.ui.FormSBWidget = module.ui.SidebarWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.tools.SidebarWidgetDefaults, options);			
+			var newOpts = jQuery.extend({}, module.ui.SidebarWidgetDefaults, options);			
 			this.checkers = [];
 			
 		    this._super(newOpts);	

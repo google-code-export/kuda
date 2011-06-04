@@ -359,7 +359,7 @@ var editor = (function(module) {
 					
 			for (var ndx = 0, len = sbrWgts.length; ndx < len; ndx++) {
 				var wgt = sbrWgts[ndx];
-				wgt.addListener(module.EventTypes.SBWidgetVisible, visFcn);
+				wgt.addListener(module.EventTypes.Sidebar.WidgetVisible, visFcn);
 			}
         
 	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
@@ -373,7 +373,7 @@ var editor = (function(module) {
 	        });
 			
 			view.addListener(module.EventTypes.SidebarSet, function(sidebar) {			
-				sidebar.addListener(module.EventTypes.SidebarMinimized, function(val) {
+				sidebar.addListener(module.EventTypes.Sidebar.Minimized, function(val) {
 	            	var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
 					handleWidgets(!val && isDown);
 				});

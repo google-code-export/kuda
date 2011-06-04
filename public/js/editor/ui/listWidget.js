@@ -184,7 +184,7 @@ var editor = (function(module, jQuery) {
 	module.ui.EdtLiWgtDefaultOptions = {
 		removable: true,
 		editable: true,
-		behavior: false
+		behaviorEditable: false
 	};
 	
 	module.ui.EditableListItemWidget = module.ui.ListItemWidget.extend({
@@ -194,7 +194,8 @@ var editor = (function(module, jQuery) {
 		},
 						
 		finishLayout: function() {
-			var btnDiv = jQuery('<div class="buttonContainer"></div>');
+			var btnDiv = jQuery('<div class="buttonContainer"></div>'),
+				wgt = this;
 			
 			this.container = jQuery('<div></div>');
 			this.title = jQuery('<span></span>');
@@ -202,6 +203,15 @@ var editor = (function(module, jQuery) {
 			if (this.config.editable) {
 				this.editBtn = jQuery('<button class="editBtn">Edit</button>');
 				btnDiv.append(this.editBtn);
+			}
+			if (this.config.behaviorEditable) {
+				this.behaviorBtn = jQuery('<button class="behaviorBtn">Edit Behavior</button>');
+				btnDiv.append(this.behaviorBtn);
+				
+				this.behaviorBtn.bind('click', function() {
+					module.ui.showBehaviorMenu(jQuery(this), 
+						wgt.getAttachedObject());
+				});
 			}
 			if (this.config.removable) {
 				this.removeBtn = jQuery('<button class="removeBtn">Remove</button>');
@@ -215,20 +225,6 @@ var editor = (function(module, jQuery) {
 			this.title.text(text);
 		}
 	});
-	
-	var behaviorMenu = new module.ui.Menu(),
-		addTrigger = new module.ui.MenuItem({
-			title: 'Trigger a behavior',
-			action: function(evt) {
-				// get the valid messages from the associated object
-			}
-		}),
-		addAction = new module.ui.MenuItem({
-			title: 'Respond to a trigger',
-			action: function(evt) {
-				// get the methods from the associated object
-			}
-		});
 	
 	return module;
 })(editor || {}, jQuery);

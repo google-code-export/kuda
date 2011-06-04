@@ -925,7 +925,7 @@ var editor = (function(module) {
 			}
 			
 			this.tree.jstree('select_node', elem, false);
-			this.notifyListeners(module.EventTypes.SBWidgetInvalidate);
+			this.notifyListeners(module.EventTypes.Sidebar.WidgetInvalidate);
 		},
 		
 		deselectNode: function(nodeName) {
