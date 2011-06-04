@@ -49,6 +49,7 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.ui.gridPlane');
 	o3djs.require('editor.ui.behaviorTrees');
 	o3djs.require('editor.ui.param');
+	o3djs.require('editor.ui.behaviorWidget');
 
     o3djs.require('editor.tools.baseTool');
     o3djs.require('editor.tools.animator');

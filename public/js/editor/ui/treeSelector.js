@@ -102,7 +102,8 @@ var editor = (function(module) {
 					}
 				}
 				else {
-					var elem = data.rslt.obj, val = elem.find('a').text();
+					var elem = data.rslt.obj, 
+						val = elem.find('a').text();
 					
 					wgt.input.val(val);
 					wgt.hidePanel();

@@ -1211,6 +1211,7 @@ form button {
 .treeSelector input.treeSelectorIpt {
 	width: 213px;
 	float: left;
+	border-radius: 3px 0 0 3px;
 }
 .treeSelectorBtn:hover {
 	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
@@ -1261,7 +1262,8 @@ form button {
 .prmWgtCitTreeBtn.open:after, .treeSelectorBtn.open:after {
 	background-position: -32px 0px;
 }
-.prmWgtCitTreeBtn.open, form input.open, .treeSelectorBtn.open {
+.prmWgtCitTreeBtn.open, form input.open, .treeSelectorBtn.open, 
+.treeSelector input.treeSelectorIpt.open {
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
 }
@@ -1930,6 +1932,27 @@ ul.scnEvtList li.button {
 
 #crvPositionDiv, #crvDimensionsDiv {
 	float: right;
+}
+
+/**
+ * Behavior widget
+ */
+#behaviorWgt {
+	
+}
+#behaviorAxnParams li {
+	list-style: none;
+	float: left;
+}
+#behaviorAxnParams label {
+	width: 80px;
+}
+#behaviorAxnParams input[type=text] {
+	width: 128px;
+	float: left;
+}
+#behaviorMenu {
+	position: absolute;
 }
 
 /*

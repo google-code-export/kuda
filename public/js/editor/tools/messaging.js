@@ -67,72 +67,12 @@ var editor = (function(module) {
 	};
 	
 	var TRIGGER_WRAPPER = '#causeTreeWrapper',
-		ACTION_WRAPPER = '#effectTreeWrapper',
-		MSG_WILDCARD = 'Any';
+		ACTION_WRAPPER = '#effectTreeWrapper';
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Utilities                                  //
 ////////////////////////////////////////////////////////////////////////////////
-	
-	var createChainTable = function() {
-		var chainTable = new Hashtable();
-		// Animation
-		chainTable.put('hemi.animation.Animation' + '_' + 'onRender', [hemi.msg.stop]); // Calls stop()
-		chainTable.put('hemi.animation.Animation' + '_' + 'start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
-		chainTable.put('hemi.animation.Animation' + '_' + 'stop', [hemi.msg.stop]);
-		// Burst
-		chainTable.put('hemi.effect.Burst' + '_' + 'trigger', [hemi.msg.burst]);
-		// Emitter
-		chainTable.put('hemi.effect.Emitter' + '_' + 'hide', [hemi.msg.visible]);
-		chainTable.put('hemi.effect.Emitter' + '_' + 'show', [hemi.msg.visible]);
-		// Trail
-		chainTable.put('hemi.effect.Trail' + '_' + 'start', [hemi.msg.start]);
-		chainTable.put('hemi.effect.Trail' + '_' + 'stop', [hemi.msg.stop]);
-		// HudDisplay
-		chainTable.put('hemi.hud.HudDisplay' + '_' + 'clearPages', [hemi.msg.visible]); // Calls hide()
-		chainTable.put('hemi.hud.HudDisplay' + '_' + 'hide', [hemi.msg.visible]);
-		chainTable.put('hemi.hud.HudDisplay' + '_' + 'nextPage', [hemi.msg.visible]); // Calls showPage()
-		chainTable.put('hemi.hud.HudDisplay' + '_' + 'previousPage', [hemi.msg.visible]); // Calls showPage()
-		chainTable.put('hemi.hud.HudDisplay' + '_' + 'show', [hemi.msg.visible]); // Calls showPage()
-		chainTable.put('hemi.hud.HudDisplay' + '_' + 'showPage', [hemi.msg.visible]);
-		// Draggable
-		chainTable.put('hemi.manip.Draggable' + '_' + 'onMouseMove', [hemi.msg.drag]);
-		chainTable.put('hemi.manip.Draggable' + '_' + 'onPick', [hemi.msg.drag]); // Calls onMouseMove()
-		// Model
-		chainTable.put('hemi.model.Model' + '_' + 'incrementAnimationTime', [hemi.msg.animate]); // Calls setAnimationTime()
-		chainTable.put('hemi.model.Model' + '_' + 'loadConfig', [hemi.msg.load]);
-		chainTable.put('hemi.model.Model' + '_' + 'loadModel', [hemi.msg.load]); // Calls loadConfig()
-		chainTable.put('hemi.model.Model' + '_' + 'setAnimationTime', [hemi.msg.animate]);
-		chainTable.put('hemi.model.Model' + '_' + 'setFileName', [hemi.msg.load]); // Calls loadModel()
-		// Rotator
-		chainTable.put('hemi.motion.Rotator' + '_' + 'rotate', [hemi.msg.start, hemi.msg.stop]); // Leads to onRender()
-		chainTable.put('hemi.motion.Rotator' + '_' + 'onRender', [hemi.msg.stop]);
-		// Translator
-		chainTable.put('hemi.motion.Translator' + '_' + 'move', [hemi.msg.start, hemi.msg.stop]); // Leads to onRender()
-		chainTable.put('hemi.motion.Translator' + '_' + 'onRender', [hemi.msg.stop]);
-		// Scene
-		chainTable.put('hemi.scene.Scene' + '_' + 'load', [hemi.msg.load]);
-		chainTable.put('hemi.scene.Scene' + '_' + 'nextScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
-		chainTable.put('hemi.scene.Scene' + '_' + 'previousScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
-		chainTable.put('hemi.scene.Scene' + '_' + 'unload', [hemi.msg.unload]);
-		// Camera
-		chainTable.put('hemi.view.Camera' + '_' + 'moveOnCurve', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
-		chainTable.put('hemi.view.Camera' + '_' + 'moveToView', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
-		chainTable.put('hemi.view.Camera' + '_' + 'onRender', [hemi.msg.stop]); // Calls update()
-		chainTable.put('hemi.view.Camera' + '_' + 'update', [hemi.msg.stop]);
-		// Citizen
-		chainTable.put('hemi.world.Citizen' + '_' + 'cleanup', [hemi.msg.cleanup]);
 		
-		return chainTable;
-	};
-	
-	/**
-	 * Returns the list of parameters for a function
-	 */
-	var getFunctionParams = function(func) {
-		return func.toString().match(/\((.*?)\)/)[1].match(/[\w]+/g) || [];
-    };
-	
 	module.tools.DispatchProxy = function() {
 		// The set of MessageSpecs (and MessageTargets) being created by the
 		// messaging tool
@@ -259,7 +199,7 @@ var editor = (function(module) {
 			this.setMethod(method);
 			
 			if (argList != null) {
-				var params = getFunctionParams(this.handler[this.method]);
+				var params = module.utils.getFunctionParams(this.handler[this.method]);
 				
 				for (var ndx = 0, len = params.length; ndx < len; ndx++) {
 					this.setArgument(params[ndx], argList[ndx]);
@@ -313,7 +253,7 @@ var editor = (function(module) {
 			this.args.clear();
 			
 			if (method !== null) {
-				var methodParams = getFunctionParams(this.handler[method]);
+				var methodParams = module.utils.getFunctionParams(this.handler[method]);
 				
 				for (var ndx = 0, len = methodParams.length; ndx < len; ndx++) {
 					var param = methodParams[ndx];
@@ -527,7 +467,6 @@ var editor = (function(module) {
 			this.triggersTree = module.ui.createTriggersTree();
 			this.actionsTree = module.ui.createActionsTree();
 			this.chainParent = null;
-			this.chainTable = createChainTable();
 			
 			this.eventList = new module.ui.ListWidget({
 				widgetId: 'msgEvtList',
@@ -711,7 +650,7 @@ var editor = (function(module) {
 		getChainMessages: function(citizen, method) {
 			var type = citizen.getCitizenType ? citizen.getCitizenType() : citizen.name,
 				key = type + '_' + method,
-				msgList = this.chainTable.get(key),
+				msgList = module.treeData.chainTable.get(key),
 				messages;
 			
 			if (citizen.parent != null) {
@@ -914,9 +853,10 @@ var editor = (function(module) {
 		bindEvents: function(){
 			this._super();
 			
-			var model = this.model;
-			var view = this.view;
-			var controller = this;
+			var model = this.model,
+				view = this.view,
+				bhvWgt = module.ui.getBehaviorWidget(),
+				controller = this;
 			
 			// view specific
 			view.addListener(module.EventTypes.ToolModeSet, function(data){
@@ -1032,6 +972,26 @@ var editor = (function(module) {
 				
 				editorPnl.hide();
 				editListPnl.show();
+			});
+			
+			// behavior widget specific
+			bhvWgt.addListener(module.EventTypes.Behavior.Save, function(saveObj) {
+				var args = saveObj.args || [],
+					trigger = saveObj.trigger,
+					action = saveObj.action;
+				
+				model.setMessageSource(trigger.citizen);
+				model.setMessageType(trigger.type);
+				model.setMessageHandler(action.handler);
+				model.setMethod(action.method);
+				
+				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
+					var arg = args[ndx];
+					
+					model.setArgument(arg.name, arg.value);
+				}
+				
+				model.save(saveObj.name);
 			});
 		}
 	});

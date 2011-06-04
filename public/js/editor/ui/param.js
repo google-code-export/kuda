@@ -31,7 +31,8 @@ var editor = (function(module) {
 	var prmCitTree = module.ui.createCitizensTree(),
 		prmCitTreePnl = jQuery('<div id="' + CIT_TREE_PNL_ID +'"></div>'),
 		prmPadding = 0
-		prmBorder = 0;
+		prmBorder = 0,
+		counter = 0;
 	
 	prmCitTree.addListener(module.EventTypes.Trees.TreeCreated, 
 		function(treeUI) {		
@@ -82,6 +83,7 @@ var editor = (function(module) {
 				wgt = this;
 			this.tree = prmCitTree;
 			this.curArgs = new Hashtable();
+			this.id = counter++;
 			
 		    this._super(newOpts);
 		},
@@ -150,7 +152,7 @@ var editor = (function(module) {
 					lb = jQuery('<label></label>'),
 					cb = jQuery('<button class="prmWgtCitTreeBtn dialogBtn">Citizens</button>'),
 					arg = args[ndx],
-					id = 'prmWgtParam_' + arg;
+					id = this.id + '_prmWgtParam_' + arg;
 				
 	            list.append(li);
 	            li.append(lb).append(ip).append(cb);
@@ -191,7 +193,7 @@ var editor = (function(module) {
 			
 			for (var ndx = 0, len = argsIpt.length; ndx < len; ndx++) {
 				var ipt = argsIpt[ndx],
-					val = ipt.val();
+					val = ipt.data('trueVal');
 				
 				if (hemi.utils.isNumeric(val)) {
 					val = parseFloat(val);
@@ -212,8 +214,15 @@ var editor = (function(module) {
 		},
 		
 		setArgument: function(argName, argValue) {
-			var ipt = this.curArgs.get('prmWgtParam_' + argName);
-			ipt.val(argValue);
+			var ipt = this.curArgs.get(this.id + '_prmWgtParam_' + argName);
+			if (/id:/.test(argValue)) {
+				var cit = hemi.world.getCitizenById(
+					parseInt(argValue.split(':').pop()));
+				ipt.val(cit.getCitizenType().split('.').pop() + '.' + cit.name);
+			}
+			else {
+				ipt.val(argValue);
+			}
 		}
 	});
 	

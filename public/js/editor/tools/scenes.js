@@ -185,7 +185,9 @@ var editor = (function(module) {
 		
 	module.tools.ScnListItemWidget = module.ui.EditableListItemWidget.extend({
 		init: function() {
-			this._super();
+			this._super({
+				behaviorEditable: true
+			});
 			
 			this.isSorting = false;
 			this.events = new Hashtable();
@@ -199,12 +201,12 @@ var editor = (function(module) {
 			
 			this.bindButtons(li);
 			
-			if (type === hemi.msg.load) {
-				this.loadList.before(li, this.loadAdd);
-			}
-			else {
-				this.unloadList.before(li, this.unloadAdd);
-			}
+//			if (type === hemi.msg.load) {
+//				this.loadList.before(li, this.loadAdd);
+//			}
+//			else {
+//				this.unloadList.before(li, this.unloadAdd);
+//			}
 			
 			this.events.put(event.dispatchId, {
 				type: type,
@@ -245,55 +247,55 @@ var editor = (function(module) {
 			this._super();
 			
 			// attach the sub lists
-			var loadHeader = jQuery('<h2>Load Events:</h2>'),
-				unloadHeader = jQuery('<h2>Unload Events:</h2>'),
-				evtList = jQuery('<div class="scnEvtListWrapper"></div>'),
-				arrow = jQuery('<div class="scnEvtListArrow"></div>'),
-				wgt = this;
-			
-			this.loadAdd = this.createAddBtnLi();
-			this.unloadAdd = this.createAddBtnLi();
-			
-			this.loadAdd.addBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.Scenes.AddLoadEvent, 
-					wgt.getAttachedObject());
-			});
-			this.unloadAdd.addBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.Scenes.AddUnLoadEvent, 
-					wgt.getAttachedObject());
-			});
-			
-			this.loadList = new module.ui.ListWidget({
-				widgetClass: 'scnEvtList',
-				prefix: 'scnEvtLst'
-			});
-			this.unloadList = new module.ui.ListWidget({
-				widgetClass: 'scnEvtList',
-				prefix: 'scnEvtLst'
-			});
-			
-			this.loadList.add(this.loadAdd);
-			this.unloadList.add(this.unloadAdd);
-			evtList.append(loadHeader).append(this.loadList.getUI())
-				.append(unloadHeader).append(this.unloadList.getUI())
-				.hide();
-			arrow.hide();
-			this.container.append(arrow).append(evtList);
-			
-			this.container.bind('mouseup', function(evt) {
-				var tgt = jQuery(evt.target);
-				
-				if (evt.target.tagName !== 'BUTTON'
-						&& tgt.parents('.scnEvtListWrapper').size() === 0
-						&& !tgt.hasClass('scnEvtListWrapper')
-						&& !wgt.isSorting) {
-					arrow.toggle(100);
-					evtList.slideToggle(200);
-				}
-			});		
-			
-			this.loadAdd.container.parent().addClass('button');
-			this.unloadAdd.container.parent().addClass('button');	
+//			var loadHeader = jQuery('<h2>Load Events:</h2>'),
+//				unloadHeader = jQuery('<h2>Unload Events:</h2>'),
+//				evtList = jQuery('<div class="scnEvtListWrapper"></div>'),
+//				arrow = jQuery('<div class="scnEvtListArrow"></div>'),
+//				wgt = this;
+//			
+//			this.loadAdd = this.createAddBtnLi();
+//			this.unloadAdd = this.createAddBtnLi();
+//			
+//			this.loadAdd.addBtn.bind('click', function(evt) {
+//				wgt.notifyListeners(module.EventTypes.Scenes.AddLoadEvent, 
+//					wgt.getAttachedObject());
+//			});
+//			this.unloadAdd.addBtn.bind('click', function(evt) {
+//				wgt.notifyListeners(module.EventTypes.Scenes.AddUnLoadEvent, 
+//					wgt.getAttachedObject());
+//			});
+//			
+//			this.loadList = new module.ui.ListWidget({
+//				widgetClass: 'scnEvtList',
+//				prefix: 'scnEvtLst'
+//			});
+//			this.unloadList = new module.ui.ListWidget({
+//				widgetClass: 'scnEvtList',
+//				prefix: 'scnEvtLst'
+//			});
+//			
+//			this.loadList.add(this.loadAdd);
+//			this.unloadList.add(this.unloadAdd);
+//			evtList.append(loadHeader).append(this.loadList.getUI())
+//				.append(unloadHeader).append(this.unloadList.getUI())
+//				.hide();
+//			arrow.hide();
+//			this.container.append(arrow).append(evtList);
+//			
+//			this.container.bind('mouseup', function(evt) {
+//				var tgt = jQuery(evt.target);
+//				
+//				if (evt.target.tagName !== 'BUTTON'
+//						&& tgt.parents('.scnEvtListWrapper').size() === 0
+//						&& !tgt.hasClass('scnEvtListWrapper')
+//						&& !wgt.isSorting) {
+//					arrow.toggle(100);
+//					evtList.slideToggle(200);
+//				}
+//			});		
+//			
+//			this.loadAdd.container.parent().addClass('button');
+//			this.unloadAdd.container.parent().addClass('button');	
 		},
 		
 		remove: function(event) {
@@ -655,6 +657,7 @@ var editor = (function(module) {
 			
 			this.addSidebarWidget(new module.tools.ScnListSBWidget());
 			this.addSidebarWidget(new module.tools.ScnEvtEdtSBWidget());
+			this.addSidebarWidget(module.ui.getBehaviorWidget());
 	    }
 	});	
     
@@ -683,6 +686,7 @@ var editor = (function(module) {
 	        	view = this.view,
 				scnLst = view.sceneListSBWidget,
 				edtWgt = view.scnEvtEdtSBWidget,
+				bhvWgt = view.behaviorSBWidget,
 	        	that = this,
 				addSceneListeners = function(scnWgt) {
 					scnWgt.addListener(module.EventTypes.Scenes.AddLoadEvent, 
@@ -771,6 +775,17 @@ var editor = (function(module) {
 				}
 				
 				msgMdl.save(saveObj.name);
+			});
+			
+			// behavior widget specific
+			bhvWgt.addListener(module.EventTypes.Behavior.Cancel, function(obj) {
+				
+			});
+			bhvWgt.addListener(module.EventTypes.Behavior.Save, function(saveObj) {
+			});
+			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;				
+				scnLst.setVisible(!obj.visible && isDown);
 			});
 			
 			// edit widget trees specific
