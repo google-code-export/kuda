@@ -389,7 +389,7 @@ var editor = (function(module) {
 		},
 		
 		createListItemWidget: function() {
-			return new module.tools.ScnListItemWidget();
+			return new module.ui.BhvListItemWidget();
 		},
 		
 		finishLayout: function() {
@@ -812,41 +812,41 @@ var editor = (function(module) {
 			});
 			
 			// messaging model specific
-			msgMdl.addListener(module.EventTypes.TargetCreated, function(target) {
-				var spec = msgMdl.dispatchProxy.getTargetSpec(target),
-					scn = hemi.world.getCitizenById(spec.src),
-					li = scnLst.getListItem(scn),
-	            	isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
-				
-				if (li) {
-					li.add(target, spec.msg);
-					
-					edtWgt.reset();
-					edtWgt.setVisible(false);
-					scnLst.setVisible(isDown && true);
-				}
-			});
-			msgMdl.addListener(module.EventTypes.TargetRemoved, function(target) {
-				var li = scnLst.getListItem(target);
-				
-				if (li) {
-					li.remove(target);
-				}
-			});
-			msgMdl.addListener(module.EventTypes.TargetUpdated, function(target) {
-				var spec = msgMdl.dispatchProxy.getTargetSpec(target),
-					scn = hemi.world.getCitizenById(spec.src),
-					li = scnLst.getListItem(scn),
-	            	isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
-				
-				if (li) {
-					li.update(target);
-					
-					edtWgt.reset();
-					edtWgt.setVisible(false);
-					scnLst.setVisible(isDown && true);
-				}
-			});
+//			msgMdl.addListener(module.EventTypes.TargetCreated, function(target) {
+//				var spec = msgMdl.dispatchProxy.getTargetSpec(target),
+//					scn = hemi.world.getCitizenById(spec.src),
+//					li = scnLst.getListItem(scn),
+//	            	isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
+//				
+//				if (li) {
+//					li.add(target, scn);
+//					
+//					edtWgt.reset();
+//					edtWgt.setVisible(false);
+//					scnLst.setVisible(isDown && true);
+//				}
+//			});
+//			msgMdl.addListener(module.EventTypes.TargetRemoved, function(target) {
+//				var li = scnLst.getListItem(target);
+//				
+//				if (li) {
+//					li.remove(target);
+//				}
+//			});
+//			msgMdl.addListener(module.EventTypes.TargetUpdated, function(target) {
+//				var spec = msgMdl.dispatchProxy.getTargetSpec(target),
+//					scn = hemi.world.getCitizenById(spec.src),
+//					li = scnLst.getListItem(scn),
+//	            	isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
+//				
+//				if (li) {
+//					li.update(target, scn);
+//					
+//					edtWgt.reset();
+//					edtWgt.setVisible(false);
+//					scnLst.setVisible(isDown && true);
+//				}
+//			});
 	    },
 		
 		/**

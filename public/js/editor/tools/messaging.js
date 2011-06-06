@@ -961,9 +961,26 @@ var editor = (function(module) {
 				
 				editorPnl.hide();
 				editListPnl.show();
+				
+				// update the behavior widget
+				var spec = model.dispatchProxy.getTargetSpec(target),
+					actor = hemi.world.getCitizenById(spec.src),
+					li = module.ui.getBehaviorListItem(actor);
+					
+				if (li) {
+					li.add(target, actor);
+				}
 			});			
-			model.addListener(module.EventTypes.TargetRemoved, function(data){
-				view.removeTarget(data);
+			model.addListener(module.EventTypes.TargetRemoved, function(target){
+				view.removeTarget(target);
+				
+				var spec = model.dispatchProxy.getTargetSpec(target),
+					actor = hemi.world.getCitizenById(spec.src),
+					li = module.ui.getBehaviorListItem(actor);
+				
+				if (li) {
+					li.remove(target);
+				}
 			});			
 			model.addListener(module.EventTypes.TargetUpdated, function(target){
 				view.updateTarget(target);
@@ -972,6 +989,14 @@ var editor = (function(module) {
 				
 				editorPnl.hide();
 				editListPnl.show();
+				
+				var spec = model.dispatchProxy.getTargetSpec(target),
+					actor = hemi.world.getCitizenById(spec.src),
+					li = module.ui.getBehaviorListItem(actor);
+				
+				if (li) {
+					li.update(target);
+				}
 			});
 			
 			// behavior widget specific

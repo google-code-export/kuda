@@ -183,8 +183,7 @@ var editor = (function(module, jQuery) {
 	
 	module.ui.EdtLiWgtDefaultOptions = {
 		removable: true,
-		editable: true,
-		behaviorEditable: false
+		editable: true
 	};
 	
 	module.ui.EditableListItemWidget = module.ui.ListItemWidget.extend({
@@ -203,15 +202,6 @@ var editor = (function(module, jQuery) {
 			if (this.config.editable) {
 				this.editBtn = jQuery('<button class="editBtn">Edit</button>');
 				btnDiv.append(this.editBtn);
-			}
-			if (this.config.behaviorEditable) {
-				this.behaviorBtn = jQuery('<button class="behaviorBtn">Edit Behavior</button>');
-				btnDiv.append(this.behaviorBtn);
-				
-				this.behaviorBtn.bind('click', function() {
-					module.ui.showBehaviorMenu(jQuery(this), 
-						wgt.getAttachedObject());
-				});
 			}
 			if (this.config.removable) {
 				this.removeBtn = jQuery('<button class="removeBtn">Remove</button>');

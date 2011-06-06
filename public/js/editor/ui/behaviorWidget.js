@@ -20,7 +20,10 @@ var editor = (function(module) {
 	
 	module.EventTypes.Behavior = {
 		Save: 'behavior.save',
-		Cancel: 'behavior.cancel'
+		Cancel: 'behavior.cancel',
+		
+		// list widget specific
+		ListItemEdit: 'behavior.listitemedit'
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -305,10 +308,136 @@ var editor = (function(module) {
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
+//                            Behavior List Widget	                          //
+////////////////////////////////////////////////////////////////////////////////
+	
+	module.ui.BhvListItemWidget = module.ui.EditableListItemWidget.extend({
+		init: function() {
+			this._super();
+			
+			this.isSorting = false;
+			this.events = new Hashtable();
+		},
+		
+		add: function(event, actor) {
+			var li = new module.ui.EditableListItemWidget(),
+				type = actor.getCitizenType().split('.').pop();
+			
+			li.setText(type + '.' + actor.name + ': ' + event.name);
+			li.attachObject(event);
+			
+			this.bindButtons(li);
+			this.list.add(li);
+			
+			this.events.put(event.dispatchId, {
+				type: type,
+				li: li
+			});
+		},
+		
+		attachObject: function(obj) {
+			this._super(obj);
+			
+			behaviorLiTable.put(obj, this);
+		},
+		
+		bindButtons: function(li) {
+			var wgt = this;
+			
+			li.editBtn.bind('click', function(evt) {
+				var evt = li.getAttachedObject(),
+					obj = wgt.getAttachedObject();
+				
+				wgt.notifyListeners(module.EventTypes.Behavior.ListItemEdit, {
+					actor: obj,
+					event: evt
+				});
+			});
+			
+			li.removeBtn.bind('click', function(evt) {
+				var evt = li.getAttachedObject();
+				wgt.notifyListeners(module.EventTypes.Scenes.RemoveSceneEvent, evt);
+			});
+		},
+		
+		finishLayout: function() {
+			this._super();
+			
+			this.behaviorBtn = jQuery('<button class="behaviorBtn">Edit Behavior</button>');
+			this.editBtn.after(this.behaviorBtn);
+			
+			this.behaviorBtn.bind('click', function() {
+				module.ui.showBehaviorMenu(jQuery(this), 
+					wgt.getAttachedObject());
+			});
+			
+			// attach the sub lists
+			var loadHeader = jQuery('<h2>Attached Behaviors:</h2>'),
+				evtList = jQuery('<div class="bhvListWrapper"></div>'),
+				arrow = jQuery('<div class="bhvListArrow"></div>'),
+				wgt = this;
+			
+			this.list = new module.ui.ListWidget({
+				widgetClass: 'bhvList',
+				prefix: 'bhvLst'
+			});
+			
+			evtList.append(loadHeader).append(this.list.getUI())
+				.hide();
+			arrow.hide();
+			this.container.append(arrow).append(evtList);
+			
+			this.container.bind('mouseup', function(evt) {
+				var tgt = jQuery(evt.target);
+				
+				if (evt.target.tagName !== 'BUTTON'
+						&& tgt.parents('.bhvListWrapper').size() === 0
+						&& !tgt.hasClass('bhvListWrapper')
+						&& !wgt.isSorting) {
+					arrow.toggle(100);
+					evtList.slideToggle(200);
+				}
+			});		
+		},
+		
+		remove: function(event) {
+			var li = this.events.get(event.dispatchId);
+			
+			this.list.remove(li);
+			
+			this.events.remove(event.dispatchId);
+		},
+		
+		setParent: function(parent) {
+			this._super();
+			var wgt = this;
+			
+			// need to check for sorting
+			if (parent) {
+				parent.list.bind('sortstart', function(evt, ui){
+					wgt.isSorting = true;
+				});
+				parent.list.bind('sortstop', function(evt, ui){
+					wgt.isSorting = false;
+				});
+			}
+		},
+		
+		update: function(event, actor) {
+			var li = this.events.get(event.dispatchId),
+				type = actor.getCitizenType().split('.').pop();
+			
+			li.attachObject(event);
+			li.setText(type + '.' + actor.name + ': ' + event.name);
+		}
+	});
+	
+////////////////////////////////////////////////////////////////////////////////
 //                                	   Setup	                              //
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var behaviorWidget = null,
+		behaviorLiTable = new Hashtable(),
 		behaviorMenu = new module.ui.PopupMenu(),
 		addTriggerMnuItm = new module.ui.MenuItem({
 			title: 'Trigger a behavior',
@@ -350,6 +479,10 @@ var editor = (function(module) {
 		position.left -= behaviorMenu.container.width() - parBtn.width();
 		behaviorMenu.show(position);
 		behaviorMenu.actor = actor;
+	};
+	
+	module.ui.getBehaviorListItem = function(actor) {
+		return behaviorLiTable.get(actor);
 	};
 	
 	return module;
