@@ -303,4 +303,16 @@ o3d.BoundingBox.prototype.inFrustum =
   return (bb_test == 0);
 };
 
+/**
+ * Calculate the coordinates of the center of the BoundingBox.
+ * 
+ * @return {number[3]} the XYZ coordinates of the center
+ */
+o3d.BoundingBox.prototype.getCenterOfGeometry = function() {
+	var x = (this.minExtent[0] + this.maxExtent[0])/2,
+		y = (this.minExtent[1] + this.maxExtent[1])/2,
+		z = (this.minExtent[2] + this.maxExtent[2])/2;
+	return [x, y, z];
+};
+
 

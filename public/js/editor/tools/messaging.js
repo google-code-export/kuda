@@ -36,36 +36,6 @@ var editor = (function(module) {
 	module.EventTypes.SelectAction = "messaging.SelectAction";
 	module.EventTypes.SelectTarget = "messaging.SelectTarget";
 	
-	var methodsToRemove = [
-        'constructor',
-		'getId',
-		'setId',
-		'getCitizenType',
-		'setCitizenType',
-		'toOctane'
-	];
-	
-	var commonMethods = {
-		'hemi.animation.Animation': ['reset', 'start', 'stop'],
-		'hemi.audio.Audio': ['pause', 'play', 'seek', 'setVolume'],
-		'hemi.effect.Burst': ['trigger'],
-		'hemi.effect.Emitter': ['hide', 'show'],
-		'hemi.effect.Trail': ['start', 'stop'],
-		'hemi.hud.HudDisplay': ['hide', 'nextPage', 'previousPage', 'show'],
-		'hemi.hud.Theme': ['load'],
-		'hemi.manip.Draggable': ['disable', 'enable'],
-		'hemi.manip.Scalable': ['disable', 'enable'],
-		'hemi.manip.Turnable': ['disable', 'enable'],
-		'hemi.model.Model': ['load', 'unload'],
-		'hemi.motion.Rotator': ['disable', 'enable', 'setAccel', 'setAngle',
-			'setVel'],
-		'hemi.motion.Translator': ['disable', 'enable', 'setAccel', 'setPos',
-			'setVel'],
-		'hemi.scene.Scene': ['load', 'nextScene', 'previousScene', 'unload'],
-		'hemi.view.Camera': ['disableControl', 'enableControl', 'moveToView',
-			'orbit', 'rotate', 'setLight', 'truck']
-	};
-	
 	var TRIGGER_WRAPPER = '#causeTreeWrapper',
 		ACTION_WRAPPER = '#effectTreeWrapper';
 	
