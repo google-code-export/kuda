@@ -1955,6 +1955,34 @@ ul.scnEvtList li.button {
 	position: absolute;
 }
 
+.bhvListWrapper {
+	float: left;
+	width: 259px;
+	margin: 0 0 0 -30px;
+	padding: 20px 10px 15px 30px;
+	background: #fffdf2;
+	box-shadow: 0 0 3px #ddd;
+	-moz-box-shadow: 0 0 3px #ddd;  
+}
+.bhvListArrow {
+	display: block; 
+	position: absolute;
+	top: 35px; 
+	left: 35px; 
+	width: 13px;
+	height: 13px;
+	background: #fffdf2;
+	box-shadow: -1px -1px 2px #ddd;
+	-moz-box-shadow: -1px -1px 2px #ddd;  
+	transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+.bhvListWrapper h2 {
+	float: left;
+	width: 100%;
+}
+
 /*
 * jQuery UI CSS Framework
 * Copyright (c) 2010 AUTHORS.txt (http://jqueryui.com/about)
