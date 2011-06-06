@@ -212,13 +212,19 @@ var editor = (function(module) {
 				this.msgTarget = null;
 			}
 			
+			var spec = this.dispatchProxy.getTargetSpec(target),
+				source = hemi.world.getCitizenById(spec.src);
+				
 			this.dispatchProxy.removeTarget(target);
 			
 			if (target.handler instanceof hemi.handlers.ValueCheck) {
 				target.handler.cleanup();
 			}
 			
-	        this.notifyListeners(module.EventTypes.TargetRemoved, target);
+	        this.notifyListeners(module.EventTypes.TargetRemoved, {
+				target: target,
+				source: source
+			});
 		},
 	    
 	    setMessageSource: function(source) {
@@ -285,7 +291,7 @@ var editor = (function(module) {
 			});
 		},
 		
-	    save: function(name) {
+	    save: function(name, opt_type) {
 			var values = this.args.values(),
 				args = [],
 				editId = null,
@@ -341,6 +347,7 @@ var editor = (function(module) {
 			}
 			
 			newTarget.name = name;
+			newTarget.type = opt_type;
 			
 			if (this.msgTarget !== null) {
 				newTarget.dispatchId = this.msgTarget.dispatchId;
@@ -366,6 +373,7 @@ var editor = (function(module) {
 			this.dispatchProxy.cleanup();
 			var citizens = hemi.world.getCitizens();
 			
+			// TODO: this is a bug, needs to be updated to the common model
 			for (var ndx = 0, len = citizens.length; ndx < len; ndx++) {
 				this.removeCitizen(citizens[ndx]);
 			}
@@ -972,15 +980,13 @@ var editor = (function(module) {
 					li.add(target, actor, msg);
 				}
 			});			
-			model.addListener(module.EventTypes.TargetRemoved, function(target){
-				view.removeTarget(target);
+			model.addListener(module.EventTypes.TargetRemoved, function(data){
+				view.removeTarget(data.target);
 				
-				var spec = model.dispatchProxy.getTargetSpec(target),
-					actor = hemi.world.getCitizenById(spec.src),
-					li = module.ui.getBehaviorListItem(actor);
+				var li = module.ui.getBehaviorListItem(data.source);
 				
 				if (li) {
-					li.remove(target);
+					li.remove(data.target);
 				}
 			});			
 			model.addListener(module.EventTypes.TargetUpdated, function(target){
@@ -1002,6 +1008,18 @@ var editor = (function(module) {
 			});
 			
 			// behavior widget specific
+			module.ui.addBehaviorListItemListener(
+				module.EventTypes.Behavior.ListItemEdit, function(obj) {
+					var spec = model.dispatchProxy.getTargetSpec(obj.target);
+						
+					bhvWgt.setActor(obj.actor, obj.target.type, obj.target, 
+						spec.msg);
+					bhvWgt.setVisible(true);
+				});
+			module.ui.addBehaviorListItemListener(
+				module.EventTypes.Behavior.ListItemRemove, function(target) {
+					model.removeTarget(target);
+				});
 			bhvWgt.addListener(module.EventTypes.Behavior.Save, function(saveObj) {
 				var args = saveObj.args || [],
 					trigger = saveObj.trigger,
@@ -1018,7 +1036,31 @@ var editor = (function(module) {
 					model.setArgument(arg.name, arg.value);
 				}
 				
-				model.save(saveObj.name);
+				model.save(saveObj.name, saveObj.type);
+			});
+			bhvWgt.addListener(module.EventTypes.Behavior.Update, function(saveObj) {				
+				if (saveObj.target !== null) {
+					model.copyTarget(saveObj.target);
+				}
+				
+				model.msgTarget = saveObj.target;
+				
+				var args = saveObj.args || [],
+					trigger = saveObj.trigger,
+					action = saveObj.action;
+				
+				model.setMessageSource(trigger.citizen);
+				model.setMessageType(trigger.type);
+				model.setMessageHandler(action.handler);
+				model.setMethod(action.method);
+				
+				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
+					var arg = args[ndx];
+					
+					model.setArgument(arg.name, arg.value);
+				}
+				
+				model.save(saveObj.name, saveObj.type);
 			});
 		}
 	});

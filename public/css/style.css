@@ -124,7 +124,7 @@ input.error {
 	background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eaeaea);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dadada), to(#eaeaea));
     border-bottom: 1px solid #ccc;
-    padding: 5px 0;
+    padding: 0;
     float: left;
 }
 
@@ -132,7 +132,7 @@ input.error {
     color: #535353;
     font: bold 16pt/22pt "Myriad Pro", Helvetica, Verdana, Arial, sans-serif;
     text-align: left;
-    padding: 0 10px 0 20px;
+    padding: 5px 10px 5px 20px;
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
     text-transform: uppercase;
     float: left;
@@ -175,31 +175,47 @@ input.error {
 
 #menu .uiMenuBar > ul > li {
     float: left;
-    padding: 5px 10px;
 }
 
 #menu .uiMenu {
     position: relative;
 }
 
+#menu .uiMenu > span {	
+    padding: 10px;
+	display: block;
+}
+
+#menu .uiMenu > span.uiMenuShown {
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#333), to(#666));
+	color: #fff;
+	text-shadow: 0 -1px 0 #000;
+}
+
 #menu .uiMenu ul {
     list-style: none;
     position: absolute;
-    background: #ddd;
-    border: 1px solid #aaa;
+    background: #333;
     padding: 5px;
     margin: 0;
     z-index: 100;
-	color: #535353;
+	color: #fff;
+	text-shadow: 0 -1px 0 #000;
+	border-radius: 0 0 3px 3px;
 }
 
 #menu .uiMenu ul li {
     white-space: nowrap;
 }
 
-#menu .uiMenu > span:hover, #menu .uiMenu ul li:hover,
+#menu .uiMenu > span.uiMenuShown:hover, #menu .uiMenu ul li:hover,
 #menu .uiMenu ul li a:hover {
-    color: #0a6496;
+    color: #c2dfef;
+}
+
+#menu .uiMenu > span:not(.uiMenuShown):hover {
+	color: #0a6496;
 }
 
 #menu .uiMenu ul li a {
@@ -746,6 +762,10 @@ ol.listWidget li span {
 	padding: 3px;
 	background: none;
 }
+.listWidget button.uiMenuShown {	
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#333), to(#666));
+}
 .listWidget button:before {
 	background: url(../images/listOptionsSprite.png) no-repeat;
 	height: 16px;
@@ -755,7 +775,7 @@ ol.listWidget li span {
 	content: "";
 	float: left;
 }
-.listWidget button:hover {
+.listWidget button:not(.uiMenuShown):hover {
 	background: -moz-linear-gradient(19% 75% 90deg, #ededed, #fff); 
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fff));
 	border-color: #dcdcdc;
@@ -765,6 +785,12 @@ ol.listWidget li span {
 }
 .listWidget button.editBtn:hover:before {
 	background-position: -16px 0;
+}
+.listWidget button.behaviorBtn:before {
+	background-position: 0 -16px;
+}
+.listWidget button.behaviorBtn:hover:before {
+	background-position: -16px -16px;
 }
 .listWidget button.removeBtn:before {
 	background-position: 0 -32px;
@@ -1953,6 +1979,24 @@ ul.scnEvtList li.button {
 }
 #behaviorMenu {
 	position: absolute;
+	border-radius: 3px;
+	padding: 4px 8px;
+	color: #fff;
+	background: #333;
+	font: bold 12px/18px Helvetica, Verdana, Arial, sans-serif;
+	text-shadow: 0 -1px 0 #000;
+	box-shadow: 2px 3px 4px #999;
+	margin-top: 4px;
+}
+#behaviorMenu ul li {
+	padding: 2px 0;
+}
+#behaviorMenu ul li a {
+	cursor: pointer;
+}
+#behaviorMenu ul li a:hover {
+	text-shadow: 0 0 5px #444;
+	color: #c2dfef;
 }
 
 .bhvListWrapper {

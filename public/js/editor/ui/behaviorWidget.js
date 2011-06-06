@@ -19,11 +19,13 @@ var editor = (function(module) {
 	module.ui = module.ui || {};
 	
 	module.EventTypes.Behavior = {
-		Save: 'behavior.save',
 		Cancel: 'behavior.cancel',
+		Save: 'behavior.save',
+		Update: 'behavior.update',
 		
 		// list widget specific
-		ListItemEdit: 'behavior.listitemedit'
+		ListItemEdit: 'behavior.listitemedit',
+		ListItemRemove: 'behavior.listitemremove'
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -217,6 +219,7 @@ var editor = (function(module) {
 			this.prmFieldset = paramsFieldset;
 			this.savFieldset = saveFieldset;
 			this.saveBtn = saveBtn;
+			this.nameIpt = nameIpt;
 			
 			this.axnTree = module.ui.createActionsTree(true);
 			this.trgTree = module.ui.createTriggersTree(true);
@@ -258,10 +261,14 @@ var editor = (function(module) {
 					trigger: wgt.trgChooser.getSelection(),
 					action: wgt.axnChooser.getSelection(),
 					args: wgt.prmWgt.getArgs(),
-					name: nameIpt.val()
-				};
+					name: nameIpt.val(),
+					type: wgt.type,
+					target: wgt.target
+				},
+				msgType = wgt.target ? module.EventTypes.Behavior.Update :
+					module.EventTypes.Behavior.Save;
 				
-				wgt.notifyListeners(module.EventTypes.Behavior.Save, data);
+				wgt.notifyListeners(msgType, data);
 				wgt.reset();
 				wgt.setVisible(false);
 			});
@@ -299,6 +306,7 @@ var editor = (function(module) {
 			this.trgChooser.reset();
 			this.axnChooser.reset();
 			this.prmWgt.reset();
+			this.nameIpt.val('');
 			
 			this.trgFieldset.hide();
 			this.axnFieldset.hide();
@@ -307,9 +315,11 @@ var editor = (function(module) {
 			
 			reset(this.trgTree.getUI());
 			reset(this.axnTree.getUI());
+			
+			this.target = null;
 		},
 		
-		setActor: function(actor, type, msgObj) {
+		setActor: function(actor, type, msgTarget, msg) {
 			this.reset();
 			
 			this.type = type;
@@ -333,6 +343,36 @@ var editor = (function(module) {
 					openNode(this.trgTree.getUI(), actor, this.trgTree.pre);		    
 					break;
 			}
+			
+			if (msgTarget) {
+				var nodeName = module.treeData.getNodeName(actor, {
+						option: [msg == 'Any' ? msg : 'hemi.' + msg],
+						prefix: this.trgTree.pre,
+						id: actor.getId()
+					}),
+				trgT = this.trgTree.getUI(),
+				axnT = this.axnTree.getUI(),
+				isValueCheck = msgTarget instanceof hemi.handlers.ValueCheck,
+				handler = isValueCheck ? msgTarget.handler.handler : msgTarget.handler,
+				func =  isValueCheck? msgTarget.handler.func : msgTarget.func,
+				vals = isValueCheck ? msgTarget.handler.args : msgTarget.args,
+				args = module.utils.getFunctionParams(handler[func]);
+				
+				openNode(trgT, actor, this.trgTree.pre);
+				this.trgChooser.select(nodeName);
+				
+				nodeName = module.treeData.getNodeName(handler, {
+					option: [func],
+					prefix: this.axnTree.pre,
+					id: handler.getId()
+				});
+				
+				openNode(axnT, handler, this.axnTree.pre);
+				this.axnChooser.select(nodeName);
+				
+				this.prmWgt.fillParams(args, vals);
+				this.target = msgTarget;
+			}
 		}
 	});
 	
@@ -350,8 +390,8 @@ var editor = (function(module) {
 		
 		add: function(msgTarget, actor, msg) {
 			var li = new module.ui.EditableListItemWidget(),
-				type = actor.getCitizenType().split('.').pop(),
-				name = [type, actor.name, msg.split('.').pop()];
+				citType = actor.getCitizenType().split('.').pop(),
+				name = [citType, actor.name, msg.split('.').pop()];
 			
 			li.setText(name.join('.') + ': ' + msgTarget.name);
 			li.attachObject(msgTarget);
@@ -359,10 +399,7 @@ var editor = (function(module) {
 			this.bindButtons(li);
 			this.list.add(li);
 			
-			this.targets.put(msgTarget.dispatchId, {
-				type: type,
-				li: li
-			});
+			this.targets.put(msgTarget.dispatchId, li);
 		},
 		
 		attachObject: function(obj) {
@@ -375,18 +412,20 @@ var editor = (function(module) {
 			var wgt = this;
 			
 			li.editBtn.bind('click', function(evt) {
-				var evt = li.getAttachedObject(),
+				var msgTarget = li.getAttachedObject(),
 					obj = wgt.getAttachedObject();
 				
-				wgt.notifyListeners(module.EventTypes.Behavior.ListItemEdit, {
-					actor: obj,
-					event: evt
-				});
+				behaviorLiNotifier.notifyListeners(
+					module.EventTypes.Behavior.ListItemEdit, {
+						actor: obj,
+						target: msgTarget
+					});
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
-				var evt = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.Scenes.RemoveSceneEvent, evt);
+				var msgTarget = li.getAttachedObject();
+				behaviorLiNotifier.notifyListeners(
+					module.EventTypes.Behavior.ListItemRemove, msgTarget);
 			});
 		},
 		
@@ -469,6 +508,7 @@ var editor = (function(module) {
 	
 	var behaviorWidget = null,
 		behaviorLiTable = new Hashtable(),
+		behaviorLiNotifier = new module.utils.Listenable(),
 		behaviorMenu = new module.ui.PopupMenu(),
 		addTriggerMnuItm = new module.ui.MenuItem({
 			title: 'Trigger a behavior',
@@ -507,13 +547,21 @@ var editor = (function(module) {
 		var position = parBtn.offset();
 		
 		position.top += parBtn.outerHeight();
-		position.left -= behaviorMenu.container.width() - parBtn.width();
-		behaviorMenu.show(position);
+		position.left -= behaviorMenu.container.outerWidth() - parBtn.outerWidth();
+		behaviorMenu.show(position, parBtn);
 		behaviorMenu.actor = actor;
 	};
 	
 	module.ui.getBehaviorListItem = function(actor) {
 		return behaviorLiTable.get(actor);
+	};
+	
+	module.ui.addBehaviorListItemListener = function(eventType, listener) {
+		behaviorLiNotifier.addListener(eventType, listener);
+	};
+	
+	module.ui.removeBehaviorListItemListener = function(listener) {
+		behaviorLiNotifier.removeListener(listener);
 	};
 	
 	return module;

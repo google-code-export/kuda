@@ -115,7 +115,7 @@ var editor = (function(module) {
 	});
 	
 	module.ui.Menu = module.ui.MenuItem.extend({
-		init: function(opt_title) {
+		init: function(opt_title, opt_noAction) {
 			var that = this;
 			this.menuItems = [];
 			this.shown = false;
@@ -127,32 +127,34 @@ var editor = (function(module) {
 				this.setTitle(opt_title);
 			}
 			
-			this.setAction(function(evt) {
-	            if (that.shown) {
-					that.hide();
-					jQuery(document).unbind('click.menu');
-	            }
-	            else {
-					var highestZ = 0;
-					jQuery('.ui-dialog').each(function() {
-						var z = parseInt(jQuery(this).css('zIndex'));
-						highestZ = z > highestZ ? z : highestZ;
-					});
-					
-					that.show();	
-					that.list.css('zIndex', highestZ + 1);			
-	                jQuery(document).bind('click.menu', function(evt) {
-						var target = jQuery(evt.target);
-						var parent = target.parents('.uiMenu');
+			if (!opt_noAction) {
+				this.setAction(function(evt){
+					if (that.shown) {
+						that.hide();
+						jQuery(document).unbind('click.menu');
+					}
+					else {
+						var highestZ = 0;
+						jQuery('.ui-dialog').each(function(){
+							var z = parseInt(jQuery(this).css('zIndex'));
+							highestZ = z > highestZ ? z : highestZ;
+						});
 						
-						if (parent.size() == 0) {
-							that.hide();
-						}
-					});
-	            }
-				
-				that.notifyListeners(module.EventTypes.MenuItemShown, that);
-	        });
+						that.show();
+						that.list.css('zIndex', highestZ + 1);
+						jQuery(document).bind('click.menu', function(evt){
+							var target = jQuery(evt.target), 
+								parent = target.parents('.uiMenu');
+							
+							if (parent.size() == 0) {
+								that.hide();
+							}
+						});
+					}
+					
+					that.notifyListeners(module.EventTypes.MenuItemShown, that);
+				});
+			}
 		},
 		
 		finishLayout: function() {	
@@ -200,19 +202,21 @@ var editor = (function(module) {
 		},
 	    
 	    hide: function() {
-	        this.list.hide(200);
+	        this.list.fadeOut(200);
 			this.shown = false;
+			this.titleLink.removeClass('uiMenuShown');
 	    },
 	    
 	    show: function() {
-	        this.list.show(200);
+	        this.list.fadeIn(200);
 	        this.shown = true;
+			this.titleLink.addClass('uiMenuShown');
 	    }
 	});
 	
 	module.ui.PopupMenu = module.ui.Menu.extend({
 		init: function(opt_title) {
-			this._super(opt_title);
+			this._super(opt_title, true);
 		},
 		
 		finishLayout: function() {
@@ -222,16 +226,32 @@ var editor = (function(module) {
 		},
 		
 		hide: function() {
-			this.container.hide(200);
+			this.container.fadeOut(200);
 			this.shown = false;
+			jQuery(document).unbind('click.menu');
+			this.parent.removeClass('uiMenuShown');
+			this.parent = null;
 		},
 		
-		show: function(position) {
+		show: function(position, parent) {			
+			jQuery(document).bind('click.menu', function(evt){
+				var target = jQuery(evt.target), 
+					par = target.parents('.uiMenu');
+				
+				if (par.size() == 0 && target[0] != parent[0]) {
+					that.hide();
+				}
+			});
+						
 			this.container.css({
 				top: position.top,
 				left: position.left
-			}).show(200);
+			}).fadeIn(200);
 			this.shown = true;
+			var that = this;
+			this.parent = parent;
+			
+			parent.addClass('uiMenuShown');
 		}
 	});
     

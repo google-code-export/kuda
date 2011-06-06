@@ -170,14 +170,12 @@ var editor = (function(module) {
 				ip.attr('id', id)
 				.data('paramName', arg).data('widget', wgt)
 				.css('maxHeight', height);
+								
+				this.curArgs.put(id, ip);
 				
 				if (vals && vals[ndx] != null) {
-					ip.val(vals[ndx]);
-				} else {
-					ip.val('');
+					this.setArgument(arg, vals[ndx])
 				}
-				
-				this.curArgs.put(id, ip);
 			}
 		},
 		
