@@ -130,8 +130,10 @@ var editor = (function(module) {
 			if (this.camData == null) {
 				this.camData = hemi.view.createViewData(hemi.world.camera);
 			}
-			var viewpoint = this.createViewpoint(params);
-			hemi.world.camera.moveToView(viewpoint);
+			
+			params.up = hemi.world.camera.up;
+			var vd = new hemi.view.ViewData(params);
+			hemi.world.camera.moveToView(vd);
 		},
 		
 		removeCamCurve: function(curve) {
