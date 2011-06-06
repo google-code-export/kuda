@@ -965,10 +965,11 @@ var editor = (function(module) {
 				// update the behavior widget
 				var spec = model.dispatchProxy.getTargetSpec(target),
 					actor = hemi.world.getCitizenById(spec.src),
+					msg = spec.msg,
 					li = module.ui.getBehaviorListItem(actor);
 					
 				if (li) {
-					li.add(target, actor);
+					li.add(target, actor, msg);
 				}
 			});			
 			model.addListener(module.EventTypes.TargetRemoved, function(target){
@@ -992,10 +993,11 @@ var editor = (function(module) {
 				
 				var spec = model.dispatchProxy.getTargetSpec(target),
 					actor = hemi.world.getCitizenById(spec.src),
+					msg = spec.msg,
 					li = module.ui.getBehaviorListItem(actor);
 				
 				if (li) {
-					li.update(target);
+					li.update(target, actor, msg);
 				}
 			});
 			

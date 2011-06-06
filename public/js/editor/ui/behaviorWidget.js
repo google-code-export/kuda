@@ -135,6 +135,18 @@ var editor = (function(module) {
 			});
 		},
 		
+		checkSaveButton: function() {
+			var btn = this.saveBtn,
+				saveable = this.checkSaveable();
+			
+			if (saveable) {
+				btn.removeAttr('disabled');
+			}
+			else {
+				btn.attr('disabled', 'disabled');
+			}
+		},
+		
 		finishLayout: function() {
 			this.container = jQuery('<div id="behaviorWgt"></div>');
 			var form = jQuery('<form class="noSteps" action="" method="post"></form>'), 
@@ -176,8 +188,14 @@ var editor = (function(module) {
 						}
 						else {
 							if (selector === wgt.axnChooser) {
-								wgt.prmFieldset.show(200);
-								wgt.prmWgt.fillParams(module.utils.getFunctionParams(obj1[obj2]));
+								var args = module.utils.getFunctionParams(obj1[obj2]);
+								if (args.length > 0) {
+									wgt.prmFieldset.show(200);
+								}
+								else {
+									wgt.prmFieldset.hide(200);
+								}
+								wgt.prmWgt.fillParams(args);
 								data.handler = obj1;
 								data.method = obj2;
 							}
@@ -188,6 +206,7 @@ var editor = (function(module) {
 							selector.input.val(path.join('.').replace('.More...', ''));
 							selector.setSelection(data);
 							
+							wgt.checkSaveButton();
 							return true;
 						}
 					}
@@ -197,6 +216,7 @@ var editor = (function(module) {
 			this.axnFieldset = actionFieldset;
 			this.prmFieldset = paramsFieldset;
 			this.savFieldset = saveFieldset;
+			this.saveBtn = saveBtn;
 			
 			this.axnTree = module.ui.createActionsTree(true);
 			this.trgTree = module.ui.createTriggersTree(true);
@@ -252,8 +272,8 @@ var editor = (function(module) {
 				wgt.setVisible(false);
 			});
 			
-			nameIpt.bind('keyUp', function(evt) {
-				
+			nameIpt.bind('keyup', function(evt) {				
+				wgt.checkSaveButton();
 			});
 			
 			form.submit(function() { return false; });
@@ -263,7 +283,16 @@ var editor = (function(module) {
 			this.container.append(form);
 			
 			// save checking
-//			this.addInputToCheck(nameIpt);
+			var trgChecker = new module.ui.InputChecker(this.trgChooser),
+				axnChecker = new module.ui.InputChecker(this.axnChooser);
+			
+			trgChecker.saveable = axnChecker.saveable = function() {
+				return this.input.getSelection() != null;
+			};
+			
+			this.addInputsToCheck(nameIpt);
+			this.addInputsToCheck(trgChecker);
+			this.addInputsToCheck(axnChecker);
 		},
 		
 		reset: function() {
@@ -316,20 +345,21 @@ var editor = (function(module) {
 			this._super();
 			
 			this.isSorting = false;
-			this.events = new Hashtable();
+			this.targets = new Hashtable();
 		},
 		
-		add: function(event, actor) {
+		add: function(msgTarget, actor, msg) {
 			var li = new module.ui.EditableListItemWidget(),
-				type = actor.getCitizenType().split('.').pop();
+				type = actor.getCitizenType().split('.').pop(),
+				name = [type, actor.name, msg.split('.').pop()];
 			
-			li.setText(type + '.' + actor.name + ': ' + event.name);
-			li.attachObject(event);
+			li.setText(name.join('.') + ': ' + msgTarget.name);
+			li.attachObject(msgTarget);
 			
 			this.bindButtons(li);
 			this.list.add(li);
 			
-			this.events.put(event.dispatchId, {
+			this.targets.put(msgTarget.dispatchId, {
 				type: type,
 				li: li
 			});
@@ -400,12 +430,12 @@ var editor = (function(module) {
 			});		
 		},
 		
-		remove: function(event) {
-			var li = this.events.get(event.dispatchId);
+		remove: function(msgTarget) {
+			var li = this.targets.get(msgTarget.dispatchId);
 			
 			this.list.remove(li);
 			
-			this.events.remove(event.dispatchId);
+			this.targets.remove(msgTarget.dispatchId);
 		},
 		
 		setParent: function(parent) {
@@ -423,12 +453,13 @@ var editor = (function(module) {
 			}
 		},
 		
-		update: function(event, actor) {
-			var li = this.events.get(event.dispatchId),
-				type = actor.getCitizenType().split('.').pop();
+		update: function(msgTarget, actor, msg) {
+			var li = this.targets.get(msgTarget.dispatchId),
+				type = actor.getCitizenType().split('.').pop(),
+				name = [type, actor.name, msg.split('.').pop()];
 			
-			li.attachObject(event);
-			li.setText(type + '.' + actor.name + ': ' + event.name);
+			li.attachObject(msgTarget);
+			li.setText(name.join('.') + ': ' + msgTarget.name);
 		}
 	});
 	

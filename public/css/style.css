@@ -1982,6 +1982,30 @@ ul.scnEvtList li.button {
 	float: left;
 	width: 100%;
 }
+.bhvList {
+	float: left;
+	padding: 0 0 0 20px;
+}
+ul.bhvList li {
+	padding: 0;
+	list-style: circle inside;
+	width: 240px;
+}
+ul.bhvList li:hover {
+	background: none;
+}
+ul.bhvList li > div {	
+	width: 220px;
+}
+ul.bhvList li > div.add {
+	width: 240px;
+}
+ul.bhvList li .buttonContainer {
+	padding-right: 0;
+}
+ul.bhvList li.button {
+	list-style: none;
+}
 
 /*
 * jQuery UI CSS Framework
