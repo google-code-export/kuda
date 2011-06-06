@@ -371,6 +371,7 @@ var editor = (function(module) {
 				this.axnChooser.select(nodeName);
 				
 				this.prmWgt.fillParams(args, vals);
+				this.nameIpt.val(msgTarget.name);
 				this.target = msgTarget;
 			}
 		}
