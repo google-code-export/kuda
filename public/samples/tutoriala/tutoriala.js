@@ -73,8 +73,8 @@ o3djs.require('hext.house.structure');
 
 		var hMath = hemi.core.math;
 		hemi.world.camera.fixEye();
-		hemi.world.camera.setLookAroundLimits(null, null, hMath.degToRad(-50),
-			hMath.degToRad(50));
+		hemi.world.camera.setLookAroundLimits(null, null, hemi.core.math.degToRad(-50),
+			hemi.core.math.degToRad(50));
 		hemi.world.camera.enableControl();
 
 		door = new hext.house.Door(house.getTransforms('door')[0]);
@@ -88,7 +88,7 @@ o3djs.require('hext.house.structure');
 				break;
 			}
 		});
-		
+
 		window1Left = new hext.house.Window(house.getTransforms('window1_sashLeft')[0],[0,60,0]);
 		window1Left.onPick(function(msg) {
 			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
@@ -121,7 +121,7 @@ o3djs.require('hext.house.structure');
 			if (door.closed || window1Right.closed || window1Left.closed || entered) {
 				jQuery('#enter').attr('disabled', 'disabled');
 			} else {
-				jQuery('#enter').attr('disabled', '');
+				jQuery('#enter').removeAttr('disabled');
 			}
 		};
 	}
@@ -151,7 +151,30 @@ o3djs.require('hext.house.structure');
 			console.log.apply(console, ["Light the fire"]);
 		} catch(e) { }
 
-		var fire = hemi.effect.createFire();
+		var colorRamp = 
+			[1, 1, 0, 0.6,
+			 1, 0, 0, 0.6,
+			 0, 0, 0, 1,
+			 0, 0, 0, 0.5,
+			 0, 0, 0, 0];
+		var params = {
+			numParticles: 20,
+			lifeTime: 1.1,
+			timeRange: 1,
+			startSize: 55,
+			startSizeRange : 20,
+			endSize: 1,
+			endSizeRange: 1,
+			velocity:[0, 55, 0],
+			velocityRange: [10.1, 9.7, 10.3],
+			acceleration: [0, -1, 0],
+			positionRange : [3.6, 2, 3.4],
+			spinSpeedRange: 4
+		};
+		var fire = hemi.effect.createEmitter(
+			hemi.core.particles.ParticleStateIds.ADD,
+			colorRamp,
+			params);
 		fire.transform.translate(0.0, 72.0, -236.0);
 		fire.show();
 
