@@ -719,6 +719,10 @@ ol.listWidget li>div {
 	float: right;
 	width: 270px;
 }
+ul.listWidget li>div {
+	float: left;
+	width: 300px;
+}
 .listWidget>li:nth-child(odd) {
 	background: #eaeaea;
 } 
@@ -1998,7 +2002,6 @@ ul.scnEvtList li.button {
 	text-shadow: 0 0 5px #444;
 	color: #c2dfef;
 }
-
 .bhvListWrapper {
 	float: left;
 	width: 259px;
@@ -2007,6 +2010,9 @@ ul.scnEvtList li.button {
 	background: #fffdf2;
 	box-shadow: 0 0 3px #ddd;
 	-moz-box-shadow: 0 0 3px #ddd;  
+}
+ul li .bhvListWrapper {
+	margin: 0;
 }
 .bhvListArrow {
 	display: block; 

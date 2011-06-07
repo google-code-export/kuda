@@ -626,12 +626,7 @@ var editor = (function(module) {
 			});
 			
 			// behavior widget specific
-			bhvWgt.addListener(module.EventTypes.Behavior.Cancel, function(obj) {
-				
-			});
-			bhvWgt.addListener(module.EventTypes.Behavior.Save, function(saveObj) {
-			});
-			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {
+			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {				
 				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;				
 				scnLst.setVisible(!obj.visible && isDown);
 			});

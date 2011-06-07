@@ -42,7 +42,42 @@ var editor = (function(module) {
 //                              Widget Helpers                                //
 ////////////////////////////////////////////////////////////////////////////////
 		
-	var getMessages = function(citizen) {
+	var expandTargetData = function(msgTarget, spec) {
+			var isValueCheck = msgTarget.handler instanceof hemi.handlers.ValueCheck,
+				source, type, handler, method, argList;
+			
+			if (isValueCheck) {
+				type = msgTarget.handler.values[0];
+				handler = msgTarget.handler.handler;
+				method = msgTarget.handler.func;
+				argList = msgTarget.handler.args;
+				
+				if (spec.src === hemi.world.WORLD_ID) {
+					var modelName = type.split('.').shift(),
+						models = hemi.world.getModels({name:modelName});
+					
+					source = module.treeData.createShapePickCitizen(models[0]);
+				} else {
+					source = module.treeData.createCamMoveCitizen(hemi.world.camera);
+				}
+			} else {
+				source = spec.src;
+				type = spec.msg;
+				handler = msgTarget.handler;
+				method = msgTarget.func;
+				argList = msgTarget.args;
+			}
+			
+			return {
+				source: source,
+				type: type,
+				handler: handler,
+				method: method,
+				argList: argList
+			};
+		},
+		
+		getMessages = function(citizen) {
 			var msgs = ['Any'],
 				id = citizen.getId();
 			
@@ -71,6 +106,28 @@ var editor = (function(module) {
 			}
 			
 			return methods;
+		},
+		
+		getCitType = function(source) {
+			var cit = hemi.utils.isNumeric(source) ? 
+					hemi.world.getCitizenById(source) : source;
+					
+			return cit.getCitizenType().split('.').pop();
+		},
+		
+		getName = function(msgTarget, spec, actor) {
+			var data = expandTargetData(msgTarget, spec),
+				citType = getCitType(data.source),
+				isId = hemi.utils.isNumeric(data.type),
+				name =  isId ? hemi.world.getCitizenById(data.type).name :
+					data.source.name,
+				name = [citType, name];
+				
+				if (!isId) {
+					name.push(data.type);
+				}
+				
+			return name;
 		},
 		
 		openNode = function(tree, citizen, prefix) {
@@ -107,6 +164,77 @@ var editor = (function(module) {
 				
 				node.find('a').addClass('restrictedSelectable');
 			}
+		},
+		
+		setByMsgTarget = function(msgTarget, spec, actor) {
+			var data = expandTargetData(msgTarget, spec),
+				source = hemi.utils.isNumeric(data.source) ? 
+					hemi.world.getCitizenById(data.source) : data.source;
+					
+			var nodeName = module.treeData.getNodeName(source, {
+						option: data.type,
+						prefix: this.trgTree.pre,
+						id: source.getId()
+					}),				
+				trgT = this.trgTree.getUI(),
+				axnT = this.axnTree.getUI();
+			
+			openNode(trgT, actor, this.trgTree.pre);
+			this.trgChooser.select(nodeName);
+			
+			nodeName = module.treeData.getNodeName(data.handler, {
+				option: data.method,
+				prefix: this.axnTree.pre,
+				id: data.handler.getId()
+			});
+			
+			openNode(axnT, data.handler, this.axnTree.pre);
+			this.axnChooser.select(nodeName);	
+						
+			for (var i = 0, il = data.argList.length; i < il; i++) {
+				var a = data.argList[i];				
+				this.prmWgt.setArgument(i, a);
+			}
+			
+			this.nameIpt.val(msgTarget.name);
+			this.msgTarget = msgTarget;
+			this.checkSaveButton();
+		},
+		
+		setBySavedData = function(data, actor) {			
+			if (data.trigger) {
+				var msg = data.trigger.type, 
+					cit = data.trigger.citizen,
+					nodeName = module.treeData.getNodeName(cit, {
+						option: msg,
+						prefix: this.trgTree.pre,
+						id: cit.getId()
+					});
+				
+				this.trgChooser.select(nodeName);
+				openNode(this.trgTree.getUI(), cit, this.trgTree.pre);
+			}
+			if (data.action) {
+				var handler = data.action.handler,
+					func = data.action.method,
+					nodeName = module.treeData.getNodeName(handler, {
+						option: [func],
+						prefix: this.axnTree.pre,
+						id: handler.getId()
+					});
+				
+				openNode(this.axnTree.getUI(), handler, this.axnTree.pre);
+				this.axnChooser.select(nodeName);
+			}
+			if (data.args) {					
+				for (var i = 0, il = data.args.length; i < il; i++) {
+					var a = data.args[i];				
+					this.prmWgt.setArgument(a.name, a.value);
+				}
+			}
+			
+			this.nameIpt.val(data.name);
+			this.checkSaveButton();			
 		},
 		
 		unrestrictSelection = function(tree, citizen, prefix, options) {
@@ -181,29 +309,29 @@ var editor = (function(module) {
 						return false;
 					}
 					else {
-						var obj1 = metadata.parent, 
-							obj2 = path[path.length - 1],
-							data = {};
+						var data = {};
 						
 						if (!isSelectable && isRestricted) {
 							return false;
 						}
 						else {
 							if (selector === wgt.axnChooser) {
-								var args = module.utils.getFunctionParams(obj1[obj2]);
+								var handler = metadata.parent,
+									method = path[path.length-1],
+									args = module.utils.getFunctionParams(handler[method]);
 								if (args.length > 0) {
 									wgt.prmFieldset.show(200);
 								}
 								else {
-									wgt.prmFieldset.hide(200);
+									wgt.prmFieldset.hide();
 								}
 								wgt.prmWgt.fillParams(args);
-								data.handler = obj1;
-								data.method = obj2;
+								data.handler = handler;
+								data.method = method;
 							}
 							else {
-								data.citizen = obj1;
-								data.type = obj2;
+								data.citizen = metadata.parent;
+								data.type = metadata.msg;
 							}
 							selector.input.val(path.join('.').replace('.More...', ''));
 							selector.setSelection(data);
@@ -263,9 +391,10 @@ var editor = (function(module) {
 					args: wgt.prmWgt.getArgs(),
 					name: nameIpt.val(),
 					type: wgt.type,
-					target: wgt.target
+					target: wgt.msgTarget,
+					actor: wgt.actor
 				},
-				msgType = wgt.target ? module.EventTypes.Behavior.Update :
+				msgType = wgt.msgTarget ? module.EventTypes.Behavior.Update :
 					module.EventTypes.Behavior.Save;
 				
 				wgt.notifyListeners(msgType, data);
@@ -316,10 +445,10 @@ var editor = (function(module) {
 			reset(this.trgTree.getUI());
 			reset(this.axnTree.getUI());
 			
-			this.target = null;
+			this.msgTarget = null;
 		},
 		
-		setActor: function(actor, type, msgTarget, msg) {
+		setActor: function(actor, type, data, opt_spec) {
 			this.reset();
 			
 			this.type = type;
@@ -344,36 +473,40 @@ var editor = (function(module) {
 					break;
 			}
 			
-			if (msgTarget) {
-				var nodeName = module.treeData.getNodeName(actor, {
-						option: [msg == 'Any' ? msg : 'hemi.' + msg],
-						prefix: this.trgTree.pre,
-						id: actor.getId()
-					}),
-				trgT = this.trgTree.getUI(),
-				axnT = this.axnTree.getUI(),
-				isValueCheck = msgTarget instanceof hemi.handlers.ValueCheck,
-				handler = isValueCheck ? msgTarget.handler.handler : msgTarget.handler,
-				func =  isValueCheck? msgTarget.handler.func : msgTarget.func,
-				vals = isValueCheck ? msgTarget.handler.args : msgTarget.args,
-				args = module.utils.getFunctionParams(handler[func]);
-				
-				openNode(trgT, actor, this.trgTree.pre);
-				this.trgChooser.select(nodeName);
-				
-				nodeName = module.treeData.getNodeName(handler, {
-					option: [func],
-					prefix: this.axnTree.pre,
-					id: handler.getId()
-				});
-				
-				openNode(axnT, handler, this.axnTree.pre);
-				this.axnChooser.select(nodeName);
-				
-				this.prmWgt.fillParams(args, vals);
-				this.nameIpt.val(msgTarget.name);
-				this.target = msgTarget;
+			if (data instanceof hemi.dispatch.MessageTarget) {
+				setByMsgTarget.call(this, data, opt_spec, actor);
 			}
+			else if (data != null) {
+				setBySavedData.call(this, data, actor);
+			}
+		},
+		
+		setCurrentView: function(view) {
+			if (this.currentView && view != this.currentView) {
+				// save the data
+				var meta = this.getViewMeta(this.currentView);
+				
+				meta.state = {
+					actor: this.actor,
+					type: this.type,
+					data: {
+						trigger: this.trgChooser.getSelection(),
+						action: this.axnChooser.getSelection(),
+						args: this.prmWgt.getArgs(),
+						name: this.nameIpt.val()
+					}
+				}
+				
+				// load up the new data if it exists
+				meta = this.getViewMeta(view);
+				
+				if (meta && meta.state) {
+					this.setActor(meta.state.actor, meta.state.type, 
+						meta.state.data);
+				}
+			}
+			
+			this._super(view);
 		}
 	});
 	
@@ -389,10 +522,9 @@ var editor = (function(module) {
 			this.targets = new Hashtable();
 		},
 		
-		add: function(msgTarget, actor, msg) {
+		add: function(msgTarget, spec, actor) {
 			var li = new module.ui.EditableListItemWidget(),
-				citType = actor.getCitizenType().split('.').pop(),
-				name = [citType, actor.name, msg.split('.').pop()];
+				name = getName(msgTarget, spec, actor);
 			
 			li.setText(name.join('.') + ': ' + msgTarget.name);
 			li.attachObject(msgTarget);
@@ -425,6 +557,7 @@ var editor = (function(module) {
 			
 			li.removeBtn.bind('click', function(evt) {
 				var msgTarget = li.getAttachedObject();
+				msgTarget.actor = wgt.getAttachedObject();
 				behaviorLiNotifier.notifyListeners(
 					module.EventTypes.Behavior.ListItemRemove, msgTarget);
 			});
@@ -457,7 +590,7 @@ var editor = (function(module) {
 			arrow.hide();
 			this.container.append(arrow).append(evtList);
 			
-			this.container.bind('mouseup', function(evt) {
+			this.container.bind('click', function(evt) {
 				var tgt = jQuery(evt.target);
 				
 				if (evt.target.tagName !== 'BUTTON'
@@ -493,10 +626,9 @@ var editor = (function(module) {
 			}
 		},
 		
-		update: function(msgTarget, actor, msg) {
+		update: function(msgTarget, spec, actor) {
 			var li = this.targets.get(msgTarget.dispatchId),
-				type = actor.getCitizenType().split('.').pop(),
-				name = [type, actor.name, msg.split('.').pop()];
+				name = getName(msgTarget, spec, actor);
 			
 			li.attachObject(msgTarget);
 			li.setText(name.join('.') + ': ' + msgTarget.name);
@@ -544,7 +676,7 @@ var editor = (function(module) {
 		return behaviorWidget;
 	};
 		
-	module.ui.showBehaviorMenu = function(parBtn, actor) {		
+	module.ui.showBehaviorMenu = function(parBtn, actor, view) {		
 		var position = parBtn.offset();
 		
 		position.top += parBtn.outerHeight();

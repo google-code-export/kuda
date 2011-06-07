@@ -101,7 +101,7 @@ var editor = (function(module) {
 			this.unswap();
 		},
 		
-		toOctane: function(){
+		toOctane: function() {
 			this.swap();
 			var ret = hemi.dispatch.toOctane();
 			this.unswap();
@@ -181,9 +181,6 @@ var editor = (function(module) {
 			if (this.msgTarget === target) {
 				this.msgTarget = null;
 			}
-			
-			var spec = this.dispatchProxy.getTargetSpec(target),
-				source = hemi.world.getCitizenById(spec.src);
 				
 			this.dispatchProxy.removeTarget(target);
 			
@@ -191,10 +188,7 @@ var editor = (function(module) {
 				target.handler.cleanup();
 			}
 			
-	        this.notifyListeners(module.EventTypes.TargetRemoved, {
-				target: target,
-				source: source
-			});
+	        this.notifyListeners(module.EventTypes.TargetRemoved, target);
 		},
 	    
 	    setMessageSource: function(source) {
@@ -261,7 +255,7 @@ var editor = (function(module) {
 			});
 		},
 		
-	    save: function(name, opt_type) {
+	    save: function(name, opt_type, opt_actor) {
 			var values = this.args.values(),
 				args = [],
 				editId = null,
@@ -319,11 +313,16 @@ var editor = (function(module) {
 			newTarget.name = name;
 			newTarget.type = opt_type;
 			
+			var data = {
+				target: newTarget,
+				actor: opt_actor
+			};
+			
 			if (this.msgTarget !== null) {
 				newTarget.dispatchId = this.msgTarget.dispatchId;
-				this.notifyListeners(module.EventTypes.TargetUpdated, newTarget);
+				this.notifyListeners(module.EventTypes.TargetUpdated, data);
 			} else {
-				this.notifyListeners(module.EventTypes.TargetCreated, newTarget);
+				this.notifyListeners(module.EventTypes.TargetCreated, data);
 			}
 			
 			this.msgTarget = null;
@@ -580,7 +579,7 @@ var editor = (function(module) {
 			
 			if (msgs.length > 0) {
 				li.chainBtn.data('chainMsgs', msgs)
-				.bind('click', function(evt){
+				.bind('click', function(evt) {
 					var target = li.getAttachedObject(),
 						handler = target.handler,
 						messages = jQuery(this).data('chainMsgs');
@@ -828,7 +827,7 @@ var editor = (function(module) {
 	     * Binds event and message handlers to the view and model this object 
 	     * references.  
 	     */        
-		bindEvents: function(){
+		bindEvents: function() {
 			this._super();
 			
 			var model = this.model,
@@ -837,7 +836,7 @@ var editor = (function(module) {
 				controller = this;
 			
 			// view specific
-			view.addListener(module.EventTypes.ToolModeSet, function(data){
+			view.addListener(module.EventTypes.ToolModeSet, function(data) {
 				var isDown = data.newMode === module.tools.ToolConstants.MODE_DOWN, 
 					pnl = jQuery('#o3d'), 
 					vwr = view.mainPanel.getUI(), 
@@ -882,13 +881,13 @@ var editor = (function(module) {
 				
 				jQuery(window).trigger('resize');
 			});			
-			view.addListener(module.EventTypes.RemoveTarget, function(data){
+			view.addListener(module.EventTypes.RemoveTarget, function(data) {
 				model.removeTarget(data);
 			});			
-			view.addListener(module.EventTypes.SaveTarget, function(targetName){
+			view.addListener(module.EventTypes.SaveTarget, function(targetName) {
 				model.save(targetName);
 			});			
-			view.addListener(module.EventTypes.SelectTarget, function(data){
+			view.addListener(module.EventTypes.SelectTarget, function(data) {
 				if (data.target !== null) {
 					model.copyTarget(data.target);
 				}
@@ -898,29 +897,29 @@ var editor = (function(module) {
 			
 			// view trees specific
 			view.actionsTree.addListener(module.EventTypes.Trees.SelectAction, 
-				function(data){
+				function(data) {
 					model.setMessageHandler(data.citizen);
 					model.setMethod(data.method);
 				});			
 			view.triggersTree.addListener(module.EventTypes.Trees.SelectTrigger, 
-				function(data){
+				function(data) {
 					model.setMessageSource(data.source);
 					model.setMessageType(data.message);
 				});
 			view.paramsWgt.addListener(module.EventTypes.Params.SetArgument, 
-				function(data){
+				function(data) {
 					model.setArgument(data.name, data.value);
 				});
 			
 			// model specific
-			model.addListener(module.EventTypes.ArgumentSet, function(data){
+			model.addListener(module.EventTypes.ArgumentSet, function(data) {
 				view.paramsWgt.setArgument(data.name, data.value);
 			});			
-			model.addListener(module.EventTypes.TriggerSet, function(data){
+			model.addListener(module.EventTypes.TriggerSet, function(data) {
 				view.triggersTree.select(data);
 				view.updateSaveButton();
 			});			
-			model.addListener(module.EventTypes.ActionSet, function(data){
+			model.addListener(module.EventTypes.ActionSet, function(data) {
 				var args = [],
 					vals = [];
 					
@@ -932,7 +931,9 @@ var editor = (function(module) {
 				});
 				view.paramsWgt.fillParams(args, vals);
 			});			
-			model.addListener(module.EventTypes.TargetCreated, function(target){
+			model.addListener(module.EventTypes.TargetCreated, function(data) {
+				var target = data.target;
+				
 				view.addTarget(target);
 				var editorPnl = view.mainPanel.find('#msgEditor'), 
 					editListPnl = view.mainPanel.find('#msgEvents .msgColWrapper');
@@ -942,24 +943,24 @@ var editor = (function(module) {
 				
 				// update the behavior widget
 				var spec = model.dispatchProxy.getTargetSpec(target),
-					actor = hemi.world.getCitizenById(spec.src),
-					msg = spec.msg,
-					li = module.ui.getBehaviorListItem(actor);
+					li = module.ui.getBehaviorListItem(data.actor);
 					
 				if (li) {
-					li.add(target, actor, msg);
+					li.add(target, spec, data.actor);
 				}
 			});			
-			model.addListener(module.EventTypes.TargetRemoved, function(data){
-				view.removeTarget(data.target);
+			model.addListener(module.EventTypes.TargetRemoved, function(target) {
+				view.removeTarget(target);
 				
-				var li = module.ui.getBehaviorListItem(data.source);
+				var li = module.ui.getBehaviorListItem(target.actor);
 				
 				if (li) {
-					li.remove(data.target);
+					li.remove(target);
 				}
 			});			
-			model.addListener(module.EventTypes.TargetUpdated, function(target){
+			model.addListener(module.EventTypes.TargetUpdated, function(data) {
+				var target = data.target;
+				
 				view.updateTarget(target);
 				var editorPnl = view.mainPanel.find('#msgEditor'), 
 					editListPnl = view.mainPanel.find('#msgEvents .msgColWrapper');
@@ -968,12 +969,10 @@ var editor = (function(module) {
 				editListPnl.show();
 				
 				var spec = model.dispatchProxy.getTargetSpec(target),
-					actor = hemi.world.getCitizenById(spec.src),
-					msg = spec.msg,
-					li = module.ui.getBehaviorListItem(actor);
+					li = module.ui.getBehaviorListItem(data.actor);
 				
 				if (li) {
-					li.update(target, actor, msg);
+					li.update(target, spec, data.actor);
 				}
 			});
 			
@@ -982,8 +981,7 @@ var editor = (function(module) {
 				module.EventTypes.Behavior.ListItemEdit, function(obj) {
 					var spec = model.dispatchProxy.getTargetSpec(obj.target);
 						
-					bhvWgt.setActor(obj.actor, obj.target.type, obj.target, 
-						spec.msg);
+					bhvWgt.setActor(obj.actor, obj.target.type, obj.target, spec);
 					bhvWgt.setVisible(true);
 				});
 			module.ui.addBehaviorListItemListener(
@@ -1006,7 +1004,7 @@ var editor = (function(module) {
 					model.setArgument(arg.name, arg.value);
 				}
 				
-				model.save(saveObj.name, saveObj.type);
+				model.save(saveObj.name, saveObj.type, saveObj.actor);
 			});
 			bhvWgt.addListener(module.EventTypes.Behavior.Update, function(saveObj) {				
 				if (saveObj.target !== null) {
@@ -1030,7 +1028,7 @@ var editor = (function(module) {
 					model.setArgument(arg.name, arg.value);
 				}
 				
-				model.save(saveObj.name, saveObj.type);
+				model.save(saveObj.name, saveObj.type, saveObj.actor);
 			});
 		}
 	});

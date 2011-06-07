@@ -153,6 +153,8 @@
 			this.sidebar.addListener(editor.EventTypes.Sidebar.FinishedLoading, function() {				
 				hemi.world.ready();
 				
+				editor.ui.getBehaviorWidget().setVisible(false);
+				
 				// select the first tool
 				first.setMode(editor.tools.ToolConstants.MODE_DOWN);
 				
@@ -589,11 +591,6 @@
 			this.sidebar = new editor.ui.Sidebar();
 			
 			var views = this.toolbar.tools;
-			
-			// first the behavior widget
-			var bhvWgt = editor.ui.getBehaviorWidget();
-			bhvWgt.setVisible(false);
-			this.sidebar.addWidget(bhvWgt);
 			
 			for (var ndx = 0, len = views.length; ndx < len; ndx++) {
 				var view = views[ndx],

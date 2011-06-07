@@ -172,6 +172,7 @@ var editor = (function(module) {
 				.css('maxHeight', height);
 								
 				this.curArgs.put(id, ip);
+				this.curArgs.put(ndx, ip);
 				
 				if (vals && vals[ndx] != null) {
 					this.setArgument(arg, vals[ndx])
@@ -212,14 +213,17 @@ var editor = (function(module) {
 		},
 		
 		setArgument: function(argName, argValue) {
-			var ipt = this.curArgs.get(this.id + '_prmWgtParam_' + argName);
+			var ipt = hemi.utils.isNumeric(argName) ?
+				this.curArgs.get(argName) : 
+				this.curArgs.get(this.id + '_prmWgtParam_' + argName);
 			if (/id:/.test(argValue)) {
 				var cit = hemi.world.getCitizenById(
 					parseInt(argValue.split(':').pop()));
-				ipt.val(cit.getCitizenType().split('.').pop() + '.' + cit.name);
+				ipt.val(cit.getCitizenType().split('.').pop() + '.' + cit.name)
+					.data('trueVal', argValue);
 			}
 			else {
-				ipt.val(argValue);
+				ipt.val(argValue).data('trueVal', argValue);
 			}
 		}
 	});

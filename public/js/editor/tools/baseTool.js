@@ -234,8 +234,10 @@ var editor = (function(module) {
 				this.sidebarWidgets.push(widget);
 				
 				widget.currentView = this;
+				var meta = widget.addViewMeta(this);
 				if (!widget.config.manualVisible) {
-					this.visibleWidgets.push(widget);
+//					this.visibleWidgets.push(widget);
+					meta.widgetShouldBeVisible = true;
 				}
 			}
 		},
@@ -322,7 +324,14 @@ var editor = (function(module) {
 				ctr = this,
 				sbrWgts = view.sidebarWidgets,
 				visFcn = function(val) {
-					val.widget.shouldBeVisible = val.visible;
+					if (val.updateMeta) {
+						var meta = val.widget.getViewMeta(view);
+						
+						if (meta.viewIsVisible) {
+							meta.widgetShouldBeVisible = val.visible &&
+								meta.widgetShouldBeVisible;
+						}
+					}
 				};
 						
 			var handleWidgets = function(visible) {
@@ -332,28 +341,32 @@ var editor = (function(module) {
 				// if the tool is no longer selected
 				if (!visible) {
 					// save the visible widget state					
-					for (var ndx = 0, len = sbrWgts.length; ndx < len; ndx++) {
-						var wgt = sbrWgts[ndx];
-						if (wgt.currentView === view && (wgt.isVisible() 
-								|| wgt.shouldBeVisible)) {
-							view.visibleWidgets.push(wgt);
-							wgt.setVisible(false);
+					for (var i = 0, il = sbrWgts.length; i < il; i++) {
+						var wgt = sbrWgts[i],
+							meta = wgt.getViewMeta(view);
+						if (wgt.isVisible()) {
+							meta.viewIsVisible = false;
+							meta.widgetShouldBeVisible = true;
+							wgt.setVisible(false, false);
 						}
 					}
 				}
 				else {
 					// restore the previous visible widget state
-					var vis = view.visibleWidgets;
+//					var vis = view.visibleWidgets;
 									
-					for (var ndx = 0, len = vis.length; ndx < len; ndx++) {
-						var wgt = vis[ndx];
-						wgt.setVisible(sbrMinimized ? false : true);
-						wgt.currentView = view;
-						wgt.shouldBeVisible = true;
+					for (var i = 0, il = sbrWgts.length; i < il; i++) {
+						var wgt = sbrWgts[i],
+							meta = wgt.getViewMeta(view);
+						
+						meta.viewIsVisible = true;
+						wgt.setCurrentView(view);
+						wgt.setVisible(sbrMinimized ? false : 
+							meta.widgetShouldBeVisible, false);
 					}
 					
 					// reset the visible widgets list
-					view.visibleWidgets = [];
+//					view.visibleWidgets = [];
 				}				
 			};
 					

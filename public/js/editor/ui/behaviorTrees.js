@@ -188,7 +188,7 @@ var editor = (function(module) {
 				}
 			}
 			else if (eventType === module.EventTypes.Trees.CitizenUpdated) {
-				this.update(value.citizen);
+				this.update(value);
 			}
 		},
 		

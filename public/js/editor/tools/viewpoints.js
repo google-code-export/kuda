@@ -575,6 +575,10 @@ var editor = (function(module) {
 			});
 		},
 		
+		createListItemWidget: function() {
+			return new module.ui.BhvListItemWidget();
+		},
+		
 		getOtherHeights: function() {
 			return this.form.outerHeight(true);
 		}
@@ -933,6 +937,7 @@ var editor = (function(module) {
 			this.addSidebarWidget(new module.tools.CreateCamCurveSBW());
 			this.addSidebarWidget(new module.tools.VptListSBWidget());
 			this.addSidebarWidget(new module.tools.CamCurveListSBW());
+			this.addSidebarWidget(module.ui.getBehaviorWidget());
 		},
 		
 		layoutActionBar: function() {
@@ -994,6 +999,7 @@ var editor = (function(module) {
 				ctr = this,
 				crtVptWgt = view.createVptSBWidget,
 				vptLstWgt = view.viewpointListSBWidget,
+				bhvWgt = view.behaviorSBWidget,
 				crtCrvWgt = view.createCamCurveSBW,
 				crvLstWgt = view.camCurveListSBW;
 			
@@ -1123,6 +1129,15 @@ var editor = (function(module) {
 			});
 			model.addListener(module.EventTypes.WaypointUpdated, function(wp) {
 				crtCrvWgt.waypointUpdated(wp);
+			});
+			
+			// behavior widget specific
+			// TODO: fix bug with selecting of other tools
+			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {				
+				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+								
+				vptLstWgt.setVisible(!obj.visible && isDown);			
+				crvLstWgt.setVisible(!obj.visible && isDown);
 			});
 		}
 	});

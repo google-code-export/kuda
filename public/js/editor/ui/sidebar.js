@@ -284,8 +284,20 @@ var editor = (function(module) {
 			var widgets = [];
 			this.preferredHeight = 0;
 			this.currentView = null;
+			this.viewMeta = new Hashtable();
 			
 			this._super(newOpts);
+		},
+		
+		addViewMeta: function(view) {
+			var meta = {
+				viewIsVisible: false,
+				widgetShouldBeVisible: false
+			};
+			
+			this.viewMeta.put(view, meta);
+			
+			return meta;
 		},
 		
 		finishLayout: function() {
@@ -296,8 +308,24 @@ var editor = (function(module) {
 			}
 			
 			this.container.addClass('sidebarWidget');			
-			this.setVisible(false);
+			this.setVisible(false, false);
 			this.find('form').addClass('sidebarForm');
+		},
+		
+		getName: function() {
+			return this.config.name;
+		},
+		
+		getPreferredHeight: function() {
+			return this.preferredHeight;
+		},
+		
+		getViewMeta: function(view) {
+			return this.viewMeta.get(view);
+		},
+		
+		invalidate: function() {
+			this.notifyListeners(module.EventTypes.Sidebar.WidgetInvalidate, null);
 		},
 		
 		load: function() {
@@ -315,16 +343,6 @@ var editor = (function(module) {
 			}
 		},
 		
-		setVisible: function(visible) {
-			this._super(visible);
-			var wgt = this;
-			
-			this.notifyListeners(module.EventTypes.Sidebar.WidgetVisible, {
-				widget: wgt,
-				visible: visible
-			});
-		},
-		
 		resize: function(maxHeight) {
 			var ctn = this.container,
 				form = ctn.find('form'),
@@ -340,16 +358,24 @@ var editor = (function(module) {
 			this.container.height(newHeight);
 		},
 		
-		getPreferredHeight: function() {
-			return this.preferredHeight;
+		setCurrentView: function(view) {
+			this.currentView = view;
 		},
 		
-		invalidate: function() {
-			this.notifyListeners(module.EventTypes.Sidebar.WidgetInvalidate, null);
+		setViewMeta: function(view, meta) {
+			this.viewMeta.put(view, meta);
 		},
 		
-		getName: function() {
-			return this.config.name;
+		setVisible: function(visible, opt_updateMeta) {
+			this._super(visible);
+			var wgt = this;
+			opt_updateMeta = opt_updateMeta == null ? true : opt_updateMeta;
+			
+			this.notifyListeners(module.EventTypes.Sidebar.WidgetVisible, {
+				widget: wgt,
+				visible: visible,
+				updateMeta: opt_updateMeta
+			});
 		}
 	});
    
