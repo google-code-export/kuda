@@ -903,6 +903,10 @@ var editor = (function(module) {
 			});
 		},
 		
+		createListItemWidget: function() {
+			return new module.ui.BhvListItemWidget();
+		},
+		
 		getOtherHeights: function() {
 			return this.form.outerHeight(true);
 		}
@@ -1134,7 +1138,6 @@ var editor = (function(module) {
 			});
 			
 			// behavior widget specific
-			// TODO: fix bug with selecting of other tools
 			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {				
 				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
 								

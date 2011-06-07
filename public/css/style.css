@@ -21,7 +21,7 @@ html, body {
     padding: 0;
     border: none;
     font-family: Helvetica, Arial, sans-serif;
-    color: #2a6275;
+    color: #444;
 	background: -moz-linear-gradient(100% 100% 90deg, #fafafa, #eee);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eee));
     overflow: hidden;
@@ -1697,7 +1697,6 @@ form #msgEdtName {
 }
 .msgColumn h1 {
 	font: bold 16pt/24px "Myriad Pro", helvetica, verdana, arial;
-	color: #0a6496;
 	padding: 10px 0 5px;
 }
 #msgAddEventBtn {
@@ -2055,6 +2054,89 @@ ul.bhvList li .buttonContainer {
 }
 ul.bhvList li.button {
 	list-style: none;
+}
+
+/**
+ * Color picker overrides
+ */
+table.jPicker {
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#333), to(#666));
+	color: #fff;
+}
+table.jPicker .Move {
+	background: #333;
+	border: none;
+    color: #c2dfef;
+}
+table.jPicker tr td {
+	vertical-align: top;
+	padding: 5px 3px;
+}
+table.jPicker .Title {
+	display: none;
+}
+table.jPicker div.Map, table.jPicker div.Bar {
+	border: 1px solid #000;
+	margin-top: 9px;
+}
+table.jPicker div.Bar {
+}
+table.jPicker .Preview div {
+	border: none;
+}
+table.jPicker .Button {
+	width: 111px;
+}
+table.jPicker .Button input {    
+	background: -moz-linear-gradient(100% 100% 90deg, #777, #aaa);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#777), to(#aaa));
+    border: 1px solid #000;
+    border-radius: 2px;
+    color: #fff;
+    font-weight: bold;
+    height: 20px;
+    text-shadow: 0 -1px 0 #555;
+}
+table.jPicker .Button input:hover {    
+	background: -moz-linear-gradient(100% 100% 90deg, #999, #bbb);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#999), to(#bbb));
+}
+table.jPicker .Button .Ok {
+	margin-top: 9px;
+}
+table.jPicker hr {
+	height: 1px;
+	border: none;
+	background: #ccc;
+	margin: 10px 0;
+}
+table.jPicker .Grid {
+	width: 109px;
+}
+table.jPicker .Grid span.QuickColor {
+	border: 1px solid #000;
+	border-width: 1px 0 1px 1px;
+}
+table.jPicker .Grid span.QuickColor:nth-child(n+7) {
+	border-top-width: 0;
+}
+table.jPicker .Grid span.QuickColor:nth-child(6n) {
+	border-right-width: 1px;
+}
+table.jPicker .Text input {
+	border: 1px solid #444;
+	border-radius: 3px;
+}
+table.jPicker tr.Hex td.Text {
+	padding-bottom: 10px;
+}
+span.jPicker {
+    display: block;
+    float: left;
+    margin: 4px 6px 0;
+    width: 25px;
+	height: 25px;
 }
 
 /*
