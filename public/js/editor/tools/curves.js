@@ -942,6 +942,10 @@ var editor = (function(module) {
 			});
 		},
 		
+		createListItemWidget: function() {
+			return new module.ui.BhvListItemWidget();
+		},
+		
 		getOtherHeights: function() {
 			return this.buttonDiv.outerHeight(true);
 		}
@@ -975,6 +979,7 @@ var editor = (function(module) {
 			
 			this.addSidebarWidget(new module.tools.EditCrvSBWidget());
 			this.addSidebarWidget(new module.tools.CrvListSBWidget());
+			this.addSidebarWidget(module.ui.getBehaviorWidget());
 		},
 		
 		layoutActionBar: function() {
@@ -1078,6 +1083,7 @@ var editor = (function(module) {
 	        	view = this.view,
 				edtCrvWgt = view.editCurveSBWidget,
 				lstWgt = view.curveListSBWidget,
+				bhvWgt = view.behaviorSBWidget,
 	        	that = this;
 	        
 	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
@@ -1177,6 +1183,13 @@ var editor = (function(module) {
 				edtCrvWgt.reset();
 				edtCrvWgt.setVisible(false);
 				lstWgt.setVisible(isDown && true);
+			});
+			
+			// behavior widget specific
+			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {				
+				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+								
+				lstWgt.setVisible(!obj.visible && isDown);
 			});
 	    }
 	});
