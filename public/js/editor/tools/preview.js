@@ -92,7 +92,7 @@ var editor = (function(module) {
 			
 			// set the world to its initial state
 			hemi.view.renderListeners = [hemi.view.clientSize];
-			hi.mouseDownListeners = [];
+			hi.mouseDownListeners = [hw];
 			hi.mouseUpListeners = [];
 			hi.mouseMoveListeners = [];
 			hi.mouseWheelListeners = [];
