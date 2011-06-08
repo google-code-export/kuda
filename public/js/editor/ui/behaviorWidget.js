@@ -743,7 +743,7 @@ var editor = (function(module) {
 	};
 	
 	module.ui.getBehaviorListItem = function(actor) {
-		return behaviorLiTable.get(actor);
+		return actor ? behaviorLiTable.get(actor) : null;
 	};
 	
 	module.ui.addBehaviorListItemListener = function(eventType, listener) {

@@ -143,6 +143,10 @@ var editor = (function(module) {
 			this.pre = type + addOn;
 		},
 		
+		bindSelect: function(func) {
+			this.tree.bind('select_node.jstree', func);
+		},
+		
 		deselect: function(data) {				
 			switch (this.type) {
 				case TRIGGER_PREFIX:
@@ -189,17 +193,6 @@ var editor = (function(module) {
 			}
 			else if (eventType === module.EventTypes.Trees.CitizenUpdated) {
 				this.update(value);
-			}
-		},
-		
-		select: function(data) {					
-			switch (this.type) {
-				case TRIGGER_PREFIX:
-					selectTrigger.call(this, data);
-					break;
-				case ACTION_PREFIX:
-					selectAction.call(this, data);
-					break;
 			}
 		},
 		
@@ -557,44 +550,6 @@ var editor = (function(module) {
 			});
 			
 			if (!this.noDefaultBind) {
-				this.tree.bind('select_node.jstree', function(evt, data) {
-					var elem = data.rslt.obj,
-						metadata = elem.data('jstree'),
-						elemId = elem.attr('id'),
-						isRestricted = that.tree.hasClass('restricted'),
-						isSelectable = elem.children('a').hasClass('restrictedSelectable'),
-						msgType = module.EventTypes.Trees.SelectTrigger;
-					
-					if (that.lastTrigger === elemId) {
-						that.tree.jstree('close_node', elem);
-						that.lastTrigger = null;
-					} else {
-						that.lastTrigger = elemId;
-						
-						if (isSelectable || !isRestricted) {
-							if (metadata.type === 'message') {
-								that.notifyListeners(msgType, {
-									source: metadata.parent,
-									message: metadata.msg
-								});
-							}
-							else if (metadata.type === 'citizen') {
-								that.tree.jstree('open_node', elem, false, false);
-								that.notifyListeners(msgType, {
-									source: metadata.citizen,
-									message: null
-								});
-							}
-							else if (metadata.type === 'citType') {
-								that.tree.jstree('open_node', elem, false, false);
-								that.notifyListeners(msgType, {
-									source: null,
-									message: null
-								});
-							}
-						}
-					}
-				});
 			}
 			
 			this.notifyListeners(module.EventTypes.Trees.TreeCreated, this.tree);
@@ -758,92 +713,6 @@ var editor = (function(module) {
 				
 				node = jQuery('#' + nodeName);
 				this.tree.jstree('delete_node', node);
-			}
-		},
-		
-		selectAction = function(data) {
-			var citizen = data.handler, 
-				method = data.method,
-				nodeName = null,
-				actionText = jQuery('#msgEdtEffectTxt');
-			
-			if (citizen === null || method === null) {
-				actionText.text('');
-			} else {
-				nodeName = module.treeData.getNodeName(citizen, {
-					option: method,
-					prefix: this.pre,
-					id: citizen.getId ? citizen.getId() : null
-				});
-				
-				actionText.text(citizen.name + ' ' + method);
-			}
-			
-			if (nodeName === null) {
-				this.tree.jstree('deselect_all');
-			} else {
-				var elem = jQuery('#' + nodeName),
-					elemId = elem.attr('id');
-					
-				if (this.lastAction !== elemId) {
-					var path = this.tree.jstree('get_path', elem, true);
-					
-					for (var i = 0; i < path.length; i++) {
-						var node = jQuery('#' + path[i]);
-						this.tree.jstree('open_node', node, false, true);
-					}
-					
-					this.tree.jstree('select_node', elem, true);
-					this.tree.parent().scrollTo(elem, 400);
-				}
-			}
-		},
-		
-		selectTrigger = function(data) {
-			var citizen = data.source, 
-				message = data.message,
-				nodeName = null,
-				triggerText = jQuery('#msgEdtCauseTxt');
-			
-			if (citizen === null || message === null) {
-				triggerText.text('');
-			} else {
-				var name = citizen === MSG_WILDCARD ? citizen : citizen.name,
-					msg;
-				
-				nodeName = module.treeData.getNodeName(citizen, {
-					option: message,
-					prefix: this.pre,
-					id: citizen.getId ? citizen.getId() : null
-				});
-				
-				if (citizen.camMove) {
-					var viewpoint = hemi.world.getCitizenById(message);
-					msg = viewpoint.name;
-				} else {
-					msg = message;
-				}
-				
-				triggerText.text(name + ' ' + msg);
-			}
-			
-			if (nodeName === null) {
-				this.tree.jstree('deselect_all');
-			} else {
-				var elem = jQuery('#' + nodeName),
-					elemId = elem.attr('id');
-					
-				if (this.lastTrigger !== elemId) {
-					var path = this.tree.jstree('get_path', elem, true);
-					
-					for (var i = 0; i < path.length; i++) {
-						var node = jQuery('#' + path[i]);
-						this.tree.jstree('open_node', node, false, true);
-					}
-					
-					this.tree.jstree('select_node', elem, true);
-					this.tree.parent().scrollTo(elem, 400);
-				}
 			}
 		};
 	

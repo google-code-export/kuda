@@ -83,6 +83,7 @@ var editor = (function(module) {
 				wgt = this;
 			this.tree = prmCitTree;
 			this.curArgs = new Hashtable();
+			this.ndxArgs = new Hashtable();
 			this.id = counter++;
 			
 		    this._super(newOpts);
@@ -162,7 +163,6 @@ var editor = (function(module) {
 					position = li.offset(),
 					height = windowHeight - position.top;			
 				
-				ip.bind('click', toggleFcn);
 				cb.data('paramIn', ip).bind('click', toggleFcn);
 				
 				lb.text(arg + ':');
@@ -172,7 +172,7 @@ var editor = (function(module) {
 				.css('maxHeight', height);
 								
 				this.curArgs.put(id, ip);
-				this.curArgs.put(ndx, ip);
+				this.ndxArgs.put(ndx, ip);
 				
 				if (vals && vals[ndx] != null) {
 					this.setArgument(arg, vals[ndx])
@@ -194,6 +194,9 @@ var editor = (function(module) {
 				var ipt = argsIpt[ndx],
 					val = ipt.data('trueVal');
 				
+				if (val == null || val === '') {
+					val = ipt.val();
+				}
 				if (hemi.utils.isNumeric(val)) {
 					val = parseFloat(val);
 				}
@@ -208,13 +211,14 @@ var editor = (function(module) {
 		},
 		
 		reset: function() {				
-			this.curArgs.clear();			
+			this.curArgs.clear();	
+			this.ndxArgs.clear();		
 			this.container.empty();
 		},
 		
 		setArgument: function(argName, argValue) {
 			var ipt = hemi.utils.isNumeric(argName) ?
-				this.curArgs.get(argName) : 
+				this.ndxArgs.get(argName) : 
 				this.curArgs.get(this.id + '_prmWgtParam_' + argName);
 			if (/id:/.test(argValue)) {
 				var cit = hemi.world.getCitizenById(

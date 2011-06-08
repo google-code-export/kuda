@@ -456,7 +456,9 @@ var editor = (function(module) {
 				uiFile: 'js/editor/tools/html/messaging.htm',
 				immediateLayout: false
 			});
-					
+				
+			var view = this;
+				
 			this.paramsWgt = new module.ui.ParamWidget({
 				containerId: 'msgEdtTargetParams',
 				prefix: 'msgEdt'
@@ -468,11 +470,69 @@ var editor = (function(module) {
 				function(treeUI) {
 					var causeWrapper = pnl.find(TRIGGER_WRAPPER);				
 					causeWrapper.append(treeUI);
+			
+					view.triggersTree.bindSelect(function(evt, data) {
+						var elem = data.rslt.obj,
+							metadata = elem.data('jstree'),
+							elemId = elem.attr('id'),
+							tree = view.triggersTree.getUI(),
+							isRestricted = tree.hasClass('restricted'),
+							isSelectable = elem.children('a').hasClass('restrictedSelectable');
+						
+						if (view.lastTrigger === elemId) {
+							tree.jstree('close_node', elem);
+							view.lastTrigger = null;
+						} else {
+							view.lastTrigger = elemId;
+							
+							if (isSelectable || !isRestricted) {
+								if (metadata.type === 'message') {
+									view.selectTrigger(metadata.parent, metadata.msg);
+									view.updateSaveButton();
+								} else if (metadata.type === 'citizen'
+								 		|| metadata.type === 'citType') {
+									tree.jstree('open_node', elem, false, false);
+								}
+							} 
+						}
+					});
 				});
+				
 			this.actionsTree.addListener(module.EventTypes.Trees.TreeCreated, 
 				function(treeUI) {
 					var effectWrapper = pnl.find(ACTION_WRAPPER);				
 					effectWrapper.append(treeUI);
+			
+					view.actionsTree.bindSelect(function(evt, data) {
+						var elem = data.rslt.obj,
+							metadata = elem.data('jstree'),
+							elemId = elem.attr('id'),
+							tree = view.actionsTree.getUI();
+						
+						if (view.lastAction === elemId) {
+							tree.jstree('close_node', elem);
+							view.lastAction = null;
+						} else {
+							view.lastAction = elemId;
+							
+							if (metadata.type === 'method') {
+								var path = tree.jstree('get_path', elem, true),
+									parentName = path[path.length - 2] + '_',
+									parId = metadata.parent.getId() + '',
+									citizen = metadata.parent;
+								parentName = parentName.replace(parId + '_MORE', parId);
+								var method = elemId.replace(parentName, '');
+								
+								view.selectAction(citizen, method);
+								view.updateSaveButton();
+								var args = module.utils.getFunctionParams(citizen[method]);
+								view.paramsWgt.fillParams(args);
+							} else if (metadata.type === 'citizen' 
+									|| metadata.type === 'citType') {
+								tree.jstree('open_node', elem, false, false);
+							}
+						}	
+					});
 				});
 	    },
 		
@@ -681,6 +741,13 @@ var editor = (function(module) {
 				});
 				
 				editorSaveBtn.bind('click', function(evt) {
+					var data = {
+						trigger: view.currentTrigger,
+						action: view.currentAction,
+						args: view.paramsWgt.getArgs(),
+						name: editorNameInput.val()
+					};
+					
 					if (view.chainParent != null) {
 						var li = view.chainParent,
 							target = li.getAttachedObject(),
@@ -704,7 +771,7 @@ var editor = (function(module) {
 					}
 					
 					view.notifyListeners(module.EventTypes.SaveTarget, 
-						editorNameInput.val());
+						data);
 					editorNameInput.val('');
 				});
 				
@@ -807,6 +874,99 @@ var editor = (function(module) {
 				'msgTarget_' + target.dispatchId,
 				target,
 				target.name);
+		},
+		
+		selectAction: function(citizen, method) {
+			var nodeName = null,
+				actionText = jQuery('#msgEdtEffectTxt'),
+				tree = this.actionsTree.getUI();
+			
+			if (citizen === null || method === null) {
+				actionText.text('');
+			} else {
+				nodeName = module.treeData.getNodeName(citizen, {
+					option: method,
+					prefix: this.actionsTree.pre,
+					id: citizen.getId ? citizen.getId() : null
+				});
+				
+				actionText.text(citizen.name + ' ' + method);
+				
+				this.currentAction = {
+					handler: citizen,
+					method: method
+				};
+			}
+			
+			if (nodeName === null) {
+				tree.jstree('deselect_all');
+			} else {
+				var elem = jQuery('#' + nodeName),
+					elemId = elem.attr('id');
+					
+				if (this.lastAction !== elemId) {
+					var path = tree.jstree('get_path', elem, true);
+					
+					for (var i = 0; i < path.length; i++) {
+						var node = jQuery('#' + path[i]);
+						tree.jstree('open_node', node, false, true);
+					}
+					
+					tree.jstree('select_node', elem, true);
+					tree.parent().scrollTo(elem, 400);
+				}
+			}
+		},
+		
+		selectTrigger: function(citizen, message) {
+			var nodeName = null,
+				triggerText = jQuery('#msgEdtCauseTxt'),
+				tree = this.triggersTree.getUI();
+			
+			if (citizen === null || message === null) {
+				triggerText.text('');
+			} else {
+				var name = citizen === module.treeData.MSG_WILDCARD ? citizen : citizen.name,
+					msg;
+				
+				nodeName = module.treeData.getNodeName(citizen, {
+					option: message,
+					prefix: this.triggersTree.pre,
+					id: citizen.getId ? citizen.getId() : null
+				});
+				
+				if (citizen.camMove) {
+					var viewpoint = hemi.world.getCitizenById(message);
+					msg = viewpoint.name;
+				} else {
+					msg = message;
+				}
+				
+				triggerText.text(name + ' ' + msg);
+				this.currentTrigger = {
+					citizen: citizen,
+					type: message
+				};
+			}
+			
+			if (nodeName === null) {
+				tree.jstree('deselect_all');
+			} else {
+				var elem = jQuery('#' + nodeName),
+					elemId = elem.attr('id');
+					
+				if (this.lastTrigger !== elemId) {
+					var path = tree.jstree('get_path', elem, true);
+					
+					for (var i = 0; i < path.length; i++) {
+						var node = jQuery('#' + path[i]);
+						tree.jstree('open_node', node, false, true);
+					}
+					
+					tree.jstree('select_node', elem, true);
+					tree.parent().scrollTo(elem, 400);
+				}
+			}
 		}
 	});
 	
@@ -884,8 +1044,23 @@ var editor = (function(module) {
 			view.addListener(module.EventTypes.RemoveTarget, function(data) {
 				model.removeTarget(data);
 			});			
-			view.addListener(module.EventTypes.SaveTarget, function(targetName) {
-				model.save(targetName);
+			view.addListener(module.EventTypes.SaveTarget, function(saveObj) {
+				var args = saveObj.args || [],
+					trigger = saveObj.trigger,
+					action = saveObj.action;
+				
+				model.setMessageSource(trigger.citizen);
+				model.setMessageType(trigger.type);
+				model.setMessageHandler(action.handler);
+				model.setMethod(action.method);
+				
+				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
+					var arg = args[ndx];
+					
+					model.setArgument(arg.name, arg.value);
+				}
+				
+				model.save(saveObj.name);
 			});			
 			view.addListener(module.EventTypes.SelectTarget, function(data) {
 				if (data.target !== null) {
@@ -895,35 +1070,35 @@ var editor = (function(module) {
 				model.msgTarget = data.edit ? data.target : null;
 			});			
 			
-			// view trees specific
-			view.actionsTree.addListener(module.EventTypes.Trees.SelectAction, 
-				function(data) {
-					model.setMessageHandler(data.citizen);
-					model.setMethod(data.method);
-				});			
-			view.triggersTree.addListener(module.EventTypes.Trees.SelectTrigger, 
-				function(data) {
-					model.setMessageSource(data.source);
-					model.setMessageType(data.message);
-				});
-			view.paramsWgt.addListener(module.EventTypes.Params.SetArgument, 
-				function(data) {
-					model.setArgument(data.name, data.value);
-				});
+//			// view trees specific
+//			view.actionsTree.addListener(module.EventTypes.Trees.SelectAction, 
+//				function(data) {
+//					model.setMessageHandler(data.citizen);
+//					model.setMethod(data.method);
+//				});			
+//			view.triggersTree.addListener(module.EventTypes.Trees.SelectTrigger, 
+//				function(data) {
+//					model.setMessageSource(data.source);
+//					model.setMessageType(data.message);
+//				});
+//			view.paramsWgt.addListener(module.EventTypes.Params.SetArgument, 
+//				function(data) {
+//					model.setArgument(data.name, data.value);
+//				});
 			
 			// model specific
 			model.addListener(module.EventTypes.ArgumentSet, function(data) {
 				view.paramsWgt.setArgument(data.name, data.value);
 			});			
 			model.addListener(module.EventTypes.TriggerSet, function(data) {
-				view.triggersTree.select(data);
+				view.selectTrigger(data.source, data.message);
 				view.updateSaveButton();
 			});			
 			model.addListener(module.EventTypes.ActionSet, function(data) {
 				var args = [],
 					vals = [];
 					
-				view.actionsTree.select(data);
+				view.selectAction(data.handler, data.method);
 				view.updateSaveButton();
 				model.args.each(function(key, value) {
 					args[value.ndx] = key;
