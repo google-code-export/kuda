@@ -23,7 +23,7 @@ html, body {
     font-family: Helvetica, Arial, sans-serif;
     color: #444;
 	background: -moz-linear-gradient(100% 100% 90deg, #fafafa, #eee);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eee));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fafafa));
     overflow: hidden;
 }
 
@@ -122,7 +122,7 @@ input.error {
     width: 100%;
     background: #7f7f7f;
 	background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eaeaea);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dadada), to(#eaeaea));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eaeaea), to(#dadada));
     border-bottom: 1px solid #ccc;
     padding: 0;
     float: left;
@@ -188,7 +188,7 @@ input.error {
 
 #menu .uiMenu > span.uiMenuShown {
 	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#333), to(#666));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
 	color: #fff;
 	text-shadow: 0 -1px 0 #000;
 }
@@ -257,7 +257,7 @@ input.error {
     width: 100%;
     background: #555;
 	background: -moz-linear-gradient(100% 100% 90deg, #eee, #efefef);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#efefef));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#efefef), to(#eee));
     border-bottom: 1px solid #ddd;
 	border-top: 1px solid #fafafa;
     overflow: hidden;
@@ -768,7 +768,7 @@ ol.listWidget li span {
 }
 .listWidget button.uiMenuShown {	
 	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#333), to(#666));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
 }
 .listWidget button:before {
 	background: url(../images/listOptionsSprite.png) no-repeat;
@@ -781,7 +781,7 @@ ol.listWidget li span {
 }
 .listWidget button:not(.uiMenuShown):hover {
 	background: -moz-linear-gradient(19% 75% 90deg, #ededed, #fff); 
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fff));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#ededed));
 	border-color: #dcdcdc;
 }
 .listWidget button.editBtn:before {
@@ -819,7 +819,7 @@ ol.listWidget li span {
 }
 .listWidget button.addBtn {
 	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fff));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#eee));
 	border-color: #eee;
 	padding: 3px 6px;
 	width: 30px;
@@ -1169,7 +1169,7 @@ form .onOff:after {
 button {
     background: #eee;
 	background: -moz-linear-gradient(100% 100% 90deg, #eee, #fafafa);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fafafa));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eee));
     border: 1px solid #ddd;
 	-moz-box-shadow: 0 1px 0 #fff;
 	box-shadow: 0 1px 0 #fff;
@@ -1245,7 +1245,7 @@ form button {
 }
 .treeSelectorBtn:hover {
 	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fff));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#eee));
 }
 .treeSelectorBtn.selected:before {
 	transform: none;
@@ -1619,7 +1619,6 @@ form #anmLoops label {
 	width: 165px;
 	float: left;
 	margin-right: 5px;
-	margin-top: 5px;
 }
 .simpleDialog form label {
 	width: auto;
@@ -2061,7 +2060,7 @@ ul.bhvList li.button {
  */
 table.jPicker {
 	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#333), to(#666));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
 	color: #fff;
 }
 table.jPicker .Move {
@@ -2090,7 +2089,7 @@ table.jPicker .Button {
 }
 table.jPicker .Button input {    
 	background: -moz-linear-gradient(100% 100% 90deg, #777, #aaa);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#777), to(#aaa));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#777));
     border: 1px solid #000;
     border-radius: 2px;
     color: #fff;
@@ -2100,7 +2099,7 @@ table.jPicker .Button input {
 }
 table.jPicker .Button input:hover {    
 	background: -moz-linear-gradient(100% 100% 90deg, #999, #bbb);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#999), to(#bbb));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#bbb), to(#999));
 }
 table.jPicker .Button .Ok {
 	margin-top: 9px;
