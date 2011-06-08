@@ -78,11 +78,15 @@ var editor = (function(module) {
 		},
 		
 		getMessages = function(citizen) {
-			var msgs = ['Any'],
+			var msgs = [],
 				id = citizen.getId();
 			
-			for (var ndx = 0, len = citizen.msgSent.length; ndx < len; ndx++) {	
-				msgs.push(citizen.msgSent[ndx]);
+			if (citizen.msgSent) {
+				msgs.push('Any');
+				
+				for (var ndx = 0, len = citizen.msgSent.length; ndx < len; ndx++) {
+					msgs.push(citizen.msgSent[ndx]);
+				}
 			}
 			
 			return msgs;
@@ -152,15 +156,27 @@ var editor = (function(module) {
 			
 		restrictSelection = function(tree, citizen, prefix, options) {
 			tree.addClass('restricted');
-			
+			var nodeName = module.treeData.getNodeName(citizen, {
+					option: null,
+					prefix: prefix,
+					id: id
+				}),
+				node = jQuery('#' + nodeName),
+				path = tree.jstree('get_path', node, true);
+				
+			for (var i = 0, il = path.length; i < il; i++) {
+				var n = jQuery('#' + path[i]);
+				n.find('a').addClass('restrictedSelectable');
+			}
+					
 			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
-				var id = citizen.getId ? citizen.getId() : null,
-					nodeName = module.treeData.getNodeName(citizen, {
-						option: options[ndx],
-						prefix: prefix,
-						id: id
-					}),
-					node = jQuery('#' + nodeName);
+				var id = citizen.getId ? citizen.getId() : null;
+				nodeName = module.treeData.getNodeName(citizen, {
+					option: options[ndx],
+					prefix: prefix,
+					id: id
+				});
+				node = jQuery('#' + nodeName);
 				
 				node.find('a').addClass('restrictedSelectable');
 			}
@@ -239,15 +255,27 @@ var editor = (function(module) {
 		
 		unrestrictSelection = function(tree, citizen, prefix, options) {
 			tree.removeClass('restricted');
+			var nodeName = module.treeData.getNodeName(citizen, {
+					option: null,
+					prefix: prefix,
+					id: id
+				}),
+				node = jQuery('#' + nodeName),
+				path = tree.jstree('get_path', node, true);
+				
+			for (var i = 0, il = path.length; i < il; i++) {
+				var n = jQuery('#' + path[i]);
+				n.find('a').removeClass('restrictedSelectable');
+			}
 			
 			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
-				var id = citizen.getId ? citizen.getId() : null,
-					nodeName = module.treeData.getNodeName(citizen, {
-						option: options[ndx],
-						prefix: prefix,
-						id: id
-					}),
-					node = jQuery('#' + nodeName);
+				var id = citizen.getId ? citizen.getId() : null;
+				nodeName = module.treeData.getNodeName(citizen, {
+					option: options[ndx],
+					prefix: prefix,
+					id: id
+				});
+				node = jQuery('#' + nodeName);
 				
 				node.find('a').removeClass('restrictedSelectable');
 			}
@@ -453,6 +481,35 @@ var editor = (function(module) {
 			
 			this.type = type;
 			this.actor = actor;
+			
+			// special cases
+			if (actor instanceof hemi.view.Viewpoint && !data) {
+				var vp = actor;
+				data = {};
+				
+				switch(type) {
+					case module.ui.BehaviorTypes.ACTION:
+						actor = hemi.world.camera;						
+						data.action = {
+							handler: actor,
+							method: 'moveToView'
+						};
+						data.args = [{
+							name: 'view',
+							value: 'id:' + vp.getId()
+						}];
+						break;
+					case module.ui.BehaviorTypes.TRIGGER:	
+						var cmc = module.treeData.createCamMoveCitizen(hemi.world.camera);
+						actor = cmc;
+						
+						data.trigger = {
+							citizen: cmc,
+							type: vp.getId()
+						};
+						break;
+				}
+			} 
 			
 		    this.axnFieldset.show();
 			this.trgFieldset.show();
