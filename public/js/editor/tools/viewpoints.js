@@ -561,10 +561,10 @@ var editor = (function(module) {
 		bindButtons: function(li, obj) {
 			var wgt = this;
 			
-//			li.title.bind('click', function(evt) {
-//				var vpt = li.getAttachedObject();
-//				hemi.world.camera.moveToView(vpt);
-//			});
+			li.title.bind('click', function(evt) {
+				var vpt = li.getAttachedObject();
+				hemi.world.camera.moveToView(vpt);
+			});
 			
 			li.editBtn.bind('click', function(evt) {
 				var vpt = li.getAttachedObject();
