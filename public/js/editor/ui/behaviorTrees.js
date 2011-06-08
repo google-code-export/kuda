@@ -296,7 +296,7 @@ var editor = (function(module) {
 					json_data: triggerNode
 				});
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = module.treeData.createCamMoveCitizen(citizen);
+				var cmc = module.treeData.createCamMoveCitizen(citizen),
 					triggerNode = module.treeData.createCamMoveJson(cmc, 
 						this.pre);
 					type = cmc.getCitizenType().split('.').pop();
