@@ -148,10 +148,7 @@ var editor = (function(module) {
 				argList = msgTarget.handler.args;
 				
 				if (spec.src === hemi.world.WORLD_ID) {
-					var modelName = type.split('.').shift(),
-						models = hemi.world.getModels({name:modelName});
-					
-					source = module.treeData.createShapePickCitizen(models[0]);
+					source = module.treeData.createShapePickCitizen(msgTarget.citizen);
 				} else {
 					source = module.treeData.createCamMoveCitizen(hemi.world.camera);
 				}
@@ -266,6 +263,7 @@ var editor = (function(module) {
 				
 				if (this.msgTarget.handler instanceof hemi.handlers.ValueCheck) {
 					this.msgTarget.handler.cleanup();
+					this.msgTarget.citizen = null;
 				}
 				
 				this.msgTarget.cleanup();
@@ -283,6 +281,7 @@ var editor = (function(module) {
 					this.handler,
 					this.method,
 					args);
+				newTarget.citizen = this.source.citizen;
 				this.dispatchProxy.unswap();
 			}
 			else if (this.source.camMove) {
