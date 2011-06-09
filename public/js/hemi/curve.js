@@ -1964,6 +1964,11 @@ var hemi = (function(hemi) {
 		 * Start the particle system.
 		 */
 		start: function() {
+			if (this.stopping) {
+				hemi.view.removeRenderListener(this);
+				this.active = false;
+				this.stopping = false;
+			}
 			if (!this.active) {
 				this.active = true;
 				this.starting = true;
