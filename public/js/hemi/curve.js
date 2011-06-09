@@ -346,8 +346,8 @@ var hemi = (function(hemi) {
 	hemi.curve.Curve.prototype = {
 		
 		toOctane : function() {
-			var names = ['count', 'tension', 'type', 'weights', 'xpts', 'xtans',
-					'ypts', 'ytans', 'zpts', 'ztans'],
+			var names = ['count', 'tension', 'weights', 'xpts', 'xtans', 'ypts',
+					'ytans', 'zpts', 'ztans'],
 				octane = {
 					type: 'hemi.curve.Curve',
 					props: []
@@ -361,6 +361,11 @@ var hemi = (function(hemi) {
 					val: this[name]
 				});
 			}
+			
+			octane.props.push({
+				name: 'setType',
+				arg: [this.type]
+			});
 			
 			return octane;
 		},
