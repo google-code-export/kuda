@@ -243,6 +243,7 @@ var editor = (function(module) {
 	        this.highlightedShapes = new Hashtable();
 			this.rotationAmount = 0.785398163; // 45 degrees
 			this.currentShape = null;
+			this.currentHighlightShape = null;
 			this.currentTransform = null;
 			this.msgHandler = null;
 			this.shapHighlightMat = null;
@@ -275,14 +276,14 @@ var editor = (function(module) {
 		},
 		
 		deselectShape: function() {
-			if (this.currentShape !== null) {
-				var elements = this.currentShape.elements;
+			if (this.currentHighlightShape !== null) {
+				var elements = this.currentHighlightShape.elements;
 				
 				for (var ee = 0; ee < elements.length; ee++) {
 					elements[ee].material = this.tranHighlightMat;
 				}
 				
-				this.currentShape = null;
+				this.currentShape = this.currentHighlightShape = null;
 				this.notifyListeners(module.EventTypes.ShapeSelected, null);
 			}
 		},
@@ -333,6 +334,20 @@ var editor = (function(module) {
 						hemi.dispatch.MSG_ARG + "data.pickInfo", 
 						hemi.dispatch.MSG_ARG + "data.mouseEvent"
 					]);
+					
+				if (this.currentTransform) {
+					this.selectTransform(this.currentTransform);
+				}
+				if (this.currentShape) {
+					this.selectShape(this.currentShape, this.currentTransform);
+				}
+			}
+			else {
+				var curTrans = this.currentTransform,
+					curShape = this.currentShape;
+				this.deselectAll();
+				this.currentTransform = curTrans;
+				this.currentShape = curShape;
 			}
 		},
 		
@@ -486,8 +501,8 @@ var editor = (function(module) {
 			}
 			
 			if (highlightShape !== null) {
-				if (this.currentShape !== null) {
-					var elements = this.currentShape.elements;
+				if (this.currentHighlightShape !== null) {
+					var elements = this.currentHighlightShape.elements;
 					
 					for (var ee = 0; ee < elements.length; ee++) {
 						elements[ee].material = this.tranHighlightMat;
@@ -500,7 +515,8 @@ var editor = (function(module) {
 					elements[ee].material = this.shapHighlightMat;
 				}
 				
-				this.currentShape = highlightShape;
+				this.currentHighlightShape = highlightShape;
+				this.currentShape = shape;
 				this.notifyListeners(module.EventTypes.ShapeSelected, {
 					shape: shape,
 					owner: hemi.world.getTranOwner(transform)
