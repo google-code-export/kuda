@@ -95,6 +95,7 @@ var editor = (function(module, jQuery) {
 	var commonMethods = {
 		'hemi.animation.Animation': ['reset', 'start', 'stop'],
 		'hemi.audio.Audio': ['pause', 'play', 'seek', 'setVolume'],
+		'hemi.curve.GpuParticleSystem': ['pause', 'play', 'start', 'stop'],
 		'hemi.effect.Burst': ['trigger'],
 		'hemi.effect.Emitter': ['hide', 'show'],
 		'hemi.effect.Trail': ['start', 'stop'],
