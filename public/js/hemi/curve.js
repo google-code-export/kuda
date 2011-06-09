@@ -1827,6 +1827,15 @@ var hemi = (function(hemi) {
 			this.timeParam.value = time;
 			setupBounds(material, this.boxes);
 			
+			var needsZ = false,
+				hvv = hemi.view.viewInfo;
+			
+			for (var i = 0; i < numColors && !needsZ; i++) {
+				needsZ = this.colors[i].value[3] < 1;
+			}
+			
+			material.drawList = needsZ ? hvv.zOrderedDrawList : hvv.performanceDrawList;
+			
 			if (addColors) {
 				setupColors(material, this.colors);
 			}
