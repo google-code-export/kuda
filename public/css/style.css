@@ -2141,6 +2141,39 @@ span.jPicker {
 	height: 25px;
 }
 
+/**
+ * Progress indicator styling
+ */
+#progressIndicator {
+	background: -moz-linear-gradient(100% 100% 90deg, #eee, #dcdcdc);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dcdcdc), to(#eee));
+	height: 30px;
+	padding: 5px 5px;
+	position: absolute;
+	border-radius: 3px 3px 0 0;
+}
+#progressIndicator .prgBarText {
+	color: #666;
+	font: 10px/17px Helvetica, Arial, sans-serif;
+	float: left;
+	padding: 2px 5px 2px 0;
+}
+#progressIndicator .prgBarContainer {
+	float: left;
+	width: 300px;
+	height: 18px;
+	border: 1px solid #aaa;
+	border-radius: 3px;
+}
+#progressIndicator .prgBarIndicator {
+	height: 100%;
+	width: 0;
+	padding: 0;
+	margin: 0;
+	background: -moz-linear-gradient(100% 100% 90deg, #88b2cb, #a0d2ef);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#a0d2ef), to(#88b2cb));
+}
+
 /*
 * jQuery UI CSS Framework
 * Copyright (c) 2010 AUTHORS.txt (http://jqueryui.com/about)

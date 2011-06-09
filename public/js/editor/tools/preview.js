@@ -111,6 +111,8 @@ var editor = (function(module) {
 			hemi.model.init();
 			hemi.shape.root = hemi.picking.pickRoot;
 			
+			hemi.world.subscribe(hemi.msg.progress, module.ui.progressUI, 'msgUpdate');
+			
 			// now load the preview data
 			hemi.octane.createWorld(data);
 			hemi.world.ready();
