@@ -548,7 +548,7 @@ var editor = (function(module) {
 			if (this.currentTransform) {				
 				var owner = hemi.world.getTranOwner(this.currentTransform);
 				if (owner instanceof hemi.model.Model) {
-					owner.setTransformOpacity(this.currentTransform, opacity);
+					owner.setTransformOpacity(this.currentTransform, opacity, true);
 				}
 			}
 		},
