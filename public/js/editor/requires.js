@@ -35,6 +35,7 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.utils.treeData');
 	
     o3djs.require('editor.ui.component');
+	o3djs.require('editor.ui.progress');
     o3djs.require('editor.ui.menu');
 	o3djs.require('editor.ui.listWidget');
 	o3djs.require('editor.ui.toolbar');
