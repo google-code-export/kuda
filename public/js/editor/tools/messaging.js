@@ -1067,23 +1067,7 @@ var editor = (function(module) {
 				}
 				
 				model.msgTarget = data.edit ? data.target : null;
-			});			
-			
-//			// view trees specific
-//			view.actionsTree.addListener(module.EventTypes.Trees.SelectAction, 
-//				function(data) {
-//					model.setMessageHandler(data.citizen);
-//					model.setMethod(data.method);
-//				});			
-//			view.triggersTree.addListener(module.EventTypes.Trees.SelectTrigger, 
-//				function(data) {
-//					model.setMessageSource(data.source);
-//					model.setMessageType(data.message);
-//				});
-//			view.paramsWgt.addListener(module.EventTypes.Params.SetArgument, 
-//				function(data) {
-//					model.setArgument(data.name, data.value);
-//				});
+			});		
 			
 			// model specific
 			model.addListener(module.EventTypes.ArgumentSet, function(data) {

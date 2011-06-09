@@ -45,6 +45,43 @@ var editor = (function(module) {
 				+ Math.ceil(parseFloat(prmCitTreePnl.css('borderLeftWidth')));
 			prmPadding = Math.ceil(parseFloat(prmCitTreePnl.css('paddingLeft'))) 
 				+ Math.ceil(parseFloat(prmCitTreePnl.css('paddingRight')));
+				
+			prmCitTree.bindSelect(function(evt, data) {
+				var elem = data.rslt.obj,
+					metadata = elem.data('jstree'),
+					citizen = metadata.citizen,
+					paramIpt = prmCitTree.currentParamIpt,
+					citParam = '',
+					citName = '';
+					
+				if (metadata.type === 'citizen') {
+					citParam = hemi.dispatch.ID_ARG + citizen.getId();
+					citName = citizen.getCitizenType().split('.').pop() 
+						+ '.' + citizen.name;
+					jQuery(this).parent().hide(200);
+					treeUI.jstree('close_all').jstree('deselect_all');
+					prmCitTree.currentParamIpt = null;
+				} else if (metadata.type === 'citType') {
+					treeUI.jstree('toggle_node', elem);
+				}
+				
+				if (paramIpt != null && citParam != '') {
+					paramIpt.val(citName).data('trueVal', citParam);
+					
+					var e = prmCitTreePnl.data('curElem'),
+						btn = e.children('button'), 
+						ipt = e.children('input'),
+						wgt = ipt.data('widget');
+					
+					prmCitTreePnl.hide().data('curElem', null);
+					prmCitTree.currentParamIpt = null;
+					
+					jQuery(document).unbind('click.' + wgt.config.prefix + 'CitTree');
+					prmCitTreePnl.data('docBound', false);
+					ipt.removeClass('open');
+					btn.removeClass('open');
+				}
+			});	
 		});
 			
 	prmCitTree.addListener(module.EventTypes.Trees.SelectCitizen, 

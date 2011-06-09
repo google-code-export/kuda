@@ -377,8 +377,8 @@ var editor = (function(module) {
 			this.saveBtn = saveBtn;
 			this.nameIpt = nameIpt;
 			
-			this.axnTree = module.ui.createActionsTree(true);
-			this.trgTree = module.ui.createTriggersTree(true);
+			this.axnTree = module.ui.createActionsTree();
+			this.trgTree = module.ui.createTriggersTree();
 							
 			this.prmWgt = new module.ui.ParamWidget({
 					prefix: 'bhvEdt'

@@ -349,7 +349,7 @@ var editor = (function(module) {
 					module.tools.ScnEvtEdtSBWidgetDefaults, options),
 				wgt = this;
 				
-			this.actionsTree = module.ui.createActionsTree(true);
+			this.actionsTree = module.ui.createActionsTree();
 			
 		    this._super(newOpts);
 		},
