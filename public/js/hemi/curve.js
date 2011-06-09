@@ -1484,7 +1484,9 @@ var hemi = (function(hemi) {
 		 *     ascending key order
 		 */
 		setColorKeys: function(colorKeys) {
-			if (colorKeys.length === 1) {
+			var len = colorKeys.length;
+			
+			if (len === 1) {
 				// We need at least two to interpolate
 				var clr = colorKeys[0].value;
 				this.colors = [{
@@ -1494,11 +1496,13 @@ var hemi = (function(hemi) {
 					key: 1,
 					value: clr
 				}];
-			} else {
+			} else if (len > 1) {
 				// Just make sure the keys run from 0 to 1
 				colorKeys[0].key = 0;
 				colorKeys[colorKeys.length - 1].key = 1;
 				this.colors = colorKeys;
+			} else {
+				this.colors = [];
 			}
 			
 			this.setupShaders();
@@ -1654,7 +1658,9 @@ var hemi = (function(hemi) {
 		 *     ascending key order
 		 */
 		setScaleKeys: function(scaleKeys) {
-			if (scaleKeys.length === 1) {
+			var len = scaleKeys.length;
+			
+			if (len === 1) {
 				// We need at least two to interpolate
 				var scl = scaleKeys[0].value;
 				this.scales = [{
@@ -1664,11 +1670,13 @@ var hemi = (function(hemi) {
 					key: 1,
 					value: scl
 				}];
-			} else {
+			} else if (len > 1) {
 				// Just make sure the keys run from 0 to 1
 				scaleKeys[0].key = 0;
-				scaleKeys[scaleKeys.length - 1].key = 1;
+				scaleKeys[len - 1].key = 1;
 				this.scales = scaleKeys;
+			} else {
+				this.scales = [];
 			}
 			
 			this.setupShaders();
@@ -1873,12 +1881,12 @@ var hemi = (function(hemi) {
 				arg: [{
 					aim: this.aim,
 					boxes: this.boxes,
-					colors: this.colors,
+					colorKeys: this.colors,
 					life: this.life,
 					particleCount: this.particles,
 					particleShape: this.ptcShape,
 					particleSize: this.size,
-					scales: this.scales,
+					scaleKeys: this.scales,
 					tension: this.tension
 				}]
 			});
