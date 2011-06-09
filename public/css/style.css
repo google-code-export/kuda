@@ -942,6 +942,9 @@ form div.buttons {
     padding: 0;
 	width: auto;
 }
+form div.buttons.standalone {
+	float: left;
+}
 
 form div.buttons button {
     margin-right: 2px;

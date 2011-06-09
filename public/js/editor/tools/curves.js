@@ -1048,10 +1048,13 @@ var editor = (function(module) {
 		},
 		
 		boxSelected: function(transform, ndx) {
+			var oldTransform = this.actionWgt.transform;
+			
 			this.actionWgt.setVisible(true);
 			this.actionWgt.transform = transform;
-			if (!this.actionWgt.tBtn.data('isDown') 
-					&& !this.actionWgt.sBtn.data('isDown')) {
+			if (oldTransform != transform 
+					|| (!this.actionWgt.tBtn.data('isDown') 
+					&& !this.actionWgt.sBtn.data('isDown'))) {
 				this.actionWgt.tBtn.click();
 			}
 			this.actionWgt.boxNumberTxt.text(ndx+1);
