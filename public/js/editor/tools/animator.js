@@ -637,6 +637,9 @@ var editor = (function(module) {
 			
 			this.slider.slider({
 				range: true,
+				min: 0,
+				max: 100,
+				values: [0, 100],
 				slide: function(evt, ui) {
 					var min = ui.values[0],
 						max = ui.values[1];
