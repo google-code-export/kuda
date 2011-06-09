@@ -175,12 +175,17 @@ var editor = (function(module) {
 			this.isUpdate = true;
 			
 			this.config.trail = this.currentSystem instanceof hemi.curve.GpuParticleTrail;
-			this.config.colors = this.currentSystem.colors;
 			this.config.aim = this.currentSystem.aim;
 			this.config.particleCount = this.currentSystem.particles;
 			this.config.particleSize = this.currentSystem.size;
 			this.config.life = this.currentSystem.life;
 			this.config.particleShape = this.currentSystem.particleShape;
+			this.config.colors = [];
+			
+			var colors = this.currentSystem.colors;
+			for (var i = 0, il = colors.length; i < il; i++) {
+				this.config.colors.push(colors[i].value);
+			}
 			
 			var boxes = this.currentSystem.boxes;
 			for (var i = 0, il = boxes.length; i < il; i++) {
@@ -193,9 +198,9 @@ var editor = (function(module) {
 					position = [minExtent[0] + width/2, 
 						minExtent[1] + height/2, minExtent[2] + depth/2],
 					box = new Box(position, [height, width, depth]);
-					
-				this.boxes.push(box);					
-			}			
+				
+				this.boxes.push(box);
+			}
 			
 			this.config.boxes = getExtentsList(this.boxes);
 			this.showBoxWireframes();
@@ -848,7 +853,7 @@ var editor = (function(module) {
 				
 				for (var i = 0; i < numColors; i++) {
 					var picker = this.colorPickers[i];
-					picker.setColor(colors[i]);
+					picker.setColor(colors[i].value);
 				}
 				
 				for (var i = 0, il = boxes.length; i < il; i++) {					
