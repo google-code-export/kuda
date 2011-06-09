@@ -303,9 +303,10 @@ var hemi = (function(hemi) {
 		 * Move the camera along a curve.
 		 *
 		 * @param {hemi.view.CameraCurve} curve curve for camera eye and target to follow
-		 * @param {number} opt_frames Number of frames to take for this movement
+		 * @param {number} opt_span the number of frames or seconds to take for
+		 *     the movement along the curve (0 is instant)
 		 */
-		moveOnCurve : function(curve, opt_time) {
+		moveOnCurve : function(curve, opt_span) {
 			if (this.vd.current !== null) {
 				this.vd.last = this.vd.current;
 			} else {
@@ -323,7 +324,7 @@ var hemi = (function(hemi) {
 			this.state.curve = curve;
 			this.state.moving = true;
 			this.state.vp = null;
-			var t = (opt_time == null) ? 1.0 : (opt_time > 0) ? opt_time : 0.001;
+			var t = (opt_span == null) ? 1.0 : (opt_span > 0) ? opt_span : 0.001;
 			this.state.time.end = this.mode.frames ? t/hemi.view.FPS : t;
 			this.state.time.current = 0.0;
 			this.send(hemi.msg.start, { viewdata: this.vd.current });
