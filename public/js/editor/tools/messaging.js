@@ -355,7 +355,9 @@ var editor = (function(module) {
 				var target = targets[ndx];
 				
 				if (target.name.match(module.tools.ToolConstants.EDITOR_PREFIX) === null) {
-					this.notifyListeners(module.EventTypes.TargetCreated, target);
+					this.notifyListeners(module.EventTypes.TargetCreated, {
+						target: target
+					});
 				}
 	        }
 	    }
