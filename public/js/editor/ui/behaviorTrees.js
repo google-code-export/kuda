@@ -614,7 +614,7 @@ var editor = (function(module) {
 			this.tree.jstree('delete_node', node);
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = createShapePickCitizen(citizen);
+				var spc = module.treeData.createShapePickCitizen(citizen);
 				nodeName = module.treeData.getNodeName(spc, {
 					option: null,
 					prefix: this.pre,
@@ -662,7 +662,7 @@ var editor = (function(module) {
 			this.tree.jstree('delete_node', node);
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = createShapePickCitizen(citizen);
+				var spc = module.treeData.createShapePickCitizen(citizen);
 				nodeName = module.treeData.getNodeName(spc, {
 					option: null,
 					prefix: this.pre
