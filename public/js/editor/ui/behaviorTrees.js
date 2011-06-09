@@ -682,31 +682,31 @@ var editor = (function(module) {
 			}
 		};
 	
-	module.ui.TreeModel = new TreeModel();
+	module.ui.treeModel = new TreeModel();
 	
 	module.ui.createCitizensTree = function() {
 		var tree = new TreeView(CITIZEN_PREFIX);
-		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
-		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
-		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
+		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
+		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
+		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
 		
 		return tree;
 	};
 	
 	module.ui.createActionsTree = function() {
 		var tree = new TreeView(ACTION_PREFIX);
-		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
-		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
-		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
+		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
+		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
+		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
 		
 		return tree;
 	};
 	
 	module.ui.createTriggersTree = function() {
 		var tree = new TreeView(TRIGGER_PREFIX);
-		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
-		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
-		module.ui.TreeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
+		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
+		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
+		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
 		
 		return tree;
 	};

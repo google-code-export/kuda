@@ -89,7 +89,7 @@
 			hemi.msg.subscribe(hemi.msg.load,
 				function(msg) {
 					if (msg.src instanceof hemi.model.Model) {
-						editor.ui.TreeModel.addCitizen(msg.src);
+						editor.ui.treeModel.addCitizen(msg.src);
 						that.editorStateChanged();
 					}
 				});
@@ -97,7 +97,7 @@
 				function(msg) {
 					if (msg.src.name != null &&
 						msg.src.name.match(editor.tools.ToolConstants.EDITOR_PREFIX) === null) {
-						editor.ui.TreeModel.removeCitizen(msg.src);
+						editor.ui.treeModel.removeCitizen(msg.src);
 						that.editorStateChanged();
 					}
 				});
@@ -106,11 +106,11 @@
 			hemi.world.subscribe(hemi.msg.ready, this, 'worldLoaded');
 			
 			var addFunc = function(citizen) {
-				editor.ui.TreeModel.addCitizen(citizen);
+				editor.ui.treeModel.addCitizen(citizen);
 				that.editorStateChanged();
 			};
 			var updateFunc = function(citizen) {
-				editor.ui.TreeModel.updateCitizen(citizen);
+				editor.ui.treeModel.updateCitizen(citizen);
 				that.editorStateChanged();
 			};
 			
@@ -178,7 +178,13 @@
 			this.hudMdl.worldCleaned();
 			this.fogMdl.worldCleaned();
 			this.selMdl.worldCleaned();
-			this.crvMdl.worldCleaned();
+			this.crvMdl.worldCleaned();			
+			
+			var citizens = hemi.world.getCitizens();
+	
+			for (var ndx = 0, len = citizens.length; ndx < len; ndx++) {
+				editor.ui.treeModel.removeCitizen(citizens[ndx]);
+			}
 		},
 		
 		worldLoaded: function() {

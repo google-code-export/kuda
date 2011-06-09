@@ -339,12 +339,6 @@ var editor = (function(module) {
 	        }
 			
 			this.dispatchProxy.cleanup();
-			var citizens = hemi.world.getCitizens();
-			
-			// TODO: this is a bug, needs to be updated to the common model
-			for (var ndx = 0, len = citizens.length; ndx < len; ndx++) {
-				this.removeCitizen(citizens[ndx]);
-			}
 			
 			this.source = null;
 			this.type = null;
