@@ -49,6 +49,7 @@ o3djs.require('hemi.sprite');
 o3djs.require('hemi.shape');
 o3djs.require('hemi.fx');
 o3djs.require('hemi.texture');
+o3djs.require('hemi.timer');
 
 /**
  * @namespace The core Hemi library used by Kuda.

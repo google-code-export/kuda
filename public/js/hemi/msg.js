@@ -163,6 +163,11 @@ var hemi = (function(hemi) {
 		 * Sent by hemi.motion.Translator, data =
 		 * { }
 		 * @example
+		 * Sent by hemi.time.Timer, data =
+		 * {
+		 *     time: (the countdown the Timer is starting)
+		 * }
+		 * @example
 		 * Sent by hemi.view.Camera, data =
 		 * {
 		 *     viewpoint: (Viewpoint the Camera is moving to)
@@ -188,6 +193,11 @@ var hemi = (function(hemi) {
 		 * @example
 		 * Sent by hemi.motion.Translator, data =
 		 * { }
+		 * @example
+		 * Sent by hemi.time.Timer, data =
+		 * {
+		 *     time: (the amount of time counted by the Timer)
+		 * }
 		 * @example
 		 * Sent by hemi.view.Camera, data =
 		 * {
