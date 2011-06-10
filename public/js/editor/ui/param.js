@@ -200,6 +200,12 @@ var editor = (function(module) {
 					position = li.offset(),
 					height = windowHeight - position.top;			
 				
+				ip.bind('keyup', function() {
+					var elem = jQuery(this),
+						pname = elem.data('paramName'),
+						val = elem.val();
+					wgt.setArgument(pname, val);
+				});
 				cb.data('paramIn', ip).bind('click', toggleFcn);
 				
 				lb.text(arg + ':');
