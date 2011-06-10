@@ -19,33 +19,10 @@ var editor = (function(module) {
 	
 	module.ui = module.ui || {};
 	
-	var BarUI = function(bounds) {
-		this.container = jQuery('<div class="prgBarContainer"></div>');
-		this.indicator = jQuery('<div class="prgBarIndicator"></div>');
-		
-		this.container.append(this.indicator);
-		this.percent = 0;
-	};
-	
-	/*
-	 * Further class definitions for module.progressUI.barUI
-	 */
-	BarUI.prototype = {
-		draw: function() {	
-			this.indicator.width(this.container.width() * this.percent);
-		},
-
-		update: function(percent) {
-			this.percent = percent/100;			
-			this.draw();
-		}
-	};
-	
 	var ProgressIndicator = module.ui.Component.extend({
 		init: function() {		
 			this._super();	
 			this.progress = -1;
-			this.percent = 0;
 		},
 		
 		finishLayout: function() {
@@ -75,9 +52,6 @@ var editor = (function(module) {
 				percent = this.progress;
 			
 			if (progressInfo.isTotal) {
-				if (!this.isVisible()) {
-					this.setVisible(true);
-				}
 				percent = progressInfo.percent;
 				this.update(percent);
 			}
@@ -97,7 +71,10 @@ var editor = (function(module) {
 					left: left
 				});
 				
-				ctn.css('opacity', 0).animate({
+				ctn.css({
+					opacity: 0,
+					position: 'absolute'
+				}).animate({
 					opacity: 1,
 					top: '-=20'
 				}, 300);
@@ -119,16 +96,19 @@ var editor = (function(module) {
 		 */
 		update: function(progress) {
 			if (this.progress !== progress) {
+				if (!this.isVisible()) {
+					this.setVisible(true);
+				}
 				var wgt = this;
 				this.progress = progress;
 				
 				// update the ui
-				this.percent = progress/100;	
-				this.indicator.width(this.barWrapper.width() * this.percent);
+				this.indicator.width(this.barWrapper.width() * progress/100);
 				
 				// if percent is 100, stop drawing this
 				if (this.progress >= 99.9) {
 					setTimeout(function() {
+						wgt.progress = -1;
 						wgt.setVisible(false);
 					}, 100);
 				}
