@@ -1,0 +1,80 @@
+
+<!DOCTYPE html>
+<html>
+	<head>
+		
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+
+		<title>Kuda Unit Tests v1.3.2</title>
+		
+		<script type="text/javascript" src="../js/lib/jquery.js"></script>
+		<script type="text/javascript" src="../js/lib/jshashtable.js"></script>
+		
+		<script type="text/javascript" src="../js/o3d-webgl/base.js"></script>
+		<script type="text/javascript" src="../js/o3djs/base.js"></script>
+		<script type="text/javascript" src="../js/hemi/core.js"></script>
+		<script type="text/javascript" src="../js/hext/utils/debug.js"></script>
+		
+		<link rel="Stylesheet" media="screen" href="js/jqUnit/testsuite.css" type="text/css"/>
+		
+		<script type="text/javascript" src="js/jqUnit/jqUnit.js"></script>
+		<script type="text/javascript" src="js/jqUnit/jqMock.js"></script>
+
+
+		<script type="text/javascript" src="js/test/controller.js"></script>
+		<script type="text/javascript" src="js/test/unit0.js"></script>
+		<script type="text/javascript" src="js/test/unit1.js"></script>
+		<script type="text/javascript" src="js/test/unit2.js"></script>
+		<script type="text/javascript" src="js/test/unit3.js"></script>
+		<script type="text/javascript" src="js/test/unit4.js"></script>
+		<script type="text/javascript" src="js/test/unit5.js"></script>
+
+<script type="text/javascript" >
+	
+
+	function onDocumentReady() {
+		
+		var controller = new test.Controller();
+		
+		controller.run([unit0, unit1,unit3, unit4, unit5, unit2 ]);
+		
+		//controller.run([unit0, unit4]);
+		
+		
+	}
+	
+
+	jQuery(document).ready(onDocumentReady);
+		
+	jQuery(window).unload(function() {
+		if (hemi.core.client) {
+			hemi.core.client.cleanup();
+		}
+	});
+	
+</script>
+
+
+	
+	
+	
+	
+    </head>
+	
+    
+    <body> 
+    
+		<div id="o3d"></div>
+		
+		<h1>Kuda Unit Tests</h1>
+		
+		<h2 id="banner"></h2>
+		<h2 id="userAgent"></h2>
+		
+		<!-- Test HTML -->
+		<div id="main" style="display: none;"></div>
+		
+		<ol id="tests"></ol>
+				
+    </body>
+</html>
