@@ -310,20 +310,30 @@ var editor = (function(module) {
 		},
 		
 	    worldCleaned: function() {
-	        var viewpoints = hemi.world.getViewpoints();
-	    	
+			var viewpoints = hemi.world.getViewpoints(),
+				camCurves = hemi.world.getCamCurves();
+	        
 	        for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
 	            var vpt = viewpoints[ndx];
 	            this.notifyListeners(module.EventTypes.ViewpointRemoved, vpt);
 	        }
+	        for (var ndx = 0, len = camCurves.length; ndx < len; ndx++) {
+	            var cc = camCurves[ndx];
+	            this.notifyListeners(module.EventTypes.CamCurveRemoved, cc);
+	        }
 	    },
 	    
 	    worldLoaded: function() {
-	        var viewpoints = hemi.world.getViewpoints();
+	        var viewpoints = hemi.world.getViewpoints(),
+				camCurves = hemi.world.getCamCurves();
 	        
 	        for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
 	            var vpt = viewpoints[ndx];
 	            this.notifyListeners(module.EventTypes.ViewpointAdded, vpt);
+	        }
+	        for (var ndx = 0, len = camCurves.length; ndx < len; ndx++) {
+	            var cc = camCurves[ndx];
+	            this.notifyListeners(module.EventTypes.CamCurveCreated, cc);
 	        }
 	    }
 	});

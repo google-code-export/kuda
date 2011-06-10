@@ -928,21 +928,22 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Get any Scenes with the given attributes. If no attributes are given, all
-	 * Scenes will be returned. Valid attributes are:
+	 * Get any CameraCurves with the given attributes. If no attributes are
+	 * given, all CameraCurves will be returned. Valid attributes are:
 	 * - name
 	 * - worldId
 	 * 
 	 * @param {Object} attributes optional structure with the attributes to
 	 *     search for
-	 * @param {function(Scene): boolean} opt_filter optional filter function
-	 *     that takes a Scene and returns true if the Scene should be included
-	 *     in the returned array
-	 * @return {hemi.scene.Scene[]} an array of Scenes with matching attributes
+	 * @param {function(CameraCurve): boolean} opt_filter optional filter
+	 *     function that takes a CameraCurve and returns true if the CameraCurve
+	 *     should be included in the returned array
+	 * @return {hemi.view.CameraCurve[]} an array of CameraCurves with matching
+	 *     attributes
 	 */
-	hemi.world.getScenes = function(attributes, opt_filter) {
+	hemi.world.getCamCurves = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes.citizenType = hemi.scene.Scene.prototype.citizenType;
+		attributes.citizenType = hemi.view.CameraCurve.prototype.citizenType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 	
@@ -1152,6 +1153,25 @@ var hemi = (function(hemi) {
 	hemi.world.getRotators = function(attributes, opt_filter) {
 		attributes = attributes || {};
 		attributes.citizenType = hemi.motion.Rotator.prototype.citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
+	
+	/**
+	 * Get any Scenes with the given attributes. If no attributes are given, all
+	 * Scenes will be returned. Valid attributes are:
+	 * - name
+	 * - worldId
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to
+	 *     search for
+	 * @param {function(Scene): boolean} opt_filter optional filter function
+	 *     that takes a Scene and returns true if the Scene should be included
+	 *     in the returned array
+	 * @return {hemi.scene.Scene[]} an array of Scenes with matching attributes
+	 */
+	hemi.world.getScenes = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes.citizenType = hemi.scene.Scene.prototype.citizenType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 	
