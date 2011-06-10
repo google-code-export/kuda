@@ -335,19 +335,10 @@ var editor = (function(module) {
 						hemi.dispatch.MSG_ARG + "data.mouseEvent"
 					]);
 					
-				if (this.currentTransform) {
-					this.selectTransform(this.currentTransform);
-				}
-				if (this.currentShape) {
-					this.selectShape(this.currentShape, this.currentTransform);
-				}
+				this.highlightSelected();
 			}
 			else {
-				var curTrans = this.currentTransform,
-					curShape = this.currentShape;
-				this.deselectAll();
-				this.currentTransform = curTrans;
-				this.currentShape = curShape;
+				this.unhighlightAll();
 			}
 		},
 		
@@ -392,6 +383,18 @@ var editor = (function(module) {
 				owner: opt_owner
 			});
 	    },
+		
+		highlightSelected: function() {
+			var owners = this.selected.values();
+			
+			for (var i = 0, il = owners.length; i < il; i++) {
+				var transforms = owners[i];
+				
+				for (var j = 0, jl = transforms.length; j < jl; j++) {
+					this.highlightTransform(transforms[j]);
+				}
+			}
+		},
 	    
 	    highlightShape: function(shape, transform) {
 	        var highlightShape = hemi.core.shape.duplicateShape(hemi.core.mainPack, shape);
@@ -596,6 +599,18 @@ var editor = (function(module) {
 			});
             this.notifyListeners(module.EventTypes.TransformShown, transform);
 	    },
+		
+		unhighlightAll: function() {
+			var owners = this.selected.values();
+			
+			for (var i = 0, il = owners.length; i < il; i++) {
+				var transforms = owners[i];
+				
+				for (var j = 0, jl = transforms.length; j < jl; j++) {
+					this.unhighlightTransform(transforms[j]);
+				}
+			}
+		},
 	    
 	    unhighlightShape: function(shape, transform) {
 			var highlightShape = this.highlightedShapes.remove(shape.clientId);
