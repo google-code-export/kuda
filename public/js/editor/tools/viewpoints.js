@@ -1138,11 +1138,13 @@ var editor = (function(module) {
 			});
 			
 			// behavior widget specific
-			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {				
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
-								
-				vptLstWgt.setVisible(!obj.visible && isDown);			
-				crvLstWgt.setVisible(!obj.visible && isDown);
+			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				if (obj.updateMeta) {
+					var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+					
+					vptLstWgt.setVisible(!obj.visible && isDown);
+					crvLstWgt.setVisible(!obj.visible && isDown);
+				}
 			});
 		}
 	});

@@ -344,8 +344,8 @@ var editor = (function(module) {
 					for (var i = 0, il = sbrWgts.length; i < il; i++) {
 						var wgt = sbrWgts[i],
 							meta = wgt.getViewMeta(view);
+						meta.viewIsVisible = false;
 						if (wgt.isVisible()) {
-							meta.viewIsVisible = false;
 							meta.widgetShouldBeVisible = true;
 							wgt.setVisible(false, false);
 						}
