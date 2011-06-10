@@ -37,17 +37,7 @@ var editor = (function(module) {
 		EditScene: "scenes.SelectScene",
 	    UpdateScene: "scenes.UpdateScene",
 	    RemoveScene: "scenes.RemoveScene",
-	    ReorderScene: "scenes.ReorderScene",
-		
-		// scene list item widget specific
-		EditSceneEvent: "scenes.EditSceneEvent",
-		RemoveSceneEvent: "scenes.RemoveSceneEvent",
-		AddLoadEvent: "scenes.AddLoadEvent",
-		AddUnLoadEvent: "scenes.AddUnLoadEvent",		
-		
-		// scene event editor widget specific
-		CancelScnEvtEdit: "scenes.CancelScnEvtEdit",
-		SaveSceneEvent: "scenes.SaveSceneEvent"
+	    ReorderScene: "scenes.ReorderScene"
 	};
     	
 	var CITIZEN_WRAPPER = '#scnEvtCitizensPnl';
@@ -331,159 +321,6 @@ var editor = (function(module) {
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                     	Scene Event Editor Sidebar Widget                     //
-////////////////////////////////////////////////////////////////////////////////     
-    
-	/*
-	 * Configuration object for the HiddenItemsSBWidget.
-	 */
-	module.tools.ScnEvtEdtSBWidgetDefaults = {
-		name: 'scnEvtEdtSBWidget',
-		uiFile: 'js/editor/tools/html/scenesForm.htm',
-		manualVisible: true
-	};
-	
-	module.tools.ScnEvtEdtSBWidget = module.ui.SidebarWidget.extend({
-		init: function(options) {
-			var newOpts = jQuery.extend({}, 
-					module.tools.ScnEvtEdtSBWidgetDefaults, options),
-				wgt = this;
-				
-			this.actionsTree = module.ui.createActionsTree();
-			
-		    this._super(newOpts);
-		},
-		
-		canSave: function() {
-			var isSaveable = this.actionChooser.getSelection()  != null 
-				&& this.name.val() !== '';
-				
-			if (isSaveable) {
-				this.saveBtn.removeAttr('disabled');
-			}
-			else {
-				this.saveBtn.attr('disabled', 'disabled');
-			}
-		},
-		
-		finishLayout: function() {
-			this._super();
-			
-			var wgt = this,
-				container = this.find('#scnEvtEffectContainer');
-			
-			this.saveBtn = this.find('#scnEvtSaveBtn');
-			this.cancelBtn = this.find('#scnEvtCancelBtn');
-			this.name = this.find('#scnEvtName');
-			this.list = this.find('#scnEvtTargetParamsList');
-			this.paramsSet = this.find('#scnEvtParams');
-			this.paramsWgt = new module.ui.ParamWidget({
-				containerId: 'scnEvtTargetParams',
-				prefix: 'scnEvt',
-				sendsNotifications: false
-			});
-			
-			this.paramsSet.hide();
-			this.list.append(this.paramsWgt.getUI());
-			
-			this.actionChooser = new module.ui.TreeSelector({
-				containerClass: 'scnEvtEffectDiv',
-				tree: this.actionsTree,
-				select: function(data, selector) {
-					var elem = data.rslt.obj,
-						metadata = elem.data('jstree'),
-						path = wgt.actionChooser.tree.jstree('get_path', elem);
-					
-					if (metadata.type === 'citType' 
-							|| metadata.type === 'citizen') {
-						selector.tree.jstree('open_node', elem, false, false);
-						return false;
-					}
-					else {					
-						var cit = metadata.parent,
-							method = path[path.length-1];
-						
-						wgt.paramsSet.show(200);	
-						wgt.paramsWgt.fillParams(getFunctionParams(cit[method]));
-						selector.input.val(path.join('.').replace('.More...', ''));
-						selector.setSelection({
-							obj: cit,
-							method: method 
-						});
-						wgt.canSave();
-						
-						return true;
-					}
-				}
-			});
-			
-			container.append(this.actionChooser.getUI());
-			
-			this.find('form').submit(function() { return false; });
-			
-			this.cancelBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.Scenes.CancelScnEvtEdit, null);
-			});
-			
-			this.saveBtn.bind('click', function(evt) {
-				var selVal = wgt.actionChooser.getSelection(),
-					saveObj = jQuery.extend(selVal, {
-						args: wgt.paramsWgt.getArgs(),
-						type: wgt.type,
-						name: wgt.name.val(),
-						scene: wgt.scene
-					});
-				wgt.notifyListeners(module.EventTypes.Scenes.SaveSceneEvent, saveObj);
-			});
-			
-			this.name.bind('keyup', function(evt) {
-				wgt.canSave();
-			});
-		},		
-		
-		reset: function() {
-			this.scene = null;
-			this.type = null;
-			this.name.val('');
-			this.curArgs = [];
-			this.actionChooser.reset();
-			this.list.empty();
-			this.paramsSet.hide();
-			this.saveBtn.attr('disabled', 'disabled');
-		},
-		
-		set: function(scene, type, target) {
-			this.scene = scene;
-			this.type = type;
-			
-			if (target) {				
-				var node = getNodeName(target.handler, {
-					option: target.func,
-					prefix: EFFECT_PREFIX,
-					id: target.handler.getId()
-				});
-				
-				this.actionChooser.select(node);
-				
-				for (var ndx = 0, len = target.args.length; ndx < len; ndx++) {
-					this.curArgs[ndx].val(target.args[ndx]);
-				}
-				
-				this.name.val(target.name);
-			}
-		},
-		
-		setArgument: function(argName, argValue) {
-			var id = '#scnEvtParam_' + argName,
-				input = this.mainPanel.find(id);
-			input.val(argValue);
-		},
-		
-		validate: function() {	
-		}
-	});
-	
-////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
     
@@ -504,7 +341,6 @@ var editor = (function(module) {
 			this.editItemId = null;
 			
 			this.addSidebarWidget(new module.tools.ScnListSBWidget());
-			this.addSidebarWidget(new module.tools.ScnEvtEdtSBWidget());
 			this.addSidebarWidget(module.ui.getBehaviorWidget());
 	    }
 	});	
@@ -535,42 +371,7 @@ var editor = (function(module) {
 				scnLst = view.sceneListSBWidget,
 				edtWgt = view.scnEvtEdtSBWidget,
 				bhvWgt = view.behaviorSBWidget,
-	        	that = this,
-				addSceneListeners = function(scnWgt) {
-					scnWgt.addListener(module.EventTypes.Scenes.AddLoadEvent, 
-						function(scn) {
-							// show the editor
-							edtWgt.setVisible(true);
-							edtWgt.set(scn, hemi.msg.load);
-							// hide the scene list
-							scnLst.setVisible(false);
-						});
-					scnWgt.addListener(module.EventTypes.Scenes.AddUnLoadEvent, 
-						function(scn) {
-							// show the editor
-							edtWgt.setVisible(true);
-							edtWgt.set(scn, hemi.msg.unload);
-							// hide the scene list
-							scnLst.setVisible(false);
-						});
-					scnWgt.addListener(module.EventTypes.Scenes.EditSceneEvent, 
-						function(scnEvt) {
-							// show the editor
-							edtWgt.setVisible(true);
-							// set the editor values
-							edtWgt.set(scnEvt.scene, scnEvt.type, scnEvt.event);
-							// let the model know
-							msgMdl.copyTarget(scnEvt.event);
-							msgMdl.msgTarget = scnEvt.event;
-							// hide the scene list
-							scnLst.setVisible(false);
-						});
-					scnWgt.addListener(module.EventTypes.Scenes.RemoveSceneEvent, 
-						function(scnEvt) {
-							// let the model know
-							msgMdl.removeTarget(scnEvt);
-						});
-				};
+	        	that = this;
 			
 			// special listener for when the tool button is clicked
 	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
@@ -601,47 +402,17 @@ var editor = (function(module) {
 				model.setScene(null);
 			});
 			
-			// edit widget specific
-			edtWgt.addListener(module.EventTypes.Scenes.CancelScnEvtEdit, function() {
-				msgMdl.msgTarget = null;
-				edtWgt.reset();
-				edtWgt.setVisible(false);
-				scnLst.setVisible(true);
-			});
-			edtWgt.addListener(module.EventTypes.Scenes.SaveSceneEvent, function(saveObj) {
-				var args = saveObj.args || [];
-				
-				msgMdl.setMessageSource(saveObj.scene);
-				msgMdl.setMessageType(saveObj.type);
-				msgMdl.setMessageHandler(saveObj.obj);
-				msgMdl.setMethod(saveObj.method);
-				
-				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
-					var arg = args[ndx];
-					
-					msgMdl.setArgument(arg.name, arg.value);
-				}
-				
-				msgMdl.save(saveObj.name);
-			});
-			
 			// behavior widget specific
-			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {				
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;				
-				scnLst.setVisible(!obj.visible && isDown);
+			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				if (obj.updateMeta) {
+					var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+					scnLst.setVisible(!obj.visible && isDown);
+				}
 			});
-			
-			// edit widget trees specific
-			edtWgt.actionsTree.addListener(module.EventTypes.Trees.SelectAction, 
-				function(data){
-					model.setMessageHandler(data.citizen);
-					model.setMethod(data.method);
-				});	
 			
 			// model specific
 			model.addListener(module.EventTypes.Scenes.SceneAdded, function(scene) {
-				var li = scnLst.add(scene);
-				addSceneListeners(li);
+				scnLst.add(scene);
 			});		
 			model.addListener(module.EventTypes.Scenes.SceneUpdated, function(scene) {
 				scnLst.update(scene);

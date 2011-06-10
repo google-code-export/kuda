@@ -1102,6 +1102,8 @@ var editor = (function(module) {
 				if (li) {
 					li.add(target, spec, data.actor);
 				}
+				
+				bhvWgt.setVisible(false);
 			});			
 			model.addListener(module.EventTypes.TargetRemoved, function(target) {
 				view.removeTarget(target);
@@ -1142,6 +1144,9 @@ var editor = (function(module) {
 				module.EventTypes.Behavior.ListItemRemove, function(target) {
 					model.removeTarget(target);
 				});
+			bhvWgt.addListener(module.EventTypes.Behavior.Cancel, function() {
+				bhvWgt.setVisible(false);
+			});
 			bhvWgt.addListener(module.EventTypes.Behavior.Save, function(saveObj) {
 				var args = saveObj.args || [],
 					trigger = saveObj.trigger,

@@ -103,14 +103,6 @@ var editor = (function(module) {
 				boxes: []
 			};
 			this.boxes = [];
-			this.boxMat = hemi.core.material.createConstantMaterial(
-				hemi.curve.pack,
-				hemi.view.viewInfo,
-				[0, 0, 0.5, 1]);
-			var state = hemi.curve.pack.createObject('State');
-			state.getStateParam('PolygonOffset2').value = -1.0;
-			state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
-			this.boxMat.state = state;
 			
 			this.msgHandler = hemi.world.subscribe(
 				hemi.msg.pick, 
@@ -130,7 +122,7 @@ var editor = (function(module) {
 			this.boxes.push(box);
 			this.config.boxes = getExtentsList(this.boxes);
 			
-			this.showBoxWireframes();
+//			this.showBoxWireframes();
 			this.updateSystem('boxes', this.config.boxes);
 			
 			this.notifyListeners(module.EventTypes.BoxAdded, box);
@@ -203,7 +195,7 @@ var editor = (function(module) {
 			}
 			
 			this.config.boxes = getExtentsList(this.boxes);
-			this.showBoxWireframes();
+//			this.showBoxWireframes();
 			
 			this.notifyListeners(module.EventTypes.CurveSet, {
 				system: this.currentSystem,
@@ -251,23 +243,9 @@ var editor = (function(module) {
 			this.boxes.splice(found, 1);
 			this.config.boxes = getExtentsList(this.boxes);
 			
-			if (box.transform) {
-				var tran = box.transform,
-					shape = tran.shapes[0],
-					pack = hemi.curve.pack;
-				
-				tran.removeShape(shape);
-				tran.parent = null;
-				pack.removeObject(shape);
-				pack.removeObject(tran);
-				box.transform = null;
-			}			
-			
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(module.EventTypes.BoxRemoved, {
-				size: this.config.boxes.length
-			});
+			this.notifyListeners(module.EventTypes.BoxRemoved, box);
 						
 			if (previewing && this.config.boxes.length > 1) {
 				this.startPreview();
@@ -283,22 +261,12 @@ var editor = (function(module) {
 			this.isUpdate = false;
 			this.changed = false;
 			
-			// clean up transforms
-			var pack = hemi.curve.pack;
-		
-			for (i = 0, il = this.boxes.length; i < il; i++) {
-				var box = this.boxes[i],
-					tran = box.transform,
-					shape = tran.shapes[0];
-				
-				tran.removeShape(shape);
-				tran.parent = null;
-				pack.removeObject(shape);
-				pack.removeObject(tran);
-				box.transform = null;
-			}
-			
 			this.boxes = [];
+			
+			this.notifyListeners(module.EventTypes.CurveSet, {
+				system: null,
+				boxes: null
+			});
 		},
 		
 		save: function(name) {
@@ -344,32 +312,6 @@ var editor = (function(module) {
 			}
 		},
 		
-		showBoxWireframes: function() {
-			var pack = hemi.curve.pack,
-				boxes = this.boxes;
-			
-			for (i = 0; i < boxes.length; i++) {
-				var b = boxes[i];
-				
-				if (b.transform == null) {
-					var transform = pack.createObject('Transform'), 
-						w = b.dimensions[1], 
-						h = b.dimensions[0], 
-						d = b.dimensions[2], 
-						x = b.position[0], 
-						y = b.position[1], 
-						z = b.position[2], 
-						box = o3djs.primitives.createBox(pack, this.boxMat, w, 
-							h, d);
-				
-					transform.addShape(box);
-					transform.translate(x,y,z);
-					transform.parent = hemi.picking.pickRoot;
-					b.transform = transform;
-				}
-			}
-		},
-		
 		startPreview: function() {
 			if (!this.previewing) {
 				if (!this.currentSystem) {
@@ -402,7 +344,7 @@ var editor = (function(module) {
 			this.stopPreview();
 				
 			this.config.boxes = getExtentsList(this.boxes);
-			this.showBoxWireframes();
+//			this.showBoxWireframes();
 			this.updateSystem('boxes', this.config.boxes);
 			
 			this.notifyListeners(module.EventTypes.BoxUpdated, box);
@@ -483,13 +425,23 @@ var editor = (function(module) {
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
 				module.tools.EditCrvSBWidgetDefaults, options);
-		    this._super(newOpts);
+				
+			this.boxMat = hemi.core.material.createConstantMaterial(
+				hemi.curve.pack,
+				hemi.view.viewInfo,
+				[0, 0, 0.5, 1]);
+			var state = hemi.curve.pack.createObject('State');
+			state.getStateParam('PolygonOffset2').value = -1.0;
+			state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
+			this.boxMat.state = state;
 			
 			this.colorPickers = [];
 			this.boxHandles = new editor.ui.TransHandles();
 			this.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
 			this.boxHandles.addListener(module.EventTypes.TransChanged, this);
 			this.boxes = new Hashtable();
+			
+		    this._super(newOpts);
 		},
 		
 		finishLayout: function() {
@@ -546,14 +498,11 @@ var editor = (function(module) {
 			
 			saveBtn.bind('click', function(evt) {
 				var name = nameIpt.val();
-				
 				wgt.notifyListeners(module.EventTypes.Save, name);
-				wgt.reset();
 			});
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.notifyListeners(module.EventTypes.Cancel);
-				wgt.reset();
 			});
 			
 			startPreviewBtn.bind('click', function(evt) {
@@ -675,8 +624,6 @@ var editor = (function(module) {
 							
 			removeBtn.bind('click', function(evt) {
 				var box = wrapper.data('box');
-				
-				wrapper.remove();
 				wgt.notifyListeners(module.EventTypes.RemoveBox, box);
 			});
 			
@@ -708,6 +655,7 @@ var editor = (function(module) {
 			this.boxes.put(box, wrapper);
 			this.boxList.append(wrapper);
 			this.boxesUpdated(this.boxes.size());
+			this.showBoxWireframes();
 		},
 		
 		boxesUpdated: function(size) {
@@ -719,6 +667,25 @@ var editor = (function(module) {
 			else {
 				btn.attr('disabled', 'disabled');
 			}
+		},
+		
+		boxRemoved: function(box) {
+			var wrapper = this.boxes.get(box);
+			
+			wrapper.remove();
+			this.boxes.remove(box);
+			
+			if (box.transform) {
+				var tran = box.transform,
+					shape = tran.shapes[0],
+					pack = hemi.curve.pack;
+				
+				tran.removeShape(shape);
+				tran.parent = null;
+				pack.removeObject(shape);
+				pack.removeObject(tran);
+				box.transform = null;
+			}			
 		},
 		
 		boxSelected: function(drawState, transform) {
@@ -754,6 +721,7 @@ var editor = (function(module) {
 			}
 			
 			boxUI.find('span').text('Box at [' + position.join(',') + ']');
+			this.showBoxWireframes();
 		},
 		
 		checkSaveButton: function() {
@@ -769,8 +737,36 @@ var editor = (function(module) {
 		},
 		
 		cleanup: function() {
-			for (var i = 0, il = this.transHandles.length; i < il; i++) {
-				this.transHandles[i].cleanup();
+			this.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
+			this.boxHandles.setTransform(null);
+						
+			// clean up transforms
+			var pack = hemi.curve.pack,
+				boxes = this.boxes.keys();
+		
+			for (i = 0, il = boxes.length; i < il; i++) {
+				var box = boxes[i],
+					tran = box.transform,
+					shape = tran.shapes[0];
+				
+				tran.removeShape(shape);
+				tran.parent = null;
+				pack.removeObject(shape);
+				pack.removeObject(tran);
+				box.transform = null;
+			}
+		},
+		
+		hideBoxWireframes: function() {
+			var boxes = this.boxes.keys();
+			
+			for (var i = 0, il = boxes.length; i < il; i++) {
+				var b = boxes[i],
+					t = b.transform;
+					
+				if (t) {
+					t.visible = false;
+				}
 			}
 		},
 		
@@ -780,7 +776,9 @@ var editor = (function(module) {
 			}
 		},
 		
-		reset: function() {		
+		reset: function() {	
+			this.cleanup();	
+			
 			// remove additional color ramp values
 			this.find('.colorRampAdd').remove();
 			var colorRampPicker = this.colorPickers[0];
@@ -802,7 +800,7 @@ var editor = (function(module) {
 			this.boxes.clear();
 			
 			this.position.reset();
-			this.dimensions.reset();			
+			this.dimensions.reset();		
 		},
 		
 		resize: function(maxHeight) {
@@ -893,6 +891,46 @@ var editor = (function(module) {
 			.data('ndx', 1);
 			
 			this.colorPickers.push(colorRampPicker);
+		},
+		
+		setVisible: function(visible) {
+			this._super(visible);
+			
+			if (visible) {
+				this.showBoxWireframes();
+			}
+			else {				
+				this.hideBoxWireframes();
+			}
+		},
+		
+		showBoxWireframes: function() {
+			var pack = hemi.curve.pack,
+				boxes = this.boxes.keys();
+			
+			for (i = 0; i < boxes.length; i++) {
+				var b = boxes[i];
+				
+				if (b.transform == null) {
+					var transform = pack.createObject('Transform'), 
+						w = b.dimensions[1], 
+						h = b.dimensions[0], 
+						d = b.dimensions[2], 
+						x = b.position[0], 
+						y = b.position[1], 
+						z = b.position[2], 
+						box = o3djs.primitives.createBox(pack, this.boxMat, w, 
+							h, d);
+				
+					transform.addShape(box);
+					transform.translate(x,y,z);
+					transform.parent = hemi.picking.pickRoot;
+					b.transform = transform;
+				} 
+				else {
+					b.transform.visible = true;
+				}
+			}
 		}
 	});
 	
@@ -1095,7 +1133,11 @@ var editor = (function(module) {
 	        	that = this;
 	        
 	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode == module.tools.ToolConstants.MODE_DOWN;				
+	            var isDown = value.newMode == module.tools.ToolConstants.MODE_DOWN,
+					root = isDown ? hemi.core.client.root : hemi.picking.pickRoot;	
+				
+				hemi.model.modelRoot.parent = root;
+				hemi.shape.root.parent = root;
 	        });	
 			view.addListener(module.EventTypes.BoxManipState, function(value) {
 				edtCrvWgt.boxSelected(value.drawState, value.transform);
@@ -1107,8 +1149,6 @@ var editor = (function(module) {
 			});
 			edtCrvWgt.addListener(module.EventTypes.Cancel, function() {
 				model.reset();
-				edtCrvWgt.setVisible(false);
-				lstWgt.setVisible(true);
 			});
 			edtCrvWgt.addListener(module.EventTypes.RemoveBox, function(box) {
 				model.removeBox(box);
@@ -1156,7 +1196,8 @@ var editor = (function(module) {
 			model.addListener(module.EventTypes.BoxAdded, function(box) {
 				edtCrvWgt.boxAdded(box);
 			});
-			model.addListener(module.EventTypes.BoxRemoved, function(ndx) {
+			model.addListener(module.EventTypes.BoxRemoved, function(box) {
+				edtCrvWgt.boxRemoved(box);
 			});
 			model.addListener(module.EventTypes.BoxSelected, function(vals) {
 				var transform = vals.transform,
@@ -1168,10 +1209,7 @@ var editor = (function(module) {
 				edtCrvWgt.boxUpdated(box);
 			});
 			model.addListener(module.EventTypes.CurveCreated, function(curve) {
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
 				lstWgt.add(curve);
-				edtCrvWgt.setVisible(false);
-				lstWgt.setVisible(isDown && true);
 			});
 			model.addListener(module.EventTypes.CurveRemoved, function(curve) {
 				lstWgt.remove(curve);
@@ -1180,24 +1218,31 @@ var editor = (function(module) {
 				if (curve.system != null) {
 					edtCrvWgt.set(curve.system, curve.boxes);
 				}
+				else {
+					var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+					
+					edtCrvWgt.setVisible(false);
+					lstWgt.setVisible(isDown);
+					edtCrvWgt.reset();
+				}
 			});
 			model.addListener(module.EventTypes.CurveUpdated, function(curve) {
 				lstWgt.update(curve);
-				edtCrvWgt.setVisible(false);
-				lstWgt.setVisible(true);
 			});
 			model.addListener(module.EventTypes.CurveWorldCleaned, function() {
 				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
 				edtCrvWgt.reset();
 				edtCrvWgt.setVisible(false);
-				lstWgt.setVisible(isDown && true);
+				lstWgt.setVisible(isDown);
 			});
 			
 			// behavior widget specific
-			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {				
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
-								
-				lstWgt.setVisible(!obj.visible && isDown);
+			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				if (obj.updateMeta) {
+					var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+					
+					lstWgt.setVisible(!obj.visible && isDown);
+				}
 			});
 	    }
 	});

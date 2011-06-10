@@ -48,6 +48,27 @@ var editor = (function(module) {
 			this.overrideHandlers();
 		},
 		
+		cleanup: function() {
+			this.setDrawState(editor.ui.trans.DrawState.NONE);
+			this.setTransform(null);
+			hemi.view.removeRenderListener(this);
+			
+			var mouseDown = hemi.hud.hudMgr.downHandler,
+				mouseUp = hemi.hud.hudMgr.upHandler,
+				mouseMove = hemi.hud.hudMgr.moveHandler,
+				that = this,
+				cvs = hemi.hud.hudMgr.canvasElem;
+				
+			cvs.removeEventListener('mousedown', this.mouseDownHandler, true);
+			cvs.removeEventListener('mousemove', this.mouseMoveHandler, true);
+			cvs.removeEventListener('mouseup', this.mouseUpHandler, true);
+			
+			cvs.addEventListener('mousedown', mouseDown, true);
+			cvs.addEventListener('mousemove', mouseUp, true);
+			cvs.addEventListener('mouseup', mouseMove, true);
+			jQuery(document).unbind('mouseup.transhandles');
+		},
+		
 		drawHandles: function() {
 			if (this.drawState !== module.ui.trans.DrawState.NONE) {
 //				var origin = this.transform.localMatrix[3],		FOR LOCAL
@@ -253,7 +274,7 @@ var editor = (function(module) {
 			cvs.removeEventListener('mousemove', mouseMove, true);
 			cvs.removeEventListener('mouseup', mouseUp, true);
 				
-			var newMouseDown = function(evt) {
+			this.mouseDownHandler = function(evt) {
 				// Create a writeable clone of the event and convert it
 				var wrEvt = hemi.utils.clone(evt, false);
 				that.convertEvent(wrEvt);
@@ -263,7 +284,7 @@ var editor = (function(module) {
 					mouseDown(evt);
 				}
 			};
-			var newMouseUp = function(evt) {
+			this.mouseUpHandler = function(evt) {
 				var wrEvt = hemi.utils.clone(evt, false);
 				that.convertEvent(wrEvt);
 				
@@ -271,7 +292,7 @@ var editor = (function(module) {
 					mouseUp(evt);
 				}
 			};
-			var newMouseMove = function(evt) {
+			this.mouseMoveHandler = function(evt) {
 				var wrEvt = hemi.utils.clone(evt, false);
 				that.convertEvent(wrEvt);
 				
@@ -280,10 +301,10 @@ var editor = (function(module) {
 				}
 			};
 			
-			cvs.addEventListener('mousedown', newMouseDown, true);
-			cvs.addEventListener('mousemove', newMouseMove, true);
-			cvs.addEventListener('mouseup', newMouseUp, true);
-			jQuery(document).bind('mouseup', function(evt) {
+			cvs.addEventListener('mousedown', this.mouseDownHandler, true);
+			cvs.addEventListener('mousemove', this.mouseMoveHandler, true);
+			cvs.addEventListener('mouseup', this.mouseUpHandler, true);
+			jQuery(document).bind('mouseup.transhandles', function(evt) {
 				that.onMouseUp(evt);
 			});
 		},
