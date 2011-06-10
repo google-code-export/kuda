@@ -241,6 +241,7 @@ input.error {
 	font: bold 10pt/30px "Myriad Pro", Helvetica, Arial, sans-serif;
 	color: #535353;
 	text-shadow: 0 1px 1px #fff;
+	margin-top: 5px;
 }
 #currentProject span.label {
 	margin-right: 5px;
