@@ -427,13 +427,11 @@ var editor = (function(module) {
 				
 				wgt.notifyListeners(msgType, data);
 				wgt.reset();
-				wgt.setVisible(false);
 			});
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.notifyListeners(module.EventTypes.Behavior.Cancel);
 				wgt.reset();
-				wgt.setVisible(false);
 			});
 			
 			nameIpt.bind('keyup', function(evt) {				
@@ -483,30 +481,36 @@ var editor = (function(module) {
 			this.actor = actor;
 			
 			// special cases
-			if (actor instanceof hemi.view.Viewpoint && !data) {
+			if (actor instanceof hemi.view.Viewpoint) {
 				var vp = actor;
-				data = {};
 				
 				switch(type) {
 					case module.ui.BehaviorTypes.ACTION:
-						actor = hemi.world.camera;						
-						data.action = {
-							handler: actor,
-							method: 'moveToView'
-						};
-						data.args = [{
-							name: 'view',
-							value: 'id:' + vp.getId()
-						}];
+						actor = hemi.world.camera;	
+						
+						if (!data) {
+							data = {};							
+							data.action = {
+								handler: actor,
+								method: 'moveToView'
+							};
+							data.args = [{
+								name: 'view',
+								value: 'id:' + vp.getId()
+							}];
+						}
 						break;
 					case module.ui.BehaviorTypes.TRIGGER:	
 						var cmc = module.treeData.createCamMoveCitizen(hemi.world.camera);
 						actor = cmc;
 						
-						data.trigger = {
-							citizen: cmc,
-							type: vp.getId()
-						};
+						if (!data) {
+							data = {};
+							data.trigger = {
+								citizen: cmc,
+								type: vp.getId()
+							};
+						}
 						break;
 				}
 			} 
@@ -557,13 +561,17 @@ var editor = (function(module) {
 				// load up the new data if it exists
 				meta = this.getViewMeta(view);
 				
-				if (meta && meta.state) {
+				if (meta && meta.state && meta.widgetShouldBeVisible) {
 					this.setActor(meta.state.actor, meta.state.type, 
 						meta.state.data);
 				}
 			}
 			
 			this._super(view);
+		},
+		
+		setVisible: function(visible, etc) {
+			this._super(visible, etc);
 		}
 	});
 	
