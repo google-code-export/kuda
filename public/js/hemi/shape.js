@@ -32,6 +32,7 @@ var hemi = (function(hemi) {
 	hemi.shape.OCTA = 'octa';
 	hemi.shape.PYRAMID = 'pyramid';
 	hemi.shape.CUSTOM = 'custom';
+	hemi.shape.SHAPE_ROOT = "ShapeRoot";
 	
 	/**
 	 * @class A TransformUpdate allows changes to the Transform in a Shape to be
@@ -385,7 +386,9 @@ var hemi = (function(hemi) {
 	 * Initialize a local root transform and pack.
 	 */
 	hemi.shape.init = function() {
-		hemi.shape.root = hemi.picking.pickRoot;
+		hemi.shape.root = hemi.core.mainPack.createObject('Transform');
+		hemi.shape.root.name = hemi.shape.SHAPE_ROOT;
+		hemi.shape.root.parent = hemi.picking.pickRoot;
 		hemi.shape.pack = hemi.core.mainPack;
 		hemi.shape.material = hemi.core.material.createBasicMaterial(
 			hemi.shape.pack,
