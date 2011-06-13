@@ -8,7 +8,8 @@ var express = require('express'),
 	path = require('path');
 
 var app = module.exports = express.createServer(),
-	projectsPath = 'public/projects';
+	projectsPath = 'public/projects',
+	assetsPath = 'public/assets';
 
 // Configuration
 
@@ -48,10 +49,10 @@ app.configure('production', function(){
 //  });
 //});
 
-app.get('/listProjects', function(req, res) {
+app.get('/projects', function(req, res) {
 	if (req.isXMLHttpRequest) {
 		var data = {
-			options: []
+			projects: []
 		};
 		
 		if (!path.existsSync(projectsPath)) {
@@ -59,12 +60,12 @@ app.get('/listProjects', function(req, res) {
 		} else {
 			var files = fs.readdirSync(projectsPath);
 			
-			for (var ndx = 0, len = files.length; ndx < len; ndx++) {				
-				var file = files[ndx];
+			for (var i = 0, il = files.length; i < il; i++) {				
+				var file = files[i];
 				
 				if (file.match('.json')) {
 					file = file.split('.')[0];
-					data.options.push(file);	
+					data.projects.push(file);	
 				}
 			}
 		}
@@ -73,7 +74,7 @@ app.get('/listProjects', function(req, res) {
 	}
 });
 
-app.post('/saveProject', function(req, res) {	
+app.post('/project', function(req, res) {	
 	if (req.isXMLHttpRequest) {		
 		if (!path.existsSync(projectsPath)) {
 			fs.mkdirSync(projectsPath, 0755);
@@ -107,7 +108,7 @@ app.post('/saveProject', function(req, res) {
 	}
 });
 
-app.get('/openProject', function(req, res) {
+app.get('/project', function(req, res) {
 	if (req.isXMLHttpRequest) {
 		var name = req.param('name') + '.json',
 			filePath = projectsPath + '/' + name;
@@ -120,6 +121,44 @@ app.get('/openProject', function(req, res) {
 			res.send('File named ' + name + ' does not exist', 400);
 		}
 	}
+});
+
+app.get('/models', function(req, res) {
+	var data = {
+		models: []
+	};
+	
+	if (!path.existsSync(assetsPath)) {
+		fs.mkdirSync(assetsPath, 0755);
+	} else {
+		var files = fs.readdirSync(assetsPath),
+			urlDir = 'assets/';
+		
+		for (var i = 0, il = files.length; i < il; i++) {				
+			var file = files[i],
+				dir = assetsPath + '/' + file,	
+				mDir = urlDir + file,				
+				stat = fs.statSync(dir);
+			
+			if (stat.isDirectory()) {
+				var mFiles = fs.readdirSync(dir),
+					mData = {
+						name: file
+					};
+				
+				for (var j = 0, jl = mFiles.length; j < jl; j++) {
+					var mFile = mFiles[j];
+					
+					if (mFile.match('.json')) {
+						mData.url = mDir + '/' + mFile;
+					}
+				}
+				data.models.push(mData);	
+			}
+		}
+	}
+	
+	res.send(data, 200);
 });
 
 
