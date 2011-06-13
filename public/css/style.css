@@ -323,12 +323,6 @@ input.error {
     float: right;
 }
 
-#actionBar form input.model {
-    width: 289px;
-    margin-right: 5px;
-    float: left;
-}
-
 #actionBar form button.loader {
     float: right;
 }

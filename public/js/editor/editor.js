@@ -225,15 +225,18 @@
             this.wfrMdl = new editor.tools.WireframeModel();
             this.ortMdl = new editor.tools.OrthographicModel();
 
-			this.loadMdlDlg = jQuery('<div title="Load Model" id="loadMdlDlg" class="simpleDialog"><p id="loadMdlMsg"></p><form method="post" action=""><label for="loadMdlSel">Select a Model:</label><select id="loadMdlSel"></select><button id="loadMdlBtn">Load</button></form></div>');
+			this.loadMdlDlg = jQuery('<div title="Load Model" id="loadMdlDlg" class="simpleDialog"><p id="loadMdlMsg"></p><form method="post" action=""><label for="loadMdlSel">Select a Model:</label><select id="loadMdlSel"></select><input type="text" id="loadMdlIpt" /><button id="loadMdlBtn">Load</button></form></div>');
 			var form = this.loadMdlDlg.find('form').submit(function() {
-				return false;
-			});
-			var msg = that.loadMdlDlg.find('#loadMdlMsg').hide();
-			var btn = this.loadMdlDlg.find('#loadMdlBtn').bind('click', function() {
-				msg.text('Loading Model...').show();
-				that.loadModel(that.loadMdlDlg.find('#loadMdlSel').val());
-			});		
+					return false;
+				}),
+				msg = this.loadMdlDlg.find('#loadMdlMsg').hide(),
+				btn = this.loadMdlDlg.find('#loadMdlBtn').bind('click', function() {
+					msg.text('Loading Model...').show();
+					var val = ipt.is(':visible') ? ipt.val() : sel.val();
+					that.loadModel(val);
+				}),	
+				ipt = this.loadMdlDlg.find('#loadMdlIpt').hide(),
+				sel = this.loadMdlDlg.find('#loadMdlSel');
 			this.loadMdlDlg.dialog({
 				width: 300,
 				resizable: false,
@@ -248,10 +251,10 @@
 					url: '/models',
 					dataType: 'json',
 					success: function(data, status, xhr) {
-						var sel = that.loadMdlDlg.find('#loadMdlSel'),
-							models = data.models;
+						var models = data.models;
 						
-						sel.empty();
+						ipt.hide();
+						sel.empty().show();
 						for (var i = 0, il = models.length; i < il; i++) {
 							var mdl = models[i];
 							var prj = jQuery('<option value="' + mdl.url + '">' + mdl.name + '</option>');
@@ -263,12 +266,11 @@
 					},
 					error: function(xhr, status, err) {
 						if (xhr.status !== 400) {
-							msg.text('Cannot get models. Server is not running')
+							msg.text('Cannot get models. Server is not running. Type in the URI instead.')
 								.addClass('errMsg').show();
-								
-							setTimeout(function() {
-								that.loadMdlDlg.dialog('close');
-							}, 2000);
+							
+							sel.hide();
+							ipt.show();
 						}
 						else {
 							msg.text(xhr.responseText);
