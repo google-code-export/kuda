@@ -770,6 +770,26 @@ var editor = (function(module) {
 			this.waypoints = [];
 		},
 		
+		resize: function(maxHeight) {
+			this._super(maxHeight);	
+			
+			var form = this.find('form:visible'),
+				padding = parseInt(form.css('paddingTop')) 
+					+ parseInt(form.css('paddingBottom')),
+				newHeight = maxHeight - padding,
+				oldHeight = form.outerHeight(true);
+			
+			if (oldHeight > newHeight) {
+				form.addClass('scrolling');
+			}
+			else {
+				form.removeClass('scrolling');
+			}
+			if (newHeight > 0) {
+				this.find('form:visible').height(newHeight);
+			}
+		},
+		
 		set: function(curve) {
 			this.nameIpt.val(curve.name);
 			this.checkPreview();
