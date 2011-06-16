@@ -292,7 +292,7 @@
 					},
 					error: function(xhr, status, err) {
 						if (xhr.status !== 400) {
-							msg.text('Cannot get projects. Server is not running')
+							msg.text('Can not get projects. Server is not running.')
 								.addClass('errMsg').show();
 								
 							setTimeout(function() {
@@ -306,6 +306,44 @@
 				});
 			})
 			.find('p#loadPrjMsg').hide();
+			
+			this.publishPrjDlg = jQuery('<div title="Publish Project" id="pubPrjDlg" class="simpleDialog"><p id="pubPrjMsg"></p><form method="post" action="" class="dialogForm"><label for="pubPrjName">Save project and create page for: </label><span id="pubPrjName"></span><button id="pubPrjBtn">Publish</button></form></div>');
+			this.publishPrjDlg.find('form').submit(function() { 
+				return false; 
+			});
+			this.publishPrjDlg.find('#pubPrjBtn').click(function() {
+				that.publishPrjDlg.find('#pubPrjBtn').attr('disabled', 'disabled');
+				var name = that.savePrjDlg.find('#savePrjName').val(),
+					octane = JSON.stringify(editor.getProjectOctane());
+				that.saveProject(name, octane);
+				that.publishPrjDlg.find('#pubPrjMsg').text('Publishing...').show();
+				that.publishProject(name);
+			});
+            this.publishPrjDlg.dialog({
+                width: 300,
+                resizable: false,
+				autoOpen: false,
+				modal: true
+            })
+			.bind('dialogopen', function() {
+				var name = that.savePrjDlg.find('#savePrjName').val();
+				that.publishPrjDlg.find('#pubPrjBtn').removeAttr('disabled');
+				
+				if (name === '') {
+					that.publishPrjDlg.find('form').hide();
+					that.publishPrjDlg.find('#pubPrjMsg')
+						.text('Please save your project first').show();
+					
+					setTimeout(function() {
+						that.publishPrjDlg.dialog('close');
+						that.savePrjDlg.dialog('open');
+					}, 2000);
+				} else {
+					that.publishPrjDlg.find('form').show();
+					that.publishPrjDlg.find('#pubPrjMsg').hide();
+					that.publishPrjDlg.find('#pubPrjName').text(name);
+				}
+			});
 		},
 		
 		layoutMenu: function() {
@@ -331,19 +369,17 @@
 			
 			var openProject = new editor.ui.MenuItem({
 				title: 'Open Project',
-				action: function(evt){				
+				action: function(evt){
 					// close other dialogs
 					that.mdlLdrView.hideDialog();
-				
 					that.openPrjDlg.dialog('open');
 				}
 			});
 			var saveProject = new editor.ui.MenuItem({
 				title: 'Save Project',
-				action: function(evt){				
+				action: function(evt){
 					// close other dialogs
 					that.mdlLdrView.hideDialog();
-				
 					that.savePrjDlg.dialog('open');
 				}
 			});
@@ -351,6 +387,14 @@
 				title: 'Preview',
 				action: function(evt){
 					that.pvwMdl.startPreview();
+				}
+			});
+			var publish = new editor.ui.MenuItem({
+				title: 'Publish',
+				action: function(evt){
+					// close other dialogs
+					that.mdlLdrView.hideDialog();
+					that.publishPrjDlg.dialog('open');
 				}
 			});
 			var separator = new editor.ui.Separator();
@@ -365,6 +409,7 @@
 			this.fileMenu.addMenuItem(openProject);
             this.fileMenu.addMenuItem(saveProject);
             this.fileMenu.addMenuItem(preview);
+            this.fileMenu.addMenuItem(publish);
             this.fileMenu.addMenuItem(separator);
             this.fileMenu.addMenuItem(loadModel);
 			
@@ -733,7 +778,7 @@
 						}
 					}
 					catch (e) {
-						msg.text("Can't save project. Server isn't running")
+						msg.text('Can not save project. Server is not running.')
 							.addClass('errMsg').show();
 								
 						setTimeout(function() {
@@ -780,6 +825,55 @@
 				error: function(xhr, status, err){
 					that.openPrjDlg.find('#loadPrjMsg').text(xhr.responseText)
 						.removeClass('errMsg').show();
+				}
+			});
+		},
+		
+		publishProject: function(name) {
+			var data = {
+					name: name
+				},
+				models = hemi.world.getModels(),
+				msg = this.publishPrjDlg.find('#pubPrjMsg'),
+				that = this;
+			
+			if (models.length > 0) {
+				var names = [];
+				
+				for (var i = 0, il = models.length; i < il; i++) {
+					names.push(models[i].name);
+				}
+				
+				data.models = names.join(', ');
+			} else {
+				data.models = 'No models needed!';
+			}
+			
+			jQuery.ajax({
+				url: '/publishProject',
+				data: data,
+				dataType: 'json',
+				type: 'post',
+				success: function(data, status, xhr) {
+					that.publishPrjDlg.find('form').hide();
+					that.publishPrjDlg.find('#pubPrjMsg')
+						.text('Published project as ' + data.name).show();
+					
+					setTimeout(function() {
+						that.publishPrjDlg.dialog('close');
+					}, 1500);
+				},
+				error: function(xhr, status, err) {
+					if (xhr.status !== 400) {
+						msg.text('Can not publish project. Server is not running.')
+							.addClass('errMsg').show();
+							
+						setTimeout(function() {
+							that.publishPrjDlg.dialog('close');
+						}, 2000);
+					} else {
+						msg.text(xhr.responseText);
+					}
 				}
 			});
 		},

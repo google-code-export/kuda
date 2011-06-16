@@ -127,11 +127,12 @@ if (process.argv.length > 3) {
 		process.exit(-1);
 	}
 	// Set up our filter
-	filter = ['.svn', '.hg', '.hgtags', '.project', '.settings'];
+	filter = ['.svn', '.hg', '.hgignore', '.hgtags', '.project', '.settings'];
 	
 	if (type === 'core') {
 		// Copy only the core Hemi library
-		filter.push('app.js', 'editor');
+		filter.push('app.js', 'build.js', 'PublishReadMe',
+			'PublishTemplate.html', 'editor');
 		copyFiles('.', toDir, false);
 		copyFiles('./public/js', toDir, true);
         
@@ -141,8 +142,7 @@ if (process.argv.length > 3) {
 	} else {
 		// Unless building a full package, do not copy samples
 		if (type !== 'full') {
-			filter.push('samples');
-			filter.push('assets');
+			filter.push('samples', 'assets');
 		}
 		if (!docs) {
 			filter.push('doc');

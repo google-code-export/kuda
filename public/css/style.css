@@ -1624,6 +1624,7 @@ form #anmLoops label {
 	float: left;
 	margin-right: 5px;
 }
+.simpleDialog form span,
 .simpleDialog form label {
 	width: auto;
 	padding-right: 10px;

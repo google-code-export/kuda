@@ -3,6 +3,7 @@
  * Module dependencies.
  */
 var express = require('express'),
+	child = require('child_process'),
 	fs = require('fs'),
 	util = require('util'),
 	path = require('path');
@@ -121,6 +122,114 @@ app.get('/openProject', function(req, res) {
 		}
 	}
 });
+
+app.post('/publishProject', function(req, res) {
+	if (req.isXMLHttpRequest) {
+		var name = req.param('name'),
+			models = req.param('models'),
+			filePath = projectsPath + '/' + name + '.html',
+			content = fs.readFileSync('PublishTemplate.html', 'utf8'),
+			readme = fs.readFileSync('PublishReadMe', 'utf8'),
+			start = content.indexOf('<!DOCTYPE');
+		
+		content = content.substr(start);
+		fs.writeFileSync(filePath,
+			content.replace(/%PROJECT%/g, 'projects/' + name)
+				.replace(/%LOAD%/g, '..').replace(/%SCRIPT%/g, '../../js'));
+		
+		// Create the published package
+		var toDir = projectsPath + '/' + name;
+		var stat = fs.statSync(projectsPath);
+		fs.mkdirSync(toDir, stat.mode);
+		fs.mkdirSync(toDir + '/assets', stat.mode);
+		fs.mkdirSync(toDir + '/lib', stat.mode);
+		copyFiles('./public/js/hemi', toDir + '/hemi');
+		copyFiles('./public/js/o3d-webgl', toDir + '/o3d-webgl');
+		copyFiles('./public/js/o3djs', toDir + '/o3djs');
+		var data = fs.readFileSync('./public/js/lib/jshashtable.js');
+		fs.writeFileSync(toDir + '/lib/jshashtable.js', data);
+		data = fs.readFileSync('./public/js/lib/JSON.js');
+		fs.writeFileSync(toDir + '/lib/JSON.js', data);
+		data = fs.readFileSync('./public/js/lib/JSONError.js');
+		fs.writeFileSync(toDir + '/lib/JSONError.js', data);
+		data = fs.readFileSync(projectsPath + '/' + name + '.json');
+		fs.writeFileSync(toDir + '/README', readme.concat(models));
+		fs.writeFileSync(toDir + '/' + name + '.json', data);
+		fs.writeFileSync(toDir + '/' + name + '.html',
+			content.replace(/%PROJECT%/g, name).replace(/%LOAD%/g, '.')
+				.replace(/%SCRIPT%/g, '.'));
+		
+		// Compress the package and remove the files
+		var tarChild = child.spawn('tar', ['-czf', name + '.tgz', name],
+			{cwd: projectsPath});
+		
+		tarChild.on('exit', function (code) {
+			removeFiles(toDir);
+			res.send({
+				name: name + '.html'
+			}, code === 0 ? 200 : 500);
+		});
+	}
+});
+
+var copyFiles = function(fromDir, toDir) {
+	var files = [],
+		dirs = [];
+	
+	getDirContents(fromDir, files, dirs);
+	
+	if (!path.existsSync(toDir)) {
+		var stat = fs.statSync(fromDir);
+		fs.mkdirSync(toDir, stat.mode);
+	}
+	
+	for (var i = 0, il = files.length; i < il; i++) {
+		var file = files[i],
+			data = fs.readFileSync(file),
+			newFile = toDir + '/' + path.basename(file);
+		
+		fs.writeFileSync(newFile, data);
+	}
+	
+	for (var i = 0, il = dirs.length; i < il; i++) {
+		var dir = '/' + path.basename(dirs[i]);
+		copyFiles(fromDir + dir, toDir + dir);
+	}
+};
+
+var getDirContents = function(dir, files, dirs) {
+	var dirFiles = fs.readdirSync(dir);
+	
+	for (var i = 0, il = dirFiles.length; i < il; i++) {
+		var file = dirFiles[i],
+			fPath = path.resolve(dir, file),
+			stat = fs.statSync(fPath);
+		
+		if (stat.isDirectory()) {
+			dirs.push(fPath);
+		} else if (stat.isFile()) {
+			files.push(fPath);
+		}
+	}
+};
+
+var removeFiles = function(dir) {
+	var files = [],
+		dirs = [];
+	
+	getDirContents(dir, files, dirs);
+	
+	for (var i = 0, il = dirs.length; i < il; i++) {
+		var subDir = '/' + path.basename(dirs[i]);
+		removeFiles(dir + subDir);
+	}
+	
+	for (var i = 0, il = files.length; i < il; i++) {
+		fs.unlinkSync(files[i]);
+	}
+	
+	fs.rmdirSync(dir);
+};
 
 
 // Only listen on $ node app.js
