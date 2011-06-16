@@ -162,7 +162,7 @@ app.get('/models', function(req, res) {
 	res.send(data, 200);
 });
 
-app.post('/publishProject', function(req, res) {
+app.post('/publish', function(req, res) {
 	if (req.isXMLHttpRequest) {
 		var name = req.param('name'),
 			models = req.param('models'),

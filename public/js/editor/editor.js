@@ -446,8 +446,6 @@
             this.fileMenu.addMenuItem(saveProject);
             this.fileMenu.addMenuItem(preview);
             this.fileMenu.addMenuItem(publish);
-//            this.fileMenu.addMenuItem(separator);
-//            this.fileMenu.addMenuItem(loadModel);
 			
             var wireframe = new editor.ui.MenuItem({
 				title: 'Wireframe',
@@ -897,7 +895,7 @@
 			}
 			
 			jQuery.ajax({
-				url: '/publishProject',
+				url: '/publish',
 				data: data,
 				dataType: 'json',
 				type: 'post',
