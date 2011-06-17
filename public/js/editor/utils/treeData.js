@@ -53,10 +53,11 @@ var editor = (function(module, jQuery) {
 		chainTable.put('hemi.manip.Draggable' + '_' + 'onPick', [hemi.msg.drag]); // Calls onMouseMove()
 		// Model
 		chainTable.put('hemi.model.Model' + '_' + 'incrementAnimationTime', [hemi.msg.animate]); // Calls setAnimationTime()
+		chainTable.put('hemi.model.Model' + '_' + 'load', [hemi.msg.load]); // Calls loadConfig()
 		chainTable.put('hemi.model.Model' + '_' + 'loadConfig', [hemi.msg.load]);
-		chainTable.put('hemi.model.Model' + '_' + 'loadModel', [hemi.msg.load]); // Calls loadConfig()
 		chainTable.put('hemi.model.Model' + '_' + 'setAnimationTime', [hemi.msg.animate]);
 		chainTable.put('hemi.model.Model' + '_' + 'setFileName', [hemi.msg.load]); // Calls loadModel()
+		chainTable.put('hemi.model.Model' + '_' + 'unload', [hemi.msg.unload]);
 		// Rotator
 		chainTable.put('hemi.motion.Rotator' + '_' + 'rotate', [hemi.msg.start, hemi.msg.stop]); // Leads to onRender()
 		chainTable.put('hemi.motion.Rotator' + '_' + 'onRender', [hemi.msg.stop]);
