@@ -15,12 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.core');
-o3djs.require('hemi.loader');
-o3djs.require('hemi.msg');
-o3djs.require('hemi.picking');
-o3djs.require('hemi.world');
-
 var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for managing 3D models and their assets.

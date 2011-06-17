@@ -28,9 +28,6 @@ function clearWait() {
 }
  
 (function() {
-	o3djs.require('o3djs.util');
-	o3djs.require('hemi.fx');
-	o3djs.require('hemi.texture');
 
 	var system;
 	

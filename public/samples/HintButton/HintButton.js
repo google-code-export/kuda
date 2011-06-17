@@ -24,8 +24,6 @@
  * relevant hint, you can hide the Hint button and show it later.
  */
 (function() {
-	o3djs.require('o3djs.util');
-	
 	// Include the Hint extension
 	o3djs.require('hext.html.hint');
 
@@ -155,7 +153,7 @@
 			positionRange : [3.6, 2, 3.4],
 			spinSpeedRange: 4
 		};
-		var fire = hemi.effect.createEmitter(
+		fire = hemi.effect.createEmitter(
 			hemi.core.particles.ParticleStateIds.ADD,
 			colorRamp,
 			params);

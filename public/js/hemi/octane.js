@@ -15,17 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.animation');
-o3djs.require('hemi.effect');
-o3djs.require('hemi.handlers.valueCheck');
-o3djs.require('hemi.hud');
-o3djs.require('hemi.manip');
-o3djs.require('hemi.model');
-o3djs.require('hemi.motion');
-o3djs.require('hemi.scene');
-o3djs.require('hemi.view');
-o3djs.require('hemi.world');
-
 var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for creating objects (including Worlds) from Octane.

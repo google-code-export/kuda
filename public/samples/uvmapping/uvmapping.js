@@ -21,9 +21,6 @@
  *		has loaded.
  */
 (function() {
-	o3djs.require('o3djs.util');
-	o3djs.require('hemi.fx');
-	o3djs.require('hemi.texture');
 
 	var ticker;
 	

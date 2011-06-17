@@ -1,5 +1,3 @@
-o3djs.require('o3djs.util');
-o3djs.require('hemi.texture');
 o3djs.require('hext.progressUI.progressBar');
 
 (function() {

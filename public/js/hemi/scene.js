@@ -15,8 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.msg');
-
 var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for grouping world events and behavior into logical

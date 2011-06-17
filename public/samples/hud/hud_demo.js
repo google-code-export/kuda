@@ -21,7 +21,6 @@
  * HUD elements to respond to the user's actions.
  */
 (function() {
-	o3djs.require('o3djs.util');
 	o3djs.require('hext.hud.paging');
 
 	function init(clientElements) {

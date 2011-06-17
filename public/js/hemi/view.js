@@ -19,11 +19,6 @@
  * @fileoverview Classes used for setting viewpoints, controlling the camera,
  *		and setting camera view options are defined here.
  */
-o3djs.require('hemi.core');
-o3djs.require('hemi.input');
-o3djs.require('hemi.msg');
-o3djs.require('hemi.utils.mathUtils');
-o3djs.require('hemi.world');
 
 var hemi = (function(hemi) {
 	/**

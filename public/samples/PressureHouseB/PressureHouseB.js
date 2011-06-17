@@ -25,7 +25,6 @@
  * type ("Swing").
  */
 (function() {
-	o3djs.require('o3djs.util');
 	o3djs.require('hext.hud.paging');
 	
 	// Require the html extensions

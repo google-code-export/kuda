@@ -15,9 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.core');
-o3djs.require('hemi.view');
-o3djs.require('hemi.world');
 o3djs.require('hext.msg');
 
 var hext = (function(hext) {

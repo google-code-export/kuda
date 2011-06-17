@@ -15,9 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.dispatch');
-o3djs.require('hemi.world');
-
 var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for prebuilt Message handlers that perform common

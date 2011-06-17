@@ -15,13 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.core');
-o3djs.require('hemi.dispatch');
-o3djs.require('hemi.input');
-o3djs.require('hemi.msg');
-o3djs.require('hemi.picking');
-o3djs.require('hemi.view');
-
 var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for managing all elements of a 3D world. The World

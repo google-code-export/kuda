@@ -19,8 +19,6 @@
  * @fileoverview Motion describes classes for automatically translating
  * 		and rotating objects in the scene.
  */
-o3djs.require('hemi.core');
-o3djs.require('hemi.msg');
 
 var hemi = (function(hemi) {
 	/**

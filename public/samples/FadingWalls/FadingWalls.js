@@ -21,10 +21,6 @@
  *		has loaded.
  */
 (function() {
-	o3djs.require('o3djs.util');
-	o3djs.require('hemi.msg');
-	o3djs.require('hemi.motion');
-	o3djs.require('hemi.curve');
 	
 	function initStep1() {
 		o3djs.webgl.makeClients(initStep2);

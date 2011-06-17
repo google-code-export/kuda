@@ -18,9 +18,6 @@
 /**
  * This demo shows how to use the hemi.texture module to change the sampled textures on a per material basis.
  */
-o3djs.require('o3djs.util');
-o3djs.require('hemi.texture');
-	
 o3djs.require('hext.progressUI.progressBar');
 
 (function() {

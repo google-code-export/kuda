@@ -21,8 +21,6 @@
  * effects as well as binding camera movement to HTML buttons in the viewer.
  */
 (function() {
-	o3djs.require('o3djs.util');
-	o3djs.require('hemi.loader');
 
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);
