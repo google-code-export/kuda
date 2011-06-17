@@ -18,12 +18,55 @@
 (function(window) {
 	o3djs.require('editor.requires');
 	
+////////////////////////////////////////////////////////////////////////////////
+//                                 	 Model	                                  //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var editorMdl = function() {
+		
+	};
+	
+	editorMdl.prototype = {
+		worldCleaned: function() {
+			
+		},
+		
+		worldLoaded: function() {
+			
+		}
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                                 	  GUI	                                  //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var editorUI = function() {
+			
+	};
+	
+	editorUI.prototype = {		
+		layoutGrid: function() {
+			
+		},
+		
+		layoutMenu: function() {
+			
+		},
+		
+		layoutSidebar: function() {
+			
+		},
+		
+		layoutToolbar: function() {
+			
+		}
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Main App                                   //
 ////////////////////////////////////////////////////////////////////////////////
 
-	Application = function() {
+	var Application = function() {
 	};
 	
 	Application.prototype = {
@@ -233,7 +276,10 @@
 				btn = this.loadMdlDlg.find('#loadMdlBtn').bind('click', function() {
 					msg.text('Loading Model...').show();
 					var val = ipt.is(':visible') ? ipt.val() : sel.val();
-					that.loadModel(val);
+					that.loadModel(val, function() {
+						msg.text('').hide();
+						that.loadMdlDlg.dialog('close');			
+					});
 				}),	
 				ipt = this.loadMdlDlg.find('#loadMdlIpt').hide(),
 				sel = this.loadMdlDlg.find('#loadMdlSel');
@@ -277,6 +323,48 @@
 						}
 					}
 				});
+			});
+			
+			this.importMdlDlg = jQuery('<div title="Import Model" id="importMdlDlg" class="simpleDialog"><p id="importMdlMsg"></p><form method="post" action="" enctype="multipart/form-data"><label for="importMdlSel">Import a Model:</label><button id="importMdlBtn">Choose a File</button></form></div>');
+			form = this.importMdlDlg.find('form').submit(function() {
+					return false;
+				});
+			msg = this.importMdlDlg.find('#importMdlMsg').hide();
+			btn = this.importMdlDlg.find('#importMdlBtn');
+			
+			btn.file().choose(function(evt, input) {
+				msg.text('Uploading Model...').show();
+				
+				// assuming no multi select file
+				var file = input.files[0],
+					name = file.fileName != null ? file.fileName : file.name;
+					
+				jQuery.ajax({
+					url: '/model',
+					dataType: 'json',
+					type: 'post',
+					data: file,
+					processData: false,
+					contentType: 'application/octet-stream',
+					headers: {
+						'X-File-Name': encodeURIComponent(name),
+						'X-File-Size': file.size,
+						'X-File-Type': file.type
+					},
+					success: function(data, status, xhr) {
+						msg.text('Loading Model...');
+						that.loadModel(data.url, function() {
+							msg.text('').hide();
+							that.importMdlDlg.dialog('close');
+						});
+					}
+				});
+			});
+			this.importMdlDlg.dialog({
+				width: 300,
+				resizable: false,
+				autoOpen: false,
+                modal: true
 			});
 			
             this.savePrjDlg = jQuery('<div title="Save Project" id="savePrjDlg" class="simpleDialog"><p id="savePrjMsg"></p><form method="post" action="" class="dialogForm"><label for="savePrjName">Project Name:</label><input type="text" name="savePrjName" id="savePrjName" /><button id="savePrjBtn">Save</button></form></div>');			
@@ -334,7 +422,7 @@
 					},
 					error: function(xhr, status, err) {
 						if (xhr.status !== 400) {
-							msg.text('Can not get projects. Server is not running.')
+							msg.text('Cannot get projects. Server is not running')
 								.addClass('errMsg').show();
 								
 							setTimeout(function() {
@@ -412,17 +500,19 @@
 			
 			var openProject = new editor.ui.MenuItem({
 				title: 'Open Project',
-				action: function(evt){
+				action: function(evt){				
 					// close other dialogs
 					that.loadMdlDlg.dialog('close');
+				
 					that.openPrjDlg.dialog('open');
 				}
 			});
 			var saveProject = new editor.ui.MenuItem({
 				title: 'Save Project',
-				action: function(evt){
+				action: function(evt){				
 					// close other dialogs
 					that.loadMdlDlg.dialog('close');
+				
 					that.savePrjDlg.dialog('open');
 				}
 			});
@@ -436,7 +526,7 @@
 				title: 'Publish',
 				action: function(evt){
 					// close other dialogs
-					that.mdlLdrView.hideDialog();
+					that.loadMdlDlg.dialog('close');
 					that.publishPrjDlg.dialog('open');
 				}
 			});
@@ -527,7 +617,7 @@
 			var importModel = new editor.ui.MenuItem({
 				title: 'Import Model',
 				action: function(evt) {
-					alert('Import model');
+					that.importMdlDlg.dialog('open');
 				}
 			});
 			
@@ -823,7 +913,7 @@
 						}
 					}
 					catch (e) {
-						msg.text('Can not save project. Server is not running.')
+						msg.text("Can't save project. Server isn't running")
 							.addClass('errMsg').show();
 								
 						setTimeout(function() {
@@ -923,14 +1013,13 @@
 			});
 		},
 		
-		loadModel: function(url) {
+		loadModel: function(url, fcn) {
 			var model = new hemi.model.Model(),
 				that = this;
 			
 			var msgHandler = model.subscribe(hemi.msg.load,
 				function(msg) {
-					that.loadMdlDlg.find('#loadMdlMsg').text('').hide();
-					that.loadMdlDlg.dialog('close');
+					fcn();
 					model.unsubscribe(msgHandler, hemi.msg.load);
 				});
 				

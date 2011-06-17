@@ -10,23 +10,26 @@ var express = require('express'),
 
 var app = module.exports = express.createServer(),
 	projectsPath = 'public/projects',
-	assetsPath = 'public/assets';
+	assetsPath = 'public/assets',
+	uploadPath = 'public/tmp',
+	procFds = [process.stdin.fd, process.stdout.fd, process.stderr.fd];
 
 // Configuration
 
 app.configure(function(){
-    app.set('views', __dirname + '/views');
-    app.set('view engine', 'jade');
+//    app.set('views', __dirname + '/views');
+//    app.set('view engine', 'jade');
+//	app.use(form({ keepExtensions: true }));
     app.use(express.bodyParser());
     app.use(express.methodOverride());
     app.use(express.cookieParser());
     app.use(express.session({
         secret: 'your secret here'
     }));
-    app.use(express.compiler({
-        src: __dirname + '/public',
-        enable: ['sass']
-    }));
+//    app.use(express.compiler({
+//        src: __dirname + '/public',
+//        enable: ['sass']
+//    }));
     app.use(app.router);
     app.use(express.static(__dirname + '/public'));
 });
@@ -51,7 +54,7 @@ app.configure('production', function(){
 //});
 
 app.get('/projects', function(req, res) {
-	if (req.isXMLHttpRequest) {
+	if (req.xhr) {
 		var data = {
 			projects: []
 		};
@@ -76,7 +79,7 @@ app.get('/projects', function(req, res) {
 });
 
 app.post('/project', function(req, res) {	
-	if (req.isXMLHttpRequest) {		
+	if (req.xhr) {		
 		if (!path.existsSync(projectsPath)) {
 			fs.mkdirSync(projectsPath, 0755);
 		}
@@ -110,7 +113,7 @@ app.post('/project', function(req, res) {
 });
 
 app.get('/project', function(req, res) {
-	if (req.isXMLHttpRequest) {
+	if (req.xhr) {
 		var name = req.param('name') + '.json',
 			filePath = projectsPath + '/' + name;
 		
@@ -145,13 +148,15 @@ app.get('/models', function(req, res) {
 				var mFiles = fs.readdirSync(dir),
 					mData = {
 						name: file
-					};
+					},
+					found = false;
 				
-				for (var j = 0, jl = mFiles.length; j < jl; j++) {
+				for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
 					var mFile = mFiles[j];
 					
 					if (mFile.match('.json')) {
 						mData.url = mDir + '/' + mFile;
+						found = true;
 					}
 				}
 				data.models.push(mData);	
@@ -160,6 +165,59 @@ app.get('/models', function(req, res) {
 	}
 	
 	res.send(data, 200);
+});
+
+app.post('/model', function(req, res) {
+    if (req.xhr && req.header('content-type') === 'application/octet-stream') {
+		if (!path.existsSync(uploadPath)) {
+			fs.mkdirSync(uploadPath, 0755);
+		}
+		
+        var fName = req.header('x-file-name'), 
+			fSize = req.header('x-file-size'), 
+			fType = req.header('x-file-type'), 
+			tmpFile = uploadPath + '/' + fName,
+			toDir = assetsPath + '/' + fName.split('.').shift(),
+			ws = fs.createWriteStream(tmpFile);
+        
+        req.on('data', function(data){
+            ws.write(data);
+        });
+		
+		fs.mkdirSync(toDir, 0755);
+        
+        var tarChild = child.spawn('tar', ['-C', toDir, '-xzf', tmpFile], {
+            customFds: procFds
+        });
+        
+        tarChild.on('exit', function(code){
+            if (code === 0) {
+                // Clean up the temp file
+                fs.unlinkSync(tmpFile);
+		
+				var mFiles = fs.readdirSync(toDir),
+					found = false,
+					retVal = {},
+					urlDir = toDir.split('/');
+				
+				urlDir.shift();
+				
+				for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
+					var mFile = mFiles[j];
+					
+					if (mFile.match('.json')) {
+						retVal.url = urlDir.join('/') + '/' + mFile;
+						found = true;
+					}
+				}
+				
+				res.send(retVal, 200);
+            }
+			else {
+				res.send('failed to upload file', 300);
+			}
+        });
+    }
 });
 
 app.post('/publish', function(req, res) {
