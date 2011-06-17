@@ -33,7 +33,8 @@
 	unit6.start = function(onCompleteCallback) {
 		unit6.onCompleteCallback = onCompleteCallback;
 		
-		jqUnit.module('UNIT 6'); 
+		var desc = 'Creates a basic particle system which is NOT GPU accelerated';
+		jqUnit.module('UNIT 6', desc); 
 		jqUnit.test("particle system", unitTest6.step_1);
 
 	};

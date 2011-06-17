@@ -34,8 +34,8 @@
 		
 		this.onCompleteCallback = onCompleteCallback;
 		
-		jqUnit.module('UNIT 2'); 
-		
+		var desc = 'Load model with wrong URL to make sure that an Alert is tiggered.  YOU WILL NOT ACTUALLY SEE THE ALERT HERE.  The testing framework traps the alert.';
+		jqUnit.module('UNIT 2', desc); 
 		jqUnit.test("load model wrong url", unitTest2.step_1);
 
 		
@@ -60,7 +60,7 @@
 	
 	unitTest2.step_1 = function()   {
 		
-		jqUnit.expect(2);
+		jqUnit.expect(1);
 		
 		unitTest2.model = new hemi.model.Model();				// Create a new Model
 		jqMock.assertThat(unitTest2.model , is.instanceOf(hemi.model.Model));
@@ -74,16 +74,23 @@
 	
 		unitTest2.model.setFileName(filePath); // Set the model file
 		
-		setTimeout ( "unitTest2.checkForAlert()", 2000 );
+		setTimeout ( unitTest2.callback, 1000 );
 			
 
 	};
 	
+	unitTest2.callback = function(){
+		jqUnit.test("verify alert", unitTest2.checkForAlert);
+	};
+
+
 	unitTest2.checkForAlert = function(){
 			jqUnit.start();
+			jqUnit.expect(1);
 			unitTest2.alertMock.verify();
 			unitTest2.alertMock.restore();
 	};
+
 
 
 	

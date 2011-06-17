@@ -33,7 +33,9 @@
 		unit8.onUnitCompleteCallback = onUnitCompleteCallback;
 		unitTest8.callBack = unit8.step_2;
 		
-		jqUnit.module('UNIT 8'); 
+		var desc = 'This test creates 2 particle systems and then shows/hides/shows the bounding boxes. ';
+		
+		jqUnit.module('UNIT 8', desc); 
 		jqUnit.test("Load Model", unitTest8.init);
 		jqUnit.stop();
 	};
@@ -63,6 +65,13 @@
 	};
 	
 	unit8.step_5 = function() {
+		jqUnit.start();
+		unitTest8.callBack = unit8.step_6;
+		jqUnit.test("Show Boxes", unitTest8.showBoxes);
+		jqUnit.stop();
+	};
+	
+	unit8.step_6 = function() {
 		jqUnit.start();
 		unitTest8.callBack = unit8.end;
 		jqUnit.test("Show Performance", unitTest8.showPerformance);
@@ -132,8 +141,8 @@
 		var green = [0, 1, 0, 0.4];
 		var red = [1, 0, 0, 0.4];
 		
-		var scale1 = [4,4,4];
-		var scale2 = [4,4,4];
+		var scaleKey1 = {key: 0, value: [40,40,40]};
+		var scaleKey2 = {key: 1, value: [40,40,40]};
 		
 		var colorKey1 = {key: 0, value: [1,1,0,0.2]};
 		var colorKey2 = {key: 0.45, value: [1,0,0,1]};
@@ -147,13 +156,12 @@
 			fast: false,
 			aim: true,
 			trail: true,
-			particleCount: 10,
+			particleCount: 200,
 			life: 12,
 			boxes: [box1,box2,box3,box4, box5,box6,box7,box8,box9],
 			particleShape: hemi.curve.ShapeType.ARROW,
 			colors: [red],
-			scales : [scale1, scale2],
-			particleSize: 4,
+			scaleKeys : [scaleKey1, scaleKey2],
 			colorKeys : [colorKey1, colorKey2, colorKey3, colorKey4]
 		};
 		

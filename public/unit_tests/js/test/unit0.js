@@ -15,9 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-
-
-	
 	o3djs.require('hemi.core');
 	o3djs.require('o3djs.util');
 	
@@ -32,7 +29,11 @@
 		
 		
 		this.onCompleteCallback = onCompleteCallback;
-		jqUnit.module('UNIT 0'); 
+		
+		
+		var desc = 'initializes the Kuda world and needs to be run first';
+		jqUnit.module('UNIT 0', desc); 
+
 		jqUnit.test("makeClients", unitTest0.makeClients);
 		jqUnit.stop();
 		

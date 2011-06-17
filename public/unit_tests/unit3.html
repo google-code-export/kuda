@@ -19,41 +19,34 @@
 		
 		<script type="text/javascript" src="js/jqUnit/jqUnit.js"></script>
 		<script type="text/javascript" src="js/jqUnit/jqMock.js"></script>
-		
-		<!--
-		<script type="text/javascript" src="loader.js"></script>
-		<script type="text/javascript" src="unit1.js"></script>
-				<script type="text/javascript" src="unit2.js"></script>
-				
-		 -->
-		 
 
-		<script type="text/javascript" src="unit1.js"></script>
 
-		<script type="text/javascript" src="unit3.js"></script>
-
+		<script type="text/javascript" src="js/test/controller.js"></script>
+		<script type="text/javascript" src="js/test/unit0.js"></script>
+		<script type="text/javascript" src="js/test/unit1.js"></script>
+		<script type="text/javascript" src="js/test/unit2.js"></script>
+		<script type="text/javascript" src="js/test/unit3.js"></script>
+		<script type="text/javascript" src="js/test/unit4.js"></script>
+		<script type="text/javascript" src="js/test/unit5.js"></script>
+		<script type="text/javascript" src="js/test/unit6.js"></script>
+		<script type="text/javascript" src="js/test/unit7.js"></script>
+		<script type="text/javascript" src="js/test/unit8.js"></script>
 
 <script type="text/javascript" >
 	
-	jQuery(window).load(function() {
-		unit1.start(onUnit1Complete);
-	});
 
-	function onUnit1Complete() {
-		unit3.start(onUnit3Complete);
-	}
-	
-//	function onUnit2Complete() {
-	//	unit3.start(onUnit2Complete);
-//	}
-	
-	function onUnit3Complete() {
+	function onDocumentReady() {
 		
-		hemi.core.client.cleanup();
+		var controller = new test.Controller();
+		
+		controller.run([unit0, unit3]);
+		
+		
 	}
+	
 
-
-
+	jQuery(document).ready(onDocumentReady);
+		
 	jQuery(window).unload(function() {
 		if (hemi.core.client) {
 			hemi.core.client.cleanup();
