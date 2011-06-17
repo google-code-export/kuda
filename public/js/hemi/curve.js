@@ -1118,6 +1118,16 @@ var hemi = (function(hemi) {
 		 */
 		hideBoxes : function() {
 			hemi.curve.hideBoxes(this.transform);
+		},
+		
+		/**
+		 * Translate the entire particle system by the given amounts
+		 * @param {number} x amount to translate in the X direction
+		 * @param {number} y amount to translate in the Y direction
+		 * @param {number} z amount to translate in the Z direction
+		 */
+		translate: function(x, y, z) {
+			this.transform.translate(x, y, z);
 		}
 	};
 	
@@ -1905,6 +1915,28 @@ var hemi = (function(hemi) {
 			});
 			
 			return octane;
+		},
+		
+		/**
+		 * Translate the entire particle system by the given amounts
+		 * @param {number} x amount to translate in the X direction
+		 * @param {number} y amount to translate in the Y direction
+		 * @param {number} z amount to translate in the Z direction
+		 */
+		translate: function(x, y, z) {
+			for (var i = 0, il = this.boxes.length; i < il; i++) {
+				var box = this.boxes[i],
+					min = box[0],
+					max = box[1];
+				
+				min[0] += x;
+				max[0] += x;
+				min[1] += y;
+				max[1] += y;
+				min[2] += z;
+				max[2] += z;
+			}
+			setupBounds(this.material, this.boxes);
 		}
 	};
 

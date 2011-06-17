@@ -169,18 +169,11 @@
 		
 
 		//make second particle system
-		//set its parent and translate to the right
-		var rootShape = hemi.shape.create (
-			{shape: 'box',
-			color: [1,1,0,0],
-			h:1,w:1,d:1}
-			);
-			
-		rootShape.translate(1400,0,0);
-		systemConfig.parent = rootShape;
 		systemConfig.colors = [blue];
 		
 		unitTest9.particleSystem2  = hemi.curve.createSystem(systemConfig);
+		//translate to the right
+		unitTest9.particleSystem2.translate(1400,0,0);
 		unitTest9.particleSystem2.start();
 		
 		
