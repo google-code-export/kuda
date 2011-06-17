@@ -393,7 +393,7 @@ var editor = (function(module, jQuery) {
 			vpList = [];
 		
 		for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
-			var node = createViewpointJson(cmCit, viewpoints[ndx]);
+			var node = module.treeData.createViewpointJson(cmCit, viewpoints[ndx]);
 			viewpoints.push(node);
 		}
 		
