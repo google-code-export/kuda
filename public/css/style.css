@@ -1618,15 +1618,32 @@ form #anmLoops label {
 	float: left;
 	margin-right: 5px;
 }
+.simpleDialog form input[type=text] {
+	background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eee);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#dadada));
+    border: 1px solid #333;
+	box-shadow: 0 1px 0 #666;
+}
+.simpleDialog form input[type=text]:focus {
+	background: -moz-linear-gradient(100% 100% 90deg, #c2dfef, #dbeff9);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dbeff9), to(#c2dfef));
+}
 .simpleDialog form span,
 .simpleDialog form label {
 	width: auto;
 	padding-right: 10px;
 	font: bold 10pt/26px Helvetica, Arial, sans-serif;
 	float: left;
+	color: #fff;
 }
 .simpleDialog button {
 	float: left;
+	background: -moz-linear-gradient(100% 100% 90deg, #777, #aaa);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#777));
+	color: #fff;
+    text-shadow: 0 -1px 0 #555;
+    border: 1px solid #333;
+	box-shadow: 0 1px 0 #666;
 }
 
 /**
@@ -2061,11 +2078,18 @@ table.jPicker {
 	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
 	color: #fff;
+	border-radius: 6px;
+	border: none !important;
 }
 table.jPicker .Move {
 	background: #333;
-	border: none;
-    color: #c2dfef;
+	border: 1px solid #111;
+	border-width: 0 0 1px 0;
+    color: #fff;    
+	border-radius: 6px 6px 0 0;
+	font: bold 14px/26px Helvetica, Arial, sans-serif;
+	text-align: center;
+	text-shadow: 0 -1px 0 #000;
 }
 table.jPicker tr td {
 	vertical-align: top;
@@ -2223,17 +2247,18 @@ span.jPicker {
 .ui-widget .ui-widget { font-size: 1em; }
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {  }
 .ui-widget-content { 
-    background: #eee;
-    border: 1px solid #aaa;
-	color: #444444; 
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
+	border-radius: 6px;
+	color: #fff; 
 }
 .ui-widget-content a { color: #444444; }
 .ui-widget-header { 
-	background: #ddd; 
-	color: #535353;
-	text-shadow: 0 1px 0 #eaeaea; 
-	font-weight: bold; 
-	border-bottom: 1px solid #aaa;
+	background: #333; 
+	color: #fff;
+	text-shadow: 0 -1px 0 #000; 
+	font: bold 14px/26px Helvetica, Arial, sans-serif; 
+	border-bottom: 1px solid #111;
 }
 .ui-widget-header a { color: #444444; }
 
@@ -2540,8 +2565,8 @@ span.jPicker {
 .ui-widget-shadow { margin: -4px 0 0 -4px; padding: 4px; background: #aaaaaa url(../images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x; opacity: .60;filter:Alpha(Opacity=60); -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; }/* Dialog
 ----------------------------------*/
 .ui-dialog { position: absolute; width: 300px; overflow: hidden; }
-.ui-dialog .ui-dialog-titlebar { padding: 5px; position: relative;  }
-.ui-dialog .ui-dialog-title { float: left; margin: .1em 16px .2em 0; } 
+.ui-dialog .ui-dialog-titlebar { padding: 0 5px; position: relative; border-radius: 6px 6px 0 0; }
+.ui-dialog .ui-dialog-title { float: left; margin: 0; } 
 .ui-dialog .ui-dialog-titlebar-close { position: absolute; right: .3em; top: 50%; width: 19px; margin: -10px 0 0 0; padding: 1px; height: 18px; }
 .ui-dialog .ui-dialog-titlebar-close span { display: block; margin: 1px; }
 .ui-dialog .ui-dialog-titlebar-close:hover, .ui-dialog .ui-dialog-titlebar-close:focus { padding: 0; }
