@@ -33,7 +33,8 @@
 	unit4.start = function(onCompleteCallback) {
 		this.onCompleteCallback = onCompleteCallback;
 		
-		jqUnit.module('UNIT 4'); 
+		var desc = 'The purpose of this test is to change the location of the particle system, by assigning it a parent which is then trnaslated. You should see the emmitter of the particle system in the center of the house and the target to the right';
+		jqUnit.module('UNIT 4', desc); 
 		jqUnit.test("particle system", unitTest4.step_1);
 
 	};
@@ -108,9 +109,9 @@
 		 * Start out infinitesimal, then grow to a decent size,
 		 * kind of stretched out, then shrink away again.
 		 */
-		var scale1 = [1,1,1];
-		var scale2 = [5,8,5];
-		var scale3 = [1,1,1];
+		var scaleKey1 = {key: 0, value: [10,10,10]};
+		var scaleKey2 = {key: 0.5, value: [50,80,50]};
+		var scaleKey3 = {key: 1, value: [10,10,10]};
 		
 		/* A root transform to serve as the parent of the particle system.
 		 */
@@ -133,8 +134,7 @@
 			boxes : [box1, box2, box3, box4, box5],
 			particleShape : hemi.curve.ShapeType.ARROW,
 			colorKeys : [colorKey1, colorKey2, colorKey3, colorKey4],
-			scales : [scale1, scale2, scale3],
-			particleSize: 4,
+			scaleKeys : [scaleKey1, scaleKey2, scaleKey3],
 			parent : rootShape
 		};
 		

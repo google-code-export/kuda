@@ -30,7 +30,11 @@
 	unit1.start = function(onCompleteCallback) {
 		
 		this.onCompleteCallback = onCompleteCallback;
-		jqUnit.module('UNIT 1'); 
+		
+		
+		var desc = 'Loads the model of the house and gets the bounding box.  Then it verifies that the dimensions are correct for the bounding box. ';
+		jqUnit.module('UNIT 1', desc); 
+		
 		jqUnit.test("loadModel", unitTest1.loadModel);
 		jqUnit.stop();
 		

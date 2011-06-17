@@ -33,7 +33,8 @@
 	unit7.start = function(onCompleteCallback) {
 		unit7.onCompleteCallback = onCompleteCallback;
 		
-		jqUnit.module('UNIT 7'); 
+		var desc = 'This test creates a GPU accelerated particle system with 1000 particles';
+		jqUnit.module('UNIT 7', desc); 
 		jqUnit.test("particle system", unitTest7.step_1);
 
 	};

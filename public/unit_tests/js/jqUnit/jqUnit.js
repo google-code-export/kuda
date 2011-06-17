@@ -14,8 +14,10 @@ var jqUnit = jqUnit || {};
     timeout: null,
     expected: null,
     currentModule: null,
-    asyncTimeout: 2 // seconds for async timeout
-  };
+    newModuleFlag: false,
+    currentModuleDescription: null,
+    asyncTimeout: 2
+  };  
   
   var isLocal = !!(window.location.protocol == 'file:');
   
@@ -78,8 +80,8 @@ var jqUnit = jqUnit || {};
   }
   
   function test(name, callback, nowait) {
-    if(_config.currentModule)
-      name = _config.currentModule + " module: " + name;
+    //if(_config.currentModule)
+      //name = _config.currentModule + " module: " + name;
       
     var filter = location.search.slice(1);
     if ( filter && encodeURIComponent(name).indexOf(filter) == -1 )
@@ -148,14 +150,38 @@ var jqUnit = jqUnit || {};
       });
       li.appendChild( b );
       li.appendChild( ol );
-    
+    	
+
+		if (_config.newModuleFlag) {
+			
+			_config.newModuleFlag = false;
+			
+			var h3 = document.createElement("h3");
+			h3.innerHTML = ['<strong>', _config.currentModule, '</strong>: ', _config.currentModuleDescription].join('');
+			document.getElementById("tests").appendChild(h3);
+		}
+
       document.getElementById("tests").appendChild( li );   
     });
   }
   
   // call on start of module test to prepend name to all tests
-  function module(moduleName) {
-    _config.currentModule = moduleName;
+  // if the user submits a description, the display it
+  function module(moduleName, description) {
+  	
+	
+	console.log('module');
+	
+	if (_config.moduleName == moduleName) {
+		throw ('new module is the same as the old module');
+		return;
+	}
+	else {
+		_config.newModuleFlag = true;
+		_config.currentModule = moduleName;
+		_config.currentModuleDescription = description;
+	}
+
   }
   
   /**
