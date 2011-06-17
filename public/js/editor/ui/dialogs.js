@@ -135,13 +135,14 @@ var editor = (function(module) {
 					'X-File-Type': file.type
 				},
 				success: function(data, status, xhr) {
-					msg
-						.text('Loading Model...');
+					msg.text('Loading Model...').removeClass('errMsg');
 					cb(data.url, function() {
-						msg.text('')
-							.hide();
+						msg.text('').hide();
 						dlg.dialog('close');
 					});
+				},
+				error: function(xhr, status, err) {
+					msg.text(xhr.responseText).addClass('errMsg').show();
 				}
 			});
 		});
@@ -157,7 +158,7 @@ var editor = (function(module) {
 				url: '/models',
 				dataType: 'json',
 				success: function(data, status, xhr) {	
-					msg.text('')						
+					msg.text('').removeClass('errMsg')						
 					btn.show();
 					dlg.find('label').show();
 				},					
@@ -170,7 +171,7 @@ var editor = (function(module) {
 						dlg.find('label').hide();
 					}
 					else {
-						msg.text(xhr.responseText);
+						msg.text(xhr.responseText).addClass('errMsg').show();
 					}
 				}
 			});

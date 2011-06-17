@@ -178,45 +178,59 @@ app.post('/model', function(req, res) {
 			fType = req.header('x-file-type'), 
 			tmpFile = uploadPath + '/' + fName,
 			toDir = assetsPath + '/' + fName.split('.').shift(),
-			ws = fs.createWriteStream(tmpFile);
+			origDir = toDir,
+			ws = fs.createWriteStream(tmpFile),
+			ext = fName.split('.').pop(),
+			counter = 0;
+			
+		req.on('data', function(data){
+			ws.write(data);
+		});
         
-        req.on('data', function(data){
-            ws.write(data);
-        });
-		
-		fs.mkdirSync(toDir, 0755);
-        
-        var tarChild = child.spawn('tar', ['-C', toDir, '-xzf', tmpFile], {
-            customFds: procFds
-        });
-        
-        tarChild.on('exit', function(code){
-            if (code === 0) {
-                // Clean up the temp file
-                fs.unlinkSync(tmpFile);
-		
-				var mFiles = fs.readdirSync(toDir),
-					found = false,
-					retVal = {},
-					urlDir = toDir.split('/');
-				
-				urlDir.shift();
-				
-				for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
-					var mFile = mFiles[j];
-					
-					if (mFile.match('.json')) {
-						retVal.url = urlDir.join('/') + '/' + mFile;
-						found = true;
-					}
-				}
-				
-				res.send(retVal, 200);
-            }
-			else {
-				res.send('failed to upload file', 300);
+		if (ext === 'o3dtgz' || ext === 'tgz' || ext === 'zip') {
+			
+			while (path.existsSync(toDir)) {
+				toDir = origDir + counter++;
 			}
-        });
+			fs.mkdirSync(toDir, 0755);
+			
+			var tarChild = child.spawn('tar', ['-C', toDir, '-xzf', tmpFile], {
+				customFds: procFds
+			});
+			
+			tarChild.on('exit', function(code){
+				if (code === 0) {
+					// Clean up the temp file
+					fs.unlinkSync(tmpFile);
+					
+					var mFiles = fs.readdirSync(toDir), 
+						found = false, 
+						retVal = {}, 
+						urlDir = toDir.split('/');
+					
+					urlDir.shift();
+					
+					for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
+						var mFile = mFiles[j];
+						
+						if (mFile.match('.json')) {
+							retVal.url = urlDir.join('/') + '/' + mFile;
+							found = true;
+						}
+					}
+					
+					res.send(retVal, 200);
+				}
+				else {
+					res.send('Failed to upload file', 300);
+					fs.unlinkSync(tmpFile);
+				}
+			});
+		}
+		else {			
+			res.send('File must be an archive file', 300);
+			fs.unlinkSync(tmpFile);
+		}
     }
 });
 
