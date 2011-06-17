@@ -333,7 +333,8 @@
 			btn = this.importMdlDlg.find('#importMdlBtn');
 			
 			btn.file().choose(function(evt, input) {
-				msg.text('Uploading Model...').show();
+				that.importMdlDlg.find('#importMdlMsg')
+					.text('Uploading Model...').show();
 				
 				// assuming no multi select file
 				var file = input.files[0],
@@ -352,9 +353,11 @@
 						'X-File-Type': file.type
 					},
 					success: function(data, status, xhr) {
-						msg.text('Loading Model...');
+						that.importMdlDlg.find('#importMdlMsg')
+							.text('Loading Model...');
 						that.loadModel(data.url, function() {
-							msg.text('').hide();
+							that.importMdlDlg.find('#importMdlMsg').text('')
+								.hide();
 							that.importMdlDlg.dialog('close');
 						});
 					}
@@ -365,6 +368,31 @@
 				resizable: false,
 				autoOpen: false,
                 modal: true
+			})
+			.bind('dialogopen', function() {					
+				jQuery.ajax({
+					url: '/models',
+					dataType: 'json',
+					success: function(data, status, xhr) {	
+						that.importMdlDlg.find('#importMdlMsg').text('')						
+						that.importMdlDlg.find('#importMdlBtn').show();
+						that.importMdlDlg.find('label').show();
+					},					
+					error: function(xhr, status, err) {
+						if (xhr.status !== 400) {
+							that.importMdlDlg.find('#importMdlMsg')
+								.text('Server is not running')
+								.addClass('errMsg').show();
+							
+							that.importMdlDlg.find('#importMdlBtn').hide();
+							that.importMdlDlg.find('label').hide();
+						}
+						else {
+							that.importMdlDlg.find('#importMdlMsg')
+								.text(xhr.responseText);
+						}
+					}
+				});
 			});
 			
             this.savePrjDlg = jQuery('<div title="Save Project" id="savePrjDlg" class="simpleDialog"><p id="savePrjMsg"></p><form method="post" action="" class="dialogForm"><label for="savePrjName">Project Name:</label><input type="text" name="savePrjName" id="savePrjName" /><button id="savePrjBtn">Save</button></form></div>');			
