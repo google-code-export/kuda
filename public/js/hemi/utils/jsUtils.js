@@ -57,26 +57,6 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Create a deep copy of the given array, even if it has nested arrays.
-	 * 
-	 * @param {number[]} a the array to copy
-	 * @return {number[]} the created array
-	 */
-	hemi.utils.copyArray = function(a) {
-		var b = [a.length];
-		
-		for (var i = 0, il = a.length; i < il; i++) {
-			if (a[i] instanceof Array) { 
-				b[i] = hemi.utils.copyArray(a[i]);
-			} else {
-				b[i] = a[i];
-			}
-		}
-		
-		return b;
-	};
-	
-	/**
 	 * Perform an asynchronous AJAX GET for the resource at the given URL.
 	 * 
 	 * @param {string} url url of the resource to get

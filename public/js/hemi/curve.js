@@ -736,7 +736,7 @@ var hemi = (function(hemi) {
 			for (var i = 1; i <= this.lastFrame; i++) {
 				var time = (i-1)/(this.lastFrame-2);
 				this.scales[i] = this.lerpValue(time,sKeys);
-				this.matrices[i] = m4.scale(hemi.utils.copyArray(this.lt[i]),
+				this.matrices[i] = m4.scale(hemi.utils.clone(this.lt[i]),
 					this.scales[i]);
 			}
 			return this;
