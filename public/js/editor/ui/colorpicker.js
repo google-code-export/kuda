@@ -75,7 +75,7 @@ var editor = (function(module) {
 						y: 'center'
 					},
 					effects: {
-						type: 'slide',
+						type: 'fade',
 						speed: {
 							show: 'fast'
 						}
@@ -109,6 +109,10 @@ var editor = (function(module) {
 				var clr = colorPickedFcn(color);
 				wgt.notifyListeners(module.EventTypes.ColorPicked, clr);
 			});
+			
+			setTimeout(function() {
+				jQuery('.Move').text('Color Picker');				
+			}, 0);
 				
 			// save this picker
 			var found = false,

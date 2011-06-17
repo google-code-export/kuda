@@ -19,50 +19,6 @@
 	o3djs.require('editor.requires');
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                                 	 Model	                                  //
-////////////////////////////////////////////////////////////////////////////////
-	
-	var editorMdl = function() {
-		
-	};
-	
-	editorMdl.prototype = {
-		worldCleaned: function() {
-			
-		},
-		
-		worldLoaded: function() {
-			
-		}
-	};
-	
-////////////////////////////////////////////////////////////////////////////////
-//                                 	  GUI	                                  //
-////////////////////////////////////////////////////////////////////////////////
-	
-	var editorUI = function() {
-			
-	};
-	
-	editorUI.prototype = {		
-		layoutGrid: function() {
-			
-		},
-		
-		layoutMenu: function() {
-			
-		},
-		
-		layoutSidebar: function() {
-			
-		},
-		
-		layoutToolbar: function() {
-			
-		}
-	};
-	
-////////////////////////////////////////////////////////////////////////////////
 //                                 Main App                                   //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -264,248 +220,33 @@
 		
 		layoutDialogs: function() {
 			var that = this;
-			
-            this.wfrMdl = new editor.tools.WireframeModel();
-            this.ortMdl = new editor.tools.OrthographicModel();
 
-			this.loadMdlDlg = jQuery('<div title="Load Model" id="loadMdlDlg" class="simpleDialog"><p id="loadMdlMsg"></p><form method="post" action=""><label for="loadMdlSel">Select a Model:</label><select id="loadMdlSel"></select><input type="text" id="loadMdlIpt" /><button id="loadMdlBtn">Load</button></form></div>');
-			var form = this.loadMdlDlg.find('form').submit(function() {
-					return false;
-				}),
-				msg = this.loadMdlDlg.find('#loadMdlMsg').hide(),
-				btn = this.loadMdlDlg.find('#loadMdlBtn').bind('click', function() {
-					msg.text('Loading Model...').show();
-					var val = ipt.is(':visible') ? ipt.val() : sel.val();
-					that.loadModel(val, function() {
-						msg.text('').hide();
-						that.loadMdlDlg.dialog('close');			
-					});
-				}),	
-				ipt = this.loadMdlDlg.find('#loadMdlIpt').hide(),
-				sel = this.loadMdlDlg.find('#loadMdlSel');
-			this.loadMdlDlg.dialog({
-				width: 300,
-				resizable: false,
-				autoOpen: false,
-                modal: true
-			})
-			.bind('dialogopen', function() {				
-				msg.text('Retrieving models...').show();
-				form.hide();
-				
-				jQuery.ajax({
-					url: '/models',
-					dataType: 'json',
-					success: function(data, status, xhr) {
-						var models = data.models;
-						
-						ipt.hide();
-						sel.empty().show();
-						for (var i = 0, il = models.length; i < il; i++) {
-							var mdl = models[i];
-							var prj = jQuery('<option value="' + mdl.url + '">' + mdl.name + '</option>');
-							sel.append(prj);
-						}
-						
-						form.show();
-						msg.hide();
-					},
-					error: function(xhr, status, err) {
-						if (xhr.status !== 400) {
-							msg.text('Cannot get models. Server is not running. Type in the URI instead.')
-								.addClass('errMsg').show();
-							
-							sel.hide();
-							ipt.show();
-						}
-						else {
-							msg.text(xhr.responseText);
-						}
-					}
+			this.loadMdlDlg = editor.ui.createLoadModelDialog(function(val, fcn) {
+				that.loadModel(val, fcn);
+			});			
+			this.importMdlDlg = editor.ui.createImportModelDialog(function(val, fcn) {
+				that.loadModel(val, fcn);
+			});			
+            this.savePrjDlg = editor.ui.createSaveProjectDialog(function(name) {
+				that.saveProject(name);
+			});			
+			this.openPrjDlg = editor.ui.createOpenProjectDialog(function(name) {
+				that.openProject(name);
+			});			
+			this.publishPrjDlg = editor.ui.createPublishProjectDialog(
+				this.savePrjDlg, 
+				function(name, octane) {
+					that.saveProject(name, octane);
+					that.publishPrjDlg.find('#pubPrjMsg').text('Publishing...').show();
+					that.publishProject(name);
 				});
-			});
-			
-			this.importMdlDlg = jQuery('<div title="Import Model" id="importMdlDlg" class="simpleDialog"><p id="importMdlMsg"></p><form method="post" action="" enctype="multipart/form-data"><label for="importMdlSel">Import a Model:</label><button id="importMdlBtn">Choose a File</button></form></div>');
-			form = this.importMdlDlg.find('form').submit(function() {
-					return false;
-				});
-			msg = this.importMdlDlg.find('#importMdlMsg').hide();
-			btn = this.importMdlDlg.find('#importMdlBtn');
-			
-			btn.file().choose(function(evt, input) {
-				that.importMdlDlg.find('#importMdlMsg')
-					.text('Uploading Model...').show();
-				
-				// assuming no multi select file
-				var file = input.files[0],
-					name = file.fileName != null ? file.fileName : file.name;
-					
-				jQuery.ajax({
-					url: '/model',
-					dataType: 'json',
-					type: 'post',
-					data: file,
-					processData: false,
-					contentType: 'application/octet-stream',
-					headers: {
-						'X-File-Name': encodeURIComponent(name),
-						'X-File-Size': file.size,
-						'X-File-Type': file.type
-					},
-					success: function(data, status, xhr) {
-						that.importMdlDlg.find('#importMdlMsg')
-							.text('Loading Model...');
-						that.loadModel(data.url, function() {
-							that.importMdlDlg.find('#importMdlMsg').text('')
-								.hide();
-							that.importMdlDlg.dialog('close');
-						});
-					}
-				});
-			});
-			this.importMdlDlg.dialog({
-				width: 300,
-				resizable: false,
-				autoOpen: false,
-                modal: true
-			})
-			.bind('dialogopen', function() {					
-				jQuery.ajax({
-					url: '/models',
-					dataType: 'json',
-					success: function(data, status, xhr) {	
-						that.importMdlDlg.find('#importMdlMsg').text('')						
-						that.importMdlDlg.find('#importMdlBtn').show();
-						that.importMdlDlg.find('label').show();
-					},					
-					error: function(xhr, status, err) {
-						if (xhr.status !== 400) {
-							that.importMdlDlg.find('#importMdlMsg')
-								.text('Server is not running')
-								.addClass('errMsg').show();
-							
-							that.importMdlDlg.find('#importMdlBtn').hide();
-							that.importMdlDlg.find('label').hide();
-						}
-						else {
-							that.importMdlDlg.find('#importMdlMsg')
-								.text(xhr.responseText);
-						}
-					}
-				});
-			});
-			
-            this.savePrjDlg = jQuery('<div title="Save Project" id="savePrjDlg" class="simpleDialog"><p id="savePrjMsg"></p><form method="post" action="" class="dialogForm"><label for="savePrjName">Project Name:</label><input type="text" name="savePrjName" id="savePrjName" /><button id="savePrjBtn">Save</button></form></div>');			
-			this.savePrjDlg.find('form').submit(function() { 
-				return false; 
-			});
-			this.savePrjDlg.find('#savePrjBtn').click(function() {
-				that.saveProject(that.savePrjDlg.find('#savePrjName').val());
-			});
-            this.savePrjDlg.dialog({
-                width: 300,
-                resizable: false,
-				autoOpen: false,
-				modal: true
-            })
-			.bind('dialogopen', function() {
-				that.savePrjDlg.find('form').show();
-				that.savePrjDlg.find('#savePrjMsg').hide();
-			});
-			
-			this.openPrjDlg = jQuery('<div title="Open Project" id="loadPrjDlg" class="simpleDialog"><p id="loadPrjMsg"></p><form method="post" action=""><label for="loadPrjSel">Select a Project:</label><select id="loadPrjSel"></select><button id="loadPrjBtn">Load</button></form></div>');
-			form = this.openPrjDlg.find('form').submit(function() {
-				return false;
-			});
-			btn = this.openPrjDlg.find('#loadPrjBtn').bind('click', function() {
-				that.openProject(that.openPrjDlg.find('#loadPrjSel').val());
-			});		
-			this.openPrjDlg.dialog({
-				width: 300,
-				resizable: false,
-				autoOpen: false,
-                modal: true
-			})
-			.bind('dialogopen', function() {
-				var msg = that.openPrjDlg.find('#loadPrjMsg');
-				
-				msg.text('Retrieving projects...').show();
-				form.hide();
-				
-				jQuery.ajax({
-					url: '/projects',
-					dataType: 'json',
-					success: function(data, status, xhr) {
-						var sel = that.openPrjDlg.find('#loadPrjSel'),
-							projects = data.projects;
-						
-						sel.empty();
-						for (var ndx = 0, len = projects.length; ndx < len; ndx++) {
-							var prj = jQuery('<option>' + projects[ndx] + '</option>');
-							sel.append(prj);
-						}
-						
-						form.show();
-						msg.hide();
-					},
-					error: function(xhr, status, err) {
-						if (xhr.status !== 400) {
-							msg.text('Cannot get projects. Server is not running')
-								.addClass('errMsg').show();
-								
-							setTimeout(function() {
-								that.openPrjDlg.dialog('close');
-							}, 2000);
-						}
-						else {
-							msg.text(xhr.responseText);
-						}
-					}
-				});
-			})
-			.find('p#loadPrjMsg').hide();
-			
-			this.publishPrjDlg = jQuery('<div title="Publish Project" id="pubPrjDlg" class="simpleDialog"><p id="pubPrjMsg"></p><form method="post" action="" class="dialogForm"><label for="pubPrjName">Save project and create page for: </label><span id="pubPrjName"></span><button id="pubPrjBtn">Publish</button></form></div>');
-			this.publishPrjDlg.find('form').submit(function() { 
-				return false; 
-			});
-			this.publishPrjDlg.find('#pubPrjBtn').click(function() {
-				that.publishPrjDlg.find('#pubPrjBtn').attr('disabled', 'disabled');
-				var name = that.savePrjDlg.find('#savePrjName').val(),
-					octane = JSON.stringify(editor.getProjectOctane());
-				that.saveProject(name, octane);
-				that.publishPrjDlg.find('#pubPrjMsg').text('Publishing...').show();
-				that.publishProject(name);
-			});
-            this.publishPrjDlg.dialog({
-                width: 300,
-                resizable: false,
-				autoOpen: false,
-				modal: true
-            })
-			.bind('dialogopen', function() {
-				var name = that.savePrjDlg.find('#savePrjName').val();
-				that.publishPrjDlg.find('#pubPrjBtn').removeAttr('disabled');
-				
-				if (name === '') {
-					that.publishPrjDlg.find('form').hide();
-					that.publishPrjDlg.find('#pubPrjMsg')
-						.text('Please save your project first').show();
-					
-					setTimeout(function() {
-						that.publishPrjDlg.dialog('close');
-						that.savePrjDlg.dialog('open');
-					}, 2000);
-				} else {
-					that.publishPrjDlg.find('form').show();
-					that.publishPrjDlg.find('#pubPrjMsg').hide();
-					that.publishPrjDlg.find('#pubPrjName').text(name);
-				}
-			});
 		},
 		
 		layoutMenu: function() {
 			var that = this;
+			
+            this.wfrMdl = new editor.tools.WireframeModel();
+            this.ortMdl = new editor.tools.OrthographicModel();
 			
 	        this.fileMenu = new editor.ui.Menu('File');
 	        this.viewMenu = new editor.ui.Menu('View');
@@ -960,7 +701,8 @@
 			
 			var data = {
 				name: name
-			}, that = this;
+			}, 
+			that = this;
 			
 			jQuery.ajax({
 				url: '/project',
