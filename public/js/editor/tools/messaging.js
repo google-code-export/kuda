@@ -478,16 +478,23 @@ var editor = (function(module) {
 							tree.jstree('close_node', elem);
 							view.lastTrigger = null;
 						} else {
+							var src, msg;
 							view.lastTrigger = elemId;
 							
 							if (isSelectable || !isRestricted) {
 								if (metadata.type === 'message') {
-									view.selectTrigger(metadata.parent, metadata.msg);
-									view.updateSaveButton();
+									src = metadata.parent;
+									msg = metadata.msg;
 								} else if (metadata.type === 'citizen'
 								 		|| metadata.type === 'citType') {
 									tree.jstree('open_node', elem, false, false);
+									src = msg = null;
 								}
+								
+								view.notifyListeners(module.EventTypes.SelectTrigger, {
+									source: src,
+									message: msg
+								});
 							} 
 						}
 					});
@@ -508,25 +515,28 @@ var editor = (function(module) {
 							tree.jstree('close_node', elem);
 							view.lastAction = null;
 						} else {
+							var cit, meth;
 							view.lastAction = elemId;
 							
 							if (metadata.type === 'method') {
 								var path = tree.jstree('get_path', elem, true),
 									parentName = path[path.length - 2] + '_',
-									parId = metadata.parent.getId() + '',
-									citizen = metadata.parent;
-								parentName = parentName.replace(parId + '_MORE', parId);
-								var method = elemId.replace(parentName, '');
+									parId = metadata.parent.getId() + '';
 								
-								view.selectAction(citizen, method);
-								view.updateSaveButton();
-								var args = module.utils.getFunctionParams(citizen[method]);
-								view.paramsWgt.fillParams(args);
+								parentName = parentName.replace(parId + '_MORE', parId);
+								cit = metadata.parent;
+								meth = elemId.replace(parentName, '');
 							} else if (metadata.type === 'citizen' 
 									|| metadata.type === 'citType') {
 								tree.jstree('open_node', elem, false, false);
+								cit = meth = null;
 							}
-						}	
+							
+							view.notifyListeners(module.EventTypes.SelectAction, {
+								handler: cit,
+								method: meth
+							});
+						}
 					});
 				});
 	    },
@@ -650,12 +660,15 @@ var editor = (function(module) {
 						messages = [parseInt(target.args[0].replace(
 							hemi.dispatch.ID_ARG, ''))];
 					}
-					view.restrictSelection(view.triggersTree.tree, handler, 
-						messages);
+					view.triggersTree.restrictSelection(handler, messages);
 					view.chainParent = li;
 					view.notifyListeners(module.EventTypes.SelectTrigger, {
 						source: handler,
 						message: messages[0]
+					});
+					view.notifyListeners(module.EventTypes.SelectAction, {
+						handler: null,
+						method: null
 					});
 					
 					editListPnl.hide();
@@ -674,8 +687,8 @@ var editor = (function(module) {
 				});
 				
 				view.chainParent = li.data('chainParent');
-				view.notifyListeners(module.EventTypes.SaveTarget, 
-					'Copy of ' + target.name);
+				view.notifyListeners(module.EventTypes.SaveTarget,
+					{name: 'Copy of ' + target.name});
 			});
 		},
 		
@@ -737,8 +750,6 @@ var editor = (function(module) {
 				
 				editorSaveBtn.bind('click', function(evt) {
 					var data = {
-						trigger: view.currentTrigger,
-						action: view.currentAction,
 						args: view.paramsWgt.getArgs(),
 						name: editorNameInput.val()
 					};
@@ -761,8 +772,7 @@ var editor = (function(module) {
 								hemi.dispatch.ID_ARG, ''))];
 						}
 						
-						view.unrestrictSelection(view.triggersTree.tree, 
-							handler, messages);
+						view.triggersTree.unrestrictSelection(handler, messages);
 					}
 					
 					view.notifyListeners(module.EventTypes.SaveTarget, 
@@ -789,8 +799,7 @@ var editor = (function(module) {
 								hemi.dispatch.ID_ARG, ''))];
 						}
 						
-						view.unrestrictSelection(view.triggersTree.tree, 
-							handler, messages);
+						view.triggersTree.unrestrictSelection(handler, messages);
 						view.chainParent = null;
 					}
 					
@@ -817,38 +826,6 @@ var editor = (function(module) {
 		
 		removeTarget: function(target) {
 			this.eventList.remove('msgTarget_' + target.dispatchId);
-		},
-		
-		restrictSelection: function(tree, citizen, msgs) {
-			tree.addClass('restricted');
-			
-			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
-				var id = citizen.getId ? citizen.getId() : null,
-					nodeName = module.treeData.getNodeName(citizen, {
-						option: msgs[ndx],
-						prefix: module.treeData.TRIGGER_PREFIX,
-						id: id
-					}),
-					node = jQuery('#' + nodeName);
-				
-				node.find('a').addClass('restrictedSelectable');
-			}
-		},
-		
-		unrestrictSelection: function(tree, citizen, msgs) {
-			tree.removeClass('restricted');
-			
-			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
-				var id = citizen.getId ? citizen.getId() : null,
-					nodeName = module.treeData.getNodeName(citizen, {
-						option: msgs[ndx],
-						prefix: module.treeData.TRIGGER_PREFIX,
-						id: id
-					}),
-					node = jQuery('#' + nodeName);
-				
-				node.find('a').removeClass('restrictedSelectable');
-			}
 		},
 		
 		updateSaveButton: function() {
@@ -886,11 +863,6 @@ var editor = (function(module) {
 				});
 				
 				actionText.text(citizen.name + ' ' + method);
-				
-				this.currentAction = {
-					handler: citizen,
-					method: method
-				};
 			}
 			
 			if (nodeName === null) {
@@ -938,10 +910,6 @@ var editor = (function(module) {
 				}
 				
 				triggerText.text(name + ' ' + msg);
-				this.currentTrigger = {
-					citizen: citizen,
-					type: message
-				};
 			}
 			
 			if (nodeName === null) {
@@ -1039,31 +1007,31 @@ var editor = (function(module) {
 			view.addListener(module.EventTypes.RemoveTarget, function(data) {
 				model.removeTarget(data);
 			});			
-			view.addListener(module.EventTypes.SaveTarget, function(saveObj) {
-				var args = saveObj.args || [],
-					trigger = saveObj.trigger,
-					action = saveObj.action;
+			view.addListener(module.EventTypes.SaveTarget, function(data) {
+				var args = data.args || [];
 				
-				model.setMessageSource(trigger.citizen);
-				model.setMessageType(trigger.type);
-				model.setMessageHandler(action.handler);
-				model.setMethod(action.method);
-				
-				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
-					var arg = args[ndx];
-					
+				for (var i = 0, il = args.length; i < il; i++) {
+					var arg = args[i];
 					model.setArgument(arg.name, arg.value);
 				}
 				
-				model.save(saveObj.name);
-			});			
+				model.save(data.name);
+			});
+			view.addListener(module.EventTypes.SelectAction, function(data) {
+				model.setMessageHandler(data.handler);
+				model.setMethod(data.method);
+			});
 			view.addListener(module.EventTypes.SelectTarget, function(data) {
 				if (data.target !== null) {
 					model.copyTarget(data.target);
 				}
 				
 				model.msgTarget = data.edit ? data.target : null;
-			});		
+			});
+			view.addListener(module.EventTypes.SelectTrigger, function(data) {
+				model.setMessageSource(data.source);
+				model.setMessageType(data.message);
+			});
 			
 			// model specific
 			model.addListener(module.EventTypes.ArgumentSet, function(data) {
