@@ -15,7 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.dispatch');
 o3djs.require('hext.msg');
 o3djs.require('hext.tools.baseTool');
 o3djs.require('hext.tools.manometerTube');

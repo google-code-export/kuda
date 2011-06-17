@@ -19,7 +19,6 @@
  * @fileoverview The Sprite class allows for the easy creation of 2d animated sprites
  *		and billboards in the 3d world.
  */
-o3djs.require('hemi.core');
 
 var hemi = (function(hemi) {
 	/**

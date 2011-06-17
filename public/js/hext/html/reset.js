@@ -15,9 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.loader');
-o3djs.require('hemi.world');
-
 /**
  * @namespace Hext (short for Hemi Extensions) is a library of extensions to the
  * Hemi engine developed by the Kuda team.

@@ -15,9 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.octane');
-o3djs.require('hemi.world');
-
 var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for loading resources (Octane, models, images, etc).

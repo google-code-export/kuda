@@ -20,7 +20,6 @@
  *		effects: Bezier curves, particles which can follow those curves, and
  *		systems to manage particles and emitters. 
  */
-o3djs.require('hemi.core');
 
 var hemi = (function(hemi) {
 	/**

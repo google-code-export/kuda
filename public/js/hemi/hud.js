@@ -15,14 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.core');
-o3djs.require('hemi.input');
-o3djs.require('hemi.loader');
-o3djs.require('hemi.msg');
-o3djs.require('hemi.utils.stringUtils');
-o3djs.require('hemi.view');
-o3djs.require('hemi.world');
-
 var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for heads up display (HUD) creation and

@@ -15,9 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.core');
-o3djs.require('hemi.view');
-
 var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for picking shapes in a 3D space from a mouse click.

@@ -16,8 +16,7 @@
  */
 
 (function() {
-	o3djs.require('o3djs.util');
-
+	
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);	
 		hemi.view.setBGColor([0, 0, 0.3, 1]);

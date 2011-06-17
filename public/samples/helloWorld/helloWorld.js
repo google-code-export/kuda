@@ -21,7 +21,6 @@
  *		has loaded.
  */
 (function() {
-	o3djs.require('o3djs.util');
 
 	function init(clientElements) {
 		/**

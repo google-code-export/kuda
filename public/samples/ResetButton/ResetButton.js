@@ -26,8 +26,6 @@
  * rather than all at once after the script is finished.
  */
 (function() {
-	o3djs.require('o3djs.util');
-	
 	// Include the Reset extension
 	o3djs.require('hext.html.reset');
 
@@ -149,7 +147,7 @@
 			positionRange : [3.6, 2, 3.4],
 			spinSpeedRange: 4
 		};
-		var fire = hemi.effect.createEmitter(
+		fire = hemi.effect.createEmitter(
 			hemi.core.particles.ParticleStateIds.ADD,
 			colorRamp,
 			params);

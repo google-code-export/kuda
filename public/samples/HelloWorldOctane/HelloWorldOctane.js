@@ -22,8 +22,6 @@
  * World is created from it.
  */
 (function() {
-	o3djs.require('o3djs.util');
-	o3djs.require('hemi.loader');
 
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);

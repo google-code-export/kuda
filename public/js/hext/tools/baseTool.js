@@ -15,9 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.msg');
-o3djs.require('hemi.world');
-
 var hext = (function(hext) {
 	/**
 	 * @namespace A module for tools that allow the user to interact with the

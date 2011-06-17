@@ -21,8 +21,6 @@
  * PressureEngine with two Locations and three Portals.
  */
 (function() {
-	o3djs.require('o3djs.util');
-	
 	// require the html extensions
 	o3djs.require('hext.html.toolbar');
 	o3djs.require('hext.html.toolViews');

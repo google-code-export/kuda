@@ -20,9 +20,6 @@
  *		be clicked on and dragged around. These shapes are constrained
  *		to a 2d plane, as defined by the programmer.
  */
-o3djs.require('hemi.core');
-o3djs.require('hemi.input');
-o3djs.require('hemi.msg');
 
 var hemi = (function(hemi) {
 	/**

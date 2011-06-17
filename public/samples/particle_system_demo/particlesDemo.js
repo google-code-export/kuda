@@ -20,9 +20,6 @@
  *		top of the hello world demo.
  */
 (function() {
-	o3djs.require('o3djs.util');
-	o3djs.require('hemi.motion');
-	o3djs.require('hemi.curve');
 	
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);

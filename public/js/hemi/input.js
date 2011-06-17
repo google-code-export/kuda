@@ -15,8 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hemi.core');
-
 var hemi = (function(hemi) {	
 	/**
 	 * @namespace A module for handling all keyboard and mouse input.
