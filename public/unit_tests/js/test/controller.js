@@ -114,8 +114,11 @@ var test = (function(test) {
 		finished : function () {
 			
 			jqUnit.start();
-			jqUnit.module(''); 
-			jqUnit.test("FINISHED", function(){});
+		//	jqUnit.module('FINISHED', '');
+			//jqUnit.process();
+			//jqUnit.test("FINISHED", function(){});
+			
+			jqUnit.showResults();  
 			
 		}
 		

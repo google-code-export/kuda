@@ -23,7 +23,12 @@ var jqUnit = jqUnit || {};
   
   $(function() {
     $('#userAgent').html(navigator.userAgent);
-    runTest();  
+   // runTest(); 
+   
+    _config.blocking = false;
+    _config.startTime = new Date();
+    _config.fixture = document.getElementById('main').innerHTML;
+	 
   });
   
   function synchronize(callback) {
@@ -63,11 +68,14 @@ var jqUnit = jqUnit || {};
       process();
     }, 13);
   }
+
   
+/*
   function runTest() {
     _config.blocking = false;
     var time = new Date();
     _config.fixture = document.getElementById('main').innerHTML;
+
     synchronize(function() {
       time = new Date() - time;
       $("<div>").html(['<p class="result">Tests completed in ',
@@ -77,8 +85,32 @@ var jqUnit = jqUnit || {};
         .appendTo("body");
       $("#banner").addClass(_config.stats.bad ? "fail" : "pass");
     });
+
   }
+*/
   
+	function showResults(){
+		_config.blocking = false;
+
+		//process();
+		synchronize(function(){
+			//insertH3Tag('<strong>FINISHED</strong>');
+			time = new Date() - _config.startTime;
+			
+			$("<div>").html('<h3>FINISHED</h3>').appendTo("body");
+			
+			$("<div>").html(['<p class="result">Tests completed in ', time, ' milliseconds.<br/>', _config.stats.bad, ' tests of ', _config.stats.all, ' failed.</p>'].join('')).appendTo("body");
+			$("#banner").addClass(_config.stats.bad ? "fail" : "pass");
+		});
+	}
+	
+  function insertH3Tag(msg) {
+  	
+		var h3 = document.createElement("h3");
+		h3.innerHTML = msg;
+		document.getElementById("tests").appendChild(h3);
+  }
+	
   function test(name, callback, nowait) {
     //if(_config.currentModule)
       //name = _config.currentModule + " module: " + name;
@@ -151,17 +183,14 @@ var jqUnit = jqUnit || {};
       li.appendChild( b );
       li.appendChild( ol );
     	
-
 		if (_config.newModuleFlag) {
-			
 			_config.newModuleFlag = false;
-			
-			var h3 = document.createElement("h3");
-			h3.innerHTML = ['<strong>', _config.currentModule, '</strong>: ', _config.currentModuleDescription].join('');
-			document.getElementById("tests").appendChild(h3);
+			var msg = ['<strong>', _config.currentModule, '</strong>: ', _config.currentModuleDescription].join('');
+			insertH3Tag(msg);
 		}
 
-      document.getElementById("tests").appendChild( li );   
+      document.getElementById("tests").appendChild( li ); 
+	  
     });
   }
   
@@ -170,16 +199,31 @@ var jqUnit = jqUnit || {};
   function module(moduleName, description) {
   	
 	
-	console.log('module');
+	//console.log('module');
 	
 	if (_config.moduleName == moduleName) {
 		throw ('new module is the same as the old module');
-		return;
 	}
 	else {
+		
+		
+		
+		//writes any queued test results, then queues the new module heading.
+		process();
+		
+
 		_config.newModuleFlag = true;
 		_config.currentModule = moduleName;
 		_config.currentModuleDescription = description;
+
+
+		
+		//var h3 = document.createElement("h3");
+		//h3.innerHTML = ['<strong>', _config.currentModule, '</strong>: ', _config.currentModuleDescription].join('');
+	//	document.getElementById("tests").appendChild(h3);
+		
+
+
 	}
 
   }
@@ -353,7 +397,8 @@ var jqUnit = jqUnit || {};
     t: t,
     url: url,
     equals: equals,
-    triggerEvent: triggerEvent
+    triggerEvent: triggerEvent,
+	showResults : showResults
 	});
   
   
