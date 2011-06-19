@@ -30,30 +30,26 @@
 	var unitTest2 = unitTest2 || {};
 
 	
-	unit2.start = function(onCompleteCallback) {
+	unit2.start = function(onUnitCompleteCallback) {
 		
-		this.onCompleteCallback = onCompleteCallback;
+		unit2.onUnitCompleteCallback = onUnitCompleteCallback;
 		
 		var desc = 'Load model with wrong URL to make sure that an Alert is tiggered.  YOU WILL NOT ACTUALLY SEE THE ALERT HERE.  The testing framework traps the alert.';
-		jqUnit.module('UNIT 2', desc); 
-		jqUnit.test("load model wrong url", unitTest2.step_1);
+		jqUnit.module('UNIT 2', desc);
+		
+		unitTest2.callBack = unit2.step_2; 
+		jqUnit.test("Load model with wrong url", unitTest2.step_1);
 
 		
 	};
 	
 	unit2.step_2 = function() {
-
-		var result = hemi.world.unsubscribe(unitTest2.subscription, hemi.msg.load);
-		
-		jqMock.assertThat(unitTest2.model , is.instanceOf(hemi.model.Model));
-		unit2.cleanup();
-		
+		unit2.onUnitCompleteCallback.call();
 	};
 
 	unit2.cleanup = function() {
 		
-		//unitTest2.model.cleanup();
-		unit2.onCompleteCallback.call();
+		console('unit2.cleanup: not implmented');
 		
 	};
 	
@@ -74,13 +70,14 @@
 	
 		unitTest2.model.setFileName(filePath); // Set the model file
 		
-		setTimeout ( unitTest2.callback, 1000 );
+		setTimeout ( unitTest2.callback2, 1000 );
 			
 
 	};
 	
-	unitTest2.callback = function(){
+	unitTest2.callback2 = function(){
 		jqUnit.test("verify alert", unitTest2.checkForAlert);
+		unitTest2.callBack.call();
 	};
 
 
@@ -89,6 +86,8 @@
 			jqUnit.expect(1);
 			unitTest2.alertMock.verify();
 			unitTest2.alertMock.restore();
+			
+			
 	};
 
 

@@ -30,24 +30,24 @@
 	var unitTest3 = unitTest3 || {};
 
 	
-	unit3.start = function(onCompleteCallback) {
-		this.onCompleteCallback = onCompleteCallback;
+	unit3.start = function(onUnitCompleteCallback) {
+		this.onUnitCompleteCallback = onUnitCompleteCallback;
 		
-		var desc = 'Creates a simple particle system';
+		var desc = 'Creates a simple particle system.  Uses scale keys and color keys so that the shape and size of each particle changes over its lifetime.';
 		jqUnit.module('UNIT 3', desc); 
-		jqUnit.test("load model", unitTest3.step_1);
+		jqUnit.test("Load model", unitTest3.step_1);
 
 	};
 	
 	unit3.step_2 = function() {
 		var result = unitTest3.model.unsubscribe(unitTest3.loadSubscription, hemi.msg.load);
-		jqUnit.test("particle system 2", unitTest3.step_2);
+		jqUnit.test("Create particle system", unitTest3.step_2);
 
 	};
 	
 	unit3.step_3 = function() {
 		hemi.world.camera.unsubscribe(unitTest3.cameraStopSubscription, hemi.msg.stop);
-		this.onCompleteCallback.call();
+		this.onUnitCompleteCallback.call();
 	};
 	
 	unit3.cleanup = function() {
@@ -109,9 +109,9 @@
 		 * Start out infinitesimal, then grow to a decent size,
 		 * kind of stretched out, then shrink away again.
 		 */
-		var scaleKey1 = {key: 0, value: [10,10,10]};
-		var scaleKey2 = {key: 0.5, value: [50,80,50]};
-		var scaleKey3 = {key: 1, value: [10,10,10]};
+		var scaleKey1 = {key: 0, value: [5,5,5]};
+		var scaleKey2 = {key: 0.5, value: [25,25,25]};
+		var scaleKey3 = {key: 1, value: [5,5,5]};
 		
 		/* Create a particle system configuration with the above parameters,
 		 * plus a rate of 20 particles per second, and a lifetime of
@@ -137,7 +137,7 @@
 		unitTest3.particleSystem.start();
 		
 
-		hemi.world.camera.moveToView(vp,60);
+		hemi.world.camera.moveToView(vp,30);
 		
 		unitTest3.cameraStopSubscription = hemi.world.camera.subscribe(
 				hemi.msg.stop,

@@ -25,16 +25,16 @@
 	
 
 	
-	unit0.start = function(onCompleteCallback) {
+	unit0.start = function(onUnitCompleteCallback) {
 		
 		
-		this.onCompleteCallback = onCompleteCallback;
+		this.onUnitCompleteCallback = onUnitCompleteCallback;
 		
 		
-		var desc = 'initializes the Kuda world and needs to be run first';
+		var desc = 'Initializes the Kuda world and needs to be run first';
 		jqUnit.module('UNIT 0', desc); 
 
-		jqUnit.test("makeClients", unitTest0.makeClients);
+		jqUnit.test("Call the makeClients() function", unitTest0.makeClients);
 		jqUnit.stop();
 		
 	};
@@ -46,7 +46,7 @@
 		
 
 		jqUnit.start();
-		jqUnit.test("init", unitTest0.init);
+		jqUnit.test("Initialize canvas with hemi.core.init()", unitTest0.init);
 		jqUnit.stop();
 		
 	};
@@ -56,7 +56,7 @@
 		var result = hemi.world.unsubscribe(unitTest0.readySubscription, hemi.msg.ready);
 		
 		jqUnit.start();
-		unit0.onCompleteCallback.call();
+		unit0.onUnitCompleteCallback.call();
 	};
 	
 	

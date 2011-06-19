@@ -33,10 +33,13 @@
 		unit8.onUnitCompleteCallback = onUnitCompleteCallback;
 		unitTest8.callBack = unit8.step_2;
 		
-		var desc = 'This test creates 2 particle systems and then shows/hides/shows the bounding boxes. ';
+		var desc = 'This test creates 2 particle systems and then shows/hides/shows the bounding boxes.  ' +
+		'The particle system on the left is blue, the particle system on the right is red.' +
+		'These particle systems are NOT the GPU accelerated versions.  This tests the process of changing ' +
+		'the location of a particle system, buy explicitly creating a reference to a parent';
 		
 		jqUnit.module('UNIT 8', desc); 
-		jqUnit.test("Load Model", unitTest8.init);
+		jqUnit.test("Load model", unitTest8.init);
 		jqUnit.stop();
 	};
 	
@@ -44,37 +47,43 @@
 	unit8.step_2 = function() {
 		jqUnit.start();
 		hemi.view.addRenderListener(unitTest8);
-		unitTest8.callBack = unit8.step_3;
+		unitTest8.callBack = unit8.step_2_5;
 		jqUnit.test("Create two particle systems", unitTest8.start);
+		jqUnit.stop();
+	};
+	
+	unit8.step_2_5 = function() {
+		jqUnit.start();
+		unitTest8.callBack = unit8.step_3;
+		jqUnit.test("Check the location of each particle system in the world", unitTest8.checkLocations);
 		jqUnit.stop();
 	};
 	
 	unit8.step_3 = function() {
 		jqUnit.start();
 		unitTest8.callBack = unit8.step_4;
-		jqUnit.test("Show Boxes", unitTest8.showBoxes);
+		jqUnit.test("Show bounding boxes", unitTest8.showBoxes);
 		jqUnit.stop();
 	};
 	
 	unit8.step_4 = function() {
 		jqUnit.start();
 		unitTest8.callBack = unit8.step_5;
-		jqUnit.test("Hide Boxes", unitTest8.hideBoxes);
+		jqUnit.test("Hide bounding boxes", unitTest8.hideBoxes);
 		jqUnit.stop();
-		//var t=setTimeout("unit8.end();",2000);
 	};
 	
 	unit8.step_5 = function() {
 		jqUnit.start();
 		unitTest8.callBack = unit8.step_6;
-		jqUnit.test("Show Boxes", unitTest8.showBoxes);
+		jqUnit.test("Show bounding boxes", unitTest8.showBoxes);
 		jqUnit.stop();
 	};
 	
 	unit8.step_6 = function() {
 		jqUnit.start();
 		unitTest8.callBack = unit8.end;
-		jqUnit.test("Show Performance", unitTest8.showPerformance);
+		jqUnit.test("Show performance statistics", unitTest8.showPerformance);
 		jqUnit.stop();
 	};
 	
@@ -95,7 +104,7 @@
 	unitTest8.init = function()   {
 		jqUnit.expect(1);
 		
-		unitTest8.model = new hemi.model.Model();				// Create a new Model
+		unitTest8.model = new hemi.model.Model();
 		jqMock.assertThat(unitTest8.model , is.instanceOf(hemi.model.Model));
 		
 		unitTest8.model.setFileName('house_v12/scene.json'); // Set the model file
@@ -141,13 +150,16 @@
 		var green = [0, 1, 0, 0.4];
 		var red = [1, 0, 0, 0.4];
 		
-		var scaleKey1 = {key: 0, value: [40,40,40]};
-		var scaleKey2 = {key: 1, value: [40,40,40]};
+		var scaleKey1 = {key: 0, value: [20,20,20]};
+		var scaleKey2 = {key: 1, value: [20,20,20]};
 		
-		var colorKey1 = {key: 0, value: [1,1,0,0.2]};
-		var colorKey2 = {key: 0.45, value: [1,0,0,1]};
-		var colorKey3 = {key: 0.55, value: [0,0,1,1]};
-		var colorKey4 = {key: 1, value: [0,0,0,0.2]};
+		var colorKeyBlue1 = {key: 0, value: [0,0,1,0.6]};
+		var colorKeyBlue2 = {key: 1, value: [0,0,1,0.6]};
+		
+		var colorKeyRed1 = {key: 0, value: [1,0,0,0.6]};
+		var colorKeyRed2 = {key: 1, value: [1,0,0,0.6]};
+		
+		
 		/* Create a particle system configuration with the above parameters,
 		 * plus a rate of 20 particles per second, and a lifetime of
 		 * 5 seconds. Specify the shapes are arrows.
@@ -156,13 +168,12 @@
 			fast: false,
 			aim: true,
 			trail: true,
-			particleCount: 200,
+			particleCount: 25,
 			life: 12,
 			boxes: [box1,box2,box3,box4, box5,box6,box7,box8,box9],
 			particleShape: hemi.curve.ShapeType.ARROW,
-			colors: [red],
 			scaleKeys : [scaleKey1, scaleKey2],
-			colorKeys : [colorKey1, colorKey2, colorKey3, colorKey4]
+			colorKeys : [colorKeyBlue1, colorKeyBlue2]
 		};
 		
 
@@ -177,22 +188,42 @@
 			color: [1,1,0,0],
 			h:1,w:1,d:1}
 			);
+		
 			
 		rootShape.translate(1400,0,0);
 		systemConfig.parent = rootShape;
-		systemConfig.colors = [blue];
+
+		systemConfig.colorKeys = [colorKeyRed1, colorKeyRed2];
 		
 		unitTest8.particleSystem2  = hemi.curve.createSystem(systemConfig);
 		unitTest8.particleSystem2.start();
 		
 		
 		var vp = new hemi.view.Viewpoint();		// Create a new Viewpoint
-		vp.eye = [-10,800,1800];					// Set viewpoint eye
-		vp.target = [10,250,30];					// Set viewpoint target
+		vp.eye = [650,800,1800];					// Set viewpoint eye
+		vp.target = [650,250,30];					// Set viewpoint target
 		
 
 		hemi.world.camera.moveToView(vp,30);
 
+	};
+	
+	unitTest8.checkLocations = function(){
+		jqUnit.expect(4);
+		
+		var refPointLocal1 = unitTest8.particleSystem1.boxes[0][0];
+		var refPointLocal2 = unitTest8.particleSystem2.boxes[0][0];
+		
+		jqMock.assertThat(refPointLocal1, [-510, -110, -10]);
+		jqMock.assertThat(refPointLocal2, [-510, -110, -10]);
+		
+		var refPointGlobal1 = hemi.utils.pointAsWorld(unitTest8.particleSystem1.transform, refPointLocal1);
+		var refPointGlobal2 = hemi.utils.pointAsWorld(unitTest8.particleSystem2.transform, refPointLocal2);
+		
+		jqMock.assertThat(refPointGlobal1, [-510, -110, -10]);
+		jqMock.assertThat(refPointGlobal2, [890,-110,-10]);
+		
+		
 	};
 	
 	unitTest8.showBoxes = function(){
@@ -200,21 +231,28 @@
 		unitTest8.particleSystem2.showBoxes();
 		
 		jqMock.assertThat(unitTest8.model , is.instanceOf(hemi.model.Model));
-	}
+	};
 	
 	unitTest8.hideBoxes = function() {
 		unitTest8.particleSystem1.hideBoxes();
 		unitTest8.particleSystem2.hideBoxes();
-	}
+	};
 	
 	unitTest8.showPerformance = function() {
+
 		var endMs = new Date().getTime();
+		
 		unitTest8.elapsedMs = endMs - unitTest8.startMs;
+		jqUnit.ok((unitTest8.particleSystem1.frames  > 0), 'Number of frames in the particle system: ' +
+			unitTest8.particleSystem1.frames);
+		
+		
 		unitTest8.fps = unitTest8.particleSystem1.frames / (unitTest8.elapsedMs  / 1000);
-	
-		jqUnit.ok(unitTest8.elapsedMs > 0, 'Elapsed Time in Ms: ' + unitTest8.elapsedMs);
-		jqUnit.ok(unitTest8.fps > 0, 'AVG Frames per Second: ' + unitTest8.fps);
-	}
+		
+		jqUnit.ok(unitTest8.elapsedMs > 0, 'Elapsed Time in milliseconds: ' + unitTest8.elapsedMs);
+		jqUnit.ok(unitTest8.fps > 0, 'Average frames displayed per second: ' + unitTest8.fps);
+
+	};
 	
 	
 	unitTest8.onRender = function(event) {
@@ -225,7 +263,7 @@
 		if (0 == mod) {
 			unitTest8.callBack.call();
 		} 
-	}
+	};
 
 	
 

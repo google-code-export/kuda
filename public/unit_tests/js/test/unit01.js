@@ -27,15 +27,15 @@
 	var unitTest1 = unitTest1 || {};
 
 	
-	unit1.start = function(onCompleteCallback) {
+	unit1.start = function(onUnitCompleteCallback) {
 		
-		this.onCompleteCallback = onCompleteCallback;
+		this.onUnitCompleteCallback = onUnitCompleteCallback;
 		
 		
 		var desc = 'Loads the model of the house and gets the bounding box.  Then it verifies that the dimensions are correct for the bounding box. ';
 		jqUnit.module('UNIT 1', desc); 
 		
-		jqUnit.test("loadModel", unitTest1.loadModel);
+		jqUnit.test("Load model", unitTest1.loadModel);
 		jqUnit.stop();
 		
 	};
@@ -45,7 +45,7 @@
 		
 		jqUnit.start();
 
-		jqUnit.test("moveToView", unitTest1.moveToView);
+		jqUnit.test("Move to view", unitTest1.moveToView);
 		jqUnit.stop();
 		
 	};
@@ -55,8 +55,8 @@
 		hemi.world.camera.unsubscribe(unitTest1.cameraStopSubscription, hemi.msg.stop);
 		
 
-		jqUnit.test("boundingBox", unitTest1.boundingBox);
-		unit1.onCompleteCallback.call();
+		jqUnit.test("Test models bounding box min and max extents", unitTest1.boundingBox);
+		unit1.onUnitCompleteCallback.call();
 
 	};
 	
@@ -116,7 +116,7 @@
 				unit1,
 				'step_3');
 		
-		hemi.world.camera.moveToView(vp,120);
+		hemi.world.camera.moveToView(vp,30);
 		hemi.world.camera.enableControl();	// Enable camera mouse control
 	};
 

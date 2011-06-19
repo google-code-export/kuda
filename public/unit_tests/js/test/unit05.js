@@ -30,44 +30,44 @@
 	var unitTest5 = unitTest5 || {};
 
 	
-	unit5.start = function(onCompleteCallback) {
-		unit5.onCompleteCallback = onCompleteCallback;
+	unit5.start = function(onUnitCompleteCallback) {
+		unit5.onUnitCompleteCallback = onUnitCompleteCallback;
 		
 		var desc = 'Creates two particle systems one is GPU acelerated, one is not';
 		jqUnit.module('UNIT 5', desc); 
-		jqUnit.test("particle system", unitTest5.step_1);
+		jqUnit.test("Load model", unitTest5.step_1);
 
 	};
 	
 	unit5.step_2 = function() {
 		var result = unitTest5.model.unsubscribe(unitTest5.loadSubscription, hemi.msg.load);
 		
-		unitTest5.isFast = false;
 		unitTest5.callBack = unit5.step_3;
-		jqUnit.test("particle system particle system: fast = false", unitTest5.createParticleSystem);
+		jqUnit.test("Create particle system 1: slow, blue", unitTest5.createParticleSystem1);
 
 	};
 	
 	unit5.step_3 = function() {
 		
 		hemi.world.camera.unsubscribe(unitTest5.subscription, hemi.msg.stop);
-		unitTest5.particleSystem.stop();
+		//unitTest5.particleSystem1.stop();
 		
-		unitTest5.isFast = true;
 		unitTest5.callBack = unit5.step_4;
-		jqUnit.test("particle system particle system: fast = true", unitTest5.createParticleSystem);
+		
+		jqUnit.test("Create particle system 2: fast, red", unitTest5.createParticleSystem2);
 		
 	};
 	unit5.step_4 = function() {
 		
-		hemi.world.camera.unsubscribe(unitTest5.subscription, hemi.msg.stop);
+	//	hemi.world.camera.unsubscribe(unitTest5.subscription, hemi.msg.stop);
 		
-		unit5.onCompleteCallback.call();
+		unit5.onUnitCompleteCallback.call();
 	};
 	
 	unit5.cleanup = function() {
 		unitTest5.model.cleanup();
-		unitTest5.particleSystem.stop();
+		unitTest5.particleSystem1.stop();
+		unitTest5.particleSystem2.stop();
 		//unitTest5.particleSystem.cleanup();
 	};
 	
@@ -93,19 +93,10 @@
 
 
 	};
-
-
-	unitTest5.createParticleSystem = function() {
-
-		jqMock.assertThat(unitTest5.model , is.instanceOf(hemi.model.Model));
-
-		var vp = new hemi.view.Viewpoint();		// Create a new Viewpoint
-		vp.eye = [-10,800,1800];					// Set viewpoint eye
-		vp.target = [10,250,30];					// Set viewpoint target
-
-		hemi.world.camera.enableControl();	// Enable camera mouse control
-		
-	/*
+	
+	
+	unitTest5.getParticleSystemConfig = function(){
+/*
 		 * The bounding boxes which the arrows will flow through:
 		 */
 		var box1 = [[-510,-110,-10],[-490,-90,10]];
@@ -126,45 +117,78 @@
 		var red = [1, 0, 0, 0.7];
 		
 		
-		var scaleKey1 = {key: 0, value: [10,10,10]};
-		var scaleKey2 = {key: 0.5, value: [50,80,50]};
-		var scaleKey3 = {key: 1, value: [10,10,10]};
+		var scaleKey1 = {key: 0, value: [5,5,5]};
+		var scaleKey3 = {key: 1, value: [5,5,5]};
 		
+		var colorKey1 = {key: 0, value: [0,0,1,0.5]};
+		var colorKey4 = {key: 1, value: [0,0,1,0.5]};
 
+			
 		/* Create a particle system configuration with the above parameters,
 		 * plus a rate of 20 particles per second, and a lifetime of
 		 * 5 seconds. Specify the shapes are arrows.
 		 */
-		var systemConfig = {
-			fast: unitTest5.isFast,
+		var particleSystemConfig = {
+			fast: false,
 			aim: true,
 			trail: true,
 			particleCount: 50,
 			life: 12,
 			boxes: [box1,box2,box3,box4,box5,box6,box7,box8,box9,box1],
 			particleShape: hemi.curve.ShapeType.ARROW,
-			colors: [blue,green,red,blue],
-			particleSize: 10//,
-		//	scaleKeys : [scaleKey1, scaleKey3]
+			colorKeys : [colorKey1, colorKey4],
+			particleSize: 6,
+			scaleKeys : [scaleKey1, scaleKey3]
 		};
 		
+		return particleSystemConfig;
+	}
 
-		unitTest5.particleSystem  = hemi.curve.createSystem(systemConfig);
-	
 
 
-		hemi.curve.showBoxes(unitTest5.particleSystem.boxes);
+	unitTest5.createParticleSystem1 = function() {
 
+
+		var config = unitTest5.getParticleSystemConfig();
 		
-		unitTest5.particleSystem.start();
+		
+		jqMock.assertThat(unitTest5.model , is.instanceOf(hemi.model.Model));
+
+		var vp = new hemi.view.Viewpoint();		// Create a new Viewpoint
+		vp.eye = [-10,800,1800];					// Set viewpoint eye
+		vp.target = [10,250,30];					// Set viewpoint target
+
+		hemi.world.camera.enableControl();	// Enable camera mouse control
 		
 
-		hemi.world.camera.moveToView(vp,120);
+		unitTest5.particleSystem1  = hemi.curve.createSystem(config);
+		hemi.curve.showBoxes(unitTest5.particleSystem1.boxes);
+		unitTest5.particleSystem1.start();
+		
+
+		hemi.world.camera.moveToView(vp,30);
 		
 		unitTest5.subscription = hemi.world.camera.subscribe(
 				hemi.msg.stop,
 				unitTest5.callBack);
 
+	};
+	
+	unitTest5.createParticleSystem2 = function() {
+		jqUnit.expect(1);
+		jqMock.assertThat(unitTest5.model , is.instanceOf(hemi.model.Model));
+		
+		var config = unitTest5.getParticleSystemConfig();
+		
+		var red = [1, 0, 0, 0.7];	
+		config.colors = [red];
+		config.fast = true;
+		config.colorKeys = null;
+
+		unitTest5.particleSystem2  = hemi.curve.createSystem(config);
+		//hemi.curve.showBoxes(unitTest5.particleSystem2.boxes);
+		unitTest5.particleSystem2.start();
+		unitTest5.callBack.call();
 	};
 
 
