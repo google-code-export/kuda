@@ -26,56 +26,56 @@
 	o3djs.require('o3djs.util');
 
 
-	var unit6 = unit6 || {};
-	var unitTest6 = unitTest6 || {};
+	var unit7 = unit7 || {};
+	var unitTest7 = unitTest7 || {};
 
 	
-	unit6.start = function(onCompleteCallback) {
-		unit6.onCompleteCallback = onCompleteCallback;
+	unit7.start = function(onUnitCompleteCallback) {
+		unit7.onUnitCompleteCallback = onUnitCompleteCallback;
 		
-		var desc = 'Creates a basic particle system which is NOT GPU accelerated';
-		jqUnit.module('UNIT 6', desc); 
-		jqUnit.test("particle system", unitTest6.step_1);
+		var desc = 'This test creates a GPU accelerated particle system with 1000 particles';
+		jqUnit.module('UNIT 7', desc); 
+		jqUnit.test("Load model", unitTest7.step_1);
 
 	};
 	
-	unit6.step_2 = function() {
-		var result = unitTest6.model.unsubscribe(unitTest6.loadSubscription, hemi.msg.load);
+	unit7.step_2 = function() {
+		var result = unitTest7.model.unsubscribe(unitTest7.loadSubscription, hemi.msg.load);
 		
-		unitTest6.callBack = unit6.step_3;
-		jqUnit.test("particle system particle system: fast = false", unitTest6.createParticleSystem);
+		unitTest7.callBack = unit7.step_3;
+		jqUnit.test("Create GPU accelerated particle system: 1000 particles", unitTest7.createParticleSystem);
 
 	};
 	
-	unit6.step_3 = function() {
+	unit7.step_3 = function() {
 		
-		hemi.world.camera.unsubscribe(unitTest6.subscription, hemi.msg.stop);
+		hemi.world.camera.unsubscribe(unitTest7.subscription, hemi.msg.stop);
 		
-		unit6.onCompleteCallback.call();
+		unit7.onUnitCompleteCallback.call();
 	};
 
 	
-	unit6.cleanup = function() {
-		unitTest6.model.cleanup();
-		unitTest6.particleSystem.stop();
-		unitTest6.particleSystem2.stop();
-		//unitTest6.particleSystem.cleanup();
+	unit7.cleanup = function() {
+		unitTest7.model.cleanup();
+		unitTest7.particleSystem.stop();
+		//unitTest7.particleSystem2.stop();
+		//unitTest7.particleSystem.cleanup();
 	};
 	
 	
 
-	unitTest6.step_1 = function()   {
+	unitTest7.step_1 = function()   {
 		
 		jqUnit.expect(1);
 		
-		unitTest6.model = new hemi.model.Model();				// Create a new Model
-		jqMock.assertThat(unitTest6.model , is.instanceOf(hemi.model.Model));
+		unitTest7.model = new hemi.model.Model();				// Create a new Model
+		jqMock.assertThat(unitTest7.model , is.instanceOf(hemi.model.Model));
 		
-		unitTest6.model.setFileName('house_v12/scene.json'); // Set the model file
+		unitTest7.model.setFileName('house_v12/scene.json'); // Set the model file
 		
-		unitTest6.loadSubscription = unitTest6.model.subscribe(
+		unitTest7.loadSubscription = unitTest7.model.subscribe(
 			hemi.msg.load,
-			unit6,
+			unit7,
 			'step_2'
 		);
 		
@@ -86,9 +86,9 @@
 	};
 
 
-	unitTest6.createParticleSystem = function() {
+	unitTest7.createParticleSystem = function() {
 
-		jqMock.assertThat(unitTest6.model , is.instanceOf(hemi.model.Model));
+		jqMock.assertThat(unitTest7.model , is.instanceOf(hemi.model.Model));
 
 		var vp = new hemi.view.Viewpoint();		// Create a new Viewpoint
 		vp.eye = [-10,800,1800];					// Set viewpoint eye
@@ -112,13 +112,13 @@
 		/*
 		 * The colors these arrows will be as they move along the curve:
 		 */
-		var blue = [0, 0, 1, 0.7];
-		var green = [0, 1, 0, 0.7];
-		var red = [1, 0, 0, 0.7];
+		var blue = [0, 0, 1, 0.4];
+		var green = [0, 1, 0, 0.4];
+		var red = [1, 0, 0, 0.4];
 		var colors = [blue,green,red,blue];
 		
-		var scaleKey1 = {key: 0, value: [10,10,10]};
-		var scaleKey2 = {key: 1, value: [10,10,10]};
+	//	var scaleKey1 = {key: 0, value: [10,10,10]};
+	//	var scaleKey2 = {key: 1, value: [10,10,10]};
 		
 
 		/* Create a particle system configuration with the above parameters,
@@ -129,32 +129,27 @@
 			fast: true,
 			aim: true,
 			trail: true,
-			particleCount: 50,
+			particleCount: 1000,
 			life: 12,
 			boxes: [box1,box2,box3,box4, box5,box6,box7,box8,box9],
 			particleShape: hemi.curve.ShapeType.ARROW,
 			colors: colors,
-			particleSize: 10,
-			scaleKeys : [scaleKey1, scaleKey2]
+			particleSize: 8//,
+			//scaleKeys : [scaleKey1, scaleKey2]
 		};
 		
 
-		unitTest6.particleSystem  = hemi.curve.createSystem(systemConfig);
-		hemi.curve.showBoxes(unitTest6.particleSystem.boxes);
-		unitTest6.particleSystem.start();
-		
-
-		systemConfig.fast = false;
-		
-		unitTest6.particleSystem2  = hemi.curve.createSystem(systemConfig);
-		unitTest6.particleSystem2.start();
+		unitTest7.particleSystem  = hemi.curve.createSystem(systemConfig);
+		hemi.curve.showBoxes(unitTest7.particleSystem.boxes);
+		unitTest7.particleSystem.start();
 		
 		
-		hemi.world.camera.moveToView(vp,120);
 		
-		unitTest6.subscription = hemi.world.camera.subscribe(
+		hemi.world.camera.moveToView(vp,30);
+		
+		unitTest7.subscription = hemi.world.camera.subscribe(
 				hemi.msg.stop,
-				unitTest6.callBack);
+				unitTest7.callBack);
 
 	};
 

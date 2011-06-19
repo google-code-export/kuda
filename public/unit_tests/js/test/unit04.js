@@ -30,24 +30,27 @@
 	var unitTest4 = unitTest4 || {};
 
 	
-	unit4.start = function(onCompleteCallback) {
-		this.onCompleteCallback = onCompleteCallback;
+	unit4.start = function(onUnitCompleteCallback) {
+		this.onUnitCompleteCallback = onUnitCompleteCallback;
 		
-		var desc = 'The purpose of this test is to change the location of the particle system, by assigning it a parent which is then trnaslated. You should see the emmitter of the particle system in the center of the house and the target to the right';
+		var desc = 'The purpose of this test is to change the location of the particle system, ' +
+		'by assigning it a parent which is then translated. You should see the emmitter of the ' +
+		'particle system in the center of the house and the target to the right.';
+		
 		jqUnit.module('UNIT 4', desc); 
-		jqUnit.test("particle system", unitTest4.step_1);
+		jqUnit.test("Load Model", unitTest4.step_1);
 
 	};
 	
 	unit4.step_2 = function() {
 		var result = unitTest4.model.unsubscribe(unitTest4.loadSubscription, hemi.msg.load);
-		jqUnit.test("particle system 2", unitTest4.step_2);
+		jqUnit.test("Create particle system", unitTest4.step_2);
 
 	};
 	
 	unit4.step_3 = function() {
 		hemi.world.camera.unsubscribe(unitTest4.subscription, hemi.msg.stop);
-		this.onCompleteCallback.call();
+		this.onUnitCompleteCallback.call();
 	};
 	
 	unit4.cleanup = function() {
@@ -109,9 +112,9 @@
 		 * Start out infinitesimal, then grow to a decent size,
 		 * kind of stretched out, then shrink away again.
 		 */
-		var scaleKey1 = {key: 0, value: [10,10,10]};
-		var scaleKey2 = {key: 0.5, value: [50,80,50]};
-		var scaleKey3 = {key: 1, value: [10,10,10]};
+		var scaleKey1 = {key: 0, value: [5,5,5]};
+		var scaleKey2 = {key: 0.5, value: [25,25,25]};
+		var scaleKey3 = {key: 1, value: [5,5,5]};
 		
 		/* A root transform to serve as the parent of the particle system.
 		 */
@@ -151,7 +154,7 @@
 		unitTest4.particleSystem.start();
 		
 
-		hemi.world.camera.moveToView(vp,60);
+		hemi.world.camera.moveToView(vp,30);
 		
 		unitTest4.subscription = hemi.world.camera.subscribe(
 				hemi.msg.stop,

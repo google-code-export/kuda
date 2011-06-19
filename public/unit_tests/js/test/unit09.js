@@ -33,10 +33,14 @@
 		unit9.onUnitCompleteCallback = onUnitCompleteCallback;
 		unitTest9.callBack = unit9.step_2;
 		
-		var desc = 'Creates 2 GPU enabled particle systems. One has red arrows, the other blue arrows. the test then changes the location of one of the blue particle systems by assigning a parent and trnaslating it, shows/hides/shows the bounding boxes';
+		var desc = 'Creates 2 GPU enabled particle systems. One has red arrows, the other blue arrows.' +
+		'Then changes the location of one of the blue particle systems by assigning a parent' +
+		' and translating it, shows/hides/shows the bounding boxes. ' +
+		'These particle systems are the GPU accelerated versions.';
+		
 		jqUnit.module('UNIT 9', desc); 
 
-		jqUnit.test("Load Model", unitTest9.init);
+		jqUnit.test("Load model", unitTest9.init);
 		jqUnit.stop();
 	};
 	
@@ -44,36 +48,45 @@
 	unit9.step_2 = function() {
 		jqUnit.start();
 		hemi.view.addRenderListener(unitTest9);
-		unitTest9.callBack = unit9.step_3;
+		unitTest9.callBack = unit9.step_2_5;
 		jqUnit.test("Create two GpuParticleSystems", unitTest9.start);
 		jqUnit.stop();
 	};
 	
+	unit9.step_2_5 = function() {
+		jqUnit.start();
+
+		unitTest9.callBack = unit9.step_3;
+		jqUnit.test("Check the location of each particle system in the world", unitTest9.checkLocations);
+		jqUnit.stop();
+	};
+	
+	
 	unit9.step_3 = function() {
 		jqUnit.start();
 		unitTest9.callBack = unit9.step_4;
-		jqUnit.test("Show Boxes", unitTest9.showBoxes);
+		jqUnit.test("Show bounding boxes", unitTest9.showBoxes);
 		jqUnit.stop();
 	};
 	
 	unit9.step_4 = function() {
 		jqUnit.start();
 		unitTest9.callBack = unit9.step_5;
-		jqUnit.test("Hide Boxes", unitTest9.hideBoxes);
+		jqUnit.test("Hide bounding boxes", unitTest9.hideBoxes);
 		jqUnit.stop();
 	};
 	
 	unit9.step_5 = function() {
 		jqUnit.start();
 		unitTest9.callBack = unit9.step_6;
-		jqUnit.test("Show Boxes", unitTest9.showBoxes);
+		jqUnit.test("Show bounding boxes", unitTest9.showBoxes);
 		jqUnit.stop();
 	};
 	
 	unit9.step_6 = function() {
 		jqUnit.start();
 		unitTest9.callBack = unit9.end;
-		jqUnit.test("Show Performance", unitTest9.showPerformance);
+		jqUnit.test("Show performance statistics", unitTest9.showPerformance);
 		jqUnit.stop();
 	};
 	
@@ -97,6 +110,7 @@
 		jqMock.assertThat(unitTest9.model , is.instanceOf(hemi.model.Model));
 		
 		unitTest9.model.setFileName('house_v12/scene.json'); // Set the model file
+		//unitTest9.model.setFileName('damper/damper.json'); // Set the model file
 		
 		var subscription = unitTest9.model.subscribe (
 			hemi.msg.load,
@@ -135,9 +149,9 @@
 		/*
 		 * The colors these arrows will be as they move along the curve:
 		 */
-		var blue = [0, 0, 1, 0.4];
-		var green = [0, 1, 0, 0.4];
-		var red = [1, 0, 0, 0.4];
+		var blue = [0, 0, 1, 0.5];
+		var green = [0, 1, 0, 0.5];
+		var red = [1, 0, 0, 0.5];
 		
 		var scaleKey1 = {key: 0, value: [40,40,40]};
 		var scaleKey2 = {key: 1, value: [40,40,40]};
@@ -169,22 +183,54 @@
 		
 
 		//make second particle system
+		//set its parent and translate to the right
+		var rootShape = hemi.shape.create (
+			{shape: 'box',
+			color: [1,1,0,0],
+			h:1,w:1,d:1}
+			);
+			
+		//rootShape.translate(1400,0,0);
+		//systemConfig.parent = rootShape;
 		systemConfig.colors = [blue];
+		systemConfig.particleSize =  .61;
 		
 		unitTest9.particleSystem2  = hemi.curve.createSystem(systemConfig);
-		//translate to the right
 		unitTest9.particleSystem2.translate(1400,0,0);
+		
+		
 		unitTest9.particleSystem2.start();
 		
 		
+		
+		
 		var vp = new hemi.view.Viewpoint();		// Create a new Viewpoint
-		vp.eye = [-10,800,1800];					// Set viewpoint eye
-		vp.target = [10,250,30];					// Set viewpoint target
+		vp.eye = [650,800,1800];					// Set viewpoint eye
+		vp.target = [650,250,30];					// Set viewpoint target
 		
 
 		hemi.world.camera.moveToView(vp,30);
 
 	};
+	
+	
+	unitTest9.checkLocations = function(){
+		jqUnit.expect(4);
+		
+		var refPointLocal1 = unitTest9.particleSystem1.boxes[0][0];
+		var refPointLocal2 = unitTest9.particleSystem2.boxes[0][0];
+		
+		jqMock.assertThat(refPointLocal1, [-510, -110, -10]);
+		jqMock.assertThat(refPointLocal2, [-510, -110, -10]);
+		
+		var refPointGlobal1 = hemi.utils.pointAsWorld(unitTest9.particleSystem1.transform, refPointLocal1);
+		var refPointGlobal2 = hemi.utils.pointAsWorld(unitTest9.particleSystem2.transform, refPointLocal2);
+		
+		jqMock.assertThat(refPointGlobal1, [-510, -110, -10]);
+		jqMock.assertThat(refPointGlobal2, [890,-110,-10]);
+
+	};
+	
 	
 	unitTest9.showBoxes = function(){
 		unitTest9.particleSystem1.showBoxes();
