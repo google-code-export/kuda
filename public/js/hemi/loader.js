@@ -60,7 +60,7 @@ var hemi = (function(hemi) {
 		
 		hemi.utils.get(url, function(data, status) {
 			if (data == null) {
-				alert(status);
+				hemi.core.error(status);
 			} else {
 				callback(data);
 			}
@@ -84,7 +84,7 @@ var hemi = (function(hemi) {
 		hemi.world.loader.loadBitmaps(pack, url,
 			function(bitmaps, exception){
 				if (exception) {
-					alert('Loading failed: ' + exception);
+					hemi.core.error(exception);
 				} else {
 					callback(bitmaps);
 				}
@@ -112,11 +112,11 @@ var hemi = (function(hemi) {
 		var img = new Image();
 		
 		img.onabort = function() {
-			hemi.console.log('Aborted loading: ' + url, hemi.console.WARN);
+			hemi.core.error('Aborted loading: ' + url);
 			hemi.world.loader.countDown_();
 		};
 		img.onerror = function() {
-			hemi.console.log('Error loading: ' + url, hemi.console.ERR);
+			hemi.core.error('Error loading: ' + url);
 			hemi.world.loader.countDown_();
 		};
 		img.onload = function() {
@@ -146,11 +146,12 @@ var hemi = (function(hemi) {
 		hemi.world.loader.loadTexture(pack, url,
 			function(texture, exception) {
 				if (exception) {
-					alert(exception);
+					hemi.core.error(exception);
+				} else {
+					onLoadTexture.call(opt_this, texture);
 				}
 
 				hemi.loader.updateTask(url, 100);
-				onLoadTexture.call(opt_this, texture);
 			});
 		
 		var list = hemi.world.loader.loadInfo.children_,
@@ -181,7 +182,7 @@ var hemi = (function(hemi) {
 		hemi.world.loader.loadScene(hemi.core.client, pack, parent, url,
 			function(pack, parent, exception) {
 				if (exception) {
-					alert('Loading failed: ' + exception);
+					hemi.core.error(exception);
 				} else if (opt_callback) {
 					opt_callback(pack, parent);
 				}
@@ -214,7 +215,7 @@ var hemi = (function(hemi) {
 
 		hemi.utils.get(url, function(data, status) {
 			if (data == null) {
-				alert(status);
+				hemi.core.error(status);
 			} else {
 				if (typeof data === 'string') {
 					data = JSON.decode(data);

@@ -129,6 +129,31 @@ var hemi = (function(hemi) {
 			return -1;
 		};
 	}
+	
+	/**
+	 * Pass the given error message to the registered error handler or throw an
+	 * Error if no handler is registered.
+	 * 
+	 * @param {string} msg error message
+	 */
+	hemi.core.error = function(msg) {
+		if (this.errCallback) {
+			this.errCallback(msg);
+		} else {
+			var err = new Error(msg);
+			err.name = 'HemiError';
+			throw err;
+		}
+	};
+	
+	/**
+	 * Set the given function as the error handler for Hemi errors.
+	 * 
+	 * @param {function(string):void} callback error handling function
+	 */
+	hemi.core.setErrorCallback = function(callback) {
+		this.errCallback = callback;
+	};
 
 	hemi.core.init = function(clientElement) {
 		// Create aliases o3djs libraries
@@ -143,13 +168,13 @@ var hemi = (function(hemi) {
 		this.picking = o3djs.picking;
 		this.primitives = o3djs.primitives;
 		this.io = o3djs.io;
-		this.error = o3djs.error;
 		this.debug = o3djs.debug;
 
 		this.o3dElement = clientElement;
 		this.o3d = this.o3dElement.o3d;
 		this.client = this.o3dElement.client;
 		this.mainPack = this.client.createPack();
+		this.errCallback = null;
 
 		hemi.picking.init();
 		hemi.input.init();
