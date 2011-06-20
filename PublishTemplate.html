@@ -47,6 +47,10 @@
 			addWinFunc(function() {
 				o3djs.webgl.makeClients(function(clientElements) {
 					hemi.core.init(clientElements[0]);
+					hemi.core.setErrorCallback(function(msg) {
+						alert('An error has occurred:\n' + msg +
+							'\nDid you forget to copy a model to the assets directory?');
+					});
 					hemi.loader.loadPath = '%LOAD%/';
 					hemi.loader.loadOctane('%PROJECT%.json');
 				});
