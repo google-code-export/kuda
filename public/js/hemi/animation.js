@@ -18,7 +18,7 @@
 var hemi = (function(hemi) {
 	
 	/**
-	 * @namespace A module for animating {@link hemi.model.Model}s.
+	 * @namespace A module for animating Models.
 	 */
 	hemi.animation = hemi.animation || {};
 
@@ -89,8 +89,7 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * @class An Animation contains a target to animate, a begin time, an end
-	 * time, and {@link hemi.animation.Loop}s for repeating sections of the
-	 * Animation.
+	 * time, and Loops for repeating sections of the Animation.
 	 * @extends hemi.world.Citizen
 	 */
 	hemi.animation.Animation = function() {

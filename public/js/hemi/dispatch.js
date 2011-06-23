@@ -81,14 +81,14 @@ var hemi = (function(hemi) {
 	hemi.dispatch.MessageSpec = function() {
 		/**
 		 * The id of the Message originator to handle Messages from. This can
-		 * also be {@link hemi.dispatch.WILDCARD} to match all source ids.
+		 * also be hemi.dispatch.WILDCARD to match all source ids.
 		 * @type number
 		 */
 		this.src = null;
 		
 		/**
 		 * The type of Message to handle. This can also be
-		 * {@link hemi.dispatch.WILDCARD} to match all Message types.
+		 * hemi.dispatch.WILDCARD to match all Message types.
 		 * @type string
 		 */
 		this.msg = null;

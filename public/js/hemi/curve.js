@@ -1061,8 +1061,8 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the emit rate of the system.
 		 *
-		 * @param (number) rate The rate at which to emit particles
-		 * @return (number) The new rate - may be different because of bounds
+		 * @param {number} rate The rate at which to emit particles
+		 * @return {number} The new rate - may be different because of bounds
 		 */
 		setRate : function(rate) {
 			var newRate = hemi.utils.clamp(rate, 0, this.maxRate);
