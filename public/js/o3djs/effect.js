@@ -217,7 +217,7 @@ o3djs.effect.glsl.utilityFunctions = function() {
  */
 o3djs.effect.o3d.utilityFunctions = function() {
   return '';
-}
+};
 
 
 /**
@@ -612,13 +612,16 @@ o3djs.effect.buildBumpInputCoords = function(bumpSampler) {
 o3djs.effect.buildBumpOutputCoords = function(bumpSampler) {
   var p = o3djs.effect;
   return bumpSampler ?
-      ('  ' + p.FLOAT3 + ' tangent' +
+      (p.VARYING + p.FLOAT3 + ' ' +
+	      p.VARYING_DECLARATION_PREFIX + 'tangent' +
           p.semanticSuffix(
               'TEXCOORD' + p.interpolant_++) + ';\n' +
-       '  ' + p.FLOAT3 + ' binormal' +
-          p.semanticSuffix('TEXCOORD' +
-              p.interpolant_++) + ';\n' +
-       '  ' + p.FLOAT2 + ' bumpUV' +
+       p.VARYING + p.FLOAT3 + ' ' +
+	      p.VARYING_DECLARATION_PREFIX + 'binormal' +
+          p.semanticSuffix(
+		      'TEXCOORD' + p.interpolant_++) + ';\n' +
+       p.VARYING + p.FLOAT2 + ' ' +
+	      p.VARYING_DECLARATION_PREFIX + 'bumpUV' +
           p.semanticSuffix(
               'TEXCOORD' + p.interpolant_++) + ';\n') : '';
 };
@@ -784,7 +787,7 @@ o3djs.effect.getNumTexCoordStreamsNeeded = function(material) {
     throw 'not a collada standard material';
   }
   var colladaSamplers = p.COLLADA_SAMPLER_PARAMETER_PREFIXES;
-  var numTexCoordStreamsNeeded = 0
+  var numTexCoordStreamsNeeded = 0;
   for (var cc = 0; cc < colladaSamplers.length; ++cc) {
     var samplerPrefix = colladaSamplers[cc];
     var samplerParam = material.getParam(samplerPrefix + 'Sampler');
@@ -854,7 +857,7 @@ o3djs.effect.buildStandardShaderString = function(material,
       case 'o3d.TextureCUBE' : return 'CUBE';
       default : return '2D';
     }
-  }
+  };
 
   /**
    * Extracts the sampler type from a sampler param.  It does it by inspecting
@@ -925,7 +928,7 @@ o3djs.effect.buildStandardShaderString = function(material,
     if (samplerParam) {
       var type = getSamplerType(samplerParam);
       descriptions.push(name + type + 'Texture');
-      return 'uniform sampler' + type + ' ' + name + 'Sampler;\n'
+      return 'uniform sampler' + type + ' ' + name + 'Sampler;\n';
     } else if (opt_addColorParam) {
       descriptions.push(name + 'Color');
       return 'uniform ' + p.FLOAT4 + ' ' + name + ';\n';
@@ -950,7 +953,7 @@ o3djs.effect.buildStandardShaderString = function(material,
       var type = getSamplerType(samplerParam);
       return '  ' + p.FLOAT4 + ' ' + name + ' = ' + p.TEXTURE + type +
              '(' + name + 'Sampler, ' +
-             p.PIXEL_VARYING_PREFIX + name + 'UV);\n'
+             p.PIXEL_VARYING_PREFIX + name + 'UV);\n';
     } else {
       return '';
     }
@@ -1210,19 +1213,19 @@ o3djs.effect.buildStandardShaderString = function(material,
    */
   var getNormalShaderCode = function() {
     return bumpSampler ?
-        (p.MATRIX3 + ' tangentToWorld = ' + p.MATRIX3 +
-            '(' + p.ATTRIBUTE_PREFIX + 'tangent,\n' +
+        ('  ' + p.MATRIX3 + ' tangentToWorld = ' + p.MATRIX3 +
+            '(' + p.PIXEL_VARYING_PREFIX + 'tangent,\n' +
          '                                   ' +
-         p.ATTRIBUTE_PREFIX + 'binormal,\n' +
+         p.PIXEL_VARYING_PREFIX + 'binormal,\n' +
          '                                   ' +
-         p.ATTRIBUTE_PREFIX + 'normal);\n' +
-         p.FLOAT3 + ' tangentNormal = ' + p.TEXTURE + '2D' + '(bumpSampler, ' +
-         p.ATTRIBUTE_PREFIX + 'bumpUV.xy).xyz -\n' +
+         p.PIXEL_VARYING_PREFIX + 'normal);\n' +
+         '  ' + p.FLOAT3 + ' tangentNormal = ' + p.TEXTURE + '2D' + '(bumpSampler, ' +
+         p.PIXEL_VARYING_PREFIX + 'bumpUV.xy).xyz -\n' +
          '                       ' + p.FLOAT3 +
-         '(0.5, 0.5, 0.5);\n' + p.FLOAT3 + ' normal = ' +
+         '(0.5, 0.5, 0.5);\n' + '  ' + p.FLOAT3 + ' normal = ' +
          p.mul('tangentNormal', 'tangentToWorld') + ';\n' +
-         'normal = normalize(' + p.PIXEL_VARYING_PREFIX +
-         'normal);\n') : '  ' + p.FLOAT3 + ' normal = normalize(' +
+         'normal = normalize(normal);\n') :
+		 '  ' + p.FLOAT3 + ' normal = normalize(' +
          p.PIXEL_VARYING_PREFIX + 'normal);\n';
   };
 
