@@ -582,7 +582,7 @@ var hemi = (function(hemi) {
 		hemi.msg.cleanup,
 		hemi.msg.pick,
 		hemi.msg.ready
-	],
+	];
 	
 	/**
 	 * The Camera that provides a view of the World.

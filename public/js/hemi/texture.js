@@ -22,8 +22,7 @@ var hemi = (function(hemi) {
 	 * to handle shader sampling and texture maps.  An o3d.Material will have
 	 * a parameter that is a sampler when a material is using a texture.  The
 	 * paramter is either an emmissive, or diffuse sampler.  This module makes
-	 * easy to swap textures dynamically on {@link hemi.model.Model}s.  See the
-	 * lighting sample.
+	 * easy to swap textures dynamically on Models.  See the lighting sample.
 	 */
 	hemi.texture = hemi.texture || {};
 
