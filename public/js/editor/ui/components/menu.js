@@ -16,8 +16,6 @@
  */
 
 var editor = (function(module) {
-	o3djs.require('editor.ui.component');
-	
 	module.ui = module.ui || {};
 	
     module.EventTypes = module.EventTypes || {};

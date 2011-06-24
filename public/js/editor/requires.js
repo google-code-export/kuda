@@ -34,24 +34,27 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.utils.misc');
 	o3djs.require('editor.utils.treeData');
 	
-    o3djs.require('editor.ui.component');
-	o3djs.require('editor.ui.progress');
-    o3djs.require('editor.ui.menu');
-	o3djs.require('editor.ui.listWidget');
-	o3djs.require('editor.ui.toolbar');
-	o3djs.require('editor.ui.sidebar');
-    o3djs.require('editor.ui.actionbar');
-	o3djs.require('editor.ui.dialog');
-	o3djs.require('editor.ui.colorpicker');
-	o3djs.require('editor.ui.vector');
-	o3djs.require('editor.ui.treeSelector');
-	o3djs.require('editor.ui.validator');
-	o3djs.require('editor.ui.transformHandles');
-	o3djs.require('editor.ui.gridPlane');
-	o3djs.require('editor.ui.behaviorTrees');
-	o3djs.require('editor.ui.param');
-	o3djs.require('editor.ui.behaviorWidget');
-    o3djs.require('editor.ui.dialogs');
+    o3djs.require('editor.ui.components.component');
+    o3djs.require('editor.ui.components.menu');
+	o3djs.require('editor.ui.components.colorpicker');
+	o3djs.require('editor.ui.components.vector');
+	o3djs.require('editor.ui.components.treeSelector');
+	o3djs.require('editor.ui.components.validator');
+	o3djs.require('editor.ui.components.objectPicker');
+	
+	o3djs.require('editor.ui.core.progress');
+	o3djs.require('editor.ui.core.toolbar');
+	o3djs.require('editor.ui.core.sidebar');
+    o3djs.require('editor.ui.core.actionbar');
+	o3djs.require('editor.ui.core.transformHandles');
+	o3djs.require('editor.ui.core.gridPlane');
+	o3djs.require('editor.ui.core.behaviorTrees');
+    o3djs.require('editor.ui.core.dialogs');
+	
+	o3djs.require('editor.ui.widgets.listWidget');
+	o3djs.require('editor.ui.widgets.detailsList');
+	o3djs.require('editor.ui.widgets.param');
+	o3djs.require('editor.ui.widgets.behaviorWidget');
 
     o3djs.require('editor.tools.baseTool');
     o3djs.require('editor.tools.animator');
@@ -61,7 +64,6 @@ var editor = (function(base, jQuery) {
     o3djs.require('editor.tools.motions');
     o3djs.require('editor.tools.viewManip');
     o3djs.require('editor.tools.viewpoints');
-    o3djs.require('editor.tools.modelLoader');
 	o3djs.require('editor.tools.particleEffects');
 	o3djs.require('editor.tools.preview');
 	o3djs.require('editor.tools.scenes');
