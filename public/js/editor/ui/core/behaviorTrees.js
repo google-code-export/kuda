@@ -79,6 +79,17 @@ var editor = (function(module) {
 			}
 		},
 		
+		filterType: function(type) {
+			var cits = this.citizenTypes.get(type);
+			
+			if (cits !== null && cits.length > 0) {
+				this.notifyListeners(module.EventTypes.Trees.FilterByType, {
+					type: type,
+					citizens: cits
+				});
+			}
+		},
+		
 		removeCitizen: function(citizen) {
 			var type = citizen.getCitizenType().split('.').pop(),
 				citizens = this.citizenTypes.get(type),
@@ -146,6 +157,15 @@ var editor = (function(module) {
 			this.tree.bind('select_node.jstree', func);
 		},
 		
+		clearFilter: function() {
+			var tree = jQuery.jstree._reference(this.tree),
+				nodes = tree._get_children(-1),
+				mainNode = tree._get_node('#' + this.filterId);
+				
+			nodes.show();
+			mainNode.removeClass('jstree-last');
+		},
+		
 		deselect: function(data) {				
 			switch (this.type) {
 				case TRIGGER_PREFIX:
@@ -155,6 +175,22 @@ var editor = (function(module) {
 					deselectAction.call(this, data);
 					break;
 			}
+		},
+		
+		filter: function(type) {
+			var id = module.treeData.getNodeName({
+					getCitizenType: function() { return type; }
+				}, {
+					prefix: this.pre
+				}),
+				tree = jQuery.jstree._reference(this.tree),
+				nodes = tree._get_children(-1),
+				mainNode = tree._get_node('#' + id);
+				
+			nodes.hide();
+			mainNode.show().addClass('jstree-last');
+			
+			this.filterId = id;
 		},
 		
 		notify: function(eventType, value) {
@@ -195,12 +231,36 @@ var editor = (function(module) {
 			}
 		},
 		
-		restrictSelection:  function(citizen, msgs) {
-			restrictSelection.call(this, citizen, msgs);
+		restrictSelection: function(citizen, msgs) {
+			var id = citizen.getId ? citizen.getId() : null;
+			this.tree.addClass('restricted');
+			
+			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
+				var nodeName = module.treeData.getNodeName(citizen, {
+						option: msgs[ndx],
+						prefix: this.pre,
+						id: id
+					}),
+					node = jQuery('#' + nodeName, this.tree);
+				
+				node.find('a').addClass('restrictedSelectable');
+			}
 		},
 		
-		unrestrictSelection:  function(citizen, msgs) {
-			unrestrictSelection.call(this, citizen, msgs);
+		unrestrictSelection: function(citizen, msgs) {
+			var id = citizen.getId ? citizen.getId() : null;
+			this.tree.removeClass('restricted');
+			
+			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
+				var nodeName = module.treeData.getNodeName(citizen, {
+						option: msgs[ndx],
+						prefix: this.pre,
+						id: id
+					}),
+					node = jQuery('#' + nodeName, this.tree);
+				
+				node.find('a').removeClass('restrictedSelectable');
+			}
 		},
 		
 		update: function(citizen) {
@@ -216,7 +276,7 @@ var editor = (function(module) {
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                                View Helpers                                //
+//                         Tree View Private Methods                          //
 ////////////////////////////////////////////////////////////////////////////////
 		
 	var addAction = function(citizen, createType) {
@@ -397,48 +457,7 @@ var editor = (function(module) {
 					'selected_parent_close': 'false'
 				},
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
-			});
-			
-			if (!this.noDefaultBind) {
-				this.tree.bind('select_node.jstree', function(evt, data) {
-					var elem = data.rslt.obj,
-						metadata = elem.data('jstree'),
-						elemId = elem.attr('id'),
-						msgType = module.EventTypes.Trees.SelectAction;
-					
-					if (that.lastAction === elemId) {
-						that.tree.jstree('close_node', elem);
-						that.lastAction = null;
-					} else {
-						that.lastAction = elemId;
-						
-						if (metadata.type === 'method') {
-							var path = that.tree.jstree('get_path', elem, true);
-							var parentName = path[path.length - 2] + '_';
-							var parId = metadata.parent.getId() + '';
-							parentName = parentName.replace(parId + '_MORE', parId);
-							var name = elemId.replace(parentName, '');
-							
-							that.notifyListeners(msgType, {
-								citizen: metadata.parent,
-								method: name
-							});
-						} else if (metadata.type === 'citizen') {
-							that.tree.jstree('open_node', elem, false, false);
-							that.notifyListeners(msgType, {
-								citizen: metadata.citizen,
-								method: null
-							});
-						} else if (metadata.type === 'citType') {
-							that.tree.jstree('open_node', elem, false, false);
-							that.notifyListeners(msgType, {
-								citizen: null,
-								method: null
-							});
-						}
-					}
-				});				
-			}
+			});	
 			
 			this.notifyListeners(module.EventTypes.Trees.TreeCreated, this.tree);
 		},
@@ -688,66 +707,56 @@ var editor = (function(module) {
 				node = jQuery('#' + nodeName);
 				this.tree.jstree('delete_node', node);
 			}
-		},
-		
-		restrictSelection = function(citizen, msgs) {
-			var id = citizen.getId ? citizen.getId() : null;
-			this.tree.addClass('restricted');
-			
-			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
-				var nodeName = module.treeData.getNodeName(citizen, {
-						option: msgs[ndx],
-						prefix: this.pre,
-						id: id
-					}),
-					node = jQuery('#' + nodeName, this.tree);
-				
-				node.find('a').addClass('restrictedSelectable');
-			}
-		},
-		
-		unrestrictSelection = function(citizen, msgs) {
-			var id = citizen.getId ? citizen.getId() : null;
-			this.tree.removeClass('restricted');
-			
-			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
-				var nodeName = module.treeData.getNodeName(citizen, {
-						option: msgs[ndx],
-						prefix: this.pre,
-						id: id
-					}),
-					node = jQuery('#' + nodeName, this.tree);
-				
-				node.find('a').removeClass('restrictedSelectable');
-			}
 		};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                         		  Helper Methods   	                          //
+////////////////////////////////////////////////////////////////////////////////
+
+	var populateTree = function(tree) {
+		var treeModel = module.ui.treeModel,
+			table = treeModel.citizenTypes,
+			keys = table.keys();
+			
+		treeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
+		treeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
+		treeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
+			
+		for (var i = 0, il = keys.length; i < il; i++) {
+			var list = table.get(keys[i]);
+			
+			for (var j = 0, jl = list.length; j < jl; j++) {
+				var cit = list[j],
+					createType = j === 0;
+				
+				tree.notify(module.EventTypes.Trees.CitizenAdded, {
+					citizen: cit,
+					createType: createType
+				});
+			}
+		}
+	};
 	
 	module.ui.treeModel = new TreeModel();
 	
 	module.ui.createCitizensTree = function() {
 		var tree = new TreeView(CITIZEN_PREFIX);
-		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
-		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
-		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
 		
+		populateTree(tree);
 		return tree;
 	};
 	
 	module.ui.createActionsTree = function() {
 		var tree = new TreeView(ACTION_PREFIX);
-		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
-		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
-		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
 		
+		populateTree(tree);
 		return tree;
 	};
 	
 	module.ui.createTriggersTree = function() {
 		var tree = new TreeView(TRIGGER_PREFIX);
-		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
-		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
-		module.ui.treeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
 		
+		populateTree(tree);
 		return tree;
 	};
 	

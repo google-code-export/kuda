@@ -15,9 +15,7 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	o3djs.require('editor.ui.detailsList');
-	
+var editor = (function(module) {	
 	module.tools = module.tools || {};
 	
     module.tools.ToolConstants = module.tools.ToolConstants || {};
