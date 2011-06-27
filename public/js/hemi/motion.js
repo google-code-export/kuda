@@ -216,6 +216,7 @@ var hemi = (function(hemi) {
 			}
 			this.stopAngle = hemi.core.math.addVector(this.angle,theta);
 			this.send(hemi.msg.start,{});
+			this.enable();
 			return true;
 		},
 		
@@ -533,6 +534,7 @@ var hemi = (function(hemi) {
 			}
 			this.stopPos = hemi.core.math.addVector(this.pos,pos);
 			this.send(hemi.msg.start,{});
+			this.enable();
 			return true;
 		},
 	
