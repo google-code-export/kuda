@@ -93,6 +93,7 @@ var editor = (function(module) {
 							.addClass('errMsg').show();
 						
 						sel.hide();
+						form.show();
 						ipt.show();
 					}
 					else {
