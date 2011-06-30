@@ -68,7 +68,7 @@ var hext = (function(hext) {
 			
 			toolbarView.zoomOutBtn.bind('click', function(evt) {
 				toolModel.zoomOut();
-				toolbarView.zoomInBtn.attr('disabled', '');
+				toolbarView.zoomInBtn.removeAttr('disabled');
 			});
 		},
 		

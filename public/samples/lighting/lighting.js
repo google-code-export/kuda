@@ -200,7 +200,7 @@ o3djs.require('hext.progressUI.progressBar');
 	function onTextureSet(map, samplers) {
 		var set = 'set' + map.kitchen.slice(-8, -4);
 		skin[set] = samplers;
-		jQuery('#' + set).attr('disabled', '');
+		jQuery('#' + set).removeAttr('disabled');
 		jQuery('div.loadedTextureSets').append(set + ' loaded<br/>');
 	}
 
