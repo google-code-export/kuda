@@ -216,8 +216,8 @@ o3djs.require('hext.progressUI.progressBar');
 				eyes[5], eyes[6],
 				eyes[7], SLIDE1_TARGET
 			],
-			curveEye = new hemi.curve.Curve(eyes, hemi.curve.curveType.Cardinal),
-			curveTarget = new hemi.curve.Curve(targets, hemi.curve.curveType.Cardinal),
+			curveEye = new hemi.curve.Curve(eyes, hemi.curve.CurveType.Cardinal),
+			curveTarget = new hemi.curve.Curve(targets, hemi.curve.CurveType.Cardinal),
 			camCurve = new hemi.view.CameraCurve(curveEye, curveTarget);
 			// curveEye.draw(50, { jointSize: 4 });
 			camera.moveOnCurve(camCurve, 600);
@@ -242,8 +242,8 @@ o3djs.require('hext.progressUI.progressBar');
 				[0, 400, Zc], [0, 0, Zd]],
 				targets = [
 				[0, 0, Zt], [0, 0, Zt]],
-			curveEye = new hemi.curve.Curve(eyes, hemi.curve.curveType.CubicHermite, { tangents: tangents }),
-			curveTarget = new hemi.curve.Curve(targets, hemi.curve.curveType.Linear),
+			curveEye = new hemi.curve.Curve(eyes, hemi.curve.CurveType.CubicHermite, { tangents: tangents }),
+			curveTarget = new hemi.curve.Curve(targets, hemi.curve.CurveType.Linear),
 			camCurve = new hemi.view.CameraCurve(curveEye, curveTarget);
 			// curveEye.draw(50, { jointSize: 4 });
 			camera.moveOnCurve(camCurve, 28);

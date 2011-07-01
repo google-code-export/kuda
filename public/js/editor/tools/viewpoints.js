@@ -250,8 +250,8 @@ var editor = (function(module) {
 				targets.push(wp.tgt);
 			}
 			
-			this.curve.eye = new hemi.curve.Curve(eyes, hemi.curve.curveType.Cardinal),
-			this.curve.target = new hemi.curve.Curve(targets, hemi.curve.curveType.Cardinal);
+			this.curve.eye = new hemi.curve.Curve(eyes, hemi.curve.CurveType.Cardinal),
+			this.curve.target = new hemi.curve.Curve(targets, hemi.curve.CurveType.Cardinal);
 		},
 		
 		updatePreviewCurve: function() {

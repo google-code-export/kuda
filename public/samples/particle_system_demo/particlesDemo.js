@@ -56,11 +56,11 @@
 		 * box in the upper right, then converge on a small box in the
 		 * bottom right.
 		 */
-		var box1 = [[-510,-110,-10],[-490,-90,10]];
-		var box2 = [[-600,400,-200],[-400,600,0]];
-		var box3 = [[-10,790,180],[10,810,200]];
-		var box4 = [[400,450,-300],[600,650,-100]];
-		var box5 = [[490,-110,-10],[510,-90,10]];
+		var box1 = new hemi.curve.Box([-510,-110,-10],[-490,-90,10]);
+		var box2 = new hemi.curve.Box([-600,400,-200],[-400,600,0]);
+		var box3 = new hemi.curve.Box([-10,790,180],[10,810,200]);
+		var box4 = new hemi.curve.Box([400,450,-300],[600,650,-100]);
+		var box5 = new hemi.curve.Box([490,-110,-10],[510,-90,10]);
 		
 		/* The colors these arrows will be as they move through:
 		 * Start out yellow and transparent, then turn red and opaque,

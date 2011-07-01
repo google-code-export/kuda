@@ -30,15 +30,15 @@ var hemi = (function(hemi) {
 	/**
 	 * Enum for different curve types, described below.
 	 * <ul><pre>
-	 * <li>hemi.curve.curveType.Linear
-	 * <li>hemi.curve.curveType.Bezier
-	 * <li>hemi.curve.curveType.CubicHermite
-	 * <li>hemi.curve.curveType.LinearNorm
-	 * <li>hemi.curve.curveType.Cardinal
-	 * <li>hemi.curve.curveType.Custom
+	 * <li>hemi.curve.CurveType.Linear
+	 * <li>hemi.curve.CurveType.Bezier
+	 * <li>hemi.curve.CurveType.CubicHermite
+	 * <li>hemi.curve.CurveType.LinearNorm
+	 * <li>hemi.curve.CurveType.Cardinal
+	 * <li>hemi.curve.CurveType.Custom
 	 * </ul></pre>
 	 */
-	hemi.curve.curveType = {
+	hemi.curve.CurveType = {
 		Linear : 0,
 		Bezier : 1,
 		CubicHermite : 2,
@@ -60,12 +60,72 @@ var hemi = (function(hemi) {
 		SPHERE : 'sphere',
 		ARROW : 'arrow'
 	};
+	
+	/**
+	 * @class A Box is defined by a minimum XYZ point and a maximum XYZ point.
+	 * 
+	 * @param {number[3]} opt_min minimum XYZ point
+	 * @param {number[3]} opt_max maximum XYZ point
+	 */
+	hemi.curve.Box = function(opt_min, opt_max) {
+		/**
+		 * The minimum XYZ point
+		 * @type number[3]
+		 */
+		this.min = opt_min || [];
+		
+		/**
+		 * The maximum XYZ point
+		 * @type number[3]
+		 */
+		this.max = opt_max || [];
+	};
+	
+	/**
+	 * @class A ColorKey contains a time key and a color value.
+	 * 
+	 * @param {number} key time value between 0 and 1
+	 * @param {number[4]} color RGBA color value
+	 */
+	hemi.curve.ColorKey = function(key, color) {
+		/**
+		 * The time when the ColorKey is 100% of the Curve's color value.
+		 * @type number
+		 */
+		this.key = key;
+		
+		/**
+		 * The color value for Curve particles.
+		 * @type number[4]
+		 */
+		this.value = color;
+	};
+	
+	/**
+	 * @class A ScaleKey contains a time key and a scale value.
+	 * 
+	 * @param {number} key time value between 0 and 1
+	 * @param {number[3]} scale XYZ scale value
+	 */
+	hemi.curve.ScaleKey = function(key, scale) {
+		/**
+		 * The time when the ScaleKey is 100% of the Curve's scale value.
+		 * @type number
+		 */
+		this.key = key;
+		
+		/**
+		 * The scale value for Curve particles.
+		 * @type number[3]
+		 */
+		this.value = scale;
+	};
 
 	/**
 	 * Render a 3D representation of a curve.
 	 *
-	 * @param {number[][]} points Array of points (not waypoints)
-	 * @param {Object} config Configuration describing how the curve should look
+	 * @param {number[3][]} points array of points (not waypoints)
+	 * @param {Object} config configuration describing how the curve should look
 	 */
 	hemi.curve.drawCurve = function(points, config) {
 		if (!this.dbgLineMat) {
@@ -203,12 +263,12 @@ var hemi = (function(hemi) {
 		for (var i = 0; i < boxes.length; i++) {
 			var transform = pack.createObject('Transform'),
 				b = boxes[i],
-				w = b[1][0] - b[0][0],
-				h = b[1][1] - b[0][1],
-				d = b[1][2] - b[0][2],
-				x = b[0][0] + w/2,
-				y = b[0][1] + h/2,
-				z = b[0][2] + d/2,
+				w = b.max[0] - b.min[0],
+				h = b.max[1] - b.min[1],
+				d = b.max[2] - b.min[2],
+				x = b.min[0] + w/2,
+				y = b.min[1] + h/2,
+				z = b.min[2] + d/2,
 				box = o3djs.primitives.createBox(pack, this.dbgBoxMat, w, h, d);
 			
 			transform.addShape(box);
@@ -319,9 +379,9 @@ var hemi = (function(hemi) {
 	 * @class A Curve is used to represent and calculate different curves
 	 * including: linear, bezier, cardinal, and cubic hermite.
 	 * 
-	 * @param {number[][]} points List of xyz waypoints 
-	 * @param {number} opt_type Curve type
-	 * @param {hemi.config} opt_config Configuration object specific to this curve
+	 * @param {number[3][]} points List of xyz waypoints 
+	 * @param {hemi.curve.CurveType} opt_type Curve type
+	 * @param {Object} opt_config Configuration object specific to this curve
 	 */
 	hemi.curve.Curve = function(points,opt_type,opt_config) {
 		this.count = 0;
@@ -343,7 +403,11 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.curve.Curve.prototype = {
-		
+		/**
+		 * Get the Octane structure for the Curve.
+	     *
+	     * @return {Object} the Octane structure representing the Curve
+		 */
 		toOctane : function() {
 			var names = ['count', 'tension', 'weights', 'xpts', 'xtans', 'ypts',
 					'ytans', 'zpts', 'ztans'],
@@ -369,9 +433,14 @@ var hemi = (function(hemi) {
 			return octane;
 		},
 		
+		/**
+		 * Load the given configuration options into the Curve.
+		 * 
+		 * @param {Object} cfg configuration options for the Curve
+		 */
 		loadConfig : function(cfg) {
 			var points = cfg.points,
-				type = cfg.type || this.type || hemi.curve.curveType.Linear;
+				type = cfg.type || this.type || hemi.curve.CurveType.Linear;
 			
 			this.setType(type);
 			
@@ -415,8 +484,8 @@ var hemi = (function(hemi) {
 		/**
 		 * Base interpolation function for this curve. Usually overwritten.
 		 *
-		 * @param {number} t Time, usually between 0 and 1
-		 * @return {number[]} The position interpolated from the time input
+		 * @param {number} t time, usually between 0 and 1
+		 * @return {number[3]} the position interpolated from the time input
 		 */
 		interpolate : function(t) {
 			return [t,t,t];
@@ -425,8 +494,9 @@ var hemi = (function(hemi) {
 		/**
 		 * The linear interpolation moves on a straight line between waypoints.
 		 *
-		 * @param {number} t Time, usually between 0 and 1
-		 * @return {number[]} The position linearly interpolated from the time input
+		 * @param {number} t time, usually between 0 and 1
+		 * @return {number[3]} the position linearly interpolated from the time
+		 *     input
 		 */
 		linear : function(t) {
 			var n = this.count - 1;
@@ -440,13 +510,13 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * The bezier interpolation starts at the first waypoint, and ends at the
-		 *		last waypoint, and 'bends' toward the intermediate points. These
-		 *		points can be weighted for more bending.
+		 * The bezier interpolation starts at the first waypoint, and ends at
+		 * the last waypoint, and 'bends' toward the intermediate points. These
+		 * points can be weighted for more bending.
 		 *
-		 * @param {number} t Time, usually between 0 and 1
-		 * @return {number[]} The position interpolated from the time input by a
-		 *		a bezier function.
+		 * @param {number} t time, usually between 0 and 1
+		 * @return {number[3]} the position interpolated from the time input by
+		 *     a bezier function.
 		 */
 		bezier : function(t) {
 			var x = 0;
@@ -468,13 +538,14 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * The cubic hermite function interpolates along a line that runs through the Curve
-		 *		object's waypoints, at a predefined tangent slope through each one.
+		 * The cubic hermite function interpolates along a line that runs
+		 * through the Curve's waypoints at a predefined tangent slope through
+		 * each one.
 		 *
-		 * @param {number} t Time, usually between 0 and 1
-		 * @return {number[]} The position interpolated from the time input by the cubic 
-		 *		hermite function.
-		 */		
+		 * @param {number} t time, usually between 0 and 1
+		 * @return {number[3]} the position interpolated from the time input by
+		 *     the cubic hermite function.
+		 */
 		cubicHermite : function(t) {
 			var n = this.count - 1;
 			var ndx = Math.floor(t*n);
@@ -487,12 +558,12 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * The normalized linear interpolation moves on a straight line between waypoints,
-		 *		at a constant velocity.
+		 * The normalized linear interpolation moves on a straight line between
+		 * waypoints at a constant velocity.
 		 *
-		 * @param {number} t Time, usually between 0 and 1
-		 * @return {number[]} The position linearly interpolated from the time input, normalized
-		 * 		to keep the velocity constant
+		 * @param {number} t time, usually between 0 and 1
+		 * @return {number[3]} the position linearly interpolated from the time
+		 *     input, normalized to keep the velocity constant
 		 */
 		linearNorm : function(t) {
 			var d = 0;
@@ -516,11 +587,11 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Calculate the tangents for a cardinal curve, which is a cubic hermite curve
-		 * 		where the tangents are defined by a single 'tension' factor.
+		 * Calculate the tangents for a cardinal curve, which is a cubic hermite
+		 * curve where the tangents are defined by a single 'tension' factor.
 		 */
 		setTangents : function() {
-			if (this.type == hemi.curve.curveType.Cardinal) {
+			if (this.type == hemi.curve.CurveType.Cardinal) {
 				var xpts = hemi.utils.clone(this.xpts),
 					ypts = hemi.utils.clone(this.ypts),
 					zpts = hemi.utils.clone(this.zpts);
@@ -541,38 +612,59 @@ var hemi = (function(hemi) {
 			}
 		},
 		
+		/**
+		 * Set the type of interpolation for the Curve.
+		 * 
+		 * @param {hemi.curve.CurveType} type interpolation type
+		 */
 		setType : function(type) {
 			this.type = type;
 			
 			switch (type) {
-				case hemi.curve.curveType.Linear:
+				case hemi.curve.CurveType.Linear:
 					this.interpolate = this.linear;
 					break;
-				case hemi.curve.curveType.Bezier:
+				case hemi.curve.CurveType.Bezier:
 					this.interpolate = this.bezier;
 					break;
-				case hemi.curve.curveType.CubicHermite:
-				case hemi.curve.curveType.Cardinal:
+				case hemi.curve.CurveType.CubicHermite:
+				case hemi.curve.CurveType.Cardinal:
 					this.interpolate = this.cubicHermite;
 					break;
-				case hemi.curve.curveType.LinearNorm:
+				case hemi.curve.CurveType.LinearNorm:
 					this.interpolate = this.linearNorm;
 					break;
-				case hemi.curve.curveType.Custom:
+				case hemi.curve.CurveType.Custom:
 				default:
 					break;
 			}
 		},
 		
-		getStart : function() {
-			return [this.xpts[0],this.ypts[0],this.zpts[0]];
-		},
-		
+		/**
+		 * Get the XYZ position of the last waypoint of the Curve.
+		 * 
+		 * @return {number[3]} the position of the last waypoint
+		 */
 		getEnd : function() {
 			var end = this.count - 1;
 			return [this.xpts[end],this.ypts[end],this.zpts[end]];
 		},
 		
+		/**
+		 * Get the XYZ position of the first waypoint of the Curve.
+		 * 
+		 * @return {number[3]} the position of the first waypoint
+		 */
+		getStart : function() {
+			return [this.xpts[0],this.ypts[0],this.zpts[0]];
+		},
+		
+		/**
+		 * Draw the Curve using primitive shapes.
+		 * 
+		 * @param {number} samples the number of samples to use to draw
+		 * @param {Object} config configuration for how the Curve should look
+		 */
 		draw : function(samples, config) {
 			var points = [];
 			for (var i = 0; i < samples+2; i++) {
@@ -580,21 +672,19 @@ var hemi = (function(hemi) {
 			}
 			hemi.curve.drawCurve(points,config);
 		}
-		
 	};
 	
 	/**
-	 * @class A Particle allows for the movement of a transform along a set of
-	 * points.
+	 * @class A Particle allows a Transform to move along a set of points.
 	 * 
-	 * @param {o3d.transform} trans The transform to move along the curve
-	 * @param {number[][]} points The array of points to travel through
-	 * @param {hemi.curve.colorKey[]} colorKeys Array of key-values for the 
+	 * @param {o3d.Transform} trans the transform to move along the curve
+	 * @param {number[3][]} points the array of points to travel through
+	 * @param {hemi.curve.ColorKey[]} colorKeys array of key-values for the 
 	 *		color of the default material
-	 * @param {hemi.curve.scaleKey[]} scaleKeys Array of key-values for the 
+	 * @param {hemi.curve.ScaleKey[]} scaleKeys array of key-values for the 
 	 *		scale of the transform
-	 * @param {boolean} rotate flag indicating if the transform should rotate as
-	 *      it travels along the points
+	 * @param {boolean} rotate flag indicating if the Transform should rotate as
+	 *      it travels through the points
 	 */
 	hemi.curve.Particle = function(trans,points,colorKeys,scaleKeys,rotate) {
 		var pack = hemi.curve.pack,
@@ -625,11 +715,10 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.Particle.prototype = {
-	
 		/**
 		 * Start this particle along the curve.
 		 *
-		 * @param {number} loops The number of loops to do
+		 * @param {number} loops the number of loops to do
 		 */
 		run : function(loops) {
 			this.loops = loops;
@@ -638,9 +727,9 @@ var hemi = (function(hemi) {
 		},
 	
 		/**
-		 * Add a shape to the particle transform.
+		 * Add a shape to the particle Transform.
 		 *
-		 * @param {o3d.shape} shape The shape to add
+		 * @param {o3d.Shape} shape the shape to add
 		 */
 		addShape : function(shape) {
 			this.transform.addShape(shape);
@@ -656,8 +745,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Set the color gradient of this particle.
-		 * @param {key[]} colorKeys Array of color key pairs
+		 * Set the color gradient of this Particle.
+		 * 
+		 * @param {hemi.curve.ColorKey[]} colorKeys array of color key pairs
 		 */
 		setColors : function(colorKeys) {
 			this.colors = [];
@@ -699,7 +789,8 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the scale gradient of this particle.
-		 * @param {key[]} scaleKeys Array of scale key pairs
+		 * 
+		 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale key pairs
 		 */
 		setScales : function(scaleKeys) {
 			var m4 = hemi.core.math.matrix4;
@@ -743,11 +834,11 @@ var hemi = (function(hemi) {
 		},
 	
 		/**
-		 * Translate the particle transform in local space.
+		 * Translate the Particle transform in local space.
 		 *
-		 * @param {number} x X translation
-		 * @param {number} y Y translation
-		 * @param {number} z Z translation
+		 * @param {number} x x translation
+		 * @param {number} y y translation
+		 * @param {number} z z translation
 		 */
 		translate : function(x,y,z) {
 			this.transform.translate(x,y,z);
@@ -756,9 +847,9 @@ var hemi = (function(hemi) {
 		/**
 		 * Given a set of key-values, return the interpolated value
 		 *
-		 * @param {number} time Time, from 0 to 1
-		 * @param {hemi.curve.Key[]} keySet Array of key-value pairs
-		 * @return {number[]} The interpolated value
+		 * @param {number} time time, from 0 to 1
+		 * @param {Object[]} keySet array of key-value pairs
+		 * @return {number[]} the interpolated value
 		 */
 		lerpValue : function(time,keySet) {
 			var ndx = keySet.length - 2;
@@ -813,14 +904,13 @@ var hemi = (function(hemi) {
 			this.active = false;
 			this.ready = true;
 		}
-	
 	};
 	
 	/**
 	 * @class A ParticleSystem manages a set of Particle objects, and fires
 	 * them at the appropriate intervals.
 	 * 
-	 * @param {hemi.config} config Configuration object describing this system
+	 * @param {Object} config configuration object describing this system
 	 */
 	hemi.curve.ParticleSystem = function(config) {
 		var pack = hemi.curve.pack;
@@ -930,7 +1020,6 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.curve.ParticleSystem.prototype = {
-		
 		/**
 		 * Start the system.
 		 */
@@ -941,8 +1030,8 @@ var hemi = (function(hemi) {
 		/**
 		 * Stop the system.
 		 *
-		 * @param {boolean} opt_hard If true, remove all particles immediately. Otherwise,
-		 *		stop emitting but let existing particles finish.
+		 * @param {boolean} opt_hard If true, remove all particles immediately.
+		 *     Otherwise, stop emitting but let existing particles finish.
 		 */
 		stop : function(opt_hard) {
 			this.active = false;
@@ -957,10 +1046,11 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Function performed on each render. Update all existing particles, and emit
-		 * 		new ones if needed.
+		 * Update all existing particles on each render and emit new ones if
+		 * needed.
 		 *
-		 * @param {o3d.RenderEvent} event Event object describing details of the render loop
+		 * @param {o3d.RenderEvent} event event object describing details of the
+		 *     render loop
 		 */
 		onRender : function(event) {
 			for(i = 0; i < this.maxParticles; i++) {
@@ -982,21 +1072,21 @@ var hemi = (function(hemi) {
 		/**
 		 * Generate a new curve running through the system's bounding boxes.
 		 * 
-		 * @param {number} tension tension parameter for the curve
-		 * @return {hemi.curve.Curve} The randomly generated Curve object.
+		 * @param {number} tension tension parameter for the Curve
+		 * @return {hemi.curve.Curve} the randomly generated Curve
 		 */
 		newCurve : function(tension) {
 			var points = [];
 			var num = this.boxes.length;
 			for (i = 0; i < num; i++) {
-				var min = this.boxes[i][0];
-				var max = this.boxes[i][1];
+				var min = this.boxes[i].min;
+				var max = this.boxes[i].max;
 				points[i+1] = hemi.curve.randomPoint(min,max);
 			}
 			points[0] = points[1].slice(0,3);
 			points[num+1] = points[num].slice(0,3);
 			var curve = new hemi.curve.Curve(points,
-				hemi.curve.curveType.Cardinal, {tension: tension});
+				hemi.curve.CurveType.Cardinal, {tension: tension});
 			return curve;
 		},
 		
@@ -1011,10 +1101,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Add a shape which will be added to the transform of every particle.
+		 * Add a shape which will be added to the Transform of every particle.
 		 *
-		 * @param {number|o3d.shape} shape Either an enum for standard shapes, or a custom
-		 * 		predefined shape to add
+		 * @param {number|o3d.Shape} shape either an enum for standard shapes,
+		 *     or a custom	predefined shape to add
 		 */
 		addShape : function(shape) {
 			var pack = hemi.curve.pack;
@@ -1051,8 +1141,8 @@ var hemi = (function(hemi) {
 		/**
 		 * Change the rate at which particles are emitted.
 		 *
-		 * @param {number} delta The delta by which to change the rate
-		 * @return {number} The new rate
+		 * @param {number} delta the delta by which to change the rate
+		 * @return {number} the new rate
 		 */
 		changeRate : function(delta) {
 			return this.setRate(this.pRate + delta);
@@ -1061,8 +1151,8 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the emit rate of the system.
 		 *
-		 * @param {number} rate The rate at which to emit particles
-		 * @return {number} The new rate - may be different because of bounds
+		 * @param {number} rate the rate at which to emit particles
+		 * @return {number} the new rate - may be different because of bounds
 		 */
 		setRate : function(rate) {
 			var newRate = hemi.utils.clamp(rate, 0, this.maxRate);
@@ -1083,8 +1173,9 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the color gradient for this particle system.
-		 * @param {key[]} colorKeys Array of color key pairs
-		 * @return {hemi.curve.ParticleSystem} This system, for chaining
+		 * 
+		 * @param {hemi.curve.ColorKey[]} colorKeys array of color key pairs
+		 * @return {hemi.curve.ParticleSystem} this system, for chaining
 		 */
 		setColors : function(colorKeys) {
 			for (var i = 0; i < this.maxParticles; i++) {
@@ -1095,8 +1186,9 @@ var hemi = (function(hemi) {
 
 		/**
 		 * Set the scale gradient for this particle system.
-		 * @param {key[]} scaleKeys Array of scale key pairs
-		 * @return {hemi.curve.ParticleSystem} This system, for chaining
+		 * 
+		 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale key pairs
+		 * @return {hemi.curve.ParticleSystem} this system, for chaining
 		 */		
 		setScales : function(scaleKeys) {
 			for (var i = 0; i < this.maxParticles; i++) {
@@ -1122,6 +1214,7 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Translate the entire particle system by the given amounts
+		 * 
 		 * @param {number} x amount to translate in the X direction
 		 * @param {number} y amount to translate in the Y direction
 		 * @param {number} z amount to translate in the Z direction
@@ -1344,6 +1437,7 @@ var hemi = (function(hemi) {
 	hemi.curve.GpuParticleSystem.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
+		 * @type string
          */
         citizenType: 'hemi.curve.GpuParticleSystem',
 		
@@ -1451,8 +1545,8 @@ var hemi = (function(hemi) {
 		 * Set the bounding boxes that define waypoints for the particle
 		 * system's curves.
 		 * 
-		 * @param {number[3][2][]} boxes array of pairs of XYZ coordinates, the
-		 *     first as minimum values and the second as maximum
+		 * @param {hemi.curve.Box[]} boxes array of boxes defining volumetric
+		 *     waypoints for the particle system
 		 */
 		setBoxes: function(boxes) {
 			var oldLength = this.boxes.length;
@@ -1487,15 +1581,10 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the color ramp for the particles as they travel along the curve,
-		 * specifying the interpolation times for each color. Each entry in the
-		 * given array should be of the form:
-		 * {
-		 *   key: number between 0 and 1 indicating time key for color
-		 *   value: RGBA array indicating the color value
-		 * }
+		 * specifying the interpolation times for each color.
 		 * 
-		 * @param {Object[]} colorKeys array of color key objects, sorted into
-		 *     ascending key order
+		 * @param {hemi.curve.ColorKey[]} colorKeys array of color keys, sorted
+		 *     into ascending key order
 		 */
 		setColorKeys: function(colorKeys) {
 			var len = colorKeys.length;
@@ -1661,15 +1750,10 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the scale ramp for the particles as they travel along the curve,
-		 * specifying the interpolation times for each scale. Each entry in the
-		 * given array should be of the form:
-		 * {
-		 *   key: number between 0 and 1 indicating time key for scale
-		 *   value: XYZ array indicating the scale value
-		 * }
+		 * specifying the interpolation times for each scale.
 		 * 
-		 * @param {Object[]} scaleKeys array of scale key objects, sorted into
-		 *     ascending key order
+		 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale keys, sorted
+		 *     into ascending key order
 		 */
 		setScaleKeys: function(scaleKeys) {
 			var len = scaleKeys.length;
@@ -1926,8 +2010,8 @@ var hemi = (function(hemi) {
 		translate: function(x, y, z) {
 			for (var i = 0, il = this.boxes.length; i < il; i++) {
 				var box = this.boxes[i],
-					min = box[0],
-					max = box[1];
+					min = box.min,
+					max = box.max;
 				
 				min[0] += x;
 				max[0] += x;
@@ -2136,7 +2220,7 @@ var hemi = (function(hemi) {
 	 * through the given bounding boxes.
 	 * 
 	 * @param {o3d.Material} material material to set parameters for
-	 * @param {number[3][2][]} boxes array of min and max XYZ coordinates
+	 * @param {hemi.curve.Box[]} boxes array of min and max XYZ coordinates
 	 */
 	var setupBounds = function(material, boxes) {
 		var minParam = material.getParam('minXYZ'),
@@ -2149,8 +2233,8 @@ var hemi = (function(hemi) {
 		
 		for (var i = 0, il = boxes.length; i < il; ++i) {
 			var box = boxes[i];
-			minArr.getParam(i).value = box[0];
-			maxArr.getParam(i).value = box[1];
+			minArr.getParam(i).value = box.min;
+			maxArr.getParam(i).value = box.max;
 		}
 		
 		minParam.value = minArr;
