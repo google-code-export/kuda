@@ -28,11 +28,11 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * @class A Rotator makes automated rotation easier by allowing simple
-	 * calls such as setVel to begin the automated spinning of a transform.
+	 * calls such as setVel to begin the automated spinning of a Transform.
 	 * @extends hemi.world.Citizen
 	 * 
-	 * @param {o3d.Transform} opt_tran Optional transform that will be spinning
-	 * @param {Object} opt_config Optional configuration for the Rotator
+	 * @param {o3d.Transform} opt_tran optional transform that will be spinning
+	 * @param {Object} opt_config optional configuration for the Rotator
 	 */
 	hemi.motion.Rotator = function(opt_tran, opt_config) {
 		hemi.world.Citizen.call(this);
@@ -65,11 +65,11 @@ var hemi = (function(hemi) {
 	
 	hemi.motion.Rotator.prototype = {
 		/**
-		 * Add a transform to the list of transforms that will be spinning. A
-		 * child transform is created to allow the Rotator to spin about an
+		 * Add a Transform to the list of Transforms that will be spinning. A
+		 * child Transform is created to allow the Rotator to spin about an
 		 * arbitray axis.
 		 *
-		 * @param {o3d.Transform} transform the transform to add
+		 * @param {o3d.Transform} transform the Transform to add
 		 */
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
@@ -105,6 +105,7 @@ var hemi = (function(hemi) {
 		
         /**
          * Overwrites hemi.world.Citizen.citizenType
+         * @string
          */
         citizenType: 'hemi.motion.Rotator',
 		
@@ -130,7 +131,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Clear the list of spinning transforms.
+		 * Clear the list of spinning Transforms.
 		 */
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
@@ -184,9 +185,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the transforms that the Rotator currently contains.
+		 * Get the Transforms that the Rotator currently contains.
 		 * 
-		 * @return {o3d.Transform[]} array of transforms
+		 * @return {o3d.Transform[]} array of Transforms
 		 */
 		getTransforms: function() {
 			var trans = [];
@@ -204,16 +205,22 @@ var hemi = (function(hemi) {
 			return trans;
 		},
 		
-		rotate : function(theta,time,opt_mustComplete,opt_intFunc) {
+		/**
+		 * Make the Rotator rotate the specified amount in the specified amount
+		 * of time.
+		 * 
+		 * @param {number[3]} theta an array of radians to rotate in XYZ
+		 * @param {number} time number of seconds for the rotation to take
+		 * @param {boolean} opt_mustComplete optional flag indicating that no
+		 *     other rotations can be started until this one finishes
+		 */
+		rotate : function(theta,time,opt_mustComplete) {
 			if (this.mustComplete && this.steadyRotate) return false;
 			this.time = 0;
 			this.stopTime = time;
 			this.steadyRotate = true;
 			this.startAngle = this.angle;
 			this.mustComplete = opt_mustComplete || false;
-			if (opt_intFunc) {
-				this.intFunc = opt_intFunc;
-			}
 			this.stopAngle = hemi.core.math.addVector(this.angle,theta);
 			this.send(hemi.msg.start,{});
 			this.enable();
@@ -221,9 +228,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Render event listener - Perform Newtonian calculations on this 
-		 *		rotating object, starting with the angular velocity.
-		 * @param {o3d.event} event Message describing the render event
+		 * Render event listener - Perform Newtonian calculations on the 
+		 * rotating object, starting with the angular velocity.
+		 * 
+		 * @param {o3d.Event} event message describing the render event
 		 */
 		onRender : function(event) {
 			if (this.transformObjs.length > 0) {
@@ -261,9 +269,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Receive the given transform from the TransformRegistry.
+		 * Receive the given Transform from the TransformRegistry.
 		 * 
-		 * @param {o3d.Transform} transform the transform
+		 * @param {o3d.Transform} transform the Transform
 		 */
 		receiveTransform: function(transform) {
 			this.addTransform(transform);
@@ -283,23 +291,26 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the angular acceleration.
-		 * @param {number[]} alpha New angular acceleration
+		 * 
+		 * @param {number[3]} accel XYZ angular acceleration in radians
 		 */
-		setAccel : function(alpha) {
-			this.accel = alpha;
+		setAccel : function(accel) {
+			this.accel = accel;
 		},
 		
 		/**
-		 * Set the angle.
-		 * @param {number[]} theta New angle
+		 * Set the current rotation angle.
+		 * 
+		 * @param {number[3]} theta XYZ angle in radians
 		 */
 		setAngle : function(theta) {
 			this.angle = theta;
 		},
 		
 		/**
-		 * Set the origin of the Rotator transform.
-		 * @param {number[3]} origin New origin
+		 * Set the origin of the Rotator Transform.
+		 * 
+		 * @param {number[3]} origin XYZ origin
 		 */
 		setOrigin : function(origin) {
 			this.origin = origin;
@@ -308,10 +319,11 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the angular velocity.
-		 * @param {number[]} omega New angular velocity
+		 * 
+		 * @param {number[3]} vel XYZ angular velocity in radians
 		 */
-		setVel : function(omega) {
-			this.vel = omega;
+		setVel : function(vel) {
+			this.vel = vel;
 		},
 		
 		/**
@@ -374,8 +386,8 @@ var hemi = (function(hemi) {
 	 * acceleration of shapes and transforms in the 3d scene.
 	 * @extends hemi.world.Citizen
 	 * 
-	 * @param {o3d.Transform} opt_tran Optional transform that will be moving
-	 * @param {Object} opt_config Optional configuration for thie Translator
+	 * @param {o3d.Transform} opt_tran optional Transform that will be moving
+	 * @param {Object} opt_config optional configuration for the Translator
 	 */
 	hemi.motion.Translator = function(opt_tran, opt_config) {
 		hemi.world.Citizen.call(this);
@@ -406,9 +418,9 @@ var hemi = (function(hemi) {
 	
 	hemi.motion.Translator.prototype = {
 		/**
-		 * Add a transform to the list of transforms that will be moving.
+		 * Add the Transform to the list of Transforms that will be moving.
 		 *
-		 * @param {o3d.transform} transform the transform to add
+		 * @param {o3d.Transform} transform the Transform to add
 		 */
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
@@ -433,6 +445,7 @@ var hemi = (function(hemi) {
 		
         /**
          * Overwrites hemi.world.Citizen.citizenType
+         * @string
          */
         citizenType: 'hemi.motion.Translator',
 		
@@ -456,7 +469,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Clear the list of translating transforms.
+		 * Clear the list of translating Transforms.
 		 */
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
@@ -502,9 +515,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the transforms that the Translator currently contains.
+		 * Get the Transforms that the Translator currently contains.
 		 * 
-		 * @return {o3d.Transform[]} array of transforms
+		 * @return {o3d.Transform[]} array of Transforms
 		 */
 		getTransforms: function() {
 			var trans = [];
@@ -522,7 +535,16 @@ var hemi = (function(hemi) {
 			return trans;
 		},
 		
-		move : function(pos,time,opt_mustComplete,opt_intFunc) {
+		/**
+		 * Make the Translator translate the specified amount in the specified
+		 * amount of time.
+		 * 
+		 * @param {number[3]} delta XYZ amount to translate
+		 * @param {number} time number of seconds for the translation to take
+		 * @param {boolean} opt_mustComplete optional flag indicating that no
+		 *     other translations can be started until this one finishes
+		 */
+		move : function(delta,time,opt_mustComplete) {
 			if (this.mustComplete && this.steadyMove) return false;
 			this.time = 0;
 			this.stopTime = time;
@@ -532,17 +554,17 @@ var hemi = (function(hemi) {
 			if (opt_intFunc) {
 				this.intFunc = opt_intFunc;
 			}
-			this.stopPos = hemi.core.math.addVector(this.pos,pos);
+			this.stopPos = hemi.core.math.addVector(this.pos,delta);
 			this.send(hemi.msg.start,{});
 			this.enable();
 			return true;
 		},
 	
 		/**
-		 * Render event listener - calculate the position of this translator,
-		 *		based on the acceleration, where velocity = t*acceleration, 
-		 *		and position = t*velocity.
-		 * @param {o3d.event} event Message describing render event
+		 * Render event listener - calculate the position of the Translator,
+		 * based on the acceleration and velocity.
+		 * 
+		 * @param {o3d.Event} event message describing render event
 		 */
 		onRender : function(event) {
 			if (this.transformObjs.length > 0) {
@@ -577,9 +599,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Receive the given transform from the TransformRegistry.
+		 * Receive the given Transform from the TransformRegistry.
 		 * 
-		 * @param {o3d.Transform} transform the transform
+		 * @param {o3d.Transform} transform the Transform
 		 */
 		receiveTransform: function(transform) {
 			this.addTransform(transform);
@@ -594,7 +616,8 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the acceleration.
-		 * @param {number[]} a New acceleration vector
+		 * 
+		 * @param {number[3]} a XYZ acceleration vector
 		 */
 		setAccel : function(a) {
 			this.accel = a;
@@ -602,7 +625,8 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the position.
-		 * @param {number[]} x New position, as xyz coordinate
+		 * 
+		 * @param {number[3]} x XYZ position
 		 */
 		setPos : function(x) {
 			this.pos = x;
@@ -610,7 +634,7 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the velocity.
-		 * @param {number[]} v New velocity vector
+		 * @param {number[3]} v XYZ velocity vector
 		 */
 		setVel : function(v) {
 			this.vel = v;

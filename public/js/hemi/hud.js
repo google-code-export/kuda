@@ -213,6 +213,7 @@ var hemi = (function(hemi) {
 	hemi.hud.Theme.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
         citizenType: 'hemi.hud.Theme',
 		
@@ -318,6 +319,7 @@ var hemi = (function(hemi) {
 	hemi.hud.HudElement.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
         citizenType: 'hemi.hud.HudElement',
 		
@@ -513,6 +515,7 @@ var hemi = (function(hemi) {
 	hemi.hud.HudText.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
         citizenType: 'hemi.hud.HudText',
 		
@@ -712,6 +715,7 @@ var hemi = (function(hemi) {
 	hemi.hud.HudImage.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
         citizenType: 'hemi.hud.HudImage',
 		
@@ -1154,6 +1158,7 @@ var hemi = (function(hemi) {
 	hemi.hud.HudVideo.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
         citizenType: 'hemi.hud.HudVideo',
 		
@@ -1312,6 +1317,7 @@ var hemi = (function(hemi) {
 	hemi.hud.HudPage.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
         citizenType: 'hemi.hud.HudPage',
 		
@@ -1590,6 +1596,7 @@ var hemi = (function(hemi) {
 	hemi.hud.HudDisplay.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
         citizenType: 'hemi.hud.HudDisplay',
 		

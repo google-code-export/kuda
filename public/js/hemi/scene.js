@@ -54,6 +54,7 @@ var hemi = (function(hemi) {
 	hemi.scene.Scene.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
+         * @string
          */
         citizenType: 'hemi.scene.Scene',
 		

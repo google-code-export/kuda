@@ -27,10 +27,10 @@ var hemi = (function(hemi) {
 	hemi.texture = hemi.texture || {};
 
 	/**
-	 * @class A TestureSampler contains a textureURL and a value.  The value is
-	 * the o3d.Sampler which can be assinged to a shaders sampler parameter.
-	 * @param {string} url Sets the testureURL
-	 * @memberOf hemi.texture
+	 * @class A TestureSampler contains a texture URL and a value.  The value is
+	 * the o3d.Sampler which can be assigned to a shader's sampler parameter.
+	 * 
+	 * @param {string} url the texture URL
 	 */
 	hemi.texture.TextureSampler = function(url) {
 		/**
@@ -43,22 +43,24 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * @class A TextureSet can manage hemi.texture.TextureSampler's that are
-	 * part of a set as defined by the author.  It will handle loading them and
-	 * notify the author upon completion.
-	 * @param {number} count
-	 * @param {function(hemi.texture.TextureSet.samplers):void} opt_callback
+	 * @class A TextureSet can manage TextureSamplers that are part of a set as
+	 * defined by the author.  It will handle loading them and notify the author
+	 * upon completion.
+	 * 
+	 * @param {number} count number of TextureSamplers in the set
+	 * @param {function(Object):void} opt_callback callback to receive loaded
+	 *     TextureSamplers
 	 */
 	hemi.texture.TextureSet = function(count, opt_callback) {
 		/**
-		 * An object literal that maps a given name for the
-		 * hemi.texture.TextureSampler to its instance for easy access.
+		 * An object literal that maps a given name for the TextureSampler to
+		 * its instance for easy access.
 		 * @type Object
 		 * @default
 		 */
 		this.samplers = { length: 0 };
 		/**
-		 * The total number of hemi.texture.TextureSampler's in this set.
+		 * The total number of TextureSamplers in this set.
 		 * @type number
 		 * @default 0
 		 */
@@ -70,8 +72,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Add a named texture file at the given url to this set.
 		 *
-		 * @param {string} name the name it will have in the
-		 * hemi.texture.TextureSet.samplers object for lookup.
+		 * @param {string} name the name for the texture
 		 * @param {string} url the url of the image
 		 */
 		addTexture: function(name, url) {
@@ -79,11 +80,10 @@ var hemi = (function(hemi) {
 			this.loadTexture(name, url);
 		},
 		/**
-		 * Add a hemi.texture.TextureSampler to this set
+		 * Add the given TextureSampler to this set.
 		 *
-		 * @param {string} name the name for lookup
-		 * @param {hemi.texture.TextureSampler} texSampler A
-		 * hemi.texture.TextureSampler object
+		 * @param {string} name the name of the TextureSampler
+		 * @param {hemi.texture.TextureSampler} texSampler the TextureSampler
 		 */
 		addTextureSampler: function(name, texSampler) {
 			this.count++;
@@ -95,19 +95,19 @@ var hemi = (function(hemi) {
 			this.samplers[name] = texSampler;
 		},
 		/**
-		 * Get the hemi.texture.TextureSampler with the name in this set.
+		 * Get the TextureSampler with the name in this set.
 		 *
 		 * @param {string} name the name it was given when added.
-		 * @return {hemi.texture.TextureSampler} the hemi.texture.TextureSampler object
+		 * @return {hemi.texture.TextureSampler} the TextureSampler
 		 */
 		getTextureSampler: function(name) {
 			return this.samplers[name];
 		},
 		/**
-		 * Get the o3d.Sampler from the named hemi.texture.TextureSampler
+		 * Get the O3D Sampler from the named TextureSampler
 		 *
-		 * @param {string} name the name it was given when added
-		 * @return {o3d.Sampler} the sampler
+		 * @param {string} name the name of the TextureSampler
+		 * @return {o3d.Sampler} the O3D sampler
 		 */
 		getSamplerValue: function(name) {
 			return this.samplers[name].value;
@@ -116,7 +116,7 @@ var hemi = (function(hemi) {
 		 * Load a texture from the given url and associate it in this set with
 		 * the given name.
 		 *
-		 * @param {string} name the name to associate it with
+		 * @param {string} name the name of the texture
 		 * @param {string} url the url to load the image from
 		 */
 		loadTexture: function(name, url) {
@@ -125,11 +125,11 @@ var hemi = (function(hemi) {
 			this.loadTextureSampler(texSampler);
 		},
 		/**
-		 * Load a hemi.texture.TextureSampler's texture image file and set the
-		 * texture on the value, which is an o3d.Sampler, once loaded.
+		 * Load a TextureSampler's texture image file and set the texture on the
+		 * value, which is an O3D Sampler, once loaded.
 		 *
-		 * @param {hemi.texture.TextureSampler} texSampler a
-		 * hemi.texture.TextureSampler to load and set the texture on
+		 * @param {hemi.texture.TextureSampler} texSampler the TextureSampler to
+		 *     load and set the texture on
 		 */
 		loadTextureSampler: function(texSampler) {
 			hemi.loader.loadTexture(texSampler.textureURL,
@@ -145,13 +145,14 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Use this function to create multiple texture sets using a simple object literal that
-	 * maps distinct meaningful names to the urls of the images.
+	 * Create multiple texture sets using a simple object literal that maps
+	 * distinct meaningful names to the urls of the images.
 	 *
-	 * @param {Object} urls An object literal with properties of urls to load into the set
-	 * @param {function(hemi.texture.TextureSet.samplers):void} callback a
-	 * function to call and pass the samplers
-	 * @return {hemi.texture.TextureSet} the hemi.texture.TextureSet object
+	 * @param {Object} urls An object literal with properties of urls to load
+	 *     into the set
+	 * @param {function(Object):void} callback a function to call and pass the
+	 *     samplers
+	 * @return {hemi.texture.TextureSet} the TextureSet
 	 */
 	hemi.texture.createTextureSet = function(urls, callback) {
 		var urls = urls || {},
@@ -176,8 +177,10 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Get the texture uv coordinates of an element.
-	 * @param {o3d.Element} element The element from which to extract uv coordinates
+	 * Get the texture uv coordinates of the given element.
+	 * 
+	 * @param {o3d.Element} element The element from which to extract uv
+	 *     coordinates
 	 * @return {Object} {field: Field object used to reapply coordinates,
 	 *				     uv: Float array of uv coordinates}
 	 */
@@ -196,10 +199,11 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Scale the texture uv coordinates of an element
+	 * Scale the texture uv coordinates of the given element.
+	 * 
 	 * @param {o3d.Element} element The element to scale the texture on
-	 * @param {float} x Amount to scale by along x-axis
-	 * @param {float} y Amoung to scale by along y-axis
+	 * @param {number} x Amount to scale by along x-axis
+	 * @param {number} y Amoung to scale by along y-axis
 	 */
 	hemi.texture.scale = function(element,x,y) {
 		var set = hemi.texture.getUV(element);
@@ -211,10 +215,11 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Translate the texture uv coordinates of an element
+	 * Translate the texture uv coordinates of the given element.
+	 * 
 	 * @param {o3d.Element} element The element to translate the texture on
-	 * @param {float} x Distance to translate along x-axis
-	 * @param {float} y Distance to translate along y-axis
+	 * @param {number} x Distance to translate along x-axis
+	 * @param {number} y Distance to translate along y-axis
 	 */	
 	hemi.texture.translate = function(element,x,y) {
 		var set = hemi.texture.getUV(element);
@@ -226,9 +231,10 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Rotate the texture uv coordinates of an element
+	 * Rotate the texture uv coordinates of the given element.
+	 * 
 	 * @param {o3d.Element} element The element to rotate the texture on
-	 * @param {float} theta Radians to rotate texture, counter-clockwise
+	 * @param {number} theta Radians to rotate texture, counter-clockwise
 	 */	
 	hemi.texture.rotate = function(element,theta) {
 		var set = hemi.texture.getUV(element);

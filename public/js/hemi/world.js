@@ -153,9 +153,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Receive the given transform from the TransformRegistry.
+		 * Receive the given Transform from the TransformRegistry.
 		 * 
-		 * @param {o3d.Transform} transform the transform
+		 * @param {o3d.Transform} transform the Transform
 		 */
 		receiveTransform: function(transform) {
 			hemi.console.log('Transform ignored by Citizen with id ' + this.worldId, hemi.console.WARN);
@@ -259,8 +259,8 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * @class A TransformOwner contains a Citizen that owns at least one
-	 * transform and entries of other Citizens that need to be given any of
-	 * those transforms as they become available during Octane loading.
+	 * Transform and entries of other Citizens that need to be given any of
+	 * those Transforms as they become available during Octane loading.
 	 */
 	hemi.world.TransformOwner = function() {
 		this.citizen = null;
@@ -270,8 +270,8 @@ var hemi = (function(hemi) {
 	
 	hemi.world.TransformOwner.prototype = {
 		/**
-		 * Distribute the transforms of the owning Citizen to any other Citizens
-		 * that have registered interest in those transforms.
+		 * Distribute the Transforms of the owning Citizen to any other Citizens
+		 * that have registered interest in those Transforms.
 		 */
 		distribute: function() {
 			if (this.toLoad !== null) {
@@ -289,10 +289,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the entry for the given transform or create one if it does not
+		 * Get the entry for the given Transform or create one if it does not
 		 * already exist.
 		 * 
-		 * @param {o3d.Transform} transform the transform to get the entry for
+		 * @param {o3d.Transform} transform the Transform to get the entry for
 		 * @return {Object} the fetched or created entry
 		 */
 		getEntry: function(transform) {
@@ -355,10 +355,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Register the given Citizen to receive the given transform when it
+		 * Register the given Citizen to receive the given Transform when it
 		 * becomes available during Octane loading.
 		 * 
-		 * @param {o3d.Transform} transform the transform to give
+		 * @param {o3d.Transform} transform the Transform to give
 		 * @param {hemi.world.Citizen} target the Citizen to receive it
 		 */
 		register: function(transform, target) {
@@ -408,9 +408,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Remove the entry for the given Citizen and transform.
+		 * Remove the entry for the given Citizen and Transform.
 		 * 
-		 * @param {o3d.Transform} transform the transform in the entry
+		 * @param {o3d.Transform} transform the Transform in the entry
 		 * @param {hemi.world.Citizen} target the Citizen in the entry
 		 */
 		unregister: function(transform, target) {
@@ -428,9 +428,9 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * @class A TransformRegistry maintains listings of which transforms to
+	 * @class A TransformRegistry maintains listings of which Transforms to
 	 * distribute to which Citizens as they become available during Octane
-	 * loading. This is necessary because transforms are not proper Citizens.
+	 * loading. This is necessary because Transforms are not proper Citizens.
 	 */
 	hemi.world.TransformRegistry = function() {
 		this.owners = new Hashtable();
@@ -439,11 +439,11 @@ var hemi = (function(hemi) {
 	
 	hemi.world.TransformRegistry.prototype = {
 		/**
-		 * Distribute the transforms of the given Citizen to any other Citizens
-		 * that have registered interest in those transforms.
+		 * Distribute the Transforms of the given Citizen to any other Citizens
+		 * that have registered interest in those Transforms.
 		 * 
 		 * @param {hemi.world.Citizen} citizen the Citizen to distribute
-		 *     transforms for
+		 *     Transforms for
 		 */
 		distribute: function(citizen) {
 			if (this.toLoad !== null) {
@@ -492,10 +492,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Register the given Citizen to receive the given transform when it
+		 * Register the given Citizen to receive the given Transform when it
 		 * becomes available during Octane loading.
 		 * 
-		 * @param {o3d.Transform} transform the transform to give
+		 * @param {o3d.Transform} transform the Transform to give
 		 * @param {hemi.world.Citizen} target the Citizen to receive it
 		 */
 		register: function(transform, target) {
@@ -534,9 +534,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Remove the entry for the given Citizen and transform.
+		 * Remove the entry for the given Citizen and Transform.
 		 * 
-		 * @param {o3d.Transform} transform the transform in the entry
+		 * @param {o3d.Transform} transform the Transform in the entry
 		 * @param {hemi.world.Citizen} target the Citizen in the entry
 		 */
 		unregister: function(transform, target) {

@@ -204,6 +204,7 @@ var hemi = (function(hemi) {
 	hemi.model.Model.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
 		citizenType: 'hemi.model.Model',
 		
@@ -486,7 +487,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Calculate the center point of the Model's bounding box.
 		 * 
-		 * @return {Array} [x,y,z] point in 3D space
+		 * @return {number[3]} XYZ point in 3D space
 		 */
 		getCenterPoint: function() {
 			var boundingBox = this.root.boundingBox;
@@ -530,12 +531,12 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Sets the opacity of the transform to the given value. 
+		 * Sets the opacity of the Transform to the given value. 
 		 * 
-		 * @param {o3d.Transform} transform the transform to update
+		 * @param {o3d.Transform} transform the Transform to update
 		 * @param {number} opacity the new opacity value
 		 * @param {boolean} opt_trickle optional flag indicating if opacity
-		 *     should also be set for the transform's children (default is true)
+		 *     should also be set for the Transform's children (default is true)
 		 */
 		setTransformOpacity: function(transform, opacity, opt_trickle) {
 			var update = this.getTransformUpdate(transform),

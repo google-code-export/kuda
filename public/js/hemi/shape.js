@@ -143,6 +143,7 @@ var hemi = (function(hemi) {
 	hemi.shape.Shape.prototype =  {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
+         * @string
          */
         citizenType: 'hemi.shape.Shape',
 		
@@ -195,6 +196,12 @@ var hemi = (function(hemi) {
 			return octane;
 		},
 		
+		/**
+		 * Change the existing Shape to a new type of Shape using the given
+		 * configuration.
+		 * 
+		 * @param {Object} cfg configuration options for the Shape
+		 */
 		change: function(cfg) {
 			this.loadConfig(cfg);
 			
@@ -251,6 +258,11 @@ var hemi = (function(hemi) {
 			hemi.world.tranReg.distribute(this);
 		},
 		
+		/**
+		 * Load the given configuration object.
+		 * 
+		 * @param {Object} config configuration options for the Shape
+		 */
 		loadConfig: function(config) {
 			this.tranUp.reset();
 			this.dim = {};
@@ -539,9 +551,9 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a box.
 	 * 
-	 * @param {float} h height of box (along y-axis)
-	 * @param {float} w width of box (along x-axis)
-	 * @param {float} d depth of box (along z-axis)
+	 * @param {number} h height of box (along y-axis)
+	 * @param {number} w width of box (along x-axis)
+	 * @param {number} d depth of box (along z-axis)
 	 * @param {o3d.Material} material material to use on box
 	 * @return {o3d.Transform} the Transform containing the created box
 	 */
@@ -559,7 +571,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a cube.
 	 * 
-	 * @param {float} size dimensions of cube
+	 * @param {number} size dimensions of cube
 	 * @param {o3d.Material} material material to use on cube
 	 * @return {o3d.Transform} the Transform containing the created cube
 	 */
@@ -578,9 +590,9 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a cylinder.
 	 * 
-	 * @param {float} r1 Radius at bottom
-	 * @param {float} r2 Radius at top
-	 * @param {float} h height (along y-axis)
+	 * @param {number} r1 Radius at bottom
+	 * @param {number} r2 Radius at top
+	 * @param {number} h height (along y-axis)
 	 * @param {o3d.Material} material material to use on cylinder
 	 * @return {o3d.Transform} the Transform containing the created cylinder
 	 */
@@ -599,8 +611,8 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a cone.
 	 * 
-	 * @param {float} r radius of the base
-	 * @param {float} h height (along y-axis)
+	 * @param {number} r radius of the base
+	 * @param {number} h height (along y-axis)
 	 * @param {o3d.Material} material material to use on cone
 	 * @return {o3d.Transform} the Transform containing the created cone
 	 */
@@ -619,7 +631,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a sphere.
 	 * 
-	 * @param {float} r radius of sphere
+	 * @param {number} r radius of sphere
 	 * @param {o3d.Material} material material to use on sphere
 	 * @return {o3d.Transform} the Transform containing the created sphere
 	 */
@@ -637,8 +649,8 @@ var hemi = (function(hemi) {
 	/**
 	 * Create an arrow.
 	 * 
-	 * @param {float} size the scale of the arrow head on each axis
-	 * @param {float} tail the length of the arrow tail
+	 * @param {number} size the scale of the arrow head on each axis
+	 * @param {number} tail the length of the arrow tail
 	 * @param {o3d.Material} material material to use on arrow
 	 * @return {o3d.Transform} the Transform containing the created sphere
 	 */
@@ -659,7 +671,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a tetrahedron.
 	 * 
-	 * @param {float} size size of cube in which tetrahedron will be inscribed
+	 * @param {number} size size of cube in which tetrahedron will be inscribed
 	 * @param {o3d.Material} material material to use on tetrahedron
 	 * @return {o3d.Transform} the Transform containing the created tetrahedron
 	 */
@@ -681,7 +693,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a stellated octahedron.
 	 * 
-	 * @param {float} size size of cube on which octahedron will be inscribed
+	 * @param {number} size size of cube on which octahedron will be inscribed
 	 * @param {o3d.Material} material material to use on octahedron
 	 * @return {o3d.Transform} the Transform containing the created octahedron
 	 */
@@ -702,9 +714,9 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a pyramid.
 	 * 
-	 * @param {float} h height of pyramid (along z-axis)
-	 * @param {float} w width of pyramid (along x-axis)
-	 * @param {float} d depth of pyramid (along y-axis)
+	 * @param {number} h height of pyramid (along z-axis)
+	 * @param {number} w width of pyramid (along x-axis)
+	 * @param {number} d depth of pyramid (along y-axis)
 	 * @param {o3d.Material} material material to use on pyramid
 	 * @return {o3d.Transform} the Transform containing the created pyramid
 	 */
@@ -731,7 +743,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a custom shape from a list of vertices.
 	 * 
-	 * @param {float[][][]} verts list of triples of xyz coordinates. Each
+	 * @param {number[3][3][]} verts list of triples of xyz coordinates. Each
 	 *     triple represents a polygon, with the normal determined by right-hand
 	 *     rule (i.e. polygon will be visible from side from which vertices are
 	 *     listed in counter-clockwise order).

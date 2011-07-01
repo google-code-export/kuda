@@ -123,6 +123,7 @@ var hemi = (function(hemi) {
 	hemi.animation.Animation.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
+		 * @type string
          */
         citizenType: 'hemi.animation.Animation',
 		

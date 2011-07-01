@@ -78,6 +78,7 @@ var hemi = (function(hemi) {
 	hemi.audio.Audio.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
         citizenType: 'hemi.audio.Audio',
 		
