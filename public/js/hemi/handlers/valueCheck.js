@@ -89,7 +89,7 @@ var hemi = (function(hemi) {
 			for (var ndx = 0, len = values.length; match && ndx < len; ndx++) {
 				var val = values[ndx];
 				
-				if (val.getId !== undefined) {
+				if (val != null && val.getId !== undefined) {
 					match = this.values[ndx] === val.getId();
 				} else {
 					match = this.values[ndx] === val;

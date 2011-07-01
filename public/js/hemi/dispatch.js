@@ -741,7 +741,7 @@ var hemi = (function(hemi) {
 				var tokens = param.split('.');
 				var arg = message;
 				
-				for (aNdx = 0, aLen = tokens.length; aNdx < aLen; aNdx++) {
+				for (aNdx = 0, aLen = tokens.length; arg != null && aNdx < aLen; aNdx++) {
 					arg = arg[tokens[aNdx]];
 				}
 				
