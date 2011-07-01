@@ -62,7 +62,7 @@ var editor = (function(module) {
 	
 	Box.prototype = {
 		getExtents: function() {
-			return [this.minExtent, this.maxExtent];
+			return new hemi.curve.Box(this.minExtent, this.maxExtent);
 		},
 		
 		update: function(position, dimensions) {

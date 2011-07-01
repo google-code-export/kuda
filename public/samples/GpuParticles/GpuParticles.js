@@ -55,15 +55,15 @@ o3djs.require('hext.progressUI.progressBar');
 		/*
 		 * The bounding boxes which the arrows will flow through:
 		 */
-		var box1 = [[-510,-110,-10],[-490,-90,10]];
-		var box2 = [[-600,400,-200],[-400,600,0]];
-		var box3 = [[-10,790,180],[10,810,200]];
-		var box4 = [[400,450,-300],[600,650,-100]];
-		var box5 = [[490,-110,-110],[510,-90,-90]];
-		var box6 = [[-30,140,-560],[30,260,-440]];
-		var box7 = [[-310,490,-10],[110,510,10]];
-		var box8 = [[90,190,590],[110,210,610]];
-		var box9 = [[-250,-250,270],[-150,-150,330]];
+		var box1 = new hemi.curve.Box([-510,-110,-10],[-490,-90,10]);
+		var box2 = new hemi.curve.Box([-600,400,-200],[-400,600,0]);
+		var box3 = new hemi.curve.Box([-10,790,180],[10,810,200]);
+		var box4 = new hemi.curve.Box([400,450,-300],[600,650,-100]);
+		var box5 = new hemi.curve.Box([490,-110,-110],[510,-90,-90]);
+		var box6 = new hemi.curve.Box([-30,140,-560],[30,260,-440]);
+		var box7 = new hemi.curve.Box([-310,490,-10],[110,510,10]);
+		var box8 = new hemi.curve.Box([90,190,590],[110,210,610]);
+		var box9 = new hemi.curve.Box([-250,-250,270],[-150,-150,330]);
 		
 		/*
 		 * The colors these arrows will be as they move along the curve:
