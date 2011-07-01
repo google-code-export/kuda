@@ -130,11 +130,12 @@ var hemi = (function(hemi) {
 	hemi.view.Camera.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
+         * @string
          */
         citizenType: 'hemi.view.Camera',
 		
 		/**
-		 * Clamp the pan and tilt angles to this camera's limits.
+		 * Clamp the pan and tilt angles to the Camera's limits.
 		 */
 		clampPanTilt : function() {
 			var p = this.camPan, t = this.camTilt;
@@ -238,6 +239,9 @@ var hemi = (function(hemi) {
 			return this;
 		},
 		
+		/**
+		 * Attach the light source to the Camera.
+		 */
 		lightOnCam : function() {
 			this.light.fixed = true;
 			this.update();
@@ -257,6 +261,11 @@ var hemi = (function(hemi) {
 			return this;
 		},
 		
+		/**
+		 * Set the light source to be at the given position.
+		 * 
+		 * @param {number[3]} position XYZ position of the light source
+		 */
 		lightAtPosition : function(position) {
 			this.light.position.value = position;
 			this.light.fixed = false; 
@@ -265,18 +274,18 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the current position of the camera eye.
+		 * Get the current position of the Camera eye.
 		 *
-		 * @return {[number]} XYZ coordinates of the eye
+		 * @return {number[3]} XYZ coordinates of the eye
 		 */
 		getEye : function() {
 			return this.transforms.cam.getUpdatedWorldMatrix()[3].slice(0,3);
 		},
 
 		/**
-		 * Get the current position of the camera target.
+		 * Get the current position of the Camera target.
 		 *
-		 * @return {[number]} XYZ coordinates of the target
+		 * @return {number[3]} XYZ coordinates of the target
 		 */
 		getTarget : function() {
 			if (this.mode.fixed) {
@@ -286,18 +295,25 @@ var hemi = (function(hemi) {
 			}
 		},
 		
+		/**
+		 * Set the Camera's movement to be measured in frames.
+		 */
 		moveInFrames : function() {
 			this.mode.frames = true;
 		},
 		
+		/**
+		 * Set the Camera's movement to be measured in seconds.
+		 */
 		moveInSeconds : function() {
 			this.mode.frames = false;
 		},
 		
 		/**
-		 * Move the camera along a curve.
+		 * Move the Camera along the given curve.
 		 *
-		 * @param {hemi.view.CameraCurve} curve curve for camera eye and target to follow
+		 * @param {hemi.view.CameraCurve} curve curve for Camera eye and target
+		 *     to follow
 		 * @param {number} opt_span the number of frames or seconds to take for
 		 *     the movement along the curve (0 is instant)
 		 */
@@ -326,7 +342,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Move the camera when the camera is in orthographic viewing mode.
+		 * Move the Camera when the Camera is in orthographic viewing mode.
 		 *
 		 * @param {number} xMovement The mouse movement, in pixels, along the x-axis
 		 * @param {number} yMovement The mouse movement, in pixels, along the y-axis
@@ -346,7 +362,7 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Move the camera when the camera is in perspective viewing mode.
+		 * Move the Camera when the Camera is in perspective viewing mode.
 		 *
 		 * @param {number} xMovement The mouse movement, in pixels, along the x-axis
 		 * @param {number} yMovement The mouse movement, in pixels, along the y-axis
@@ -376,10 +392,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Move the camera to a Viewpoint or ViewData.
+		 * Move the Camera to the given Viewpoint or ViewData.
 		 *
-		 * @param {hemi.view.Viewpoint || hemi.view.ViewData} view The Viewpoint
-		 *     or ViewData to move to
+		 * @param {hemi.view.Viewpoint} view Viewpoint or ViewData to move to
 		 * @param {number} opt_span The number of frames or seconds to take
 		 *     getting there (0 is instant)
 		 */
@@ -408,7 +423,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Keyboard key-down listener.
 		 *
-		 * @param {o3d.event} keyEvent Message describing key down
+		 * @param {o3d.Event} keyEvent Message describing key down
 		 */
 		onKeyDown : function(keyEvent) {
 			this.state.shift = (keyEvent.keyCode == 16);
@@ -417,7 +432,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Keyboard key-up listener.
 		 *
-		 * @param {o3d.event} keyEvent Message describing key up
+		 * @param {o3d.Event} keyEvent Message describing key up
 		 */
 		onKeyUp : function(keyEvent) {
 			if (keyEvent.keyCode == 16) this.state.shift = false;
@@ -426,7 +441,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Mouse-down listener - set parameters to reflect that fact.
 		 *
-		 * @param {o3d.event} mouseEvent Message describing mouse down
+		 * @param {o3d.Event} mouseEvent Message describing mouse down
 		 */
 		onMouseDown : function(mouseEvent) {
 			this.state.mouse = true;
@@ -437,7 +452,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Mouse-move listener - move the camera if the mouse is down.
 		 *
-		 * @param {o3d.event} mouseEvent Message describing mouse move
+		 * @param {o3d.Event} mouseEvent Message describing mouse move
 		 */
 		onMouseMove : function(mouseEvent) {
 			if (this.state.mouse) {
@@ -458,7 +473,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Mouse-up listener
 		 *
-		 * @param {o3d.event} mouseEvent Message describing mouse up
+		 * @param {o3d.Event} mouseEvent Message describing mouse up
 		 */
 		onMouseUp : function(mouseEvent) {
 			this.state.mouse = false;
@@ -466,9 +481,9 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Render listener - check mouse and camera parameters and decide if the
-		 * 		camera needs to be updated.
+		 * Camera needs to be updated.
 		 *
-		 * @param {o3d.event} renderEvent Message desribing render loop
+		 * @param {o3d.Event} renderEvent Message desribing render loop
 		 */
 		onRender : function(renderEvent) {
 			var state = this.state,
@@ -486,7 +501,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Mouse-scroll listener - zoom the camera in or out.
 		 *
-		 * @param {o3d.event} mouseEvent Message describing mouse behavior
+		 * @param {o3d.Event} mouseEvent Message describing mouse behavior
 		 */
 		onScroll : function(mouseEvent) {		
 			if (!this.mode.scroll) {
@@ -529,9 +544,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Orbit the camera about a fixed point.
-		 * @param {float} pan The radians to pan around by.
-		 * @param {float} tilt The radians to tilt around by
+		 * Orbit the Camera about a fixed point.
+		 * 
+		 * @param {number} pan The radians to pan around by.
+		 * @param {number} tilt The radians to tilt around by
 		 */
 		orbit : function(pan,tilt) {
 			if (tilt == null) tilt = 0;
@@ -549,10 +565,11 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Rotate the camera in place. Has no effect if the camera is not in
+		 * Rotate the Camera in place. Has no effect if the Camera is not in
 		 * fixed-eye mode.
-		 * @param {float} pan Radians by which to pan.
-		 * @param {float} tilt Radians by which to tilt.
+		 * 
+		 * @param {number} pan Radians by which to pan.
+		 * @param {number} tilt Radians by which to tilt.
 		 */
 		rotate : function(pan,tilt) {
 			var cam = this.transforms.cam;
@@ -569,7 +586,7 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the limits on the camera pan and tilt in fixed eye mode in radians
+		 * Set the limits on the Camera pan and tilt in fixed eye mode in radians
 		 * 
 		 * @param {number} panMin Minimum pan angle
 		 * @param {number} panMax Maximum pan angle
@@ -585,12 +602,12 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Set the function used to ease the camera in and out of moves.
+		 * Set the function used to ease the Camera in and out of moves.
 		 *
-		 * @param {function|object} easeFunc Either the function which will be used
-		 * 		for easing on all 3 axes, or a simple object containing x, y, or z
-		 *		fields specifying a different function for each axis.
-		 * @return {hemi.view.Camera} This camera, for chaining
+		 * @param {function|object} easeFunc Either the function which will be
+		 *     used for easing on all 3 axes, or a simple object containing x,
+		 *     y, or z fields specifying a different function for each axis.
+		 * @return {hemi.view.Camera} This Camera, for chaining
 		 */
 		setEasing : function(easeFunc) {
 			if (typeof(easeFunc) == 'function') {
@@ -606,10 +623,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Set the eye and target of the camera. 
+		 * Set the eye and target of the Camera. 
 		 *
-		 * @param {[number]} eye XYZ position of camera eye
-		 * @param {[number]} target XYZ position of camera target
+		 * @param {number[3]} eye XYZ position of camera eye
+		 * @param {number[3]} target XYZ position of camera target
 		 */
 		setEyeTarget : function(eye,target) {
 			var offset = [eye[0]-target[0],eye[1]-target[1],eye[2]-target[2]],
@@ -637,13 +654,18 @@ var hemi = (function(hemi) {
 			this.camTilt.current = 0;			
 		},
 		
+		/**
+		 * Set the color of the light source.
+		 * 
+		 * @param {number[3]} rgb rgb value of the color
+		 */
 		setLight : function(rgb) {
 			this.light.color.value = [rgb[0],rgb[1],rgb[2],1];
 			return this;
 		},
 		
 		/**
-		 * Set the camera view to render with an orthographic projection.
+		 * Set the Camera view to render with an orthographic projection.
 		 *
 		 * @param {number} axis Enum for xy, xz, or yz plane to look at
 		 */
@@ -653,7 +675,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Set the camera view to render with a perespective projection.
+		 * Set the Camera view to render with a perspective projection.
 		 */
 		setPerspective : function() {
 			this.mode.projection = 0;
@@ -702,13 +724,24 @@ var hemi = (function(hemi) {
 			return octane;
 		},
 		
+		/**
+		 * Move the Camera in or out the given distance.
+		 * 
+		 * @param {number} d the distance to move the Camera
+		 */
 		truck : function(d) {
 			this.transforms.pan.rotateX(this.tilt.current);
 			this.transforms.pan.translate(0,0,-d);
 			this.transforms.pan.rotateX(-this.tilt.current);
 			this.update();
 		},
-
+		
+		/**
+		 * Set up the Camera to interpolate between the two given time values.
+		 * 
+		 * @param {number} current current time
+		 * @param {number} end end time
+		 */
 		interpolateView : function(current,end) {
 			var eye = [], target = [],
 				last = this.vd.last,
@@ -745,7 +778,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Update the camera.
+		 * Update the Camera.
 		 */
 		update : function(delta) {
 			var time = this.state.time;
@@ -782,7 +815,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Update the camera view projection.
+		 * Update the Camera view projection.
 		 */
 		updateProjection : function() {
 			var aspect = hemi.view.clientSize.width / hemi.view.clientSize.height;
@@ -808,8 +841,8 @@ var hemi = (function(hemi) {
 	 * allow a Camera to follow a smooth path through several waypoints.
 	 * @extends hemi.world.Citizen
 	 * 
-	 * @param {hemi.curve.Curve} eye curve for camera eye to follow
-	 * @param {hemi.curve.Curve} target curve for camera target to follow
+	 * @param {hemi.curve.Curve} eye Curve for camera eye to follow
+	 * @param {hemi.curve.Curve} target Curve for camera target to follow
 	 */
 	hemi.view.CameraCurve = function(eye, target) {
 		hemi.world.Citizen.call(this);
@@ -820,6 +853,7 @@ var hemi = (function(hemi) {
 	hemi.view.CameraCurve.prototype = {
 		/**
          * Overwrites hemi.world.Citizen.citizenType
+         * @string
          */
 		citizenType: 'hemi.view.CameraCurve',
 		
@@ -883,12 +917,26 @@ var hemi = (function(hemi) {
 	};
 	
 	hemi.view.Viewpoint.prototype = {
+		/**
+         * Overwrites hemi.world.Citizen.citizenType
+         * @string
+         */
 		citizenType: 'hemi.view.Viewpoint',
 		
+		/**
+		 * Get the data contained within the Viewpoint.
+		 * 
+		 * @return {hemi.view.ViewData} the ViewData for the Viewpoint
+		 */
 		getData: function() {
 			return new hemi.view.ViewData(this);
 		},
 		
+		/**
+		 * Set the data for the Viewpoint.
+		 * 
+		 * @param {hemi.view.ViewData} viewData data to set for the Viewpoint
+		 */
 		setData: function(viewData) {
 			this.eye = viewData.eye;
 			this.target = viewData.target;

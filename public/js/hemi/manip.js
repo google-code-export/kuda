@@ -58,10 +58,10 @@ var hemi = (function(hemi) {
 	 * with the mouse, constrained to a defined 2d plane.
 	 * @extends hemi.world.Citizen
 	 * 
-	 * @param {number[][]} opt_plane Array of 3 xyz points defining a plane
-	 * @param {number[]} opt_limits An array containing 
+	 * @param {number[3][3]} opt_plane Array of 3 xyz points defining a plane
+	 * @param {number[4]} opt_limits An array containing 
 	 *	   [min on u, max on u, min on v, max on v]
-	 * @param {number[]} opt_startUV Draggable's starting uv coordinate, if
+	 * @param {number[2]} opt_startUV Draggable's starting uv coordinate, if
 	 *		not [0,0]
 	 */
 	hemi.manip.Draggable = function(opt_plane, opt_limits, opt_startUV) {
@@ -93,6 +93,7 @@ var hemi = (function(hemi) {
 	hemi.manip.Draggable.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
 		citizenType: 'hemi.manip.Draggable',
 		
@@ -128,9 +129,9 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Add a transform to the list of draggable transforms.
+		 * Add a Transform to the list of draggable Transforms.
 		 *
-		 * @param {o3d.transform} transform the transform to add
+		 * @param {o3d.Transform} transform the transform to add
 		 */
 		addTransform: function(transform) {
 			hemi.world.tranReg.register(transform, this);
@@ -151,8 +152,8 @@ var hemi = (function(hemi) {
 		 * Add the given UV delta to the current UV coordinates and clamp the
 		 * results.
 		 *
-		 * @param {number[]} delta the uv change to add before clamping
-		 * @return {number[]} the actual change in uv after clamping
+		 * @param {number[2]} delta the uv change to add before clamping
+		 * @return {number[2]} the actual change in uv after clamping
 		 */
 		clamp : function(delta) {
 			var u = this.uv[0] + delta[0],
@@ -188,7 +189,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Clear the list of draggable transforms.
+		 * Clear the list of draggable Transforms.
 		 */
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
@@ -208,11 +209,11 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Check if a given transform is contained within the children of the
-		 *		transforms acted upon by this Draggable.
+		 * Check if a given Transform is contained within the children of the
+		 * Transforms acted upon by this Draggable.
 		 *
-		 * @param {o3d.transform} transform Transform to check against
-		 * @return {boolean} True if the transform is found
+		 * @param {o3d.Transform} transform transform to check against
+		 * @return {boolean} true if the Transform is found
 		 */
 		containsTransform : function(transform) {
 			for (var i = 0; i < this.transformObjs.length; i++) {
@@ -257,9 +258,9 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Get the two dimensional plane that the Draggable will translate its
-		 * active transform along.
+		 * active Transform along.
 		 * 
-		 * @return {number[][]} the current drag plane defined as 3 XYZ points
+		 * @return {number[3][3]} the current drag plane defined as 3 XYZ points
 		 */
 		getPlane: function() {
 			if (this.activeTransform === null) {
@@ -287,9 +288,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the transforms that the Draggable currently contains.
+		 * Get the Transforms that the Draggable currently contains.
 		 * 
-		 * @return {o3d.Transform[]} array of transforms
+		 * @return {o3d.Transform[]} array of Transforms
 		 */
 		getTransforms: function() {
 			var trans = [];
@@ -307,7 +308,7 @@ var hemi = (function(hemi) {
 		 * 
 		 * @param {number} x x screen coordinate
 		 * @param {number} y y screen coordinate
-		 * @return {number[]} equivalent UV coordinates
+		 * @return {number[2]} equivalent UV coordinates
 		 */
 		getUV: function(x,y) {
 			var ray = hemi.core.picking.clientPositionToWorldRay(
@@ -327,7 +328,7 @@ var hemi = (function(hemi) {
 		 * with this Draggable's plane, and then translates the dragging object 
 		 * accordingly.
 		 *
-		 * @param {o3d.inputevent} event Message describing how the mouse has moved
+		 * @param {o3d.Event} event message describing how the mouse has moved
 		 */
 		onMouseMove : function(event) {
 			if (this.dragUV === null) {
@@ -355,7 +356,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Mouse-up event listener, stops dragging.
 		 *
-		 * @param {o3d.mouseevent} event Message describing the mouse behavior
+		 * @param {o3d.Event} event message describing the mouse behavior
 		 */
 		onMouseUp : function(event) {
 			this.activeTransform = null;
@@ -368,7 +369,7 @@ var hemi = (function(hemi) {
 		 *
 		 * @param {o3djs.picking.PickInfo} pickInfo pick event information that
 		 *		contains information on the shape and transformation picked.
-		 * @param {o3d.mouseevent} mouseEvent Message describing mouse behavior
+		 * @param {o3d.Event} mouseEvent message describing mouse behavior
 		 */
 		onPick : function(pickInfo, mouseEvent) {
 			var pickTran = pickInfo.shapeInfo.parent.transform;
@@ -383,9 +384,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Receive the given transform from the TransformRegistry.
+		 * Receive the given Transform from the TransformRegistry.
 		 * 
-		 * @param {o3d.Transform} transform the transform
+		 * @param {o3d.Transform} transform the Transform
 		 */
 		receiveTransform: function(transform) {
 			this.addTransform(transform);
@@ -394,7 +395,8 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the relative uv limits in which this Draggable can move.
 		 *
-		 * @param {number[][]} coords Min uv point, and max uv point of bounding box
+		 * @param {number[2][2]} coords min and max uv points on the current
+		 *     plane
 		 */
 		setLimits : function(coords) {
 			this.umin = coords[0][0];
@@ -406,7 +408,8 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the 2d plane on which this Draggable is bound.
 		 *
-		 * @param {number[][]} plane Array of three xyz coordinates defining a plane
+		 * @param {number[3][3]} plane array of three XYZ coordinates defining a
+		 *     plane
 		 */
 		setPlane : function(plane) {
 			switch (plane) {
@@ -441,12 +444,13 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * @class A Turnable allows a transform to be turned about an axis by the user
-	 *		clicking and dragging with the mouse.
+	 * @class A Turnable allows a Transform to be turned about an axis by the
+	 *     user clicking and dragging with the mouse.
 	 * @extends hemi.world.Citizen
-	 * @param {hemi.manip.Axis} opt_axis Axis to rotate about - x,y, or z
-	 * @param {number[]} opt_limits [min angle, max angle] in radians
-	 * @param {number[]} opt_startAngle Starting angle in radians (default is 0)
+	 * 
+	 * @param {hemi.manip.Axis} opt_axis axis to rotate about
+	 * @param {number[2]} opt_limits [min angle, max angle] in radians
+	 * @param {number} opt_startAngle starting angle in radians (default is 0)
 	 */
 	hemi.manip.Turnable = function(opt_axis, opt_limits, opt_startAngle) {
 		hemi.world.Citizen.call(this);
@@ -476,6 +480,7 @@ var hemi = (function(hemi) {
 	hemi.manip.Turnable.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
+		 * @string
 		 */
 		citizenType: 'hemi.manip.Turnable',
 		
@@ -516,9 +521,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Add a transform to this Turnable object.
-		 * @param {o3d.transform} transform The transform that will also
-		 *		turn about its origin when clicked and dragged
+		 * Add a Transform to this Turnable object.
+		 * 
+		 * @param {o3d.Transform} transform the transform that will turn about
+		 *     its origin when clicked and dragged
 		 */
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
@@ -545,7 +551,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Clear the list of Turnable transforms.
+		 * Clear the list of Turnable Transforms.
 		 */
 		clearTransforms: function() {
 			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
@@ -612,12 +618,13 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the relative angle of a mouse click's interception with the active plane
-		 * 		to the origin of that plane.
-		 * @param {float} x Screen x-position of the mouse click event
-		 * @param {float} y Screen y-position of the mouse click event
-		 * @return {float} Relative angle of mouse click position on this Turnable's current
-		 *		active plane
+		 * Get the relative angle of a mouse click's interception with the
+		 * active plane to the origin of that plane.
+		 * 
+		 * @param {number} x screen x-position of the mouse click event
+		 * @param {number} y screen y-position of the mouse click event
+		 * @return {number} relative angle of mouse click position on the
+		 *     Turnable's current active plane
 		 */
 		getAngle : function(x,y) {
 			if (this.activeTransform === null) {
@@ -652,9 +659,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the transforms that the Turnable currently contains.
+		 * Get the Transforms that the Turnable currently contains.
 		 * 
-		 * @return {o3d.Transform[]} array of transforms
+		 * @return {o3d.Transform[]} array of Transforms
 		 */
 		getTransforms: function() {
 			var trans = [];		
@@ -666,9 +673,10 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * On mouse move, if the shape has been clicked and is being dragged, 
-		 *		calculate intersection points with the active plane and turn
-		 *		the transform to match.
-		 * @param {o3d.mouseEvent} event Message describing the mouse position, etc.
+		 * calculate intersection points with the active plane and turn the
+		 * Transform to match.
+		 * 
+		 * @param {o3d.Event} event message describing the mouse position, etc.
 		 */
 		onMouseMove : function(event) {
 			if (this.dragAngle === null) {
@@ -716,17 +724,19 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * On mouse up, deactivate turning.
-		 * @param {o3d.mouseEvent} event Message describing mouse position, etc.
+		 * 
+		 * @param {o3d.Event} event message describing mouse position, etc.
 		 */
 		onMouseUp : function(event) {
 			this.dragAngle = null;
 		},
 		
 		/**
-		 * On a pick message, if it applies to this Turnable, set turning to true and 
-		 *	calculate the relative angle.
-		 * @param {o3d.pickInfo} pickInfo Information about the pick event
-		 * @param {o3d.mouseEvent} event Message describing mouse poistion, etc.
+		 * On a pick message, if it applies to this Turnable, set turning to
+		 * true and calculate the relative angle.
+		 * 
+		 * @param {o3d.PickInfo} pickInfo information about the pick event
+		 * @param {o3d.Event} event message describing mouse position, etc.
 		 */
 		onPick : function(pickInfo,event) {
 			if (this.containsTransform(pickInfo.shapeInfo.parent.transform)) {
@@ -736,9 +746,9 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Receive the given transform from the TransformRegistry.
+		 * Receive the given Transform from the TransformRegistry.
 		 * 
-		 * @param {o3d.Transform} transform the transform
+		 * @param {o3d.Transform} transform the Transform
 		 */
 		receiveTransform: function(transform) {
 			this.addTransform(transform);
@@ -747,7 +757,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the axis to which this Turnable is bound.
 		 * 
-		 * @param {hemi.manip.Axis} axis Axis to rotate about - x,y, or z
+		 * @param {hemi.manip.Axis} axis axis to rotate about - x, y, or z
 		 */
 		setAxis: function(axis) {
 			this.axis = axis;
@@ -767,7 +777,8 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Set the limits to which this Turnable can rotate.
-		 * @param {float[]} limits [min,max] Angle limits in radians
+		 * 
+		 * @param {number[2]} limits [min,max] angle limits in radians
 		 */
 		setLimits : function(limits) {
 			if (limits[0] != null) {

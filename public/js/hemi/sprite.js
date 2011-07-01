@@ -47,9 +47,9 @@ var hemi = (function(hemi) {
 	 * frames to create an animation effect, for a number of cycles or
 	 * indefinitely.
 	 * 
-	 * @param {number} width The width of the sprite
-	 * @param {number} height The height of the sprite
-	 * @param {string} opt_source The location of a source image to start with (not implemented)
+	 * @param {number} width the width of the sprite
+	 * @param {number} height the height of the sprite
+	 * @param {string} opt_source the location of a source image to start with (not implemented)
 	 */
 	hemi.sprite.Sprite = function(width,height,opt_source) {
 		var core = hemi.core;
@@ -82,9 +82,10 @@ var hemi = (function(hemi) {
 
 	hemi.sprite.Sprite.prototype = {
 		/**
-		 * Add an image to be used as a frame in the animation, or as a standalone image.
+		 * Add an image to be used as a frame in the animation, or as a
+		 * standalone image.
 		 *
-		 * @param {string} path The path to the image source
+		 * @param {string} path the path to the image source
 		 * @param {function(number,hemi.sprite.Sprite):void} opt_callback a
 		 * function to call and pass the index and sprite
 		 */
@@ -99,7 +100,7 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the sprite to be a constant size in the viewer.
+		 * Set the Sprite to be a constant size in the viewer.
 		 *
 		 * @param {boolean} enable If true, keep sprite size constant
 		 */
@@ -108,7 +109,7 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the sprite to always look at the camera.
+		 * Set the Sprite to always look at the camera.
 		 *
 		 * @param {boolean} enable If true, always look at camera
 		 */
@@ -147,10 +148,10 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Function to call on every o3d render cycle. Scale or rotate the sprite if needed,
-		 *		and update the frame if needed.
+		 * Function to call on every render cycle. Scale or rotate the Sprite if
+		 * needed, and update the frame if needed.
 		 *
-		 *	@param {o3d.renderEvent} e Message describing this render loop
+		 *	@param {o3d.RenderEvent} e Message describing this render loop
 		 */
 		onRender : function(e) {
 			var p0 = this.transform.getUpdatedWorldMatrix()[3].slice(0,3);
@@ -176,19 +177,20 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the parent of this sprite to a transform.
+		 * Set the parent of the Sprite to a Transform.
 		 *
-		 * @param {o3d.transform} transform Transform to be the new parent
+		 * @param {o3d.Transform} transform Transform to be the new parent
 		 */
 		parent : function(transform) {
 			this.transform.parent = transform;
 		},
 
 		/**
-		 * Start the sprite animating, for a set number of cycles, or pass in -1
-		 *		for infinite looping.
+		 * Start the Sprite animating, for a set number of cycles, or pass in -1
+		 * for infinite looping.
 		 *
-		 * @param {number} opt_cycles Number of cycles, defaults to one loop through the frames
+		 * @param {number} opt_cycles Number of cycles, defaults to one loop
+		 *     through the frames
 		 */
 		run : function(opt_cycles) {
 			this.cycle = 0;
@@ -200,7 +202,7 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the sprite to display one of it's frames.
+		 * Set the Sprite to display one of it's frames.
 		 *
 		 * @param {number} index Index of desired frame
 		 */
@@ -213,7 +215,8 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the period of time, in seconds, that each frame of an animation will display
+		 * Set the period of time, in seconds, that each frame of the Sprite's
+		 * animation will display.
 		 *
 		 * @param {number} period Period, in seconds
 		 */

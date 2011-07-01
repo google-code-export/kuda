@@ -56,6 +56,7 @@ var hemi = (function(hemi) {
 	hemi.time.Timer.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
+         * @string
          */
         citizenType: 'hemi.time.Timer',
 		
