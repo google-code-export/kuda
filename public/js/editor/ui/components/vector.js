@@ -193,7 +193,8 @@ var editor = (function(editor) {
 					var div = jQuery('<div class="vectorVec"></div>');
 					for (var j = 0, jl = ipt.length; j < jl; j++) {
 						var inputTxt = ipt[j];
-							elem = createInput.call(this).data('ndx', inputTxt);
+							elem = createInput.call(this).data('ndx', inputTxt)
+								.attr('placeholder', inputTxt);
 						
 						this.inputs.put(inputTxt, elem);
 						div.append(elem);
@@ -201,7 +202,8 @@ var editor = (function(editor) {
 					this.container.append(div);
 				}
 				else {
-					var elem = createInput.call(this).data('ndx', ipt);
+					var elem = createInput.call(this).data('ndx', ipt)
+						.attr('placeholder', ipt);
 					
 					this.inputs.put(ipt, elem);
 					this.container.append(elem);
@@ -258,13 +260,7 @@ var editor = (function(editor) {
 			var wgt = this,
 				vectors = wgt.find('.' + this.config.type),
 				inputs = this.inputs.values();
-			
-			for (var i = 0, il = inputs.length; i < il; i++) {
-				var input = inputs[i];
-				
-				input.val(input.data('ndx'));
-			}
-			
+						
 			if (wgt.config.validator) {
 				wgt.config.validator.setElements(vectors);
 			}
@@ -279,9 +275,6 @@ var editor = (function(editor) {
 					ndx = elem.data('ndx'),
 					totVal = wgt.getValue();
 				
-				if (val === '') {
-					elem.val(ndx).addClass('vectorHelper');
-				}
 				if (wgt.config.onBlur) {
 					wgt.config.onBlur(elem, evt, wgt);
 				}	
@@ -289,15 +282,7 @@ var editor = (function(editor) {
 					wgt.notifyListeners(editor.EventTypes.VectorValueSet, 
 						totVal);
 				}
-			})
-			.bind('focus', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val();
-				if (contains(val, wgt.config.inputs)) {
-					elem.val('');
-				}
-			})
-			.addClass('vectorHelper');
+			});
 		},
 		
 		setBoundedValue = function(values) {
