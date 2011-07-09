@@ -505,7 +505,7 @@ var editor = (function(module) {
 					
 					if (val === '') {
 						wgt.notifyListeners(module.EventTypes.RemoveShapeParam, 
-							wgt.vectors.config.paramName);
+							vecWgt.config.paramName);
 					}
 					else if (hemi.utils.isNumeric(val)) {
 						var initVal = vecWgt.getValue();
@@ -513,13 +513,13 @@ var editor = (function(module) {
 						if (initVal) {		
 							var totalVal;
 							
-							if (initVal.x) {
+							if (initVal.x != null) {
 								totalVal = [initVal.x, initVal.y, initVal.z];
 							}
-							else if (initVal.d) {
+							else if (initVal.d != null) {
 								totalVal = [initVal.a, initVal.b, initVal.c, initVal.d];
 							}
-							else if (initVal.r) {
+							else if (initVal.r != null) {
 								totalVal = [initVal.r, initVal.g, initVal.b, initVal.a];
 							}
 							

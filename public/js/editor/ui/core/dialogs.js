@@ -30,21 +30,17 @@ var editor = (function(module) {
 			}),
 			msg = dlg.find('p').hide(),
 			lbl = dlg.find('label');
-			
-		return {
-			dialog: dlg,
-			form: form,
-			messageArea: msg,
-			label: lbl
-		};
+		
+		dlg.data('msg', msg).data('label', lbl).data('form', form);
+		
+		return dlg;
 	};
 	
 	module.ui.createLoadModelDialog = function(cb) {
-		var dlgObj = createSimpleDialog('loadMdl', 'Load Model'),
-			dlg = dlgObj.dialog,
-			form = dlgObj.form,
-			msg = dlgObj.messageArea,
-			lbl = dlgObj.label.attr('for', 'loadMdlSel').text('Select a Model:'),
+		var dlg = createSimpleDialog('loadMdl', 'Load Model'),
+			form = dlg.data('form'),
+			msg = dlg.data('msg'),
+			lbl = dlg.data('label').attr('for', 'loadMdlSel').text('Select a Model:'),
 			sel = jQuery('<select id="loadMdlSel"></select>'),
 			ipt = jQuery('<input type="text" id="loadMdlIpt" />').hide(),
 			btn = jQuery('<button id="loadMdlBtn">Load</button>');
@@ -107,11 +103,10 @@ var editor = (function(module) {
 	};
 	
 	module.ui.createImportModelDialog = function(cb) {
-		var dlgObj = createSimpleDialog('importMdl', 'Import Model'),
-			dlg = dlgObj.dialog,
-			form = dlgObj.form,
-			msg = dlgObj.messageArea,
-			lbl = dlgObj.label.attr('for', 'importMdlSel').text('Import a Model'),
+		var dlg = createSimpleDialog('importMdl', 'Import Model'),
+			form = dlg.data('form'),
+			msg = dlg.data('msg'),
+			lbl = dlg.data('label').attr('for', 'importMdlSel').text('Import a Model'),
 			btn = jQuery('<button id="importMdlBtn">Choose a File</button>');
 		
 		form.append(btn);
@@ -182,11 +177,10 @@ var editor = (function(module) {
 	};
 	
 	module.ui.createSaveProjectDialog = function(cb) {
-		var dlgObj = createSimpleDialog('savePrj', 'Save Project'),
-			dlg = dlgObj.dialog,
-			form = dlgObj.form,
-			msg = dlgObj.messageArea,
-			lbl = dlgObj.label.attr('for', 'savePrjName').text('Project Name:'),
+		var dlg = createSimpleDialog('savePrj', 'Save Project'),
+			form = dlg.data('form'),
+			msg = dlg.data('msg'),
+			lbl = dlg.data('label').attr('for', 'savePrjName').text('Project Name:'),
 			ipt = jQuery('<input type="text" name="savePrjName" id="savePrjName" />'),
 			btn = jQuery('<button id="savePrjBtn">Save</button>');
 		
@@ -210,11 +204,10 @@ var editor = (function(module) {
 	};
 	
 	module.ui.createOpenProjectDialog = function(cb) {
-		var dlgObj = createSimpleDialog('loadPrj', 'Open Project'),
-			dlg = dlgObj.dialog,
-			form = dlgObj.form,
-			msg = dlgObj.messageArea,
-			lbl = dlgObj.label.attr('for', 'loadPrjSel').text('Select a Project:'),
+		var dlg = createSimpleDialog('loadPrj', 'Open Project'),
+			form = dlg.data('form'),
+			msg = dlg.data('msg'),
+			lbl = dlg.data('label').attr('for', 'loadPrjSel').text('Select a Project:'),
 			sel = jQuery('<select id="loadPrjSel"></select>'),
 			btn = jQuery('<button id="loadPrjBtn">Load</button>');
 		
@@ -269,11 +262,10 @@ var editor = (function(module) {
 	};
 	
 	module.ui.createPublishProjectDialog = function(savePrjDlg, cb) {
-		var dlgObj = createSimpleDialog('pubPrj', 'Publish Project'),
-			dlg = dlgObj.dialog,
-			form = dlgObj.form,
-			msg = dlgObj.messageArea,
-			lbl = dlgObj.label.attr('for', 'pubPrjName').text('Save project and create page for:'),
+		var dlg = createSimpleDialog('pubPrj', 'Publish Project'),
+			form = dlg.data('form'),
+			msg = dlg.data('msg'),
+			lbl = dlg.data('label').attr('for', 'pubPrjName').text('Save project and create page for:'),
 			spn = jQuery('<span id="pubPrjName"></span>'),
 			btn = jQuery('<button id="pubPrjBtn">Publish</button>');
 		

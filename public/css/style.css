@@ -1027,7 +1027,10 @@ form.scrolling input.vector, form.scrolling input.color,
 form.scrolling input.quat {
 	width: 24px;
 }
-form input.vectorHelper {
+form input:-moz-placeholder {
+	color: #bbb;
+}
+form input::-webkit-input-placeholder {
 	color: #bbb;
 }
 form input.name {

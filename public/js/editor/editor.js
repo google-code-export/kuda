@@ -663,7 +663,7 @@
 					}, 1500);
 				},
 				error: function(xhr, status, err) {
-					var msg = that.savePrjDlg.find('#savePrjMsg');
+					var msg = that.savePrjDlg.data('msg');
 					try {
 						var data = JSON.parse(xhr.responseText); 
 						
@@ -695,7 +695,7 @@
 		
 		openProject: function(name) {
 			if (name == null) {
-				this.openPrjDlg.find('#loadPrjMsg').text('No project specified!').show();
+				this.openPrjDlg.data('msg').text('No project specified!').show();
 				return;
 			}
 			
@@ -739,7 +739,7 @@
 					name: name
 				},
 				models = hemi.world.getModels(),
-				msg = this.publishPrjDlg.find('#pubPrjMsg'),
+				msg = this.publishPrjDlg.data('msg'),
 				that = this;
 			
 			if (models.length > 0) {
@@ -761,8 +761,7 @@
 				type: 'post',
 				success: function(data, status, xhr) {
 					that.publishPrjDlg.find('form').hide();
-					that.publishPrjDlg.find('#pubPrjMsg')
-						.text('Published project as ' + data.name).show();
+					msg.text('Published project as ' + data.name).show();
 					
 					setTimeout(function() {
 						that.publishPrjDlg.dialog('close');

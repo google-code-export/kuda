@@ -551,9 +551,9 @@ var hemi = (function(hemi) {
 			this.steadyMove = true;
 			this.startPos = this.pos;
 			this.mustComplete = opt_mustComplete || false;
-			if (opt_intFunc) {
-				this.intFunc = opt_intFunc;
-			}
+//			if (opt_intFunc) {
+//				this.intFunc = opt_intFunc;
+//			}
 			this.stopPos = hemi.core.math.addVector(this.pos,delta);
 			this.send(hemi.msg.start,{});
 			this.enable();
