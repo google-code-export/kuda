@@ -15,7 +15,7 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module, jQuery) {
+var editor = (function(module) {
 	module.treeData = module.treeData || {};
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -590,4 +590,4 @@ var editor = (function(module, jQuery) {
 	};
 	
 	return module;
-})(editor || {}, jQuery);
+})(editor || {});

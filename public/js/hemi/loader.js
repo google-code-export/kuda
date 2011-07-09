@@ -218,7 +218,7 @@ var hemi = (function(hemi) {
 				hemi.core.error(status);
 			} else {
 				if (typeof data === 'string') {
-					data = JSON.decode(data);
+					data = JSON.parse(data);
 				}
 				
 				if (data.type) {
