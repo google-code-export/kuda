@@ -127,8 +127,8 @@
 			this.hudMdl.addListener(editor.EventTypes.PageCreated, addFunc);
 			this.crvMdl.addListener(editor.EventTypes.CurveCreated, addFunc);
 			this.crvMdl.addListener(editor.EventTypes.CurveUpdated, updateFunc);
-			this.crvMdl.addListener(editor.EventTypes.TimerCreated, addFunc);
-			this.crvMdl.addListener(editor.EventTypes.TimerUpdated, updateFunc);
+			this.tmrMdl.addListener(editor.EventTypes.TimerCreated, addFunc);
+			this.tmrMdl.addListener(editor.EventTypes.TimerUpdated, updateFunc);
 			
 			// special model browser listeners
 			this.shpMdl.addListener(editor.EventTypes.ShapeCreated, function(shape) {
