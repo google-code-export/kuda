@@ -29,6 +29,37 @@ var editor = (function(module) {
 	};
 	
 	module.EventTypes = module.EventTypes || {};
+	
+	/*
+	 * For when a cancel action happens.
+	 */
+    module.EventTypes.Cancel = "Cancel";	
+	
+	/*
+	 * For when the sidebar has been set.
+	 */
+    module.EventTypes.SidebarSet = "SidebarSet";	
+	    
+    /*
+     * For tool clicked notifications.  Specific to views.
+     */
+    module.EventTypes.ToolClicked = "ToolClicked";
+    
+    /*
+     * For tool mode setting (either up or down in the case of the toolbar 
+     * widget).  Specific to views.
+     */
+    module.EventTypes.ToolModeSet = "ToolModeSet";
+	
+	/*
+	 * For when the hemi world object is loaded. 
+	 */
+    module.EventTypes.WorldLoaded = "WorldLoaded";
+	
+	/*
+	 * For when the hemi world object is cleaned up (unloaded).
+	 */
+    module.EventTypes.WorldCleaned = "WorldCleaned";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -48,37 +79,6 @@ var editor = (function(module) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////   
-	    
-    /*
-     * For tool clicked notifications.  Specific to views.
-     */
-    module.EventTypes.ToolClicked = "baseTool.ToolClicked";
-    
-    /*
-     * For tool mode setting (either up or down in the case of the toolbar 
-     * widget).  Specific to views.
-     */
-    module.EventTypes.ToolModeSet = "baseTool.ToolModeSet";
-	
-	/*
-	 * For when the main dialog is closed for a tool.
-	 */
-    module.EventTypes.DialogClosed = "baseTool.DialogClosed";
-	
-	/*
-	 * For when the hemi world object is loaded. 
-	 */
-    module.EventTypes.WorldLoaded = "baseTool.WorldLoaded";
-	
-	/*
-	 * For when the hemi world object is cleaned up (unloaded).
-	 */
-    module.EventTypes.WorldCleaned = "baseTool.WorldCleaned";
-	
-	/*
-	 * For when the sidebar has been set.
-	 */
-    module.EventTypes.SidebarSet = "baseTool.SidebarSet";	
 	
     /*
      * Configuration object for the ToolView.

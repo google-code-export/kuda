@@ -127,6 +127,8 @@
 			this.hudMdl.addListener(editor.EventTypes.PageCreated, addFunc);
 			this.crvMdl.addListener(editor.EventTypes.CurveCreated, addFunc);
 			this.crvMdl.addListener(editor.EventTypes.CurveUpdated, updateFunc);
+			this.crvMdl.addListener(editor.EventTypes.TimerCreated, addFunc);
+			this.crvMdl.addListener(editor.EventTypes.TimerUpdated, updateFunc);
 			
 			// special model browser listeners
 			this.shpMdl.addListener(editor.EventTypes.ShapeCreated, function(shape) {
@@ -485,6 +487,11 @@
 			var crvView = new tools.CurveEditorView(),
 				crvCtr = new tools.CurveEditorController();
 			this.crvMdl = new tools.CurveEditorModel();
+			
+			// timer
+			var tmrView = new tools.TimersView(),
+				tmrCtr = new tools.TimersController();
+			this.tmrMdl = new tools.TimersModel();
             
 			// add to the toolbars
             this.toolbar.addTool(mbrView);
@@ -500,6 +507,7 @@
 			this.toolbar.addTool(hudView);
 			this.toolbar.addTool(fogView);
 			this.toolbar.addTool(crvView);
+			this.toolbar.addTool(tmrView);
                         			
 			// finally, bind all the view/model/controllers together
             mbrCtr.setView(mbrView);
@@ -546,6 +554,9 @@
 			
 			crvCtr.setView(crvView);
 			crvCtr.setModel(this.crvMdl);
+			
+			tmrCtr.setView(tmrView);
+			tmrCtr.setModel(this.tmrMdl);
 		},
 		
 		layoutSidebar: function() {

@@ -71,6 +71,7 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.tools.hudDisplays');
 	o3djs.require('editor.tools.fog');
 	o3djs.require('editor.tools.curves');
+	o3djs.require('editor.tools.timer');
 	
 	o3djs.require('hemi.loader');
 	o3djs.require('hemi.handlers.valueCheck');
