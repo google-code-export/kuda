@@ -41,8 +41,8 @@ var copyFiles = function(fromDir, toDir, args) {
 
 		if (args.uglyModules) {
 			if (args.uglyModules.every(function(e) { return toDir.indexOf(e) !== -1; })) {
-				// process.stdout.write('newFile:' + newFile + '\n');
-				// process.stdout.write('path.basename(file):' + path.basename(file) + '\n');
+				process.stdout.write('newFile:' + newFile + '\n');
+				process.stdout.write('path.basename(file):' + path.basename(file) + '\n');
 				var uglyData = data.toString().replace(/o3djs.require\('.*?'\);/g, "");
 				args.uglyData += ';\n' + uglifyMe(uglyData);
 			}
@@ -114,13 +114,9 @@ var compressDir = function(toDir) {
 };
 
 var uglifyFile = function(file) {
-	var jsp = uglify.parser,
-		pro = uglify.uglify,
-		ast = jsp.parse(fs.readFileSync(file).toString()),
-		outFile = fs.openSync(file.slice(0, -2) + '.min.js', 'w+');
-	ast = pro.ast_mangle(ast);
-	ast = pro.ast_squeeze(ast);
-	fs.writeSync(outFile, pro.gen_code(ast));
+	var uglyjs = uglifyMe(fs.readFileSync(file).toString()),
+		outFile = fs.openSync(file.replace(/.src.js|.js/, '.min.js'), 'w+');
+	fs.writeSync(outFile,uglyjs);
 };
 
 var uglifyMe = function(data) {
@@ -132,26 +128,21 @@ var uglifyMe = function(data) {
 	return pro.gen_code(ast);
 };
 
-var uglifyFiles = function(fromDir, toDir, subDirs) {
-	var files = [],
-		dirs = [];
+var catFiles = function(args) {
+	args.uglyData = "";
 
-	getDirContents(fromDir, files, dirs);
-	process.stdout.write('fromDir:' + fromDir + '\n');
-	process.stdout.write('files:' + files + '\n');
-	process.stdout.write('dirs:' + dirs + '\n');
-	process.stdout.write('dirs.length:' + dirs.length + '\n\n');
-
-	for (var i = 0, il = dirs.length; i < il; i++) {
-		var dir = '/' + path.basename(dirs[i]);
-		uglifyFiles(fromDir + dir, toDir + dir, subDirs);
+	for (var i = 0, il = args.moduleFiles.length; i < il; i++) {
+		var file = args.moduleFiles[i],
+			data = fs.readFileSync(args.dist + '/' + file),
+			uglyData = data.toString().replace(args.replace, "");
+		args.uglyData += uglyData;
 	}
 };
 
 if (process.argv.length > 3) {
 	var ndx = 2,
-	docs = true,
-	compress = true;
+		docs = true,
+		compress = true;
 	// Check for flags
 	while(process.argv[ndx].substr(0, 2) === '--') {
 		var flag = process.argv[ndx++];
@@ -165,6 +156,7 @@ if (process.argv.length > 3) {
 				break;
 		}
 	}
+
 	// Get build arguments
 	var type = process.argv[ndx++],
 		toDir = process.argv[ndx];
@@ -173,6 +165,7 @@ if (process.argv.length > 3) {
 		process.stdout.write('Cannot write to ' + toDir + ': already exists\n');
 		process.exit(-1);
 	}
+
 	// Set up our filter
 	filter = ['.svn', '.hg', '.hgignore', '.hgtags', '.project', '.settings'];
 
@@ -185,7 +178,7 @@ if (process.argv.length > 3) {
 		copyFiles('./public/js', toDir, args);
 		// process.stdout.write(args.uglyData + '\n');
 		// TODO: Make this pull in the hemi version from core or something better than hard coding doh! ;-)
-		//fs.writeFileSync(toDir + '/hemi-core-1.4.0.min.js', args.uglyData);
+		//fs.writeFileSync(toDir + '/hemi-build-1.4.0.min.js', args.uglyData);
 
 		if (docs) {
 			var docDir = './public/doc';
@@ -197,6 +190,48 @@ if (process.argv.length > 3) {
 	} else if (type === 'ugly') {
 		process.stdout.write('Making ugly toDir:' + toDir + '\n');
 		uglifyFile(toDir);
+	} else if (type == 'uglify') {
+		var args = {
+			dist: toDir,
+			moduleFiles: [
+				'hemi/core.js',
+				'hemi/utils/hashtable.js',
+				'hemi/utils/jsUtils.js',
+				'hemi/utils/mathUtils.js',
+				'hemi/utils/shaderUtils.js',
+				'hemi/utils/stringUtils.js',
+				'hemi/utils/transformUtils.js',
+				'hemi/msg.js',
+				'hemi/console.js',
+				'hemi/picking.js',
+				'hemi/loader.js',
+				'hemi/world.js',
+				'hemi/octane.js',
+				'hemi/handlers/valueCheck.js',
+				'hemi/audio.js',
+				'hemi/dispatch.js',
+				'hemi/input.js',
+				'hemi/view.js',
+				'hemi/model.js',
+				'hemi/animation.js',
+				'hemi/motion.js',
+				'hemi/effect.js',
+				'hemi/scene.js',
+				'hemi/hud.js',
+				'hemi/manip.js',
+				'hemi/curve.js',
+				'hemi/sprite.js',
+				'hemi/shape.js',
+				'hemi/fx.js',
+				'hemi/texture.js',
+				'hemi/timer.js'
+			],
+			replace: /o3djs\.require\('(hemi|o3djs\.picking).*?'\);/g
+		};
+		catFiles(args);
+		fs.writeFileSync(args.dist + '/hemi-build-1.4.0.src.js', args.uglyData);
+		// TODO: Add the GPL header
+		uglifyFile(args.dist + '/hemi-build-1.4.0.src.js');
 	} else {
 		// Unless building a full package, do not copy samples
 		if (type !== 'full') {
@@ -225,3 +260,11 @@ if (process.argv.length > 3) {
 		'Valid options are: --no-doc, --no-zip\n' +
 		'Valid types are: core, editor, full\n');
 }
+
+
+
+
+//cat base.js object_base.js named_object_base.js named_object.js param_object.js param_array.js param.js event.js raw_data.js texture.js bitmap.js file_request.js client.js render_node.js clear_buffer.js state_set.js viewport.js tree_traversal.js draw_list.js draw_pass.js render_surface_set.js render_surface.js state.js draw_context.js ray_intersection_info.js sampler.js transform.js pack.js bounding_box.js draw_element.js element.js field.js buffer.js stream.js vertex_source.js stream_bank.js primitive.js shape.js effect.js material.js archive_request.js param_operation.js function.js counter.js curve.js skin.js > ../../../o3d-webgl.src.js
+
+
+//cat base.js effect.js util.js webgl.js debug.js element.js event.js loader.js math.js pack.js particles.js picking.js rendergraph.js canvas.js material.js io.js scene.js serialization.js error.js texture.js shape.js > ../../../o3djs.src.js
