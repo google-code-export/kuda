@@ -3,6 +3,7 @@
 
 var child = require('child_process'),
 	fs = require('fs'),
+	sys = require('sys'),
 	path = require('path'),
 	uglify = require('uglify-js'),
 	procFds = [process.stdin.fd, process.stdout.fd, process.stderr.fd],
@@ -188,7 +189,7 @@ if (process.argv.length > 3) {
 			}
 		}
 	} else if (type === 'ugly') {
-		process.stdout.write('Making ugly toDir:' + toDir + '\n');
+		sys.puts('Making ugly toDir:' + toDir + '\n');
 		uglifyFile(toDir);
 	} else if (type == 'uglify') {
 		var args = {
