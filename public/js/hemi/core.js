@@ -60,15 +60,15 @@ o3djs.require('hemi.timer');
 
 /**
  * @namespace The core Hemi library used by Kuda.
- * @version 1.4.0
+ * @version 1.4.1
  */
 var hemi = (function(hemi) {
 	
 	/**
-	 * The version of Hemi released: 7/1/11
+	 * The version of Hemi released: 7/??/11
 	 * @constant
 	 */
-	hemi.version = '1.4.0';
+	hemi.version = '1.4.1';
 
 	/**
 	 * @namespace A module for handling low level functionality and wrapping
