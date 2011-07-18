@@ -73,11 +73,24 @@ var hemi = (function(hemi) {
 		 */
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
-			var obj = {};
+			var param = transform.getParam('ownerId'),
+				obj = {},
+				oid = null;
+			
+			if (param !== null) {
+				oid = param.value;
+			}
 			
 			if (hemi.utils.isAnimated(transform)) {
 				var tran1 = hemi.core.mainPack.createObject('Transform'),
 					tran2 = hemi.utils.fosterTransform(transform);
+				
+				tran1.name = transform.name + ' Rotator';
+				tran2.name = transform.name + ' Offset';
+				param = tran1.createParam('ownerId', 'o3d.ParamInteger');
+				param.value = oid;
+				param = tran2.createParam('ownerId', 'o3d.ParamInteger');
+				param.value = oid;
 				
 				tran1.parent = transform;
 				tran2.parent = tran1;
@@ -88,6 +101,13 @@ var hemi = (function(hemi) {
 			} else {
 				var tran1 = hemi.core.mainPack.createObject('Transform'),
 					tran2 = hemi.core.mainPack.createObject('Transform');
+				
+				tran1.name = transform.name + ' Rotator';
+				tran2.name = transform.name + ' Offset';
+				param = tran1.createParam('ownerId', 'o3d.ParamInteger');
+				param.value = oid;
+				param = tran2.createParam('ownerId', 'o3d.ParamInteger');
+				param.value = oid;
 				
 				tran1.parent = transform.parent;
 				tran2.parent = tran1;
@@ -424,13 +444,25 @@ var hemi = (function(hemi) {
 		 */
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
-			var obj = {};
+			var param = transform.getParam('ownerId'),
+				obj = {},
+				oid = null;
+			
+			if (param !== null) {
+				oid = param.value;
+			}
 			
 			if (hemi.utils.isAnimated(transform)) {
 				obj.tran = hemi.utils.fosterTransform(transform);
+				obj.tran.name = transform.name + ' Translator';
+				param = obj.tran.createParam('ownerId', 'o3d.ParamInteger');
+				param.value = oid;
 				obj.foster = true;
 			} else {
 				var tran = hemi.core.mainPack.createObject('Transform');
+				tran.name = transform.name + ' Translator';
+				param = tran.createParam('ownerId', 'o3d.ParamInteger');
+				param.value = oid;
 				tran.parent = transform.parent;
 				transform.parent = tran;
 				tran.localMatrix = hemi.utils.clone(transform.localMatrix);
