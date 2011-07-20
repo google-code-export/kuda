@@ -459,13 +459,20 @@ o3djs.picking.TransformInfo.prototype.update = function() {
   var children = this.transform.children;
   for (var c = 0; c < children.length; c++) {
     var child = children[c];
-    var transformInfo = this.childTransformInfos[child.clientId];
+    var cid = child.clientId;
+    var transformInfo = this.childTransformInfos[cid];
     if (!transformInfo) {
-      transformInfo = this.pickManager.createTransformInfo(child, this);
-    } else {
-      // clear the boundingBox so we'll regenerate it.
-      transformInfo.boundingBox = null;
+      transformInfo = this.pickManager.transformInfosByClientId[cid];
+      if (!transformInfo) {
+        transformInfo = this.pickManager.createTransformInfo(child, this);
+      } else {
+        // The Transform was reparented. Do the same for the TransformInfo.
+        delete transformInfo.parent.childTransformInfos[cid];
+        transformInfo.parent = this;
+      }
     }
+    // clear the boundingBox so we'll regenerate it.
+    transformInfo.boundingBox = null;
     transformInfo.update();
     newChildTransformInfos[child.clientId] = transformInfo;
   }
@@ -493,7 +500,12 @@ o3djs.picking.TransformInfo.prototype.update = function() {
   for (var skey in this.childTransformInfos) {
     var key = /** @type {number} */ (skey);
     if (!newChildTransformInfos[key]) {
-      this.pickManager.removeTransformInfo(this.childTransformInfos[key]);
+      var info = this.childTransformInfos[key];
+      // Check if the Transform is actually completely off the pick tree or if
+      // it was just reparented.
+      if (!this.pickManager.onPickTree(info.transform)) {
+        this.pickManager.removeTransformInfo(info);
+      }
     }
   }
 
@@ -738,5 +750,21 @@ o3djs.picking.PickManager.prototype.pick = function(worldRay) {
  */
 o3djs.picking.createPickManager = function(rootTransform) {
   return new o3djs.picking.PickManager(rootTransform);
+};
+
+/**
+ * Check to see if the given Transform lies on the pick tree.
+ * @param {!o3d.Transform} transform the Transform to check
+ * @return {boolean} true if the transform is a descendant of the pick root
+ */
+o3djs.picking.PickManager.prototype.onPickTree = function(transform) {
+  var onTree = false;
+  var parent = transform.parent;
+  if (parent === this.rootTransformInfo.transform) {
+    onTree = true;
+  } else if (parent != null) {
+    onTree = this.onPickTree(parent);
+  }
+  return onTree;
 };
 
