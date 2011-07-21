@@ -34,6 +34,8 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.utils.misc');
 	o3djs.require('editor.utils.treeData');
 	
+	o3djs.require('editor.data.metadata');
+	
     o3djs.require('editor.ui.components.component');
     o3djs.require('editor.ui.components.menu');
 	o3djs.require('editor.ui.components.colorpicker');
