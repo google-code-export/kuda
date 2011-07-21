@@ -604,7 +604,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the function used to ease the Camera in and out of moves.
 		 *
-		 * @param {function|object} easeFunc Either the function which will be
+		 * @param {function|Object} easeFunc Either the function which will be
 		 *     used for easing on all 3 axes, or a simple object containing x,
 		 *     y, or z fields specifying a different function for each axis.
 		 * @return {hemi.view.Camera} This Camera, for chaining
@@ -1062,7 +1062,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Set the clear color of the client.
 	 *
-	 * @param {[number]} rgba Red-Green-Blue-Alpha array
+	 * @param {number[4]} rgba Red-Green-Blue-Alpha array
 	 */
 	hemi.view.setBGColor = function(rgba) {
 		this.viewInfo.clearBuffer.clearColor = rgba;
@@ -1071,7 +1071,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Get the clear color of the client.
 	 * 
-	 * @return {[number]} the background color
+	 * @return {number[4]} the background color
 	 */
 	hemi.view.getBGColor = function() {
 		return this.viewInfo.clearBuffer.clearColor;
@@ -1080,9 +1080,8 @@ var hemi = (function(hemi) {
 	/**
 	 * Get the time that the specified animation frame occurs at.
 	 * 
-	 * @param {number}
-	 *            frame frame number to get the time for
-	 * @return {float} time that the frame occurs at
+	 * @param {number} frame frame number to get the time for
+	 * @return {number} time that the frame occurs at
 	 */
 	hemi.view.getTimeOfFrame = function(frame) {
 		return frame / this.FPS;
@@ -1091,8 +1090,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Create a new ViewData with the given Camera's current viewing parameters.
 	 * 
-	 * @param {hemi.view.Camera}
-	 *            camera the Camera to create the Viewpoint from
+	 * @param {hemi.view.Camera} camera the Camera to create the Viewpoint from
 	 * @return {hemi.view.ViewData} the newly created ViewData
 	 */
 	hemi.view.createViewData = function(camera) {
@@ -1110,10 +1108,8 @@ var hemi = (function(hemi) {
 	 * Create a new Viewpoint with the given name and the given Camera's current
 	 * viewing parameters.
 	 * 
-	 * @param {string}
-	 *            name the name of the new Viewpoint
-	 * @param {hemi.view.Camera}
-	 *            camera the Camera to create the Viewpoint from
+	 * @param {string} name the name of the new Viewpoint
+	 * @param {hemi.view.Camera} camera the Camera to create the Viewpoint from
 	 * @return {hemi.view.Viewpoint} the newly created Viewpoint
 	 */
 	hemi.view.createViewpoint = function(name, camera) {
@@ -1126,16 +1122,11 @@ var hemi = (function(hemi) {
 	 * Create a new Viewpoint with the given name and the given viewing
 	 * parameters.
 	 * 
-	 * @param {string}
-	 *            name the name of the new Viewpoint
-	 * @param {float[3]}
-	 *            eye the coordinates of the eye
-	 * @param {float[3]}
-	 *            target the coordinates of the target
-	 * @param {float[3]}
-	 *            up the coordinates of the up direction
-	 * @param {number}
-	 *            fov angle of the field-of-view
+	 * @param {string} name the name of the new Viewpoint
+	 * @param {number[3]} eye the coordinates of the eye
+	 * @param {number[3]} target the coordinates of the target
+	 * @param {number[3]} up the coordinates of the up direction
+	 * @param {number} fov angle of the field-of-view
 	 * @return {hemi.view.Viewpoint} the newly created Viewpoint
 	 */
 	hemi.view.createCustomViewpoint = function(name, eye, target, up, fov,

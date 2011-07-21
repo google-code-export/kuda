@@ -360,7 +360,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the Shape Transform's matrix to the new matrix.
 		 * 
-		 * @param {Vectormath.Aos.Matrix4} matrix the new local matrix
+		 * @param {number[4][4]} matrix the new local matrix
 		 */
 		setMatrix: function(matrix) {			
 			this.transform.localMatrix = matrix;
@@ -380,9 +380,9 @@ var hemi = (function(hemi) {
 		/**
 		 * Translate the Shape by the given amounts.
 		 * 
-		 * @param {float} x amount to translate on the x axis
-		 * @param {float} y amount to translate on the y axis
-		 * @param {float} z amount to translate on the z axis
+		 * @param {number} x amount to translate on the x axis
+		 * @param {number} y amount to translate on the y axis
+		 * @param {number} z amount to translate on the z axis
 		 */
 		translate: function(x, y, z) {
 			if (this.transform !== null) {
