@@ -273,4 +273,4 @@ var stringify = function(data) {
 
 var classes = parseFiles('public/js/hemi');
 var str = stringify(classes);
-fs.writeFileSync('metadata.json', str);
+fs.writeFileSync('public/js/editor/data/hemi.json', str);

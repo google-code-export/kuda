@@ -24,21 +24,23 @@ var editor = (function(module) {
 		},
 		
 		getDescription: function(objType, opt_fnc, opt_param) {
-			var retVal = retrieve.call(this, arguments);			
+			var args = [].splice.call(arguments, 0),
+				retVal = retrieve.call(this, args);
 			
 			return retVal == null ? null : retVal.description;
 		},
 		
 		getMethods: function(objType) {
-			this.types.get(objType).methods;
+			return this.types.get(objType).methods;
 		},
 		
 		getParameters: function(objType, fnc) {
-			this.functions.get(objType + '.' + fnc).parameters;
+			return this.functions.get(objType + '.' + fnc).parameters;
 		},
 		
 		getType: function(objType, opt_fnc, opt_param) {
-			var retVal = retrieve.call(this, arguments);
+			var args = [].splice.call(arguments, 0),
+				retVal = retrieve.call(this, args);
 			
 			return retVal == null ? null : retVal.type;
 		}
@@ -49,11 +51,12 @@ var editor = (function(module) {
 ////////////////////////////////////////////////////////////////////////////////	
 
 	var loadJSON = function() {
+			var that = this;
 			this.types = new Hashtable();
 			this.functions = new Hashtable();
 			this.parameters = new Hashtable();
 			
-			hemi.loader.loadHtml('js/data/metadata.json', function(data) {				
+			hemi.loader.loadHtml('js/editor/data/hemi.json', function(data) {				
 				var json = JSON.parse(data);
 			
 				for (var i = 0, il = json.length; i < il; i++) {
@@ -65,7 +68,7 @@ var editor = (function(module) {
 							methods: []
 						};
 						
-					this.types.put(tname, tdata);
+					that.types.put(tname, tdata);
 						
 					for (var j = 0, jl = funcs.length; j < jl; j++) {
 						var func = funcs[j],
@@ -77,14 +80,14 @@ var editor = (function(module) {
 							};
 							
 						tdata.methods.push(fname);				
-						this.functions.put(tname + '.' + fname, fdata);
+						that.functions.put(tname + '.' + fname, fdata);
 						
 						for (var k = 0, kl = params.length; k < kl; k++) {
 							var param = params[k],
 								pname = param.name;
 							
 							fdata.parameters.push(pname);
-							this.parameters.put(tname + '.' + fname + '.' + pname, {
+							that.parameters.put(tname + '.' + fname + '.' + pname, {
 								description: param.desc,
 								type: param.type
 							});
