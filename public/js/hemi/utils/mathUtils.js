@@ -21,8 +21,8 @@ var hemi = (function(hemi) {
 	/** 
 	 * General function to convert from cartesian to spherical coordinates.
 	 *
-	 * @param {float[3]} coords XYZ cartesian coordinates
-	 * @return {float[3]} Radius, Theta, Phi
+	 * @param {number[3]} coords XYZ cartesian coordinates
+	 * @return {number[3]} Radius, Theta, Phi
 	 */
 	hemi.utils.cartesianToSpherical = function(coords) {
 		var x = coords[0];
@@ -61,12 +61,12 @@ var hemi = (function(hemi) {
 	 * Calculate the cubic hermite interpolation between two points with
 	 * associated tangents.
 	 *
-	 * @param {float} t time (between 0 and 1)
-	 * @param {float[3]} p0 the first waypoint
-	 * @param {float[3]} m0 the tangent through the first waypoint
-	 * @param {float[3]} p1 the second waypoint
-	 * @param {float[3]} m1 the tangent through the second waypoint
-	 * @return {float[3]} the interpolated point
+	 * @param {number} t time (between 0 and 1)
+	 * @param {number[3]} p0 the first waypoint
+	 * @param {number[3]} m0 the tangent through the first waypoint
+	 * @param {number[3]} p1 the second waypoint
+	 * @param {number[3]} m1 the tangent through the second waypoint
+	 * @return {number[3]} the interpolated point
 	 */
 	hemi.utils.cubicHermite = function(t,p0,m0,p1,m1) {;
 		var t2 = t*t,
@@ -102,8 +102,8 @@ var hemi = (function(hemi) {
 	 * Calculate the intersection between a ray and a plane.
 	 * 
 	 * @param {o3d.Ray} ray Ray described by a near xyz point and a far xyz point
-	 * @param {float[][]} plane Array of 3 xyz coordinates defining a plane
-	 * @return {float[]} Array [t: Time value on ray, u: U-coordinate on plane,
+	 * @param {number[3][3]} plane Array of 3 xyz coordinates defining a plane
+	 * @return {number[3]} Array [t: Time value on ray, u: U-coordinate on plane,
 	 *		v: V-coordinate on plane} of intersection point
 	 */
 	hemi.utils.intersect = function(ray, plane) {
@@ -326,9 +326,9 @@ var hemi = (function(hemi) {
 	 * Convert the given UV coordinates for the given plane into XYZ coordinates
 	 * in 3D space.
 	 * 
-	 * @param {number[]} uv uv coordinates on a plane
-	 * @param {number[][]} plane array of 3 xyz coordinates defining the plane
-	 * @return {number[]} xyz coordinates of the uv location on the plane
+	 * @param {number[2]} uv uv coordinates on a plane
+	 * @param {number[3][3]} plane array of 3 xyz coordinates defining the plane
+	 * @return {number[3]} xyz coordinates of the uv location on the plane
 	 */
 	hemi.utils.uvToXYZ = function(uv, plane) {
 		var hMath = hemi.core.math,
@@ -340,8 +340,8 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * Calculate the screen coordinates from a 3d position in the world.
-	 * @param {float[3]} p XYZ point to calculate from
-	 * @return {float[2]} XY screen position of point
+	 * @param {number[3]} p XYZ point to calculate from
+	 * @return {number[2]} XY screen position of point
 	 */
 	hemi.utils.worldToScreen = function(p0) {
 		var VM = hemi.view.viewInfo.drawContext.view,
@@ -364,8 +364,8 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * Calculate the screen coordinates from a 3d position in the world.
-	 * @param {float[3]} p XYZ point to calculate from
-	 * @return {float[3]} XY screen position of point, plus z-distance,
+	 * @param {number[3]} p XYZ point to calculate from
+	 * @return {number[3]} XY screen position of point, plus z-distance,
 	 *		where 0.0 = near clip and 1.0 = flar clip
 	 */
 	hemi.utils.worldToScreenFloat = function(p0) {

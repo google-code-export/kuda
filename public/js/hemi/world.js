@@ -1286,9 +1286,9 @@ var hemi = (function(hemi) {
 	/** 
 	 * Add fog to this world.
 	 *
-	 * @param {float[4]} color The rgba color of the fog
-	 * @param {float} start The distance at which the fog starts
-	 * @param {float} end The distance at which the fog is fully opaque
+	 * @param {number[4]} color The rgba color of the fog
+	 * @param {number} start The distance at which the fog starts
+	 * @param {number} end The distance at which the fog is fully opaque
 	 */
 	hemi.world.setFog = function(color,start,end) {
 		var mats = [];

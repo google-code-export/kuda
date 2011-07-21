@@ -722,8 +722,8 @@ var hemi = (function(hemi) {
 	 * 'msg:data.shape.name' will parse message.data.shape.name
 	 * 
 	 * @param {hemi.dispatch.Message} message the Message to parse data from
-	 * @param {[Object]} params the list of parameters to create arguments from
-	 * @return {[Object]} array of arguments created
+	 * @param {Object[]} params the list of parameters to create arguments from
+	 * @return {Object[]} array of arguments created
 	 */
 	hemi.dispatch.getArguments = function(message, params) {
 		var arguments = [];

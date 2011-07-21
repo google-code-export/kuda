@@ -725,7 +725,7 @@ var hemi = (function(hemi) {
 		 * Set the given Transform's matrix to the new matrix.
 		 * 
 		 * @param {o3d.Transform} transform the Transform
-		 * @param {Vectormath.Aos.Matrix4} matrix the new local matrix
+		 * @param {number[4][4]} matrix the new local matrix
 		 */
 		setTransformMatrix: function(transform, matrix) {
 			var update = this.getTransformUpdate(transform);			
