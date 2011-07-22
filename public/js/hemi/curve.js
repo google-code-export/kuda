@@ -1405,7 +1405,7 @@ var hemi = (function(hemi) {
 		'gl_FragColor.a *= ptcColor.a; \n';
 	
 	/**
-	 * A particle system that is GPU driven.
+	 * @class A particle system that is GPU driven.
 	 * 
 	 * @param {Object} opt_cfg optional configuration object for the system
 	 */
@@ -2027,7 +2027,7 @@ var hemi = (function(hemi) {
 	hemi.curve.GpuParticleSystem.inheritsFrom(hemi.world.Citizen);
 	
 	/**
-	 * A GPU driven particle system that has trailing starts and stops.
+	 * @class A GPU driven particle system that has trailing starts and stops.
 	 * 
 	 * @param {Object} opt_cfg the configuration object for the system
 	 */
