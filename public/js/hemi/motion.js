@@ -97,6 +97,7 @@ var hemi = (function(hemi) {
 				
 				obj.rotTran = tran1;
 				obj.offTran = tran2;
+				obj.parent = transform;
 				obj.foster = true;
 			} else {
 				var tran1 = hemi.core.mainPack.createObject('Transform'),
@@ -117,6 +118,7 @@ var hemi = (function(hemi) {
 				
 				obj.rotTran = tran2;
 				obj.offTran = transform;
+				obj.parent = tran1;
 				obj.foster = false;
 			}
 			
@@ -380,7 +382,7 @@ var hemi = (function(hemi) {
 				// Note: this will break if the Rotator has more than one
 				// transform with the same name
 				tranOct[origTran.name] = [
-					rotTran.parent.localMatrix,
+					tranObj.parent.localMatrix,
 					rotTran.localMatrix,
 					origTran.localMatrix
 				];
@@ -457,6 +459,7 @@ var hemi = (function(hemi) {
 				obj.tran.name = transform.name + ' Translator';
 				param = obj.tran.createParam('ownerId', 'o3d.ParamInteger');
 				param.value = oid;
+				obj.parent = tran.parent;
 				obj.foster = true;
 			} else {
 				var tran = hemi.core.mainPack.createObject('Transform');
@@ -469,6 +472,7 @@ var hemi = (function(hemi) {
 				transform.identity();
 				
 				obj.tran = transform;
+				obj.parent = tran;
 				obj.foster = false;
 			}
 			
@@ -700,7 +704,7 @@ var hemi = (function(hemi) {
 				// Note: this will break if the Translator has more than one
 				// transform with the same name
 				tranOct[origTran.name] = [
-					origTran.parent.localMatrix,
+					tranObj.parent.localMatrix,
 					origTran.localMatrix
 				];
 			}
