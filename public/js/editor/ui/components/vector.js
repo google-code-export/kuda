@@ -119,25 +119,42 @@ var editor = (function(editor) {
 			
 		getBoundedValue = function() {
 			var keys = this.inputs.keys(),
-				values = {},
+				values = [],
 				isComplete = true;
 			
 			for (var i = 0, il = keys.length; i < il && isComplete; i++) {
 				var key = keys[i],
-					val = this.inputs.get(key).val();
+					obj = this.inputs.get(key),
+					val = obj.elem.val(),
+					newVal = null;
 				
-				if (this.config.isNumeric && hemi.utils.isNumeric(val)) {				
-					values[key] = parseFloat(val);	
+				if (this.config.isNumeric && hemi.utils.isNumeric(val)) {
+					newVal = parseFloat(val);	
 				}
 				else if (val && val !== '') {
-					values[key] = val;
+					newVal = val;
 				}
 				else {
 					isComplete = false;
 				}
+				
+				if (isComplete) {					
+					if (this.multiDim) {
+						var a = values[obj.ndx1];
+						
+						if (a == null) {
+							a = values[obj.ndx1] = [];
+						}
+						
+						a[obj.ndx2] = newVal;
+					}
+					else {
+						values[obj.ndx1] = newVal;
+					}
+				}
 			}
 			
-			return isComplete ? values : null;
+			return values;
 		},
 		
 		getUnboundedValue = function() {
@@ -196,7 +213,11 @@ var editor = (function(editor) {
 							elem = createInput.call(this).data('ndx', inputTxt)
 								.attr('placeholder', inputTxt);
 						
-						this.inputs.put(inputTxt, elem);
+						this.inputs.put(inputTxt, {
+							ndx1: i,
+							ndx2: j,
+							elem: elem
+						});
 						div.append(elem);
 					}
 					this.container.append(div);
@@ -205,7 +226,10 @@ var editor = (function(editor) {
 					var elem = createInput.call(this).data('ndx', ipt)
 						.attr('placeholder', ipt);
 					
-					this.inputs.put(ipt, elem);
+					this.inputs.put(ipt, {
+						ndx1: i,
+						elem: elem
+					});
 					this.container.append(elem);
 				}
 			}
@@ -286,11 +310,46 @@ var editor = (function(editor) {
 		},
 		
 		setBoundedValue = function(values) {
-			for (var key in values) {
-				var input = this.inputs.get(key);
-				
-				if (input) {
-					input.val(values[key]).removeClass('vectorHelper');
+			if (jQuery.isArray(values)) {
+				var inputs = this.inputs.values(),
+					find = function(ndx1, ndx2) {
+						var found = null;
+						
+						for (var i = 0, il = inputs.length; i < il && found == null; i++) {
+							var ipt = inputs[i],
+								multi = ipt.ndx2 != null;
+							
+							if (multi && ipt.ndx1 === ndx1 && ipt.ndx2 === ndx2
+									|| !multi && ipt.ndx1 === ndx1) {
+								found = ipt;	
+							}
+						}	
+						
+						return found;				
+					};
+					
+				// TODO: throw an error if values don't match our bounds
+				for (var i = 0, il = values.length; i < il; i++) {
+					var val = values[i];
+					
+					if (this.multiDim) {
+						for (var j = 0, jl = val.length; j < jl; j++) {
+							var subVal = val[j];							
+							find(i, j).elem.val(subVal);
+						}
+					}
+					else {
+						find(i).elem.val(val);
+					}
+				}
+			}
+			else {
+				for (var key in values) {
+					var input = this.inputs.get(key).elem;
+					
+					if (input) {
+						input.val(values[key]).removeClass('vectorHelper');
+					}
 				}
 			}
 		},

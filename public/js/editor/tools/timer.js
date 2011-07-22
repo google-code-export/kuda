@@ -168,6 +168,8 @@ var editor = (function(module) {
 			
 			this.addInputsToCheck(this.startTimeIpt);
 			this.addInputsToCheck(this.nameIpt);
+			
+			this._super();
 		},
 		
 		edit: function(timer) {

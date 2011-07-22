@@ -220,6 +220,7 @@ var editor = (function(module) {
 			this.args.clear();
 			
 			if (method !== null) {
+				// TODO: change to use metadata
 				var methodParams = module.utils.getFunctionParams(this.handler[method]);
 				
 				for (var ndx = 0, len = methodParams.length; ndx < len; ndx++) {
@@ -245,7 +246,7 @@ var editor = (function(module) {
 	            arg.value = argValue;
 	        }
 	        
-	        this.args.put(argName, arg);
+//	        this.args.put(argName, arg);
 			this.notifyListeners(module.EventTypes.ArgumentSet, {
 				name: argName,
 				value: argValue
@@ -454,7 +455,7 @@ var editor = (function(module) {
 				
 			var view = this;
 				
-			this.paramsWgt = new module.ui.ParamWidget({
+			this.prm = new module.ui.Parameters({
 				containerId: 'msgEdtTargetParams',
 				prefix: 'msgEdt'
 			});
@@ -526,16 +527,16 @@ var editor = (function(module) {
 								parentName = parentName.replace(parId + '_MORE', parId);
 								cit = metadata.parent;
 								meth = elemId.replace(parentName, '');
+							
+								view.notifyListeners(module.EventTypes.SelectAction, {
+									handler: cit,
+									method: meth
+								});
 							} else if (metadata.type === 'citizen' 
 									|| metadata.type === 'citType') {
 								tree.jstree('open_node', elem, false, false);
 								cit = meth = null;
 							}
-							
-							view.notifyListeners(module.EventTypes.SelectAction, {
-								handler: cit,
-								method: meth
-							});
 						}
 					});
 				});
@@ -728,7 +729,7 @@ var editor = (function(module) {
 					list = pnl.find('#msgEdtTargetParamsList'),
 					panelUI = pnl.getUI();
 				
-				list.append(view.paramsWgt.getUI());
+				list.append(view.prm.getUI());
 				
 				editListPnl.append(evtLst.getUI());
 				editorForm.bind('submit', function(evt) {
@@ -750,7 +751,7 @@ var editor = (function(module) {
 				
 				editorSaveBtn.bind('click', function(evt) {
 					var data = {
-						args: view.paramsWgt.getArgs(),
+						args: view.prm.getArguments(),
 						name: editorNameInput.val()
 					};
 					
@@ -1035,7 +1036,7 @@ var editor = (function(module) {
 			
 			// model specific
 			model.addListener(module.EventTypes.ArgumentSet, function(data) {
-				view.paramsWgt.setArgument(data.name, data.value);
+				view.prm.setArgument(data.name, data.value);
 			});			
 			model.addListener(module.EventTypes.TriggerSet, function(data) {
 				view.selectTrigger(data.source, data.message);
@@ -1051,7 +1052,7 @@ var editor = (function(module) {
 					args[value.ndx] = key;
 					vals[value.ndx] = value.value;
 				});
-				view.paramsWgt.fillParams(args, vals);
+				view.prm.populateArgList(data.handler, data.method, vals);
 			});			
 			model.addListener(module.EventTypes.TargetCreated, function(data) {
 				var target = data.target;

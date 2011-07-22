@@ -1012,6 +1012,10 @@ form input:not([type=radio]), form textarea {
     color: #555;
 	margin: 0;
 }
+form input[type=checkbox] {
+	width: auto;
+	height: 30px;
+}
 form.scrolling input:not([type=radio]), form.scrolling textarea {
 	width: 170px;
 }
@@ -1264,10 +1268,12 @@ form button {
 }
 
 /**
- * Parameters widget
+ * Object picking widget
  */
-
-.prmWgtCitTreeBtn, .treeSelectorBtn, .objPkrCitTreeBtn {
+.objectPicker {
+	float: left;
+}
+.treeSelectorBtn, .objPkrCitTreeBtn {
 	padding: 0;
 	overflow: hidden;
 	text-indent: -500px;
@@ -1277,13 +1283,13 @@ form button {
 	border-top-left-radius: 0;
 	border-left-width: 0;
 }
-.prmWgtCitTreeBtn::-moz-focus-inner, .treeSelectorBtn::-moz-focus-inner,
+.treeSelectorBtn::-moz-focus-inner,
 .objPkrCitTreeBtn::-moz-focus-inner { 
 	border: 0; 
 	padding: 0; 
 	margin:0; 
 }
-.prmWgtCitTreeBtn:after, .treeSelectorBtn:after, .objPkrCitTreeBtn:after {
+.treeSelectorBtn:after, .objPkrCitTreeBtn:after {
 	background: url(../images/listOptionsSprite.png) -32px -7px no-repeat;
 	height: 7px;
 	width: 8px;
@@ -1292,10 +1298,10 @@ form button {
 	padding: 0;
 	content: "";
 }
-.prmWgtCitTreeBtn.open:after, .treeSelectorBtn.open:after, .objPkrCitTreeBtn.open:after {
+.treeSelectorBtn.open:after, .objPkrCitTreeBtn.open:after {
 	background-position: -32px 0px;
 }
-.prmWgtCitTreeBtn.open, form input.open, .treeSelectorBtn.open, 
+form input.open, .treeSelectorBtn.open, 
 .treeSelector input.treeSelectorIpt.open,
 .objPkrCitTreeBtn.open {
 	border-bottom-left-radius: 0;
@@ -1311,7 +1317,7 @@ form input.objPkrCitTreeIpt {
 	border-bottom-right-radius: 0;
     border-top-right-radius: 0;
 }
-#prmWgtCitTreePnl, #objPkrCitTreePnl {
+#objPkrCitTreePnl {
 	float: left;
 	position: absolute;
 	border: 1px solid #ddd;
@@ -1320,7 +1326,16 @@ form input.objPkrCitTreeIpt {
 	padding: 5px 10px;
 	border-radius: 0 0 3px 3px;
 }
-#prmWgtCitTree {
+
+/**
+ * Vector component
+ */
+.vectorContainer {
+	float: left;
+}
+.vectorVec {
+	float: left;
+	clear: left;
 }
 
 /**
@@ -1684,7 +1699,7 @@ form #anmLoops label {
 	text-align: right;
 	margin-right: 5px;
 }
-#msgEditor form fieldset ol ul>li>input {
+#msgEditor form fieldset ol ul>li>input:not([type=checkbox], [type=radio]) {
 	width: 180px;
 }
 #msgList ul, #msgList li {
@@ -2006,7 +2021,7 @@ ul.scnEvtList li.button {
 #behaviorAxnParams label {
 	width: 80px;
 }
-#behaviorAxnParams input[type=text] {
+#behaviorAxnParams input[type=text]:not(.short) {
 	width: 128px;
 	float: left;
 }

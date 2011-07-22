@@ -545,12 +545,12 @@ var editor = (function(module) {
 					pos = wgt.position.getValue(),
 					dim = wgt.dimensions.getValue();
 					
-				if (pos != null && dim != null) {
+				if (pos.length > 0 && dim.length > 0) {
 					var msgType = box == null ? module.EventTypes.AddBox 
 							: module.EventTypes.UpdateBox, 
 						data = {
-								position: [pos.x, pos.y, pos.z],
-								dimensions: [dim.h, dim.w, dim.d],
+								position: pos,
+								dimensions: dim,
 								box: box
 							};
 					
