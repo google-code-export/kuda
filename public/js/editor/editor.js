@@ -225,16 +225,19 @@
 
 			this.loadMdlDlg = editor.ui.createLoadModelDialog(function(val, fcn) {
 				that.loadModel(val, fcn);
-			});			
+			});
+			this.unloadMdlDlg = editor.ui.createUnloadModelDialog(function(val, fcn) {
+				that.unloadModel(val, fcn);
+			});
 			this.importMdlDlg = editor.ui.createImportModelDialog(function(val, fcn) {
 				that.loadModel(val, fcn);
-			});			
+			});
             this.savePrjDlg = editor.ui.createSaveProjectDialog(function(name) {
 				that.saveProject(name);
-			});			
+			});
 			this.openPrjDlg = editor.ui.createOpenProjectDialog(function(name) {
 				that.openProject(name);
-			});			
+			});
 			this.publishPrjDlg = editor.ui.createPublishProjectDialog(
 				this.savePrjDlg, 
 				function(name, octane) {
@@ -274,6 +277,7 @@
 				action: function(evt){				
 					// close other dialogs
 					that.loadMdlDlg.dialog('close');
+					that.unloadMdlDlg.dialog('close');
 				
 					that.openPrjDlg.dialog('open');
 				}
@@ -283,6 +287,7 @@
 				action: function(evt){				
 					// close other dialogs
 					that.loadMdlDlg.dialog('close');
+					that.unloadMdlDlg.dialog('close');
 				
 					that.savePrjDlg.dialog('open');
 				}
@@ -298,6 +303,7 @@
 				action: function(evt){
 					// close other dialogs
 					that.loadMdlDlg.dialog('close');
+					that.unloadMdlDlg.dialog('close');
 					that.publishPrjDlg.dialog('open');
 				}
 			});
@@ -381,8 +387,14 @@
 			
 			var loadModel = new editor.ui.MenuItem({
 				title: 'Load Model',
-				action: function(evt){				
-					that.loadMdlDlg.dialog('open');			
+				action: function(evt) {
+					that.loadMdlDlg.dialog('open');
+				}
+			});
+			var unloadModel = new editor.ui.MenuItem({
+				title: 'Unload Model',
+				action: function(evt) {
+					that.unloadMdlDlg.dialog('open');
 				}
 			});
 			var importModel = new editor.ui.MenuItem({
@@ -393,6 +405,7 @@
 			});
 			
 			this.modelMenu.addMenuItem(loadModel);
+			this.modelMenu.addMenuItem(unloadModel);
 			this.modelMenu.addMenuItem(importModel);
 			
 			this.menu.addMenuItem(this.fileMenu);
@@ -804,6 +817,20 @@
 				});
 				
 			model.setFileName(url);
+		},
+		
+		unloadModel: function(id, fcn) {
+			var model = hemi.world.getCitizenById(id),
+				that = this;
+			
+			var msgHandler = model.subscribe(hemi.msg.unload,
+				function(msg) {
+					that.mbrMdl.removeModel(model);
+					fcn();
+					model.unsubscribe(msgHandler, hemi.msg.unload);
+				});
+				
+			model.cleanup();
 		}
 	};
 	

@@ -140,6 +140,13 @@ var editor = (function(module) {
 			this.notifyListeners(module.EventTypes.AddUserCreatedShape, json);
 		},
 		
+		removeModel: function(model) {
+			var ndx = jQuery.inArray(model, this.models);			
+			this.models.splice(ndx, 1);
+			
+			this.notifyListeners(module.EventTypes.RemoveModel, model);
+		},
+		
 		removeShape: function(shape) {
 			var ndx = jQuery.inArray(shape.getId(), this.shapes);			
 			this.shapes.splice(ndx, 1);
@@ -255,6 +262,12 @@ var editor = (function(module) {
 				function(msg) {
 					if (msg.src instanceof hemi.model.Model) {
 						that.processModel(msg.src);
+					}
+				});
+			hemi.msg.subscribe(hemi.msg.unload,
+				function(msg) {
+					if (msg.src instanceof hemi.model.Model) {
+						that.removeModel(msg.src);
 					}
 				});
 	    },
@@ -488,6 +501,15 @@ var editor = (function(module) {
 	            }
 	        }
 	    },
+		
+		removeModel: function(model) {
+			var id = model.getId(),
+				transforms = this.selected.get(id);
+			
+			while (transforms && transforms.length > 0) {
+				this.deselectTransform(transforms[0], model);
+			}
+		},
 	    
 	    selectShape: function(shape, transform) {
 			var shapeName = HIGHLIGHT_PRE + shape.name,

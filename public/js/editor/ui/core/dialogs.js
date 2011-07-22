@@ -102,6 +102,52 @@ var editor = (function(module) {
 		return dlg;
 	};
 	
+	module.ui.createUnloadModelDialog = function(cb) {
+		var dlg = createSimpleDialog('unloadMdl', 'Unload Model'),
+			form = dlg.data('form'),
+			msg = dlg.data('msg'),
+			lbl = dlg.data('label').attr('for', 'unloadMdlSel').text('Select a Model:'),
+			sel = jQuery('<select id="unloadMdlSel"></select>'),
+			btn = jQuery('<button id="unloadMdlBtn">Unload</button>');
+		
+		form.append(sel).append(btn);
+		
+		btn.bind('click', function() {
+			msg.text('Unloading Model...').show();
+			cb(parseInt(sel.val()), function() {
+				msg.text('').hide();
+				dlg.dialog('close');			
+			});
+		});
+			
+		dlg.dialog({
+			width: 300,
+			resizable: false,
+			autoOpen: false,
+            modal: true
+		})
+		.bind('dialogopen', function() {
+			var models = hemi.world.getModels();
+			sel.empty().show();
+			
+			if (models.length === 0) {
+				btn.attr('disabled', 'disabled');
+				var prj = jQuery('<option value="">No models loaded</option>');
+				sel.append(prj);
+			} else {
+				btn.removeAttr('disabled');
+				
+				for (var i = 0, il = models.length; i < il; i++) {
+					var mdl = models[i];
+					var prj = jQuery('<option value="' + mdl.getId() + '">' + mdl.name + '</option>');
+					sel.append(prj);
+				}
+			}
+		});
+		
+		return dlg;
+	};
+	
 	module.ui.createImportModelDialog = function(cb) {
 		var dlg = createSimpleDialog('importMdl', 'Import Model'),
 			form = dlg.data('form'),
