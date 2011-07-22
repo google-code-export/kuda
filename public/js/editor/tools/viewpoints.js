@@ -362,8 +362,8 @@ var editor = (function(module) {
 			var np = this.nearPlane.val(),
 				fp = this.farPlane.val(),
 				fov = this.fov.val(),
-				isSafe = this.eye.getValue() != null 
-					&& this.target.getValue() != null 
+				isSafe = this.eye.getValue().length > 0 
+					&& this.target.getValue().length > 0
 					&& hemi.utils.isNumeric(fov) && hemi.utils.isNumeric(np)
 					&& hemi.utils.isNumeric(fp);
 					
@@ -483,16 +483,8 @@ var editor = (function(module) {
 			var eyeVal = this.eye.getValue(),
 				tgtVal = this.target.getValue(),
 				params = {
-					eye: [
-						parseFloat(eyeVal.x), 
-						parseFloat(eyeVal.y), 
-						parseFloat(eyeVal.z)
-					],
-					target: [
-						parseFloat(tgtVal.x), 
-						parseFloat(tgtVal.y), 
-						parseFloat(tgtVal.z)
-					],
+					eye: eyeVal,
+					target: tgtVal,
 					fov: hemi.core.math.degToRad(parseFloat(this.fov.val())),
 					np: parseFloat(this.nearPlane.val()),
 					fp: parseFloat(this.farPlane.val()),
@@ -706,12 +698,12 @@ var editor = (function(module) {
 					pos = wgt.position.getValue(),
 					tgt = wgt.target.getValue();
 					
-				if (pos != null && tgt != null) {
+				if (pos.length > 0 && tgt.length > 0) {
 					var msgType = pnt == null ? module.EventTypes.AddWaypoint
 							: module.EventTypes.UpdateWaypoint,
 						data = {
-								position: [pos.x, pos.y, pos.z],
-								target: [tgt.x, tgt.y, tgt.z],
+								position: pos,
+								target: tgt,
 								point: pnt
 						};
 					

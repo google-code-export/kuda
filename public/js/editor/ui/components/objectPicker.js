@@ -31,24 +31,23 @@ var editor = (function(module) {
 		counter = 0;
 		
 	var createCitizenTree = function(filter) {
-			if (citTree == null) {
-				citTree = module.ui.createCitizensTree();
-				
-				if (citTree.tree == null) {
-					citTree.addListener(module.EventTypes.Trees.TreeCreated, 
-						function(treeUI){
+			try {
+				if (citTree == null) {
+					citTree = module.ui.createCitizensTree();
+					
+					if (citTree.tree == null) {
+						citTree.addListener(module.EventTypes.Trees.TreeCreated, function(treeUI){
 							initCitizenTree(treeUI, filter);
 						});
-				}
-				else {
-					initCitizenTree(citTree.tree, filter);
-				}
-						
-				citTree.addListener(module.EventTypes.Trees.SelectCitizen, 
-					function(data) {
-						var elem = citTreePnl.data('curElem'),
+					}
+					else {
+						initCitizenTree(citTree.tree, filter);
+					}
+					
+					citTree.addListener(module.EventTypes.Trees.SelectCitizen, function(data){
+						var elem = citTreePnl.data('curElem'), 
 							btn = elem.children('button'), 
-							ipt = elem.children('input'),
+							ipt = elem.children('input'), 
 							wgt = ipt.data('widget');
 						
 						citTreePnl.hide().data('curElem', null);
@@ -63,9 +62,13 @@ var editor = (function(module) {
 							wgt.notifyListeners(module.EventTypes.Params.SetArgument, data);
 						}
 					});
+				}
+				else {
+					citTree.filter(filter);
+				}
 			}
-			else {
-				citTree.filter(filter);
+			catch (err) {
+				this.cannotFilter = true;
 			}
 		},
 		
@@ -97,6 +100,7 @@ var editor = (function(module) {
 				}
 				
 				if (paramIpt != null && citParam != '') {
+					// TODO: change trueval to citizen...or not
 					paramIpt.val(citName).data('trueVal', citParam);
 					
 					var e = citTreePnl.data('curElem'),
@@ -123,13 +127,13 @@ var editor = (function(module) {
 			this.argName = argName;
 			this.filter = filter;
 			
-			createCitizenTree(filter);
+			createCitizenTree.call(this, filter);
 			
 			this._super();
 		},
 		
 		finishLayout: function() {
-			this.container = jQuery('<div></div>');
+			this.container = jQuery('<div class="objectPicker"></div>');
 						
 			var wgt = this,
 				argName = this.argName,
@@ -186,15 +190,19 @@ var editor = (function(module) {
 					}
 				},			
 				ip = jQuery('<input type="text" class="objPkrCitTreeIpt" id="objPkr_' + argName + '"></input>'),
-				lb = jQuery('<label for="objPkr_' + argName + ' class="objPkrCitTreeLbl">' + argName + ':</label>'),
 				cb = jQuery('<button class="objPkrCitTreeBtn dialogBtn">Citizens</button>');
 				
-	            this.container.append(lb).append(ip).append(cb);
+	            this.container.append(ip).append(cb);
 				
 				ip.data('widget', this);		
 				cb.bind('click', toggleFcn);
 				
 				this.input = ip;
+				
+				if (this.cannotFilter) {
+					this.input.val('none available');
+					cb.attr('disabled', 'disabled');
+				}
 		},
 		
 		getValue: function() {
@@ -202,7 +210,7 @@ var editor = (function(module) {
 		},
 		
 		setValue: function(citizen) {
-			if (citizen.getCitizenType() === this.filter) {
+			if (citizen != null && citizen.getCitizenType() === this.filter) {
 				var nodeId = module.treeData.getNodeName(citizen, {
 					prefix: citTree.pre,
 					id: citizen.getId()
@@ -212,7 +220,7 @@ var editor = (function(module) {
 				citTree.currentParamIpt = this.input;
 				citTree.getUI().jstree('select_node', '#' + nodeId);
 			}
-			else {
+			else if (citizen != null) {
 				alert('not the correct type');
 			}
 		}

@@ -44,7 +44,9 @@ var editor = (function(module) {
 		
 	var expandTargetData = function(msgTarget, spec) {
 			var isValueCheck = msgTarget.handler instanceof hemi.handlers.ValueCheck,
-				source, type, handler, method, argList;
+				meta = editor.data.getMetaData(),
+				args = [],
+				source, type, handler, method, argList, argNames;
 			
 			if (isValueCheck) {
 				type = msgTarget.handler.values[0];
@@ -68,12 +70,22 @@ var editor = (function(module) {
 				argList = msgTarget.args;
 			}
 			
+			argNames = meta.getParameters(
+				handler.getCitizenType(), method);
+				
+			for (var i = 0, il = argNames.length; i < il; i++) {
+				args.push({
+					name: argNames[i],
+					value: argList[i]
+				});
+			} 
+			
 			return {
 				source: source,
 				type: type,
 				handler: handler,
 				method: method,
-				argList: argList
+				args: args
 			};
 		},
 		
@@ -207,9 +219,9 @@ var editor = (function(module) {
 			openNode(axnT, data.handler, this.axnTree.pre);
 			this.axnChooser.select(nodeName);	
 						
-			for (var i = 0, il = data.argList.length; i < il; i++) {
-				var a = data.argList[i];				
-				this.prmWgt.setArgument(i, a);
+			for (var i = 0, il = data.args.length; i < il; i++) {
+				var a = data.args[i];				
+				this.prms.setArgument(a.name, a.value);
 			}
 			
 			this.nameIpt.val(msgTarget.name);
@@ -245,7 +257,7 @@ var editor = (function(module) {
 			if (data.args) {					
 				for (var i = 0, il = data.args.length; i < il; i++) {
 					var a = data.args[i];				
-					this.prmWgt.setArgument(a.name, a.value);
+					this.prms.setArgument(a.name, a.value);
 				}
 			}
 			
@@ -353,7 +365,7 @@ var editor = (function(module) {
 								else {
 									wgt.prmFieldset.hide();
 								}
-								wgt.prmWgt.fillParams(args);
+								wgt.prms.populateArgList(handler, method);
 								data.handler = handler;
 								data.method = method;
 							}
@@ -380,11 +392,11 @@ var editor = (function(module) {
 			this.axnTree = module.ui.createActionsTree();
 			this.trgTree = module.ui.createTriggersTree();
 							
-			this.prmWgt = new module.ui.ParamWidget({
+			this.prms = new module.ui.Parameters({
 					prefix: 'bhvEdt'
 				});
 			
-			paramsFieldset.find('li').append(this.prmWgt.getUI());
+			paramsFieldset.find('li').append(this.prms.getUI());
 				
 			this.trgChooser = new module.ui.TreeSelector({
 				tree: this.trgTree,
@@ -416,7 +428,7 @@ var editor = (function(module) {
 				var data = {
 					trigger: wgt.trgChooser.getSelection(),
 					action: wgt.axnChooser.getSelection(),
-					args: wgt.prmWgt.getArgs(),
+					args: wgt.prms.getArguments(),
 					name: nameIpt.val(),
 					type: wgt.type,
 					target: wgt.msgTarget,
@@ -460,7 +472,7 @@ var editor = (function(module) {
 		reset: function() {
 			this.trgChooser.reset();
 			this.axnChooser.reset();
-			this.prmWgt.reset();
+			this.prms.reset();
 			this.nameIpt.val('');
 			
 			this.trgFieldset.hide();
@@ -553,7 +565,7 @@ var editor = (function(module) {
 					data: {
 						trigger: this.trgChooser.getSelection(),
 						action: this.axnChooser.getSelection(),
-						args: this.prmWgt.getArgs(),
+						args: this.prms.getArguments(),
 						name: this.nameIpt.val()
 					}
 				}

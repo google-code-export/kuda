@@ -188,7 +188,12 @@ var editor = (function(module) {
 				mainNode = tree._get_node('#' + id);
 				
 			nodes.hide();
-			mainNode.show().addClass('jstree-last');
+			if (mainNode) {
+				mainNode.show().addClass('jstree-last');
+			}
+			else {
+				throw type + " can't be found";
+			}
 			
 			this.filterId = id;
 		},

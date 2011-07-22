@@ -43,6 +43,7 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.ui.components.treeSelector');
 	o3djs.require('editor.ui.components.validator');
 	o3djs.require('editor.ui.components.objectPicker');
+	o3djs.require('editor.ui.components.param');
 	
 	o3djs.require('editor.ui.core.progress');
 	o3djs.require('editor.ui.core.toolbar');
@@ -55,7 +56,6 @@ var editor = (function(base, jQuery) {
 	
 	o3djs.require('editor.ui.widgets.listWidget');
 	o3djs.require('editor.ui.widgets.detailsList');
-	o3djs.require('editor.ui.widgets.param');
 	o3djs.require('editor.ui.widgets.behaviorWidget');
 
     o3djs.require('editor.tools.baseTool');

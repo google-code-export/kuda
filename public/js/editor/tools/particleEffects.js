@@ -428,19 +428,10 @@ var editor = (function(module) {
 					}
 					else 
 						if (paramName.match(/acceleration|position|velocity|world/)) {							
-							this[paramName].setValue({
-								x: val[0],
-								y: val[1],
-								z: val[2]
-							});
+							this[paramName].setValue(val);
 						}
 						else if (paramName.match('orientation')) {
-							this[paramName].setValue({
-								a: val[0],
-								b: val[1],
-								c: val[2],
-								d: val[3]
-							});
+							this[paramName].setValue(val);
 						}
 						else {
 							this.find('#pte-' + paramName).val(val);
@@ -508,21 +499,9 @@ var editor = (function(module) {
 							vecWgt.config.paramName);
 					}
 					else if (hemi.utils.isNumeric(val)) {
-						var initVal = vecWgt.getValue();
+						var totalVal = vecWgt.getValue();
 						
-						if (initVal) {		
-							var totalVal;
-							
-							if (initVal.x != null) {
-								totalVal = [initVal.x, initVal.y, initVal.z];
-							}
-							else if (initVal.d != null) {
-								totalVal = [initVal.a, initVal.b, initVal.c, initVal.d];
-							}
-							else if (initVal.r != null) {
-								totalVal = [initVal.r, initVal.g, initVal.b, initVal.a];
-							}
-							
+						if (totalVal.length > 0) {
 							wgt.notifyListeners(module.EventTypes.SetParticleFxParam, {
 								paramName: vecWgt.config.paramName,
 								paramVal: totalVal
