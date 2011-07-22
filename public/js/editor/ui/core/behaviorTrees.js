@@ -296,6 +296,14 @@ var editor = (function(module) {
 			this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
 				json_data: actionNode
 			});
+			
+			for (propName in citizen) {
+				var prop = citizen[propName];
+				
+				if (jQuery.isFunction(prop)) {
+					addToolTip.call(this, citizen, propName);
+				}
+			}
 		},
 		
 		addActionType = function(citizen) {
@@ -309,6 +317,8 @@ var editor = (function(module) {
 					json_data: json
 				});
 			}
+			
+			addToolTip.call(this, citizen);
 		},
 		
 		addCitizen = function(citizen, createType) {
@@ -392,8 +402,7 @@ var editor = (function(module) {
 		},
 		
 		addTriggerType = function(citizen) {
-			var json = module.treeData.createCitizenTypeJson(citizen, 
-				this.pre);
+			var json = module.treeData.createCitizenTypeJson(citizen, this.pre);
 			
 			if (this.tree == null) {
 				createTriggerTree.call(this, [json]);
@@ -403,6 +412,8 @@ var editor = (function(module) {
 				});
 			}
 			
+			addToolTip.call(this, citizen);
+			
 			if (citizen instanceof hemi.model.Model) {
 				var spc = module.treeData.createShapePickCitizen(citizen);
 					json = module.treeData.createShapePickTypeJson(spc, 
@@ -411,6 +422,8 @@ var editor = (function(module) {
 				this.tree.jstree('create_node', -1, 'last', {
 					json_data: json
 				});
+				
+				addToolTip.call(this, spc);
 			} else if (citizen instanceof hemi.view.Camera) {
 				var cmc = module.treeData.createCamMoveCitizen(citizen);
 				json = module.treeData.createCamMoveTypeJson(cmc, this.pre);
@@ -418,6 +431,35 @@ var editor = (function(module) {
 				this.tree.jstree('create_node', -1, 'last', {
 					json_data: json
 				});
+				
+				addToolTip.call(this, cmc);
+			}
+		},
+		
+		addToolTip = function(citizen, opt_func) {
+			var nodeId = module.treeData.getNodeName(citizen, {
+						prefix: this.pre,
+						option: opt_func,
+						id: opt_func ? citizen.getId() : null
+					}),
+				node = jQuery('#' + nodeId, this.tree);
+			
+			if (node.length > 0) {
+				var anchor = jQuery('a', node),
+					type = citizen.getCitizenType(),
+					desc;
+				
+				if (opt_func) {
+					desc = module.data.getMetaData().getDescription(type, opt_func);
+				} else if (type === module.tools.ToolConstants.SHAPE_PICK) {
+					desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
+				} else if (type === module.tools.ToolConstants.CAM_MOVE) {
+					desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
+				} else {
+					desc = module.data.getMetaData().getDescription(type);
+				}
+				
+				anchor.attr('title', desc);
 			}
 		},
 		
