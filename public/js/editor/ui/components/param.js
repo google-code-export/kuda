@@ -84,8 +84,9 @@ var editor = (function(editor) {
 			for (var i = 0, il = params.length; i < il; i++) {
 				var prm = params[i],
 					type = meta.getType(citType, fnc, prm),
+					desc = meta.getDescription(citType, fnc, prm),
 					ui = createParameterUi(prm, type, type),
-					li = createListItem(prm, ui);
+					li = createListItem(prm, desc, ui);
 				
 				if (opt_values) {
 					ui.setValue(opt_values[i]);
@@ -173,12 +174,12 @@ var editor = (function(editor) {
 	var inputs = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'],
 		vecInputs = ['x', 'y', 'z'];
 	
-	var createListItem = function(argName, ui) {
+	var createListItem = function(argName, desc, ui) {
 			var li = jQuery('<li></li>'),
 				lbl = jQuery('<label>' + argName + '</label>'),
 				elm = ui.getUI();
 				
-			li.append(lbl).append(elm);
+			li.append(lbl).append(elm).attr('title', desc);
 			
 			return li;
 		},
