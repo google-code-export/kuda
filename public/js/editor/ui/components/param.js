@@ -143,7 +143,7 @@ var editor = (function(editor) {
 					this.container = jQuery('<input type="text" />');					
 					break;
 				case BOOLEAN:
-					this.container = jQuery('<input type="checkbox" value="true" />')
+					this.container = jQuery('<input type="checkbox" />');
 					break;
 			}
 		},
@@ -157,13 +157,20 @@ var editor = (function(editor) {
 					return this.container.val();
 					break;
 				case BOOLEAN:
-					return this.container.val() === 'true';
+					return this.container.prop('checked');
 					break;
 			}
 		},
 		
 		setValue: function(value) {
-			this.container.val(value);
+			switch (this.config.type) {
+				case BOOLEAN:
+					this.container.prop('checked', value);
+					break;
+				default:
+					this.container.val(value);
+					break;
+			}
 		}
 	});
 	
