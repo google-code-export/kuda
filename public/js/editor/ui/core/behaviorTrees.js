@@ -140,17 +140,68 @@ var editor = (function(module) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Tree View                                  //
 ////////////////////////////////////////////////////////////////////////////////
-	var idCounter = 0;
+	var idCounter = 0,
+		tooltip = editor.ui.createTooltip();
 	
 	var TreeView = module.ui.Component.extend({
 		init: function(type) {
 			this._super();
 			this.type = type;
 			this.tree = null;
+			this.tooltips = new Hashtable(); 
+			this.currentTooltip = null;
+			this.currentTimeout = null;
+			this.currentDehover = null;
 			this.id = idCounter++;
 			
-			var addOn = this.id + '_';
+			var addOn = this.id + '_',
+				view = this;
 			this.pre = type + addOn;
+			
+			this.addListener(module.EventTypes.Trees.TreeCreated, function(tree) {
+				tree.bind('hover_node.jstree', function(evt, data) {
+					var elem = data.rslt.obj,
+						id = elem.attr('id'),
+						desc = view.tooltips.get(id),
+						dehover = elem.data('dehover');
+					
+					if (view.currentTooltip !== id && desc != null) {		
+						view.currentTooltip = id;	
+						
+						if (dehover != null) {
+							clearTimeout(dehover);
+						} 
+						
+						var t = setTimeout(function() {
+							elem.data('timeout', null);
+							tooltip.setContainerClass('tree');
+							tooltip.show(elem, desc, 2000);
+						}, 500);
+						
+						elem.data('timeout', t);
+					}
+				})
+				.bind('dehover_node.jstree', function(evt, data) {
+					var elem = data.rslt.obj,
+						id = elem.attr('id'),
+						timeout = elem.data('timeout');
+						
+					if (timeout != null) {
+						clearTimeout(timeout);
+					}
+				})
+				.bind('select_node.jstree', function(evt, data) {		
+					var elem = data.rslt.obj,
+						id = elem.attr('id'),
+						timeout = elem.data('timeout');
+									
+					if (view.currentTooltip != null) {
+						clearTimeout(timeout);
+						tooltip.hide(100);
+						view.currentTooltip = null;
+					}
+				});
+			});
 		},
 		
 		bindSelect: function(func) {
@@ -348,6 +399,36 @@ var editor = (function(module) {
 			}
 		},
 		
+		addToolTip = function(citizen, opt_func) {
+			var nodeId = module.treeData.getNodeName(citizen, {
+						prefix: this.pre,
+						option: opt_func,
+						id: opt_func ? citizen.getId() : null
+					}),
+				node = jQuery('#' + nodeId, this.tree);
+			
+			if (node.length > 0) {
+				var anchor = jQuery('a', node),
+					type = citizen.getCitizenType(),
+					desc;
+				
+				if (opt_func) {
+					desc = module.data.getMetaData().getDescription(type, opt_func);
+				} else if (type === module.tools.ToolConstants.SHAPE_PICK) {
+					desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
+				} else if (type === module.tools.ToolConstants.CAM_MOVE) {
+					desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
+				} else {
+					desc = module.data.getMetaData().getDescription(type);
+				}
+				
+//				anchor.attr('title', desc);
+				if (desc != null) {
+					this.tooltips.put(nodeId, desc);
+				}
+			}
+		},
+		
 		addTrigger = function(citizen, createType) {
 			if (createType) {
 				addTriggerType.call(this, citizen);
@@ -433,33 +514,6 @@ var editor = (function(module) {
 				});
 				
 				addToolTip.call(this, cmc);
-			}
-		},
-		
-		addToolTip = function(citizen, opt_func) {
-			var nodeId = module.treeData.getNodeName(citizen, {
-						prefix: this.pre,
-						option: opt_func,
-						id: opt_func ? citizen.getId() : null
-					}),
-				node = jQuery('#' + nodeId, this.tree);
-			
-			if (node.length > 0) {
-				var anchor = jQuery('a', node),
-					type = citizen.getCitizenType(),
-					desc;
-				
-				if (opt_func) {
-					desc = module.data.getMetaData().getDescription(type, opt_func);
-				} else if (type === module.tools.ToolConstants.SHAPE_PICK) {
-					desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
-				} else if (type === module.tools.ToolConstants.CAM_MOVE) {
-					desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
-				} else {
-					desc = module.data.getMetaData().getDescription(type);
-				}
-				
-				anchor.attr('title', desc);
 			}
 		},
 		

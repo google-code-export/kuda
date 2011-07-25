@@ -41,74 +41,107 @@ p {
 }
 
 /**
- * Error styling
+ * Tooltip styling
  */
-.errorWrapper {
+.tooltip {
 	position: absolute;
 	display: block;
 	z-index: 1000;
 }
-.errorMsg {	
+.tooltip p {	
 	position: relative;
 	padding: 10px;
 	margin: 10px 0;
-	color: #000;
-	background: #f7a0a0; /* default background for browsers without gradient support */
-	border: 1px solid red;
+	color: #fff;
+	background: #000; /* default background for browsers without gradient support */
+	border: 1px solid #fff;
 	
 	/* css3 */
 	-moz-border-radius: 5px;
 	-webkit-border-radius: 5px;
 	border-radius: 5px;
 	/* NOTE: webkit gradient implementation is not as per spec */
-	background: -webkit-gradient(linear, left top, left bottom, from(#f7a0a0), to(#fbb9b9));
-	background: -moz-linear-gradient(top, #f7a0a0, #fbb9b9);
-	background: -o-linear-gradient(top, #f7a0a0, #fbb9b9);
+	background: -webkit-gradient(linear, left top, left bottom, from(#444), to(#000));
+	background: -moz-linear-gradient(top, #444, #000);
+	background: -o-linear-gradient(top, #444, #000);
 }
 /* creates triangle */
-.errorArrow {
+.tooltip .arrow {
 	display: block; /* reduce the damage in FF3.0 */
 	position: absolute;
 	margin-top: -10px; /* value = - border-top-width - border-bottom-width */
-	left: 10px; /* controls horizontal position */
+	left: 40px; /* controls horizontal position */
 	width: 0;
 	height: 0;
 	border-width: 10px 10px 0; /* vary these values to change the angle of the vertex */
 	border-style: solid;
-	border-color: #fbb9b9 transparent;
+	border-color: #fff transparent;
 }
-.outer {
-	border-color: red transparent;
+.tooltip .outer {
+	border-color: #fff transparent;
 	margin-top: 0;
 	margin-bottom: 1px;
 	bottom: 0;
 }
-.innerErrorArrow {
+.tooltip .innerArrow {
 	display: block; /* reduce the damage in FF3.0 */
 	position: absolute;
-	left: 10px; /* value = (:before left) + (:before border-left) - (:after border-left) */
+	left: 40px; /* value = (:before left) + (:before border-left) - (:after border-left) */
 	width: 0;
 	height: 0;
 	border: 10px solid transparent;
-	border-top-color: #fbb9b9;
+	border-top-color: #000;
 	margin-top: -12px;
 }
 /* creates the larger triangle */
-.errorArrow.top {
+.tooltip .arrow.top {
 	top: -8px; /* value = - border-top-width - border-bottom-width */
 	right: 40px; /* controls horizontal position */
 	bottom: auto;
 	left: auto;
 	border: 10px solid transparent;
-	border-bottom-color: red;
+	border-bottom-color: #fff;
 }
 /* creates the smaller  triangle */
-.innerErrorArrow.top {
+.tooltip .innerArrow.top {
 	top: 4px; /* value = - border-top-width - border-bottom-width */
 	right: 47px; /* value = (:before right) + (:before border-right) - (:after border-right) */
 	bottom: auto;
 	left: auto;
 	border: 10px solid transparent;
+	border-bottom-color: #000;
+}
+
+/**
+ * Error styling
+ */
+.errorWrapper p {	
+	color: #000;
+	background: #f7a0a0;
+	border: 1px solid red;
+	
+	background: -webkit-gradient(linear, left top, left bottom, from(#f7a0a0), to(#fbb9b9));
+	background: -moz-linear-gradient(top, #f7a0a0, #fbb9b9);
+	background: -o-linear-gradient(top, #f7a0a0, #fbb9b9);
+}
+/* creates triangle */
+.errorWrapper .arrow {
+	border-color: #fbb9b9 transparent;
+	left: 10px;
+}
+.errorWrapper .outer {
+	border-color: red transparent;
+}
+.errorWrapper .innerArrow {
+	border-top-color: #fbb9b9;
+	left: 10px;
+}
+/* creates the larger triangle */
+.errorWrapper .arrow.top {
+	border-bottom-color: red;
+}
+/* creates the smaller  triangle */
+.errorWrapper .innerArrow.top {
 	border-bottom-color: #f7a0a0;
 }
 input.error {
