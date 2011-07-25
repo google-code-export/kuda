@@ -162,20 +162,15 @@ var editor = (function(module) {
 				tree.bind('hover_node.jstree', function(evt, data) {
 					var elem = data.rslt.obj,
 						id = elem.attr('id'),
-						desc = view.tooltips.get(id),
-						dehover = elem.data('dehover');
+						desc = view.tooltips.get(id);
 					
 					if (view.currentTooltip !== id && desc != null) {		
 						view.currentTooltip = id;	
 						
-						if (dehover != null) {
-							clearTimeout(dehover);
-						} 
-						
 						var t = setTimeout(function() {
 							elem.data('timeout', null);
 							tooltip.setContainerClass('tree');
-							tooltip.show(elem, desc, 2000);
+							tooltip.show(elem, desc);
 						}, 500);
 						
 						elem.data('timeout', t);
@@ -183,7 +178,6 @@ var editor = (function(module) {
 				})
 				.bind('dehover_node.jstree', function(evt, data) {
 					var elem = data.rslt.obj,
-						id = elem.attr('id'),
 						timeout = elem.data('timeout');
 						
 					if (timeout != null) {
@@ -192,11 +186,16 @@ var editor = (function(module) {
 				})
 				.bind('select_node.jstree', function(evt, data) {		
 					var elem = data.rslt.obj,
-						id = elem.attr('id'),
 						timeout = elem.data('timeout');
 									
 					if (view.currentTooltip != null) {
 						clearTimeout(timeout);
+						tooltip.hide(100);
+						view.currentTooltip = null;
+					}
+				})
+				.bind('mouseout', function(evt) {
+					if (view.currentTooltip != null && !tooltip.isAnimating) {
 						tooltip.hide(100);
 						view.currentTooltip = null;
 					}
