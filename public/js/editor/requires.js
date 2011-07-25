@@ -41,6 +41,7 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.ui.components.colorpicker');
 	o3djs.require('editor.ui.components.vector');
 	o3djs.require('editor.ui.components.treeSelector');
+	o3djs.require('editor.ui.components.tooltip');
 	o3djs.require('editor.ui.components.validator');
 	o3djs.require('editor.ui.components.objectPicker');
 	o3djs.require('editor.ui.components.param');

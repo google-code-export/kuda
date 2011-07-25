@@ -47,8 +47,7 @@ var editor = (function(editor) {
 			this.multiDim = jQuery.isArray(ipts[0]);
 			this.multiDimUnbounded = this.multiDim && ipts[0].length === 0;
 			
-			this.inputs = this.unbounded || this.multiDimUnbounded ? [] : 
-				new Hashtable();
+			this.inputs = [];
 			
 			this._super(newOpts);
 		},
@@ -118,13 +117,11 @@ var editor = (function(editor) {
 		},
 			
 		getBoundedValue = function() {
-			var keys = this.inputs.keys(),
-				values = [],
+			var values = [],
 				isComplete = true;
 			
-			for (var i = 0, il = keys.length; i < il && isComplete; i++) {
-				var key = keys[i],
-					obj = this.inputs.get(key),
+			for (var i = 0, il = this.inputs.length; i < il && isComplete; i++) {
+				var obj = this.inputs[i],
 					val = obj.elem.val(),
 					newVal = null;
 				
@@ -201,21 +198,38 @@ var editor = (function(editor) {
 			var inputs = this.config.inputs,
 				param = this.config.paramName,
 				type = this.config.type,
-				wgt = this;
+				wgt = this,
+				il = inputs.length,
+				noPlaceHolders = false;
 				
-			for (var i = 0, il = inputs.length; i < il; i++) {
+			// first detect a number or a list of placeholders
+			if (inputs.length === 1 && hemi.utils.isNumeric(inputs[0])) {
+				il = inputs[0];
+				noPlaceHolders = true;
+			}
+			for (var i = 0; i < il; i++) {
 				var ipt = inputs[i];
 				
 				if (this.multiDim) {
 					var div = jQuery('<div class="vectorVec"></div>');
-					for (var j = 0, jl = ipt.length; j < jl; j++) {
-						var inputTxt = ipt[j];
-							elem = createInput.call(this).data('ndx', inputTxt)
-								.attr('placeholder', inputTxt);
+					
+					if (ipt.length === 1 && hemi.utils.isNumeric(ipt[0])) {
+						jl = ipt[0];
+						noPlaceHolders = true;
+					}
+					
+					for (var j = 0; j < jl; j++) {
+						var inputTxt = ipt[j],
+							elem = createInput.call(this);
+							
+						if (!noPlaceHolders) {
+							elem.attr('placeholder', inputTxt);
+						}
 						
-						this.inputs.put(inputTxt, {
+						this.inputs.push({
 							ndx1: i,
 							ndx2: j,
+							key: inputTxt,
 							elem: elem
 						});
 						div.append(elem);
@@ -223,11 +237,15 @@ var editor = (function(editor) {
 					this.container.append(div);
 				}
 				else {
-					var elem = createInput.call(this).data('ndx', ipt)
-						.attr('placeholder', ipt);
+					var elem = createInput.call(this);
 					
-					this.inputs.put(ipt, {
+					if (!noPlaceHolders) {
+						elem.attr('placeholder', ipt);
+					}
+					
+					this.inputs.push({
 						ndx1: i,
+						key: ipt,
 						elem: elem
 					});
 					this.container.append(elem);
@@ -283,7 +301,7 @@ var editor = (function(editor) {
 		setupAutoFills = function() {
 			var wgt = this,
 				vectors = wgt.find('.' + this.config.type),
-				inputs = this.inputs.values();
+				inputs = this.inputs;
 						
 			if (wgt.config.validator) {
 				wgt.config.validator.setElements(vectors);
@@ -296,7 +314,6 @@ var editor = (function(editor) {
 			.bind('blur', function(evt) {
 				var elem = jQuery(this),
 					val = elem.val(),
-					ndx = elem.data('ndx'),
 					totVal = wgt.getValue();
 				
 				if (wgt.config.onBlur) {
@@ -310,9 +327,10 @@ var editor = (function(editor) {
 		},
 		
 		setBoundedValue = function(values) {
+			var inputs = this.inputs;
+					
 			if (jQuery.isArray(values)) {
-				var inputs = this.inputs.values(),
-					find = function(ndx1, ndx2) {
+				var find = function(ndx1, ndx2) {
 						var found = null;
 						
 						for (var i = 0, il = inputs.length; i < il && found == null; i++) {
@@ -345,7 +363,14 @@ var editor = (function(editor) {
 			}
 			else {
 				for (var key in values) {
-					var input = this.inputs.get(key).elem;
+					var found = -1;
+					for (var i = 0, il = inputs.length; i < il && found !== -1; i++) {
+						if (inputs[i].key == key) {
+							found = i;
+						}
+					}
+					
+					var input = inputs[found].elem;
 					
 					if (input) {
 						input.val(values[key]).removeClass('vectorHelper');

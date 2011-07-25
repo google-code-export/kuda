@@ -247,28 +247,31 @@ var editor = (function(editor) {
 			var retVal = [];
 			
 			if (bound1 !== -1 && bound2 !== -1) {
-				var i = 0;
-				
-				do {
-					var a = [];
-					retVal.push(a);
-					
-					for (var j = 0; j < bound2; j++) {
-						a.push(inputs[j] + i);
-					}
-					i++;
-				} while(i < bound1);
+				for (var i = 0; i < bound1; i++) {
+					retVal.push([bound2]);
+				}
 			}
 			else if (bound1 !== -1) {
-				if (bound1 === 3) {
-					retVal = vecInputs;
-				}
-				else {
-					for (var i = 0; i < bound1; i++) {
-						retVal.push(inputs[i]);
-					}
-				}
+				retVal.push(bound1);
 			}
+//			if (bound1 !== -1 && bound2 !== -1) {
+//				var i = 0;
+//				
+//				do {
+//					var a = [];
+//					retVal.push(a);
+//					
+//					for (var j = 0; j < bound2; j++) {
+//						a.push(inputs[j] + i);
+//					}
+//					i++;
+//				} while(i < bound1);
+//			}
+//			else if (bound1 !== -1) {
+//				for (var i = 0; i < bound1; i++) {
+//					retVal.push(inputs[i]);
+//				}
+//			}
 			
 			return retVal;
 		};
