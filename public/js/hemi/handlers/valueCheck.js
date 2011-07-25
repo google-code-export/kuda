@@ -32,6 +32,11 @@ var hemi = (function(hemi) {
 		hemi.world.Citizen.call(this);
 		
 		/**
+		 * A Citizen that the ValueCheck may be using.
+		 * @type hemi.world.Citizen
+		 */
+		this.citizen = null;
+		/**
 		 * The values to check for.
 		 * @type Object[]
 		 */
@@ -70,6 +75,7 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			hemi.world.Citizen.prototype.cleanup.call(this);
+			this.citizen = null;
 			this.values = [];
 			this.handler = null;
 			this.args = [];
@@ -124,6 +130,13 @@ var hemi = (function(hemi) {
                 name: 'handler',
                 id: this.handler.getId()
             });
+			
+			if (this.citizen) {
+				octane.props.push({
+	                name: 'citizen',
+	                id: this.citizen.getId()
+	            });
+			}
             
             return octane;
         }
@@ -135,6 +148,7 @@ var hemi = (function(hemi) {
 	 * Create a ValueCheck handler that will check pick Messages for the given
 	 * shape name.
 	 * 
+	 * @param {hemi.model.Model} model the Model containing the shape to pick
 	 * @param {string} shapeName the shape name to check for
 	 * @param {Object} handler handler object for the Message.
 	 * @param {string} func name of the object function to pass the Message to
@@ -142,8 +156,9 @@ var hemi = (function(hemi) {
 	 *     the handler. Otherwise just pass it the Message.
 	 * @return {hemi.handlers.ValueCheck} the created ValueCheck handler
 	 */
-	hemi.handlers.handlePick = function(shapeName, handler, func, opt_args) {
+	hemi.handlers.handlePick = function(model, shapeName, handler, func, opt_args) {
 		var valCheck = new hemi.handlers.ValueCheck();
+		valCheck.citizen = model;
 		valCheck.values = [shapeName];
 		valCheck.valueParams = [hemi.dispatch.MSG_ARG + 'data.pickInfo.shapeInfo.shape.name'];
 		valCheck.handler = handler;
@@ -170,6 +185,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.handlers.handleCameraMove = function(camera, viewpoint, handler, func, opt_args) {
 		var valCheck = new hemi.handlers.ValueCheck();
+		valCheck.citizen = camera;
 		valCheck.values = [viewpoint.getId()];
 		valCheck.valueParams = [hemi.dispatch.MSG_ARG + 'data.viewpoint'];
 		valCheck.handler = handler;

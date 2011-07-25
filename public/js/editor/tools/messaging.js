@@ -148,7 +148,7 @@ var editor = (function(module) {
 				argList = msgTarget.handler.args;
 				
 				if (spec.src === hemi.world.WORLD_ID) {
-					source = module.treeData.createShapePickCitizen(msgTarget.citizen);
+					source = module.treeData.createShapePickCitizen(msgTarget.handler.citizen);
 				} else {
 					source = module.treeData.createCamMoveCitizen(hemi.world.camera);
 				}
@@ -278,11 +278,11 @@ var editor = (function(module) {
 			if (this.source.shapePick) {
 				this.dispatchProxy.swap();
 				newTarget = hemi.handlers.handlePick(
+					this.source.citizen,
 					this.type,
 					this.handler,
 					this.method,
 					args);
-				newTarget.citizen = this.source.citizen;
 				this.dispatchProxy.unswap();
 			}
 			else if (this.source.camMove) {

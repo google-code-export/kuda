@@ -55,10 +55,7 @@ var editor = (function(module) {
 				argList = msgTarget.handler.args;
 				
 				if (spec.src === hemi.world.WORLD_ID) {
-					var modelName = type.split('.').shift(),
-						models = hemi.world.getModels({name:modelName});
-					
-					source = module.treeData.createShapePickCitizen(models[0]);
+					source = module.treeData.createShapePickCitizen(msgTarget.handler.citizen);
 				} else {
 					source = module.treeData.createCamMoveCitizen(hemi.world.camera);
 				}
