@@ -364,7 +364,8 @@ var editor = (function(editor) {
 			else {
 				for (var key in values) {
 					var found = -1;
-					for (var i = 0, il = inputs.length; i < il && found !== -1; i++) {
+					
+					for (var i = 0, il = inputs.length; i < il && found === -1; i++) {
 						if (inputs[i].key == key) {
 							found = i;
 						}

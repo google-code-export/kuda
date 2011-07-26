@@ -48,6 +48,7 @@ var editor = (function(editor) {
 			
 			// hide
 			this.container.hide();
+			this.isVisible = false;
 		},
 		
 		setContainerClass: function(cls) {
@@ -106,6 +107,7 @@ var editor = (function(editor) {
 					top: '-=20'
 				}, 200, function(){
 					wgt.isAnimating = false;
+					wgt.isVisible = true;
 				});
 			}
 			
@@ -134,13 +136,15 @@ var editor = (function(editor) {
 		
 		hideMessage: function(id) {
 			if (this.id === id) {
-				var ctn = this.container;
+				var ctn = this.container,
+					wgt = this;
 				
 				ctn.animate({
 					opacity: 0,
 					top: '-=20'
 				}, 200, function(){
 					ctn.hide();
+					wgt.isVisible = false;
 				});
 			}
 		}

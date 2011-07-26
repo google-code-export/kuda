@@ -25,6 +25,8 @@ var editor = (function(editor) {
 		SetArgument: 'params.SetArgument'
 	};
 	
+	var tooltip = editor.ui.createTooltip();
+	
 ////////////////////////////////////////////////////////////////////////////////
 //                            Parameter Component                             //
 ////////////////////////////////////////////////////////////////////////////////
@@ -184,9 +186,27 @@ var editor = (function(editor) {
 	var createListItem = function(argName, desc, ui) {
 			var li = jQuery('<li></li>'),
 				lbl = jQuery('<label>' + argName + '</label>'),
-				elm = ui.getUI();
+				elm = ui.getUI(),
+				ipt = elm;
 				
-			li.append(lbl).append(elm).attr('title', desc);
+			li.append(lbl).append(elm);//.attr('title', desc);
+			
+			if (ipt[0].nodeName.toLowerCase() !== 'input') {
+				ipt = elm.find('input');
+			}
+			
+			ipt.bind('focus click', function(evt) {
+				ipt.data('timeout', setTimeout(function() {
+					tooltip.show(ipt, desc);
+				}, 500));
+			})
+			.bind('blur', function(evt) {	
+				var timeout = ipt.data('timeout');
+				if (timeout) {
+					clearTimeout(timeout);
+					tooltip.hide(100);
+				}
+			});
 			
 			return li;
 		},
@@ -261,24 +281,6 @@ var editor = (function(editor) {
 			else if (bound1 !== -1) {
 				retVal.push(bound1);
 			}
-//			if (bound1 !== -1 && bound2 !== -1) {
-//				var i = 0;
-//				
-//				do {
-//					var a = [];
-//					retVal.push(a);
-//					
-//					for (var j = 0; j < bound2; j++) {
-//						a.push(inputs[j] + i);
-//					}
-//					i++;
-//				} while(i < bound1);
-//			}
-//			else if (bound1 !== -1) {
-//				for (var i = 0; i < bound1; i++) {
-//					retVal.push(inputs[i]);
-//				}
-//			}
 			
 			return retVal;
 		};
