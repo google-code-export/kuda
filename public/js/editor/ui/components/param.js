@@ -25,7 +25,8 @@ var editor = (function(editor) {
 		SetArgument: 'params.SetArgument'
 	};
 	
-	var tooltip = editor.ui.createTooltip();
+	var tooltip = editor.ui.createTooltip(),
+		counter = 0;
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                            Parameter Component                             //

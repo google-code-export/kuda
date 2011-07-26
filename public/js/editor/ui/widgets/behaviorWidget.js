@@ -409,7 +409,7 @@ var editor = (function(module) {
 				function(treeUI) {
 					var li = jQuery('<li></li>');
 					
-					li.append(wgt.axnChooser.getUI())
+					li.append(wgt.axnChooser.getUI());
 					actionFieldset.find('ol').append(li);
 				});
 				
@@ -417,7 +417,7 @@ var editor = (function(module) {
 				function(treeUI) {
 					var li = jQuery('<li></li>');
 					
-					li.append(wgt.trgChooser.getUI())
+					li.append(wgt.trgChooser.getUI());
 					triggerFieldset.find('ol').append(li);
 				});
 			
@@ -565,7 +565,7 @@ var editor = (function(module) {
 						args: this.prms.getArguments(),
 						name: this.nameIpt.val()
 					}
-				}
+				};
 				
 				// load up the new data if it exists
 				meta = this.getViewMeta(view);
@@ -772,4 +772,4 @@ var editor = (function(module) {
 	};
 	
 	return module;
-})(editor || {})
+})(editor || {});
