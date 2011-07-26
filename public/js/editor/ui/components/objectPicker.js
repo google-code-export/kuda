@@ -194,7 +194,7 @@ var editor = (function(module) {
 				
 	            this.container.append(ip).append(cb);
 				
-				ip.data('widget', this);		
+				ip.data('widget', this).bind('click', toggleFcn);		
 				cb.bind('click', toggleFcn);
 				
 				this.input = ip;
