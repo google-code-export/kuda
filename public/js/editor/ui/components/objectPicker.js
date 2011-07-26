@@ -25,10 +25,9 @@ var editor = (function(module) {
 	
 	var citTree = null,
 		citTreePnl = jQuery('<div id="' + CIT_TREE_PNL_ID +'"></div>'),
-		padding = 0
+		padding = 0,
 		border = 0,
-		outerWidth = 0,
-		counter = 0;
+		outerWidth = 0;
 		
 	var createCitizenTree = function(filter) {
 			try {
@@ -120,7 +119,7 @@ var editor = (function(module) {
 			});
 	
 			citTree.filter(filter);
-		}
+		};
 	
 	module.ui.ObjectPicker = module.ui.Component.extend({
 		init: function(argName, filter) {

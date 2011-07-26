@@ -63,7 +63,7 @@ var editor = (function(module) {
 					}
 					else {
 						var isDocBound = pnl.data('docBound');
-						ipt.addClass('open')
+						ipt.addClass('open');
 						btn.addClass('open');
 						width = ipt.outerWidth() + btn.outerWidth() -
 							wgt.treeBorder - wgt.treePadding;

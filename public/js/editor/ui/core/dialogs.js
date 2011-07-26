@@ -200,7 +200,7 @@ var editor = (function(module) {
 				url: '/models',
 				dataType: 'json',
 				success: function(data, status, xhr) {	
-					msg.text('').removeClass('errMsg')						
+					msg.text('').removeClass('errMsg');
 					btn.show();
 					dlg.find('label').show();
 				},					
