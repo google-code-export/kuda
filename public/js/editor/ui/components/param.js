@@ -140,6 +140,8 @@ var editor = (function(editor) {
 			switch (this.config.type) {
 				case NUMBER:
 					this.container = jQuery('<input type="text" class="short" />');
+					var validator = editor.ui.createDefaultValidator();
+					validator.setElements(this.container);
 					break;
 				case STRING:
 					this.container = jQuery('<input type="text" />');					
