@@ -58,6 +58,19 @@ var parseFile = function(data, classes) {
 				props: []
 			};
 		
+		// Check for a parent class
+		ndx = head.indexOf('@extends');
+		
+		if (ndx > -1) {
+			var stop = head.indexOf('*', ndx);
+			
+			if (stop > ndx) {
+				clsObj.parent = head.substring(ndx + 8, stop).trim();
+			} else {
+				clsObj.parent = head.substr(ndx + 8).trim();
+			}
+		}
+		
 		// Parse the class description
 		ndx = head.indexOf('@');
 		

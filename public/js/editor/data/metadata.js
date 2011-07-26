@@ -25,22 +25,62 @@ var editor = (function(module) {
 		
 		getDescription: function(objType, opt_fnc, opt_param) {
 			var args = [].splice.call(arguments, 0),
+				parent = this.getParent(objType),
 				retVal = retrieve.call(this, args);
+			
+			while (retVal == null && parent != null) {
+				args[0] = parent;
+				parent = this.getParent(parent);
+				retVal = retrieve.call(this, args);
+			}
 			
 			return retVal == null ? null : retVal.description;
 		},
 		
 		getMethods: function(objType) {
-			return this.types.get(objType).methods;
+			var methods = [];
+			
+			while (objType != null) {
+				var data = this.types.get(objType);
+				
+				if (data) {
+					methods = methods.concat(data.methods);
+					objType = data.parent;
+				} else {
+					objType = null;
+				}
+			}
+			
+			return methods;
 		},
 		
 		getParameters: function(objType, fnc) {
-			return this.functions.get(objType + '.' + fnc).parameters;
+			var data = this.functions.get(objType + '.' + fnc),
+				parent = this.getParent(objType);
+			
+			while (data == null && parent != null) {
+				data = this.functions.get(parent + '.' + fnc);
+				parent = this.getParent(parent);
+			}
+			
+			return data ? data.parameters : null;
+		},
+		
+		getParent: function(objType) {
+			var data = this.types.get(objType);
+			return data ? data.parent : null;
 		},
 		
 		getType: function(objType, opt_fnc, opt_param) {
 			var args = [].splice.call(arguments, 0),
+				parent = this.getParent(objType),
 				retVal = retrieve.call(this, args);
+			
+			while (retVal == null && parent != null) {
+				args[0] = parent;
+				parent = this.getParent(parent);
+				retVal = retrieve.call(this, args);
+			}
 			
 			return retVal == null ? null : retVal.type;
 		}
@@ -65,7 +105,8 @@ var editor = (function(module) {
 						funcs = type.funcs,
 						tdata = {
 							description: type.desc,
-							methods: []
+							methods: [],
+							parent: type.parent
 						};
 						
 					that.types.put(tname, tdata);
