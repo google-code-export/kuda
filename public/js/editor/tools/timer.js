@@ -15,27 +15,27 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-    module.tools = module.tools || {};
+var editor = (function(editor) {
+    editor.tools = editor.tools || {};
     
-    module.EventTypes = module.EventTypes || {};
+    editor.EventTypes = editor.EventTypes || {};
 	
 	// model specific
-	module.EventTypes.TimerCreated = 'timer.created';
-	module.EventTypes.TimerRemoved = 'timer.removed';
-	module.EventTypes.TimerSet = 'timer.set';
-	module.EventTypes.TimerUpdated = 'timer.updated';
+	editor.EventTypes.TimerCreated = 'timer.created';
+	editor.EventTypes.TimerRemoved = 'timer.removed';
+	editor.EventTypes.TimerSet = 'timer.set';
+	editor.EventTypes.TimerUpdated = 'timer.updated';
 	
 	// view specific
 	
 	// create timer sidebar widget specific
-	module.EventTypes.CreateTimer = 'timer.create';
-	module.EventTypes.UpdateTimer = 'timer.update';
+	editor.EventTypes.CreateTimer = 'timer.create';
+	editor.EventTypes.UpdateTimer = 'timer.update';
 	
 	// timer list sidebar widget specific
-	module.EventTypes.EditTimer = 'timer.edit';
-	module.EventTypes.NewTimer = 'timer.new';
-	module.EventTypes.RemoveTimer = 'timer.remove';
+	editor.EventTypes.EditTimer = 'timer.edit';
+	editor.EventTypes.NewTimer = 'timer.new';
+	editor.EventTypes.RemoveTimer = 'timer.remove';
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -45,7 +45,7 @@ var editor = (function(module) {
      * An TimerModel handles the creation, updating, and removal of 
      * Timer
      */
-    module.tools.TimersModel = module.tools.ToolModel.extend({
+    editor.tools.TimersModel = editor.tools.ToolModel.extend({
 		init: function() {
 			this._super();
 			
@@ -61,12 +61,12 @@ var editor = (function(module) {
 		edit: function(timer) {
 			this.currentTimer = timer;
 			this.isUpdate = true;
-			this.notifyListeners(module.EventTypes.TimerSet, timer);
+			this.notifyListeners(editor.EventTypes.TimerSet, timer);
 		},
 		
 		remove: function(timer) {
 			timer.cleanup();
-			this.notifyListeners(module.EventTypes.TimerRemoved, timer);
+			this.notifyListeners(editor.EventTypes.TimerRemoved, timer);
 		},
 		
 		reset: function() {
@@ -77,8 +77,8 @@ var editor = (function(module) {
 		save: function(name, startTime) {
 			this.create();
 			
-			var msgType = this.isUpdate ? module.EventTypes.TimerUpdated : 
-				module.EventTypes.TimerCreated;
+			var msgType = this.isUpdate ? editor.EventTypes.TimerUpdated : 
+				editor.EventTypes.TimerCreated;
 				
 			this.currentTimer.name = name;
 			this.currentTimer.startTime = startTime;
@@ -89,14 +89,14 @@ var editor = (function(module) {
 		},
 			
 		worldCleaned: function() {
-			this.notifyListeners(module.EventTypes.WorldCleaned, null);
+			this.notifyListeners(editor.EventTypes.WorldCleaned, null);
 	    },
 	    
 	    worldLoaded: function() {
 			var timers = hemi.world.getTimers();
 			
 			for (var ndx = 0, len = timers.length; ndx < len; ndx++) {
-				this.notifyListeners(module.EventTypes.TimerCreated, timers[ndx]);
+				this.notifyListeners(editor.EventTypes.TimerCreated, timers[ndx]);
 			}
 	    }
 	});
@@ -108,16 +108,16 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the CreatTmrSBWidget.
 	 */
-	module.tools.CreateTmrSBWidgetDefaults = {
+	editor.tools.CreateTmrSBWidgetDefaults = {
 		name: 'createTimerSBWidget',
 		uiFile: 'js/editor/tools/html/timersForms.htm',
 		manualVisible: true
 	};
 	
-	module.tools.CreatTmrSBWidget = module.ui.FormSBWidget.extend({
+	editor.tools.CreatTmrSBWidget = editor.ui.FormSBWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-				module.tools.CreateTmrSBWidgetDefaults, options);
+				editor.tools.CreateTmrSBWidgetDefaults, options);
 		    this._super(newOpts);
 		},
 		
@@ -140,7 +140,7 @@ var editor = (function(module) {
 			this.nameIpt = this.find('#tmrName');
 			this.startTimeIpt = this.find('#tmrStartTime');
 			
-			var validator = module.ui.createDefaultValidator(),
+			var validator = editor.ui.createDefaultValidator(),
 				wgt = this;
 			
 			this.form.submit(function() { return false; });
@@ -154,14 +154,14 @@ var editor = (function(module) {
 						startTime: parseInt(wgt.startTimeIpt.val()),
 						name: wgt.nameIpt.val()
 					},
-					msgType = wgt.isUpdate ? module.EventTypes.UpdateTimer : 
-						module.EventTypes.CreateTimer;
+					msgType = wgt.isUpdate ? editor.EventTypes.UpdateTimer : 
+						editor.EventTypes.CreateTimer;
 					
 				wgt.notifyListeners(msgType, data); 
 			});
 			
 			this.cancelBtn.bind('click', function() {
-				wgt.notifyListeners(module.EventTypes.Cancel);
+				wgt.notifyListeners(editor.EventTypes.Cancel);
 			});
 			
 			validator.setElements(this.startTimeIpt);
@@ -195,7 +195,7 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the TmrListSBWidget.
 	 */
-	module.tools.TmrListSBWidgetDefaults = {
+	editor.tools.TmrListSBWidgetDefaults = {
 		name: 'timerListSBWidget',
 		listId: 'timerList',
 		prefix: 'tmrLst',
@@ -203,9 +203,9 @@ var editor = (function(module) {
 		instructions: "Click 'Create Timer' to create a new timer."
 	};
 	
-	module.tools.TmrListSBWidget = module.ui.ListSBWidget.extend({
+	editor.tools.TmrListSBWidget = editor.ui.ListSBWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.tools.TmrListSBWidgetDefaults, options);
+			var newOpts = jQuery.extend({}, editor.tools.TmrListSBWidgetDefaults, options);
 		    this._super(newOpts);
 			
 			this.items = new Hashtable();		
@@ -217,7 +217,7 @@ var editor = (function(module) {
 			var wgt = this;
 						
 			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.NewTimer, null);
+				wgt.notifyListeners(editor.EventTypes.NewTimer, null);
 			});
 			
 			this.buttonDiv.append(this.createBtn);
@@ -230,13 +230,17 @@ var editor = (function(module) {
 			
 			li.editBtn.bind('click', function(evt) {
 				var timer = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.EditTimer, timer);
+				wgt.notifyListeners(editor.EventTypes.EditTimer, timer);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var timer = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.RemoveTimer, timer);
+				wgt.notifyListeners(editor.EventTypes.RemoveTimer, timer);
 			});
+		},
+		
+		createListItemWidget: function() {
+			return new editor.ui.BhvListItemWidget();
 		},
 		
 		getOtherHeights: function() {
@@ -251,7 +255,7 @@ var editor = (function(module) {
     /*
      * Configuration object for the TimerView.
      */
-    module.tools.TimersViewDefaults = {
+    editor.tools.TimersViewDefaults = {
         toolName: 'Timer',
 		toolTip: 'Timer: Create and edit timers',
 		widgetId: 'timersBtn',
@@ -265,13 +269,14 @@ var editor = (function(module) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.TimerViewDefaults as default options
      */
-    module.tools.TimersView = module.tools.ToolView.extend({
+    editor.tools.TimersView = editor.tools.ToolView.extend({
 		init: function(options) {
-	        var newOpts = jQuery.extend({}, module.tools.TimersViewDefaults, options);
+	        var newOpts = jQuery.extend({}, editor.tools.TimersViewDefaults, options);
 	        this._super(newOpts);
 			
-			this.addSidebarWidget(new module.tools.CreatTmrSBWidget());
-			this.addSidebarWidget(new module.tools.TmrListSBWidget());
+			this.addSidebarWidget(new editor.tools.CreatTmrSBWidget());
+			this.addSidebarWidget(new editor.tools.TmrListSBWidget());
+			this.addSidebarWidget(editor.ui.getBehaviorWidget());
 	    }
 	});
     
@@ -283,7 +288,7 @@ var editor = (function(module) {
      * The TimerController facilitates TimerModel and TimerView
      * communication by binding event and message handlers.
      */
-    module.tools.TimersController = module.tools.ToolController.extend({
+    editor.tools.TimersController = editor.tools.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -299,59 +304,69 @@ var editor = (function(module) {
 	        	view = this.view,
 				crtWgt = view.createTimerSBWidget,
 				lstWgt = view.timerListSBWidget,
+				bhvWgt = view.behaviorSBWidget,
 	        	that = this;
 	                	        
 			// special listener for when the toolbar button is clicked
-	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode === module.tools.ToolConstants.MODE_DOWN;
+	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+	            var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
 	        });
 			
 			// create widget specific
-			crtWgt.addListener(module.EventTypes.Cancel, function() {
+			crtWgt.addListener(editor.EventTypes.Cancel, function() {
 				crtWgt.setVisible(false);
 				lstWgt.setVisible(true);
 			});
-			crtWgt.addListener(module.EventTypes.CreateTimer, function(data) {
+			crtWgt.addListener(editor.EventTypes.CreateTimer, function(data) {
 				model.save(data.name, data.startTime);
 			});
-			crtWgt.addListener(module.EventTypes.UpdateTimer, function(data) {
+			crtWgt.addListener(editor.EventTypes.UpdateTimer, function(data) {
 				model.save(data.name, data.startTime);
 			});
 			
 			// list widget specific
-			lstWgt.addListener(module.EventTypes.EditTimer, function(timer) {
+			lstWgt.addListener(editor.EventTypes.EditTimer, function(timer) {
 				model.edit(timer);
 			});
-			lstWgt.addListener(module.EventTypes.RemoveTimer, function(timer) {
+			lstWgt.addListener(editor.EventTypes.RemoveTimer, function(timer) {
 				model.remove(timer);
 			});
-			lstWgt.addListener(module.EventTypes.NewTimer, function(data) {
+			lstWgt.addListener(editor.EventTypes.NewTimer, function(data) {
 				crtWgt.reset();
 				crtWgt.setVisible(true);
 				lstWgt.setVisible(false);
 			});
 			
 			// model specific
-			model.addListener(module.EventTypes.TimerCreated, function(timer) {
+			model.addListener(editor.EventTypes.TimerCreated, function(timer) {
 				lstWgt.add(timer);
 				crtWgt.setVisible(false);
 				lstWgt.setVisible(true);
 			});
-			model.addListener(module.EventTypes.TimerRemoved, function(timer) {
+			model.addListener(editor.EventTypes.TimerRemoved, function(timer) {
 				lstWgt.remove(timer);
 			});
-			model.addListener(module.EventTypes.TimerSet, function(timer) {
+			model.addListener(editor.EventTypes.TimerSet, function(timer) {
 				crtWgt.edit(timer);
 				crtWgt.setVisible(true);
 				lstWgt.setVisible(false);
 			});
-			model.addListener(module.EventTypes.TimerUpdated, function(timer) {
+			model.addListener(editor.EventTypes.TimerUpdated, function(timer) {
 				lstWgt.update(timer);
 				crtWgt.setVisible(false);
 				lstWgt.setVisible(true);
 			});
+			
+			// behavior widget specific
+			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				if (obj.updateMeta) {
+					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
+					
+					lstWgt.setVisible(!obj.visible && isDown);
+				}
+			});
 	    }
 	});
     
-    return module;
+    return editor;
 })(editor || {});

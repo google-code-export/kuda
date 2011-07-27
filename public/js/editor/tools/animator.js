@@ -17,35 +17,35 @@
 
 o3djs.require('hemi.animation');
 
-var editor = (function(module) {
-    module.tools = module.tools || {};
+var editor = (function(editor) {
+    editor.tools = editor.tools || {};
     
-    module.EventTypes = module.EventTypes || {};
+    editor.EventTypes = editor.EventTypes || {};
 	
 	// model events
-    module.EventTypes.ModelPicked = "animator.ModelPicked";
-    module.EventTypes.AnimationCreated = "animator.AnimationCreated";
-    module.EventTypes.AnimationUpdated = "animator.AnimationUpdated";
-	module.EventTypes.AnimationRemoved = "animator.AnimationRemoved";
-    module.EventTypes.AnimationStopped = "animator.AnimationStopped";
+    editor.EventTypes.ModelPicked = "animator.ModelPicked";
+    editor.EventTypes.AnimationCreated = "animator.AnimationCreated";
+    editor.EventTypes.AnimationUpdated = "animator.AnimationUpdated";
+	editor.EventTypes.AnimationRemoved = "animator.AnimationRemoved";
+    editor.EventTypes.AnimationStopped = "animator.AnimationStopped";
 	
 	// create animation widget events
-    module.EventTypes.RemoveAnmLoop = "crtAnm.RemoveAnmLoop";
-    module.EventTypes.SetAnimation = "crtAnm.SetAnimation";
-    module.EventTypes.StartPreview = "crtAnm.StartPreview";
-    module.EventTypes.StopPreview = "crtAnm.StopPreview";
-    module.EventTypes.AddAnmLoop = "crtAnm.AddAnmLoop";
-    module.EventTypes.EditAnmLoop = "crtAnm.EditAnmLoop";
-	module.EventTypes.SaveAnimation = "crtAnm.SaveAnimation";
-	module.EventTypes.SetAnmBeginFrame = "crtAnm.SetAnmBeginFrame";
-	module.EventTypes.SetAnmEndFrame = "crtAnm.SetAnmEndFrame";
-	module.EventTypes.SetAnmName = "crtAnm.SetAnmName";
-	module.EventTypes.CancelCreateAnm = "crtAnm.CancelCreateAnm";
+    editor.EventTypes.RemoveAnmLoop = "crtAnm.RemoveAnmLoop";
+    editor.EventTypes.SetAnimation = "crtAnm.SetAnimation";
+    editor.EventTypes.StartPreview = "crtAnm.StartPreview";
+    editor.EventTypes.StopPreview = "crtAnm.StopPreview";
+    editor.EventTypes.AddAnmLoop = "crtAnm.AddAnmLoop";
+    editor.EventTypes.EditAnmLoop = "crtAnm.EditAnmLoop";
+	editor.EventTypes.SaveAnimation = "crtAnm.SaveAnimation";
+	editor.EventTypes.SetAnmBeginFrame = "crtAnm.SetAnmBeginFrame";
+	editor.EventTypes.SetAnmEndFrame = "crtAnm.SetAnmEndFrame";
+	editor.EventTypes.SetAnmName = "crtAnm.SetAnmName";
+	editor.EventTypes.CancelCreateAnm = "crtAnm.CancelCreateAnm";
 	
 	// animation list events
-	module.EventTypes.CreateAnimation = "anmList.CreateAnimation";
-	module.EventTypes.EditAnimation = "anmList.EditAnimation";
-	module.EventTypes.RemoveAnimation = "anmList.RemoveAnimation";
+	editor.EventTypes.CreateAnimation = "anmList.CreateAnimation";
+	editor.EventTypes.EditAnimation = "anmList.EditAnimation";
+	editor.EventTypes.RemoveAnimation = "anmList.RemoveAnimation";
 	
 	// view events
     
@@ -57,7 +57,7 @@ var editor = (function(module) {
      * An AnimatorModel handles the creation and playing of animations as well
      * as model picking for the animation tool.
      */
-    module.tools.AnimatorModel = module.tools.ToolModel.extend({
+    editor.tools.AnimatorModel = editor.tools.ToolModel.extend({
 		init: function() {
 			this._super();
 	        
@@ -76,7 +76,7 @@ var editor = (function(module) {
 			hemi.msg.subscribe(hemi.msg.stop,
 	            function(msg) {
 					if (that.animation && msg.src === that.animation) {
-						that.notifyListeners(module.EventTypes.AnimationStopped, 
+						that.notifyListeners(editor.EventTypes.AnimationStopped, 
 							that.animation);
 					}
 				});
@@ -231,7 +231,7 @@ var editor = (function(module) {
 	    }, 
 		
 	    removeAnimation: function(animation) {
-	        this.notifyListeners(module.EventTypes.AnimationRemoved, animation);
+	        this.notifyListeners(editor.EventTypes.AnimationRemoved, animation);
 			animation.cleanup();
 		},
 	    
@@ -274,8 +274,8 @@ var editor = (function(module) {
 		
 	    saveAnimation: function() {
 			var retVal = null,
-				msgType = this.isUpdate ? module.EventTypes.AnimationUpdated
-					: module.EventTypes.AnimationCreated;
+				msgType = this.isUpdate ? editor.EventTypes.AnimationUpdated
+					: editor.EventTypes.AnimationCreated;
 			
 			this.createAnimation();
 			
@@ -331,7 +331,7 @@ var editor = (function(module) {
 		setModel: function(model) {	            
 			if (this.selectedModel !== model) {
         		this.unSelectAll();
-				this.notifyListeners(module.EventTypes.ModelPicked, model);
+				this.notifyListeners(editor.EventTypes.ModelPicked, model);
 	            this.selectedModel = model;
 	            this.hilightShapes();
 			}
@@ -372,7 +372,7 @@ var editor = (function(module) {
 	    	
 	        for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
 	            var anm = animations[ndx];
-	            this.notifyListeners(module.EventTypes.AnimationRemoved, anm);
+	            this.notifyListeners(editor.EventTypes.AnimationRemoved, anm);
 	        }
 	    },
 		
@@ -381,7 +381,7 @@ var editor = (function(module) {
 			
 			for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
 				var anm = animations[ndx];
-	            this.notifyListeners(module.EventTypes.AnimationCreated, anm);
+	            this.notifyListeners(editor.EventTypes.AnimationCreated, anm);
 			}
 	    }
 	});
@@ -393,17 +393,17 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
-	module.tools.CreateAnmSBWidgetDefaults = {
+	editor.tools.CreateAnmSBWidgetDefaults = {
 		name: 'createAnmSBWidget',
 		uiFile: 'js/editor/tools/html/animationsForms.htm',
         instructions: 'Click on a model to select it',
 		manualVisible: true
 	};
 	
-	module.tools.CreateAnmSBWidget = module.ui.SidebarWidget.extend({
+	editor.tools.CreateAnmSBWidget = editor.ui.SidebarWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-				module.tools.CreateAnmSBWidgetDefaults, options);
+				editor.tools.CreateAnmSBWidgetDefaults, options);
 		    this._super(newOpts);
 			
 			this.hiddenItems = new Hashtable();		
@@ -456,7 +456,7 @@ var editor = (function(module) {
 						endInput.data('oldVal', ends);
 						itrInput.data('oldVal', itr);
 						
-		                wgt.notifyListeners(module.EventTypes.EditAnmLoop, {
+		                wgt.notifyListeners(editor.EventTypes.EditAnmLoop, {
 		                    loop: loop,
 							start: begins,
 							end: ends,
@@ -477,7 +477,7 @@ var editor = (function(module) {
 					values = slider.slider('option', 'values'),
 					itr = parseInt(itrInput.val());
 					
-	                wgt.notifyListeners(module.EventTypes.EditAnmLoop, {
+	                wgt.notifyListeners(editor.EventTypes.EditAnmLoop, {
 	                    loop: loop,
 						start: values[0],
 						end: values[1],
@@ -489,7 +489,7 @@ var editor = (function(module) {
 				var loop = wrapper.data('obj');
 				
 				wrapper.remove();
-				wgt.notifyListeners(module.EventTypes.RemoveAnmLoop, loop);
+				wgt.notifyListeners(editor.EventTypes.RemoveAnmLoop, loop);
 			});
 			
 			formDiv.append(startLbl).append(startInput).append(endLbl)
@@ -528,8 +528,8 @@ var editor = (function(module) {
 				return msg;
 			};
 			
-			new module.ui.Validator(startInput, checkFcn);
-			new module.ui.Validator(endInput, checkFcn);
+			new editor.ui.Validator(startInput, checkFcn);
+			new editor.ui.Validator(endInput, checkFcn);
 			
 			this.loopList.append(wrapper);
 		},
@@ -559,7 +559,7 @@ var editor = (function(module) {
 	        this.find('#anmModelVal').html(this.config.instructions);
 			
 			// add validation
-			new module.ui.Validator(frameInputs, function(elem) {
+			new editor.ui.Validator(frameInputs, function(elem) {
 				var val = elem.val(),
 					id = elem.attr('id');
 					begins = parseInt(wgt.beginInput.val()),
@@ -605,13 +605,13 @@ var editor = (function(module) {
 				
 				switch(param) {
 					case 'anmBeginFrame':
-					    msgType = module.EventTypes.SetAnmBeginFrame;
+					    msgType = editor.EventTypes.SetAnmBeginFrame;
 						break; 
 					case 'anmEndFrame':
-					    msgType = module.EventTypes.SetAnmEndFrame;
+					    msgType = editor.EventTypes.SetAnmEndFrame;
 						break;
 					case 'anmName':
-					    msgType = module.EventTypes.SetAnmName;
+					    msgType = editor.EventTypes.SetAnmName;
 						val = txtVal;
 						break;
 				}
@@ -682,8 +682,8 @@ var editor = (function(module) {
 					var min = ui.values[0],
 						max = ui.values[1];
 						
-					wgt.notifyListeners(module.EventTypes.SetAnmBeginFrame, min);
-					wgt.notifyListeners(module.EventTypes.SetAnmEndFrame, max);
+					wgt.notifyListeners(editor.EventTypes.SetAnmBeginFrame, min);
+					wgt.notifyListeners(editor.EventTypes.SetAnmEndFrame, max);
 				}
 			});
 	        
@@ -692,7 +692,7 @@ var editor = (function(module) {
 	            	end = parseInt(wgt.endInput.val());
 	            
 	            if (start != null && end != null) {
-	                wgt.notifyListeners(module.EventTypes.StartPreview, {
+	                wgt.notifyListeners(editor.EventTypes.StartPreview, {
 						start: start,
 						end: end
 					});
@@ -702,7 +702,7 @@ var editor = (function(module) {
 	        });
 	        
 	        this.stopBtn.bind('click', function(evt) {
-	            wgt.notifyListeners(module.EventTypes.StopPreview, null);
+	            wgt.notifyListeners(editor.EventTypes.StopPreview, null);
 	            wgt.startBtn.removeAttr('disabled');
 	        });
 	        
@@ -710,7 +710,7 @@ var editor = (function(module) {
 	            var start = parseInt(wgt.beginInput.val()),
 	            	end = parseInt(wgt.endInput.val());
 						
-	            wgt.notifyListeners(module.EventTypes.AddAnmLoop, {
+	            wgt.notifyListeners(editor.EventTypes.AddAnmLoop, {
 	                start: start,
 	                end: end,
 					loopStart: start,
@@ -725,7 +725,7 @@ var editor = (function(module) {
 	            	end = parseInt(wgt.endInput.val()),
 	            	name = wgt.find('#anmName').val();
 				
-				wgt.notifyListeners(module.EventTypes.SaveAnimation, {
+				wgt.notifyListeners(editor.EventTypes.SaveAnimation, {
 					start: start,
 					end: end,
 					name: name
@@ -736,7 +736,7 @@ var editor = (function(module) {
 			this.cancelBtn.bind('click', function(evt) {
 				wgt.setVisible(false);
 				wgt.reset();
-				wgt.notifyListeners(module.EventTypes.CancelCreateAnm, null);
+				wgt.notifyListeners(editor.EventTypes.CancelCreateAnm, null);
 				wgt.find('input.error').removeClass('error');
 			});
 		},	
@@ -754,8 +754,8 @@ var editor = (function(module) {
 				});
 				this.beginInput.val(0).data('oldVal', 0);
 				this.endInput.val(max).data('oldVal', max);
-				this.notifyListeners(module.EventTypes.SetAnmBeginFrame, 0);
-				this.notifyListeners(module.EventTypes.SetAnmEndFrame, max);
+				this.notifyListeners(editor.EventTypes.SetAnmBeginFrame, 0);
+				this.notifyListeners(editor.EventTypes.SetAnmEndFrame, max);
 			}
 			else {
 				this.insLabel.html('Model has no animations');
@@ -819,7 +819,7 @@ var editor = (function(module) {
 			});
 			this.startBtn.removeAttr('disabled');
 			
-			this.notifyListeners(module.EventTypes.SetAnimation, animation);
+			this.notifyListeners(editor.EventTypes.SetAnimation, animation);
 		},
 		
 		canSave: function() {
@@ -849,7 +849,7 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
-	module.tools.AnmListSBWidgetDefaults = {
+	editor.tools.AnmListSBWidgetDefaults = {
 		name: 'animationListSBWidget',
 		listId: 'animationList',
 		prefix: 'anmLst',
@@ -857,9 +857,9 @@ var editor = (function(module) {
 		title: 'Animations'
 	};
 	
-	module.tools.AnmListSBWidget = module.ui.ListSBWidget.extend({
+	editor.tools.AnmListSBWidget = editor.ui.ListSBWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.tools.AnmListSBWidgetDefaults, options);
+			var newOpts = jQuery.extend({}, editor.tools.AnmListSBWidgetDefaults, options);
 		    this._super(newOpts);
 			
 			this.items = new Hashtable();		
@@ -869,14 +869,18 @@ var editor = (function(module) {
 			var wgt = this;
 			
 			li.editBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.EditAnimation, 
+				wgt.notifyListeners(editor.EventTypes.EditAnimation, 
 					obj);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.RemoveAnimation, 
+				wgt.notifyListeners(editor.EventTypes.RemoveAnimation, 
 					obj);
 			});
+		},
+		
+		createListItemWidget: function() {
+			return new editor.ui.BhvListItemWidget();
 		},
 		
 		getOtherHeights: function() {
@@ -889,7 +893,7 @@ var editor = (function(module) {
 			var wgt = this;
 			
 			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.CreateAnimation, null);
+				wgt.notifyListeners(editor.EventTypes.CreateAnimation, null);
 			});
 			
 			this.buttonDiv.append(this.createBtn);
@@ -905,7 +909,7 @@ var editor = (function(module) {
     /*
      * Configuration object for the AnimatorView.
      */
-    module.tools.AnimatorViewDefaults = {
+    editor.tools.AnimatorViewDefaults = {
         toolName: 'Animator',
 		toolTip: 'Animations: Create and edit animations',
         widgetId: 'animationsBtn'
@@ -918,13 +922,14 @@ var editor = (function(module) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.AnimatorViewDefaults as default options
      */
-    module.tools.AnimatorView = module.tools.ToolView.extend({
+    editor.tools.AnimatorView = editor.tools.ToolView.extend({
 		init: function(options){
-			var newOpts = jQuery.extend({}, module.tools.AnimatorViewDefaults, options);
+			var newOpts = jQuery.extend({}, editor.tools.AnimatorViewDefaults, options);
 			this._super(newOpts);
 			
-			this.addSidebarWidget(new module.tools.CreateAnmSBWidget());
-			this.addSidebarWidget(new module.tools.AnmListSBWidget());
+			this.addSidebarWidget(new editor.tools.CreateAnmSBWidget());
+			this.addSidebarWidget(new editor.tools.AnmListSBWidget());
+			this.addSidebarWidget(editor.ui.getBehaviorWidget());
 		}
 	});
 	
@@ -937,7 +942,7 @@ var editor = (function(module) {
      * The AnimatorController facilitates AnimatorModel and AnimatorView
      * communication by binding event and message handlers.
      */
-    module.tools.AnimatorController = module.tools.ToolController.extend({
+    editor.tools.AnimatorController = editor.tools.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -951,47 +956,48 @@ var editor = (function(module) {
 	        
 	        var model = this.model,
 	        	view = this.view,
-				crtAnmWgt = view.createAnmSBWidget,
-				anmLstWgt = view.animationListSBWidget,
+				crtWgt = view.createAnmSBWidget,
+				lstWgt = view.animationListSBWidget,
+				bhvWgt = view.behaviorSBWidget,
 	        	that = this;
 	        
-	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode == module.tools.ToolConstants.MODE_DOWN;				
+	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+	            var isDown = value.newMode == editor.tools.ToolConstants.MODE_DOWN;				
 	            model.enableModelPicking(isDown);
 	            model.stopAnimation();
 	        });	
 			
 			// creat animation widget specific		    
-	        crtAnmWgt.addListener(module.EventTypes.AddAnmLoop, function(obj) {
+	        crtWgt.addListener(editor.EventTypes.AddAnmLoop, function(obj) {
 				model.setStart(obj.start);
 				model.setEnd(obj.end);
 				
 	            var loop = model.createLoop(obj.loopStart, obj.loopEnd, 
 						obj.loopItr);
 						
-	            crtAnmWgt.addLoopInput(loop, obj.start, obj.end);      
+	            crtWgt.addLoopInput(loop, obj.start, obj.end);      
 	        });	  	
-			crtAnmWgt.addListener(module.EventTypes.CancelCreateAnm, function () {
-				anmLstWgt.setVisible(true);
+			crtWgt.addListener(editor.EventTypes.CancelCreateAnm, function () {
+				lstWgt.setVisible(true);
 				model.unSelectAll();
 			});   
-	        crtAnmWgt.addListener(module.EventTypes.EditAnmLoop, function(obj) {				
+	        crtWgt.addListener(editor.EventTypes.EditAnmLoop, function(obj) {				
 	            var loop = model.saveLoop(obj.loop, obj.start, obj.end, 
 					obj.itr);     
 	        });	
-			crtAnmWgt.addListener(module.EventTypes.RemoveAnmLoop, function(value) {
+			crtWgt.addListener(editor.EventTypes.RemoveAnmLoop, function(value) {
 				model.removeLoop(value);
 			});		
-			crtAnmWgt.addListener(module.EventTypes.SaveAnimation, function (value) {
+			crtWgt.addListener(editor.EventTypes.SaveAnimation, function (value) {
 				var animation = model.saveAnimation();       	            
 	            if (animation) {
-					crtAnmWgt.reset();
-					crtAnmWgt.setVisible(false);
-					anmLstWgt.setVisible(true);
+					crtWgt.reset();
+					crtWgt.setVisible(false);
+					lstWgt.setVisible(true);
 	                model.unSelectAll();
 	            }
 			});			
-			crtAnmWgt.addListener(module.EventTypes.SetAnimation, function(value) {
+			crtWgt.addListener(editor.EventTypes.SetAnimation, function(value) {
 				if (value === null && model.animDirty) {
 					model.removeAnimation(model.animation);
 					model.animDirty = false;
@@ -999,58 +1005,67 @@ var editor = (function(module) {
 				
 				model.animation = value;
 			});		
-			crtAnmWgt.addListener(module.EventTypes.SetAnmBeginFrame, function (starts) {
+			crtWgt.addListener(editor.EventTypes.SetAnmBeginFrame, function (starts) {
 				model.setStart(starts);     
 			});			
-			crtAnmWgt.addListener(module.EventTypes.SetAnmEndFrame, function (ends) {
+			crtWgt.addListener(editor.EventTypes.SetAnmEndFrame, function (ends) {
 				model.setEnd(ends);     
 			});			
-			crtAnmWgt.addListener(module.EventTypes.SetAnmName, function (name) {
+			crtWgt.addListener(editor.EventTypes.SetAnmName, function (name) {
 				model.setName(name);     
 			});	
-			crtAnmWgt.addListener(module.EventTypes.StartPreview, function(value) {
+			crtWgt.addListener(editor.EventTypes.StartPreview, function(value) {
 	            model.previewAnimation();			
 			});	        
-	        crtAnmWgt.addListener(module.EventTypes.StopPreview, function(value) {
+	        crtWgt.addListener(editor.EventTypes.StopPreview, function(value) {
 	            model.stopAnimation();
 	        });	    	
 			
 			// animation list widget specific
-			anmLstWgt.addListener(module.EventTypes.CreateAnimation, function() {
-				anmLstWgt.setVisible(false);
-				crtAnmWgt.setVisible(true);
+			lstWgt.addListener(editor.EventTypes.CreateAnimation, function() {
+				lstWgt.setVisible(false);
+				crtWgt.setVisible(true);
 			});			
-			anmLstWgt.addListener(module.EventTypes.EditAnimation, function(animation) {
+			lstWgt.addListener(editor.EventTypes.EditAnimation, function(animation) {
 				model.setModel(animation.target);
-				crtAnmWgt.set(animation);
+				crtWgt.set(animation);
 				model.setAnimation(animation);
-				anmLstWgt.setVisible(false);
-				crtAnmWgt.setVisible(true);
+				lstWgt.setVisible(false);
+				crtWgt.setVisible(true);
 			});			
-			anmLstWgt.addListener(module.EventTypes.RemoveAnimation, function(animation) {
+			lstWgt.addListener(editor.EventTypes.RemoveAnimation, function(animation) {
 				model.removeAnimation(animation);
 			});
 	        
 			// model specific	
-			model.addListener(module.EventTypes.AnimationCreated, function(animation) {
-				anmLstWgt.add(animation);
+			model.addListener(editor.EventTypes.AnimationCreated, function(animation) {
+				lstWgt.add(animation);
 			});	     	
-	        model.addListener(module.EventTypes.AnimationRemoved, function(animation) {
-	            anmLstWgt.remove(animation);
+	        model.addListener(editor.EventTypes.AnimationRemoved, function(animation) {
+	            lstWgt.remove(animation);
 	        });				
-	        model.addListener(module.EventTypes.AnimationStopped, function(value) {
-	            crtAnmWgt.find('#anmStartBtn').removeAttr('disabled');
-	            crtAnmWgt.find('#anmStopBtn').attr('disabled', 'disabled');
+	        model.addListener(editor.EventTypes.AnimationStopped, function(value) {
+	            crtWgt.find('#anmStartBtn').removeAttr('disabled');
+	            crtWgt.find('#anmStopBtn').attr('disabled', 'disabled');
 	        });   
-	        model.addListener(module.EventTypes.AnimationUpdated, function(animation) {
-	            anmLstWgt.update(animation);
+	        model.addListener(editor.EventTypes.AnimationUpdated, function(animation) {
+	            lstWgt.update(animation);
 	        });		
-	        model.addListener(module.EventTypes.ModelPicked, function(model) {
-	            crtAnmWgt.modelSelected(model);
+	        model.addListener(editor.EventTypes.ModelPicked, function(model) {
+	            crtWgt.modelSelected(model);
 	        });		
+			
+			// behavior widget specific
+			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				if (obj.updateMeta) {
+					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
+					
+					lstWgt.setVisible(!obj.visible && isDown);
+				}
+			});
 	    }
 	});
     
     
-    return module;
+    return editor;
 })(editor || {});
