@@ -201,7 +201,7 @@ var editor = (function(editor) {
 			ipt.bind('focus click', function(evt) {
 				ipt.data('timeout', setTimeout(function() {
 					tooltip.show(ipt, desc);
-				}, 500));
+				}, 300));
 			})
 			.bind('blur', function(evt) {	
 				var timeout = ipt.data('timeout');
