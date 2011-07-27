@@ -96,7 +96,8 @@ var hext = (function(hext) {
 		 * 		to the deserializer.
 		 */
 		addModel: function(url, o3d, client, pack, parent, callback, options) {
-			var obj = this.models.get(url),
+			var	name = getName(url),
+				obj = this.models.get(name),
 				that = this;
 		
 			if (obj) {
@@ -129,7 +130,7 @@ var hext = (function(hext) {
 					}
 				});
 				
-				this.models.put(url, {
+				this.models.put(name, {
 					configs: [{
 						o3d: o3djs,
 						client: client,
@@ -155,7 +156,7 @@ var hext = (function(hext) {
 		 */
 		notifyLoaded: function(archiveInfo) {
 			var url = archiveInfo.request_.uri,
-				modelObj = this.models.get(url),
+				modelObj = this.models.get(getName(url)),
 				list = modelObj.configs;
 			
 			for (var ndx = 0, len = list.length; ndx < len; ndx++) {
@@ -170,6 +171,13 @@ var hext = (function(hext) {
 			modelObj.archiveInfo = archiveInfo;
 		}
 	};
+	
+	var getName = function(url) {		
+		var arr = url.split('/');
+		arr = arr[arr.length - 2];
+		console.log(arr);
+		return arr;
+	}
 	
 	return hext;
 })(hext || {});
