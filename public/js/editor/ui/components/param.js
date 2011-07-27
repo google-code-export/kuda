@@ -77,18 +77,23 @@ var editor = (function(editor) {
 			return args;
 		},
 		
-		populateArgList: function(obj, fnc, opt_values) {
+		populateArgList: function(obj, fnc, args, opt_values) {
 			this.reset();
 			
 			var meta = editor.data.getMetaData(),
 				citType = obj.getCitizenType(),
 				params = meta.getParameters(citType, fnc);
-				
+			
+			if (!params) {
+				// Use the back up argument list
+				params = args;
+			}
+			
 			for (var i = 0, il = params.length; i < il; i++) {
 				var prm = params[i],
 					type = meta.getType(citType, fnc, prm),
 					desc = meta.getDescription(citType, fnc, prm),
-					ui = createParameterUi(prm, type, type),
+					ui = createParameterUi(prm, type),
 					li = createListItem(prm, desc, ui);
 				
 				if (opt_values) {
@@ -192,29 +197,33 @@ var editor = (function(editor) {
 				elm = ui.getUI(),
 				ipt = elm;
 				
-			li.append(lbl).append(elm);//.attr('title', desc);
+			li.append(lbl).append(elm);
 			
 			if (ipt[0].nodeName.toLowerCase() !== 'input') {
 				ipt = elm.find('input');
 			}
 			
-			ipt.bind('focus click', function(evt) {
-				ipt.data('timeout', setTimeout(function() {
-					tooltip.show(ipt, desc);
+			if (desc) {
+				ipt.bind('focus click', function(evt) {
+					ipt.data('timeout', setTimeout(function() {
+						tooltip.show(ipt, desc);
 				}, 300));
-			})
-			.bind('blur', function(evt) {	
-				var timeout = ipt.data('timeout');
-				if (timeout) {
-					clearTimeout(timeout);
-					tooltip.hide(100);
-				}
-			});
+				})
+				.bind('blur', function(evt) {	
+					var timeout = ipt.data('timeout');
+					if (timeout) {
+						clearTimeout(timeout);
+						tooltip.hide(100);
+					}
+				});
+			}
 			
 			return li;
 		},
 		
-		createParameterUi = function(prm, type, objType) {
+		createParameterUi = function(prm, type) {
+			type = type || 'string';
+			
 			var firstMatch = type.indexOf('['),
 				firstEnd = type.indexOf(']', firstMatch + 1),
 				secondMatch = type.indexOf('[', firstMatch + 1),
@@ -266,7 +275,7 @@ var editor = (function(editor) {
 					break;
 				default:
 					// citizen picker
-					ui = new editor.ui.ObjectPicker(prm, objType);
+					ui = new editor.ui.ObjectPicker(prm, type);
 					break;
 			}
 	

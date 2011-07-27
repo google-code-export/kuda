@@ -362,7 +362,7 @@ var editor = (function(module) {
 								else {
 									wgt.prmFieldset.hide();
 								}
-								wgt.prms.populateArgList(handler, method);
+								wgt.prms.populateArgList(handler, method, args);
 								data.handler = handler;
 								data.method = method;
 							}

@@ -1052,7 +1052,7 @@ var editor = (function(module) {
 					args[value.ndx] = key;
 					vals[value.ndx] = value.value;
 				});
-				view.prm.populateArgList(data.handler, data.method, vals);
+				view.prm.populateArgList(data.handler, data.method, args, vals);
 			});			
 			model.addListener(module.EventTypes.TargetCreated, function(data) {
 				var target = data.target;
