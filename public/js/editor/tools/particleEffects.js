@@ -15,40 +15,40 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-    module.tools = module.tools || {};
+var editor = (function(editor) {
+    editor.tools = editor.tools || {};
 	
 	var HIDE_TXT = 'Hide',
 		SHOW_TXT = 'Show',
 		EMPTY_PTE_TXT = 'No particle effect selected';
 	
-    module.EventTypes = module.EventTypes || {};
+    editor.EventTypes = editor.EventTypes || {};
 	// model specific
-    module.EventTypes.ParticleFxAdded = "particleFx.ParticleFxAdded";
-    module.EventTypes.ParticleFxUpdated = "particleFx.ParticleFxUpdated";
-    module.EventTypes.ParticleFxRemoved = "particleFx.ParticleFxRemoved";
-    module.EventTypes.TemplatesLoaded = "particleFx.TemplatesLoaded";
+    editor.EventTypes.ParticleFxAdded = "particleFx.ParticleFxAdded";
+    editor.EventTypes.ParticleFxUpdated = "particleFx.ParticleFxUpdated";
+    editor.EventTypes.ParticleFxRemoved = "particleFx.ParticleFxRemoved";
+    editor.EventTypes.TemplatesLoaded = "particleFx.TemplatesLoaded";
 	
 	// view specific
-    module.EventTypes.ParticleFxType = "particleFx.ParticleFxType";
+    editor.EventTypes.ParticleFxType = "particleFx.ParticleFxType";
 	
 	// create fx sidebar widget specific
-	module.EventTypes.RemoveParticleFxParam = "particleFx.RemoveParticleFxParam";
-    module.EventTypes.SaveParticleFx = "particleFx.SaveParticleFx";
-    module.EventTypes.StartParticleFxPreview = "particleFx.StartParticleFxPreview";
-    module.EventTypes.StopParticleFxPreview = "particleFx.StopParticleFxPreview";
-    module.EventTypes.SetParticleFxParam = "particleFx.SetParticleFxParam";
-    module.EventTypes.SetParticleFxColorRamp = "particleFx.SetParticleFxColorRamp";
-    module.EventTypes.SetParticleFxState = "particleFx.SetParticleFxState";
-    module.EventTypes.SetParticleFxFireInterval = "particleFx.SetParticleFxFireInterval";
-    module.EventTypes.PreviewCurrentFx = "particleFx.PreviewCurrentFx";
-	module.EventTypes.CancelCreateParticleFx = "particleFx.CancelCreateParticleFx";
-	module.EventTypes.TemplateSelected = "particleFx.TemplateSelected";
+	editor.EventTypes.RemoveParticleFxParam = "particleFx.RemoveParticleFxParam";
+    editor.EventTypes.SaveParticleFx = "particleFx.SaveParticleFx";
+    editor.EventTypes.StartParticleFxPreview = "particleFx.StartParticleFxPreview";
+    editor.EventTypes.StopParticleFxPreview = "particleFx.StopParticleFxPreview";
+    editor.EventTypes.SetParticleFxParam = "particleFx.SetParticleFxParam";
+    editor.EventTypes.SetParticleFxColorRamp = "particleFx.SetParticleFxColorRamp";
+    editor.EventTypes.SetParticleFxState = "particleFx.SetParticleFxState";
+    editor.EventTypes.SetParticleFxFireInterval = "particleFx.SetParticleFxFireInterval";
+    editor.EventTypes.PreviewCurrentFx = "particleFx.PreviewCurrentFx";
+	editor.EventTypes.CancelCreateParticleFx = "particleFx.CancelCreateParticleFx";
+	editor.EventTypes.TemplateSelected = "particleFx.TemplateSelected";
 	
 	// list sidebar widget specific
-	module.EventTypes.CreateParticleFx = "particleFx.CreateParticleFx";
-    module.EventTypes.EditParticleFx = "particleFx.EditParticleFx";
-    module.EventTypes.RemoveParticleFx = "particleFx.RemoveParticleFx";	
+	editor.EventTypes.CreateParticleFx = "particleFx.CreateParticleFx";
+    editor.EventTypes.EditParticleFx = "particleFx.EditParticleFx";
+    editor.EventTypes.RemoveParticleFx = "particleFx.RemoveParticleFx";	
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -60,7 +60,7 @@ var editor = (function(module) {
      * @param {hemi.world.World} world the world object, which has references to
      *         all relevant objects (like models)
      */
-    module.tools.ParticleFxMgrModel = module.tools.ToolModel.extend({
+    editor.tools.ParticleFxMgrModel = editor.tools.ToolModel.extend({
 		init: function() {
 			this._super();
 			this.particleEffectParams = {};
@@ -154,7 +154,7 @@ var editor = (function(module) {
 			// from a server
 			hemi.loader.loadHtml('js/editor/tools/templates/particleFx.json', function(data) {
 				mdl.templates = JSON.parse(data);
-				mdl.notifyListeners(module.EventTypes.TemplatesLoaded, 
+				mdl.notifyListeners(editor.EventTypes.TemplatesLoaded, 
 					mdl.templates);
 			});
 		},
@@ -196,8 +196,8 @@ var editor = (function(module) {
 		save: function(name) {
 			this.create();
 			
-			var msgType = this.isUpdating ? module.EventTypes.ParticleFxUpdated 
-				: module.EventTypes.ParticleFxAdded;
+			var msgType = this.isUpdating ? editor.EventTypes.ParticleFxUpdated 
+				: editor.EventTypes.ParticleFxAdded;
 										
 			this.currentParticleEffect.name = name;
 			this.currentParticleEffect.particles = null;
@@ -310,11 +310,11 @@ var editor = (function(module) {
 		
 	    worldLoaded: function() {
 			var effects = hemi.world.getEffects();
-			this.notifyListeners(module.EventTypes.WorldLoaded, effects);
+			this.notifyListeners(editor.EventTypes.WorldLoaded, effects);
 	    },
 	    
 	    worldCleaned: function() {
-			this.notifyListeners(module.EventTypes.WorldCleaned, null);
+			this.notifyListeners(editor.EventTypes.WorldCleaned, null);
 	    }
 	});
 	
@@ -325,16 +325,16 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
-	module.tools.PteFxEditSBWidgetDefaults = {
+	editor.tools.PteFxEditSBWidgetDefaults = {
 		name: 'pteFxEditSBWidget',
 		uiFile: 'js/editor/tools/html/particleFxForms.htm',
 		manualVisible: true
 	};
 	
-	module.tools.PteFxEditSBWidget = module.ui.SidebarWidget.extend({
+	editor.tools.PteFxEditSBWidget = editor.ui.SidebarWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-					module.tools.PteFxEditSBWidgetDefaults, options),
+					editor.tools.PteFxEditSBWidgetDefaults, options),
 				wgt = this;
 			this.colorPickers = [];
 			
@@ -348,14 +348,14 @@ var editor = (function(module) {
 				colorPicker;
 			
 			if (this.colorPickers.length <= ndx) {
-				colorPicker = new module.ui.ColorPicker({
+				colorPicker = new editor.ui.ColorPicker({
 					inputId: 'pte-colorRamp' + ndx,
 					containerClass: 'colorRampAdd',
 					buttonId: 'pteColorRamp' + ndx + 'Picker'
 				});			
 				
-				colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
-					wgt.notifyListeners(module.EventTypes.SetParticleFxColorRamp, {
+				colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
+					wgt.notifyListeners(editor.EventTypes.SetParticleFxColorRamp, {
 						color: clr,
 						ndx: ndx
 					});
@@ -480,7 +480,7 @@ var editor = (function(module) {
 				form = this.find('form'),
 				nameInput = this.find('#pteName'),
 				wgt = this,
-				vecValidator = new module.ui.Validator(null, function(elem) {
+				vecValidator = new editor.ui.Validator(null, function(elem) {
 						var val = elem.val(),
 							msg = null;
 							
@@ -495,14 +495,14 @@ var editor = (function(module) {
 						ndx = elem.data('ndx');
 					
 					if (val === '') {
-						wgt.notifyListeners(module.EventTypes.RemoveShapeParam, 
+						wgt.notifyListeners(editor.EventTypes.RemoveShapeParam, 
 							vecWgt.config.paramName);
 					}
 					else if (hemi.utils.isNumeric(val)) {
 						var totalVal = vecWgt.getValue();
 						
 						if (totalVal.length > 0) {
-							wgt.notifyListeners(module.EventTypes.SetParticleFxParam, {
+							wgt.notifyListeners(editor.EventTypes.SetParticleFxParam, {
 								paramName: vecWgt.config.paramName,
 								paramVal: totalVal
 							});
@@ -531,7 +531,7 @@ var editor = (function(module) {
 						fireInterval.parent().hide();
 					}
 					
-					wgt.notifyListeners(module.EventTypes.ParticleFxType, val);
+					wgt.notifyListeners(editor.EventTypes.ParticleFxType, val);
 				}
 				else {
 					wgt.reset();
@@ -542,7 +542,7 @@ var editor = (function(module) {
 				var elem = jQuery(this),
 					val = elem.val();
 					
-				wgt.notifyListeners(module.EventTypes.SetParticleFxState, val);
+				wgt.notifyListeners(editor.EventTypes.SetParticleFxState, val);
 				wgt.canSave();
 			});
 			
@@ -553,42 +553,42 @@ var editor = (function(module) {
 			fireInterval.bind('change', function(evt) {
 				var val = fireInterval.val();
 				
-				wgt.notifyListeners(module.EventTypes.SetParticleFxFireInterval, val);
+				wgt.notifyListeners(editor.EventTypes.SetParticleFxFireInterval, val);
 			});
 			
 			// bind save button
 			saveBtn.bind('click', function(evt) {				
-				wgt.notifyListeners(module.EventTypes.SaveParticleFx, nameInput.val());
+				wgt.notifyListeners(editor.EventTypes.SaveParticleFx, nameInput.val());
 				wgt.reset();
 			});
 			
 			// bind cancel button
 			cancelBtn.bind('click', function(evt) {
 				wgt.reset();
-				wgt.notifyListeners(module.EventTypes.CancelCreateParticleFx, null);
+				wgt.notifyListeners(editor.EventTypes.CancelCreateParticleFx, null);
 			});
 			
 			// bind preview buttons
 			previewStartBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.StartParticleFxPreview, nameInput.val());
+				wgt.notifyListeners(editor.EventTypes.StartParticleFxPreview, nameInput.val());
 			});
 			previewStopBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.StopParticleFxPreview, nameInput.val());
+				wgt.notifyListeners(editor.EventTypes.StopParticleFxPreview, nameInput.val());
 			});
 			
-			this.position = new module.ui.Vector({
+			this.position = new editor.ui.Vector({
 				container: wgt.find('#pte-positionDiv'),
 				paramName: 'position',
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
-			this.positionRange = new module.ui.Vector({
+			this.positionRange = new editor.ui.Vector({
 				container: wgt.find('#pte-positionRangeDiv'),
 				paramName: 'positionRange',
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
-			this.orientation = new module.ui.Vector({
+			this.orientation = new editor.ui.Vector({
 				container: wgt.find('#pte-orientationDiv'),
 				paramName: 'orientation',
 				inputs: ['a', 'b', 'c', 'd'],
@@ -596,7 +596,7 @@ var editor = (function(module) {
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
-			this.colorMultRange = new module.ui.Vector({
+			this.colorMultRange = new editor.ui.Vector({
 				container: wgt.find('#pte-colorMultRangeDiv'),
 				paramName: 'colorMultRange',
 				inputs: ['r', 'g', 'b', 'a'],
@@ -604,50 +604,50 @@ var editor = (function(module) {
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
-			this.acceleration = new module.ui.Vector({
+			this.acceleration = new editor.ui.Vector({
 				container: wgt.find('#pte-accelerationDiv'),
 				paramName: 'acceleration',
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
-			this.accelerationRange = new module.ui.Vector({
+			this.accelerationRange = new editor.ui.Vector({
 				container: wgt.find('#pte-accelerationRangeDiv'),
 				paramName: 'accelerationRange',
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
-			this.velocity = new module.ui.Vector({
+			this.velocity = new editor.ui.Vector({
 				container: wgt.find('#pte-velocityDiv'),
 				paramName: 'velocity',
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
-			this.velocityRange = new module.ui.Vector({
+			this.velocityRange = new editor.ui.Vector({
 				container: wgt.find('#pte-velocityRangeDiv'),
 				paramName: 'velocityRange',
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
-			this.worldAcceleration = new module.ui.Vector({
+			this.worldAcceleration = new editor.ui.Vector({
 				container: wgt.find('#pte-worldAccelerationDiv'),
 				paramName: 'worldAcceleration',
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
-			this.worldVelocity = new module.ui.Vector({
+			this.worldVelocity = new editor.ui.Vector({
 				container: wgt.find('#pte-worldVelocityDiv'),
 				paramName: 'worldVelocity',
 				onBlur: onBlurFcn,
 				validator: vecValidator
 			});
 						
-			var validator = new module.ui.Validator(inputs, function(elem) {
+			var validator = new editor.ui.Validator(inputs, function(elem) {
 				var val = elem.val(),
 					msg = null,
 					param = elem.attr('id').replace('pte-', '');
 					
 				if (val === '') {
-					wgt.notifyListeners(module.EventTypes.RemoveParticleFxParam, param);
+					wgt.notifyListeners(editor.EventTypes.RemoveParticleFxParam, param);
 				}
 				else {
 					if (param === 'billboard') {
@@ -666,7 +666,7 @@ var editor = (function(module) {
 					}
 					
 					if (msg === null) {
-						wgt.notifyListeners(module.EventTypes.SetParticleFxParam, {
+						wgt.notifyListeners(editor.EventTypes.SetParticleFxParam, {
 							paramName: param,
 							paramVal: val
 						});
@@ -735,13 +735,13 @@ var editor = (function(module) {
 			var wgt = this,
 				colorAdder = this.find('#pteAddColorToRamp');
 			
-			this.colorMultPicker = new module.ui.ColorPicker({
+			this.colorMultPicker = new editor.ui.ColorPicker({
 				inputId: 'pte-colorMult',
 				containerClass: 'long',	
 				buttonId: 'pteColorMultPicker'			
 			});
 			
-			var colorRampPicker = new module.ui.ColorPicker({
+			var colorRampPicker = new editor.ui.ColorPicker({
 				inputId: 'pte-colorRamp0',	
 				containerClass: 'long',
 				buttonId: 'pteColorRamp0Picker'			
@@ -751,15 +751,15 @@ var editor = (function(module) {
 			this.find('#pteColorMultLbl').after(this.colorMultPicker.getUI());
 			
 			// add listeners
-			this.colorMultPicker.addListener(module.EventTypes.ColorPicked, function(clr) {				
-				wgt.notifyListeners(module.EventTypes.SetParticleFxParam, {
+			this.colorMultPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {				
+				wgt.notifyListeners(editor.EventTypes.SetParticleFxParam, {
 					paramName: 'colorMult',
 					paramVal: clr
 				});
 			});
 			
-			colorRampPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
-				wgt.notifyListeners(module.EventTypes.SetParticleFxColorRamp, {
+			colorRampPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
+				wgt.notifyListeners(editor.EventTypes.SetParticleFxColorRamp, {
 					color: clr,
 					ndx: 0
 				});
@@ -792,7 +792,7 @@ var editor = (function(module) {
 					
 				if (ndx !== -1) {
 					var tpl = templates[ndx];
-					wgt.notifyListeners(module.EventTypes.TemplateSelected, tpl);
+					wgt.notifyListeners(editor.EventTypes.TemplateSelected, tpl);
 					wgt.edit(tpl);
 				}
 				else {
@@ -809,7 +809,7 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
-	module.tools.PteFxListSBWidgetDefaults = {
+	editor.tools.PteFxListSBWidgetDefaults = {
 		name: 'pteFxListSBWidget',
 		listId: 'pteFxList',
 		prefix: 'pteLst',
@@ -817,9 +817,9 @@ var editor = (function(module) {
 		instructions: "Click 'Create Particle Effect' to create a new particle effect."
 	};
 	
-	module.tools.PteFxListSBWidget = module.ui.ListSBWidget.extend({
+	editor.tools.PteFxListSBWidget = editor.ui.ListSBWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.tools.PteFxListSBWidgetDefaults, options);
+			var newOpts = jQuery.extend({}, editor.tools.PteFxListSBWidgetDefaults, options);
 		    this._super(newOpts);
 			
 			this.items = new Hashtable();		
@@ -831,7 +831,7 @@ var editor = (function(module) {
 			var wgt = this;
 						
 			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.CreateParticleFx, null);
+				wgt.notifyListeners(editor.EventTypes.CreateParticleFx, null);
 			});
 			
 			this.buttonDiv.append(this.createBtn);
@@ -844,13 +844,17 @@ var editor = (function(module) {
 			
 			li.editBtn.bind('click', function(evt) {
 				var effect = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.EditParticleFx, effect);
+				wgt.notifyListeners(editor.EventTypes.EditParticleFx, effect);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var effect = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.RemoveParticleFx, effect);
+				wgt.notifyListeners(editor.EventTypes.RemoveParticleFx, effect);
 			});
+		},
+		
+		createListItemWidget: function() {
+			return new editor.ui.BhvListItemWidget();
 		},
 		
 		getOtherHeights: function() {
@@ -865,20 +869,21 @@ var editor = (function(module) {
     /*
      * Configuration object for the ParticleFxMgrView.
      */
-    module.tools.ParticleFxMgrViewDefaults = {
+    editor.tools.ParticleFxMgrViewDefaults = {
         toolName: 'Particle Effects',
 		toolTip: 'Particle Effects: Create and edit particle effects',
 		widgetId: 'particleEffectsBtn',
 		axnBarId: 'pteActionBar'
     };
     
-    module.tools.ParticleFxMgrView = module.tools.ToolView.extend({
+    editor.tools.ParticleFxMgrView = editor.tools.ToolView.extend({
 		init: function(options) {
-	        var newOpts = jQuery.extend({}, module.tools.ParticleFxMgrViewDefaults, options);
+	        var newOpts = jQuery.extend({}, editor.tools.ParticleFxMgrViewDefaults, options);
 	        this._super(newOpts);
 			
-			this.addSidebarWidget(new module.tools.PteFxEditSBWidget());
-			this.addSidebarWidget(new module.tools.PteFxListSBWidget());
+			this.addSidebarWidget(new editor.tools.PteFxEditSBWidget());
+			this.addSidebarWidget(new editor.tools.PteFxListSBWidget());
+			this.addSidebarWidget(editor.ui.getBehaviorWidget());
 	    }
 	});
     
@@ -890,7 +895,7 @@ var editor = (function(module) {
      * The ParticleFxMgrController facilitates AnimatorModel and AnimatorView
      * communication by binding event and message handlers.
      */
-    module.tools.ParticleFxMgrController = module.tools.ToolController.extend({
+    editor.tools.ParticleFxMgrController = editor.tools.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -906,25 +911,26 @@ var editor = (function(module) {
 	        	view = this.view,
 				pteEdt = view.pteFxEditSBWidget,
 				pteLst = view.pteFxListSBWidget,
+				bhvWgt = view.behaviorSBWidget,
 	        	that = this;
 				
 			model.loadTemplates();
 	                	        
-	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode === module.tools.ToolConstants.MODE_DOWN;
+	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+	            var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
 	        });
 			
 			// create widget specific
-			pteEdt.addListener(module.EventTypes.CancelCreateParticleFx, function(name) {
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+			pteEdt.addListener(editor.EventTypes.CancelCreateParticleFx, function(name) {
+				var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
 				pteLst.setVisible(true && isDown);
 				pteEdt.setVisible(false);
 				model.cancelParticleFxEdit();
 			});			
-			pteEdt.addListener(module.EventTypes.ParticleFxType, function(value) {
+			pteEdt.addListener(editor.EventTypes.ParticleFxType, function(value) {
 				model.setType(value);
 			});	        
-			pteEdt.addListener(module.EventTypes.PreviewCurrentFx, function(value) {
+			pteEdt.addListener(editor.EventTypes.PreviewCurrentFx, function(value) {
 				if (value.show) {
 					model.previewEffect(value.effect);	
 				}			
@@ -932,83 +938,92 @@ var editor = (function(module) {
 					model.stopPreviewEffect(value.effect);
 				}
 			});		
-	        pteEdt.addListener(module.EventTypes.RemoveParticleFxParam, function(value) {
+	        pteEdt.addListener(editor.EventTypes.RemoveParticleFxParam, function(value) {
 	        	model.removeParam(value);
 	        });	        	
-			pteEdt.addListener(module.EventTypes.SaveParticleFx, function(name) {
+			pteEdt.addListener(editor.EventTypes.SaveParticleFx, function(name) {
 				model.save(name);
 				pteEdt.setVisible(false);
 			});		
-	        pteEdt.addListener(module.EventTypes.SetParticleFxParam, function(value) {
+	        pteEdt.addListener(editor.EventTypes.SetParticleFxParam, function(value) {
 	        	model.setParam(value.paramName, value.paramVal);
 	        });	        
-	        pteEdt.addListener(module.EventTypes.SetParticleFxColorRamp, function(value) {
+	        pteEdt.addListener(editor.EventTypes.SetParticleFxColorRamp, function(value) {
 	        	model.addToColorRamp(value.ndx, value.color);
 	        });			
-			pteEdt.addListener(module.EventTypes.SetParticleFxFireInterval, function(value) {
+			pteEdt.addListener(editor.EventTypes.SetParticleFxFireInterval, function(value) {
 				model.setFireInterval(value);
 			});		
-			pteEdt.addListener(module.EventTypes.SetParticleFxState, function(value) {
+			pteEdt.addListener(editor.EventTypes.SetParticleFxState, function(value) {
 				model.setState(value);
 			});				
-			pteEdt.addListener(module.EventTypes.StartParticleFxPreview, function(value) {
+			pteEdt.addListener(editor.EventTypes.StartParticleFxPreview, function(value) {
 				model.preview();
 			});			
-			pteEdt.addListener(module.EventTypes.StopParticleFxPreview, function(value) {
+			pteEdt.addListener(editor.EventTypes.StopParticleFxPreview, function(value) {
 				model.stopPreview();
 			});				
-			pteEdt.addListener(module.EventTypes.TemplateSelected, function(template) {
+			pteEdt.addListener(editor.EventTypes.TemplateSelected, function(template) {
 				model.setTemplate(template);
 			});		
 			
 			// list widget specific
-			pteLst.addListener(module.EventTypes.CreateParticleFx, function() {
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+			pteLst.addListener(editor.EventTypes.CreateParticleFx, function() {
+				var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
 				pteEdt.setVisible(true && isDown);
 				pteLst.setVisible(false);
 			});			
-			pteLst.addListener(module.EventTypes.EditParticleFx, function(effect) {
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+			pteLst.addListener(editor.EventTypes.EditParticleFx, function(effect) {
+				var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
 				model.setEffect(effect);
 				pteEdt.setVisible(true && isDown);
 				pteLst.setVisible(false);
 				pteEdt.edit(effect);
 			});			
-			pteLst.addListener(module.EventTypes.RemoveParticleFx, function(effect) {
+			pteLst.addListener(editor.EventTypes.RemoveParticleFx, function(effect) {
 				model.removeEffect(effect);
 				pteEdt.reset();
 			});
 			
 			// model specific
-			model.addListener(module.EventTypes.ParticleFxAdded, function(particleFx) {
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+			model.addListener(editor.EventTypes.ParticleFxAdded, function(particleFx) {
+				var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
 				pteLst.setVisible(true && isDown);
 				pteEdt.setVisible(false);
 				pteLst.add(particleFx);			
 			});			
-			model.addListener(module.EventTypes.ParticleFxRemoved, function(value) {
+			model.addListener(editor.EventTypes.ParticleFxRemoved, function(value) {
 				pteEdt.reset();
 			});			
-			model.addListener(module.EventTypes.ParticleFxUpdated, function(particleFx) {	
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+			model.addListener(editor.EventTypes.ParticleFxUpdated, function(particleFx) {	
+				var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
 				pteLst.setVisible(true && isDown);	
 				pteEdt.setVisible(false);			
 				pteLst.update(particleFx);
 			});		
-			model.addListener(module.EventTypes.TemplatesLoaded, function(templates) {		
+			model.addListener(editor.EventTypes.TemplatesLoaded, function(templates) {		
 				pteEdt.setupTemplates(templates);
 			});	
-			model.addListener(module.EventTypes.WorldLoaded, function(effects) {		
+			model.addListener(editor.EventTypes.WorldLoaded, function(effects) {		
 				for (var ndx = 0, len = effects.length; ndx < len; ndx++) {
 					var eft = effects[ndx];
 					pteLst.add(eft);
 				}
 			});			
-			model.addListener(module.EventTypes.WorldCleaned, function(effects) {		
+			model.addListener(editor.EventTypes.WorldCleaned, function(effects) {		
 				pteLst.clear();
 			});		
+			
+			// behavior widget specific
+			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				if (obj.updateMeta) {
+					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
+					
+					pteLst.setVisible(!obj.visible && isDown);
+				}
+			});
 	    }
 	});
     
-    return module;
+    return editor;
 })(editor || {});

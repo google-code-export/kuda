@@ -15,42 +15,42 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
+var editor = (function(editor) {
 	
-	module.tools = module.tools || {};
+	editor.tools = editor.tools || {};
 	
-    module.EventTypes = module.EventTypes || {};
+    editor.EventTypes = editor.EventTypes || {};
 	
 	// model specific
-    module.EventTypes.CurveCreated = "Curves.CurveCreated";
-    module.EventTypes.CurveRemoved = "Curves.CurveRemoved";
-    module.EventTypes.CurveUpdated = "Curves.CurveUpdated";
-    module.EventTypes.CurveSet = "Curves.CurveSet";
-    module.EventTypes.BoxAdded = "Curves.BoxAdded";
-    module.EventTypes.BoxSelected = "Curves.BoxSelected";
-    module.EventTypes.BoxRemoved = "Curves.BoxRemoved";
-    module.EventTypes.BoxUpdated = "Curves.BoxUpdated";
-    module.EventTypes.CurveWorldCleaned = "Curves.CurveWorldCleaned";
+    editor.EventTypes.CurveCreated = "Curves.CurveCreated";
+    editor.EventTypes.CurveRemoved = "Curves.CurveRemoved";
+    editor.EventTypes.CurveUpdated = "Curves.CurveUpdated";
+    editor.EventTypes.CurveSet = "Curves.CurveSet";
+    editor.EventTypes.BoxAdded = "Curves.BoxAdded";
+    editor.EventTypes.BoxSelected = "Curves.BoxSelected";
+    editor.EventTypes.BoxRemoved = "Curves.BoxRemoved";
+    editor.EventTypes.BoxUpdated = "Curves.BoxUpdated";
+    editor.EventTypes.CurveWorldCleaned = "Curves.CurveWorldCleaned";
 	
 	// view specific
-	module.EventTypes.BoxManipState = "Curves.BoxManipState";
+	editor.EventTypes.BoxManipState = "Curves.BoxManipState";
 	
 	// curve list widget specific
-	module.EventTypes.CreateCurve = "Curves.CreateCurve";
-	module.EventTypes.EditCurve = "Curves.EditCurve";
-	module.EventTypes.RemoveCurve = "Curves.RemoveCurve";
+	editor.EventTypes.CreateCurve = "Curves.CreateCurve";
+	editor.EventTypes.EditCurve = "Curves.EditCurve";
+	editor.EventTypes.RemoveCurve = "Curves.RemoveCurve";
 	
 	// curve edit widget specific
-	module.EventTypes.SetParam = "Curves.SetParam";
-	module.EventTypes.AddBox = "Curves.AddBox";
-	module.EventTypes.RemoveBox = "Curves.RemoveBox";
-	module.EventTypes.UpdateBox = "Curves.UpdateBox";
-	module.EventTypes.UpdateBoxes = "Curves.UpdateBoxes";
-	module.EventTypes.StartPreview = "Curves.StartPreview";
-	module.EventTypes.StopPreview = "Curves.StopPreview";
-	module.EventTypes.SetCurveColor = "Curves.SetCurveColor";
-	module.EventTypes.Cancel = "Curves.Cancel";
-	module.EventTypes.Save = "Curves.Save";
+	editor.EventTypes.SetParam = "Curves.SetParam";
+	editor.EventTypes.AddBox = "Curves.AddBox";
+	editor.EventTypes.RemoveBox = "Curves.RemoveBox";
+	editor.EventTypes.UpdateBox = "Curves.UpdateBox";
+	editor.EventTypes.UpdateBoxes = "Curves.UpdateBoxes";
+	editor.EventTypes.StartPreview = "Curves.StartPreview";
+	editor.EventTypes.StopPreview = "Curves.StopPreview";
+	editor.EventTypes.SetCurveColor = "Curves.SetCurveColor";
+	editor.EventTypes.Cancel = "Curves.Cancel";
+	editor.EventTypes.Save = "Curves.Save";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -95,7 +95,7 @@ var editor = (function(module) {
      * An CurveEditorModel handles the creation and playing of animations as well
      * as model picking for the animation tool.
      */
-    module.tools.CurveEditorModel = module.tools.ToolModel.extend({
+    editor.tools.CurveEditorModel = editor.tools.ToolModel.extend({
 		init: function() {
 			this._super();
 			this.config = {
@@ -125,7 +125,7 @@ var editor = (function(module) {
 //			this.showBoxWireframes();
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(module.EventTypes.BoxAdded, box);
+			this.notifyListeners(editor.EventTypes.BoxAdded, box);
 						
 			if (previewing) {
 				this.startPreview();
@@ -197,7 +197,7 @@ var editor = (function(module) {
 			this.config.boxes = getExtentsList(this.boxes);
 //			this.showBoxWireframes();
 			
-			this.notifyListeners(module.EventTypes.CurveSet, {
+			this.notifyListeners(editor.EventTypes.CurveSet, {
 				system: this.currentSystem,
 				boxes: this.boxes
 			});
@@ -215,7 +215,7 @@ var editor = (function(module) {
 			}
 			
 			if (found !== -1) {
-				this.notifyListeners(module.EventTypes.BoxSelected, {
+				this.notifyListeners(editor.EventTypes.BoxSelected, {
 					transform: transform,
 					ndx: found
 				});
@@ -226,7 +226,7 @@ var editor = (function(module) {
 			this.stopPreview();
 			system.cleanup();			
 			this.reset();
-			this.notifyListeners(module.EventTypes.CurveRemoved, system);
+			this.notifyListeners(editor.EventTypes.CurveRemoved, system);
 		},
 		
 		removeBox: function(box) {				
@@ -245,7 +245,7 @@ var editor = (function(module) {
 			
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(module.EventTypes.BoxRemoved, box);
+			this.notifyListeners(editor.EventTypes.BoxRemoved, box);
 						
 			if (previewing && this.config.boxes.length > 1) {
 				this.startPreview();
@@ -263,7 +263,7 @@ var editor = (function(module) {
 			
 			this.boxes = [];
 			
-			this.notifyListeners(module.EventTypes.CurveSet, {
+			this.notifyListeners(editor.EventTypes.CurveSet, {
 				system: null,
 				boxes: null
 			});
@@ -271,8 +271,8 @@ var editor = (function(module) {
 		
 		save: function(name) {
 			this.stopPreview();
-			var msgType = this.isUpdate ? module.EventTypes.CurveUpdated :
-				module.EventTypes.CurveCreated;
+			var msgType = this.isUpdate ? editor.EventTypes.CurveUpdated :
+				editor.EventTypes.CurveCreated;
 			
 			if (!this.currentSystem) {
 				this.createSystem();
@@ -347,7 +347,7 @@ var editor = (function(module) {
 //			this.showBoxWireframes();
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(module.EventTypes.BoxUpdated, box);
+			this.notifyListeners(editor.EventTypes.BoxUpdated, box);
 						
 			if (previewing) {
 				this.startPreview();
@@ -367,7 +367,7 @@ var editor = (function(module) {
 				
 				box.update(position, [height, width, depth]);
 								
-				this.notifyListeners(module.EventTypes.BoxUpdated, box);
+				this.notifyListeners(editor.EventTypes.BoxUpdated, box);
 			}
 			this.config.boxes = getExtentsList(this.boxes);			
 			this.updateSystem('boxes', this.config.boxes);
@@ -388,10 +388,10 @@ var editor = (function(module) {
 			this.reset();
 			
 			for (var i = 0, il = systems.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.CurveRemoved, systems[i]);
+				this.notifyListeners(editor.EventTypes.CurveRemoved, systems[i]);
 			}
 			
-			this.notifyListeners(module.EventTypes.CurveWorldCleaned);
+			this.notifyListeners(editor.EventTypes.CurveWorldCleaned);
 	    },
 		
 	    worldLoaded: function() {
@@ -400,7 +400,7 @@ var editor = (function(module) {
 			});
 			
 			for (var i = 0, il = systems.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.CurveCreated, systems[i]);
+				this.notifyListeners(editor.EventTypes.CurveCreated, systems[i]);
 			}
 	    }
 	});
@@ -415,16 +415,16 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
-	module.tools.EditCrvSBWidgetDefaults = {
+	editor.tools.EditCrvSBWidgetDefaults = {
 		name: 'editCurveSBWidget',
 		uiFile: 'js/editor/tools/html/curvesForms.htm',
 		manualVisible: true
 	};
 	
-	module.tools.EditCrvSBWidget = module.ui.FormSBWidget.extend({
+	editor.tools.EditCrvSBWidget = editor.ui.FormSBWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-				module.tools.EditCrvSBWidgetDefaults, options);
+				editor.tools.EditCrvSBWidgetDefaults, options);
 				
 			this.boxMat = hemi.core.material.createConstantMaterial(
 				hemi.curve.pack,
@@ -438,7 +438,7 @@ var editor = (function(module) {
 			this.colorPickers = [];
 			this.boxHandles = new editor.ui.TransHandles();
 			this.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
-			this.boxHandles.addListener(module.EventTypes.TransChanged, this);
+			this.boxHandles.addListener(editor.EventTypes.TransChanged, this);
 			this.boxes = new Hashtable();
 			
 		    this._super(newOpts);
@@ -458,26 +458,26 @@ var editor = (function(module) {
 				nameIpt = this.find('#crvName'),
 				startPreviewBtn = this.find('#crvPreviewStartBtn'),
 				stopPreviewBtn = this.find('#crvPreviewStopBtn'),
-			 	tensionVdr = module.ui.createDefaultValidator(null, 1),
-			 	numPrtVdr = module.ui.createDefaultValidator(1),
-				sizeVdr = module.ui.createDefaultValidator(0.01),
-				isNumVdr = module.ui.createDefaultValidator();
+			 	tensionVdr = editor.ui.createDefaultValidator(null, 1),
+			 	numPrtVdr = editor.ui.createDefaultValidator(1),
+				sizeVdr = editor.ui.createDefaultValidator(0.01),
+				isNumVdr = editor.ui.createDefaultValidator();
 				wgt = this;
 			
 			this.boxAddBtn = boxAddBtn;
 			this.boxCancelBtn = boxCancelBtn;
 			this.boxForms = this.find('#crvBoxForms');
 			this.boxList = this.find('#crvBoxList');
-			this.position = new module.ui.Vector({
+			this.position = new editor.ui.Vector({
 				container: wgt.find('#crvPositionDiv'),
 				paramName: 'position',
-				validator: module.ui.createDefaultValidator()
+				validator: editor.ui.createDefaultValidator()
 			});
-			this.dimensions = new module.ui.Vector({
+			this.dimensions = new editor.ui.Vector({
 				container: wgt.find('#crvDimensionsDiv'),
 				paramName: 'dimensions',
 				inputs: ['h', 'w', 'd'],
-				validator: module.ui.createDefaultValidator(0.1)
+				validator: editor.ui.createDefaultValidator(0.1)
 			});
 			this.saveBtn = saveBtn;
 			
@@ -498,20 +498,20 @@ var editor = (function(module) {
 			
 			saveBtn.bind('click', function(evt) {
 				var name = nameIpt.val();
-				wgt.notifyListeners(module.EventTypes.Save, name);
+				wgt.notifyListeners(editor.EventTypes.Save, name);
 			});
 			
 			cancelBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.Cancel);
+				wgt.notifyListeners(editor.EventTypes.Cancel);
 			});
 			
 			startPreviewBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.StartPreview);
+				wgt.notifyListeners(editor.EventTypes.StartPreview);
 			})
 			.attr('disabled', 'disabled');
 			
 			stopPreviewBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.StopPreview);
+				wgt.notifyListeners(editor.EventTypes.StopPreview);
 			});
 			
 			inputs.bind('change', function(evt) {
@@ -519,7 +519,7 @@ var editor = (function(module) {
 					id = elem.attr('id'),
 					param = id.replace('crv', '');
 					
-				wgt.notifyListeners(module.EventTypes.SetParam, {
+				wgt.notifyListeners(editor.EventTypes.SetParam, {
 					paramName: param.charAt(0).toLowerCase() + param.slice(1),
 					paramValue: id === 'crvAim' ? elem.is(':checked') : 
 						parseFloat(elem.val())
@@ -527,14 +527,14 @@ var editor = (function(module) {
 			});			
 			
 			sysTypeSel.bind('change', function(evt) {
-				wgt.notifyListeners(module.EventTypes.SetParam, {
+				wgt.notifyListeners(editor.EventTypes.SetParam, {
 					paramName: 'trail',
 					paramValue: jQuery(this).val() == 'trail'
 				});
 			});
 			
 			shpTypeSel.bind('change', function(evt) {
-				wgt.notifyListeners(module.EventTypes.SetParam, {
+				wgt.notifyListeners(editor.EventTypes.SetParam, {
 					paramName: 'particleShape',
 					paramValue: jQuery(this).val()
 				});
@@ -546,8 +546,8 @@ var editor = (function(module) {
 					dim = wgt.dimensions.getValue();
 					
 				if (pos.length > 0 && dim.length > 0) {
-					var msgType = box == null ? module.EventTypes.AddBox 
-							: module.EventTypes.UpdateBox, 
+					var msgType = box == null ? editor.EventTypes.AddBox 
+							: editor.EventTypes.UpdateBox, 
 						data = {
 								position: pos,
 								dimensions: dim,
@@ -574,7 +574,7 @@ var editor = (function(module) {
 				boxCancelBtn.hide();
 			}).hide();
 			
-			var checker = new module.ui.InputChecker(this.boxes);
+			var checker = new editor.ui.InputChecker(this.boxes);
 			checker.saveable = function() {
 				return this.input.size() >= 2;
 			};			
@@ -591,14 +591,14 @@ var editor = (function(module) {
 				colorPicker;
 			
 			if (this.colorPickers.length <= ndx) {
-				colorPicker = new module.ui.ColorPicker({
+				colorPicker = new editor.ui.ColorPicker({
 					inputId: 'crvColorRamp' + ndx,
 					containerClass: 'colorRampAdd',
 					buttonId: 'crvColorRamp' + ndx + 'Picker'
 				});			
 				
-				colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
-					wgt.notifyListeners(module.EventTypes.SetCurveColor, {
+				colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
+					wgt.notifyListeners(editor.EventTypes.SetCurveColor, {
 						color: clr,
 						ndx: ndx
 					});
@@ -624,7 +624,7 @@ var editor = (function(module) {
 							
 			removeBtn.bind('click', function(evt) {
 				var box = wrapper.data('box');
-				wgt.notifyListeners(module.EventTypes.RemoveBox, box);
+				wgt.notifyListeners(editor.EventTypes.RemoveBox, box);
 			});
 			
 			editBtn.bind('click', function(evt) {
@@ -694,7 +694,7 @@ var editor = (function(module) {
 		},
 		
 		boxUpdated: function(box) {
-			var rndFnc = module.utils.roundNumber,
+			var rndFnc = editor.utils.roundNumber,
 				position = box.position,
 				dimensions = box.dimensions,
 				wgt = this,
@@ -771,8 +771,8 @@ var editor = (function(module) {
 		},
 		
 		notify: function(eventType, value) {
-			if (eventType === module.EventTypes.TransChanged) {
-				this.notifyListeners(module.EventTypes.UpdateBoxes);
+			if (eventType === editor.EventTypes.TransChanged) {
+				this.notifyListeners(editor.EventTypes.UpdateBoxes);
 			}
 		},
 		
@@ -868,7 +868,7 @@ var editor = (function(module) {
 			var wgt = this,
 				colorAdder = this.find('#crvAddColorToRamp');			
 			
-			var colorRampPicker = new module.ui.ColorPicker({
+			var colorRampPicker = new editor.ui.ColorPicker({
 				inputId: 'crvColorRamp0',	
 				containerClass: 'long',
 				buttonId: 'crvColorRamp0Picker'			
@@ -877,8 +877,8 @@ var editor = (function(module) {
 			this.find('#crvColorRamp0Lbl').after(colorRampPicker.getUI());
 			
 			// add listeners			
-			colorRampPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
-				wgt.notifyListeners(module.EventTypes.SetCurveColor, {
+			colorRampPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
+				wgt.notifyListeners(editor.EventTypes.SetCurveColor, {
 					color: clr,
 					ndx: 0
 				});
@@ -941,7 +941,7 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
-	module.tools.CrvListSBWidgetDefaults = {
+	editor.tools.CrvListSBWidgetDefaults = {
 		name: 'curveListSBWidget',
 		listId: 'curveList',
 		prefix: 'crvLst',
@@ -949,9 +949,9 @@ var editor = (function(module) {
 		instructions: "Click 'Create Curve' to create a new curve."
 	};
 	
-	module.tools.CrvListSBWidget = module.ui.ListSBWidget.extend({
+	editor.tools.CrvListSBWidget = editor.ui.ListSBWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.tools.CrvListSBWidgetDefaults, options);
+			var newOpts = jQuery.extend({}, editor.tools.CrvListSBWidgetDefaults, options);
 		    this._super(newOpts);
 			
 			this.items = new Hashtable();		
@@ -963,7 +963,7 @@ var editor = (function(module) {
 			var wgt = this;
 						
 			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.CreateCurve, null);
+				wgt.notifyListeners(editor.EventTypes.CreateCurve, null);
 			});
 			
 			this.buttonDiv.append(this.createBtn);
@@ -976,17 +976,17 @@ var editor = (function(module) {
 			
 			li.editBtn.bind('click', function(evt) {
 				var curve = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.EditCurve, curve);
+				wgt.notifyListeners(editor.EventTypes.EditCurve, curve);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var curve = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.RemoveCurve, curve);
+				wgt.notifyListeners(editor.EventTypes.RemoveCurve, curve);
 			});
 		},
 		
 		createListItemWidget: function() {
-			return new module.ui.BhvListItemWidget();
+			return new editor.ui.BhvListItemWidget();
 		},
 		
 		getOtherHeights: function() {
@@ -1001,7 +1001,7 @@ var editor = (function(module) {
     /*
      * Configuration object for the CurveEditorView.
      */
-    module.tools.CurveEditorViewDefaults = {
+    editor.tools.CurveEditorViewDefaults = {
 		axnBarId: 'crvActionBar',
         toolName: 'Curves',
 		toolTip: 'Curves: Create and edit curves',
@@ -1015,18 +1015,18 @@ var editor = (function(module) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.CurveEditorViewDefaults as default options
      */
-    module.tools.CurveEditorView = module.tools.ToolView.extend({
+    editor.tools.CurveEditorView = editor.tools.ToolView.extend({
 		init: function(options){
-			var newOpts = jQuery.extend({}, module.tools.CurveEditorViewDefaults, options);
+			var newOpts = jQuery.extend({}, editor.tools.CurveEditorViewDefaults, options);
 			this._super(newOpts);
 			
-			this.addSidebarWidget(new module.tools.EditCrvSBWidget());
-			this.addSidebarWidget(new module.tools.CrvListSBWidget());
-			this.addSidebarWidget(module.ui.getBehaviorWidget());
+			this.addSidebarWidget(new editor.tools.EditCrvSBWidget());
+			this.addSidebarWidget(new editor.tools.CrvListSBWidget());
+			this.addSidebarWidget(editor.ui.getBehaviorWidget());
 		},
 		
 		layoutActionBar: function() {
-			var widget = new module.ui.ActionBarWidget({
+			var widget = new editor.ui.ActionBarWidget({
 				uiFile: 'js/editor/tools/html/curvesAxnBar.htm',
 				immediateLayout: false
 			});
@@ -1036,7 +1036,7 @@ var editor = (function(module) {
 				var manipBtns = widget.find('#crvTranslate, #crvScale'),
 					tBtn = manipBtns.filter('#crvTranslate'),
 					sBtn = manipBtns.filter('#crvScale'),
-					down = module.tools.ToolConstants.MODE_DOWN;
+					down = editor.tools.ToolConstants.MODE_DOWN;
 				
 				this.boxNumberTxt = widget.find('#crvBoxNumber');
 				this.tBtn = tBtn;
@@ -1056,20 +1056,20 @@ var editor = (function(module) {
 						
 					switch(id) {
 						case 'crvTranslate':
-						    msg.drawState = module.ui.trans.DrawState.TRANSLATE;
+						    msg.drawState = editor.ui.trans.DrawState.TRANSLATE;
 							sBtn.data('isDown', false).removeClass(down);
 							break;
 						case 'crvScale':
-						    msg.drawState = module.ui.trans.DrawState.SCALE;
+						    msg.drawState = editor.ui.trans.DrawState.SCALE;
 							tBtn.data('isDown', false).removeClass(down);
 							break;
 					}
 					
 					if (isDown) {						
-						msg.drawState = module.ui.trans.DrawState.NONE;
+						msg.drawState = editor.ui.trans.DrawState.NONE;
 					}
 						
-		            view.notifyListeners(module.EventTypes.BoxManipState, msg);
+		            view.notifyListeners(editor.EventTypes.BoxManipState, msg);
 					elem.data('isDown', !isDown);
 					
 					if (isDown) {
@@ -1113,7 +1113,7 @@ var editor = (function(module) {
      * The CurveEditorController facilitates CurveEditorModel and CurveEditorView
      * communication by binding event and message handlers.
      */
-    module.tools.CurveEditorController = module.tools.ToolController.extend({
+    editor.tools.CurveEditorController = editor.tools.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -1132,114 +1132,114 @@ var editor = (function(module) {
 				bhvWgt = view.behaviorSBWidget,
 	        	that = this;
 	        
-	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode == module.tools.ToolConstants.MODE_DOWN,
+	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+	            var isDown = value.newMode == editor.tools.ToolConstants.MODE_DOWN,
 					root = isDown ? hemi.core.client.root : hemi.picking.pickRoot;	
 				
 				hemi.model.modelRoot.parent = root;
 				hemi.shape.root.parent = root;
 	        });	
-			view.addListener(module.EventTypes.BoxManipState, function(value) {
+			view.addListener(editor.EventTypes.BoxManipState, function(value) {
 				edtCrvWgt.boxSelected(value.drawState, value.transform);
 			});
 			
 			// edit curve widget specific
-			edtCrvWgt.addListener(module.EventTypes.AddBox, function(boxParams) {
+			edtCrvWgt.addListener(editor.EventTypes.AddBox, function(boxParams) {
 				model.addBox(boxParams.position, boxParams.dimensions);
 			});
-			edtCrvWgt.addListener(module.EventTypes.Cancel, function() {
+			edtCrvWgt.addListener(editor.EventTypes.Cancel, function() {
 				model.reset();
 			});
-			edtCrvWgt.addListener(module.EventTypes.RemoveBox, function(box) {
+			edtCrvWgt.addListener(editor.EventTypes.RemoveBox, function(box) {
 				model.removeBox(box);
 			});
-			edtCrvWgt.addListener(module.EventTypes.Save, function(name) {
+			edtCrvWgt.addListener(editor.EventTypes.Save, function(name) {
 				model.save(name);
 			});
-			edtCrvWgt.addListener(module.EventTypes.SetParam, function(paramObj) {
+			edtCrvWgt.addListener(editor.EventTypes.SetParam, function(paramObj) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
 			});
-			edtCrvWgt.addListener(module.EventTypes.SetCurveColor, function(colorObj) {
+			edtCrvWgt.addListener(editor.EventTypes.SetCurveColor, function(colorObj) {
 				model.addToColorRamp(colorObj.ndx, colorObj.color);
 			});
-			edtCrvWgt.addListener(module.EventTypes.StartPreview, function() {
+			edtCrvWgt.addListener(editor.EventTypes.StartPreview, function() {
 				model.startPreview();
 			});
-			edtCrvWgt.addListener(module.EventTypes.StopPreview, function() {
+			edtCrvWgt.addListener(editor.EventTypes.StopPreview, function() {
 				model.stopPreview();
 			});
-			edtCrvWgt.addListener(module.EventTypes.UpdateBox, function(params) {
+			edtCrvWgt.addListener(editor.EventTypes.UpdateBox, function(params) {
 				model.updateBox(params.box, params.position, params.dimensions);
 			});
-			edtCrvWgt.addListener(module.EventTypes.UpdateBoxes, function() {
+			edtCrvWgt.addListener(editor.EventTypes.UpdateBoxes, function() {
 				model.updateBoxes();
 			});
 			
 			// curve list widget specific
-			lstWgt.addListener(module.EventTypes.CreateCurve, function() {
+			lstWgt.addListener(editor.EventTypes.CreateCurve, function() {
 				edtCrvWgt.setVisible(true);
 				lstWgt.setVisible(false);
 			});
-			lstWgt.addListener(module.EventTypes.EditCurve, function(curve) {
+			lstWgt.addListener(editor.EventTypes.EditCurve, function(curve) {
 				edtCrvWgt.setVisible(true);
 				lstWgt.setVisible(false);
 				
 				model.edit(curve);
 			});
-			lstWgt.addListener(module.EventTypes.RemoveCurve, function(curve) {
+			lstWgt.addListener(editor.EventTypes.RemoveCurve, function(curve) {
 				model.remove(curve);
 			});
 			
 			// view specific
 	        
 			// model specific	
-			model.addListener(module.EventTypes.BoxAdded, function(box) {
+			model.addListener(editor.EventTypes.BoxAdded, function(box) {
 				edtCrvWgt.boxAdded(box);
 			});
-			model.addListener(module.EventTypes.BoxRemoved, function(box) {
+			model.addListener(editor.EventTypes.BoxRemoved, function(box) {
 				edtCrvWgt.boxRemoved(box);
 			});
-			model.addListener(module.EventTypes.BoxSelected, function(vals) {
+			model.addListener(editor.EventTypes.BoxSelected, function(vals) {
 				var transform = vals.transform,
 					ndx = vals.ndx;
 					
 				view.boxSelected(transform, ndx);
 			});
-			model.addListener(module.EventTypes.BoxUpdated, function(box) {
+			model.addListener(editor.EventTypes.BoxUpdated, function(box) {
 				edtCrvWgt.boxUpdated(box);
 			});
-			model.addListener(module.EventTypes.CurveCreated, function(curve) {
+			model.addListener(editor.EventTypes.CurveCreated, function(curve) {
 				lstWgt.add(curve);
 			});
-			model.addListener(module.EventTypes.CurveRemoved, function(curve) {
+			model.addListener(editor.EventTypes.CurveRemoved, function(curve) {
 				lstWgt.remove(curve);
 			});
-			model.addListener(module.EventTypes.CurveSet, function(curve) {
+			model.addListener(editor.EventTypes.CurveSet, function(curve) {
 				if (curve.system != null) {
 					edtCrvWgt.set(curve.system, curve.boxes);
 				}
 				else {
-					var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
 					
 					edtCrvWgt.setVisible(false);
 					lstWgt.setVisible(isDown);
 					edtCrvWgt.reset();
 				}
 			});
-			model.addListener(module.EventTypes.CurveUpdated, function(curve) {
+			model.addListener(editor.EventTypes.CurveUpdated, function(curve) {
 				lstWgt.update(curve);
 			});
-			model.addListener(module.EventTypes.CurveWorldCleaned, function() {
-				var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+			model.addListener(editor.EventTypes.CurveWorldCleaned, function() {
+				var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
 				edtCrvWgt.reset();
 				edtCrvWgt.setVisible(false);
 				lstWgt.setVisible(isDown);
 			});
 			
 			// behavior widget specific
-			bhvWgt.addListener(module.EventTypes.Sidebar.WidgetVisible, function(obj) {
+			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
 				if (obj.updateMeta) {
-					var isDown = view.mode === module.tools.ToolConstants.MODE_DOWN;
+					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
 					
 					lstWgt.setVisible(!obj.visible && isDown);
 				}
@@ -1247,5 +1247,5 @@ var editor = (function(module) {
 	    }
 	});
 	
-	return module;
+	return editor;
 })(editor || {});

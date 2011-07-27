@@ -15,24 +15,24 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-    module.tools = module.tools || {};
+var editor = (function(editor) {
+    editor.tools = editor.tools || {};
     
-    module.EventTypes = module.EventTypes || {};
+    editor.EventTypes = editor.EventTypes || {};
 	
 	// view specific
-	module.EventTypes.CreateMotion = "Motion.CreateMotion";
-	module.EventTypes.RemoveMotion = "Motion.RemoveMotion";
-	module.EventTypes.SaveMotion = "Motion.SaveMotion";
-	module.EventTypes.SetMotion = "Motion.SetMotion";
-	module.EventTypes.StartPreview = "Motion.StartPreview";
-	module.EventTypes.StopPreview = "Motion.StopPreview";
+	editor.EventTypes.CreateMotion = "Motion.CreateMotion";
+	editor.EventTypes.RemoveMotion = "Motion.RemoveMotion";
+	editor.EventTypes.SaveMotion = "Motion.SaveMotion";
+	editor.EventTypes.SetMotion = "Motion.SetMotion";
+	editor.EventTypes.StartPreview = "Motion.StartPreview";
+	editor.EventTypes.StopPreview = "Motion.StopPreview";
 	
 	// model specific
-	module.EventTypes.MotionCreated = "Motion.MotionCreated";
-	module.EventTypes.MotionRemoved = "Motion.MotionRemoved";
-	module.EventTypes.MotionUpdated = "Motion.MotionUpdated";
-	module.EventTypes.MotionSet = "Motion.MotionSet";
+	editor.EventTypes.MotionCreated = "Motion.MotionCreated";
+	editor.EventTypes.MotionRemoved = "Motion.MotionRemoved";
+	editor.EventTypes.MotionUpdated = "Motion.MotionUpdated";
+	editor.EventTypes.MotionSet = "Motion.MotionSet";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -42,7 +42,7 @@ var editor = (function(module) {
      * A MotionsModel handles the creation, updating, and removal of Rotators
      * and Translators.
      */
-    module.tools.MotionsModel = module.tools.ToolModel.extend({
+    editor.tools.MotionsModel = editor.tools.ToolModel.extend({
 		init: function() {
 			this._super();
 			
@@ -53,7 +53,7 @@ var editor = (function(module) {
 		
 		removeMotion: function(motion) {
 			motion.cleanup();
-			this.notifyListeners(module.EventTypes.MotionRemoved, motion);
+			this.notifyListeners(editor.EventTypes.MotionRemoved, motion);
 		},
 		
 		saveMotion: function(props) {
@@ -78,11 +78,11 @@ var editor = (function(module) {
 					motion = new hemi.motion.Translator();
 				}
 				
-				event = module.EventTypes.MotionCreated;
+				event = editor.EventTypes.MotionCreated;
 			} else {
 				motion.clear();
 				motion.clearTransforms();
-				event = module.EventTypes.MotionUpdated;
+				event = editor.EventTypes.MotionUpdated;
 			}
 			
 			if (props.accel != null) {
@@ -113,7 +113,7 @@ var editor = (function(module) {
 		setMotion: function(motion) {
 			this.stopPreview();
 			this.currentMotion = motion;
-			this.notifyListeners(module.EventTypes.MotionSet, motion);
+			this.notifyListeners(editor.EventTypes.MotionSet, motion);
 		},
 		
 		startPreview: function(props) {
@@ -147,7 +147,7 @@ var editor = (function(module) {
 				this.matrices.push(hemi.utils.clone(tran.localMatrix));
 			}
 			
-			this.previewMotion.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewMotion';
+			this.previewMotion.name = editor.tools.ToolConstants.EDITOR_PREFIX + 'PreviewMotion';
 			this.previewMotion.enable();
 		},
 		
@@ -170,10 +170,10 @@ var editor = (function(module) {
 				trans = hemi.world.getTranslators();
 			
 			for (var i = 0, il = rots.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.MotionRemoved, rots[i]);
+				this.notifyListeners(editor.EventTypes.MotionRemoved, rots[i]);
 			}
 			for (var i = 0, il = trans.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.MotionRemoved, trans[i]);
+				this.notifyListeners(editor.EventTypes.MotionRemoved, trans[i]);
 			}
 	    },
 	    
@@ -182,10 +182,10 @@ var editor = (function(module) {
 				trans = hemi.world.getTranslators();
 			
 			for (var i = 0, il = rots.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.MotionCreated, rots[i]);
+				this.notifyListeners(editor.EventTypes.MotionCreated, rots[i]);
 			}
 			for (var i = 0, il = trans.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.MotionCreated, trans[i]);
+				this.notifyListeners(editor.EventTypes.MotionCreated, trans[i]);
 			}
 	    }
 	});
@@ -197,16 +197,16 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the CreateMtnSBWidget.
 	 */
-	module.tools.CreateMtnSBWidgetDefaults = {
+	editor.tools.CreateMtnSBWidgetDefaults = {
 		name: 'createMotionSBWidget',
 		uiFile: 'js/editor/tools/html/motionsForms.htm',
 		manualVisible: true
 	};
 	
-	module.tools.CreateMtnSBWidget = module.ui.SidebarWidget.extend({
+	editor.tools.CreateMtnSBWidget = editor.ui.SidebarWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-				module.tools.CreateMtnSBWidgetDefaults, options);
+				editor.tools.CreateMtnSBWidgetDefaults, options);
 		    this._super(newOpts);
 			
 			this.previewing = false;
@@ -311,27 +311,27 @@ var editor = (function(module) {
 			saveBtn.bind('click', function(evt) {
 				var props = wgt.getProperties();
 				wgt.reset();
-				wgt.notifyListeners(module.EventTypes.SaveMotion, props);
+				wgt.notifyListeners(editor.EventTypes.SaveMotion, props);
 			})
 			.attr('disabled', 'disabled');
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.reset();
-				wgt.notifyListeners(module.EventTypes.SetMotion, null);
+				wgt.notifyListeners(editor.EventTypes.SetMotion, null);
 			});
 			
 			prevStartBtn.bind('click', function(evt) {
 				wgt.previewing = true;
 				wgt.checkStatus();
 				var props = wgt.getProperties();
-				wgt.notifyListeners(module.EventTypes.StartPreview, props);
+				wgt.notifyListeners(editor.EventTypes.StartPreview, props);
 			})
 			.attr('disabled', 'disabled');
 			
 			prevStopBtn.bind('click', function(evt) {
 				wgt.previewing = false;
 				wgt.checkStatus();
-				wgt.notifyListeners(module.EventTypes.StopPreview, null);
+				wgt.notifyListeners(editor.EventTypes.StopPreview, null);
 			})
 			.attr('disabled', 'disabled');
 			
@@ -569,7 +569,7 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the MtnListSBWidget.
 	 */
-	module.tools.MtnListSBWidgetDefaults = {
+	editor.tools.MtnListSBWidgetDefaults = {
 		name: 'mtnListSBWidget',
 		listId: 'motionList',
 		prefix: 'mtnLst',
@@ -577,9 +577,9 @@ var editor = (function(module) {
 		instructions: "Click 'Create Motion' to create a new moving transform."
 	};
 	
-	module.tools.MtnListSBWidget = module.ui.ListSBWidget.extend({
+	editor.tools.MtnListSBWidget = editor.ui.ListSBWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.tools.MtnListSBWidgetDefaults, options);
+			var newOpts = jQuery.extend({}, editor.tools.MtnListSBWidgetDefaults, options);
 		    this._super(newOpts);
 		},
 		
@@ -591,7 +591,7 @@ var editor = (function(module) {
 						
 			this.form.submit(function() {return false;});
 			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.CreateMotion, null);
+				wgt.notifyListeners(editor.EventTypes.CreateMotion, null);
 			});
 			
 			this.buttonDiv.append(this.createBtn);
@@ -605,13 +605,17 @@ var editor = (function(module) {
 			
 			li.editBtn.bind('click', function(evt) {
 				var motion = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.SetMotion, motion);
+				wgt.notifyListeners(editor.EventTypes.SetMotion, motion);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var motion = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.RemoveMotion, motion);
+				wgt.notifyListeners(editor.EventTypes.RemoveMotion, motion);
 			});
+		},
+		
+		createListItemWidget: function() {
+			return new editor.ui.BhvListItemWidget();
 		},
 		
 		getOtherHeights: function() {
@@ -626,7 +630,7 @@ var editor = (function(module) {
     /*
      * Configuration object for the MotionsView.
      */
-    module.tools.MotionsViewDefaults = {
+    editor.tools.MotionsViewDefaults = {
         toolName: 'Motions',
 		toolTip: 'Motions: Create and edit moving transforms',
 		widgetId: 'motionsBtn',
@@ -640,13 +644,14 @@ var editor = (function(module) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.MotionsViewDefaults as default options
      */
-    module.tools.MotionsView = module.tools.ToolView.extend({
+    editor.tools.MotionsView = editor.tools.ToolView.extend({
 		init: function(options) {
-	        var newOpts = jQuery.extend({}, module.tools.MotionsViewDefaults, options);
+	        var newOpts = jQuery.extend({}, editor.tools.MotionsViewDefaults, options);
 	        this._super(newOpts);
 			
-			this.addSidebarWidget(new module.tools.CreateMtnSBWidget());
-			this.addSidebarWidget(new module.tools.MtnListSBWidget());
+			this.addSidebarWidget(new editor.tools.CreateMtnSBWidget());
+			this.addSidebarWidget(new editor.tools.MtnListSBWidget());
+			this.addSidebarWidget(editor.ui.getBehaviorWidget());
 	    }
 	});
 
@@ -658,7 +663,7 @@ var editor = (function(module) {
      * The MotionsController facilitates MotionsModel and MotionsView
      * communication by binding event and message handlers.
      */
-    module.tools.MotionsController = module.tools.ToolController.extend({
+    editor.tools.MotionsController = editor.tools.ToolController.extend({
 		init: function() {
 			this._super();
 		},
@@ -682,55 +687,56 @@ var editor = (function(module) {
 				selModel = this.selModel,
 				view = this.view,
 				crtWgt = view.createMotionSBWidget,
+				bhvWgt = view.behaviorSBWidget,
 				mtnWgt = view.mtnListSBWidget;
 			
 			// view events
-			crtWgt.addListener(module.EventTypes.SaveMotion, function(props) {
+			crtWgt.addListener(editor.EventTypes.SaveMotion, function(props) {
 				model.saveMotion(props);
 			});
 			
-			crtWgt.addListener(module.EventTypes.SetMotion, function(motion) {
+			crtWgt.addListener(editor.EventTypes.SetMotion, function(motion) {
 				model.setMotion(motion);
 			});
 			
-			crtWgt.addListener(module.EventTypes.StartPreview, function(props) {
+			crtWgt.addListener(editor.EventTypes.StartPreview, function(props) {
 				selModel.enableSelection(false);
 				model.startPreview(props);
 			});
 			
-			crtWgt.addListener(module.EventTypes.StopPreview, function(value) {
+			crtWgt.addListener(editor.EventTypes.StopPreview, function(value) {
 				selModel.enableSelection(true);
 				model.stopPreview();
 			});
 			
-			mtnWgt.addListener(module.EventTypes.CreateMotion, function(value) {
+			mtnWgt.addListener(editor.EventTypes.CreateMotion, function(value) {
 				crtWgt.setVisible(true);
 				mtnWgt.setVisible(false);
 			});
 			
-			mtnWgt.addListener(module.EventTypes.RemoveMotion, function(motion) {
+			mtnWgt.addListener(editor.EventTypes.RemoveMotion, function(motion) {
 				model.removeMotion(motion);
 			});
 			
-			mtnWgt.addListener(module.EventTypes.SetMotion, function(motion) {
+			mtnWgt.addListener(editor.EventTypes.SetMotion, function(motion) {
 				model.setMotion(motion);
 			});
 			
-			view.addListener(module.EventTypes.ToolModeSet, function(value) {
-				var isDown = value.newMode === module.tools.ToolConstants.MODE_DOWN;
+			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+				var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
 				selModel.enableSelection(isDown);
 			});
 			
 			// model events
-			model.addListener(module.EventTypes.MotionCreated, function(motion) {
+			model.addListener(editor.EventTypes.MotionCreated, function(motion) {
 				mtnWgt.add(motion);
 			});
 			
-			model.addListener(module.EventTypes.MotionRemoved, function(motion) {
+			model.addListener(editor.EventTypes.MotionRemoved, function(motion) {
 				mtnWgt.remove(motion);
 			});
 			
-			model.addListener(module.EventTypes.MotionSet, function(motion) {
+			model.addListener(editor.EventTypes.MotionSet, function(motion) {
 				selModel.deselectAll();
 				selModel.enableSelection(true);
 				
@@ -749,11 +755,11 @@ var editor = (function(module) {
 				}
 			});
 			
-			model.addListener(module.EventTypes.MotionUpdated, function(motion) {
+			model.addListener(editor.EventTypes.MotionUpdated, function(motion) {
 				mtnWgt.update(motion);
 			});
 			
-			selModel.addListener(module.EventTypes.TransformDeselected, function(transform) {
+			selModel.addListener(editor.EventTypes.TransformDeselected, function(transform) {
 				crtWgt.removeTransform(transform);
 				
 				if (crtWgt.transforms.length === 0) {
@@ -761,12 +767,21 @@ var editor = (function(module) {
 				}
 			});
 			
-			selModel.addListener(module.EventTypes.TransformSelected, function(transform) {
+			selModel.addListener(editor.EventTypes.TransformSelected, function(transform) {
 				crtWgt.addTransform(transform);
 				mtnWgt.createBtn.removeAttr('disabled');
+			});
+			
+			// behavior widget specific
+			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				if (obj.updateMeta) {
+					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
+					
+					mtnWgt.setVisible(!obj.visible && isDown);
+				}
 			});
 		}
 	});
     
-    return module;
+    return editor;
 })(editor || {});
