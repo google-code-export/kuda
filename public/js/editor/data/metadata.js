@@ -96,46 +96,50 @@ var editor = (function(module) {
 			this.functions = new Hashtable();
 			this.parameters = new Hashtable();
 			
-			hemi.loader.loadHtml('js/editor/data/hemi.json', function(data) {				
-				var json = JSON.parse(data);
-			
-				for (var i = 0, il = json.length; i < il; i++) {
-					var type = json[i],
-						tname = type.name,
-						funcs = type.funcs,
-						tdata = {
-							description: type.desc,
-							methods: [],
-							parent: type.parent
-						};
-						
-					that.types.put(tname, tdata);
-						
-					for (var j = 0, jl = funcs.length; j < jl; j++) {
-						var func = funcs[j],
-							fname = func.name,
-							params = func.params,
-							fdata = {
-								description: func.desc,
-								parameters: []
+			try {
+				hemi.loader.loadHtml('js/editor/data/hemi.json', function(data) {
+					var json = JSON.parse(data);
+				
+					for (var i = 0, il = json.length; i < il; i++) {
+						var type = json[i],
+							tname = type.name,
+							funcs = type.funcs,
+							tdata = {
+								description: type.desc,
+								methods: [],
+								parent: type.parent
 							};
 							
-						tdata.methods.push(fname);				
-						that.functions.put(tname + '.' + fname, fdata);
-						
-						for (var k = 0, kl = params.length; k < kl; k++) {
-							var param = params[k],
-								pname = param.name;
+						that.types.put(tname, tdata);
 							
-							fdata.parameters.push(pname);
-							that.parameters.put(tname + '.' + fname + '.' + pname, {
-								description: param.desc,
-								type: param.type
-							});
+						for (var j = 0, jl = funcs.length; j < jl; j++) {
+							var func = funcs[j],
+								fname = func.name,
+								params = func.params,
+								fdata = {
+									description: func.desc,
+									parameters: []
+								};
+								
+							tdata.methods.push(fname);				
+							that.functions.put(tname + '.' + fname, fdata);
+							
+							for (var k = 0, kl = params.length; k < kl; k++) {
+								var param = params[k],
+									pname = param.name;
+								
+								fdata.parameters.push(pname);
+								that.parameters.put(tname + '.' + fname + '.' + pname, {
+									description: param.desc,
+									type: param.type
+								});
+							}
 						}
 					}
-				}
-			});
+				});
+			} catch (err) {
+				hemi.console.log(err);
+			}
 		},
 		
 		retrieve = function(names) {			
