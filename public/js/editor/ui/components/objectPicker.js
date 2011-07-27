@@ -201,6 +201,7 @@ var editor = (function(module) {
 				if (this.cannotFilter) {
 					this.input.val('none available');
 					cb.attr('disabled', 'disabled');
+					ip.attr('disabled', 'disabled');
 				}
 		},
 		
