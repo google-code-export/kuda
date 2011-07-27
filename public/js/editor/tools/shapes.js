@@ -15,31 +15,31 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-    module.tools = module.tools || {};
+var editor = (function(editor) {
+    editor.tools = editor.tools || {};
     
-    module.EventTypes = module.EventTypes || {};
+    editor.EventTypes = editor.EventTypes || {};
 	
 	// view specific
 	
 	// create sidebar widget specific
-	module.EventTypes.SetShapeParam = "Shapes.SetShapeParam";
-	module.EventTypes.RemoveShapeParam = "Shapes.RemoveShapeParam";
-    module.EventTypes.PreviewShape = "Shapes.PreviewShape";
-    module.EventTypes.SaveShape = "Shapes.SaveShape";
-    module.EventTypes.CancelCreateShape = "Shapes.CancelCreateShape";
+	editor.EventTypes.SetShapeParam = "Shapes.SetShapeParam";
+	editor.EventTypes.RemoveShapeParam = "Shapes.RemoveShapeParam";
+    editor.EventTypes.PreviewShape = "Shapes.PreviewShape";
+    editor.EventTypes.SaveShape = "Shapes.SaveShape";
+    editor.EventTypes.CancelCreateShape = "Shapes.CancelCreateShape";
 	
 	// list sidebar widget specific
-    module.EventTypes.CreateShape = "Shapes.CreateShape";
-    module.EventTypes.EditShape = "Shapes.EditShape";
-    module.EventTypes.RemoveShape = "Shapes.RemoveShape";
+    editor.EventTypes.CreateShape = "Shapes.CreateShape";
+    editor.EventTypes.EditShape = "Shapes.EditShape";
+    editor.EventTypes.RemoveShape = "Shapes.RemoveShape";
 	
 	// model specific
-    module.EventTypes.ShapeCreated = "Shapes.ShapeCreated";
-    module.EventTypes.ShapeRemoved = "Shapes.ShapeRemoved";
-    module.EventTypes.ShapeUpdated = "Shapes.ShapeUpdated";
-    module.EventTypes.ShapeSet = "Shapes.ShapeSet";
-	module.EventTypes.ShapeWorldCleaned = "Shapes.ShapeWorldCleaned";
+    editor.EventTypes.ShapeCreated = "Shapes.ShapeCreated";
+    editor.EventTypes.ShapeRemoved = "Shapes.ShapeRemoved";
+    editor.EventTypes.ShapeUpdated = "Shapes.ShapeUpdated";
+    editor.EventTypes.ShapeSet = "Shapes.ShapeSet";
+	editor.EventTypes.ShapeWorldCleaned = "Shapes.ShapeWorldCleaned";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -49,7 +49,7 @@ var editor = (function(module) {
      * An ShapesModel handles the creation, updating, and removal of 
      * shapes
      */
-    module.tools.ShapesModel = module.tools.ToolModel.extend({
+    editor.tools.ShapesModel = editor.tools.ToolModel.extend({
 		init: function() {
 			this._super();
 			
@@ -59,14 +59,14 @@ var editor = (function(module) {
 	    },
 			
 		worldCleaned: function() {
-			this.notifyListeners(module.EventTypes.ShapeWorldCleaned, null);
+			this.notifyListeners(editor.EventTypes.ShapeWorldCleaned, null);
 	    },
 	    
 	    worldLoaded: function() {
 			var shapes = hemi.world.getShapes();
 			
 			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
-				this.notifyListeners(module.EventTypes.ShapeCreated, shapes[ndx]);
+				this.notifyListeners(editor.EventTypes.ShapeCreated, shapes[ndx]);
 			}
 	    },
 		
@@ -98,7 +98,7 @@ var editor = (function(module) {
 				this.shapeParams = {};
 			}
 			
-			this.notifyListeners(module.EventTypes.ShapeSet, shape);
+			this.notifyListeners(editor.EventTypes.ShapeSet, shape);
 		},
 		
 		previewShape: function() {
@@ -110,7 +110,7 @@ var editor = (function(module) {
 			}
 			
 			this.prevShape = new hemi.shape.Shape(this.shapeParams);
-			this.prevShape.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
+			this.prevShape.name = editor.tools.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
 			
 			if (this.shapeParams.position) {
 				var pos = this.shapeParams.position;
@@ -119,7 +119,7 @@ var editor = (function(module) {
 		},
 		
 		removeShape: function(shape) {
-			this.notifyListeners(module.EventTypes.ShapeRemoved, shape);
+			this.notifyListeners(editor.EventTypes.ShapeRemoved, shape);
 			shape.cleanup();
 		},
 		
@@ -134,10 +134,10 @@ var editor = (function(module) {
 				this.currentShape.change(this.shapeParams);
 				this.currentShape.transform.identity();
 				this.currentShape.transform.visible = true;
-				msgType = module.EventTypes.ShapeUpdated;
+				msgType = editor.EventTypes.ShapeUpdated;
 			} else {
 				this.currentShape = new hemi.shape.Shape(this.shapeParams);
-				msgType = module.EventTypes.ShapeCreated;
+				msgType = editor.EventTypes.ShapeCreated;
 			}
 			
 			if (this.shapeParams.position) {
@@ -161,17 +161,17 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
-	module.tools.CreateShpSBWidgetDefaults = {
+	editor.tools.CreateShpSBWidgetDefaults = {
 		name: 'createShapeSBWidget',
 		uiFile: 'js/editor/tools/html/shapesForms.htm',
         instructions: 'Click on a model to select it',
 		manualVisible: true
 	};
 	
-	module.tools.CreatShpSBWidget = module.ui.SidebarWidget.extend({
+	editor.tools.CreatShpSBWidget = editor.ui.SidebarWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-				module.tools.CreateShpSBWidgetDefaults, options);
+				editor.tools.CreateShpSBWidgetDefaults, options);
 		    this._super(newOpts);
 				
 			this.inputsToCheck = [];
@@ -190,7 +190,7 @@ var editor = (function(module) {
 				previewBtn = this.find('#shpPreviewBtn'),
 				optionalInputs = this.find('.optional'),
 				wgt = this,
-				vecValidator = new module.ui.Validator(null, function(elem) {
+				vecValidator = new editor.ui.Validator(null, function(elem) {
 						var val = elem.val(),
 							msg = null;
 							
@@ -201,7 +201,7 @@ var editor = (function(module) {
 						return msg;
 					});
 			
-			this.colorPicker = new module.ui.ColorPicker({
+			this.colorPicker = new editor.ui.ColorPicker({
 				inputId: 'shpColor',
 				buttonId: 'shpColorPicker'
 			});
@@ -211,7 +211,7 @@ var editor = (function(module) {
 			// hide optional inputs
 			optionalInputs.parent().hide();
 			
-			this.vectors = new module.ui.Vector({
+			this.vectors = new editor.ui.Vector({
 				container: wgt.find('#shpPositionDiv'),
 				paramName: 'position',
 				onBlur: function(elem, evt) {
@@ -219,14 +219,14 @@ var editor = (function(module) {
 						ndx = elem.data('ndx');
 					
 					if (val === '') {
-						wgt.notifyListeners(module.EventTypes.RemoveShapeParam, 
+						wgt.notifyListeners(editor.EventTypes.RemoveShapeParam, 
 							wgt.vectors.config.paramName);
 					}
 					else if (hemi.utils.isNumeric(val)) {
 						var totalVal = wgt.vectors.getValue();
 						
 						if (totalVal.length > 0) {
-							wgt.notifyListeners(module.EventTypes.SetShapeParam, {
+							wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
 								paramName: wgt.vectors.config.paramName,
 								paramValue: totalVal
 							});
@@ -239,7 +239,7 @@ var editor = (function(module) {
 			});
 			
 			// add validation
-			new module.ui.Validator(inputs, function(elem) {
+			new editor.ui.Validator(inputs, function(elem) {
 				var val = elem.val(),
 					msg = null;
 				
@@ -259,7 +259,7 @@ var editor = (function(module) {
 					
 				if (origVal == '' || !isNaN(val)) {
 					val = isNaN(val) ? origVal : val;
-					wgt.notifyListeners(module.EventTypes.SetShapeParam, {
+					wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
 						paramName: param,
 						paramValue: val
 					});
@@ -287,7 +287,7 @@ var editor = (function(module) {
 				sizeInput.val('').blur().parent().hide();
 				tailInput.val('').blur().parent().hide();
 				
-				wgt.notifyListeners(module.EventTypes.SetShapeParam, {
+				wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
 					paramName: 'type',
 					paramValue: val
 				});
@@ -347,19 +347,19 @@ var editor = (function(module) {
 			saveBtn.bind('click', function(evt) {
 				var name = nameInput.val();
 				
-				wgt.notifyListeners(module.EventTypes.SaveShape, name);
+				wgt.notifyListeners(editor.EventTypes.SaveShape, name);
 			})
 			.attr('disabled', 'disabled');
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.setVisible(false);
 				wgt.reset();
-				wgt.notifyListeners(module.EventTypes.CancelCreateShape, null);
+				wgt.notifyListeners(editor.EventTypes.CancelCreateShape, null);
 				wgt.find('input.error').removeClass('error');
 			});
 			
 			previewBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.PreviewShape, null);
+				wgt.notifyListeners(editor.EventTypes.PreviewShape, null);
 			})
 			.attr('disabled', 'disabled');
 			
@@ -367,8 +367,8 @@ var editor = (function(module) {
 				return false;
 			});
 			
-			this.colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
-				wgt.notifyListeners(module.EventTypes.SetShapeParam, {
+			this.colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
+				wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
 					paramName: 'color',
 					paramValue: clr
 				});
@@ -486,7 +486,7 @@ var editor = (function(module) {
 			this.find('#shpSaveBtn').attr('disabled', 'disabled');
 			this.find('#shpPreviewBtn').attr('disabled', 'disabled');
 			
-			this.notifyListeners(module.EventTypes.SetShapeParam, {
+			this.notifyListeners(editor.EventTypes.SetShapeParam, {
 				paramName: 'position',
 				paramValue: translation
 			});
@@ -500,7 +500,7 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the HiddenItemsSBWidget.
 	 */
-	module.tools.ShpListSBWidgetDefaults = {
+	editor.tools.ShpListSBWidgetDefaults = {
 		name: 'shapeListSBWidget',
 		listId: 'shapeList',
 		prefix: 'shpLst',
@@ -508,9 +508,9 @@ var editor = (function(module) {
 		instructions: "Click 'Create Shape' to create a new shape."
 	};
 	
-	module.tools.ShpListSBWidget = module.ui.ListSBWidget.extend({
+	editor.tools.ShpListSBWidget = editor.ui.ListSBWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.tools.ShpListSBWidgetDefaults, options);
+			var newOpts = jQuery.extend({}, editor.tools.ShpListSBWidgetDefaults, options);
 		    this._super(newOpts);
 			
 			this.items = new Hashtable();		
@@ -522,7 +522,7 @@ var editor = (function(module) {
 			var wgt = this;
 						
 			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.CreateShape, null);
+				wgt.notifyListeners(editor.EventTypes.CreateShape, null);
 			});
 			
 			this.buttonDiv.append(this.createBtn);
@@ -535,13 +535,17 @@ var editor = (function(module) {
 			
 			li.editBtn.bind('click', function(evt) {
 				var shape = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.EditShape, shape);
+				wgt.notifyListeners(editor.EventTypes.EditShape, shape);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var shape = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.RemoveShape, shape);
+				wgt.notifyListeners(editor.EventTypes.RemoveShape, shape);
 			});
+		},
+		
+		createListItemWidget: function() {
+			return new editor.ui.BhvListItemWidget();
 		},
 		
 		getOtherHeights: function() {
@@ -556,7 +560,7 @@ var editor = (function(module) {
     /*
      * Configuration object for the ShapesView.
      */
-    module.tools.ShapesViewDefaults = {
+    editor.tools.ShapesViewDefaults = {
         toolName: 'Shapes',
 		toolTip: 'Shapes: Create and edit shapes',
 		widgetId: 'shapesBtn',
@@ -570,13 +574,14 @@ var editor = (function(module) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.ShapesViewDefaults as default options
      */
-    module.tools.ShapesView = module.tools.ToolView.extend({
+    editor.tools.ShapesView = editor.tools.ToolView.extend({
 		init: function(options) {
-	        var newOpts = jQuery.extend({}, module.tools.ShapesViewDefaults, options);
+	        var newOpts = jQuery.extend({}, editor.tools.ShapesViewDefaults, options);
 	        this._super(newOpts);
 			
-			this.addSidebarWidget(new module.tools.CreatShpSBWidget());
-			this.addSidebarWidget(new module.tools.ShpListSBWidget());
+			this.addSidebarWidget(new editor.tools.CreatShpSBWidget());
+			this.addSidebarWidget(new editor.tools.ShpListSBWidget());
+			this.addSidebarWidget(editor.ui.getBehaviorWidget());
 	    }
 	});
     
@@ -588,7 +593,7 @@ var editor = (function(module) {
      * The ShapesController facilitates ShapesModel and ShapesView
      * communication by binding event and message handlers.
      */
-    module.tools.ShapesController = module.tools.ToolController.extend({
+    editor.tools.ShapesController = editor.tools.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -604,69 +609,79 @@ var editor = (function(module) {
 	        	view = this.view,
 				crtWgt = view.createShapeSBWidget,
 				lstWgt = view.shapeListSBWidget,
+				bhvWgt = view.behaviorSBWidget,
 	        	that = this;
 	                	        
 			// special listener for when the toolbar button is clicked
-	        view.addListener(module.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode === module.tools.ToolConstants.MODE_DOWN;
+	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+	            var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
 	        });
 			
 			// create sidebar widget listeners
-			crtWgt.addListener(module.EventTypes.SaveShape, function(name) {
+			crtWgt.addListener(editor.EventTypes.SaveShape, function(name) {
 				crtWgt.setVisible(false);
 				lstWgt.setVisible(true);
 				
 				model.saveShape(name);
 				crtWgt.reset();
 			});		
-			crtWgt.addListener(module.EventTypes.PreviewShape, function() {
+			crtWgt.addListener(editor.EventTypes.PreviewShape, function() {
 				model.previewShape();
 			});
-			crtWgt.addListener(module.EventTypes.SetShapeParam, function(paramObj) {
+			crtWgt.addListener(editor.EventTypes.SetShapeParam, function(paramObj) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
 			});	
-			crtWgt.addListener(module.EventTypes.CancelCreateShape, function() {
+			crtWgt.addListener(editor.EventTypes.CancelCreateShape, function() {
 				model.setShape(null);
 				lstWgt.setVisible(true);
 			});	
 			
 			// list sidebar widget listeners
-			lstWgt.addListener(module.EventTypes.CreateShape, function() {
+			lstWgt.addListener(editor.EventTypes.CreateShape, function() {
 				crtWgt.setVisible(true);
 				lstWgt.setVisible(false);
 			});	
-			lstWgt.addListener(module.EventTypes.EditShape, function(shape) {
+			lstWgt.addListener(editor.EventTypes.EditShape, function(shape) {
 				crtWgt.setVisible(true);
 				lstWgt.setVisible(false);
 				
 				model.setShape(shape);
 			});	
-			lstWgt.addListener(module.EventTypes.RemoveShape, function(shape) {
+			lstWgt.addListener(editor.EventTypes.RemoveShape, function(shape) {
 				model.removeShape(shape);
 			});
 			
 			// view specific listeners
 			
 			// model specific listeners
-			model.addListener(module.EventTypes.ShapeCreated, function(shape) {
+			model.addListener(editor.EventTypes.ShapeCreated, function(shape) {
 				lstWgt.add(shape);
 			});		
-			model.addListener(module.EventTypes.ShapeUpdated, function(shape) {
+			model.addListener(editor.EventTypes.ShapeUpdated, function(shape) {
 				lstWgt.update(shape);
 			});		
-			model.addListener(module.EventTypes.ShapeRemoved, function(shape) {
+			model.addListener(editor.EventTypes.ShapeRemoved, function(shape) {
 				lstWgt.remove(shape);
 			});
-			model.addListener(module.EventTypes.ShapeSet, function(shape) {
+			model.addListener(editor.EventTypes.ShapeSet, function(shape) {
 				if (shape != null) {
 					crtWgt.set(shape);
 				}
 			});
-			model.addListener(module.EventTypes.ShapeWorldCleaned, function() {
+			model.addListener(editor.EventTypes.ShapeWorldCleaned, function() {
 				lstWgt.clear();
+			});
+			
+			// behavior widget specific
+			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				if (obj.updateMeta) {
+					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
+					
+					lstWgt.setVisible(!obj.visible && isDown);
+				}
 			});
 	    }
 	});
     
-    return module;
+    return editor;
 })(editor || {});
