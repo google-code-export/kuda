@@ -15,24 +15,24 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-    module.tools = module.tools || {};
+var editor = (function(editor) {
+    editor.tools = editor.tools || {};
     
-    module.EventTypes = module.EventTypes || {};
+    editor.EventTypes = editor.EventTypes || {};
 	
 	// view specific
-	module.EventTypes.CreateManip = "Manip.CreateManip";
-	module.EventTypes.RemoveManip = "Manip.RemoveManip";
-	module.EventTypes.SaveManip = "Manip.SaveManip";
-	module.EventTypes.SetManip = "Manip.SetManip";
-	module.EventTypes.StartPreview = "Manip.StartPreview";
-	module.EventTypes.StopPreview = "Manip.StopPreview";
+	editor.EventTypes.CreateManip = "Manip.CreateManip";
+	editor.EventTypes.RemoveManip = "Manip.RemoveManip";
+	editor.EventTypes.SaveManip = "Manip.SaveManip";
+	editor.EventTypes.SetManip = "Manip.SetManip";
+	editor.EventTypes.StartPreview = "Manip.StartPreview";
+	editor.EventTypes.StopPreview = "Manip.StopPreview";
 	
 	// model specific
-	module.EventTypes.ManipCreated = "Manip.ManipCreated";
-	module.EventTypes.ManipRemoved = "Manip.ManipRemoved";
-	module.EventTypes.ManipUpdated = "Manip.ManipUpdated";
-	module.EventTypes.ManipSet = "Manip.ManipSet";
+	editor.EventTypes.ManipCreated = "Manip.ManipCreated";
+	editor.EventTypes.ManipRemoved = "Manip.ManipRemoved";
+	editor.EventTypes.ManipUpdated = "Manip.ManipUpdated";
+	editor.EventTypes.ManipSet = "Manip.ManipSet";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -42,7 +42,7 @@ var editor = (function(module) {
      * A ManipsModel handles the creation, updating, and removal of Draggables
      * and Turnables.
      */
-    module.tools.ManipsModel = module.tools.ToolModel.extend({
+    editor.tools.ManipsModel = editor.tools.ToolModel.extend({
 		init: function() {
 			this._super();
 			
@@ -52,7 +52,7 @@ var editor = (function(module) {
 		
 		removeManip: function(manip) {
 			manip.cleanup();
-			this.notifyListeners(module.EventTypes.ManipRemoved, manip);
+			this.notifyListeners(editor.EventTypes.ManipRemoved, manip);
 		},
 		
 		saveManip: function(props) {
@@ -77,11 +77,11 @@ var editor = (function(module) {
 					manip = new hemi.manip.Turnable();
 				}
 				
-				event = module.EventTypes.ManipCreated;
+				event = editor.EventTypes.ManipCreated;
 			} else {
 				manip.clearLimits();
 				manip.clearTransforms();
-				event = module.EventTypes.ManipUpdated;
+				event = editor.EventTypes.ManipUpdated;
 			}
 			
 			if (props.axis != null) {
@@ -107,7 +107,7 @@ var editor = (function(module) {
 		setManip: function(manip) {
 			this.stopPreview();
 			this.currentManip = manip;
-			this.notifyListeners(module.EventTypes.ManipSet, manip);
+			this.notifyListeners(editor.EventTypes.ManipSet, manip);
 		},
 		
 		startPreview: function(props) {
@@ -146,7 +146,7 @@ var editor = (function(module) {
 				this.previewManip.addTransform(props.transforms[ndx]);
 			}
 			
-			this.previewManip.name = module.tools.ToolConstants.EDITOR_PREFIX + 'PreviewManip';
+			this.previewManip.name = editor.tools.ToolConstants.EDITOR_PREFIX + 'PreviewManip';
 			hemi.world.camera.disableControl();
 		},
 		
@@ -174,10 +174,10 @@ var editor = (function(module) {
 				turns = hemi.world.getTurnables();
 			
 			for (var i = 0, il = drags.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.ManipRemoved, drags[i]);
+				this.notifyListeners(editor.EventTypes.ManipRemoved, drags[i]);
 			}
 			for (var i = 0, il = turns.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.ManipRemoved, turns[i]);
+				this.notifyListeners(editor.EventTypes.ManipRemoved, turns[i]);
 			}
 	    },
 	    
@@ -186,10 +186,10 @@ var editor = (function(module) {
 				turns = hemi.world.getTurnables();
 			
 			for (var i = 0, il = drags.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.ManipCreated, drags[i]);
+				this.notifyListeners(editor.EventTypes.ManipCreated, drags[i]);
 			}
 			for (var i = 0, il = turns.length; i < il; i++) {
-				this.notifyListeners(module.EventTypes.ManipCreated, turns[i]);
+				this.notifyListeners(editor.EventTypes.ManipCreated, turns[i]);
 			}
 	    }
 	});
@@ -201,16 +201,16 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the CreateMnpSBWidget.
 	 */
-	module.tools.CreateMnpSBWidgetDefaults = {
+	editor.tools.CreateMnpSBWidgetDefaults = {
 		name: 'createManipSBWidget',
 		uiFile: 'js/editor/tools/html/manipsForms.htm',
 		manualVisible: true
 	};
 	
-	module.tools.CreateMnpSBWidget = module.ui.SidebarWidget.extend({
+	editor.tools.CreateMnpSBWidget = editor.ui.SidebarWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-				module.tools.CreateMnpSBWidgetDefaults, options);
+				editor.tools.CreateMnpSBWidgetDefaults, options);
 		    this._super(newOpts);
 				
 			this.inputsToCheck = [];
@@ -356,27 +356,27 @@ var editor = (function(module) {
 			saveBtn.bind('click', function(evt) {
 				var props = wgt.getProperties();
 				wgt.reset();
-				wgt.notifyListeners(module.EventTypes.SaveManip, props);
+				wgt.notifyListeners(editor.EventTypes.SaveManip, props);
 			})
 			.attr('disabled', 'disabled');
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.reset();
-				wgt.notifyListeners(module.EventTypes.SetManip, null);
+				wgt.notifyListeners(editor.EventTypes.SetManip, null);
 			});
 			
 			prevStartBtn.bind('click', function(evt) {
 				wgt.previewing = true;
 				wgt.checkStatus();
 				var props = wgt.getProperties();
-				wgt.notifyListeners(module.EventTypes.StartPreview, props);
+				wgt.notifyListeners(editor.EventTypes.StartPreview, props);
 			})
 			.attr('disabled', 'disabled');
 			
 			prevStopBtn.bind('click', function(evt) {
 				wgt.previewing = false;
 				wgt.checkStatus();
-				wgt.notifyListeners(module.EventTypes.StopPreview, null);
+				wgt.notifyListeners(editor.EventTypes.StopPreview, null);
 			})
 			.attr('disabled', 'disabled');
 			
@@ -576,7 +576,7 @@ var editor = (function(module) {
 	/*
 	 * Configuration object for the MnpListSBWidget.
 	 */
-	module.tools.MnpListSBWidgetDefaults = {
+	editor.tools.MnpListSBWidgetDefaults = {
 		name: 'mnpListSBWidget',
 		listId: 'manipList',
 		prefix: 'mnpLst',
@@ -584,9 +584,9 @@ var editor = (function(module) {
 		instructions: "Click 'Create Manipulation' to create a new manipulatable transform."
 	};
 	
-	module.tools.MnpListSBWidget = module.ui.ListSBWidget.extend({
+	editor.tools.MnpListSBWidget = editor.ui.ListSBWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.tools.MnpListSBWidgetDefaults, options);
+			var newOpts = jQuery.extend({}, editor.tools.MnpListSBWidgetDefaults, options);
 		    this._super(newOpts);
 		},
 		
@@ -598,7 +598,7 @@ var editor = (function(module) {
 			
 			this.form.submit(function() {return false;});
 			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.CreateManip, null);
+				wgt.notifyListeners(editor.EventTypes.CreateManip, null);
 			});
 			
 			this.buttonDiv.append(this.createBtn);
@@ -612,13 +612,17 @@ var editor = (function(module) {
 			
 			li.editBtn.bind('click', function(evt) {
 				var manip = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.SetManip, manip);
+				wgt.notifyListeners(editor.EventTypes.SetManip, manip);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var manip = li.getAttachedObject();
-				wgt.notifyListeners(module.EventTypes.RemoveManip, manip);
+				wgt.notifyListeners(editor.EventTypes.RemoveManip, manip);
 			});
+		},
+		
+		createListItemWidget: function() {
+			return new editor.ui.BhvListItemWidget();
 		},
 		
 		getOtherHeights: function() {
@@ -633,7 +637,7 @@ var editor = (function(module) {
     /*
      * Configuration object for the ManipsView.
      */
-    module.tools.ManipsViewDefaults = {
+    editor.tools.ManipsViewDefaults = {
         toolName: 'Manipulations',
 		toolTip: 'Manipulations: Create and edit manipulatable transforms',
 		widgetId: 'manipsBtn',
@@ -647,13 +651,14 @@ var editor = (function(module) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.ManipsViewDefaults as default options
      */
-    module.tools.ManipsView = module.tools.ToolView.extend({
+    editor.tools.ManipsView = editor.tools.ToolView.extend({
 		init: function(options) {
-	        var newOpts = jQuery.extend({}, module.tools.ManipsViewDefaults, options);
+	        var newOpts = jQuery.extend({}, editor.tools.ManipsViewDefaults, options);
 	        this._super(newOpts);
 			
-			this.addSidebarWidget(new module.tools.CreateMnpSBWidget());
-			this.addSidebarWidget(new module.tools.MnpListSBWidget());
+			this.addSidebarWidget(new editor.tools.CreateMnpSBWidget());
+			this.addSidebarWidget(new editor.tools.MnpListSBWidget());
+			this.addSidebarWidget(editor.ui.getBehaviorWidget());
 	    }
 	});
 
@@ -665,7 +670,7 @@ var editor = (function(module) {
      * The ManipsController facilitates ManipsModel and ManipsView communication
      * by binding event and message handlers.
      */
-    module.tools.ManipsController = module.tools.ToolController.extend({
+    editor.tools.ManipsController = editor.tools.ToolController.extend({
 		init: function() {
 			this._super();
 		},
@@ -689,55 +694,56 @@ var editor = (function(module) {
 				selModel = this.selModel,
 				view = this.view,
 				crtWgt = view.createManipSBWidget,
+				bhvWgt = view.behaviorSBWidget,
 				mnpWgt = view.mnpListSBWidget;
 			
 			// view events
-			crtWgt.addListener(module.EventTypes.SaveManip, function(props) {
+			crtWgt.addListener(editor.EventTypes.SaveManip, function(props) {
 				model.saveManip(props);
 			});
 			
-			crtWgt.addListener(module.EventTypes.SetManip, function(manip) {
+			crtWgt.addListener(editor.EventTypes.SetManip, function(manip) {
 				model.setManip(manip);
 			});
 			
-			crtWgt.addListener(module.EventTypes.StartPreview, function(props) {
+			crtWgt.addListener(editor.EventTypes.StartPreview, function(props) {
 				selModel.enableSelection(false);
 				model.startPreview(props);
 			});
 			
-			crtWgt.addListener(module.EventTypes.StopPreview, function(value) {
+			crtWgt.addListener(editor.EventTypes.StopPreview, function(value) {
 				selModel.enableSelection(true);
 				model.stopPreview();
 			});
 			
-			mnpWgt.addListener(module.EventTypes.CreateManip, function(transforms) {
+			mnpWgt.addListener(editor.EventTypes.CreateManip, function(transforms) {
 				crtWgt.setVisible(true);
 				mnpWgt.setVisible(false);
 			});
 			
-			mnpWgt.addListener(module.EventTypes.RemoveManip, function(manip) {
+			mnpWgt.addListener(editor.EventTypes.RemoveManip, function(manip) {
 				model.removeManip(manip);
 			});
 			
-			mnpWgt.addListener(module.EventTypes.SetManip, function(manip) {
+			mnpWgt.addListener(editor.EventTypes.SetManip, function(manip) {
 				model.setManip(manip);
 			});
 			
-			view.addListener(module.EventTypes.ToolModeSet, function(value) {
-				var isDown = value.newMode === module.tools.ToolConstants.MODE_DOWN;
+			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+				var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
 				selModel.enableSelection(isDown);
 			});
 			
 			// model events
-			model.addListener(module.EventTypes.ManipCreated, function(manip) {
+			model.addListener(editor.EventTypes.ManipCreated, function(manip) {
 				mnpWgt.add(manip);
 			});
 			
-			model.addListener(module.EventTypes.ManipRemoved, function(manip) {
+			model.addListener(editor.EventTypes.ManipRemoved, function(manip) {
 				mnpWgt.remove(manip);
 			});
 			
-			model.addListener(module.EventTypes.ManipSet, function(manip) {
+			model.addListener(editor.EventTypes.ManipSet, function(manip) {
 				selModel.deselectAll();
 				selModel.enableSelection(true);
 				
@@ -756,11 +762,11 @@ var editor = (function(module) {
 				}
 			});
 			
-			model.addListener(module.EventTypes.ManipUpdated, function(manip) {
+			model.addListener(editor.EventTypes.ManipUpdated, function(manip) {
 				mnpWgt.update(manip);
 			});
 			
-			selModel.addListener(module.EventTypes.TransformDeselected, function(transform) {
+			selModel.addListener(editor.EventTypes.TransformDeselected, function(transform) {
 				crtWgt.removeTransform(transform);
 				
 				if (crtWgt.transforms.length === 0) {
@@ -768,12 +774,21 @@ var editor = (function(module) {
 				}
 			});
 			
-			selModel.addListener(module.EventTypes.TransformSelected, function(transform) {
+			selModel.addListener(editor.EventTypes.TransformSelected, function(transform) {
 				crtWgt.addTransform(transform);
 				mnpWgt.createBtn.removeAttr('disabled');
+			});
+			
+			// behavior widget specific
+			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
+				if (obj.updateMeta) {
+					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
+					
+					mnpWgt.setVisible(!obj.visible && isDown);
+				}
 			});
 		}
 	});
     
-    return module;
+    return editor;
 })(editor || {});
