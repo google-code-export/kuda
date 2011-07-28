@@ -111,6 +111,21 @@ p {
 	border: 10px solid transparent;
 	border-bottom-color: #000;
 }
+/**
+ * Tree tooltip styling
+ */
+.tree.tooltip .innerArrow {
+	left: 40px !important;
+}
+.tree.tooltip .arrow {
+	left: 40px !important;
+}
+.tree.tooltip .innerArrow.top {
+	left: 47px !important;
+}
+.tree.tooltip .arrow.top {
+	left: 40px !important;
+}
 
 /**
  * Error styling
