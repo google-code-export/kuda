@@ -27,7 +27,7 @@ var editor = (function(editor) {
 		container: null,
 		inputs: ['x', 'y', 'z'],
 		type: 'vector',
-		isNumeric: true,
+		inputType: 'number',
 		paramName: '',
 		onBlur: null,
 		validator: null
@@ -95,20 +95,28 @@ var editor = (function(editor) {
 		createDiv = function(ndx) {
 			var div = jQuery('<div class="vectorVec"></div>'),
 				addBtn = jQuery('<button>Add</button>'),
-				elem = createInput.call(this),
+				elem = new editor.ui.Input({
+					validator: this.config.validator,
+					inputClass: this.config.type,
+					type: this.config.inputType
+				}),
 				wgt = this;
 				
 			addBtn.bind('click', function() {
 				var btn = jQuery(this),
 					i = btn.data('ndx'),
-					newElem = createInput.call(wgt);
+					newElem = new editor.ui.Input({
+						validator: wgt.config.validator,
+						inputClass: wgt.config.type,
+						type: wgt.config.inputType
+					});
 					
 				wgt.inputs[i].push(newElem);
-				btn.before(newElem);
+				btn.before(newElem.container);
 			})
 			.data('ndx', ndx);
 			
-			div.append(elem).append(addBtn);
+			div.append(elem.container).append(addBtn);
 			
 			return {
 				div: div,
@@ -122,20 +130,10 @@ var editor = (function(editor) {
 			
 			for (var i = 0, il = this.inputs.length; i < il && isComplete; i++) {
 				var obj = this.inputs[i],
-					val = obj.elem.val(),
-					newVal = null;
+					val = obj.elem.getValue(),
+					isComplete = val !== '' && val !== null;
 				
-				if (this.config.isNumeric && hemi.utils.isNumeric(val)) {
-					newVal = parseFloat(val);	
-				}
-				else if (val && val !== '') {
-					newVal = val;
-				}
-				else {
-					isComplete = false;
-				}
-				
-				if (isComplete) {					
+				if (isComplete) {
 					if (this.multiDim) {
 						var a = values[obj.ndx1];
 						
@@ -143,10 +141,10 @@ var editor = (function(editor) {
 							a = values[obj.ndx1] = [];
 						}
 						
-						a[obj.ndx2] = newVal;
+						a[obj.ndx2] = val;
 					}
 					else {
-						values[obj.ndx1] = newVal;
+						values[obj.ndx1] = val;
 					}
 				}
 			}
@@ -157,19 +155,14 @@ var editor = (function(editor) {
 		getUnboundedValue = function() {
 			var values = [],
 				isComplete = true,
-				wgt = this,
-				getVal = function(ipt) {					
-					var val = ipt.val(),
-						retVal = val;
+				getVal = function(elem) {					
+					var val = obj.elem.getValue();
 					
-					if (wgt.config.isNumeric && hemi.utils.isNumeric(val)) {				
-						retVal = parseFloat(val);	
-					}
-					else if (!val || val === '') {
-						retVal = null;
+					if (val === '') {
+						val = null;
 					}
 					
-					return retVal;
+					return val;
 				};
 			
 			for (var i = 0, il = this.inputs.length; i < il && isComplete; i++) {
@@ -220,10 +213,14 @@ var editor = (function(editor) {
 					
 					for (var j = 0; j < jl; j++) {
 						var inputTxt = ipt[j],
-							elem = createInput.call(this);
-							
+							elem = new editor.ui.Input({
+								validator: this.config.validator,
+								inputClass: this.config.type,
+								type: this.config.inputType
+							});
+						
 						if (!noPlaceHolders) {
-							elem.attr('placeholder', inputTxt);
+							elem.container.attr('placeholder', inputTxt);
 						}
 						
 						this.inputs.push({
@@ -232,15 +229,19 @@ var editor = (function(editor) {
 							key: inputTxt,
 							elem: elem
 						});
-						div.append(elem);
+						div.append(elem.container);
 					}
 					this.container.append(div);
 				}
 				else {
-					var elem = createInput.call(this);
+					var elem = new editor.ui.Input({
+						validator: this.config.validator,
+						inputClass: this.config.type,
+						type: this.config.inputType
+					});
 					
 					if (!noPlaceHolders) {
-						elem.attr('placeholder', ipt);
+						elem.container.attr('placeholder', ipt);
 					}
 					
 					this.inputs.push({
@@ -248,7 +249,7 @@ var editor = (function(editor) {
 						key: ipt,
 						elem: elem
 					});
-					this.container.append(elem);
+					this.container.append(elem.container);
 				}
 			}
 				
@@ -269,9 +270,13 @@ var editor = (function(editor) {
 					this.container.append(obj.div);
 				}
 				else {
-					var elem = createInput.call(this);
+					var elem = new editor.ui.Input({
+						validator: this.config.validator,
+						inputClass: this.config.type,
+						type: this.config.inputType
+					});
 					this.inputs.push(elem);
-					this.container.append(elem);
+					this.container.append(elem.container);
 				}
 				
 				i++;
@@ -287,7 +292,13 @@ var editor = (function(editor) {
 					btn.before(obj.div);
 				}
 				else {
-					btn.before(createInput.call(this));
+					var elem = new editor.ui.Input({
+						validator: this.config.validator,
+						inputClass: this.config.type,
+						type: this.config.inputType
+					});
+					this.inputs.push(elem);
+					btn.before(elem.container);
 				}
 				
 				btn.data('ndx', ndx + 1);
@@ -300,13 +311,8 @@ var editor = (function(editor) {
 	
 		setupAutoFills = function() {
 			var wgt = this,
-				vectors = wgt.find('.' + this.config.type),
-				inputs = this.inputs;
-						
-			if (wgt.config.validator) {
-				wgt.config.validator.setElements(vectors);
-			}
-										
+				vectors = wgt.find('.' + this.config.type);
+			
 			vectors.bind('keydown', function(evt) {
 				var elem = jQuery(this);
 				elem.removeClass('vectorHelper');
@@ -353,11 +359,11 @@ var editor = (function(editor) {
 					if (this.multiDim) {
 						for (var j = 0, jl = val.length; j < jl; j++) {
 							var subVal = val[j];							
-							find(i, j).elem.val(subVal);
+							find(i, j).elem.setValue(subVal);
 						}
 					}
 					else {
-						find(i).elem.val(val);
+						find(i).elem.setValue(val);
 					}
 				}
 			}
@@ -374,7 +380,8 @@ var editor = (function(editor) {
 					var input = inputs[found].elem;
 					
 					if (input) {
-						input.val(values[key]).removeClass('vectorHelper');
+						input.setValue(values[key]);
+						input.container.removeClass('vectorHelper');
 					}
 				}
 			}
@@ -398,8 +405,12 @@ var editor = (function(editor) {
 						input.div = obj.div;
 					}
 					else {
-						input = this.inputs[i] = createInput.call(this);					
-						this.addBtn.before(input);	
+						input = this.inputs[i] = new editor.ui.Input({
+							validator: this.config.validator,
+							inputClass: this.config.type,
+							type: this.config.inputType
+						});					
+						this.addBtn.before(input.container);	
 					}				
 				}
 				
@@ -409,14 +420,18 @@ var editor = (function(editor) {
 							ipt = input[j];
 						
 						if (ipt == null) {
-							ipt = input[j] = createInput.call(this);
+							ipt = input[j] = new editor.ui.Input({
+								validator: this.config.validator,
+								inputClass: this.config.type,
+								type: this.config.inputType
+							});
 						}
-						ipt.val(val);
-						input.div.find('button').before(ipt);
+						ipt.setValue(val);
+						input.div.find('button').before(ipt.container);
 					}
 				}
 				else {
-					input.val(values[i]);
+					input.setValue(values[i]);
 				}
 			}
 		};
