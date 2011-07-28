@@ -59,7 +59,6 @@ var editor = (function(editor) {
 			this.container = jQuery('<ul id="' + this.config.containerId + '"></ul>');
 		},
 		
-		// TODO: was getArgs()
 		getArguments: function() {
 			var argsKeys = this.curArgs.keys(),
 				args = [];
@@ -154,7 +153,7 @@ var editor = (function(editor) {
 				ipt.bind('focus click', function(evt) {
 					ipt.data('timeout', setTimeout(function() {
 						tooltip.show(ipt, desc);
-				}, 300));
+				}, 400));
 				})
 				.bind('blur', function(evt) {	
 					var timeout = ipt.data('timeout');
