@@ -162,16 +162,32 @@ var editor = (function(editor) {
 			
 			if (desc) {
 				ipt.bind('focus click', function(evt) {
-					ipt.data('timeout', setTimeout(function() {
-						tooltip.show(ipt, desc);
-				}, 400));
+					var timeout = ipt.data('timeout');
+					
+					if (!timeout) {
+						ipt.data('timeout', setTimeout(function(){
+							tooltip.show(ipt, desc);
+							ipt.data('tooltipShown', true);
+							
+							jQuery(document).bind('click.' + argName + '.tooltipShown', function(evt){
+								console.log(argName + 'doc click: ' + ipt.data('tooltipShown'));
+								
+								if (ipt.data('tooltipShown')) {
+									ipt.blur();
+								}
+							});
+						}, 400));
+					}
 				})
 				.bind('blur', function(evt) {	
 					var timeout = ipt.data('timeout');
 					if (timeout) {
 						clearTimeout(timeout);
 						tooltip.hide(100);
+						ipt.data('timeout', null);
 					}
+					ipt.data('tooltipShown', false);
+					jQuery(document).unbind('click.' + argName + '.tooltipShown');
 				});
 			}
 			
