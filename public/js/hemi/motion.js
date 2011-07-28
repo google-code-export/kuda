@@ -231,7 +231,7 @@ var hemi = (function(hemi) {
 		 * Make the Rotator rotate the specified amount in the specified amount
 		 * of time.
 		 * 
-		 * @param {number[3]} theta an array of radians to rotate in XYZ
+		 * @param {number[3]} theta XYZ amounts to rotate (in radians)
 		 * @param {number} time number of seconds for the rotation to take
 		 * @param {boolean} opt_mustComplete optional flag indicating that no
 		 *     other rotations can be started until this one finishes
@@ -314,7 +314,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the angular acceleration.
 		 * 
-		 * @param {number[3]} accel XYZ angular acceleration in radians
+		 * @param {number[3]} accel XYZ angular acceleration (in radians)
 		 */
 		setAccel : function(accel) {
 			this.accel = accel;
@@ -323,7 +323,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the current rotation angle.
 		 * 
-		 * @param {number[3]} theta XYZ angle in radians
+		 * @param {number[3]} theta XYZ rotation angle (in radians)
 		 */
 		setAngle : function(theta) {
 			this.angle = theta;
@@ -342,7 +342,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the angular velocity.
 		 * 
-		 * @param {number[3]} vel XYZ angular velocity in radians
+		 * @param {number[3]} vel XYZ angular velocity (in radians)
 		 */
 		setVel : function(vel) {
 			this.vel = vel;
