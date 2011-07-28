@@ -546,8 +546,8 @@ var hemi = (function(hemi) {
 		/**
 		 * Orbit the Camera about a fixed point.
 		 * 
-		 * @param {number} pan The radians to pan around by.
-		 * @param {number} tilt The radians to tilt around by
+		 * @param {number} pan amount to pan around by (in radians)
+		 * @param {number} tilt amount to tilt around by (in radians)
 		 */
 		orbit : function(pan,tilt) {
 			if (tilt == null) tilt = 0;
@@ -568,8 +568,8 @@ var hemi = (function(hemi) {
 		 * Rotate the Camera in place. Has no effect if the Camera is not in
 		 * fixed-eye mode.
 		 * 
-		 * @param {number} pan Radians by which to pan.
-		 * @param {number} tilt Radians by which to tilt.
+		 * @param {number} pan amount to pan (in radians)
+		 * @param {number} tilt amount to tilt (in radians)
 		 */
 		rotate : function(pan,tilt) {
 			var cam = this.transforms.cam;
@@ -586,12 +586,12 @@ var hemi = (function(hemi) {
 		},
 
 		/**
-		 * Set the limits on the Camera pan and tilt in fixed eye mode in radians
+		 * Set the limits on the Camera pan and tilt in fixed eye mode.
 		 * 
-		 * @param {number} panMin Minimum pan angle
-		 * @param {number} panMax Maximum pan angle
-		 * @param {number} tiltMin Minimum tilt angle
-		 * @param {number} tiltMax Maximum tilt angle
+		 * @param {number} panMin minimum pan angle (in radians)
+		 * @param {number} panMax maximum pan angle (in radians)
+		 * @param {number} tiltMin minimum tilt angle (in radians)
+		 * @param {number} tiltMax maximum tilt angle (in radians)
 		 */
 		setLookAroundLimits : function(panMin, panMax, tiltMin, tiltMax) {
 			this.camPan.min = panMin;
@@ -685,8 +685,8 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the zooming limits in fixed-eye mode.
 		 *
-		 * @param {number} min Zoom-in limit, in radians
-		 * @param {number} max Zoom-out limit, in radians
+		 * @param {number} min zoom-in limit (in radians)
+		 * @param {number} max zoom-out limit (in radians)
 		 */
 		setZoomLimits : function(min,max) {
 			this.fov.min = min;
