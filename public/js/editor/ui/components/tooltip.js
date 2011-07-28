@@ -76,7 +76,8 @@ var editor = (function(editor) {
 				elemHeight = element.height(),
 				atTop = offset.top - height < 0,
 				arrowHeight = this.arrow.outerHeight(),
-				arrowWidth = this.arrow.outerWidth(),
+				arrowCenter = this.arrow.outerWidth() / 2,
+				arrowLeft = arrowCenter > center ? 5 : center - arrowCenter,
 				windowWidth = window.innerWidth ? window.innerWidth 
 					: document.documentElement.offsetWidth,
 				difference = width + offset.left > windowWidth 
@@ -101,10 +102,10 @@ var editor = (function(editor) {
 			
 			// position the arrow
 			this.innerArrow.css({
-				left: center - arrowWidth / 2
+				left: arrowLeft 
 			});
 			this.arrow.css({
-				left: center - arrowWidth / 2
+				left: arrowLeft
 			});
 			
 			if (!this.isAnimating) {
