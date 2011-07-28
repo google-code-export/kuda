@@ -138,11 +138,22 @@ var editor = (function(editor) {
 		vecInputs = ['x', 'y', 'z'];
 	
 	var createListItem = function(argName, desc, ui) {
+			var option = false;
+			
+			if (argName.indexOf('opt_') === 0) {
+				option = true;
+				argName = argName.substr(4);
+			}
+			
 			var li = jQuery('<li></li>'),
 				lbl = jQuery('<label>' + argName + '</label>'),
 				elm = ui.getUI(),
 				ipt = elm;
-				
+			
+			if (option) {
+				lbl.addClass('optional');
+			}
+			
 			li.append(lbl).append(elm);
 			
 			if (ipt[0].nodeName.toLowerCase() !== 'input') {

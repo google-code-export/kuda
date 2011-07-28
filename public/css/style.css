@@ -1747,6 +1747,9 @@ form #anmLoops label {
 	text-align: right;
 	margin-right: 5px;
 }
+#msgEditor form fieldset ol ul>li>label.optional {
+    color: #808080;
+}
 #msgEditor form fieldset ol ul>li>input:not([type=checkbox], [type=radio]) {
 	width: 180px;
 }
