@@ -92,8 +92,16 @@ var editor = (function(editor) {
 			for (var i = 0, il = params.length; i < il; i++) {
 				var prm = params[i],
 					type = meta.getType(citType, fnc, prm),
-					desc = meta.getDescription(citType, fnc, prm),
-					ui = createParameterUi(prm, type),
+					desc = meta.getDescription(citType, fnc, prm);
+				
+				type = type || 'string';
+				
+				if (desc && desc.search(/radian/i) !== -1) {
+					desc = desc.replace(/radian/gi, 'degree');
+					type = type.replace('number', 'angle');
+				}
+				
+				var ui = createParameterUi(prm, type),
 					li = createListItem(prm, desc, ui);
 				
 				if (opt_values) {
@@ -119,67 +127,6 @@ var editor = (function(editor) {
 			}
 			else {
 				ipt.setValue(argValue);
-			}
-		}
-	});
-	
-////////////////////////////////////////////////////////////////////////////////
-//                                Simple Input                                //
-////////////////////////////////////////////////////////////////////////////////
-			
-	var NUMBER = 0,
-		STRING = 1,
-		BOOLEAN = 2;
-			
-	var SimpleInputDefaults =  {
-		type: NUMBER,
-		validator: null
-	};
-			
-	var SimpleInput = editor.ui.Component.extend({
-		init: function(options) {
-			var newOpts = jQuery.extend({}, SimpleInputDefaults, options);
-			this._super(newOpts);
-		},
-		
-		finishLayout: function() {
-			switch (this.config.type) {
-				case NUMBER:
-					this.container = jQuery('<input type="text" class="short" />');
-					var validator = editor.ui.createDefaultValidator();
-					validator.setElements(this.container);
-					break;
-				case STRING:
-					this.container = jQuery('<input type="text" />');					
-					break;
-				case BOOLEAN:
-					this.container = jQuery('<input type="checkbox" />');
-					break;
-			}
-		},
-		
-		getValue: function() {
-			switch (this.config.type) {
-				case NUMBER:
-					return parseFloat(this.container.val());
-					break;
-				case STRING:
-					return this.container.val();
-					break;
-				case BOOLEAN:
-					return this.container.prop('checked');
-					break;
-			}
-		},
-		
-		setValue: function(value) {
-			switch (this.config.type) {
-				case BOOLEAN:
-					this.container.prop('checked', value);
-					break;
-				default:
-					this.container.val(value);
-					break;
 			}
 		}
 	});
@@ -222,8 +169,6 @@ var editor = (function(editor) {
 		},
 		
 		createParameterUi = function(prm, type) {
-			type = type || 'string';
-			
 			var firstMatch = type.indexOf('['),
 				firstEnd = type.indexOf(']', firstMatch + 1),
 				secondMatch = type.indexOf('[', firstMatch + 1),
@@ -235,42 +180,45 @@ var editor = (function(editor) {
 				secondBound = isMultiArray ? secondMatch + 1 < secondEnd ? 
 					parseInt(type.substr(secondMatch + 1, secondEnd)) : 0 : -1,
 				inputs = createInputArray(firstBound, secondBound),
+				baseType = type.split('[').shift(),
 				vecData = {
-					inputs: inputs
+					inputs: inputs,
+					inputType: baseType
 				},
 				ui = null;
 			
-			switch(type.split('[').shift()) {
+			switch(baseType) {
+				case 'angle':
 				case 'number':
 					var vdr = editor.ui.createDefaultValidator();
-					if (isArray) {
-						vecData.isNumeric = true;	
+					if (isArray) {	
 						vecData.validator = vdr;
 						vecData.container = jQuery('<div class="vectorContainer"></div>');
 						ui = new editor.ui.Vector(vecData);
 					}
 					else {
-						ui = new SimpleInput({
-							validator: vdr
+						ui = new editor.ui.Input({
+							validator: vdr,
+							inputClass: 'short',
+							type: baseType
 						});
 					}
 					break;
 				case 'string':
 					if (isArray) {
-						vecData.isNumeric = false;	
 						vecData.container = jQuery('<div class="vectorContainer"></div>');
 						ui = new editor.ui.Vector(vecData);
 					}
 					else {
-						ui = new SimpleInput({
-							type: STRING
+						ui = new editor.ui.Input({
+							type: baseType
 						});
 					}
 					break;
 				case 'boolean':
 					// create the input
-					ui = new SimpleInput({
-						type: BOOLEAN
+					ui = new editor.ui.Input({
+						type: baseType
 					});
 					break;
 				default:
