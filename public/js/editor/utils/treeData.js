@@ -106,13 +106,13 @@ var editor = (function(module) {
 		'hemi.manip.Scalable': ['disable', 'enable'],
 		'hemi.manip.Turnable': ['disable', 'enable'],
 		'hemi.model.Model': ['load', 'unload'],
-		'hemi.motion.Rotator': ['disable', 'enable', 'setAccel', 'setAngle',
-			'setVel'],
-		'hemi.motion.Translator': ['disable', 'enable', 'setAccel', 'setPos',
-			'setVel'],
+		'hemi.motion.Rotator': ['disable', 'enable', 'rotate', 'setAccel',
+			'setAngle', 'setVel'],
+		'hemi.motion.Translator': ['disable', 'enable', 'move', 'setAccel',
+			'setPos', 'setVel'],
 		'hemi.scene.Scene': ['load', 'nextScene', 'previousScene', 'unload'],
 		'hemi.view.Camera': ['disableControl', 'enableControl', 'moveOnCurve',
-			'moveToView', 'orbit', 'rotate', 'setLight', 'truck']
+			'moveToView', 'orbit', 'rotate', 'truck']
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
