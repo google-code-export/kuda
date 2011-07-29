@@ -170,8 +170,6 @@ var editor = (function(editor) {
 							ipt.data('tooltipShown', true);
 							
 							jQuery(document).bind('click.' + argName + '.tooltipShown', function(evt){
-								console.log(argName + 'doc click: ' + ipt.data('tooltipShown'));
-								
 								if (ipt.data('tooltipShown')) {
 									ipt.blur();
 								}

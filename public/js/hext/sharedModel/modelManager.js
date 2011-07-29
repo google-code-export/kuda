@@ -175,9 +175,8 @@ var hext = (function(hext) {
 	var getName = function(url) {		
 		var arr = url.split('/');
 		arr = arr[arr.length - 2];
-		console.log(arr);
 		return arr;
-	}
+	};
 	
 	return hext;
 })(hext || {});
