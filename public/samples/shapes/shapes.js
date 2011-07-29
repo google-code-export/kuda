@@ -29,7 +29,7 @@
 		var vp = new hemi.view.Viewpoint();		// Create a new Viewpoint
 		vp.eye = [0,40,100];					// Set viewpoint eye
 		vp.target = [0,0,0];					// Set viewpoint target
-		hemi.world.camera.moveToView(vp,120);
+		hemi.world.camera.moveToView(vp, 5);
 		hemi.world.camera.enableControl();	// Enable camera mouse control
 		
 		/* Create a cube, size 10  */

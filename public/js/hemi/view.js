@@ -48,8 +48,8 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * @class A Camera contains all of the properties and functionality for
-	 * viewing a 3D scene.
+	 * @class A Camera controls the point of view and perspective when viewing a
+	 * 3D scene.
 	 * @extends hemi.world.Citizen
 	 */
 	hemi.view.Camera = function() {
@@ -166,7 +166,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Disable free camera control.
+		 * Disable control of the Camera through the mouse and keyboard.
 		 */
 		disableControl : function() {
 			if (!this.mode.control) {
@@ -199,7 +199,7 @@ var hemi = (function(hemi) {
 		},
 			
 		/**
-		 * Enable free camera control.
+		 * Enable control of the Camera through the mouse and keyboard.
 		 */
 		enableControl : function() {
 			if (this.mode.control) {
@@ -310,14 +310,14 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Move the Camera along the given curve.
+		 * Move the Camera along the specified curve.
 		 *
-		 * @param {hemi.view.CameraCurve} curve curve for Camera eye and target
-		 *     to follow
-		 * @param {number} opt_span the number of frames or seconds to take for
-		 *     the movement along the curve (0 is instant)
+		 * @param {hemi.view.CameraCurve} curve curve for the Camera eye and
+		 *     target to follow
+		 * @param {number} opt_time the number of seconds for the Camera to take
+		 *     to move along the curve (0 is instant)
 		 */
-		moveOnCurve : function(curve, opt_span) {
+		moveOnCurve : function(curve, opt_time) {
 			if (this.vd.current !== null) {
 				this.vd.last = this.vd.current;
 			} else {
@@ -335,8 +335,7 @@ var hemi = (function(hemi) {
 			this.state.curve = curve;
 			this.state.moving = true;
 			this.state.vp = null;
-			var t = (opt_span == null) ? 1.0 : (opt_span > 0) ? opt_span : 0.001;
-			this.state.time.end = this.mode.frames ? t/hemi.view.FPS : t;
+			this.state.time.end = (opt_time == null) ? 1.0 : (opt_time > 0) ? opt_time : 0.001;
 			this.state.time.current = 0.0;
 			this.send(hemi.msg.start, { viewdata: this.vd.current });
 		},
@@ -392,14 +391,14 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Move the Camera to the given Viewpoint or ViewData.
+		 * Move the Camera to the given Viewpoint.
 		 *
-		 * @param {hemi.view.Viewpoint} view Viewpoint or ViewData to move to
-		 * @param {number} opt_span The number of frames or seconds to take
-		 *     getting there (0 is instant)
+		 * @param {hemi.view.Viewpoint} view Viewpoint to move to
+		 * @param {number} opt_time the number of seconds for the Camera to take
+		 *     to move to the Viewpoint (0 is instant)
 		 */
-		moveToView : function(view, opt_span) {
-			var t = (opt_span == null) ? 1.0 : this.mode.frames ? opt_span / hemi.view.FPS : opt_span,
+		moveToView : function(view, opt_time) {
+			var t = (opt_time == null) ? 1.0 : opt_time,
 				pkg;
 			
 			if (view.getData != null) {
@@ -544,10 +543,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Orbit the Camera about a fixed point.
+		 * Orbit the Camera about the target point it is currently looking at.
 		 * 
 		 * @param {number} pan amount to pan around by (in radians)
-		 * @param {number} tilt amount to tilt around by (in radians)
+		 * @param {number} tilt amount to tilt up and down by (in radians)
 		 */
 		orbit : function(pan,tilt) {
 			if (tilt == null) tilt = 0;
@@ -565,8 +564,8 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Rotate the Camera in place. Has no effect if the Camera is not in
-		 * fixed-eye mode.
+		 * Rotate the Camera in place so that it looks in a new direction. Note
+		 * that this has no effect if the Camera is not in fixed-eye mode.
 		 * 
 		 * @param {number} pan amount to pan (in radians)
 		 * @param {number} tilt amount to tilt (in radians)
@@ -655,7 +654,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Set the color of the light source.
+		 * Set the color of the Camera's light source.
 		 * 
 		 * @param {number[3]} rgb rgb value of the color
 		 */
@@ -725,13 +724,14 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Move the Camera in or out the given distance.
+		 * Move the Camera towards or away from its current target point by the
+		 * given distance.
 		 * 
-		 * @param {number} d the distance to move the Camera
+		 * @param {number} distance the distance to move the Camera
 		 */
-		truck : function(d) {
+		truck : function(distance) {
 			this.transforms.pan.rotateX(this.tilt.current);
-			this.transforms.pan.translate(0,0,-d);
+			this.transforms.pan.translate(0,0,-distance);
 			this.transforms.pan.rotateX(-this.tilt.current);
 			this.update();
 		},

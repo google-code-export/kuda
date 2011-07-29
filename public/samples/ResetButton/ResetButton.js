@@ -157,7 +157,7 @@
 		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_outdoors')[0].localMatrix);
 		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_outdoors')[0].localMatrix);
 		viewpoint.fov = hemi.core.math.degToRad(60);
-		hemi.world.camera.moveToView(viewpoint, 60);
+		hemi.world.camera.moveToView(viewpoint, 2.5);
 		
 		var enterMoveCamera = function() {
 			if (door.closed || window1Right.closed || window1Left.closed || entered) {
@@ -193,7 +193,7 @@
 				interval = setInterval(enterMoveCamera, 200);
 			}
 			// Move the Camera to its initial viewpoint.
-			hemi.world.camera.moveToView(viewpoint, 60);
+			hemi.world.camera.moveToView(viewpoint, 2.5);
 		});
 	}
 
@@ -209,7 +209,7 @@
 					lightTheFire();
 				}
 			});
-		hemi.world.camera.moveToView(viewpoint, 60);
+		hemi.world.camera.moveToView(viewpoint, 2.5);
 	}
 
 	function lightTheFire() {

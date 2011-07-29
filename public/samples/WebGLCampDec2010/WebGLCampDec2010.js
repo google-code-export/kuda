@@ -153,7 +153,7 @@ o3djs.require('hext.progressUI.progressBar');
 		// vp.target = SLIDE1_TARGET;
 		// vp.fp = 40000;
 		// vp.fov = sixty;
-		camera.moveToView(vp, 1);
+		camera.moveToView(vp, 0);
 		camera.enableControl();
 		var tout = setTimeout(function() {
 			var msgH = camera.subscribe(hemi.msg.stop, moveOnRails),
@@ -162,7 +162,7 @@ o3djs.require('hext.progressUI.progressBar');
 						camera.unsubscribe(msgH);
 						input.removeKeyDownListener(keyL);
 						camera.onCurve = false;
-						camera.moveToView(vp, 1);
+						camera.moveToView(vp, 0);
 					}
 				};
 			input.addKeyDownListener(keyL);
@@ -220,7 +220,7 @@ o3djs.require('hext.progressUI.progressBar');
 			curveTarget = new hemi.curve.Curve(targets, hemi.curve.CurveType.Cardinal),
 			camCurve = new hemi.view.CameraCurve(curveEye, curveTarget);
 			// curveEye.draw(50, { jointSize: 4 });
-			camera.moveOnCurve(camCurve, 600);
+			camera.moveOnCurve(camCurve, 25);
 	}
 
 	function moveCameraToSlide(slide) {
@@ -229,7 +229,7 @@ o3djs.require('hext.progressUI.progressBar');
 			vp.eye = [0, 0, SLIDE1_EYE[2] - offset];
 			vp.target = [0, 0, SLIDE1_TARGET[2] - offset];
 			camera.onCurve = false;
-			camera.moveToView(vp, 1);
+			camera.moveToView(vp, 0);
 		} else {
 			var offset = (slide - 2) * 1000,
 				Za = SLIDE1_EYE[2] - offset,
@@ -246,7 +246,7 @@ o3djs.require('hext.progressUI.progressBar');
 			curveTarget = new hemi.curve.Curve(targets, hemi.curve.CurveType.Linear),
 			camCurve = new hemi.view.CameraCurve(curveEye, curveTarget);
 			// curveEye.draw(50, { jointSize: 4 });
-			camera.moveOnCurve(camCurve, 28);
+			camera.moveOnCurve(camCurve, 1.2);
 		}
 	}
 
