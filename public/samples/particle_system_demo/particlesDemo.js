@@ -45,7 +45,7 @@
 		vp.eye = [-10,800,1800];					// Set viewpoint eye
 		vp.target = [10,250,30];					// Set viewpoint target
 
-		hemi.world.camera.moveToView(vp,60);
+		hemi.world.camera.moveToView(vp, 2.5);
 		
 		hemi.world.camera.enableControl();	// Enable camera mouse control
 		
