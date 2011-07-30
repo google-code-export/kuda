@@ -449,8 +449,8 @@ var hemi = (function(hemi) {
 	 * @extends hemi.world.Citizen
 	 * 
 	 * @param {hemi.manip.Axis} opt_axis axis to rotate about
-	 * @param {number[2]} opt_limits [min angle, max angle] in radians
-	 * @param {number} opt_startAngle starting angle in radians (default is 0)
+	 * @param {number[2]} opt_limits minimum and maximum angle limits (in radians)
+	 * @param {number} opt_startAngle starting angle (in radians, default is 0)
 	 */
 	hemi.manip.Turnable = function(opt_axis, opt_limits, opt_startAngle) {
 		hemi.world.Citizen.call(this);
@@ -778,7 +778,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Set the limits to which this Turnable can rotate.
 		 * 
-		 * @param {number[2]} limits [min,max] angle limits in radians
+		 * @param {number[2]} limits minimum and maximum angle limits (in radians)
 		 */
 		setLimits : function(limits) {
 			if (limits[0] != null) {

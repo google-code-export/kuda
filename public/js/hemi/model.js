@@ -179,7 +179,9 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * @class A Model is a Javascript representation of a 3D model.
+	 * @class A Model contains geometric shapes, hierarchical transforms that
+	 * manipulate those shapes, and materials that affect how the shapes are
+	 * displayed.
 	 * @extends hemi.world.Citizen
 	 */
 	hemi.model.Model = function() {
@@ -262,8 +264,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Load the Model. Once finished, populate the Model with transforms,
-		 * shapes, and materials.
+		 * Load the Model (or reload) from its file url.
 		 */
 		load: function() {
 			var config = new hemi.model.ModelConfig(),
