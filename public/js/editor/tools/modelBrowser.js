@@ -44,6 +44,7 @@ var editor = (function(module) {
     module.EventTypes.SetTransOpacity = "modelbrowser.SetTransOpacity";
 	
 	// selector model events
+	module.EventTypes.PickableSet = "selector.PickableSet";
 	module.EventTypes.ShapeSelected = "selector.ShapeSelected";
 	module.EventTypes.TransformDeselected = "selector.TransformDeselected";
 	module.EventTypes.TransformHidden = "selector.TransformHidden";
@@ -51,6 +52,7 @@ var editor = (function(module) {
 	module.EventTypes.TransformShown = "selector.TransformShown";
 	
 	// hidden items sidebar widget events
+	module.EventTypes.SetPickable = "hiddenItems.SetPickable";
     module.EventTypes.ShowHiddenItem = "hiddenItems.ShowHiddenItem";
 	
 	// model tree sidebar widget events
@@ -494,10 +496,17 @@ var editor = (function(module) {
 			var updates = model.transformUpdates;
 			
 			for (var ndx = 0, len = updates.length; ndx < len; ndx++) {
-	            var update = updates[ndx];
+	            var update = updates[ndx],
+					vis = update.visible,
+					pick = update.pickable;
 				
-	            if (update.visible === false) {
+	            if (vis === false) {
 					this.hideTransform(update.transform, model);
+					
+					// Pickable will be false or null (not true)
+					if (pick === null) {
+						this.setTransformPickable(update.transform, true, model);
+					}
 	            }
 	        }
 	    },
@@ -590,6 +599,21 @@ var editor = (function(module) {
 					owner.setTransformOpacity(this.currentTransform, opacity, true);
 				}
 			}
+		},
+		
+		setTransformPickable: function(transform, pickable, opt_owner) {
+			if (opt_owner == null) {
+				opt_owner = hemi.world.getTranOwner(transform);
+			}
+			
+			opt_owner.setPickable({
+				transforms: [transform],
+				pick: pickable
+			});
+            this.notifyListeners(module.EventTypes.PickableSet, {
+				tran: transform,
+				pick: pickable
+			});
 		},
 	    
 	    showSelected: function() {
@@ -1051,14 +1075,17 @@ var editor = (function(module) {
 		init: function() {
 			this._super();
 		},
-						
+		
 		finishLayout: function() {
 			this.container = jQuery('<div></div>');
 			this.title = jQuery('<span></span>');
+			this.pickBtn = jQuery('<input type="checkbox"/>');
 			this.showBtn = jQuery('<button class="removeBtn">Show</button>');
 			var btnDiv = jQuery('<div class="buttonContainer"></div>');
+			var pickSpan = jQuery('<span style="float:left;">Pick</span>');
 			
-			btnDiv.append(this.showBtn);
+			pickSpan.append(this.pickBtn);
+			btnDiv.append(pickSpan).append(this.showBtn);
 			this.container.append(this.title).append(btnDiv);
 		},
 		
@@ -1109,6 +1136,13 @@ var editor = (function(module) {
 				li.setText(transform.name);
 				li.attachObject(transform);
 				
+				li.pickBtn.bind('click', function(evt) {
+					var transform = li.getAttachedObject();
+					wgt.notifyListeners(module.EventTypes.SetPickable, {
+						tran: transform,
+						pick: this.checked
+					});
+				});
 				li.showBtn.bind('click', function(evt) {
 					var transform = li.getAttachedObject();
 					wgt.notifyListeners(module.EventTypes.ShowHiddenItem, transform);
@@ -1154,6 +1188,14 @@ var editor = (function(module) {
 				
 			if (listHeight > 0) {
 				list.height(listHeight);
+			}
+		},
+		
+		setPickable: function(transform, pickable) {
+			var li = this.hiddenItems.get(transform.clientId);
+			
+			if (li) {
+				li.pickBtn.prop('checked', pickable);
 			}
 		},
 		
@@ -1695,6 +1737,9 @@ var editor = (function(module) {
 			});	        
 			
 			// hidden list widget specific
+			hidWgt.addListener(module.EventTypes.SetPickable, function(data) {
+				selModel.setTransformPickable(data.tran, data.pick);
+			});
 			hidWgt.addListener(module.EventTypes.ShowHiddenItem, function(transform) {
                 selModel.showTransform(transform);
 			});
@@ -1812,6 +1857,9 @@ var editor = (function(module) {
 	        });
 			
 			// select model specific
+			selModel.addListener(module.EventTypes.PickableSet, function(data) {
+	            hidWgt.setPickable(data.tran, data.pick);
+	        });
 			selModel.addListener(module.EventTypes.ShapeSelected, function(shapeInfo) {
 				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
 				
@@ -1821,20 +1869,20 @@ var editor = (function(module) {
 					infoDisp.setShape(shapeInfo.shape, shapeInfo.owner);
 					infoDisp.setVisible(isDown);
 				}
-			});			
+			});
 			selModel.addListener(module.EventTypes.TransformDeselected, function(transform) {
 				mbrWgt.deselectNode(getNodeId(transform));
 				view.transformDeselected();
-			});	        
+			});
 	        selModel.addListener(module.EventTypes.TransformHidden, function(obj) {
 				var isDown = view.mode == module.tools.ToolConstants.MODE_DOWN;
 	            hidWgt.addHiddenItem(obj.transform, obj.owner);
 				hidWgt.setVisible(isDown);
-	        });			
+	        });
 			selModel.addListener(module.EventTypes.TransformSelected, function(transform) {
 				mbrWgt.selectNode(getNodeId(transform));
 				view.transformSelected(transform);
-			});	        
+			});
 	        selModel.addListener(module.EventTypes.TransformShown, function(transform) {
 	            hidWgt.removeHiddenItem(transform);
 	        });
