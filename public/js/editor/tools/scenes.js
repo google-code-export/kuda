@@ -148,16 +148,25 @@ var editor = (function(module) {
 			
 			while (nextScene !== null) {
 				this.notifyListeners(module.EventTypes.Scenes.SceneAdded, nextScene);
-				var target = hemi.dispatch.getTargets({
-							src: nextScene
-						}),
-					spec = hemi.dispatch.getSpec(target);
-					
-				this.notifyListeners(module.EventTypes.Scenes.ScnEventCreated, {
-					scene: nextScene,
-					type: spec.msg,
-					msgTarget: target
-				});
+				var specs = hemi.dispatch.getSpecs({
+						src: nextScene.getId()
+					});
+				
+				for (var i = 0, il = specs.length; i < il; ++i) {
+					var spec = specs[i],
+						msg = spec.msg,
+						targets = spec.targets;
+						
+					for (var j = 0, jl = targets.length; j < jl; ++j) {
+						var target = targets[j];
+							
+						this.notifyListeners(module.EventTypes.Scenes.ScnEventCreated, {
+							scene: nextScene,
+							type: msg,
+							msgTarget: target
+						});
+					}
+				}
 				
 				nextScene = nextScene.next;
 			}
@@ -387,7 +396,9 @@ var editor = (function(module) {
 			});			
 			scnLst.addListener(module.EventTypes.Scenes.RemoveScene, function(scene) {
 				// get the scene's events
-				var targets = msgMdl.dispatchProxy.getTargets(scene.getId());
+				var targets = msgMdl.dispatchProxy.getTargets({
+						src: scene.getId()
+					});
 				
 				for (var ndx = 0, len = targets.length; ndx < len; ndx++) {
 					msgMdl.removeTarget(targets[ndx]);
