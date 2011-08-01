@@ -484,8 +484,14 @@ var hemi = (function(hemi) {
 			var toLoad = this.toLoad;
 			
 			for (var i = 0, il = toLoad.length; i < il; i++) {
-				var owner = toLoad[i];
-				this.owners.put(owner.citizen.getId(), owner);
+				var owner = toLoad[i],
+					cit = owner.citizen;
+				
+				if (cit) {
+					this.owners.put(owner.citizen.getId(), owner);
+				} else {
+					hemi.console.log('TransformOwner has null citizen.', hemi.console.ERR);
+				}
 			}
 			
 			this.toLoad = null;
