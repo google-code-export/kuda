@@ -294,8 +294,8 @@ var editor = (function(module) {
 							.addClass('errMsg').show();
 							
 						setTimeout(function() {
-							that.openPrjDlg.dialog('close');
-						}, 2000);
+							dlg.dialog('close');
+						}, 3000);
 					}
 					else {
 						msg.text(xhr.responseText);
