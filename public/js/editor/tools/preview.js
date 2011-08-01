@@ -70,6 +70,7 @@ var editor = (function(module) {
 				pickRoot: hemi.picking.pickRoot,
 				pickManager: hemi.picking.pickManager,
 				modelRoot: hemi.model.modelRoot,
+				shapeRoot: hemi.shape.root,
 				children: hr.children,
 				rL: hemi.view.renderListeners,
 				mdL: hi.mouseDownListeners,
@@ -109,7 +110,9 @@ var editor = (function(module) {
 			hemi.dispatch.msgSpecs = new hemi.utils.Hashtable();
 			hemi.picking.init();
 			hemi.model.init();
-			hemi.shape.root = hemi.picking.pickRoot;
+			hemi.shape.root = hemi.core.mainPack.createObject('Transform');
+			hemi.shape.root.name = hemi.shape.SHAPE_ROOT;
+			hemi.shape.root.parent = hemi.picking.pickRoot;
 			
 			hemi.world.subscribe(hemi.msg.progress, module.ui.progressUI, 'msgUpdate');
 			
@@ -136,6 +139,8 @@ var editor = (function(module) {
 			hemi.hud.hudMgr.clearDisplay();
 			hemi.model.modelRoot.parent = null;
 			hemi.core.mainPack.removeObject(hemi.model.modelRoot);
+			hemi.shape.root.parent = null;
+			hemi.core.mainPack.removeObject(hemi.shape.root);
 			hemi.picking.pickRoot.parent = null;
 			hemi.core.mainPack.removeObject(hemi.picking.pickRoot);
 			
@@ -144,8 +149,9 @@ var editor = (function(module) {
 			hemi.picking.pickRoot = ws.pickRoot;
 			hemi.picking.pickManager = ws.pickManager;
 			hemi.model.modelRoot = ws.modelRoot;
-			hemi.shape.root = hemi.picking.pickRoot;
+			hemi.shape.root = ws.shapeRoot;
 			hemi.shape.material.getParam('lightWorldPos').bind(ws.camera.light.position);
+			hemi.shape.transMaterial.getParam('lightWorldPos').bind(ws.camera.light.position);
 			
 			if (ws.fog != null) {
 				hw.fog = ws.fog;

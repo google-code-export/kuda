@@ -414,9 +414,16 @@ var hemi = (function(hemi) {
 			true);
 		
 		hemi.world.addCamCallback(function(camera) {
-			var param = hemi.shape.material.getParam('lightWorldPos'); 
+			var pos = camera.light.position,
+				param = hemi.shape.material.getParam('lightWorldPos');
+			
 			if (param) {
-				param.bind(camera.light.position);
+				param.bind(pos);
+			}
+			
+			param = hemi.shape.transMaterial.getParam('lightWorldPos'); 
+			if (param) {
+				param.bind(pos);
 			}
 		});
 	};
