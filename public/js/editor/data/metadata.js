@@ -24,9 +24,14 @@ var editor = (function(module) {
 		},
 		
 		getDescription: function(objType, opt_fnc, opt_param) {
-			var args = [].splice.call(arguments, 0),
-				parent = this.getParent(objType),
-				retVal = retrieve.call(this, args);
+			var parent = this.getParent(objType),
+				args = [];
+			
+			for (var i = 0, il = arguments.length; i < il; ++i) {
+				args[i] = arguments[i];
+			}
+			
+			var retVal = retrieve.call(this, args);
 			
 			while (retVal == null && parent != null) {
 				args[0] = parent;
@@ -72,9 +77,14 @@ var editor = (function(module) {
 		},
 		
 		getType: function(objType, opt_fnc, opt_param) {
-			var args = [].splice.call(arguments, 0),
-				parent = this.getParent(objType),
-				retVal = retrieve.call(this, args);
+			var parent = this.getParent(objType),
+				args = [];
+			
+			for (var i = 0, il = arguments.length; i < il; ++i) {
+				args[i] = arguments[i];
+			}
+			
+			var retVal = retrieve.call(this, args);
 			
 			while (retVal == null && parent != null) {
 				args[0] = parent;
