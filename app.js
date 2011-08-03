@@ -259,10 +259,6 @@ app.post('/publish', function(req, res) {
 		copyFiles('./public/js/o3djs', toDir + '/o3djs');
 		var data = fs.readFileSync('./public/js/lib/jshashtable.js');
 		fs.writeFileSync(toDir + '/lib/jshashtable.js', data);
-		data = fs.readFileSync('./public/js/lib/JSON.js');
-		fs.writeFileSync(toDir + '/lib/JSON.js', data);
-		data = fs.readFileSync('./public/js/lib/JSONError.js');
-		fs.writeFileSync(toDir + '/lib/JSONError.js', data);
 		data = fs.readFileSync(projectsPath + '/' + name + '.json');
 		fs.writeFileSync(toDir + '/README', readme.concat(models));
 		fs.writeFileSync(toDir + '/' + name + '.json', data);
