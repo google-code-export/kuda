@@ -478,17 +478,20 @@ var editor = (function(module) {
 		},
 		
 	    onPick: function(pickInfo, mouseEvent) {
-			var transform = pickInfo.shapeInfo.parent.transform,
-				owner = hemi.world.getTranOwner(transform);
-			
-			if (this.isSelected(transform) && mouseEvent.shiftKey) {
-				this.deselectTransform(transform, owner);
-			} else {
-				if (!mouseEvent.shiftKey) {
-					this.deselectAll();
-				}
+			if (!this.curHandle.down) {
+				var transform = pickInfo.shapeInfo.parent.transform, 
+					owner = hemi.world.getTranOwner(transform);
 				
-				this.selectTransform(transform, owner);
+				if (this.isSelected(transform) && mouseEvent.shiftKey) {
+					this.deselectTransform(transform, owner);
+				}
+				else {
+					if (!mouseEvent.shiftKey) {
+						this.deselectAll();
+					}
+					
+					this.selectTransform(transform, owner);
+				}
 			}
 	    },
 	    
@@ -556,7 +559,7 @@ var editor = (function(module) {
 			}
 	    },
 		
-		selectTransform: function(transform, opt_owner) {
+		selectTransform: function(transform, opt_owner) {			
 			if (opt_owner == null) {
 				opt_owner = hemi.world.getTranOwner(transform);
 			}
