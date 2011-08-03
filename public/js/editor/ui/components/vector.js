@@ -62,6 +62,8 @@ var editor = (function(editor) {
 			else {
 				layoutBounded.call(this);
 			}
+			
+			this.validator = new editor.ui.VectorValidator(this);
 		},
 		
 		setValue: function(values) {	
@@ -149,7 +151,7 @@ var editor = (function(editor) {
 				}
 			}
 			
-			return values;
+			return isComplete ? values : null;
 		},
 		
 		getUnboundedValue = function() {
