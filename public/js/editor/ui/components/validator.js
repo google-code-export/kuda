@@ -21,7 +21,7 @@ var editor = (function(editor) {
 	editor.EventTypes = editor.EventTypes || {};
 	
 	var tooltip = new editor.ui.createTooltip();
-		
+	
 	editor.ui.Validator = editor.utils.Listenable.extend({
 		init: function(opt_elements, checkFunction) {
 			this._super();
@@ -54,7 +54,53 @@ var editor = (function(editor) {
 			});
 		}
 	});
-		
+	
+	editor.ui.VectorValidator = editor.utils.Listenable.extend({
+		init: function(vector) {
+			this._super();
+			this.containerClass = 'errorWrapper';
+			this.timeoutId = null;
+			this.vector = vector;
+			
+			var vecInputs = vector.find('.' + vector.config.type),
+				that = this;
+			
+			vecInputs.bind('focus', function(evt) {
+				if (that.timeoutId) {
+					clearTimeout(that.timeoutId);
+					that.timeoutId = null;
+				}
+			})
+			.bind('blur', function(evt) {
+				var inputs = that.vector.inputs,
+					firstVal = inputs[0].elem.getValue(),
+					isNull = firstVal === '' || firstVal === null,
+					msg = null;
+				
+				for (var i = 1, il = inputs.length; i < il && !msg; i++) {
+					var val = inputs[i].elem.getValue(),
+						check = val === '' || val === null;
+					
+					if (check !== isNull) {
+						msg = 'must fill out all values';
+					}
+				}
+				
+				if (msg) {
+					that.timeoutId = setTimeout(function() {
+						that.timeoutId = null;
+						tooltip.setContainerClass(that.containerClass);
+						tooltip.show(that.vector.getUI(), msg, 3000);
+						vecInputs.addClass('error');
+					}, 1500);
+				} else {
+					tooltip.hide();	
+					vecInputs.removeClass('error');
+				}
+			});
+		}
+	});
+	
 	editor.ui.createDefaultValidator = function(opt_min, opt_max) {
 		var validator = new editor.ui.Validator(null, function(elem) {
 			var val = elem.val(),
