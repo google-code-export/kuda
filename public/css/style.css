@@ -40,9 +40,447 @@ p {
     font: 9pt / 16pt Helvetica, Verdana, Arial, sans-serif;
 }
 
+/******************************************************************************
+ * 									TabBar									  *
+ ******************************************************************************/
+#tabBar {
+	position: relative;
+	float: left;
+	background: -moz-linear-gradient(100% 100% 180deg, #333, #383838);
+	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#383838), to(#333));
+	color: #fff;
+	height: 100%;
+	font-family: "Myriad Pro", Helvetica, Arial, sans-serif;
+	text-shadow: 0 -1px 1px #333;
+	box-shadow: 0 0 10px #333;
+	opacity: 0.95;
+}
+#tabBar>h1 {
+	font-size: 24px;
+	line-height: 30px;
+	font-weight: bold;
+	padding: 10px 0;
+	margin: 30px 20px 10px 10px;
+	border-bottom: 1px dotted #666;
+	text-transform: uppercase;
+}
+#tabBar>h1 span {
+	color: #88b2cb;
+}
+#tabBar>ul {
+	font-size: 18px;
+	line-height: 24px;
+	font-weight: bold; 
+	margin-left: 10px;
+}
+#tabBar>ul>li {
+	float: left;
+	padding: 5px 0;
+	clear: left;
+}
+#tabBar h2>a {
+	text-decoration: none;
+	display: block;
+	color: #fff;
+}
+#tabBar h2>a:hover {
+	color: #88b2cb;
+}
+
+/******************************************************************************
+ * 								   3d Panel								  	  *
+ ******************************************************************************/
+#o3d {
+    position: absolute;
+	width: 100%;
+	top: 0;
+	left: 0;
+}
+
+.mainView {
+    margin: 0;
+	width: 100%;
+}
+.hiddenView {
+    height: 0;
+    margin: 0;
+	display: none;
+}
+
+/******************************************************************************
+ * 									ToolBar									  *
+ ******************************************************************************/
+.toolbarContainer {
+	float: left;
+	position: relative;
+	color: #fff; 
+	height: 100%;
+}
+.toolbar {
+	float: left;
+	top: 45px;
+}
+.toolbar>h1 {
+	font: bold 14px/14px "Myriad Pro", Helvetica, Arial, sans-serif;
+	text-shadow: 0 -1px 0 #666; 
+	border-bottom: 1px solid #666;
+	padding: 5px;
+}
+.toolbar ul li {
+	padding: 5px 2px 5px 0;
+	float: left;
+}
+.toolbar ul li:nth-child(4n) {
+	clear: left;
+}
+.toolbar ul li:nth-child(n+4) {
+	padding-top: 0;
+}
+
 /**
- * Tooltip styling
+ * Toolbar buttons
  */
+.toolBtn {
+	position: relative;
+    color: #fff;
+    text-indent: -5000px;
+	text-align: left;
+	width: 48px;
+	height: 48px;
+	-webkit-transition: background-color 0.25s ease-in-out;
+	-moz-transition: background-color 0.25s ease-in-out;
+	-o-transition: background-color 0.25s ease-in-out;
+	z-index: 10;
+	border: 1px solid #222;
+	border-radius: 6px;
+	background: #444;
+}
+.toolHover {
+	height: 18px;
+	position: absolute;
+	display: none;
+	text-align: center;
+	border-radius: 20px;
+	background: rgba(0, 0, 0, 0.65);
+	color: #fff;
+	font: bold 14px/22px "Myriad Pro", Helvetica, Arial, sans-serif;
+	padding: 2px 10px;
+	text-indent: 0;
+	text-shadow: none;
+	white-space: nowrap;
+}
+.toolBtn:after {
+	content: '';
+    background: url(../images/toolbarSprite.png) no-repeat 0 0;
+	display: block;
+	width: 44px;
+	height: 44px;
+	float: left;
+}
+.toolBtn:hover {
+	background-color: #666;
+}
+.toolBtn:last-child {
+    margin-bottom: 0;
+}
+
+#modelBrowserBtn:after {
+	background-position: 0 0;
+}
+
+#modelBrowserBtn:hover:after, #modelBrowserBtn.down:after {
+    background-position: 0 -48px;
+}
+
+#animationsBtn:after {
+	background-position: -48px 0;
+}
+
+#animationsBtn:hover:after, #animationsBtn.down:after {
+    background-position: -48px -48px;
+}
+
+#viewpointsBtn:after {
+	background-position: -96px 0;
+}
+
+#viewpointsBtn:hover:after, #viewpointsBtn.down:after {
+    background-position: -96px -48px;
+}
+
+#messagingBtn:after {
+	background-position: -192px 0;
+}
+
+#messagingBtn:hover:after, #messagingBtn.down:after {
+    background-position: -192px -48px;
+}
+
+#scenesBtn:after {
+	background-position: -240px 0;
+}
+
+#scenesBtn:hover:after, #scenesBtn.down:after {
+    background-position: -240px -48px;
+}
+
+#particleEffectsBtn:after {
+	background-position: -288px 0;
+}
+
+#particleEffectsBtn:hover:after, #particleEffectsBtn.down:after {
+	background-position: -288px -48px;
+}
+
+#shapesBtn:after {
+	background-position: -336px 0;
+}
+
+#shapesBtn:hover:after, #shapesBtn.down:after {
+	background-position: -336px -48px;
+}
+
+#hudBtn:after {
+	background-position: -384px 0;
+}
+
+#hudBtn:hover:after, #hudBtn.down:after {
+	background-position: -384px -48px;
+}
+
+#fogBtn:after {
+	background-position: -432px 0;
+}
+
+#fogBtn:hover:after, #fogBtn.down:after {
+	background-position: -432px -48px;
+}
+
+#motionsBtn:after {
+	background-position: -144px 0;
+}
+
+#motionsBtn:hover:after, #motionsBtn.down:after  {
+	background-position: -144px -48px;
+}
+
+#manipsBtn:after {
+	background-position: -480px 0;
+}
+
+#manipsBtn:hover:after, #manipsBtn.down:after {
+	background-position: -480px -48px;
+}
+
+.toolBtn.down {
+	background: #88b2cb;   
+}
+
+/******************************************************************************
+ * 									Panel									  *
+ ******************************************************************************/
+.rightAligned {
+	position: absolute;
+	right: 0;
+	top: 0;
+}
+.bottomAligned {
+	position: absolute;
+	bottom: 0;
+}
+.topAligned {
+	position: absolute;
+	top: 0;
+}
+.panel {
+	background: -moz-linear-gradient(100% 100% 180deg, #eee, #fff);
+	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#fff), to(#eee));
+	color: #333;
+	box-shadow: 0 0 10px #666;
+	opacity: 0.85;
+	max-width: 300px;
+	height: 100%;
+}
+
+/******************************************************************************
+ * 									Widget									  *
+ ******************************************************************************/
+
+.widget {
+	background: -moz-linear-gradient(100% 100% 180deg, #d5e0e4, #c0d0d6);
+	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#c0d0d6), to(#d5e0e4));
+	padding: 10px;
+	text-align: left;
+}
+.widgetWithForms {
+	background: -moz-linear-gradient(100% 100% 180deg, #eee, #fff);
+	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#fff), to(#eee));
+	overflow: auto;
+}
+.widget h1 {
+	font: bold 18px/20px "Myriad Pro", Helvetica, Arial, sans-serif; 
+	text-align: left;
+}
+.widget.second {
+	border-top: 1px solid #88b2cb;
+}
+
+/******************************************************************************
+ * 								  List Widget								  *
+ ******************************************************************************/
+
+.listWidget {
+	list-style: none;
+	padding: 0;
+	margin: 0 -10px;
+	float: left;
+	width: 320px;
+	overflow: auto;
+}
+ol.listWidget {
+	list-style: decimal inside none;
+}
+.listWidget li {
+	display: block;
+	width: 100%;
+	clear: both;
+	float: left;
+	padding: 5px 0 0;
+	line-height: 30px;
+	position: relative;
+}
+ol.listWidget li {
+	display: list-item;
+	width: 290px;
+	padding: 5px 0 0 10px;
+}
+ol.listWidget li>div {
+	float: right;
+	width: 270px;
+}
+ul.listWidget li>div {
+	float: left;
+	width: 300px;
+	margin-left: 10px;
+}
+.listWidget>li:nth-child(odd) {
+	background: #a6bcc4;
+} 
+.listWidget li span {
+	float: left;
+	margin: 0 10px;
+}
+ol.listWidget li span {
+	margin: 0;
+}
+.listWidget .msgEdtListItm {
+	float: left;
+	width: 100%;
+	padding: 5px 0;
+}
+.listWidget li:hover {
+	background: #e3eaed;
+}
+.listWidget li>div>span {
+	font-weight: bold;
+	cursor: pointer;
+}
+.listWidget li:hover>div>span {
+	text-decoration: underline;
+}
+.listWidget .buttonContainer {
+	float: right;
+	padding: 0 10px 5px 0;
+}
+
+/**
+ * List widget buttons
+ */
+.listWidget button {
+	text-indent: -5000px;
+	height: 24px;
+	width: 24px;
+	border: 1px solid transparent;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	padding: 3px;
+	background: none;
+}
+.listWidget button.uiMenuShown {	
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
+}
+.listWidget button:before {
+	background: url(../images/listOptionsSprite.png) no-repeat;
+	height: 16px;
+	width: 16px;
+	border: none;
+	padding: 0;
+	content: "";
+	float: left;
+}
+.listWidget button:not(.uiMenuShown):hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #888, #999); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#999), to(#888));
+	border-color: #666;
+}
+.listWidget button.editBtn:before {
+	background-position: 0 0;
+}
+.listWidget button.editBtn:hover:before {
+	background-position: -16px 0;
+}
+.listWidget button.behaviorBtn:before {
+	background-position: 0 -16px;
+}
+.listWidget button.behaviorBtn:hover:before {
+	background-position: -16px -16px;
+}
+.listWidget button.removeBtn:before {
+	background-position: 0 -32px;
+}
+.listWidget button.removeBtn:hover:before {
+	background-position: -16px -32px;
+}
+.listWidget button.cloneBtn:before {
+	background-position: 0 -64px;
+}
+.listWidget button.cloneBtn:hover:before {
+	background-position: -16px -64px;
+}
+.listWidget button.chainBtn:before {
+	background-position: 0 -48px;
+}
+.listWidget button.chainBtn:hover:before {
+	background-position: -16px -48px;
+}
+.listWidget button.chainBtn[disabled]:before {
+	background-position: 0 -80px;
+}
+.listWidget button.addBtn {
+	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#eee));
+	border-color: #eee;
+	padding: 3px 6px;
+	width: 30px;
+}
+.listWidget button.addBtn:before {
+	background-position: 0 -96px;
+}
+.listWidget button.addBtn:hover:before {
+	background-position: -16px -96px;
+}
+
+form input.prmWgtCitTreeIpt, form input.treeSelectorIpt,
+form input.objPkrCitTreeIpt {
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+}
+
+/******************************************************************************
+ * 									Tooltip									  *
+ ******************************************************************************/
+
 .tooltip {
 	position: absolute;
 	display: block;
@@ -164,124 +602,6 @@ input.error {
 }
 
 /**
- * Menu styling
- */
-#menu {
-    width: 100%;
-    background: #7f7f7f;
-	background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eaeaea);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eaeaea), to(#dadada));
-    border-bottom: 1px solid #ccc;
-    padding: 0;
-    float: left;
-}
-
-#menu h1 {
-    color: #535353;
-    font: bold 16pt/22pt "Myriad Pro", Helvetica, Verdana, Arial, sans-serif;
-    text-align: left;
-    padding: 5px 10px 5px 20px;
-    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
-    text-transform: uppercase;
-    float: left;
-}
-
-#menu #geometryToggle {
-	display: block;
-	position: relative;
-	float: right;
-	margin: 5px 20px;
-	background: url(../images/geomSprite.png) no-repeat 0 0;
-	height: 20px;
-	padding-left: 33px;
-    font: bold 10pt / 14pt "Myriad Pro", Helvetica, Arial, sans-serif;
-    color: #535353;
-    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
-	text-decoration: none;
-}
-#menu #geometryToggle:hover {
-	text-decoration: underline;
-    color: #0a6496;
-}
-#menu #geometryToggle.smallGeom {
-	background-position: 0 -20px;
-}
-
-#menu .uiMenuBar {
-    font: bold 10pt / 14pt "Myriad Pro", Helvetica, Arial, sans-serif;
-    color: #535353;
-    margin-left: 20px;
-    cursor: pointer;
-}
-
-#menu .uiMenuBar > ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    float: left;
-}
-
-#menu .uiMenuBar > ul > li {
-    float: left;
-}
-
-#menu .uiMenu {
-    position: relative;
-}
-
-#menu .uiMenu > span {	
-    padding: 10px;
-	display: block;
-}
-
-#menu .uiMenu > span.uiMenuShown {
-	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
-	color: #fff;
-	text-shadow: 0 -1px 0 #000;
-}
-
-#menu .uiMenu ul {
-    list-style: none;
-    position: absolute;
-    background: #333;
-    padding: 5px;
-    margin: 0;
-    z-index: 100;
-	color: #fff;
-	text-shadow: 0 -1px 0 #000;
-	border-radius: 0 0 3px 3px;
-}
-
-#menu .uiMenu ul li {
-    white-space: nowrap;
-}
-
-#menu .uiMenu > span.uiMenuShown:hover, #menu .uiMenu ul li:hover,
-#menu .uiMenu ul li a:hover {
-    color: #c2dfef;
-}
-
-#menu .uiMenu > span:not(.uiMenuShown):hover {
-	color: #0a6496;
-}
-
-#menu .uiMenu ul li a {
-    display: block;
-}
-
-#menu .uiMenu ul li a.down {
-    color: #88b2cb;
-}
-
-#menu .uiMenuSeparator {
-    border-bottom: 1px solid #aaa;
-    margin: 10px 0;
-	width: 100%;
-	display: block;
-}
-
-/**
  * Project name styling
  */
 #currentProject {
@@ -299,615 +619,33 @@ input.error {
 	color: #0A6496;
 }
 
-/**
- * ActionBar.  The actionBar consists of the most common and basic functionality.
- */
-#actionBar {
-    width: 100%;
-    background: #555;
-	background: -moz-linear-gradient(100% 100% 90deg, #eee, #efefef);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#efefef), to(#eee));
-    border-bottom: 1px solid #ddd;
-	border-top: 1px solid #fafafa;
-    overflow: hidden;
-    height: 40px;
-}
+/******************************************************************************
+ * 									Forms									  *
+ ******************************************************************************/
 
-#actionBar > div > div {
-    margin: 0 20px 0 10px;
-    padding: 6px;
-    float: left;
-    font: bold 13px / 18pt "Myriad Pro", Helvetica, Arial, sans-serif;
-}
-
-#actionBar > div > div a, #actionBar > div > div span:not(#crvBoxNumber) {
-    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.25);
-    text-decoration: none;
-    color: #535353;
-    display: block;
-}
-
-#actionBar > div > div span:not(#crvBoxNumber) {
-    float: left;
-    margin-right: 5px;
-}
-
-#actionBar > div > div div {
-    float: left;
-}
-
-#actionBar form {
-    margin: 0;
-    padding: 0;
-    counter-reset: none;
-    float: left;
-}
-
-#actionBar form > fieldset {
-}
-
-#actionBar form > fieldset > legend:before {
-    content: inherit;
-}
-
-#actionBar form ol li {
-    width: auto;
-}
-
-#actionBar form .inputWrapper {
-    float: right;
-    margin-right: 5px;
-}
-
-#actionBar form label {
-    float: left;
-    font-size: 13px;
-    color: #fff;
-    width: auto;
-    margin-right: 10px;
-}
-
-#actionBar form input {
-    float: right;
-}
-
-#actionBar form button.loader {
-    float: right;
-}
-
-/**
- * ActionBar buttons
- */
-#actionBar button {
-    background: #fafafa;
-	background: -moz-linear-gradient(100% 100% 90deg, #ededed, #fafafa);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ededed), to(#fafafa));
-    border: 1px solid #ddd;
-    -moz-border-radius: 2px;
-    -webkit-border-radius: 2px;
-    -khtml-border-radius: 2px;
-    border-radius: 2px;
-	-moz-box-shadow: 0 1px 1px #fafafa; 
-    color: #535353;
-    float: left;
-    font: bold 13px / 15px "Myriad Pro", helvetica, verdana, arial, sans-serif;
-    padding: 4px 8px;
-    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.25);
-    margin-left: 5px;
-    margin-bottom: 0;
-	margin-top: 0;
-}
-
-#actionBar button:hover, #actionBar button.down:hover {
-    background: #eee;
-	background: -moz-linear-gradient(100% 100% 90deg, #ddd, #eee);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#eee));
-    cursor: pointer;
-}
-
-#actionBar button.down {
-    background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eaeaea);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dadada), to(#eaeaea));
-}
-
-#actionBar button[disabled] {
-    color: #ccc;
-}
-
-#actionBar button:first-child {
-    margin-left: 0;
-}
-
-/**
- * Column placement
- */
-#wrapper {
-	border-top: 1px solid #fff;
-    padding: 0;
-    clear: both;
-    float: left;
-    overflow: hidden;
-    position: relative;
-    width: 100%;
-	height: 100%;
-}
-#wrapper > div {
-	background: -moz-linear-gradient(100% 100% 90deg, #fafafa, #eee);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eee));
-}
-
-#column1 {
-	padding: 10px 0;
-    position: relative;
-    float: left;
-    width: 60px;
-	border-right: 1px solid #ddd;
-}
-
-#column2 {
-    position: relative;
-    float: left;
-	border-left: 1px solid #fff;
-	border-right: 1px solid #ddd;
-}
-
-#column3 {
-	padding: 10px 0 0;
-    position: relative;
-    float: right;
-	border-left: 1px solid #fff;
-}
-
-/**
- * o3d panel
- */
-#o3d {
-    position: relative;
-    float: left;
-	width: 100%;
-}
-
-.mainView {
-    margin: 0;
-	width: 100%;
-}
-.hiddenView {
-    height: 0;
-    margin: 0;
-	display: none;
-}
-
-/**
- * Toolbars
- */
-.toolbar {
-    width: 56px;
-	float: left;
-}
-
-#manipTools {
-}
-
-#complexTools {
-    position: relative;
-    float: right;
-}
-
-/**
- * Toolbar buttons
- */
-.toolBtn {
-	position: relative;
-    border: none;
-    border-radius: 0;
-    background: none;
-	box-shadow: none;
-    color: #fff;
-	margin: 1px 2px;
-    text-indent: -5000px;
-	padding: 0 4px;
-	text-align: left;
-	width: 56px;
-	height: 48px;
-	-webkit-transition: background-color 0.25s ease-in-out;
-	-moz-transition: background-color 0.25s ease-in-out;
-	-o-transition: background-color 0.25s ease-in-out;
-	z-index: 10;
-}
-
-.toolHover {
-	height: 18px;
-	position: absolute;
-	display: none;
-	text-align: center;
-	border-radius: 20px;
-	background: rgba(0, 0, 0, 0.65);
-	color: #fff;
-	font: bold 14px/22px "Myriad Pro", Helvetica, Arial, sans-serif;
-	padding: 2px 10px;
-	text-indent: 0;
-	text-shadow: none;
-	white-space: nowrap;
-}
-
-#complexTools .toolBtn {
-    float: right;
-}
-.toolBtn:after {
-	content: '';
-    background: url(../images/toolbarSprite.png) no-repeat 0 0;
-	display: block;
-	width: 48px;
-	height: 48px;
-	float: left;
-	margin-top: -3px;
-}
-
-.toolBtn:hover {
-	background-color: #dedede;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-}
-
-.toolBtn:last-child {
-    margin-bottom: 0;
-}
-
-#modelBrowserBtn:after {
-	background-position: 0 0;
-}
-
-#modelBrowserBtn:hover:after, #modelBrowserBtn.down:after {
-    background-position: 0 -48px;
-}
-
-#animationsBtn:after {
-	background-position: -48px 0;
-}
-
-#animationsBtn:hover:after, #animationsBtn.down:after {
-    background-position: -48px -48px;
-}
-
-#viewpointsBtn:after {
-	background-position: -96px 0;
-}
-
-#viewpointsBtn:hover:after, #viewpointsBtn.down:after {
-    background-position: -96px -48px;
-}
-
-#messagingBtn:after {
-	background-position: -192px 0;
-}
-
-#messagingBtn:hover:after, #messagingBtn.down:after {
-    background-position: -192px -48px;
-}
-
-#scenesBtn:after {
-	background-position: -240px 0;
-}
-
-#scenesBtn:hover:after, #scenesBtn.down:after {
-    background-position: -240px -48px;
-}
-
-#particleEffectsBtn:after {
-	background-position: -288px 0;
-}
-
-#particleEffectsBtn:hover:after, #particleEffectsBtn.down:after {
-	background-position: -288px -48px;
-}
-
-#shapesBtn:after {
-	background-position: -336px 0;
-}
-
-#shapesBtn:hover:after, #shapesBtn.down:after {
-	background-position: -336px -48px;
-}
-
-#hudBtn:after {
-	background-position: -384px 0;
-}
-
-#hudBtn:hover:after, #hudBtn.down:after {
-	background-position: -384px -48px;
-}
-
-#fogBtn:after {
-	background-position: -432px 0;
-}
-
-#fogBtn:hover:after, #fogBtn.down:after {
-	background-position: -432px -48px;
-}
-
-#motionsBtn:after {
-	background-position: -144px 0;
-}
-
-#motionsBtn:hover:after, #motionsBtn.down:after  {
-	background-position: -144px -48px;
-}
-
-#manipsBtn:after {
-	background-position: -480px 0;
-}
-
-#manipsBtn:hover:after, #manipsBtn.down:after {
-	background-position: -480px -48px;
-}
-
-.toolBtn.down {
-	background: #bbddff;   
-	border: 1px solid #ccc;
-	border-width: 1px 0;
-	width: 60px;
-	margin: 1px 0;
-	border-radius: 0;
-}
-
-/**
- * Sidebar
- */
-#sidebar {
-    padding: 0;
-    margin: 0;
-    width: 300px;
-	float: left;
-}
-
-#sidebar.minimized {
-	width: 24px;
-}
-
-#minMaxBtn {
-	background: url(../images/minMax.png) no-repeat 0 0;
-	width: 24px;
-	height: 20px;
-	text-indent: -5000px;
-	outline: none;
-	border: none;
-	box-shadow: none;
-	-moz-box-shadow: none;
-	margin: 0 10px 5px;
-}
-#minMaxBtn.minimized {
-	background-position: -24px 0;
-	margin-left: 0;
-}
-
-.sidebarWidget {
-	float: left;
-    width: 300px;
-    font-size: 9pt;
-	border-bottom: 1px solid #ddd;
-}
-.sidebarWidget:not(.first) {
-	border-top: 1px solid #fff;
-}
-.sidebarWidget.last {
-	border-bottom: none;
-}
-
-.sidebarWidget h1 {
-	padding: 10px;
-    text-align: left;
-    font: bold 16px / 18px Helvetica, Arial, sans-serif;
-}
-
-.sidebarWidget h2 {
-    text-align: left;
-    font: bold 12px / 14px Helvetica, Arial, sans-serif;
-	padding: 5px 0;
-}
-
-.sidebarWidget>p {
-    font-size: 9pt;
-	margin: 10px;
-}
-
-.sidebarWidget>div.buttons {
-	float: left;
-	margin: 10px;
-}
-
-.sidebarSection:not(:last-child) {
-	border-bottom: 1px solid #ddd;
-}
-.sidebarSection:nth-child(n+2) {
-	border-top: 1px solid #fff;
-	position: relative;
-	float: left;
-	padding: 10px 0;
-	width: 100%;
-}
-.sidebarForm {
-	overflow: auto;
-}
-
-/**
- * Lists
- */
-
-.listWidget {
-	list-style: none;
-	padding: 0;
-	margin: 0;
-	float: left;
-	width: 100%;
-	overflow: auto;
-}
-ol.listWidget {
-	list-style: decimal inside none;
-}
-.listWidget li {
-	display: block;
-	width: 100%;
-	clear: both;
-	float: left;
-	padding: 5px 0 0;
-	line-height: 30px;
-	position: relative;
-}
-ol.listWidget li {
-	display: list-item;
-	width: 290px;
-	padding: 5px 0 0 10px;
-}
-ol.listWidget li>div {
-	float: right;
-	width: 270px;
-}
-ul.listWidget li>div {
-	float: left;
-	width: 300px;
-}
-.listWidget>li:nth-child(odd) {
-	background: #eaeaea;
-} 
-.listWidget li span {
-	float: left;
-	margin: 0 10px;
-}
-ol.listWidget li span {
-	margin: 0;
-}
-.listWidget .msgEdtListItm {
-	float: left;
-	width: 100%;
-	padding: 5px 0;
-}
-.listWidget li:hover {
-	background: #ddd;
-}
-.listWidget li>div>span {
-	font-weight: bold;
-	cursor: pointer;
-}
-.listWidget li:hover>div>span {
-	text-decoration: underline;
-}
-.listWidget .buttonContainer {
-	float: right;
-	padding: 0 10px 5px 0;
-}
-
-/**
- * List widget buttons
- */
-.listWidget button {
-	text-indent: -5000px;
-	height: 24px;
-	width: 24px;
-	border: 1px solid transparent;
-	box-shadow: none;
-	-moz-box-shadow: none;
-	padding: 3px;
-	background: none;
-}
-.listWidget button.uiMenuShown {	
-	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
-}
-.listWidget button:before {
-	background: url(../images/listOptionsSprite.png) no-repeat;
-	height: 16px;
-	width: 16px;
-	border: none;
-	padding: 0;
-	content: "";
-	float: left;
-}
-.listWidget button:not(.uiMenuShown):hover {
-	background: -moz-linear-gradient(19% 75% 90deg, #ededed, #fff); 
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#ededed));
-	border-color: #dcdcdc;
-}
-.listWidget button.editBtn:before {
-	background-position: 0 0;
-}
-.listWidget button.editBtn:hover:before {
-	background-position: -16px 0;
-}
-.listWidget button.behaviorBtn:before {
-	background-position: 0 -16px;
-}
-.listWidget button.behaviorBtn:hover:before {
-	background-position: -16px -16px;
-}
-.listWidget button.removeBtn:before {
-	background-position: 0 -32px;
-}
-.listWidget button.removeBtn:hover:before {
-	background-position: -16px -32px;
-}
-.listWidget button.cloneBtn:before {
-	background-position: 0 -64px;
-}
-.listWidget button.cloneBtn:hover:before {
-	background-position: -16px -64px;
-}
-.listWidget button.chainBtn:before {
-	background-position: 0 -48px;
-}
-.listWidget button.chainBtn:hover:before {
-	background-position: -16px -48px;
-}
-.listWidget button.chainBtn[disabled]:before {
-	background-position: 0 -80px;
-}
-.listWidget button.addBtn {
-	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#eee));
-	border-color: #eee;
-	padding: 3px 6px;
-	width: 30px;
-}
-.listWidget button.addBtn:before {
-	background-position: 0 -96px;
-}
-.listWidget button.addBtn:hover:before {
-	background-position: -16px -96px;
-}
-
-form input.prmWgtCitTreeIpt, form input.treeSelectorIpt,
-form input.objPkrCitTreeIpt {
-	border-bottom-right-radius: 0;
-	border-top-right-radius: 0;
-}
-
-/**
- * General form styling
- */
 form {
-    padding: 5px 10px;
+    padding: 10px 0;
+	margin-top: 10px;
 	float: left;
 	position: relative;
+	border-top: 1px dotted #aaa;
 }
-
 form.withSteps {
     counter-reset: fieldsets;
 }
-
 form.withSteps > fieldset > legend:before {
     content: "Step " counter(fieldsets, decimal) ": ";
     counter-increment: fieldsets;
 }
-
 form fieldset {
-    border: none;
     margin-bottom: 10px;
 	width: 100%;
+	border-bottom: 1px dotted #aaa;
 }
-
 form fieldset:last-of-type {
     margin-bottom: 0;
+	border: none;
 }
-
 form legend {
     font-size: 14px;
     font-weight: bold;
@@ -915,89 +653,34 @@ form legend {
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
 	color: #555;
 }
-
 form fieldset fieldset legend {
     color: #111111;
     font-size: 13px;
     font-weight: normal;
     padding-bottom: 0;
 }
-
 form ol > li {
-    background: #ddd;
-    background: rgba(255, 255, 255, .3);
-	border: 1px solid #ddd;
-	-moz-box-shadow: 0 1px 0 #fff;
-	-box-shadow: 0 1px 0 #fff;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    border-radius: 3px;
     line-height: 30px;
     list-style: none;
-    padding: 5px 10px;
+    padding: 5px 0;
     margin-bottom: 2px;
     overflow: hidden;
 	position: relative;
 }
-.sidebarForm ol > li {
-	width: 255px;
-}
-.sidebarForm ol > li > div:not(.buttons) {
+.widgetForm ol > li > div:not(.buttons) {
 	float: left;
 }
-.sidebarForm li > div.ui-slider {
+.widgetForm li > div.ui-slider {
 	width: 245px;
 }
 form ol > li > div:not(.ui-slider, .buttons) {
 	float: left;
 }
-
 form ol > li.hilighted {
     background: #ddefef;
     background:
     rgba(140, 223, 239, 0.2);
 }
-
-form div.modelRep {
-    position: relative;
-    width: 60px;
-    height: 60px;
-    border: 2px solid #9BB8CF;
-    -moz-border-radius: 5px;
-    -webkit-border-radius: 5px;
-    border-radius: 5px;
-    float: left;
-    margin-right: 10px;
-    background: rgba(0, 140, 255, 0.2);
-}
-
-form div.modelRep span {
-    width: 60px;
-    height: 60px;
-    display: block;
-    line-height: 60px;
-    text-align: center;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-
-form div.buttons {
-    float: right;
-    padding: 0;
-	width: auto;
-}
-form div.buttons.standalone {
-	float: left;
-}
-
-form div.buttons button {
-    margin-right: 2px;
-	margin-top: 5px;
-}
-form div.buttons button:nth-child(n+1) {
-	margin-left: 2px;
-}
-
 form ol ol li {
     background: none;
     border: none;
@@ -1005,58 +688,58 @@ form ol ol li {
     width: 346px;
     padding: 5px 0;
 }
-
 form ol ol li.buttons > button {
     float: right;
 }
-
-form div.animBindsWrapper {
-    float: left;
-    width: 346px;
+form div.buttons {
+    float: right;
+    padding: 0;
+	width: auto;
+	clear: both;
 }
-
-form ul.animBinds > li {
-    float: left;
+form div.buttons.standalone {
+	float: left;
 }
-
-form label {
-    float: left;
-    font-size: 9pt;
-    width: 50px;
-	text-align: right;
-	margin-right: 5px;
-	color: #555;
+form div.buttons button {
+    margin-right: 2px;
+	margin-top: 5px;
 }
-form label.long {
-	width: 120px;
-	text-align: left;
+form div.buttons button:nth-child(n+1) {
+	margin-left: 2px;
 }
 form div.long {
 	float: left;
 	width: 100%;
 }
-
+form div.column {
+	width: 30%;
+}
+form label {
+    float: left;
+	width: 100%;
+    font-size: 9pt;
+	text-align: left;
+	margin-right: 10px;
+	color: #555;
+}
+form label.short {
+	width: 70px;
+}
 form fieldset fieldset label.longLabel {
     width: 110px;
 }
-
 form fieldset fieldset label:hover {
     cursor: pointer;
 }
-
 form input:not([type=radio]), form textarea {
     background: #ffffff;
     border: 1px solid #ddd;
-	-moz-box-shadow: 0 1px 0 #fff;
 	box-shadow: 0 1px 0 #fff;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -khtml-border-radius: 3px;
     border-radius: 3px;
     font: 9pt Helvetica, Arial, Verdana, sans-serif;
     outline: none;
     padding: 5px;
-    width: 188px;
+    width: 270px;
     color: #555;
 	margin: 0;
 }
@@ -1072,15 +755,19 @@ form input.short, form.scrolling input.short {
 	float: left;
 }
 form input.vector, form input.color, form input.quat {
-	width: 26px;
+	width: 53px;
 	margin-right: 2px;
+}
+form input.vector:last-child, form input.color:last-child,
+form input.quat:last-child {
+	margin-right: 0;
 }
 form.scrolling input.vector, form.scrolling input.color,
 form.scrolling input.quat {
 	width: 24px;
 }
 form input:-moz-placeholder {
-	color: #bbb;
+	color: #aaa;
 }
 form input::-webkit-input-placeholder {
 	color: #bbb;
@@ -2054,10 +1741,7 @@ ul.scnEvtList li.button {
 	float: left;
 	color: #555;
 	width: 195px;
-}
-
-#crvPositionDiv, #crvDimensionsDiv {
-	float: right;
+	font-size: 9pt;
 }
 
 /**
