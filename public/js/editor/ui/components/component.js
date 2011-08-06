@@ -66,7 +66,12 @@ var editor = (function(module) {
 				hemi.loader.loadHtml(this.config.uiFile, function(data) {
 					// clean the string of html comments
 					var cleaned = data.replace(/<!--(.|\s)*?-->/, '');
-					cmp.container = jQuery(cleaned);
+					if (cmp.container) {
+						cmp.container.append(jQuery(cleaned));
+					}
+					else {
+						cmp.container = jQuery(cleaned);
+					}
 					cmp.finishLayout();
 				});
 			}

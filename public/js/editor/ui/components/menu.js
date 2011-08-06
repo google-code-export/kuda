@@ -15,21 +15,21 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	module.ui = module.ui || {};
+var editor = (function(editor) {
+	editor.ui = editor.ui || {};
 	
-    module.EventTypes = module.EventTypes || {};
-	module.EventTypes.MenuItemShown = "MenuItemShown";
-    module.EventTypes.MenuActionClicked = "MenuActionClicked";
+    editor.EventTypes = editor.EventTypes || {};
+	editor.EventTypes.MenuItemShown = "MenuItemShown";
+    editor.EventTypes.MenuActionClicked = "MenuActionClicked";
 	
-	module.ui.Constants = module.ui.Constants || {};
-	module.ui.Constants.UP_STATE = "UP";
-	module.ui.Constants.DOWN_STATE = "DOWN";
+	editor.ui.Constants = editor.ui.Constants || {};
+	editor.ui.Constants.UP_STATE = "UP";
+	editor.ui.Constants.DOWN_STATE = "DOWN";
 
     /*
      * Configuration object for the MenuItem.
      */
-    module.ui.MenuItemDefaults = {
+    editor.ui.MenuItemDefaults = {
 		title: null,
 		action: null,
 		stateful: false,
@@ -37,13 +37,13 @@ var editor = (function(module) {
 		stateUpClass: 'up'
     };
     
-    module.ui.MenuItem = module.ui.Component.extend({
+    editor.ui.MenuItem = editor.ui.Component.extend({
 		init: function(options) {		
-	        var newOpts = jQuery.extend({}, module.ui.MenuItemDefaults, options);
+	        var newOpts = jQuery.extend({}, editor.ui.MenuItemDefaults, options);
 			this._super(newOpts);
 			
 			this.stateful = newOpts.stateful;
-			this.setState(module.ui.Constants.UP_STATE);
+			this.setState(editor.ui.Constants.UP_STATE);
 			this.downClass = newOpts.stateDownClass;
 			this.upClass = newOpts.stateUpClass;
 	    },
@@ -73,7 +73,7 @@ var editor = (function(module) {
 			
 	        this.container.bind('click', function(evt) {
 	            callback(evt);
-				that.notifyListeners(module.EventTypes.MenuActionClicked, that);
+				that.notifyListeners(editor.EventTypes.MenuActionClicked, that);
 				that.toggleState();
 	        });
 	    },
@@ -81,11 +81,11 @@ var editor = (function(module) {
 		setState: function(state) {
 			if (this.stateful) {
 				// check
-				if (state == module.ui.Constants.DOWN_STATE ||
-					state == module.ui.Constants.UP_STATE) {
+				if (state == editor.ui.Constants.DOWN_STATE ||
+					state == editor.ui.Constants.UP_STATE) {
 					var oldClass;
 					var newClass;
-					if (state == module.ui.Constants.DOWN_STATE) {
+					if (state == editor.ui.Constants.DOWN_STATE) {
 						oldClass = this.upClass;
 						newClass = this.downClass;
 					} 
@@ -105,14 +105,14 @@ var editor = (function(module) {
 		
 		toggleState: function() {
 			if (this.stateful) {
-				this.setState(this.state == module.ui.Constants.DOWN_STATE ? 
-					module.ui.Constants.UP_STATE : 
-					module.ui.Constants.DOWN_STATE);
+				this.setState(this.state == editor.ui.Constants.DOWN_STATE ? 
+					editor.ui.Constants.UP_STATE : 
+					editor.ui.Constants.DOWN_STATE);
 			}
 		}
 	});
 	
-	module.ui.Menu = module.ui.MenuItem.extend({
+	editor.ui.Menu = editor.ui.MenuItem.extend({
 		init: function(opt_title, opt_noAction) {
 			var that = this;
 			this.menuItems = [];
@@ -150,7 +150,7 @@ var editor = (function(module) {
 						});
 					}
 					
-					that.notifyListeners(module.EventTypes.MenuItemShown, that);
+					that.notifyListeners(editor.EventTypes.MenuItemShown, that);
 				});
 			}
 		},
@@ -166,7 +166,7 @@ var editor = (function(module) {
 		},
 	
 		addMenuItem: function(menuItem) {
-			if (menuItem instanceof module.ui.MenuItem) {
+			if (menuItem instanceof editor.ui.MenuItem) {
 				var li = this.listItem.clone();
 				var that = this;
 				
@@ -174,7 +174,7 @@ var editor = (function(module) {
 				this.list.append(li);
 				this.menuItems.push(menuItem);
 				
-				menuItem.addListener(module.EventTypes.MenuActionClicked, function(value) {
+				menuItem.addListener(editor.EventTypes.MenuActionClicked, function(value) {
 					that.hide();
 				});
 			} else {
@@ -212,14 +212,16 @@ var editor = (function(module) {
 	    }
 	});
 	
-	module.ui.PopupMenu = module.ui.Menu.extend({
+	editor.ui.PopupMenu = editor.ui.Menu.extend({
 		init: function(opt_title) {
 			this._super(opt_title, true);
 		},
 		
 		finishLayout: function() {
 			this._super();
-			this.container.hide();
+			this.container.css({
+				'zIndex': editor.ui.Layer.MENU
+			}).hide();
 			this.list.show();
 		},
 		
@@ -253,7 +255,7 @@ var editor = (function(module) {
 		}
 	});
     
-    module.ui.MenuBar = module.ui.Menu.extend({
+    editor.ui.MenuBar = editor.ui.Menu.extend({
 		init: function() {
 			this._super();
 			this.list.show();       
@@ -264,7 +266,7 @@ var editor = (function(module) {
 			var that = this;
 	        this._super(menuItem);
 			
-			menuItem.addListener(module.EventTypes.MenuItemShown, function(value) {
+			menuItem.addListener(editor.EventTypes.MenuItemShown, function(value) {
 				for (var ndx = 0, len = that.menuItems.length; ndx < len; ndx++) {
 					var item = that.menuItems[ndx];
 					
@@ -288,7 +290,7 @@ var editor = (function(module) {
 		}
 	});
 	
-	module.ui.Separator = module.ui.MenuItem.extend({
+	editor.ui.Separator = editor.ui.MenuItem.extend({
 		init: function() {
 	        this._super();
 		},
@@ -298,5 +300,5 @@ var editor = (function(module) {
 		}
 	});
 	
-	return module;
+	return editor;
 })(editor || {});
