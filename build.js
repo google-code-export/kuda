@@ -114,12 +114,6 @@ var compressDir = function(toDir) {
 	});
 };
 
-var uglifyFile = function(file) {
-	var uglyjs = uglifyMe(fs.readFileSync(file).toString()),
-		outFile = fs.openSync(file.replace(/.src.js|.js/, '.min.js'), 'w+');
-	fs.writeSync(outFile,uglyjs);
-};
-
 var uglifyMe = function(data) {
 	var jsp = uglify.parser,
 		pro = uglify.uglify,
@@ -127,6 +121,12 @@ var uglifyMe = function(data) {
 	ast = pro.ast_mangle(ast);
 	ast = pro.ast_squeeze(ast);
 	return pro.gen_code(ast);
+};
+
+var uglifyFile = function(file) {
+	var uglyjs = uglifyMe(fs.readFileSync(file).toString()),
+		outFile = fs.openSync(file.replace(/.src.js|.js/, '.min.js'), 'w+');
+	fs.writeSync(outFile,uglyjs);
 };
 
 var catFiles = function(args) {
@@ -140,60 +140,9 @@ var catFiles = function(args) {
 	}
 };
 
-if (process.argv.length > 3) {
-	var ndx = 2,
-		docs = true,
-		compress = true;
-	// Check for flags
-	while(process.argv[ndx].substr(0, 2) === '--') {
-		var flag = process.argv[ndx++];
-		
-		switch (flag) {
-			case '--no-doc':
-				docs = false;
-				break;
-			case '--no-zip':
-				compress = false;
-				break;
-		}
-	}
-
-	// Get build arguments
-	var type = process.argv[ndx++],
-		toDir = process.argv[ndx];
-
-	if (path.existsSync(toDir)) {
-		process.stdout.write('Cannot write to ' + toDir + ': already exists\n');
-		process.exit(-1);
-	}
-
-	// Set up our filter
-	filter = ['.svn', '.hg', '.hgignore', '.hgtags', '.project', '.settings'];
-
-	if (type === 'core') {
-		// Copy only the core Hemi library
-		filter.push('app.js', 'build.js', 'PublishReadMe',
-			'PublishTemplate.html', 'editor');
-		copyFiles('.', toDir, { subDirs: false });
-		var args = { subDirs: true };//, uglyModules: ['hemi'] };
-		copyFiles('./public/js', toDir, args);
-		// process.stdout.write(args.uglyData + '\n');
-		// TODO: Make this pull in the hemi version from core or something better than hard coding doh! ;-)
-		//fs.writeFileSync(toDir + '/hemi-build-1.4.0.min.js', args.uglyData);
-
-		if (docs) {
-			var docDir = './public/doc';
-
-			if (path.existsSync(docDir)) {
-				copyFiles(docDir, toDir + '/doc', { subDirs: true });
-			}
-		}
-	} else if (type === 'ugly') {
-		sys.puts('Making ugly toDir:' + toDir + '\n');
-		uglifyFile(toDir);
-	} else if (type == 'uglify') {
+var uglifyHemi = function(src, dst) {
 		var args = {
-			dist: toDir,
+			dist: src,
 			moduleFiles: [
 				'hemi/core.js',
 				'hemi/utils/hashtable.js',
@@ -227,17 +176,77 @@ if (process.argv.length > 3) {
 				'hemi/texture.js',
 				'hemi/timer.js'
 			],
-			replace: /o3djs\.require\('(hemi|o3djs\.picking).*?'\);/g
+			replace: /o3djs\.require\('(hemi|o3djs).*?'\);/g //\.picking).*?'\);/g
 		};
 		catFiles(args);
-		fs.writeFileSync(args.dist + '/hemi-build-1.4.0.src.js', args.uglyData);
+		fs.writeFileSync(dst + '/hemi.src.js', args.uglyData);
 		// TODO: Add the GPL header
-		uglifyFile(args.dist + '/hemi-build-1.4.0.src.js');
+		uglifyFile(dst + '/hemi.src.js');
+};
+
+var checkForToDir = function(toDir) {
+	if (path.existsSync(toDir)) {
+		process.stdout.write('Cannot write to ' + toDir + ': already exists\n');
+		process.exit(-1);
+	}
+};
+
+if (process.argv.length > 3) {
+	var ndx = 2,
+		docs = true,
+		compress = false;
+
+	// Check for flags
+	while (process.argv[ndx].substr(0, 2) === '--') {
+		var flag = process.argv[ndx++];
+		
+		switch (flag) {
+			case '--no-doc':
+				docs = false;
+				break;
+			case '--zip':
+				compress = true;
+				break;
+		}
+	}
+
+	// Get build arguments
+	var type = process.argv[ndx++],
+		toDir = process.argv[ndx];
+
+	// Set up our filter
+	filter = ['.svn', '.hg', '.hgignore', '.hgtags', '.project', '.settings'];
+
+	if (type === 'core') {
+		checkForToDir(toDir);
+		// Copy only the core Hemi library
+		filter.push('app.js', 'build.js', 'PublishReadMe',
+			'PublishTemplate.html', 'editor', 'hemi', 'o3djs', 'o3d-webgl', 'parse.js');
+		copyFiles('.', toDir, { subDirs: false });
+		var args = { subDirs: true };//, uglyModules: ['hemi'] };
+		copyFiles('./public/js', toDir, args);
+		uglifyHemi('./public/js', toDir);
+
+		if (docs) {
+			var docDir = './public/doc';
+
+			if (path.existsSync(docDir)) {
+				copyFiles(docDir, toDir + '/doc', { subDirs: true });
+			}
+		}
+	} else if (type === 'ugly') {
+		sys.puts('Making ugly toDir:' + toDir + '\n');
+		uglifyFile(toDir);
+	} else if (type == 'uglifyHemi') {
+		uglifyHemi('./public/js', toDir);
 	} else {
+		checkForToDir(toDir);
+
 		// Unless building a full package, do not copy samples
 		if (type !== 'full') {
 			filter.push('samples', 'assets');
 		}
+
 		if (!docs) {
 			filter.push('doc');
 		}
@@ -258,7 +267,7 @@ if (process.argv.length > 3) {
 	}
 } else {
 	process.stdout.write('Usage: node build.js [options] [type] [toDir]\n' +
-		'Valid options are: --no-doc, --no-zip\n' +
+		'Valid options are: --no-doc, --zip\n' +
 		'Valid types are: core, editor, full\n');
 }
 
