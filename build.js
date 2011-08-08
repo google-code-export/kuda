@@ -140,6 +140,86 @@ var catFiles = function(args) {
 	}
 };
 
+var uglifyO3d = function(src, dst) {
+	var args = {
+		dist: src,
+		moduleFiles: [
+			'o3d-webgl/base.js',
+			'o3d-webgl/object_base.js',
+			'o3d-webgl/named_object_base.js',
+			'o3d-webgl/named_object.js',
+			'o3d-webgl/param_object.js',
+			'o3d-webgl/param_array.js',
+			'o3d-webgl/param.js',
+			'o3d-webgl/event.js',
+			'o3d-webgl/raw_data.js',
+			'o3d-webgl/texture.js',
+			'o3d-webgl/bitmap.js',
+			'o3d-webgl/file_request.js',
+			'o3d-webgl/client.js',
+			'o3d-webgl/render_node.js',
+			'o3d-webgl/clear_buffer.js',
+			'o3d-webgl/state_set.js',
+			'o3d-webgl/viewport.js',
+			'o3d-webgl/tree_traversal.js',
+			'o3d-webgl/draw_list.js',
+			'o3d-webgl/draw_pass.js',
+			'o3d-webgl/render_surface_set.js',
+			'o3d-webgl/render_surface.js',
+			'o3d-webgl/state.js',
+			'o3d-webgl/draw_context.js',
+			'o3d-webgl/ray_intersection_info.js',
+			'o3d-webgl/sampler.js',
+			'o3d-webgl/transform.js',
+			'o3d-webgl/pack.js',
+			'o3d-webgl/bounding_box.js',
+			'o3d-webgl/draw_element.js',
+			'o3d-webgl/element.js',
+			'o3d-webgl/field.js',
+			'o3d-webgl/buffer.js',
+			'o3d-webgl/stream.js',
+			'o3d-webgl/vertex_source.js',
+			'o3d-webgl/stream_bank.js',
+			'o3d-webgl/primitive.js',
+			'o3d-webgl/shape.js',
+			'o3d-webgl/effect.js',
+			'o3d-webgl/material.js',
+			'o3d-webgl/archive_request.js',
+			'o3d-webgl/param_operation.js',
+			'o3d-webgl/function.js',
+			'o3d-webgl/counter.js',
+			'o3d-webgl/curve.js',
+			'o3d-webgl/skin.js',
+			'o3djs/base.js',
+			'o3djs/effect.js',
+			'o3djs/util.js',
+			'o3djs/webgl.js',
+			'o3djs/debug.js',
+			'o3djs/element.js',
+			'o3djs/event.js',
+			'o3djs/loader.js',
+			'o3djs/math.js',
+			'o3djs/pack.js',
+			'o3djs/particles.js',
+			'o3djs/picking.js',
+			'o3djs/rendergraph.js',
+			'o3djs/canvas.js',
+			'o3djs/material.js',
+			'o3djs/io.js',
+			'o3djs/scene.js',
+			'o3djs/serialization.js',
+			'o3djs/error.js',
+			'o3djs/texture.js',
+			'o3djs/shape.js'
+		],
+		replace: /(o3d|o3djs)\.(include|require)\('.*?'\);/g
+	};
+	catFiles(args);
+	fs.writeFileSync(dst + '/o3d.src.js', args.uglyData);
+	// TODO: Add the license
+	uglifyFile(dst + '/o3d.src.js');
+};
+
 var uglifyHemi = function(src, dst) {
 		var args = {
 			dist: src,
@@ -176,7 +256,7 @@ var uglifyHemi = function(src, dst) {
 				'hemi/texture.js',
 				'hemi/timer.js'
 			],
-			replace: /o3djs\.require\('(hemi|o3djs).*?'\);/g //\.picking).*?'\);/g
+			replace: /o3djs\.require\('(hemi|o3djs).*?'\);/g
 		};
 		catFiles(args);
 		fs.writeFileSync(dst + '/hemi.src.js', args.uglyData);
@@ -237,6 +317,8 @@ if (process.argv.length > 3) {
 	} else if (type === 'ugly') {
 		sys.puts('Making ugly toDir:' + toDir + '\n');
 		uglifyFile(toDir);
+	} else if (type === 'uglifyO3d') {
+		uglifyO3d('./public/js', toDir);
 	} else if (type == 'uglifyHemi') {
 		uglifyHemi('./public/js', toDir);
 	} else {
@@ -270,11 +352,3 @@ if (process.argv.length > 3) {
 		'Valid options are: --no-doc, --zip\n' +
 		'Valid types are: core, editor, full\n');
 }
-
-
-
-
-//cat base.js object_base.js named_object_base.js named_object.js param_object.js param_array.js param.js event.js raw_data.js texture.js bitmap.js file_request.js client.js render_node.js clear_buffer.js state_set.js viewport.js tree_traversal.js draw_list.js draw_pass.js render_surface_set.js render_surface.js state.js draw_context.js ray_intersection_info.js sampler.js transform.js pack.js bounding_box.js draw_element.js element.js field.js buffer.js stream.js vertex_source.js stream_bank.js primitive.js shape.js effect.js material.js archive_request.js param_operation.js function.js counter.js curve.js skin.js > ../../../o3d-webgl.src.js
-
-
-//cat base.js effect.js util.js webgl.js debug.js element.js event.js loader.js math.js pack.js particles.js picking.js rendergraph.js canvas.js material.js io.js scene.js serialization.js error.js texture.js shape.js > ../../../o3djs.src.js
