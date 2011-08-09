@@ -24,7 +24,9 @@ var editor = (function(module, jQuery) {
 	};
 	
 	/**
-	 * Returns the list of parameters for a function
+	 * Returns the list of parameters for a function. Note that if the function
+	 * has been minified, the parameter names will most likely be different
+	 * than what may be expected.
 	 */
 	module.utils.getFunctionParams = function(func) {
 		return func.toString().match(/\((.*?)\)/)[1].match(/[\w]+/g) || [];
