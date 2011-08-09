@@ -22,7 +22,6 @@
  * and decreases in volume depending on if windows and doors or open or if the
  * user has entered the house.
  */
-o3djs.require('hext.house.structure');
 
 (function() {
 	var house;

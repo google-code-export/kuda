@@ -21,20 +21,6 @@
  * PressureEngine with two Locations and three Portals.
  */
 (function() {
-	// require the html extensions
-	o3djs.require('hext.html.toolbar');
-	o3djs.require('hext.html.toolViews');
-	// Include the PressureEngine extension
-	o3djs.require('hext.engines.pressure');
-	// require the appropriate tools
-	o3djs.require('hext.tools.manometer');
-	o3djs.require('hext.tools.manometerTube');
-	o3djs.require('hext.tools.manometerView');
-	o3djs.require('hext.tools.manometerController');
-	o3djs.require('hext.tools.blowerDoor');
-	o3djs.require('hext.tools.blowerDoorView');
-	o3djs.require('hext.tools.blowerDoorController');
-
 	var house;
 	var houseWindow;
 	var blowerFan;

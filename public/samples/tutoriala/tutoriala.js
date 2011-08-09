@@ -24,8 +24,6 @@
  *		the house and see a fire.  After the fire is on a book will animate on
  *		a curve in 2 seconds.
  */
-o3djs.require('hext.house.structure');
-
 (function() {
 	var house;
 	var window1Left;

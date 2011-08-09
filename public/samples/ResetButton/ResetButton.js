@@ -26,9 +26,6 @@
  * rather than all at once after the script is finished.
  */
 (function() {
-	// Include the Reset extension
-	o3djs.require('hext.html.reset');
-
 	var house;
 	var window1Left;
 	var window1Right;
