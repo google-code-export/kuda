@@ -260,8 +260,9 @@ o3djs.findBasePath_ = function() {
   for (var script, i = 0; script = scripts[i]; i++) {
     var src = script.src;
     var l = src.length;
-    if (src.substr(l - 13) == 'o3djs/base.js') {
-      o3djs.basePath = src.substr(0, l - 13);
+    var basePathMatch = src.match(/(.*?)(o3djs\/base.js|o3d\.min\.js|o3d\.src\.js)/);
+    if (basePathMatch) {
+      o3djs.basePath = basePathMatch[1];
       return;
     }
   }
