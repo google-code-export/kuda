@@ -166,7 +166,16 @@ var editor = (function(module) {
 			this.setMethod(method);
 			
 			if (argList != null) {
-				var params = module.utils.getFunctionParams(this.handler[this.method]);
+				var meta = module.data.getMetaData(),
+					citType = handler.getCitizenType(),
+					params = meta.getParameters(citType, method);
+				
+				if (!params) {
+					// If the metadata is missing, try the old way to get the
+					// parameter names. Unfortunately this won't work if Hemi
+					// is minified.
+					params = module.utils.getFunctionParams(handler[method]);
+				}
 				
 				for (var ndx = 0, len = params.length; ndx < len; ndx++) {
 					this.setArgument(params[ndx], argList[ndx]);
@@ -220,11 +229,19 @@ var editor = (function(module) {
 			this.args.clear();
 			
 			if (method !== null) {
-				// TODO: change to use metadata
-				var methodParams = module.utils.getFunctionParams(this.handler[method]);
+				var meta = module.data.getMetaData(),
+					citType = this.handler.getCitizenType(),
+					params = meta.getParameters(citType, method);
 				
-				for (var ndx = 0, len = methodParams.length; ndx < len; ndx++) {
-					var param = methodParams[ndx];
+				if (!params) {
+					// If the metadata is missing, try the old way to get the
+					// parameter names. Unfortunately this won't work if Hemi
+					// is minified.
+					params = module.utils.getFunctionParams(this.handler[method]);
+				}
+				
+				for (var ndx = 0, len = params.length; ndx < len; ndx++) {
+					var param = params[ndx];
 					
 		            this.args.put(param, {
 						ndx: ndx,
