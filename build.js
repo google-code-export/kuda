@@ -385,5 +385,5 @@ if (process.argv.length > 3) {
 } else {
 	process.stdout.write('Usage: node build.js [options] [type] [toDir]\n' +
 		'Valid options are: --no-doc, --zip\n' +
-		'Valid types are: core, editor, full\n');
+		'Valid types are: core, editor, full, uglifyHemi, uglifyO3d, ugly\n');
 }
