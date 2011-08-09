@@ -21,8 +21,6 @@
  * HUD elements to respond to the user's actions.
  */
 (function() {
-	o3djs.require('hext.hud.paging');
-
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);

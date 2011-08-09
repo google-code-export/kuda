@@ -78,9 +78,10 @@
 
 		/**
 		 * Move the camera from it's default position (eye : [0,0,-1],
-		 * target : [0,0,0]} to the new viewpoint, and take 5 seconds to do so.
+		 *		target : [0,0,0]} to the new viewpoint, and take 120
+		 *		render cycles (~2 seconds) to do so.
 		 */
-		hemi.world.camera.moveToView(vp, 5);
+		hemi.world.camera.moveToView(vp,10);
 		hemi.world.camera.enableControl();	// Enable camera mouse control
 	}
 

@@ -25,29 +25,6 @@
  * type ("Swing").
  */
 (function() {
-	o3djs.require('hext.hud.paging');
-	
-	// Require the html extensions
-	o3djs.require('hext.html.toolbar');
-	o3djs.require('hext.html.toolViews');
-	// Include the PressureEngine extension
-	o3djs.require('hext.engines.pressure');
-	// Require the appropriate tools
-	o3djs.require('hext.tools.manometer');
-	o3djs.require('hext.tools.manometerTube');
-	o3djs.require('hext.tools.manometerView');
-	o3djs.require('hext.tools.manometerController');
-	o3djs.require('hext.tools.blowerDoor');
-	o3djs.require('hext.tools.blowerDoorView');
-	o3djs.require('hext.tools.blowerDoorController');
-	o3djs.require('hext.tools.navigation');
-	o3djs.require('hext.tools.navigationView');
-	o3djs.require('hext.tools.navigationController');
-	o3djs.require('hext.tools.shapeView');
-	o3djs.require('hext.tools.smokepuffer');
-	o3djs.require('hext.tools.smokePufferView');
-	o3djs.require('hext.tools.smokePufferController');
-
 	function init(clientElements) {
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);

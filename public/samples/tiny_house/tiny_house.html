@@ -17,57 +17,59 @@
 
 <!DOCTYPE html>
 <html>
-	<head>
+    <head>
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-		<title>Kuda Tiny House Demo</title>
-        <script type="text/javascript" src="../../js/lib/jquery.js">
-        </script>
-		<script type="text/javascript" src="../../js/lib/jquery.rotate.js">
-		</script>
-        <script type="text/javascript" src="../../js/lib/jshashtable.js">
-        </script>
-		<script type="text/javascript" src="../../js/o3d-webgl/base.js">
-		</script>
-        <script type="text/javascript" src="../../js/o3djs/base.js">
-        </script>
-        <script type="text/javascript" src="../../js/hemi/core.js">
-        </script>
-		<script type="text/javascript" src="tiny_house.js">
-		</script>
-		<link rel="stylesheet" href="../../js/hext/tools/assets/tools.css" type="text/css" />
-		<style>
-			body {
-				margin: 0;
-			}
-			
-			#wrapper {
-				float: left;
-			}
-			
-			#worldViewer {
-				float: left;
-				width: 650px;
-			}
-			
-			#o3d {
-				width: 560px;
-				height: 400px;
-				left: 70px;
-				margin: 20px;
-				position: relative;
-			}
-		</style>
-	</head>
-	<body>
-		<div id="wrapper">
-			<div id="worldViewer">
-				<div id="o3d">
-				</div>
+        <title>Kuda Tiny House Demo</title>
+        <script type="text/javascript" src="../../js/lib/jquery.js"></script>
+        <script type="text/javascript" src="../../js/lib/jquery.rotate.js"></script>
+        <script type="text/javascript" src="../../js/lib/jshashtable.js"></script>
+        <script type="text/javascript" src="../../js/o3d.min.js"></script>
+        <script type="text/javascript" src="../../js/hemi.min.js"></script>
+        <script type="text/javascript" src="../../js/hext/html/toolbar.js"></script>
+        <script type="text/javascript" src="../../js/hext/html/toolViews.js"></script>
+        <script type="text/javascript" src="../../js/hext/engines/pressure.js"></script>
+        <script type="text/javascript" src="../../js/hext/tools/manometer.js"></script>
+        <script type="text/javascript" src="../../js/hext/tools/manometerTube.js"></script>
+        <script type="text/javascript" src="../../js/hext/tools/manometerView.js"></script>
+        <script type="text/javascript" src="../../js/hext/tools/manometerController.js"></script>
+        <script type="text/javascript" src="../../js/hext/tools/blowerDoor.js"></script>
+        <script type="text/javascript" src="../../js/hext/tools/blowerDoorView.js"></script>
+        <script type="text/javascript" src="../../js/hext/tools/blowerDoorController.js"></script>
+        <script type="text/javascript" src="tiny_house.js"></script>
+        <link rel="stylesheet" href="../../js/hext/tools/assets/tools.css" type="text/css" />
+        <style>
+            body {
+                margin: 0;
+            }
+            
+            #wrapper {
+                float: left;
+            }
+            
+            #worldViewer {
+                float: left;
+                width: 650px;
+            }
+            
+            #o3d {
+                width: 560px;
+                height: 400px;
+                left: 70px;
+                margin: 20px;
+                position: relative;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="wrapper">
+            <div id="worldViewer">
+                <div id="o3d">
+                </div>
                 <div id="hext-toolbar">
                 </div>
-			</div>
+            </div>
             <div id="hext-toolviews">
             </div>
-		</div>
-	</body>
+        </div>
+    </body>
 </html>

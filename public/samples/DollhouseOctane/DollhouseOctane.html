@@ -20,58 +20,52 @@
     <head>
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <title>Dollhouse From Octane</title>
-        <script type="text/javascript" src="../../js/lib/jquery.js">
-        </script>
-        <script type="text/javascript" src="../../js/lib/jshashtable.js">
-        </script>
-		<script type="text/javascript" src="../../js/o3d-webgl/base.js">
-		</script>
-        <script type="text/javascript" src="../../js/o3djs/base.js">
-        </script>
-        <script type="text/javascript" src="../../js/hemi/core.js">
-        </script>
-        <script type="text/javascript" src="DollhouseOctane.js">
-        </script>
-		<!-- Extra styling for the viewpoint controls -->
-		<style type="text/css">
-			#controller {
-				width: 200px;
-				float: left;
-				background: #c7e3ed;
-				background: -moz-linear-gradient(-45deg, #c7e3ed, #add5e4);
-				background: -webkit-gradient(linear, left top, right bottom, from(#c7e3ed), to(#add5e4));
-				padding: 10px;
-				-moz-border-radius: 6px;
-				-webkit-border-radius: 6px;
-				-border-radius: 6px;
-			}
-			
-			#controller ol {
-				margin: 0 0 0 25px;
-				padding: 0;
-			}
-			
-			#controller button {
-				width: 170px;
-				border: 1px solid #78A2AF;
-				background: #83B1BF;
-				background: -moz-linear-gradient(-90deg, #83B1BF, #6D9FAF);
-				background: -webkit-gradient(linear, center top, center bottom, from(#83B1BF), to(#6D9FAF));
-				-moz-border-radius: 8px;
-				-webkit-border-radius: 8px;
-				border-radius: 8px;
-				margin: 4px 0;
-				padding: 4px;
-				font: bold 10pt/12pt Helvetica, Verdana, Arial, sans-serif;
-				color: #fff;
-				text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.45);
-			}
-		</style>
+        <script type="text/javascript" src="../../js/lib/jquery.js"></script>
+        <script type="text/javascript" src="../../js/lib/jshashtable.js"></script>
+        <script type="text/javascript" src="../../js/o3d-webgl/base.js"></script>
+        <script type="text/javascript" src="../../js/o3djs/base.js"></script>
+        <script type="text/javascript" src="../../js/hemi/core.js"></script>
+        <script type="text/javascript" src="DollhouseOctane.js"></script>
+    <!-- Extra styling for the viewpoint controls -->
+    <style type="text/css">
+      #controller {
+        width: 200px;
+        float: left;
+        background: #c7e3ed;
+        background: -moz-linear-gradient(-45deg, #c7e3ed, #add5e4);
+        background: -webkit-gradient(linear, left top, right bottom, from(#c7e3ed), to(#add5e4));
+        padding: 10px;
+        -moz-border-radius: 6px;
+        -webkit-border-radius: 6px;
+        -border-radius: 6px;
+      }
+      
+      #controller ol {
+        margin: 0 0 0 25px;
+        padding: 0;
+      }
+      
+      #controller button {
+        width: 170px;
+        border: 1px solid #78A2AF;
+        background: #83B1BF;
+        background: -moz-linear-gradient(-90deg, #83B1BF, #6D9FAF);
+        background: -webkit-gradient(linear, center top, center bottom, from(#83B1BF), to(#6D9FAF));
+        -moz-border-radius: 8px;
+        -webkit-border-radius: 8px;
+        border-radius: 8px;
+        margin: 4px 0;
+        padding: 4px;
+        font: bold 10pt/12pt Helvetica, Verdana, Arial, sans-serif;
+        color: #fff;
+        text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.45);
+      }
+    </style>
     </head>
     <body>
-		<div id="o3d" style="width: 640px; height: 480px; float: left;"></div>
-		<!-- Controls to allow the user to move to viewpoints -->
-		<div id="controller">
+    <div id="o3d" style="width: 640px; height: 480px; float: left;"></div>
+    <!-- Controls to allow the user to move to viewpoints -->
+    <div id="controller">
             <p>
                 You can zoom the camera to different viewpoints in the house.
                 Click any of the buttons to zoom to that viewpoint

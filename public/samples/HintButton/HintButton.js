@@ -24,9 +24,6 @@
  * relevant hint, you can hide the Hint button and show it later.
  */
 (function() {
-	// Include the Hint extension
-	o3djs.require('hext.html.hint');
-
 	var house;
 	var window1Left;
 	var window1Right;
