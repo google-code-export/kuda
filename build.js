@@ -24,10 +24,9 @@ var createAssetsDir = function(fromDir, toDir) {
 	fs.writeFileSync(newFile, data);
 };
 
-var copyFiles = function(fromDir, toDir, args) {
+var copyFiles = function(fromDir, toDir, subDirs) {
 	var files = [],
 		dirs = [];
-	args.uglyData = args.uglyData || "";
 	getDirContents(fromDir, files, dirs);
 
 	if (!path.existsSync(toDir)) {
@@ -39,23 +38,13 @@ var copyFiles = function(fromDir, toDir, args) {
 		var file = files[i],
 			data = fs.readFileSync(file),
 			newFile = toDir + '/' + path.basename(file);
-
-		if (args.uglyModules) {
-			if (args.uglyModules.every(function(e) { return toDir.indexOf(e) !== -1; })) {
-				process.stdout.write('newFile:' + newFile + '\n');
-				process.stdout.write('path.basename(file):' + path.basename(file) + '\n');
-				var uglyData = data.toString().replace(/o3djs.require\('.*?'\);/g, "");
-				args.uglyData += ';\n' + uglifyMe(uglyData);
-			}
-		}
-
 		fs.writeFileSync(newFile, data);
 	}
 
-	if (args.subDirs) {
+	if (subDirs) {
 		for (var i = 0, il = dirs.length; i < il; i++) {
 			var dir = '/' + path.basename(dirs[i]);
-			copyFiles(fromDir + dir, toDir + dir, args);
+			copyFiles(fromDir + dir, toDir + dir, subDirs);
 		}
 	}
 };
@@ -123,10 +112,10 @@ var uglifyMe = function(data) {
 	return pro.gen_code(ast);
 };
 
-var uglifyFile = function(file) {
+var uglifyFile = function(file, header) {
 	var uglyjs = uglifyMe(fs.readFileSync(file).toString()),
 		outFile = fs.openSync(file.replace(/\.src\.js|\.js/, '.min.js'), 'w+');
-	fs.writeSync(outFile,uglyjs);
+	fs.writeSync(outFile, header + uglyjs);
 };
 
 var catFiles = function(args) {
@@ -214,11 +203,42 @@ var uglifyO3d = function(src, dst) {
 			'o3djs/shape.js'
 		],
 		replace: /(o3d|o3djs)\.(include|require)\('.*?'\);/g
-	};
+	},
+	header =
+'/*\n\
+ * Copyright 2010, Google Inc.\n\
+ * All rights reserved.\n\
+ *\n\
+ * Redistribution and use in source and binary forms, with or without\n\
+ * modification, are permitted provided that the following conditions are\n\
+ * met:\n\
+ *\n\
+ *     * Redistributions of source code must retain the above copyright\n\
+ * notice, this list of conditions and the following disclaimer.\n\
+ *     * Redistributions in binary form must reproduce the above\n\
+ * copyright notice, this list of conditions and the following disclaimer\n\
+ * in the documentation and/or other materials provided with the\n\
+ * distribution.\n\
+ *     * Neither the name of Google Inc. nor the names of its\n\
+ * contributors may be used to endorse or promote products derived from\n\
+ * this software without specific prior written permission.\n\
+ *\n\
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS\n\
+ * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT\n\
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR\n\
+ * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT\n\
+ * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,\n\
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT\n\
+ * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,\n\
+ * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY\n\
+ * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n\
+ * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE\n\
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n\
+ */\n';
 	catFiles(args);
 	fs.writeFileSync(dst + '/o3d.src.js', args.uglyData);
 	// TODO: Add the license
-	uglifyFile(dst + '/o3d.src.js');
+	uglifyFile(dst + '/o3d.src.js', header);
 };
 
 var uglifyHemi = function(src, dst) {
@@ -258,11 +278,28 @@ var uglifyHemi = function(src, dst) {
 				'hemi/timer.js'
 			],
 			replace: /o3djs\.require\('(hemi|o3djs).*?'\);/g
-		};
+		},
+		header =
+'/*\n\
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.\n\
+ * Copyright (C) 2011 SRI International.\n\
+ *\n\
+ * This program is free software; you can redistribute it and/or modify it under the terms\n\
+ * of the GNU General Public License as published by the Free Software Foundation; either\n\
+ * version 2 of the License, or (at your option) any later version.\n\
+ *\n\
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;\n\
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
+ * See the GNU General Public License for more details.\n\
+ *\n\
+ * You should have received a copy of the GNU General Public License along with this program;\n\
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,\n\
+ * Boston, MA 02110-1301 USA.\n\
+ */\n';
 		catFiles(args);
 		fs.writeFileSync(dst + '/hemi.src.js', args.uglyData);
 		// TODO: Add the GPL header
-		uglifyFile(dst + '/hemi.src.js');
+		uglifyFile(dst + '/hemi.src.js', header);
 };
 
 var checkForToDir = function(toDir) {
@@ -303,15 +340,14 @@ if (process.argv.length > 3) {
 		// Copy only the core Hemi library
 		filter.push('app.js', 'build.js', 'PublishReadMe',
 			'PublishTemplate.html', 'editor', 'hemi', 'o3djs', 'o3d-webgl', 'parse.js');
-		copyFiles('.', toDir, { subDirs: false });
-		var args = { subDirs: true };//, uglyModules: ['hemi'] };
-		copyFiles('./public/js', toDir, args);
+		copyFiles('.', toDir, false);
+		copyFiles('./public/js', toDir, true);
 
 		if (docs) {
 			var docDir = './public/doc';
 
 			if (path.existsSync(docDir)) {
-				copyFiles(docDir, toDir + '/doc', { subDirs: true });
+				copyFiles(docDir, toDir + '/doc', true);
 			}
 		}
 	} else if (type === 'ugly') {
@@ -334,7 +370,7 @@ if (process.argv.length > 3) {
 		}
 
 		// Now copy the Kuda files
-		copyFiles('.', toDir, { subDirs: true });
+		copyFiles('.', toDir, true);
 
 		// If not building a full package, create an empty assets directory
 		if (type !== 'full') {
