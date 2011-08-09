@@ -125,7 +125,7 @@ var uglifyMe = function(data) {
 
 var uglifyFile = function(file) {
 	var uglyjs = uglifyMe(fs.readFileSync(file).toString()),
-		outFile = fs.openSync(file.replace(/.src.js|.js/, '.min.js'), 'w+');
+		outFile = fs.openSync(file.replace(/\.src\.js|\.js/, '.min.js'), 'w+');
 	fs.writeSync(outFile,uglyjs);
 };
 
@@ -202,6 +202,7 @@ var uglifyO3d = function(src, dst) {
 			'o3djs/pack.js',
 			'o3djs/particles.js',
 			'o3djs/picking.js',
+			'o3djs/primitives.js',
 			'o3djs/rendergraph.js',
 			'o3djs/canvas.js',
 			'o3djs/material.js',
@@ -305,7 +306,6 @@ if (process.argv.length > 3) {
 		copyFiles('.', toDir, { subDirs: false });
 		var args = { subDirs: true };//, uglyModules: ['hemi'] };
 		copyFiles('./public/js', toDir, args);
-		uglifyHemi('./public/js', toDir);
 
 		if (docs) {
 			var docDir = './public/doc';
@@ -335,7 +335,6 @@ if (process.argv.length > 3) {
 
 		// Now copy the Kuda files
 		copyFiles('.', toDir, { subDirs: true });
-		// fs.writeFileSync('./public/js/hemi-core-1.4.0.min.js', args.uglyData);
 
 		// If not building a full package, create an empty assets directory
 		if (type !== 'full') {
