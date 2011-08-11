@@ -17,6 +17,12 @@
 
 (function() {
 	
+////////////////////////////////////////////////////////////////////////////////
+//                     			  	Extra Scripts  		                      //
+////////////////////////////////////////////////////////////////////////////////
+	editor.ui.getScript('js/editor/plugins/models/js/browser.js');
+	editor.ui.getCss('js/editor/plugins/models/css/style.css');
+	
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			   Initialization  		                      //
@@ -26,32 +32,17 @@
 	
 	tabpane.setToolBar(toolbar);	
 	editor.ui.addTabPane(tabpane);
-	
-////////////////////////////////////////////////////////////////////////////////
-//                     			  	Extra Scripts  		                      //
-////////////////////////////////////////////////////////////////////////////////
 
-	// It's probably best to concat and minify a plugin's js so only one 
-	// getScript() is required. 
-	
-//	jQuery.getScript('js/editor/plugins/camera/js/viewpoints.js', function() {
-//		var vptMdl = new editor.tools.ViewpointsModel(),
-//			vptView = new editor.tools.ViewpointsView(),
-//			vptCtr = new editor.tools.ViewpointsController();
-//			
-//	    vptCtr.setView(vptView);
-//	    vptCtr.setModel(vptMdl);
-//		
-//		toolbar.add(vptView);
-//	});
-//	jQuery.getScript('js/editor/plugins/camera/js/cameraCurves.js', function() {
-//		var crvMdl = new editor.tools.CamCurveModel(),
-//			crvView = new editor.tools.CamCurveView(),
-//			crvCtr = new editor.tools.CamCurveController();
-//				
-//		crvCtr.setView(crvView);
-//		crvCtr.setModel(crvMdl);
-//	
-//		toolbar.add(crvView);
-//	});
+	editor.ui.whenDoneLoading(function() {
+		var mbrMdl = new editor.tools.ModelBrowserModel(),
+			selMdl = new editor.tools.SelectorModel(),
+			mbrView = new editor.tools.ModelBrowserView(),
+			mbrCtr = new editor.tools.ModelBrowserController();
+		
+		mbrCtr.setModel(mbrMdl);
+		mbrCtr.setSelectorModel(selMdl);
+		mbrCtr.setView(mbrView);
+		
+		toolbar.add(mbrView);
+	});
 })();

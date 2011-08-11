@@ -38,7 +38,6 @@ jQuery.fn.file = function(options) {
 		var file = $('<div><form></form></div>').appendTo('body').css({
 			'position': 'absolute',
 			'overflow': 'hidden',
-			'-moz-opacity': '0',
 			'filter':  'alpha(opacity: 0)',
 			'opacity': '0',
 			'z-index': '1000'		
@@ -79,7 +78,7 @@ jQuery.fn.file = function(options) {
 		redirect('mouseup');
 
 		var offset = {
-			width: file.width() - 25,
+			width: file.width() - 50,
 			height: file.height() / 2
 		};
 

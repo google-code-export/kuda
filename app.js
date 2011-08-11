@@ -214,6 +214,7 @@ app.post('/model', function(req, res) {
 						var mFile = mFiles[j];
 						
 						if (mFile.match('.json')) {
+							retVal.name = urlDir[urlDir.length - 1];
 							retVal.url = urlDir.join('/') + '/' + mFile;
 							found = true;
 						}

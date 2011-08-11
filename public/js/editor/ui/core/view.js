@@ -58,7 +58,7 @@ var editor = (function(editor) {
 				wgt = this;
 			
 			li.append(tabpane.getUI()).bind('click', function(evt) {
-				if (wgt.visiblePane) {
+				if (wgt.visiblePane && wgt.visiblePane !== tabpane) {
 					wgt.visiblePane.setVisible(false);
 				}
 				
@@ -80,6 +80,7 @@ var editor = (function(editor) {
 	
 	editor.ui.PanelDefaults = {
 		location: editor.ui.Location.RIGHT,
+		classes: [],
 		name: 'Panel'
 	};
 	
@@ -114,12 +115,15 @@ var editor = (function(editor) {
 		finishLayout: function() {
 			var wgt = this;
 			
-			this.container = jQuery('<div></div>');
+			this.container = jQuery('<div class="panel"></div>');
 //			this.container.data('appended', false);		
 			jQuery('body').append(this.container);
 			
 			// put this on the widget layer and align it correctly
-			this.container.addClass('panel').css({
+			for (var i = 0, il = this.config.classes.length; i < il; i++) {
+				this.container.addClass(this.config.classes[i]);
+			}
+			this.container.css({
 				zIndex: editor.ui.Layer.TOOL
 			})
 			.addClass(this.config.location === editor.ui.Location.RIGHT ? 'rightAligned' :
@@ -154,10 +158,19 @@ var editor = (function(editor) {
 			var wgt = this;
 			opt_updateMeta = opt_updateMeta == null ? true : opt_updateMeta;
 			
-//			if (!this.container.data('appended') && jQuery('body').size() > 0) {				
-//				jQuery('body').append(this.container);
-//				this.container.data('appended', true);
-//			}
+			switch(this.config.location) {
+				case editor.ui.Location.TOP:
+				case editor.ui.Location.BOTTOM:
+					var width = this.container.outerWidth(),
+						windowWidth = window.innerWidth ? window.innerWidth 
+							: document.documentElement.offsetWidth;
+					
+					this.container.css({
+						left: (windowWidth - width)/2
+					});
+					
+					break;
+			}
 			
 			this.notifyListeners(editor.EventTypes.PanelVisible, {
 				widget: wgt,
@@ -185,7 +198,9 @@ var editor = (function(editor) {
 		
 		finishLayout: function() {			
 			// make sure forms are widget forms
-			this.find('form').addClass('widgetForm');
+			this.find('form').addClass('widgetForm').submit(function() {
+				return false;
+			});
 		},
 		
 		getName: function() {
@@ -310,17 +325,44 @@ var editor = (function(editor) {
 		},
 		
 		setVisible: function(visible) {
-			this.toolbarContainer.show();
+			if (visible) {
+				this.toolbarContainer.slideDown();
+			}
+			else {
+				this.toolbarContainer.slideUp();
+				this.toolbar.deselect();
+			}
 		}
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                     			   Public Methods  		                      //
+//                     			  Private Methods  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var tabbar = new TabBar(),
 		commonWidgets = new Hashtable(),
+		scripts = new Hashtable(),
+		callbacks = [];
 		grid = null;
+		
+	var loadingComplete = function() {
+		var vals = scripts.values(),
+			complete = true;
+		
+		for (var i = 0, il = vals.length; i < il && complete; i++) {
+			complete &= vals[i];
+		}
+		
+		if (complete) {
+			for (var i = 0, il = callbacks.length; i < il; i++) {
+				callbacks[i]();
+			}
+		}
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			   Public Methods  		                      //
+////////////////////////////////////////////////////////////////////////////////
 		
 	editor.ui.addTabPane = function(tabpane) {
 		tabbar.add(tabpane);
@@ -334,9 +376,54 @@ var editor = (function(editor) {
 		return this.commonWidgets.values();
 	};
 	
+	editor.ui.getCss = function(url, media) {
+		jQuery( document.createElement('link') ).attr({
+	        href: url,
+	        media: media || 'screen',
+	        type: 'text/css',
+	        rel: 'stylesheet'
+	    }).appendTo('head');
+	};
+	
+	editor.ui.getScript = function(url, callback) {
+		var script = document.createElement('script');
+		script.type = 'text/javascript';
+		script.src = url;
+		
+		scripts.put(script, false);
+		
+		{
+	        var done = false;
+	
+	        // Attach handlers for all browsers
+	        script.onload = script.onreadystatechange = function(){
+	            if (!done && (!this.readyState ||
+	            		this.readyState == "loaded" || 
+						this.readyState == "complete")) {
+	                done = true;
+                	scripts.put(script, true);
+					if (callback) {
+						callback();
+					}
+					loadingComplete();
+	
+	                // Handle memory leak in IE
+	                script.onload = script.onreadystatechange = null;
+	            }
+	        };
+	    }
+		
+	    document.body.appendChild(script);
+	};
+	
 	editor.ui.registerCommonWidget = function(name, widget) {
 		this.commonWidgets.put(name, widget);
 	};
+	
+	editor.ui.whenDoneLoading = function(cb) {
+		callbacks.push(cb);
+	};	
+
 	
 	editor.ui.initializeView = function(clientElements) {
 		var bdy = jQuery('body');
@@ -370,7 +457,7 @@ var editor = (function(editor) {
 					bdy = jQuery('body');
 				
 				for (var i = 0, il = plugins.length; i < il; i++) {
-					jQuery.getScript('js/editor/plugins/' + plugins[i] + '/init.js'); 
+					editor.ui.getScript('js/editor/plugins/' + plugins[i] + '/init.js'); 
 				}
 			})
 			.error(function(xhr, status, err) {
