@@ -15,26 +15,26 @@
  * Boston, MA 02110-1301 USA.
  */
 
-(function() {
-	
-	
-////////////////////////////////////////////////////////////////////////////////
-//                     			   Initialization  		                      //
-////////////////////////////////////////////////////////////////////////////////
-	var tabpane = new editor.ui.TabPane('Camera'),
-		toolbar = new editor.ui.Toolbar();
-	
-	tabpane.setToolBar(toolbar);	
-	editor.ui.addTabPane(tabpane);
+(function() {	
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	// It's probably best to concat and minify a plugin's js so only one 
-	// getScript() is required. 
+	editor.ui.getScript('js/editor/plugins/camera/js/viewpoints.js');
+	editor.ui.getScript('js/editor/plugins/camera/js/cameraCurves.js');
 	
-	jQuery.getScript('js/editor/plugins/camera/js/viewpoints.js', function() {
+////////////////////////////////////////////////////////////////////////////////
+//                     			   Initialization  		                      //
+////////////////////////////////////////////////////////////////////////////////
+
+	var tabpane = new editor.ui.TabPane('Camera'),
+		toolbar = new editor.ui.Toolbar();
+	
+	tabpane.setToolBar(toolbar);	
+	editor.ui.addTabPane(tabpane);
+ 
+ 	editor.ui.whenDoneLoading(function() {
 		var vptMdl = new editor.tools.ViewpointsModel(),
 			vptView = new editor.tools.ViewpointsView(),
 			vptCtr = new editor.tools.ViewpointsController();
@@ -43,8 +43,6 @@
 	    vptCtr.setModel(vptMdl);
 		
 		toolbar.add(vptView);
-	});
-	jQuery.getScript('js/editor/plugins/camera/js/cameraCurves.js', function() {
 		var crvMdl = new editor.tools.CamCurveModel(),
 			crvView = new editor.tools.CamCurveView(),
 			crvCtr = new editor.tools.CamCurveController();

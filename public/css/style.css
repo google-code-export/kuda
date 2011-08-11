@@ -114,7 +114,6 @@ p {
 	float: left;
 	position: relative;
 	color: #fff; 
-	height: 100%;
 }
 .toolbar {
 	float: left;
@@ -283,6 +282,8 @@ p {
 	position: absolute;
 	right: 0;
 	top: 0;
+	max-width: 300px;
+	height: 100%;
 }
 .bottomAligned {
 	position: absolute;
@@ -298,8 +299,6 @@ p {
 	color: #333;
 	box-shadow: 0 0 10px #666;
 	opacity: 0.85;
-	max-width: 300px;
-	height: 100%;
 }
 
 /******************************************************************************
@@ -911,18 +910,17 @@ button {
     background: #eee;
 	background: -moz-linear-gradient(100% 100% 90deg, #eee, #fafafa);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eee));
-    border: 1px solid #ddd;
-	-moz-box-shadow: 0 1px 0 #fff;
-	box-shadow: 0 1px 0 #fff;
-    -moz-border-radius: 3px;
-    -webkit-border-radius: 3px;
-    -khtml-border-radius: 3px;
-    border-radius: 3px;
-    color: #535353;
+	background: -moz-linear-gradient(100% 100% 90deg, #75d0f4, #91dbf6);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#91dbf6), to(#75d0f4));
+	background: -moz-linear-gradient(100% 100% 90deg, #ddd, #eee);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));
+    border: 1px solid #aaa;
+	border-radius: 3px;
+    color: #333;
     float: left;
     font: bold 10pt / 11pt helvetica, verdana, arial, sans-serif;
     padding: 4px 5px;
-    text-shadow: 0 1px 1px #fff;
+    text-shadow: 0 1px 0 #fff;
     margin-bottom: 5px;
     cursor: pointer;
 }
@@ -941,7 +939,12 @@ form button:not([disabled], .icon):hover {
 }
 
 form button[disabled] {
-	color: #ccc;
+	background: -moz-linear-gradient(100% 100% 90deg, #eee, #fafafa);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eee));
+	color: #aaa;
+	text-shadow: 0 1px 0 #fff;
+	border-color: #ccc;
+	cursor: url(../images/cursor_unavailable.gif), auto;
 }
 
 form button.icon {
@@ -1120,34 +1123,6 @@ form input.objPkrCitTreeIpt {
 }
 
 /**
- * Action bar widgets
- */
-.actionbarWidget {
-	
-}
-.actionbarWidget h2 {
-	float: left;
-	margin: 0;
-	padding: 0 10px 0 0;
-	font: bold 11pt/24px "Myriad Pro", Helvetica, Arial, sans-serif;
-    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.25);
-    color: #0a6496;
-}
-.actionbarWidget h2:nth-child(n+2) {
-	padding-left: 20px;
-}
-.actionbarWidget form button {
-    padding: 5px;
-}
-.actionbarSection {
-	float: left;
-	padding: 0 10px;
-}
-.actionbarSection:first-child {
-	padding-left: 0;
-}
-
-/**
  * Selection dialog
  */
 #selectionDlg {
@@ -1235,80 +1210,6 @@ form #anmLoops label {
     line-height: 26px;
 }
 
-/**
- * Model browser dialog
- */
-#modelBrowserTree {
-	padding: 0;
-	overflow: hidden;
-}
-#modelBrowserTree h1 {
-	padding: 10px;
-}
-#modelBrowserTree h2 {
-	padding: 2px 10px;
-	margin: 0;
-    float: left;
-	width: 90px;
-	text-align: right;
-	color: #fff;
-	text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.45);
-	line-height: 24px;
-}
-#mbTreeWrapper {
-    overflow: auto;
-	width: 100%;
-	height: 100%;
-}
-#mbtree {
-	background: transparent;
-	margin: 10px;
-}
-#mbDetailsPane {
-	float: left;
-	padding-bottom: 10px;
-	width: 300px;
-}
-#mbDetails p {
-	padding: 0 10px;
-}
-#mbTreePane {
-	padding-top: 0;
-}
-#mbActionBar form {
-	padding-left: 0;
-    float: left;
-}
-#mbActionBar form input#mbScaleVal {
-	width: 30px;
-	float: left;
-}
-#mbActionBar #mbTransparencySlider {
-	width: 200px;
-}
-#modelBrowserTree .dlgSection:not(last-child) {
-	border-bottom: 1px solid #fafafa;
-}
-#modelBrowserTree .dlgSection:nth-child(n+2) {
-    border-top: 1px solid #aaa;
-	padding: 0;
-}
-#selectionListDlg ul#selHiddenItems {
-    margin: 0;
-    padding: 0 0 0 20px;
-    float: left;
-    list-style: circle;
-}
-#selHiddenItems li, #selHiddenItems li span {
-    float: left;
-}
-#selHiddenItems li span {
-    display: block;
-    height: 24px;
-}
-#selHiddenItems button {
-    padding: 0 5px;
-}
 
 /**
  * Details list component
@@ -1366,49 +1267,6 @@ form #anmLoops label {
 #actionBar #vptActionBar span.vptVal {
 	font-weight: normal;
 	color: #5197bc;
-}
-
-
-/**
- * simple dialog
- */
-.simpleDialog {
-}
-.simpleDialog p {	
-    text-align: center;
-}
-.simpleDialog form input[type=text],
-.simpleDialog form select {
-	width: 165px;
-	float: left;
-	margin-right: 5px;
-}
-.simpleDialog form input[type=text] {
-	background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eee);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#dadada));
-    border: 1px solid #333;
-	box-shadow: 0 1px 0 #666;
-}
-.simpleDialog form input[type=text]:focus {
-	background: -moz-linear-gradient(100% 100% 90deg, #c2dfef, #dbeff9);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dbeff9), to(#c2dfef));
-}
-.simpleDialog form span,
-.simpleDialog form label {
-	width: auto;
-	padding-right: 10px;
-	font: bold 10pt/26px Helvetica, Arial, sans-serif;
-	float: left;
-	color: #fff;
-}
-.simpleDialog button {
-	float: left;
-	background: -moz-linear-gradient(100% 100% 90deg, #777, #aaa);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#777));
-	color: #fff;
-    text-shadow: 0 -1px 0 #555;
-    border: 1px solid #333;
-	box-shadow: 0 1px 0 #666;
 }
 
 /**

@@ -82,7 +82,7 @@ var editor = (function(editor) {
 		},
 		
 		reset: function() {
-			this.find('.' + this.config.type).focus().val('').blur();
+			this.find('input').focus().val('').blur();
 		}
 	});
 	

@@ -1,0 +1,147 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+
+/******************************************************************************
+ * 								 	 Panels									  *
+ ******************************************************************************/
+
+.mbrSidePanel {
+	width: 300px;
+}
+.mbrSidePanel .panelButtons {
+	position: relative;
+	float: left;
+	clear: both;
+	width: 100%;
+}
+.panelButtons button {
+	background: -moz-linear-gradient(100% 100% 90deg, #eaeaea, #eee);
+	background: -webkit-gradient(linear, 0% 0%, 100% 0%, from(#eee), to(#eaeaea));
+	border: none;
+	border-right: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	border-radius: 0;
+	width: 50%;
+	margin: 0;
+}
+.panelButtons button.down {
+	background: #d5e0e4;
+}
+
+/******************************************************************************
+ * 									Widget									  *
+ ******************************************************************************/
+
+.mbrSidePanel .widget {
+	background: -moz-linear-gradient(100% 100% 180deg, #eee, #fff);
+	background: -webkit-gradient(linear, 0% 0%, 100% 0%, from(#fff), to(#eee));
+	float: left;
+	width: 280px;
+	overflow: auto;
+}
+
+/******************************************************************************
+ * 								 Loading Forms								  *
+ ******************************************************************************/
+
+.mbrTopPanel {
+	top: 20px;
+	background: none;
+	opacity: 0.75;
+	border-radius: 10px;
+}
+.mbrTopPanel .widget {
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #383838);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#383838), to(#333));
+	overflow: hidden;
+	border-radius: 10px;
+}
+.mbrTopPanel p {	
+    text-align: center;
+	height: 25px;
+	background: #555;
+	font: bold 12px/25px Helvetica, Arial, sans-serif;
+	color: #fff;
+	border-radius: 6px;
+}
+.mbrTopPanel form {
+	border-top: none;
+	border-right: 1px dotted #aaa;
+	padding: 0 10px;
+}
+.mbrTopPanel form:first-child {
+	padding-left: none;
+}
+.mbrTopPanel form:last-child {
+	border: none;
+	padding-right: none;
+}
+.mbrTopPanel form input[type=text],
+.mbrTopPanel form select {
+	width: 165px;
+	float: left;
+	margin-right: 5px;
+}
+.mbrTopPanel form input[type=text] {
+	background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eee);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#dadada));
+    border: 1px solid #333;
+	box-shadow: 0 1px 0 #666;
+}
+.mbrTopPanel form input[type=text]:focus {
+	background: -moz-linear-gradient(100% 100% 90deg, #c2dfef, #dbeff9);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dbeff9), to(#c2dfef));
+}
+.mbrTopPanel form span,
+.mbrTopPanel form label {
+	width: auto;
+	padding-right: 10px;
+	font: bold 10pt/26px Helvetica, Arial, sans-serif;
+	float: left;
+	color: #fff;
+	margin-right: 0;
+}
+.mbrTopPanel form label:after {
+	content: ':';
+}
+.mbrTopPanel button {
+	float: left;
+	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
+	color: #fff;
+    text-shadow: 0 -1px 0 #034d75;
+    border: 1px solid #333;
+	box-shadow: 0 1px 0 #444;
+}
+.mbrTopPanel button[disabled] {
+	background: -moz-linear-gradient(100% 100% 90deg, #888, #aaa);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#888));
+	text-shadow: 0 -1px 0 #888;
+	color: #ddd;
+	border: 1px solid #333;
+}
+
+
+/******************************************************************************
+ * 								 	Model Tree								  *
+ ******************************************************************************/
+
+#mbtree {
+	background: transparent;
+	margin: 10px;
+}

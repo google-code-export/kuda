@@ -34,13 +34,6 @@ var editor = (function(editor) {
 			this._super(newOpts);
 		},
 		
-		finishLayout: function() {		
-			this.container = jQuery('<div class="toolbar"></div>');
-			this.list = jQuery('<ul></ul>');
-			
-			this.container.append(this.list);
-		},
-		
 		add: function(tool) {
 			if (tool instanceof editor.ui.ToolView) {
 				this.tools.push(tool);
@@ -48,6 +41,21 @@ var editor = (function(editor) {
 				
 				tool.addListener(editor.EventTypes.ToolClicked, this);
 			}
+		},
+		
+		deselect: function() {
+			var tool = this.getActiveTool();
+			
+			if (tool) {
+				tool.setMode(editor.ui.ToolConstants.MODE_UP);
+			}
+		},
+		
+		finishLayout: function() {		
+			this.container = jQuery('<div class="toolbar"></div>');
+			this.list = jQuery('<ul></ul>');
+			
+			this.container.append(this.list);
 		},
 		
 		getActiveTool: function() {
@@ -60,6 +68,20 @@ var editor = (function(editor) {
 			
 			return null;
 		},
+		
+		notify: function(eventType, value) {
+			if (eventType === editor.EventTypes.ToolClicked) {
+				var toolList = this.tools;		
+						
+	            for (ndx = 0, len = toolList.length; ndx < len; ndx++) {
+	                var t = toolList[ndx];
+	                
+	                if (t != value) {
+                        t.setMode(editor.ui.ToolConstants.MODE_UP);
+	                }
+	            }
+			}
+ 		},
 		
 		remove: function(tool) {
 	        var found = null;
@@ -81,21 +103,7 @@ var editor = (function(editor) {
 			for (var i = 0, il = this.tools.length; i < il; i++) {
 				this.tools[i].setEnabled(enabled);
 			}
-		},
-		
-		notify: function(eventType, value) {
-			if (eventType === editor.EventTypes.ToolClicked) {
-				var toolList = this.tools;		
-						
-	            for (ndx = 0, len = toolList.length; ndx < len; ndx++) {
-	                var t = toolList[ndx];
-	                
-	                if (t != value) {
-                        t.setMode(editor.ui.ToolConstants.MODE_UP);
-	                }
-	            }
-			}
- 		}
+		}
 	});
 	
 	/**
