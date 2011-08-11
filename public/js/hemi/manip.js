@@ -102,8 +102,8 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			this.disable();
-			this.clearTransforms();
 			hemi.world.Citizen.prototype.cleanup.call(this);
+			this.clearTransforms();
 			this.msgHandler = null;
 		},
 		
@@ -135,7 +135,13 @@ var hemi = (function(hemi) {
 		 */
 		addTransform: function(transform) {
 			hemi.world.tranReg.register(transform, this);
-			var obj = {};
+			var param = transform.getParam('ownerId'),
+				obj = {},
+				owner = null;
+			
+			if (param !== null) {
+				owner = hemi.world.getCitizenById(param.value);
+			}
 			
 			if (hemi.utils.isAnimated(transform)) {
 				obj.transform = hemi.utils.fosterTransform(transform);
@@ -143,6 +149,14 @@ var hemi = (function(hemi) {
 			} else {
 				obj.transform = transform;
 				obj.foster = false;
+			}
+			
+			if (owner) {
+				var that = this;
+				obj.owner = owner;
+				obj.msg = owner.subscribe(hemi.msg.cleanup, function(msg) {
+					that.removeTransforms(msg.src);
+				});
 			}
 			
 			this.transformObjs.push(obj);
@@ -192,20 +206,9 @@ var hemi = (function(hemi) {
 		 * Clear the list of draggable Transforms.
 		 */
 		clearTransforms: function() {
-			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				var obj = this.transformObjs[i],
-					tran;
-				
-				if (obj.foster) {
-					tran = hemi.utils.unfosterTransform(obj.transform);
-				} else {
-					tran = obj.transform;
-				}
-				
-				hemi.world.tranReg.unregister(tran, this);
+			while (this.transformObjs.length > 0) {
+				removeManipTransforms.call(this, this.transformObjs[0]);
 			}
-			
-			this.transformObjs = [];
 		},
 
 		/**
@@ -391,6 +394,24 @@ var hemi = (function(hemi) {
 		receiveTransform: function(transform) {
 			this.addTransform(transform);
 		},
+		
+		/**
+		 * Remove Transforms belonging to the specified owner from the
+		 * Draggable.
+		 * 
+		 * @param {hemi.world.Citizen} owner owner to remove Transforms for
+		 */
+		removeTransforms: function(owner) {
+			for (var i = 0; i < this.transformObjs.length; ++i) {
+				var obj = this.transformObjs[i];
+				
+				if (owner === obj.owner) {
+					removeManipTransforms.call(this, obj);
+					// Update index to reflect removed obj
+					--i;
+				}
+			}
+		},
 
 		/**
 		 * Set the relative uv limits in which this Draggable can move.
@@ -489,8 +510,8 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			this.disable();
-			this.clearTransforms();
 			hemi.world.Citizen.prototype.cleanup.call(this);
+			this.clearTransforms();
 			this.msgHandler = null;
 		},
 		
@@ -528,7 +549,13 @@ var hemi = (function(hemi) {
 		 */
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
-			var obj = {};
+			var param = transform.getParam('ownerId'),
+				obj = {},
+				owner = null;
+			
+			if (param !== null) {
+				owner = hemi.world.getCitizenById(param.value);
+			}
 			
 			if (hemi.utils.isAnimated(transform)) {
 				obj.transform = hemi.utils.fosterTransform(transform);
@@ -536,6 +563,14 @@ var hemi = (function(hemi) {
 			} else {
 				obj.transform = transform;
 				obj.foster = false;
+			}
+			
+			if (owner) {
+				var that = this;
+				obj.owner = owner;
+				obj.msg = owner.subscribe(hemi.msg.cleanup, function(msg) {
+					that.removeTransforms(msg.src);
+				});
 			}
 			
 			this.activeTransform = transform;
@@ -554,21 +589,11 @@ var hemi = (function(hemi) {
 		 * Clear the list of Turnable Transforms.
 		 */
 		clearTransforms: function() {
-			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				var obj = this.transformObjs[i],
-					tran;
-				
-				if (obj.foster) {
-					tran = hemi.utils.unfosterTransform(obj.transform);
-				} else {
-					tran = obj.transform;
-				}
-				
-				hemi.world.tranReg.unregister(tran, this);
+			while (this.transformObjs.length > 0) {
+				removeManipTransforms.call(this, this.transformObjs[0]);
 			}
 			
 			this.activeTransform = null;
-			this.transformObjs = [];
 		},
 		
 		/**
@@ -755,6 +780,24 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
+		 * Remove Transforms belonging to the specified owner from the
+		 * Turnable.
+		 * 
+		 * @param {hemi.world.Citizen} owner owner to remove Transforms for
+		 */
+		removeTransforms: function(owner) {
+			for (var i = 0; i < this.transformObjs.length; ++i) {
+				var obj = this.transformObjs[i];
+				
+				if (owner === obj.owner) {
+					removeManipTransforms.call(this, obj);
+					// Update index to reflect removed obj
+					--i;
+				}
+			}
+		},
+		
+		/**
 		 * Set the axis to which this Turnable is bound.
 		 * 
 		 * @param {hemi.manip.Axis} axis axis to rotate about - x, y, or z
@@ -828,7 +871,13 @@ var hemi = (function(hemi) {
 	hemi.manip.Scalable.prototype = {
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
-			var obj = {};
+			var param = transform.getParam('ownerId'),
+				obj = {},
+				owner = null;
+			
+			if (param !== null) {
+				owner = hemi.world.getCitizenById(param.value);
+			}
 			
 			if (hemi.utils.isAnimated(transform)) {
 				obj.transform = hemi.utils.fosterTransform(transform);
@@ -838,32 +887,29 @@ var hemi = (function(hemi) {
 				obj.foster = false;
 			}
 			
+			if (owner) {
+				var that = this;
+				obj.owner = owner;
+				obj.msg = owner.subscribe(hemi.msg.cleanup, function(msg) {
+					that.removeTransforms(msg.src);
+				});
+			}
+			
 			this.transformObjs.push(obj);
 		},
 		cleanup: function() {
 			this.disable();
-			this.clearTransforms();
 			hemi.world.Citizen.prototype.cleanup.call(this);
+			this.clearTransforms();
 			this.msgHandler = null;
 		},
 		/**
 		 * Clear the list of scalable transforms.
 		 */
 		clearTransforms: function() {
-			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				var obj = this.transformObjs[i],
-					tran;
-				
-				if (obj.foster) {
-					tran = hemi.utils.unfosterTransform(obj.transform);
-				} else {
-					tran = obj.transform;
-				}
-				
-				hemi.world.tranReg.unregister(tran, this);
+			while (this.transformObjs.length > 0) {
+				removeManipTransforms.call(this, this.transformObjs[0]);
 			}
-			
-			this.transformObjs = [];
 		},
 		containsTransform : function(transform) {
 			for (var i = 0; i < this.transformObjs.length; i++) {
@@ -945,6 +991,23 @@ var hemi = (function(hemi) {
 				this.scale = this.getScale(event.x, event.y);
 			}
 		},
+		/**
+		 * Remove Transforms belonging to the specified owner from the
+		 * Scalable.
+		 * 
+		 * @param {hemi.world.Citizen} owner owner to remove Transforms for
+		 */
+		removeTransforms: function(owner) {
+			for (var i = 0; i < this.transformObjs.length; ++i) {
+				var obj = this.transformObjs[i];
+				
+				if (owner === obj.owner) {
+					removeManipTransforms.call(this, obj);
+					// Update index to reflect removed obj
+					--i;
+				}
+			}
+		},
 		setAxis : function(axis) {
 			switch(axis) {
 				case hemi.manip.Axis.X:
@@ -1001,6 +1064,28 @@ var hemi = (function(hemi) {
 	hemi.manip.Turnable.inheritsFrom(hemi.world.Citizen);
 	
 	hemi.manip.Scalable.inheritsFrom(hemi.world.Citizen);
+
+	///////////////////////////////////////////////////////////////////////////
+	// Private functions
+	///////////////////////////////////////////////////////////////////////////
+	
+	var removeManipTransforms = function(transObj) {
+		var tran;
+		
+		if (transObj.foster) {
+			tran = hemi.utils.unfosterTransform(transObj.transform);
+		} else {
+			tran = transObj.transform;
+		}
+		
+		hemi.world.tranReg.unregister(tran, this);
+		tranObj.owner.unsubscribe(tranObj.msg, hemi.msg.cleanup);
+		var ndx = this.transformObjs.indexOf(tranObj);
+		
+		if (ndx > -1) {
+			this.transformObjs.splice(ndx, 1);
+		}
+	};
 	
 	/*
 	 * Check if the pickTransform is a child, grandchild, etc. of the transform.
