@@ -34,8 +34,7 @@ var editor = (function(module) {
 	
 	var TRIGGER_PREFIX = 'tr_',
 		ACTION_PREFIX = 'ac_',
-		CITIZEN_PREFIX = 'ci_',
-		MSG_WILDCARD = 'Any';
+		CITIZEN_PREFIX = 'ci_';
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Tree Model                                 //
@@ -544,8 +543,6 @@ var editor = (function(module) {
 		},
 		
 		createActionTree = function(json) {
-			var that = this;
-				
 			this.tree = jQuery('<div class="sharedTree"></div>');
 			this.container = this.tree;
 			
@@ -590,8 +587,6 @@ var editor = (function(module) {
 		},
 		
 		createCitizenTree = function(json) {
-			var that = this;
-				
 			this.tree = jQuery('<div></div>');
 			this.container = this.tree;
 			
@@ -629,8 +624,7 @@ var editor = (function(module) {
 		},
 				
 		createTriggerTree = function(json) {
-			var that = this,
-				wildcardTrigger = module.treeData.createWildcardJson(this.pre);
+			var wildcardTrigger = module.treeData.createWildcardJson(this.pre);
 			
 			json.unshift(wildcardTrigger);
 			this.tree = jQuery('<div class="sharedTree"></div>');

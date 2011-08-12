@@ -22,10 +22,7 @@ var editor = (function(module) {
 //                                 Constants                                  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var TRIGGER_PREFIX = module.treeData.TRIGGER_PREFIX = 'tr_',
-		ACTION_PREFIX = module.treeData.ACTION_PREFIX = 'ac_',
-		CITIZEN_PREFIX = module.treeData.CITIZEN_PREFIX = 'ci_',
-		MSG_WILDCARD = module.treeData.MSG_WILDCARD = 'Any';
+	var MSG_WILDCARD = module.treeData.MSG_WILDCARD = 'Any';
 	
 	module.treeData.chainTable = (function() {
 		var chainTable = new Hashtable();
