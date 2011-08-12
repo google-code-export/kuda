@@ -29,6 +29,18 @@
 	clear: both;
 	width: 100%;
 }
+.mbrTopPanel, .mbrBottomPanel {	
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #383838);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#383838), to(#333));
+	opacity: 0.75;
+	border-radius: 10px;
+}
+.mbrTopPanel {
+	top: 20px;
+}
+.mbrBottomPanel {
+	bottom: 20px;
+}
 .panelButtons button {
 	background: -moz-linear-gradient(100% 100% 90deg, #eaeaea, #eee);
 	background: -webkit-gradient(linear, 0% 0%, 100% 0%, from(#eee), to(#eaeaea));
@@ -54,23 +66,21 @@
 	width: 280px;
 	overflow: auto;
 }
+.mbrTopPanel .widget, .mbrBottomPanel .widget {
+	overflow: hidden;
+	background: none;
+}
+.mbrTopPanel .widget {	
+	border-radius: 10px;
+}
+.mbrBottomPanel .widget {
+	float: left;
+}
 
 /******************************************************************************
- * 								 Loading Forms								  *
+ * 								 	  Forms								  	  *	
  ******************************************************************************/
 
-.mbrTopPanel {
-	top: 20px;
-	background: none;
-	opacity: 0.75;
-	border-radius: 10px;
-}
-.mbrTopPanel .widget {
-	background: -moz-linear-gradient(100% 100% 90deg, #333, #383838);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#383838), to(#333));
-	overflow: hidden;
-	border-radius: 10px;
-}
 .mbrTopPanel p {	
     text-align: center;
 	height: 25px;
@@ -78,11 +88,17 @@
 	font: bold 12px/25px Helvetica, Arial, sans-serif;
 	color: #fff;
 	border-radius: 6px;
+	margin-bottom: 10px;
 }
-.mbrTopPanel form {
+.mbrTopPanel form,
+.mbrBottomPanel form {
 	border-top: none;
 	border-right: 1px dotted #aaa;
 	padding: 0 10px;
+	margin: 0;
+}
+.mbrBottomPanel form {
+	padding-left: 0;
 }
 .mbrTopPanel form:first-child {
 	padding-left: none;
@@ -108,7 +124,8 @@
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dbeff9), to(#c2dfef));
 }
 .mbrTopPanel form span,
-.mbrTopPanel form label {
+.mbrTopPanel label,
+.mbrBottomPanel label {
 	width: auto;
 	padding-right: 10px;
 	font: bold 10pt/26px Helvetica, Arial, sans-serif;
@@ -116,24 +133,9 @@
 	color: #fff;
 	margin-right: 0;
 }
-.mbrTopPanel form label:after {
+.mbrTopPanel label:after,
+.mbrBottomPanel label:after {
 	content: ':';
-}
-.mbrTopPanel button {
-	float: left;
-	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
-	color: #fff;
-    text-shadow: 0 -1px 0 #034d75;
-    border: 1px solid #333;
-	box-shadow: 0 1px 0 #444;
-}
-.mbrTopPanel button[disabled] {
-	background: -moz-linear-gradient(100% 100% 90deg, #888, #aaa);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#888));
-	text-shadow: 0 -1px 0 #888;
-	color: #ddd;
-	border: 1px solid #333;
 }
 
 
@@ -144,4 +146,81 @@
 #mbtree {
 	background: transparent;
 	margin: 10px;
+}
+
+/******************************************************************************
+ * 								Transparency Slider							  *
+ ******************************************************************************/
+
+#mbrTransparencySlider {
+	width: 250px;
+	height: 10px;
+	margin-top: 8px;
+	margin-right: 10px;
+	background: #222;
+	box-shadow: 0 1px 0 #444,
+		inset 0 1px 3px #111;
+	border-radius: 10px;
+	border: none;
+	float: left;
+}
+#mbrTransparencySlider .ui-slider-handle {
+	height: 20px;
+	width: 20px;
+	border-radius: 15px;
+	top: -5px;
+	box-shadow: 0 1px 5px #000,
+		inset 0 1px 2px #eee;
+	background: -moz-linear-gradient(100% 100% 90deg, #555, #ccc);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555), to(#bbb));
+	border: none;
+}
+#mbrTransparencySlider .ui-slider-range {
+	border-radius: 10px;
+	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
+	box-shadow: 0 1px #000,
+		inset 0 1px 2px #72bbe0;
+}
+
+/******************************************************************************
+ * 									  Buttons 								  *
+ ******************************************************************************/
+
+
+.mbrTopPanel button, 
+.mbrBottomPanel button {
+	float: left;
+	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
+	color: #fff;
+    text-shadow: 0 -1px 0 #034d75;
+    border: 1px solid #333;
+	box-shadow: 0 1px 0 #444,
+		inset 0 1px 2px #72bbe0;
+	margin-bottom: 0;
+}
+.mbrTopPanel button[disabled], 
+.mbrBottomPanel button[disabled] {
+	background: -moz-linear-gradient(100% 100% 90deg, #888, #aaa);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#888));
+	text-shadow: 0 -1px 0 #888;
+	color: #ddd;
+	border: 1px solid #333;
+	box-shadow: 0 1px 0 #444,
+		inset 0 1px 2px #aaa;
+} 
+.mbrBottomPanel button.down {
+	background: -moz-linear-gradient(100% 100% 90deg, #489ec9, #63b7dd);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#63b7dd), to(#489ec9));
+}
+.mbrBottomPanel button:active, 
+.mbrTopPanel button:active {
+	-webkit-transform: translate(0, 2px);
+	-moz-transform: translate(0, 2px);
+	-o-transform: translate(0, 2px);
+	transform: translate(0, 2px);
+}
+.mbrBottomPanel button:not(:last-child) {
+	margin-right: 5px;
 }
