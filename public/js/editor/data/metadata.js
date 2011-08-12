@@ -42,6 +42,18 @@ var editor = (function(module) {
 			return retVal == null ? null : retVal.description;
 		},
 		
+		getMsgDescription: function(objType, msgName) {
+			var parent = this.getParent(objType),
+				retVal = this.messages.get(objType + '.' + msgName);
+			
+			while (retVal == null && parent != null) {
+				retVal = this.messages.get(parent + '.' + msgName);
+				parent = this.getParent(parent);
+			}
+			
+			return retVal;
+		},
+		
 		getMethods: function(objType) {
 			var methods = [];
 			
@@ -105,6 +117,7 @@ var editor = (function(module) {
 			this.types = new Hashtable();
 			this.functions = new Hashtable();
 			this.parameters = new Hashtable();
+			this.messages = new Hashtable();
 			
 			try {
 				hemi.loader.loadHtml('js/editor/data/hemi.json', function(data) {
@@ -114,6 +127,7 @@ var editor = (function(module) {
 						var type = json[i],
 							tname = type.name,
 							funcs = type.funcs,
+							msgs = type.msgs,
 							tdata = {
 								description: type.desc,
 								methods: [],
@@ -144,6 +158,11 @@ var editor = (function(module) {
 									type: param.type
 								});
 							}
+						}
+						
+						for (var j = 0, jl = msgs.length; j < jl; ++j) {
+							var msg = msgs[j];
+							that.messages.put(tname + '.' + msg.name, msg.desc);
 						}
 					}
 				});

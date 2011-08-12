@@ -237,7 +237,7 @@ var editor = (function(module) {
 				id: id
 			}),
 			msgs = [{
-				data: '[Any message]',
+				data: '[any trigger]',
 				attr: {
 					id: name,
 					rel: 'message'
@@ -389,8 +389,7 @@ var editor = (function(module) {
 	
 	module.treeData.createCamMoveJson = function(cmCit, prefix) {
 		var camera = cmCit.citizen,
-			viewpoints = hemi.world.getViewpoints(),
-			vpList = [];
+			viewpoints = hemi.world.getViewpoints();
 		
 		for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
 			var node = module.treeData.createViewpointJson(cmCit, viewpoints[ndx]);
@@ -533,7 +532,7 @@ var editor = (function(module) {
 				prefix: prefix
 			}),
 			msgs = [{
-				data: '[Any message]',
+				data: '[any trigger]',
 				attr: {
 					id: name,
 					rel: 'message'

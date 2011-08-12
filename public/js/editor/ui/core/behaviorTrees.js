@@ -407,8 +407,7 @@ var editor = (function(module) {
 				node = jQuery('#' + nodeId, this.tree);
 			
 			if (node.length > 0) {
-				var anchor = jQuery('a', node),
-					type = citizen.getCitizenType(),
+				var type = citizen.getCitizenType(),
 					desc;
 				
 				if (opt_func) {
@@ -421,7 +420,6 @@ var editor = (function(module) {
 					desc = module.data.getMetaData().getDescription(type);
 				}
 				
-//				anchor.attr('title', desc);
 				if (desc != null) {
 					this.tooltips.put(nodeId, desc);
 				}
@@ -435,8 +433,15 @@ var editor = (function(module) {
 			
 			var triggerNode = module.treeData.createTriggerJson(citizen, 
 					this.pre),
-				type = citizen.getCitizenType().split('.').pop();
-				
+				type = citizen.getCitizenType().split('.').pop(),
+				name = module.treeData.getNodeName(citizen, {
+						option: module.treeData.MSG_WILDCARD,
+						prefix: this.pre,
+						id: citizen.getId()
+					});
+			
+			this.tooltips.put(name, 'any of the triggers for the ' + type);
+			
 			this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
 				json_data: triggerNode
 			});
@@ -477,6 +482,28 @@ var editor = (function(module) {
 					this.tree.jstree('create_node', node, 'inside', {
 						json_data: triggerNode
 					});
+				}
+			}
+			
+			for (var i = 0, il = citizen.msgSent.length; i < il; ++i) {
+				addTriggerToolTip.call(this, citizen, citizen.msgSent[i]);
+			}
+		},
+		
+		addTriggerToolTip = function(citizen, msg) {
+			var nodeId = module.treeData.getNodeName(citizen, {
+						prefix: this.pre,
+						option: msg,
+						id: citizen.getId()
+					}),
+				node = jQuery('#' + nodeId, this.tree);
+			
+			if (node.length > 0) {
+				msg = msg.split('.').pop();
+				var desc = module.data.getMetaData().getMsgDescription(citizen.getCitizenType(), msg);
+				
+				if (desc != null) {
+					this.tooltips.put(nodeId, desc);
 				}
 			}
 		},
@@ -644,6 +671,21 @@ var editor = (function(module) {
 				},
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
+			
+			var wildcard = module.treeData.MSG_WILDCARD,
+				name = module.treeData.getNodeName(wildcard, {
+					option: wildcard,
+					prefix: this.pre
+				});
+			
+			this.tooltips.put(name, 'any trigger from any source');
+			
+			name = module.treeData.getNodeName(wildcard, {
+				option: null,
+				prefix: this.pre
+			});
+			
+			this.tooltips.put(name, 'a trigger from any source');
 			
 			this.notifyListeners(module.EventTypes.Trees.TreeCreated, this.tree);
 		},
