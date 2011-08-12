@@ -1064,6 +1064,8 @@ var hemi = (function(hemi) {
 	hemi.manip.Turnable.inheritsFrom(hemi.world.Citizen);
 	
 	hemi.manip.Scalable.inheritsFrom(hemi.world.Citizen);
+	hemi.manip.Scalable.prototype.msgSent =
+		hemi.manip.Scalable.prototype.msgSent.concat([hemi.msg.scale]);
 
 	///////////////////////////////////////////////////////////////////////////
 	// Private functions
