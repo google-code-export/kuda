@@ -159,7 +159,10 @@ app.get('/models', function(req, res) {
 						found = true;
 					}
 				}
-				data.models.push(mData);	
+				
+				if (found) {
+					data.models.push(mData);
+				}	
 			}
 		}
 	}
