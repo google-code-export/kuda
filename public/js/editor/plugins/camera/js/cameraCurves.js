@@ -270,7 +270,6 @@ var editor = (function(editor) {
 			winHeight = win.height(),
 			wgtHeight = winHeight/2 - padding;
 		
-		console.log('padding: ' + padding);
 		container.height(wgtHeight)
 	};
 	

@@ -771,7 +771,6 @@ var editor = (function(editor) {
 			winHeight = win.height(),
 			wgtHeight = winHeight - padding - btnPnlHeight;
 		
-		console.log("button panel height: " + btnPnlHeight);
 		container.height(wgtHeight)
 	};
 	
@@ -961,7 +960,7 @@ var editor = (function(editor) {
 			var detailsList = new editor.ui.DetailsList(),
 				params = material.params,
 				textures = {},
-				texList = new editor.ui.ListWidget({
+				texList = new editor.ui.List({
 					widgetId: 'mbrTextureList',
 					prefix: 'mbrTexLst',
 					type: editor.ui.ListType.UNORDERED
@@ -1017,7 +1016,7 @@ var editor = (function(editor) {
 		displayTransformNode: function(transform) {
 			var detailsList = new editor.ui.DetailsList(),
 				shapes = transform.shapes,
-				shapeList = new editor.ui.ListWidget({
+				shapeList = new editor.ui.List({
 					widgetId: 'mbrShapeList',
 					prefix: 'mbrShpLst',
 					type: editor.ui.ListType.UNORDERED
@@ -1465,10 +1464,92 @@ var editor = (function(editor) {
 //                        Transform Adjusting Widget                          //
 ////////////////////////////////////////////////////////////////////////////////
 
+	var AdjustState = {
+		NONE: -1,
+		TRANSLATE: 0,
+		ROTATE: 1,
+		SCALE: 2	
+	};
+	
+	var AdjustWidget = editor.ui.Widget.extend({
+		init: function() {
+			this._super({
+				name: 'adjustWidget'
+			});
+			
+			this.state = AdjustState.NONE;
+		},
+		
+		finishLayout: function() {
+			this._super();
+			var wgt = this,
+				form = jQuery('<form></form>').submit(function() { 
+					return false; 
+				}),
+				notify = function(btn, msg) {					
+					btn.toggleClass('down');
+					
+					if (!btn.hasClass('down')) {
+						msg = editor.ui.trans.DrawState.NONE;	
+					}
+					wgt.notifyListeners(editor.EventTypes.ManipState, msg);
+				};
+			
+			this.transBtn = jQuery('<button id="mbrTranslateBtn">Translate</button>');
+			this.rotateBtn = jQuery('<button id="mbrRotateBtn">Rotate</button>');
+			this.scaleBtn = jQuery('<button id="mbrScaleBtn">Scale</button>');
+			
+			form.append(this.transBtn).append(this.rotateBtn)
+				.append(this.scaleBtn);
+			this.container.append(form);
+			
+			this.transBtn.bind('click', function() {				
+				wgt.rotateBtn.removeClass('down');
+				wgt.scaleBtn.removeClass('down');
+				notify(jQuery(this), editor.ui.trans.DrawState.TRANSLATE);
+			});
+			this.rotateBtn.bind('click', function() {				
+				wgt.transBtn.removeClass('down');
+				wgt.scaleBtn.removeClass('down');
+				notify(jQuery(this), editor.ui.trans.DrawState.ROTATE);
+			});
+			this.scaleBtn.bind('click', function() {				
+				wgt.rotateBtn.removeClass('down');
+				wgt.transBtn.removeClass('down');
+				notify(jQuery(this), editor.ui.trans.DrawState.SCALE);
+			});
+		}
+	});
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                              Opacity Widget                                //
-////////////////////////////////////////////////////////////////////////////////      
+////////////////////////////////////////////////////////////////////////////////    
+	
+	var OpacityWidget = editor.ui.Widget.extend({
+		init: function() {
+			this._super({
+				name: 'opacityWidget'
+			});
+		},
+		
+		finishLayout: function() {
+			this._super();
+			
+			var wgt = this,
+				label = jQuery('<label>Opacity</label>');
+			this.slider = jQuery('<div id="mbrTransparencySlider"></div>');
+			this.slider.slider({
+				value: 100,
+				range: 'min',
+				slide: function(evt, ui) {								
+					wgt.notifyListeners(editor.EventTypes.SetTransOpacity, 
+						ui.value/100);
+				}
+			});
+			
+			this.container.append(label).append(this.slider);
+		}
+	});
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
@@ -1824,6 +1905,9 @@ var editor = (function(editor) {
 			this.sidePanel.addWidget(new HiddenItemsWidget(), "Hidden Transforms");
 			
 			this.topPanel.addWidget(new LoaderWidget());
+			
+			this.bottomPanel.addWidget(new AdjustWidget());
+			this.bottomPanel.addWidget(new OpacityWidget());
 		},
 		
 		layoutActionBar: function() {
@@ -1986,6 +2070,8 @@ var editor = (function(editor) {
 				view = this.view,
 				mbrWgt = view.sidePanel.modelTreeWidget,
 				hidWgt = view.sidePanel.hiddenItemsWidget,
+				opaWgt = view.bottomPanel.opacityWidget,
+				adjWgt = view.bottomPanel.adjustWidget,
 				infoDisp = view.infoDisplay;
 			
 			selModel.curHandle.setDrawCallback(function() {
@@ -2056,13 +2142,15 @@ var editor = (function(editor) {
 				}
 			});
 			
-			// view specific  
-	        view.addListener(editor.EventTypes.ManipState, function(state) {
+			// bottom panel			  
+	        adjWgt.addListener(editor.EventTypes.ManipState, function(state) {
 				selModel.setManipState(state);
 	        });
-	        view.addListener(editor.EventTypes.SetTransOpacity, function(opacity) {
+	        opaWgt.addListener(editor.EventTypes.SetTransOpacity, function(opacity) {
 				selModel.setOpacity(opacity);
 	        });
+			
+			// view specific
 	        view.addListener(editor.EventTypes.ShowPicked, function(value) {
 				if (value) {
 	                selModel.showSelected();

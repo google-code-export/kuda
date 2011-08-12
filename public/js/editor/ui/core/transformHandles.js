@@ -15,34 +15,34 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-    module.ui = module.ui || {};
-	module.ui.trans = module.ui.trans || {};
+var editor = (function(editor) {
+    editor.ui = editor.ui || {};
+	editor.ui.trans = editor.ui.trans || {};
 	
 	var EXTENT = 5,
 		MAX_EXTENT = 10;
 		MIN_EXTENT = 4;
 	
-	module.ui.trans.DrawState = {
+	editor.ui.trans.DrawState = {
 		TRANSLATE: 0,
 		ROTATE: 1,
 		SCALE: 2,
 		NONE: 3
 	};
 	
-    module.EventTypes = module.EventTypes || {};
-    module.EventTypes.TransChanged = "TransHandles.TransChanged";
+    editor.EventTypes = editor.EventTypes || {};
+    editor.EventTypes.TransChanged = "TransHandles.TransChanged";
 	
-	module.ui.TransHandles = module.utils.Listenable.extend({
+	editor.ui.TransHandles = editor.utils.Listenable.extend({
 		init: function() {
 			this._super();
 			this.canvas = hemi.hud.hudMgr.canvas;
 			this.drawCallback = null;
 			
-			this.xArrow = new module.ui.Arrow(this.canvas, '#f00', '#f99');
-			this.yArrow = new module.ui.Arrow(this.canvas, '#0c0', '#9c9');
-			this.zArrow = new module.ui.Arrow(this.canvas, '#00f', '#99f');
-			this.drawState = module.ui.trans.DrawState.NONE;
+			this.xArrow = new editor.ui.Arrow(this.canvas, '#f00', '#f99');
+			this.yArrow = new editor.ui.Arrow(this.canvas, '#0c0', '#9c9');
+			this.zArrow = new editor.ui.Arrow(this.canvas, '#00f', '#99f');
+			this.drawState = editor.ui.trans.DrawState.NONE;
 			
 			hemi.view.addRenderListener(this);
 			this.overrideHandlers();
@@ -70,7 +70,7 @@ var editor = (function(module) {
 		},
 		
 		drawHandles: function() {
-			if (this.drawState !== module.ui.trans.DrawState.NONE) {
+			if (this.drawState !== editor.ui.trans.DrawState.NONE) {
 //				var origin = this.transform.localMatrix[3],		FOR LOCAL
 				var origin = this.transform.boundingBox.getCenterOfGeometry(), 
 					extent = this.getExtent() / 2,
@@ -135,12 +135,12 @@ var editor = (function(module) {
 		},
 		
 		onChange: function(val) {
-			this.notifyListeners(module.EventTypes.TransChanged, val);
+			this.notifyListeners(editor.EventTypes.TransChanged, val);
 		},
 		
 		onMouseDown: function(evt) {
 			if (!this.transform 
-					|| this.drawState === module.ui.trans.DrawState.NONE) {
+					|| this.drawState === editor.ui.trans.DrawState.NONE) {
 				return false;
 			}
 			
@@ -171,13 +171,13 @@ var editor = (function(module) {
 			
 			if (this.down) {
 				switch(this.drawState) {
-					case module.ui.trans.DrawState.ROTATE:
+					case editor.ui.trans.DrawState.ROTATE:
 						this.startRotate(axis, evt);
 						break;
-					case module.ui.trans.DrawState.SCALE:
+					case editor.ui.trans.DrawState.SCALE:
 						this.startScale(scaleAxis, evt);
 						break;
-					case module.ui.trans.DrawState.TRANSLATE:
+					case editor.ui.trans.DrawState.TRANSLATE:
 					    this.startTranslate(plane, evt);
 						break;
 				}			
@@ -189,7 +189,7 @@ var editor = (function(module) {
 		
 		onMouseMove: function(evt) {
 			if (!this.transform || this.down
-					|| this.drawState === module.ui.trans.DrawState.NONE) {
+					|| this.drawState === editor.ui.trans.DrawState.NONE) {
 				return false;
 			}
 			
@@ -369,7 +369,7 @@ var editor = (function(module) {
 		startTranslate: function(plane, evt) {
 			hemi.world.camera.disableControl();		
 			this.dragger = new hemi.manip.Draggable();
-			this.dragger.name = module.tools.ToolConstants.EDITOR_PREFIX + 'Dragger';
+			this.dragger.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'Dragger';
 			this.dragger.setPlane(plane);
 			this.dragger.subscribe(
 				hemi.msg.drag,
@@ -403,7 +403,7 @@ var editor = (function(module) {
 		}
 	});
 	
-	module.ui.Arrow = module.Class.extend({
+	editor.ui.Arrow = editor.Class.extend({
 		init: function(canvas, color, hoverColor) {
 			this.canvas = canvas;
 			this.clr = color;
@@ -737,13 +737,13 @@ var editor = (function(module) {
 				this.drawLine();
 				
 				switch (drawState) {
-					case module.ui.trans.DrawState.TRANSLATE:
+					case editor.ui.trans.DrawState.TRANSLATE:
 						this.drawTranslator();
 						break;
-					case module.ui.trans.DrawState.ROTATE:
+					case editor.ui.trans.DrawState.ROTATE:
 						this.drawRotater();
 						break;
-					case module.ui.trans.DrawState.SCALE:
+					case editor.ui.trans.DrawState.SCALE:
 						this.drawScaler();
 						break;
 				}
@@ -751,5 +751,5 @@ var editor = (function(module) {
 		}
 	});
     
-    return module;
+    return editor;
 })(editor || {});
