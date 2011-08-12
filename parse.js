@@ -6,7 +6,6 @@ var getDirContents = function(dir, files, dirs) {
 	
 	for (var i = 0, il = dirFiles.length; i < il; i++) {
 		var file = dirFiles[i],
-			fName = path.basename(file),
 			fPath = path.resolve(dir, file),
 			stat = fs.statSync(fPath);
 		
@@ -21,7 +20,8 @@ var getDirContents = function(dir, files, dirs) {
 var parseFiles = function(dir, opt_classes) {
 	var classes = opt_classes || [],
 		files = [],
-		dirs = [];
+		dirs = [],
+		msgData = null;
 	
 	getDirContents(dir, files, dirs);
 	
@@ -29,17 +29,25 @@ var parseFiles = function(dir, opt_classes) {
 		var file = files[i],
 			data = fs.readFileSync(file, 'utf8');
 		
-		try {
-			parseFile(data, classes);
-		} catch (err) {
-			process.stdout.write('Error processing ' + file + '\n');
-			process.stdout.write(err + '\n');
+		if (file.indexOf('msg.js') !== -1) {
+			msgData = data;
+		} else {
+			try {
+				parseFile(data, classes);
+			} catch (err) {
+				process.stdout.write('Error processing ' + file + '\n');
+				process.stdout.write(err + '\n');
+			}
 		}
 	}
 	
 	for (var i = 0, il = dirs.length; i < il; i++) {
 		var dirPath = dir + '/' + path.basename(dirs[i]);
 		parseFiles(dirPath, classes);
+	}
+	
+	if (msgData) {
+		parseMessages(msgData, classes);
 	}
 	
 	return classes;
@@ -55,7 +63,8 @@ var parseFile = function(data, classes) {
 			body = cls.substr(ndx + 2).trim(),
 			clsObj = {
 				funcs: [],
-				props: []
+				props: [],
+				msgs: []
 			};
 		
 		// Check for a parent class
@@ -238,6 +247,52 @@ var parseParam = function(param) {
 	}
 	
 	return obj;
+};
+
+var parseMessages = function(data, classes) {
+	debugger;
+	var ndx = data.search(/hemi.msg\s*=/),
+		msgObj = {};
+	
+	data = data.substr(ndx);
+	var msgs = data.split(/\,\s*\/\*\*/gm);
+	
+	for (var i = 0; i < msgs.length; ++i) {
+		var msg = msgs[i],
+			nameStart = msg.indexOf('*/') + 2,
+			nameEnd = msg.indexOf(':', nameStart),
+			name = msg.substring(nameStart, nameEnd).trim(),
+			exs = msg.split(/@example\s*\*\s*/gm);
+		
+		for (var j = 1; j < exs.length; ++j) {
+			var ex = exs[j],
+				start = ex.indexOf('-'),
+				stop = ex.search(/data\s*=\s*{/gm),
+				clsName = ex.substring(0, start).trim(),
+				clsArr = msgObj[clsName],
+				desc = ex.substring(start + 1, stop);
+			
+			if (!clsArr) {
+				clsArr = [];
+				msgObj[clsName] = clsArr;
+			}
+			
+			desc = desc.split(/\s*\*\s*/gm).join(' ').trim();
+			clsArr.push({
+				name: name,
+				desc: desc
+			});
+		}
+	}
+	
+	for (var i = 0; i < classes.length; ++i) {
+		var cls = classes[i],
+			clsArr = msgObj[cls.name];
+		
+		if (clsArr) {
+			cls.msgs = clsArr;
+		}
+	}
 };
 
 var stringify = function(data) {
