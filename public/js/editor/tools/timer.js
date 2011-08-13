@@ -29,8 +29,7 @@ var editor = (function(editor) {
 	// view specific
 	
 	// create timer sidebar widget specific
-	editor.EventTypes.CreateTimer = 'timer.create';
-	editor.EventTypes.UpdateTimer = 'timer.update';
+	editor.EventTypes.SaveTimer = 'timer.save';
 	
 	// timer list sidebar widget specific
 	editor.EventTypes.EditTimer = 'timer.edit';
@@ -89,7 +88,11 @@ var editor = (function(editor) {
 		},
 			
 		worldCleaned: function() {
-			this.notifyListeners(editor.EventTypes.WorldCleaned, null);
+			var timers = hemi.world.getTimers();
+			
+			for (var ndx = 0, len = timers.length; ndx < len; ndx++) {
+				this.notifyListeners(editor.EventTypes.TimerRemoved, timers[ndx]);
+			}
 	    },
 	    
 	    worldLoaded: function() {
@@ -153,11 +156,9 @@ var editor = (function(editor) {
 				var data = {
 						startTime: parseInt(wgt.startTimeIpt.val()),
 						name: wgt.nameIpt.val()
-					},
-					msgType = wgt.isUpdate ? editor.EventTypes.UpdateTimer : 
-						editor.EventTypes.CreateTimer;
+					};
 					
-				wgt.notifyListeners(msgType, data); 
+				wgt.notifyListeners(editor.EventTypes.SaveTimer, data); 
 			});
 			
 			this.cancelBtn.bind('click', function() {
@@ -304,28 +305,25 @@ var editor = (function(editor) {
 	        	view = this.view,
 				crtWgt = view.createTimerSBWidget,
 				lstWgt = view.timerListSBWidget,
-				bhvWgt = view.behaviorSBWidget,
-	        	that = this;
-	                	        
-			// special listener for when the toolbar button is clicked
-	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
-	        });
+				bhvWgt = view.behaviorSBWidget;
 			
 			// create widget specific
 			crtWgt.addListener(editor.EventTypes.Cancel, function() {
 				crtWgt.setVisible(false);
 				lstWgt.setVisible(true);
 			});
-			crtWgt.addListener(editor.EventTypes.CreateTimer, function(data) {
-				model.save(data.name, data.startTime);
-			});
-			crtWgt.addListener(editor.EventTypes.UpdateTimer, function(data) {
+			crtWgt.addListener(editor.EventTypes.SaveTimer, function(data) {
+				crtWgt.setVisible(false);
+				lstWgt.setVisible(true);
+				
 				model.save(data.name, data.startTime);
 			});
 			
 			// list widget specific
 			lstWgt.addListener(editor.EventTypes.EditTimer, function(timer) {
+				crtWgt.setVisible(true);
+				lstWgt.setVisible(false);
+				
 				model.edit(timer);
 			});
 			lstWgt.addListener(editor.EventTypes.RemoveTimer, function(timer) {
@@ -340,21 +338,15 @@ var editor = (function(editor) {
 			// model specific
 			model.addListener(editor.EventTypes.TimerCreated, function(timer) {
 				lstWgt.add(timer);
-				crtWgt.setVisible(false);
-				lstWgt.setVisible(true);
 			});
 			model.addListener(editor.EventTypes.TimerRemoved, function(timer) {
 				lstWgt.remove(timer);
 			});
 			model.addListener(editor.EventTypes.TimerSet, function(timer) {
 				crtWgt.edit(timer);
-				crtWgt.setVisible(true);
-				lstWgt.setVisible(false);
 			});
 			model.addListener(editor.EventTypes.TimerUpdated, function(timer) {
 				lstWgt.update(timer);
-				crtWgt.setVisible(false);
-				lstWgt.setVisible(true);
 			});
 			
 			// behavior widget specific
