@@ -1175,6 +1175,25 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
+	 * Get any Timers with the given attributes. If no attributes are given, all
+	 * Timers will be returned. Valid attributes are:
+	 * - name
+	 * - worldId
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to
+	 *     search for
+	 * @param {function(Timer): boolean} opt_filter optional filter function
+	 *     that takes a Timer and returns true if the Timer should be included
+	 *     in the returned array
+	 * @return {hemi.time.Timer[]} an array of Timers with matching attributes
+	 */
+	hemi.world.getTimers = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes.citizenType = hemi.time.Timer.prototype.citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
+	
+	/**
 	 * Get any Translators with the given attributes. If no attributes are
 	 * given, all Translators will be returned. Valid attributes are:
 	 * - name

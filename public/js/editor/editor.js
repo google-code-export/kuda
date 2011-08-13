@@ -173,7 +173,8 @@
 			this.hudMdl.worldCleaned();
 			this.fogMdl.worldCleaned();
 			this.selMdl.worldCleaned();
-			this.crvMdl.worldCleaned();			
+			this.crvMdl.worldCleaned();
+			this.tmrMdl.worldCleaned();
 			
 			var citizens = hemi.world.getCitizens();
 	
@@ -195,6 +196,7 @@
 			this.hudMdl.worldLoaded();
 			this.fogMdl.worldLoaded();
 			this.crvMdl.worldLoaded();
+			this.tmrMdl.worldLoaded();
             
 			var vd = hemi.view.createViewData(hemi.world.camera);
 			vd.eye = [0, 10, 40];
