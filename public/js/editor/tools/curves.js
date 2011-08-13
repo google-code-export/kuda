@@ -616,7 +616,6 @@ var editor = (function(editor) {
 		
 		boxAdded: function(box) {
 			var position = box.position,
-				dimensions = box.dimensions,
 				wgt = this,
 				wrapper = jQuery('<li class="crvBoxEditor"><span>Box at [' + position.join(',') + ']</span></li>'),
 				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>'),
@@ -697,7 +696,6 @@ var editor = (function(editor) {
 			var rndFnc = editor.utils.roundNumber,
 				position = box.position,
 				dimensions = box.dimensions,
-				wgt = this,
 				boxUI = this.boxes.get(box);
 				
 			for (var i = 0, il = position.length; i < il; i++) {
@@ -744,7 +742,7 @@ var editor = (function(editor) {
 			var pack = hemi.curve.pack,
 				boxes = this.boxes.keys();
 		
-			for (i = 0, il = boxes.length; i < il; i++) {
+			for (var i = 0, il = boxes.length; i < il; i++) {
 				var box = boxes[i],
 					tran = box.transform,
 					shape = tran.shapes[0];
@@ -825,8 +823,7 @@ var editor = (function(editor) {
 		
 		set: function(curve, boxes) {
 			if (curve) {
-				var colorAdder = this.find('#crvAddColorToRamp'),
-					type = curve instanceof hemi.curve.GpuParticleTrail ?
+				var type = curve instanceof hemi.curve.GpuParticleTrail ?
 						'trail' : 'emitter',
 					colors = curve.colors;
 				
@@ -893,8 +890,8 @@ var editor = (function(editor) {
 			this.colorPickers.push(colorRampPicker);
 		},
 		
-		setVisible: function(visible) {
-			this._super(visible);
+		setVisible: function(visible, opt_updateMeta) {
+			this._super(visible, opt_updateMeta);
 			
 			if (visible) {
 				this.showBoxWireframes();
@@ -908,7 +905,7 @@ var editor = (function(editor) {
 			var pack = hemi.curve.pack,
 				boxes = this.boxes.keys();
 			
-			for (i = 0; i < boxes.length; i++) {
+			for (var i = 0; i < boxes.length; i++) {
 				var b = boxes[i];
 				
 				if (b.transform == null) {
@@ -1129,8 +1126,7 @@ var editor = (function(editor) {
 	        	view = this.view,
 				edtCrvWgt = view.editCurveSBWidget,
 				lstWgt = view.curveListSBWidget,
-				bhvWgt = view.behaviorSBWidget,
-	        	that = this;
+				bhvWgt = view.behaviorSBWidget;
 	        
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
 	            var isDown = value.newMode == editor.tools.ToolConstants.MODE_DOWN,
