@@ -18,10 +18,6 @@
 var editor = (function(editor) {
     editor.tools = editor.tools || {};
 	
-	var HIDE_TXT = 'Hide',
-		SHOW_TXT = 'Show',
-		EMPTY_PTE_TXT = 'No particle effect selected';
-	
     editor.EventTypes = editor.EventTypes || {};
 	// model specific
     editor.EventTypes.ParticleFxAdded = "particleFx.ParticleFxAdded";
@@ -330,8 +326,7 @@ var editor = (function(editor) {
 	editor.tools.PteFxEditSBWidget = editor.ui.SidebarWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, 
-					editor.tools.PteFxEditSBWidgetDefaults, options),
-				wgt = this;
+					editor.tools.PteFxEditSBWidgetDefaults, options);
 			this.colorPickers = [];
 			
 		    this._super(newOpts);	
@@ -409,8 +404,7 @@ var editor = (function(editor) {
 					colorRamp = effect.colorRamp, 
 					state = effect.state, 
 					fireInt = effect.fireInterval, 
-					numColors = colorRamp.length / 4, 
-					colorAdder = this.find('#pteAddColorToRamp');
+					numColors = colorRamp.length / 4;
 				
 				this.find('#pteTemplateSelect').val(-1);
 				this.find('#pteType').val(type).change();
@@ -469,7 +463,6 @@ var editor = (function(editor) {
 				previewStartBtn = this.find('#ptePreviewStartBtn'),
 				previewStopBtn = this.find('#ptePreviewStopBtn'),
 	        	typeSelect = this.find('#pteType'),
-				paramsSet = this.find('fieldset:not(#pteSystemType)'),
 				inputs = this.find('input:not(.vector, .color, .quat, #pteName, #pteFireInterval)'),
 				stateSelect = this.find('#pteState'),
 				fireInterval = this.find('#pteFireInterval'),
@@ -487,8 +480,7 @@ var editor = (function(editor) {
 						return msg;
 					}),
 				onBlurFcn = function(elem, evt, vecWgt) {
-					var val = elem.val(),
-						ndx = elem.data('ndx');
+					var val = elem.val();
 					
 					if (val === '') {
 						wgt.notifyListeners(editor.EventTypes.RemoveShapeParam, 
@@ -516,8 +508,7 @@ var editor = (function(editor) {
 			// bind selectbox
 			typeSelect.bind('change', function(evt) {
 				var elem = jQuery(this),
-					val = elem.val(),
-					firstShown = elem.data('firstShown');
+					val = elem.val();
 				
 				if (val != -1) {
 					if (val === 'Trail') {
@@ -907,14 +898,9 @@ var editor = (function(editor) {
 	        	view = this.view,
 				pteEdt = view.pteFxEditSBWidget,
 				pteLst = view.pteFxListSBWidget,
-				bhvWgt = view.behaviorSBWidget,
-	        	that = this;
+				bhvWgt = view.behaviorSBWidget;
 				
 			model.loadTemplates();
-	                	        
-	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
-	        });
 			
 			// create widget specific
 			pteEdt.addListener(editor.EventTypes.CancelCreateParticleFx, function(name) {
