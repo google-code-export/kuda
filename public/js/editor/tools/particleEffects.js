@@ -76,21 +76,17 @@ var editor = (function(editor) {
 			if (this.colorRamp === null) {
 				this.colorRamp = [];
 			}
-			if (this.colorRamp.length < ndx) {
-				this.colorRamp.push(color);	
+			if (this.colorRamp.length <= ndx) {
+				this.colorRamp = this.colorRamp.concat(color);	
 			}
 			else {
-				this.colorRamp[ndx] = color;
+				for (var i = 0; i < color.length; ++i) {
+					this.colorRamp[ndx + i] = color[i];
+				}
 			}
 			
 			if (this.currentParticleEffect) {
-				var clrRmp = [];
-					
-				for (var ndx = 0, len = this.colorRamp.length; ndx < len; ndx++) {
-					clrRmp = clrRmp.concat(this.colorRamp[ndx]);
-				}
-				
-				this.currentParticleEffect.colorRamp = clrRmp;
+				this.currentParticleEffect.colorRamp = this.colorRamp.slice(0);
 			}
 		},
 		
@@ -949,7 +945,7 @@ var editor = (function(editor) {
 	        	model.setParam(value.paramName, value.paramVal);
 	        });	        
 	        pteEdt.addListener(editor.EventTypes.SetParticleFxColorRamp, function(value) {
-	        	model.addToColorRamp(value.ndx, value.color);
+	        	model.addToColorRamp(value.ndx * 4, value.color);
 	        });			
 			pteEdt.addListener(editor.EventTypes.SetParticleFxFireInterval, function(value) {
 				model.setFireInterval(value);
