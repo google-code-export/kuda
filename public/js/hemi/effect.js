@@ -104,7 +104,7 @@ var hemi = (function(hemi) {
 		/**
 		 * An array of colors for each particle to transition through. Each
 		 * color value is in the form RGBA.
-		 * @type number[4][]
+		 * @type number[]
 		 */
 		this.colorRamp = [];
 		
@@ -462,7 +462,7 @@ var hemi = (function(hemi) {
 	 * Create an Emitter effect that constantly streams particles.
 	 * 
 	 * @param {hemi.core.particles.ParticleStateIds} state the particle state
-	 * @param {number[4][]} colorRamp array of color values in the form RGBA
+	 * @param {number[]} colorRamp array of color values in the form RGBA
 	 * @param {hemi.core.particles.ParticleSpec} params parameters for the
 	 *	   particle emitter
 	 * @param {hemi.effect.ParticleFunction} opt_function optional specs that
@@ -492,7 +492,7 @@ var hemi = (function(hemi) {
 	 * Create a Burst effect that fires particles one shot at a time.
 	 * 
 	 * @param {hemi.core.particles.ParticleStateIds} state the particle state
-	 * @param {number[4][]} colorRamp array of color values in the form RGBA
+	 * @param {number[]} colorRamp array of color values in the form RGBA
 	 * @param {hemi.core.particles.ParticleSpec} params parameters for the
 	 *	   particle emitter
 	 * @param {hemi.effect.ParticleFunction} opt_function optional specs that
@@ -522,7 +522,7 @@ var hemi = (function(hemi) {
 	 * Create a Trail effect that fires particles at the specified interval.
 	 * 
 	 * @param {hemi.core.particles.ParticleStateIds} state the particle state
-	 * @param {number[4][]} colorRamp array of color values in the form RGBA
+	 * @param {number[]} colorRamp array of color values in the form RGBA
 	 * @param {hemi.core.particles.ParticleSpec} params parameters for the
 	 *	   particle emitter
 	 * @param {number} fireInterval seconds to wait between firing particles
