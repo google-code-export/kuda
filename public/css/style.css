@@ -65,7 +65,7 @@ p {
 	text-transform: uppercase;
 }
 #tabBar>h1 span {
-	color: #88b2cb;
+	color: #75d0f4;
 }
 #tabBar>ul {
 	font-size: 18px;
@@ -84,7 +84,7 @@ p {
 	color: #fff;
 }
 #tabBar h2>a:hover {
-	color: #88b2cb;
+	color: #75d0f4;
 }
 
 /******************************************************************************
@@ -272,27 +272,13 @@ p {
 }
 
 .toolBtn.down {
-	background: #88b2cb;   
+	background: #75d0f4;   
 }
 
 /******************************************************************************
  * 									Panel									  *
  ******************************************************************************/
-.rightAligned {
-	position: absolute;
-	right: 0;
-	top: 0;
-	max-width: 300px;
-	height: 100%;
-}
-.bottomAligned {
-	position: absolute;
-	bottom: 0;
-}
-.topAligned {
-	position: absolute;
-	top: 0;
-}
+
 .panel {
 	background: -moz-linear-gradient(100% 100% 180deg, #eee, #fff);
 	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#fff), to(#eee));
@@ -300,20 +286,78 @@ p {
 	box-shadow: 0 0 10px #666;
 	opacity: 0.85;
 }
+.rightAligned {
+	position: absolute;
+	right: 0;
+	top: 0;
+	max-width: 300px;
+	height: 100%;
+}
+.topAligned, .bottomAligned {	
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #383838);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#383838), to(#333));
+}
+.bottomAligned {
+	position: absolute;
+	bottom: 0;
+	border-radius: 6px 6px 0 0;
+}
+.topAligned {
+	position: absolute;
+	top: 0;
+	border-radius: 0 0 6px 6px;
+}
+
+/******************************************************************************
+ * 								 Panel Buttons 								  *
+ ******************************************************************************/
+
+.topAligned button, 
+.bottomAligned button {
+	float: left;
+	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
+	color: #fff;
+    text-shadow: 0 -1px 0 #034d75;
+    border: 1px solid #333;
+	box-shadow: 0 1px 0 #444,
+		inset 0 1px 2px #72bbe0;
+	margin-bottom: 0;
+}
+.topAligned button[disabled], 
+.bottomAligned button[disabled] {
+	background: -moz-linear-gradient(100% 100% 90deg, #888, #aaa);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#888));
+	text-shadow: 0 -1px 0 #888;
+	color: #ddd;
+	border: 1px solid #333;
+	box-shadow: 0 1px 0 #444,
+		inset 0 1px 2px #aaa;
+} 
+.topAligned button.down,
+.bottomAligned button.down {
+	background: -moz-linear-gradient(100% 100% 90deg, #489ec9, #63b7dd);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#63b7dd), to(#489ec9));
+} 
+.topAligned button:active,
+.bottomAligned button:active {
+	-webkit-transform: translate(0, 2px);
+	-moz-transform: translate(0, 2px);
+	-o-transform: translate(0, 2px);
+	transform: translate(0, 2px);
+}
 
 /******************************************************************************
  * 									Widget									  *
  ******************************************************************************/
 
 .widget {
-	background: -moz-linear-gradient(100% 100% 180deg, #d5e0e4, #c0d0d6);
-	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#c0d0d6), to(#d5e0e4));
+	background: #d5e0e4;
 	padding: 10px;
 	text-align: left;
 }
 .widgetWithForms {
-	background: -moz-linear-gradient(100% 100% 180deg, #eee, #fff);
-	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#fff), to(#eee));
+	background: #eee;
 	overflow: auto;
 }
 .widget h1 {
@@ -485,13 +529,14 @@ form input.objPkrCitTreeIpt {
 	display: block;
 	z-index: 1000;
 }
-.tooltip p {	
+.tooltip .content {	
 	position: relative;
 	padding: 10px;
 	margin: 10px 0;
 	color: #fff;
 	background: #000; /* default background for browsers without gradient support */
 	border: 1px solid #fff;
+	overflow: hidden;
 	
 	/* css3 */
 	-moz-border-radius: 5px;
@@ -567,7 +612,7 @@ form input.objPkrCitTreeIpt {
 /**
  * Error styling
  */
-.errorWrapper p {	
+.errorWrapper .content {	
 	color: #000;
 	background: #f7a0a0;
 	border: 1px solid red;
@@ -966,6 +1011,18 @@ form button.removeBtn:hover {
 }
 form button {
 	height: 25px;
+}
+
+/******************************************************************************
+ * 									Trees									  *
+ ******************************************************************************/
+
+.jstree {
+	background: transparent !important;
+	font: 14px/18px Helvetica, Arial, sans-serif !important;
+}
+.jstree a > .jstree-icon {
+	margin-right: 5px !important;
 }
 
 /**
