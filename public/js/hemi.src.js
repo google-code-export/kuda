@@ -8346,7 +8346,7 @@ var hemi = (function(hemi) {
 				obj.tran.name = transform.name + ' Translator';
 				param = obj.tran.createParam('ownerId', 'o3d.ParamInteger');
 				param.value = oid;
-				obj.parent = tran.parent;
+				obj.parent = transform.parent;
 				obj.foster = true;
 			} else {
 				var tran = hemi.core.mainPack.createObject('Transform');
@@ -8632,9 +8632,9 @@ var hemi = (function(hemi) {
 		if (tranObj.foster) {
 			origTran = rotTran.parent;
 			rotTran.parent = null;
-			hemi.core.mainPack.removeObject(rotTran);
+			offTran.parent = origTran;
 			
-			offTran.parent = tran;
+			hemi.core.mainPack.removeObject(rotTran);
 			hemi.utils.unfosterTransform(offTran);
 		} else {
 			var parTran = tranObj.parent;
