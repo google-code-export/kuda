@@ -145,6 +145,22 @@ var editor = (function(editor) {
 			return this.viewMeta.get(view);
 		},
 		
+		resize: function() {			
+			switch(this.config.location) {
+				case editor.ui.Location.TOP:
+				case editor.ui.Location.BOTTOM:
+					var width = this.container.outerWidth(),
+						windowWidth = window.innerWidth ? window.innerWidth 
+							: document.documentElement.offsetWidth;
+					
+					this.container.css({
+						left: (windowWidth - width)/2
+					});
+					
+					break;
+			}			
+		},
+		
 		setCurrentView: function(view) {
 			this.currentView = view;
 		},
@@ -158,19 +174,7 @@ var editor = (function(editor) {
 			var wgt = this;
 			opt_updateMeta = opt_updateMeta == null ? true : opt_updateMeta;
 			
-			switch(this.config.location) {
-				case editor.ui.Location.TOP:
-				case editor.ui.Location.BOTTOM:
-					var width = this.container.outerWidth(),
-						windowWidth = window.innerWidth ? window.innerWidth 
-							: document.documentElement.offsetWidth;
-					
-					this.container.css({
-						left: (windowWidth - width)/2
-					});
-					
-					break;
-			}
+			this.resize();
 			
 			this.notifyListeners(editor.EventTypes.PanelVisible, {
 				widget: wgt,

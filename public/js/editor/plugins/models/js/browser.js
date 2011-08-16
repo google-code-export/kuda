@@ -762,17 +762,29 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////  
 	
 	var sizeAndPosition = function() {
-		var wgt = this,
-			container = this.container,
-			btnPnlHeight = jQuery('.mbrSidePanel .panelButtons').outerHeight(),
-			padding = parseInt(container.css('paddingBottom')) +
-				parseInt(container.css('paddingTop')),
-			win = jQuery(window),
-			winHeight = win.height(),
-			wgtHeight = winHeight - padding - btnPnlHeight;
+			var wgt = this,
+				container = this.container,
+				btnPnlHeight = jQuery('.mbrSidePanel .panelButtons').outerHeight(),
+				padding = parseInt(container.css('paddingBottom')) +
+					parseInt(container.css('paddingTop')),
+				win = jQuery(window),
+				winHeight = win.height(),
+				wgtHeight = winHeight - padding - btnPnlHeight;
+			
+			container.height(wgtHeight)
+		},
 		
-		container.height(wgtHeight)
-	};
+		subResize = function() {
+			var wgt = this,
+				details = this.detailsList,
+				treePane = this.treeParent,
+				height = this.container.outerHeight(),
+				detHeight = details.outerHeight();
+				
+			console.log(detHeight);
+			treePane.height(height - detHeight);
+		};
+	
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                            	Model Tree Widget                             //
@@ -803,12 +815,129 @@ var editor = (function(editor) {
 	var ModelTreeWidget = editor.ui.Widget.extend({
 		init: function(options) {
 	        this._super({
-				uiFile: 'js/editor/plugins/models/html/modelbrowser.htm',
 				name: 'modelTreeWidget'
 			});
+		},
+		
+		addModel: function(modelData) {
+			this.tree.jstree('create_node', jQuery('#node_models'), 
+				'inside', {
+					json_data: modelData
+				});
+		},
+		
+		addShape: function(shapeData) {
+			this.tree.jstree('create_node', jQuery('#node_shapes'), 
+				'inside', {
+					json_data: shapeData
+				});
+		},
+		
+		deselectNode: function(nodeName) {
+	        var node = jQuery('#node_' + nodeName);
+			this.tree.jstree('deselect_node', node);
+		},
+		
+		displayMaterialNode: function(material, model) {
+			var params = material.params,
+				textures = {},
+				texList = new editor.ui.List({
+					widgetId: 'mbrTextureList',
+					prefix: 'mbrTexLst',
+					type: editor.ui.ListType.UNORDERED
+				}),
+				wgt = this;
 			
-			this.tree = null;
-			this.treeParent = null;
+//			detailsList.addItem('Name:', material.name);
+			
+			for (var i = 0, il = params.length; i < il; i++) {
+				var param = params[i],
+					className = param.className.toLowerCase();
+				
+				if (className.indexOf('sampler') >= 0) {
+					var tex = param.value.texture;
+					
+					if (tex != null) {
+						textures[tex.clientId] = tex;
+					}
+				} else if (className.indexOf('texture') >= 0) {
+					var tex = param.value;
+					textures[tex.clientId] = tex;
+				}
+			}
+			
+			for (var tId in textures) {
+				var tex = textures[tId],
+					name = tex.name !== '' ? tex.name : 'unnamed',
+					item = new ChildListItem();
+				
+				item.setText(name);
+				item.attachObject({
+					model: model,
+					texture: tex
+				});
+				item.title.data('liWidget', item);
+				item.title.bind('click', function(evt) {
+					var item = jQuery(this).data('liWidget'),
+						data = item.getAttachedObject();
+					wgt.notifyListeners(editor.EventTypes.SetTexture, data);
+				});
+				item.removeBtn.bind('click', function(evt) {
+					wgt.notifyListeners(editor.EventTypes.SetTexture, null);
+				});
+				
+				texList.add(item);
+			}
+			
+			this.detailsList.slideUp(function() {
+				wgt.detailsList.empty().append('<h1>Textures</h1>')
+					.append(texList.getUI()).slideDown(function() {
+						subResize.call(wgt);
+					})
+			});
+		},
+		
+		displayTransformNode: function(transform) {
+			var shapes = transform.shapes,
+				shapeList = new editor.ui.List({
+					widgetId: 'mbrShapeList',
+					prefix: 'mbrShpLst',
+					type: editor.ui.ListType.UNORDERED
+				}),
+				wgt = this;
+			
+			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
+				var shape = shapes[ndx],
+					name = shape.name !== '' ? shape.name : 'unnamed'; 
+				
+				if (name.match(HIGHLIGHT_PRE) === null) {
+					var item = new ChildListItem();
+					
+					item.setText(name);
+					item.attachObject({
+						transform: transform,
+						shape: shape
+					});
+					item.title.data('liWidget', item);
+					item.title.bind('click', function(evt) {
+						var item = jQuery(this).data('liWidget'),
+							data = item.getAttachedObject();
+						wgt.notifyListeners(editor.EventTypes.SetShape, data);
+					});
+					item.removeBtn.bind('click', function(evt) {
+						wgt.notifyListeners(editor.EventTypes.SetShape, null);
+					});
+					
+					shapeList.add(item);
+				}
+			};
+			
+			this.detailsList.slideUp(function() {
+				wgt.detailsList.empty().append('<h1>Shapes</h1>')
+					.append(shapeList.getUI()).slideDown(function() {
+						subResize.call(wgt);
+					});				
+			});
 		},
 		
 		finishLayout: function() {
@@ -838,8 +967,8 @@ var editor = (function(editor) {
 					}
 				}];
 			
-			this.tree = this.find('#mbtree');
-			this.treeParent = this.tree.parent();
+			this.tree = jQuery('<div id="mbrTree"></div>');
+			this.treeParent = jQuery('<div id="mbrTreeWrapper"></div>');
 			this.tree.bind('select_node.jstree', function(evt, data) {
 				var elem = data.rslt.obj,
 					metadata = elem.data('jstree'),
@@ -867,10 +996,10 @@ var editor = (function(editor) {
 							});
 							wgt.tree.jstree('toggle_node', elem);
 						} else {
-							jQuery('#mbTreeWrapper').scrollTo(elem, 400);
+							wgt.treeParent.scrollTo(elem, 400);
 						}
 						
-						wgt.displayTransformNode(metadata.actualNode);
+//						wgt.displayTransformNode(metadata.actualNode);
 						break;
 					case 'material':
 						var material = metadata.actualNode,
@@ -891,7 +1020,7 @@ var editor = (function(editor) {
 							type: metadata.type
 						});
 						
-						wgt.displayMaterialNode(material, model);
+//						wgt.displayMaterialNode(material, model);
 						break;
 					default:
 						wgt.tree.jstree('toggle_node', elem);
@@ -952,116 +1081,20 @@ var editor = (function(editor) {
 				'plugins': ['themes', 'types', 'json_data', 'ui']
 			});
 			
-			this.instructions = jQuery('<p>Click on an item in the browser or on an item in the viewer to view its details.</p>');
+			this.detailsList = jQuery('<div id="mbrDetails"></div>').hide();
+			this.treeParent.append(this.tree);
+			this.container.append(this.detailsList).append(this.treeParent);
 			sizeAndPosition.call(this);
 		},
 		
-		displayMaterialNode: function(material, model) {
-			var detailsList = new editor.ui.DetailsList(),
-				params = material.params,
-				textures = {},
-				texList = new editor.ui.List({
-					widgetId: 'mbrTextureList',
-					prefix: 'mbrTexLst',
-					type: editor.ui.ListType.UNORDERED
-				}),
-				wgt = this;
-			
-			detailsList.addItem('Name:', material.name);
-			
-			for (var i = 0, il = params.length; i < il; i++) {
-				var param = params[i],
-					className = param.className.toLowerCase();
-				
-				if (className.indexOf('sampler') >= 0) {
-					var tex = param.value.texture;
-					
-					if (tex != null) {
-						textures[tex.clientId] = tex;
-					}
-				} else if (className.indexOf('texture') >= 0) {
-					var tex = param.value;
-					textures[tex.clientId] = tex;
-				}
-			}
-			
-			for (var tId in textures) {
-				var tex = textures[tId],
-					name = tex.name !== '' ? tex.name : 'unnamed',
-					item = new ChildListItem();
-				
-				item.setText(name);
-				item.attachObject({
-					model: model,
-					texture: tex
-				});
-				item.title.data('liWidget', item);
-				item.title.bind('click', function(evt) {
-					var item = jQuery(this).data('liWidget'),
-						data = item.getAttachedObject();
-					wgt.notifyListeners(editor.EventTypes.SetTexture, data);
-				});
-				item.removeBtn.bind('click', function(evt) {
-					wgt.notifyListeners(editor.EventTypes.SetTexture, null);
-				});
-				
-				texList.add(item);
-			}
-			
-//			jQuery('#mbDetails').empty().append(detailsList.getList());
-//			jQuery('#mbChildren').empty().append(texList.getUI());
-//			jQuery('#mbChildrenTitle').text('Textures');
+		removeModel: function(model) {
+			var node = jQuery('#node_' + getNodeId(model));
+			this.tree.jstree('delete_node', node);
 		},
 		
-		displayTransformNode: function(transform) {
-			var detailsList = new editor.ui.DetailsList(),
-				shapes = transform.shapes,
-				shapeList = new editor.ui.List({
-					widgetId: 'mbrShapeList',
-					prefix: 'mbrShpLst',
-					type: editor.ui.ListType.UNORDERED
-				}),
-				worldMatrix = transform.getUpdatedWorldMatrix(),
-				wgt = this;
-			
-			for (var i = 0, il = worldMatrix.length; i < il; i++) {
-				for (var j = 0, jl = worldMatrix[i].length; j < jl; j++) {
-					worldMatrix[i][j] = editor.utils.roundNumber(worldMatrix[i][j], 5);
-				}
-			}
-			
-			detailsList.addItem('Name:', transform.name);
-			detailsList.addItem('World Matrix:', worldMatrix);
-			
-			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
-				var shape = shapes[ndx],
-					name = shape.name !== '' ? shape.name : 'unnamed'; 
-				
-				if (name.match(HIGHLIGHT_PRE) === null) {
-					var item = new ChildListItem();
-					
-					item.setText(name);
-					item.attachObject({
-						transform: transform,
-						shape: shape
-					});
-					item.title.data('liWidget', item);
-					item.title.bind('click', function(evt) {
-						var item = jQuery(this).data('liWidget'),
-							data = item.getAttachedObject();
-						wgt.notifyListeners(editor.EventTypes.SetShape, data);
-					});
-					item.removeBtn.bind('click', function(evt) {
-						wgt.notifyListeners(editor.EventTypes.SetShape, null);
-					});
-					
-					shapeList.add(item);
-				}
-			};
-			
-//			jQuery('#mbDetails').empty().append(detailsList.getList());
-//			jQuery('#mbChildren').empty().append(shapeList.getUI());
-//			jQuery('#mbChildrenTitle').text('Shapes');
+		removeShape: function(shape) {
+			var node = jQuery('#node_' + getNodeId(shape));
+			this.tree.jstree('delete_node', node);
 		},
 		
 		selectNode: function(nodeName) {
@@ -1076,45 +1109,6 @@ var editor = (function(editor) {
 			
 			this.tree.jstree('select_node', elem, false);
 			this.notifyListeners(editor.EventTypes.Sidebar.WidgetInvalidate);
-		},
-		
-		deselectNode: function(nodeName) {
-	        var node = jQuery('#node_' + nodeName);
-			this.tree.jstree('deselect_node', node);
-			jQuery('#mbDetails').empty().append(this.instructions);
-			jQuery('#mbChildren').empty();
-			jQuery('#mbChildrenTitle').empty();
-		},
-		
-		deselectAll: function() {
-			this.tree.jstree('deselect_all');
-			jQuery('#mbDetails').empty().append(this.instructions);
-			jQuery('#mbChildren').empty();
-			jQuery('#mbChildrenTitle').empty();
-		},
-		
-		addModel: function(modelData) {
-			this.tree.jstree('create_node', jQuery('#node_models'), 
-				'inside', {
-					json_data: modelData
-				});
-		},
-		
-		removeModel: function(model) {
-			var node = jQuery('#node_' + getNodeId(model));
-			this.tree.jstree('delete_node', node);
-		},
-		
-		addShape: function(shapeData) {
-			this.tree.jstree('create_node', jQuery('#node_shapes'), 
-				'inside', {
-					json_data: shapeData
-				});
-		},
-		
-		removeShape: function(shape) {
-			var node = jQuery('#node_' + getNodeId(shape));
-			this.tree.jstree('delete_node', node);
 		},
 		
 		updateShape: function(shapeData, shape) {
@@ -1552,6 +1546,156 @@ var editor = (function(editor) {
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
+//                           	Details Widget	                              //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var DetailsType = {
+		TRANSFORM: 0,
+		MATERIAL: 1
+	};
+	
+	var buildMaterialPopup = function(material, model) {
+			var params = material.params,
+				textures = {},
+				texList = new editor.ui.List(),
+				wgt = this;
+			
+			for (var i = 0, il = params.length; i < il; i++) {
+				var param = params[i],
+					className = param.className.toLowerCase();
+				
+				if (className.indexOf('sampler') >= 0) {
+					var tex = param.value.texture;
+					
+					if (tex != null) {
+						textures[tex.clientId] = tex;
+					}
+				} else if (className.indexOf('texture') >= 0) {
+					var tex = param.value;
+					textures[tex.clientId] = tex;
+				}
+			}
+			
+			for (var tId in textures) {
+				var tex = textures[tId],
+					name = tex.name !== '' ? tex.name : 'unnamed',
+					item = new ChildListItem();
+				
+				item.setText(name);
+				item.attachObject({
+					model: model,
+					texture: tex
+				});
+				item.title.data('liWidget', item);
+				item.title.bind('click', function(evt) {
+					var item = jQuery(this).data('liWidget'),
+						data = item.getAttachedObject();
+					wgt.notifyListeners(editor.EventTypes.SetTexture, data);
+				});
+				item.removeBtn.bind('click', function(evt) {
+					wgt.notifyListeners(editor.EventTypes.SetTexture, null);
+				});
+				
+				texList.add(item);
+			}
+			
+			var elem = jQuery('<div><h1>Textures</h1></div>');
+			elem.append(texList.getUI());
+			
+			return elem;
+		},
+		
+		buildTransformPopup = function(transform) {
+			var shapes = transform.shapes,
+				shapeList = new editor.ui.List(),
+				wgt = this;
+			
+			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
+				var shape = shapes[ndx],
+					name = shape.name !== '' ? shape.name : 'unnamed'; 
+				
+				if (name.match(HIGHLIGHT_PRE) === null) {
+					var item = new ChildListItem();
+					
+					item.setText(name);
+					item.attachObject({
+						transform: transform,
+						shape: shape
+					});
+					item.title.data('liWidget', item);
+					item.title.bind('click', function(evt) {
+						var item = jQuery(this).data('liWidget'),
+							data = item.getAttachedObject();
+						wgt.notifyListeners(editor.EventTypes.SetShape, data);
+					});
+					item.removeBtn.bind('click', function(evt) {
+						wgt.notifyListeners(editor.EventTypes.SetShape, null);
+					});
+					
+					shapeList.add(item);
+				}
+			};
+			
+			var elem = jQuery('<div><h1>Shapes</h1></div>');
+			elem.append(shapeList.getUI());
+			
+			return elem;
+		};
+	
+	var DetailsWidget = editor.ui.Widget.extend({
+		init: function() {
+			this._super({
+				name: 'detailsWidget'
+			});
+		},
+		
+		buildPopup: function() {
+			if (this.type === DetailsType.TRANSFORM) {
+				return buildTransformPopup.call(this, this.obj);
+			}
+			else {
+				return buildMaterialPopup.call(this, this.obj.material, 
+					this.obj.owner);
+			}
+		},
+		
+		finishLayout: function() {
+			this._super();
+			
+			this.btn = jQuery('<button>View Shapes</button>');
+			this.form = jQuery('<form></form>').submit(function() {
+				return false;
+			});
+			
+			this.form.append('<label>Details</label>').append(this.btn);
+			this.container.append(this.form).hide();
+			
+			var popup = editor.ui.createTooltip(),
+				wgt = this;
+			
+			this.container.find('button').bind('click', function(evt) {
+				var btn = jQuery(this);
+				popup.show(btn, wgt.buildPopup());
+			});
+		},
+		
+		set: function(obj, type) {
+			if (obj) {
+				this.container.show(200);
+			}
+			else {
+				this.container.hide(200);
+			}
+			
+			this.type = type;
+			this.obj = obj;
+			
+			this.btn.text(type === DetailsType.TRANSFORM ? 'View Shapes' : 
+				'View Textures');
+		}
+	});
+	
+////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    	
 	
@@ -1908,6 +2052,7 @@ var editor = (function(editor) {
 			
 			this.bottomPanel.addWidget(new AdjustWidget());
 			this.bottomPanel.addWidget(new OpacityWidget());
+			this.bottomPanel.addWidget(new DetailsWidget());
 		},
 		
 		layoutActionBar: function() {
@@ -2072,6 +2217,7 @@ var editor = (function(editor) {
 				hidWgt = view.sidePanel.hiddenItemsWidget,
 				opaWgt = view.bottomPanel.opacityWidget,
 				adjWgt = view.bottomPanel.adjustWidget,
+				detWgt = view.bottomPanel.detailsWidget,
 				infoDisp = view.infoDisplay;
 			
 			selModel.curHandle.setDrawCallback(function() {
@@ -2116,6 +2262,8 @@ var editor = (function(editor) {
 					selModel.selectTransform(value.transform);
 				} else if (value.type === 'material') {
 					selModel.deselectAll();
+					detWgt.set(value, DetailsType.MATERIAL);
+					view.bottomPanel.resize();
 					// TODO: Do something useful like highlight the material so
 					// that the user can see what shapes use it. ~ekitson
 				}
@@ -2246,6 +2394,8 @@ var editor = (function(editor) {
 			selModel.addListener(editor.EventTypes.TransformSelected, function(transform) {
 				mbrWgt.selectNode(getNodeId(transform));
 				view.transformSelected(transform);
+				detWgt.set(transform, DetailsType.TRANSFORM);
+				view.bottomPanel.resize();
 			});
 	        selModel.addListener(editor.EventTypes.TransformShown, function(transform) {
 	            hidWgt.removeHiddenItem(transform);

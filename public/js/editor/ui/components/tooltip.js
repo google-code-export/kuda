@@ -29,7 +29,7 @@ var editor = (function(editor) {
 		
 		finishLayout : function() {
 			this.container = jQuery('<div class="tooltip"></div>');
-			this.msg = jQuery('<p></p>');
+			this.msg = jQuery('<div class="content"></div>');
 			this.arrow = jQuery('<div class="arrow"></div>');
 			
 			// attach to the main body
@@ -58,15 +58,20 @@ var editor = (function(editor) {
 			this.container.addClass(cls);
 		},
 		
-		show: function(element, msg, opt_autohide) {
+		show: function(element, content, opt_autohide) {
 			var ctn = this.container,
 				wgt = this;
 			
 			if (this.container.parents().size() === 0) {
 				jQuery('body').append(this.container);
 			}
-								
-			this.msg.text(msg);
+			
+			if (jQuery.type(content) == 'string') {
+				this.msg.text(content);
+			}
+			else {
+				this.msg.empty().append(content);
+			}
 			ctn.show();
 			
 			var	offset = element.offset(),
