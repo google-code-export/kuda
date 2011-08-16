@@ -241,53 +241,6 @@ o3d.findBasePath_();
 // Unlike o3djs, we include all o3d-webgl files at once, this way, an o3d
 // developer converting to use these classes only has to include this
 // javascript file.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /*
  * Copyright 2010, Google Inc.
  * All rights reserved.
@@ -11990,9 +11943,7 @@ o3d.ParamObject.setUpO3DParam_(o3d.Material, 'drawList', 'ParamDrawList');
 
 // TODO(kbr): figure out how we can reuse the o3djs.io package from
 // within here.
-// 
-
-// TODO(kbr): factor this out into e.g. o3djs.json and require
+// // TODO(kbr): factor this out into e.g. o3djs.json and require
 // o3djs.json here.
 if(!this.JSON){this.JSON={};}
 (function(){function f(n){return n<10?'0'+n:n;}
@@ -16439,8 +16390,6 @@ o3djs.base.IsMSIE = function() {
 
 o3djs.provide('o3djs.effect');
 
-
-
 /**
  * A Module for dealing with effects.
  * @namespace
@@ -17838,11 +17787,6 @@ o3djs.effect.setLanguage('o3d');
 
 o3djs.provide('o3djs.util');
 
-
-
-
-
-
 /**
  * A Module with various utilities.
  * @namespace
@@ -18654,8 +18598,7 @@ o3djs.util.createClient = function(element, opt_features, opt_requestVersion) {
  *
  * <pre>
  * &lt;script type="text/javascript" id="o3dscript"&gt;
- * 
- *
+ * *
  * window.onload = init;
  *
  * function init() {
@@ -18874,10 +18817,6 @@ o3djs.util.makeClients = function(callback,
  */
 
 o3djs.provide('o3djs.webgl');
-
-
-
-
 
 /**
  * A Module with various utilities.
@@ -19114,10 +19053,6 @@ o3djs.webgl.createClient = function(element, opt_features, opt_debug) {
  */
 
 o3djs.provide('o3djs.debug');
-
-
-
-
 
 var O3D_DEBUG_PREFIX = 'o3dDebug_';
 var O3D_DEBUG_PREFIX_LENGTH = O3D_DEBUG_PREFIX.length;
@@ -20140,8 +20075,6 @@ o3djs.debug.createDebugHelper = function(pack, viewInfo) {
 
 o3djs.provide('o3djs.element');
 
-
-
 /**
  * A Module for element functions.
  * @namespace
@@ -20711,9 +20644,6 @@ o3djs.event.removeEventListener = function(pluginObject, type, handler) {
  */
 
 o3djs.provide('o3djs.loader');
-
-
-
 
 /**
  * A Module with a loader class for helping to load muliple assets in an
@@ -23526,9 +23456,6 @@ o3djs.math.installErrorCheckFunctions();
 
 o3djs.provide('o3djs.pack');
 
-
-
-
 /**
  * A Module with utilities for dealing with packs..
  * @namespace
@@ -23592,9 +23519,6 @@ o3djs.pack.preparePack = function(pack, viewInfo, opt_effectPack) {
  */
 
 o3djs.provide('o3djs.particles');
-
-
-
 
 /**
  * A Module with various GPU particle functions and classes.
@@ -25117,9 +25041,6 @@ o3djs.particles.Trail.prototype.birthParticles = function(position) {
 
 o3djs.provide('o3djs.picking');
 
-
-
-
 /**
  * A Module for picking.
  * @namespace
@@ -25875,8 +25796,6 @@ o3djs.picking.PickManager.prototype.onPickTree = function(transform) {
  */
 
 o3djs.provide('o3djs.primitives');
-
-
 
 /**
  * A Module for creating primitives.
@@ -28511,9 +28430,6 @@ o3djs.rendergraph.DrawPassInfo.prototype.destroy = function() {
 
 o3djs.provide('o3djs.canvas');
 
-
-
-
 /**
  * A Module for using a 2d canvas.
  * @namespace
@@ -28908,9 +28824,6 @@ o3djs.canvas.CanvasInfo.prototype.createQuad = function(width,
  */
 
 o3djs.provide('o3djs.material');
-
-
-
 
 /**
  * A Module for materials.
@@ -29482,9 +29395,6 @@ o3djs.material.createAndBindStandardParams = function(pack) {
  */
 
 o3djs.provide('o3djs.io');
-
-
-
 
 /**
  * A Module with various io functions and classes.
@@ -30143,9 +30053,6 @@ o3djs.io.loadTexture = function(
 
 o3djs.provide('o3djs.scene');
 
-
-
-
 /**
  * A Module with various scene functions and classes.
  * @namespace
@@ -30234,9 +30141,6 @@ o3djs.scene.loadScene = function(client,
  */
 
 o3djs.provide('o3djs.serialization');
-
-
-
 
 /**
  * A Module for deserializing a scene created by the sample o3dConverter.
@@ -31489,9 +31393,6 @@ o3djs.texture.createCubeTextureFrom6Bitmaps = function(
  */
 
 o3djs.provide('o3djs.shape');
-
-
-
 
 /**
  * A Module for shapes.
