@@ -38,6 +38,7 @@ var editor = (function(module) {
 			this._super();
 			this.canvas = hemi.hud.hudMgr.canvas;
 			this.drawCallback = null;
+			this.transform = null;
 			
 			this.xArrow = new module.ui.Arrow(this.canvas, '#f00', '#f99');
 			this.yArrow = new module.ui.Arrow(this.canvas, '#0c0', '#9c9');
@@ -320,7 +321,15 @@ var editor = (function(module) {
 		},
 		
 		setTransform: function(transform) {
-			this.transform = transform;
+			if (transform && hemi.utils.isAnimated(transform)) {
+				this.transform = null;
+				
+				if (this.drawState !== module.ui.trans.DrawState.NONE) {
+					hemi.hud.hudMgr.clearDisplay();
+				}
+			} else {
+				this.transform = transform;
+			}
 		},
 		
 		startRotate: function(axis, evt) {

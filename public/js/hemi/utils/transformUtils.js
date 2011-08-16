@@ -42,14 +42,14 @@ var hemi = (function(hemi) {
 			shapes = transform.shapes,
 			newTran = hemi.core.mainPack.createObject('Transform');
 		
-		for (var i = 0, il = children.length; i < il; i++) {
-			children[i].parent = newTran;
+		while (children.length > 0) {
+			children[0].parent = newTran;
 		};
 		
 		newTran.parent = transform;
 		
-		for (var i = 0, il = shapes.length; i < il; i++) {
-			var shape = shapes[i];
+		while (shapes.length > 0) {
+			var shape = shapes[0];
 			newTran.addShape(shape);
 			transform.removeShape(shape);
 		}
@@ -137,12 +137,12 @@ var hemi = (function(hemi) {
 			shapes = transform.shapes,
 			tParent = transform.parent;
 		
-		for (var i = 0, il = children.length; i < il; i++) {
-			children[i].parent = tParent;
+		while (children.length > 0) {
+			children[0].parent = tParent;
 		};
 	
-		for (var i = 0, il = shapes.length; i < il; i++) {
-			var shape = shapes[i];
+		while (shapes.length > 0) {
+			var shape = shapes[0];
 			tParent.addShape(shape);
 			transform.removeShape(shape);
 		}
