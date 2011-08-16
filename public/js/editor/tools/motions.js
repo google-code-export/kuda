@@ -156,7 +156,11 @@ var editor = (function(editor) {
 				var trans = this.previewMotion.getTransforms();
 					
 				for (var i = 0, il = trans.length; i < il; i++) {
-					trans[i].localMatrix = this.matrices[i];
+					var tran = trans[i];
+					
+					if (!hemi.utils.isAnimated(tran)) {
+						tran.localMatrix = this.matrices[i];
+					}
 				}
 				
 				this.previewMotion.cleanup();
