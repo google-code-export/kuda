@@ -3182,9 +3182,12 @@ var hemi = (function(hemi) {
 	/**
 	 * Get the Octane structure for the World.
      * 
+	 * @param {function(Citizen): boolean} opt_filter optional filter function
+	 *     that takes a Citizen and returns true if the Citizen should be
+	 *     included in the returned Octane
      * @return {Object} the Octane structure representing the World
 	 */
-	hemi.world.toOctane = function() {
+	hemi.world.toOctane = function(opt_filter) {
 		var octane = {
 			citizens: [],
 			nextId: nextId,
@@ -3193,12 +3196,16 @@ var hemi = (function(hemi) {
 		};
 		
 		this.citizens.each(function(key, value) {
-			var oct = value.toOctane();
+			var accept = opt_filter ? opt_filter(value) : true;
 			
-			if (oct !== null) {
-				octane.citizens.push(oct);
-			} else {
-				hemi.console.log('Null Octane returned by Citizen with id ' + value.getId(), hemi.console.WARN);
+			if (accept) {
+				var oct = value.toOctane();
+				
+				if (oct !== null) {
+					octane.citizens.push(oct);
+				} else {
+					hemi.console.log('Null Octane returned by Citizen with id ' + value.getId(), hemi.console.WARN);
+				}
 			}
 		});
 		
