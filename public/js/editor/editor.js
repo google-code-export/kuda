@@ -50,7 +50,9 @@
 			
 			editor.getProjectOctane = function() {
 				app.msgMdl.dispatchProxy.swap();
-				var data = hemi.world.toOctane();
+				var data = hemi.world.toOctane(function(citizen) {
+					return citizen.name.search(editor.tools.ToolConstants.EDITOR_PREFIX) === -1;
+				});
 				app.msgMdl.dispatchProxy.unswap();
 				return data;
 			};
