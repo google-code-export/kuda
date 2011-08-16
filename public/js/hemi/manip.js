@@ -1071,13 +1071,13 @@ var hemi = (function(hemi) {
 	// Private functions
 	///////////////////////////////////////////////////////////////////////////
 	
-	var removeManipTransforms = function(transObj) {
+	var removeManipTransforms = function(tranObj) {
 		var tran;
 		
-		if (transObj.foster) {
-			tran = hemi.utils.unfosterTransform(transObj.transform);
+		if (tranObj.foster) {
+			tran = hemi.utils.unfosterTransform(tranObj.transform);
 		} else {
-			tran = transObj.transform;
+			tran = tranObj.transform;
 		}
 		
 		hemi.world.tranReg.unregister(tran, this);

@@ -1399,14 +1399,14 @@ var hemi = (function(hemi) {
 			shapes = transform.shapes,
 			newTran = hemi.core.mainPack.createObject('Transform');
 		
-		for (var i = 0, il = children.length; i < il; i++) {
-			children[i].parent = newTran;
+		while (children.length > 0) {
+			children[0].parent = newTran;
 		};
 		
 		newTran.parent = transform;
 		
-		for (var i = 0, il = shapes.length; i < il; i++) {
-			var shape = shapes[i];
+		while (shapes.length > 0) {
+			var shape = shapes[0];
 			newTran.addShape(shape);
 			transform.removeShape(shape);
 		}
@@ -1494,12 +1494,12 @@ var hemi = (function(hemi) {
 			shapes = transform.shapes,
 			tParent = transform.parent;
 		
-		for (var i = 0, il = children.length; i < il; i++) {
-			children[i].parent = tParent;
+		while (children.length > 0) {
+			children[0].parent = tParent;
 		};
 	
-		for (var i = 0, il = shapes.length; i < il; i++) {
-			var shape = shapes[i];
+		while (shapes.length > 0) {
+			var shape = shapes[0];
 			tParent.addShape(shape);
 			transform.removeShape(shape);
 		}
@@ -8791,7 +8791,7 @@ var hemi = (function(hemi) {
 		/**
 		 * An array of colors for each particle to transition through. Each
 		 * color value is in the form RGBA.
-		 * @type number[4][]
+		 * @type number[]
 		 */
 		this.colorRamp = [];
 		
@@ -9149,7 +9149,7 @@ var hemi = (function(hemi) {
 	 * Create an Emitter effect that constantly streams particles.
 	 * 
 	 * @param {hemi.core.particles.ParticleStateIds} state the particle state
-	 * @param {number[4][]} colorRamp array of color values in the form RGBA
+	 * @param {number[]} colorRamp array of color values in the form RGBA
 	 * @param {hemi.core.particles.ParticleSpec} params parameters for the
 	 *	   particle emitter
 	 * @param {hemi.effect.ParticleFunction} opt_function optional specs that
@@ -9179,7 +9179,7 @@ var hemi = (function(hemi) {
 	 * Create a Burst effect that fires particles one shot at a time.
 	 * 
 	 * @param {hemi.core.particles.ParticleStateIds} state the particle state
-	 * @param {number[4][]} colorRamp array of color values in the form RGBA
+	 * @param {number[]} colorRamp array of color values in the form RGBA
 	 * @param {hemi.core.particles.ParticleSpec} params parameters for the
 	 *	   particle emitter
 	 * @param {hemi.effect.ParticleFunction} opt_function optional specs that
@@ -9209,7 +9209,7 @@ var hemi = (function(hemi) {
 	 * Create a Trail effect that fires particles at the specified interval.
 	 * 
 	 * @param {hemi.core.particles.ParticleStateIds} state the particle state
-	 * @param {number[4][]} colorRamp array of color values in the form RGBA
+	 * @param {number[]} colorRamp array of color values in the form RGBA
 	 * @param {hemi.core.particles.ParticleSpec} params parameters for the
 	 *	   particle emitter
 	 * @param {number} fireInterval seconds to wait between firing particles
@@ -12779,13 +12779,13 @@ var hemi = (function(hemi) {
 	// Private functions
 	///////////////////////////////////////////////////////////////////////////
 	
-	var removeManipTransforms = function(transObj) {
+	var removeManipTransforms = function(tranObj) {
 		var tran;
 		
-		if (transObj.foster) {
-			tran = hemi.utils.unfosterTransform(transObj.transform);
+		if (tranObj.foster) {
+			tran = hemi.utils.unfosterTransform(tranObj.transform);
 		} else {
-			tran = transObj.transform;
+			tran = tranObj.transform;
 		}
 		
 		hemi.world.tranReg.unregister(tran, this);
