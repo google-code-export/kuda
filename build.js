@@ -202,7 +202,7 @@ var uglifyO3d = function(src, dst) {
 			'o3djs/texture.js',
 			'o3djs/shape.js'
 		],
-		replace: /(o3d|o3djs)\.(include|require)\('.*?'\);/g
+		replace: /(o3d|o3djs)\.(include|require)\('.*?'\);\s*/g
 	},
 	header =
 '/*\n\
@@ -277,7 +277,7 @@ var uglifyHemi = function(src, dst) {
 				'hemi/texture.js',
 				'hemi/timer.js'
 			],
-			replace: /o3djs\.require\('(hemi|o3djs).*?'\);/g
+			replace: /o3djs\.require\('(hemi|o3djs).*?'\);\s*/g
 		},
 		header =
 '/*\n\
