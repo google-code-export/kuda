@@ -29,6 +29,12 @@
 	clear: both;
 	width: 100%;
 }
+.mbrBottomPanel {	
+	transition: width 0.3s ease-in-out, left 0.2;
+	-moz-transition: width 0.3s ease-in-out, left 0.2;
+	-webkit-transition: width 0.3s ease-in-out, left 0.2;
+	-o-transition: width 0.3s ease-in-out, left 0.2;
+}
 .panelButtons button {
 	background: -moz-linear-gradient(100% 100% 90deg, #eaeaea, #eee);
 	background: -webkit-gradient(linear, 0% 0%, 100% 0%, from(#eee), to(#eaeaea));
@@ -53,6 +59,7 @@
 	float: left;
 	width: 300px;
 	padding: 0;
+	overflow: auto;
 }
 .mbrTopPanel .widget, .mbrBottomPanel .widget {
 	overflow: hidden;
@@ -63,6 +70,15 @@
 }
 .mbrBottomPanel .widget {
 	float: left;
+}
+.mbrBottomPanel .widget:not(.opacity) {
+	padding: 10px 0;
+}
+.mbrBottomPanel .widget:first-child {
+	padding-left: 10px;
+}
+.mbrBottomPanel .widget:last-child {
+	padding-right: 10px;
 }
 
 /******************************************************************************
@@ -85,10 +101,7 @@
 	padding: 0 10px;
 	margin: 0;
 }
-.mbrBottomPanel .widget:first-child form {
-	padding-left: 0;
-}
-.mbrBottomPanel .widget:last-child form {
+.mbrBottomPanel .widget:nth-child(n+2) form {
 	border-right: none;
 	border-left: 1px dotted #aaa;
 }
@@ -136,7 +149,6 @@
  ******************************************************************************/
 
 #mbrTreeWrapper {
-	overflow: auto;
 	width: 300px;
 }
 #mbrTree {
@@ -191,4 +203,37 @@
 
 .mbrBottomPanel button:not(:last-child) {
 	margin-right: 5px;
+}
+
+/******************************************************************************
+ * 									   Popup 								  *
+ ******************************************************************************/
+
+.mbrPopup .content {	
+	color: #fff;
+	background: #333;
+	border: 1px solid #666;
+}
+/* creates triangle */
+.mbrPopup .arrow {
+	border-color: #333 transparent;
+	left: 10px;
+}
+.mbrPopup .outer {
+	border-color: #666 transparent;
+}
+.mbrPopup .innerArrow {
+	border-top-color: #333;
+	left: 10px;
+}
+/* creates the larger triangle */
+.mbrPopup .arrow.top {
+	border-bottom-color: #666;
+}
+/* creates the smaller  triangle */
+.mbrPopup .innerArrow.top {
+	border-bottom-color: #333;
+}
+.mbrPopup .listWidget > li:nth-child(2n+1) {
+	background: #222;
 }
