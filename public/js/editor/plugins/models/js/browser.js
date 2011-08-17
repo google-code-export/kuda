@@ -110,6 +110,12 @@ var editor = (function(editor) {
 						that.addModel(msg.src);
 					}
 				});
+			hemi.msg.subscribe(hemi.msg.unload,
+				function(msg) {
+					if (msg.src instanceof hemi.model.Model) {
+						that.removeModel(msg.src);
+					}
+				});
 		},
 			
 		worldCleaned: function() {			
@@ -1386,8 +1392,6 @@ var editor = (function(editor) {
 				
 				var msgHandler = model.subscribe(hemi.msg.unload,
 					function(m) {
-//						mbrMdl.removeModel(model);
-						wgt.notifyListeners(editor.EventTypes.RemoveModel, model);
 						msg.text('').hide(200);
 						model.unsubscribe(msgHandler, hemi.msg.unload);
 						populateUnloadPanel.call(wgt);

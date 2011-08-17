@@ -142,16 +142,18 @@
 	content: ':';
 }
 
-
 /******************************************************************************
  * 								 	Model Tree								  *
  ******************************************************************************/
 
+#mbrModelTree {	
+}
 #mbrTreeWrapper {
 	width: 300px;
 }
-#mbrTree {
-	margin: 10px;
+div#mbrModelTree div#mbrTree {
+	margin: 10px 0;
+	background: url(../images/treeBack.png) transparent repeat;
 }
 #mbrDetails {
 	width: 300px;
