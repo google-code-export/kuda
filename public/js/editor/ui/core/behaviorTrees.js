@@ -548,7 +548,8 @@ var editor = (function(module) {
 			
 			this.tree.jstree({
 				'json_data': {
-					'data': json
+					'data': json,
+					'progressive_render': true
 				},
 				'types': {
 					'types': {
@@ -592,7 +593,8 @@ var editor = (function(module) {
 			
 			this.tree.jstree({
 				'json_data': {
-					'data': json
+					'data': json,
+					'progressive_render': true
 				},
 				'types': {
 					'types': {
@@ -632,7 +634,8 @@ var editor = (function(module) {
 			
 			this.tree.jstree({
 				'json_data': {
-					'data': json
+					'data': json,
+					'progressive_render': true
 				},
 				'types': {
 					'types': {
