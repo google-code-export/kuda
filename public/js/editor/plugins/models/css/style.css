@@ -54,8 +54,7 @@
  ******************************************************************************/
 
 .mbrSidePanel .widget {
-	background: -moz-linear-gradient(100% 100% 180deg, #eee, #fff);
-	background: -webkit-gradient(linear, 0% 0%, 100% 0%, from(#fff), to(#eee));
+	background: #eee;
 	float: left;
 	width: 300px;
 	padding: 0;
@@ -237,3 +236,11 @@
 .mbrPopup .listWidget > li:nth-child(2n+1) {
 	background: #222;
 }
+
+/******************************************************************************
+* 								    Hidden Items							  *
+ ******************************************************************************/
+
+ #mbrHiddenTransforms .listWidget > li:nth-child(2n+1) {
+ 	background: #ddd;
+ }

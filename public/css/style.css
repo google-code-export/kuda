@@ -391,6 +391,7 @@ ol.listWidget {
 	padding: 5px 0 0;
 	line-height: 30px;
 	position: relative;
+	font-size: 12px;
 }
 ol.listWidget li {
 	display: list-item;
@@ -445,7 +446,6 @@ ol.listWidget li span {
 	width: 24px;
 	border: 1px solid transparent;
 	box-shadow: none;
-	-moz-box-shadow: none;
 	padding: 3px;
 	background: none;
 }
