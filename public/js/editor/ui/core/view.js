@@ -78,6 +78,41 @@ var editor = (function(editor) {
 //                     			   	  Panel		  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
+	var setVisible = function(visible) {
+			var ctn = this.container,
+				opacity = visible ? 1 : 0,
+				opacityStart = visible ? 0 : 1,
+				location = 'top',
+				startLoc = visible ? -20 : 0,
+				animAmt = visible ? '+=20' : '-=20',
+				animData = {
+					opacity: opacity
+				};
+			
+			if (!this.visible && !visible) {
+				ctn.css('opacity', 0);
+			}
+			else {				
+				ctn.css('opacity', opacityStart);
+			}
+			
+			switch(this.config.location) {
+				case editor.ui.Location.TOP:
+					animData.top = animAmt;			
+					break;
+				case editor.ui.Location.BOTTOM:
+					animData.bottom = animAmt;
+					location = 'bottom';				
+					break;
+				case editor.ui.Location.RIGHT:
+					animData.right = animAmt;
+					location = 'right';
+					break;
+			}
+			
+			ctn.css(location, startLoc).animate(animData);
+		};
+	
 	editor.ui.PanelDefaults = {
 		location: editor.ui.Location.RIGHT,
 		classes: [],
@@ -90,6 +125,7 @@ var editor = (function(editor) {
 			var newOpts = jQuery.extend({}, editor.ui.PanelDefaults, options);
 			this.viewMeta = new Hashtable();
 			this.widgets = [];
+			this.visible = true;
 			
 			this._super(newOpts);
 		},
@@ -131,7 +167,7 @@ var editor = (function(editor) {
 				this.config.location === editor.ui.Location.TOP ? 'topAligned' : 
 				'bottomAligned');
 			
-			this.setVisible(false, false);
+			this.setVisible(false, false, true);
 		},
 		
 		getName: function() {
@@ -144,6 +180,18 @@ var editor = (function(editor) {
 		
 		getViewMeta: function(view) {
 			return this.viewMeta.get(view);
+		},
+		
+		isVisible: function() {
+			return this.visible;
+		},
+		
+		maximize: function() {
+			
+		},
+		
+		minimize: function() {
+			
 		},
 		
 		resize: function() {			
@@ -170,8 +218,9 @@ var editor = (function(editor) {
 			this.viewMeta.put(view, meta);
 		},
 		
-		setVisible: function(visible, opt_updateMeta) {
-			this._super(visible);
+		setVisible: function(visible, opt_updateMeta, opt_noAnimate) {
+			setVisible.call(this, visible);
+					
 			var pnl = this;
 			opt_updateMeta = opt_updateMeta == null ? true : opt_updateMeta;
 			
@@ -181,6 +230,7 @@ var editor = (function(editor) {
 				visible: visible,
 				updateMeta: opt_updateMeta
 			});
+			this.visible = visible;
 		}
 	});
 	

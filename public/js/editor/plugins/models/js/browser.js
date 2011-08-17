@@ -1062,6 +1062,7 @@ var editor = (function(editor) {
 				}
 			})
 			.jstree({
+				'progress_render': true,
 				'json_data': {
 					'data': baseJson
 				},
