@@ -81,7 +81,8 @@ var editor = (function(editor) {
 	editor.ui.PanelDefaults = {
 		location: editor.ui.Location.RIGHT,
 		classes: [],
-		name: 'Panel'
+		name: 'Panel',
+		startsVisible: true
 	};
 	
 	editor.ui.Panel = editor.ui.Component.extend({
@@ -171,13 +172,12 @@ var editor = (function(editor) {
 		
 		setVisible: function(visible, opt_updateMeta) {
 			this._super(visible);
-			var wgt = this;
+			var pnl = this;
 			opt_updateMeta = opt_updateMeta == null ? true : opt_updateMeta;
 			
 			this.resize();
-			
 			this.notifyListeners(editor.EventTypes.PanelVisible, {
-				widget: wgt,
+				panel: pnl,
 				visible: visible,
 				updateMeta: opt_updateMeta
 			});

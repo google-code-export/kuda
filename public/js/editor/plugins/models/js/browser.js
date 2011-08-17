@@ -748,12 +748,29 @@ var editor = (function(editor) {
 			this.container.prepend(this.buttons);
 		},
 		
-		setVisible: function(visible) {
-			this._super(visible);
+		setVisible: function(visible, opt_updateMeta) {
+			this._super(visible, opt_updateMeta);
 			
 			for (var i = 0, il = this.widgets.length; i < il; i++) {
 				sizeAndPosition.call(this.widgets[i]);
 			}
+		}
+	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//                      	  	  Bottom Panel		     	                  //
+////////////////////////////////////////////////////////////////////////////////
+
+	var BottomPanel = editor.ui.Panel.extend({
+		init: function() {
+			this._super({
+				name: 'bottomPanel',
+				classes: ['mbrBottomPanel']
+			});
+		},
+		
+		setVisible: function(visible) {
+			
 		}
 	});
 	
@@ -1168,7 +1185,7 @@ var editor = (function(editor) {
 			this._super();
 			this.title = jQuery('<h1>Hidden Items</h1>');
 			
-			this.list = new editor.ui.ListWidget({
+			this.list = new editor.ui.List({
 				widgetId: 'mbrHiddenList',
 				prefix: 'mbrHidLst',
 				type: editor.ui.ListType.UNORDERED
@@ -1541,7 +1558,8 @@ var editor = (function(editor) {
 				}
 			});
 			
-			this.container.append(label).append(this.slider);
+			this.container.append(label).append(this.slider)
+				.addClass('opacity');
 		}
 	});
 	
@@ -1599,10 +1617,7 @@ var editor = (function(editor) {
 				texList.add(item);
 			}
 			
-			var elem = jQuery('<div><h1>Textures</h1></div>');
-			elem.append(texList.getUI());
-			
-			return elem;
+			return texList.getUI();
 		},
 		
 		buildTransformPopup = function(transform) {
@@ -1636,10 +1651,7 @@ var editor = (function(editor) {
 				}
 			};
 			
-			var elem = jQuery('<div><h1>Shapes</h1></div>');
-			elem.append(shapeList.getUI());
-			
-			return elem;
+			return shapeList.getUI();
 		};
 	
 	var DetailsWidget = editor.ui.Widget.extend({
@@ -1662,29 +1674,42 @@ var editor = (function(editor) {
 		finishLayout: function() {
 			this._super();
 			
-			this.btn = jQuery('<button>View Shapes</button>');
+			this.btn = jQuery('<button id="mbrDetailsBtn">View Shapes</button>');
 			this.form = jQuery('<form></form>').submit(function() {
 				return false;
 			});
 			
 			this.form.append('<label>Details</label>').append(this.btn);
-			this.container.append(this.form).hide();
+			this.container.append(this.form);
 			
-			var popup = editor.ui.createTooltip(),
+			var popup = editor.ui.createTooltip('mbrPopup'),
 				wgt = this;
 			
-			this.container.find('button').bind('click', function(evt) {
+			this.btn.bind('click', function(evt) {
 				var btn = jQuery(this);
-				popup.show(btn, wgt.buildPopup());
+				popup.show(btn, wgt.buildPopup(), null, {
+					top: 5,
+					left: 0
+				});
+				
+				jQuery(document).bind('click.mbr', function(e) {
+					var target = jQuery(e.target),
+						parent = target.parents('.tooltip, #mbrDetailsBtn');
+					
+					if (parent.size() == 0 && target.attr('id') != 'mbrDetailsBtn') {
+						popup.hide();
+						jQuery(document).unbind('click.mbr');
+					}
+				});
 			});
 		},
 		
 		set: function(obj, type) {
 			if (obj) {
-				this.container.show(200);
+				this.container.show();
 			}
 			else {
-				this.container.hide(200);
+				this.container.hide();
 			}
 			
 			this.type = type;
@@ -1692,6 +1717,43 @@ var editor = (function(editor) {
 			
 			this.btn.text(type === DetailsType.TRANSFORM ? 'View Shapes' : 
 				'View Textures');
+		}
+	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//                             Hide/Show Widget                               //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var VisibilityWidget = editor.ui.Widget.extend({
+		init: function() {
+			this._super({
+				name: 'visibilityWidget'
+			});
+		},
+		
+		finishLayout: function() {
+			this._super();			
+			this.visBtn = jQuery('<button>Hide</button>');
+			
+			var label = jQuery('<label>Visibility</label>'),
+				form = jQuery('<form></form>').submit(function() {
+					return false;
+				}),
+				wgt = this;
+			
+			form.append(label).append(this.visBtn);
+			this.container.append(form);
+			
+			this.visBtn.bind('click', function() {
+				wgt.notifyListeners(editor.EventTypes.ShowPicked, 
+					!wgt.transform.visible);
+				jQuery(this).text(wgt.transform.visible ? 'Hide' : 'Show');
+			});
+		},
+		
+		set: function(transform) {
+			this.transform = transform;			
+			this.visBtn.text(this.transform.visible ? 'Hide' : 'Show');
 		}
 	});
 	
@@ -2042,7 +2104,8 @@ var editor = (function(editor) {
 			this.addPanel(new editor.ui.Panel({
 				location: editor.ui.Location.BOTTOM,
 				classes: ['mbrBottomPanel'],
-				name: 'bottomPanel'
+				name: 'bottomPanel',
+				startsVisible: false
 			}));
 			
 			this.sidePanel.addWidget(new ModelTreeWidget(), "Model Tree");
@@ -2053,6 +2116,7 @@ var editor = (function(editor) {
 			this.bottomPanel.addWidget(new AdjustWidget());
 			this.bottomPanel.addWidget(new OpacityWidget());
 			this.bottomPanel.addWidget(new DetailsWidget());
+			this.bottomPanel.addWidget(new VisibilityWidget());
 		},
 		
 		layoutActionBar: function() {
@@ -2217,6 +2281,7 @@ var editor = (function(editor) {
 				hidWgt = view.sidePanel.hiddenItemsWidget,
 				opaWgt = view.bottomPanel.opacityWidget,
 				adjWgt = view.bottomPanel.adjustWidget,
+				visWgt = view.bottomPanel.visibilityWidget,
 				detWgt = view.bottomPanel.detailsWidget,
 				infoDisp = view.infoDisplay;
 			
@@ -2263,7 +2328,7 @@ var editor = (function(editor) {
 				} else if (value.type === 'material') {
 					selModel.deselectAll();
 					detWgt.set(value, DetailsType.MATERIAL);
-					view.bottomPanel.resize();
+					view.bottomPanel.setVisible(true);
 					// TODO: Do something useful like highlight the material so
 					// that the user can see what shapes use it. ~ekitson
 				}
@@ -2297,9 +2362,7 @@ var editor = (function(editor) {
 	        opaWgt.addListener(editor.EventTypes.SetTransOpacity, function(opacity) {
 				selModel.setOpacity(opacity);
 	        });
-			
-			// view specific
-	        view.addListener(editor.EventTypes.ShowPicked, function(value) {
+	        visWgt.addListener(editor.EventTypes.ShowPicked, function(value) {
 				if (value) {
 	                selModel.showSelected();
 				} else {
@@ -2395,7 +2458,8 @@ var editor = (function(editor) {
 				mbrWgt.selectNode(getNodeId(transform));
 				view.transformSelected(transform);
 				detWgt.set(transform, DetailsType.TRANSFORM);
-				view.bottomPanel.resize();
+				visWgt.set(transform);
+				view.bottomPanel.setVisible(true);
 			});
 	        selModel.addListener(editor.EventTypes.TransformShown, function(transform) {
 	            hidWgt.removeHiddenItem(transform);

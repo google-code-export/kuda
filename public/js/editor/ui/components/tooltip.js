@@ -23,12 +23,16 @@ var editor = (function(editor) {
 	// internal.  no one else can see or use
 	var Tooltip = editor.ui.Component.extend({
 		init: function(options) {
-			this._super();
+			var newOpts = jQuery.extend({
+				cls: ''
+			}, options);
+			
+			this._super(newOpts);
 			this.id = 0;
 		},
 		
 		finishLayout : function() {
-			this.container = jQuery('<div class="tooltip"></div>');
+			this.container = jQuery('<div class="tooltip ' + this.config.cls + '"></div>');
 			this.msg = jQuery('<div class="content"></div>');
 			this.arrow = jQuery('<div class="arrow"></div>');
 			
@@ -51,16 +55,10 @@ var editor = (function(editor) {
 			this.isVisible = false;
 		},
 		
-		setContainerClass: function(cls) {
-			this.container.removeClass(function() {
-				return jQuery(this).attr('class').replace('tooltip', '');
-			});
-			this.container.addClass(cls);
-		},
-		
-		show: function(element, content, opt_autohide) {
+		show: function(element, content, opt_autohide, opt_offset) {
 			var ctn = this.container,
-				wgt = this;
+				wgt = this,
+				off = jQuery.extend({ top: 0, left: 0 }, opt_offset);
 			
 			if (this.container.parents().size() === 0) {
 				jQuery('body').append(this.container);
@@ -87,8 +85,8 @@ var editor = (function(editor) {
 					: document.documentElement.offsetWidth,
 				difference = width + offset.left > windowWidth 
 					? offset.left - (windowWidth - width) : 0,
-				top = atTop ? offset.top + elemHeight + arrowHeight 
-					: offset.top - height;
+				top = atTop ? offset.top + elemHeight + arrowHeight  + off.top
+					: offset.top - height - off.top;
 			
 			// position this
 			ctn.offset({
@@ -163,8 +161,10 @@ var editor = (function(editor) {
 		}
 	});
 	
-	editor.ui.createTooltip = function() {		
-		return new Tooltip();
+	editor.ui.createTooltip = function(cls) {		
+		return new Tooltip({
+			cls: cls
+		});
 	};
 	
 	return editor;

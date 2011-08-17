@@ -300,8 +300,7 @@ var editor = (function(editor) {
 				
 				panel.currentView = this;
 				var meta = panel.addViewMeta(this);
-				if (!panel.config.manualVisible) {
-//					this.visiblePanels.push(panel);
+				if (panel.config.startsVisible) {
 					meta.panelShouldBeVisible = true;
 				}
 			}
@@ -387,11 +386,10 @@ var editor = (function(editor) {
 			var model = this.model,
 				view = this.view,
 				ctr = this,
-				wgts = view.panels,
+				pnls = view.panels,
 				visFcn = function(val) {
 					if (val.updateMeta) {
 						var meta = val.panel.getViewMeta(view);
-						
 						if (meta.viewIsVisible) {
 							meta.panelShouldBeVisible = val.visible &&
 								meta.panelShouldBeVisible;
@@ -399,41 +397,31 @@ var editor = (function(editor) {
 					}
 				};
 						
-			var handleWidgets = function(visible) {				
-				// if the tool is no longer selected
-				if (!visible) {
-					// save the visible panel state					
-					for (var i = 0, il = wgts.length; i < il; i++) {
-						var wgt = wgts[i],
-							meta = wgt.getViewMeta(view);
-						if (wgt.isVisible() && meta.viewIsVisible) {
+			var handleWidgets = function(visible) {	
+				for (var i = 0, il = pnls.length; i < il; i++) {
+					var pnl = pnls[i],
+						meta = pnl.getViewMeta(view);
+								
+					// if the tool is no longer selected
+					if (!visible) {							
+						if (pnl.isVisible() && meta.viewIsVisible) {
 							meta.panelShouldBeVisible = true;
-							wgt.setVisible(false, false);
+							pnl.setVisible(false, false);
 						}
 						meta.viewIsVisible = false;
-					}
-				}
-				else {
+					}					
 					// restore the previous visible panel state
-//					var vis = view.visiblePanels;
-									
-					for (var i = 0, il = wgts.length; i < il; i++) {
-						var wgt = wgts[i],
-							meta = wgt.getViewMeta(view);
-						
+					else {						
 						meta.viewIsVisible = true;
-						wgt.setCurrentView(view);
-						wgt.setVisible(meta.panelShouldBeVisible, false);
+						pnl.setCurrentView(view);
+						pnl.setVisible(meta.panelShouldBeVisible, false);
 					}
-					
-					// reset the visible panels list
-//					view.visiblePanels = [];
-				}				
+				}			
 			};
 					
-			for (var ndx = 0, len = wgts.length; ndx < len; ndx++) {
-				var wgt = wgts[ndx];
-				wgt.addListener(editor.EventTypes.WidgetVisible, visFcn);
+			for (var ndx = 0, len = pnls.length; ndx < len; ndx++) {
+				var pnl = pnls[ndx];
+				pnl.addListener(editor.EventTypes.PanelVisible, visFcn);
 			}
         
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
