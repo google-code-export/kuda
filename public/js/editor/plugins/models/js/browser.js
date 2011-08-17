@@ -1183,7 +1183,6 @@ var editor = (function(editor) {
 		
 		finishLayout: function() {
 			this._super();
-			this.title = jQuery('<h1>Hidden Items</h1>');
 			
 			this.list = new editor.ui.List({
 				widgetId: 'mbrHiddenList',
@@ -1191,7 +1190,7 @@ var editor = (function(editor) {
 				type: editor.ui.ListType.UNORDERED
 			});
 			
-			this.container.append(this.title).append(this.list.getUI());
+			this.container.append(this.list.getUI());
 			sizeAndPosition.call(this);
 		},
 		
@@ -1245,10 +1244,7 @@ var editor = (function(editor) {
 		
 		resize: function(maxHeight) {
 			this._super(maxHeight);	
-			var list = this.list.getUI(),	
-			
-			// get the header height
-				hdrHeight = this.title.outerHeight(true),
+			var list = this.list.getUI(),
 			
 			// adjust the list pane height
 			 	listHeight = maxHeight - hdrHeight;
