@@ -27,7 +27,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-	var tabpane = new editor.ui.TabPane('Models'),
+	var tabpane = new editor.ui.TabPane('Geometry'),
 		toolbar = new editor.ui.Toolbar();
 	
 	tabpane.setToolBar(toolbar);	

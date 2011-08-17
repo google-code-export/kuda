@@ -1017,9 +1017,9 @@ form button {
  * 									Trees									  *
  ******************************************************************************/
 
-.jstree {
-	background: transparent !important;
-	font: 14px/18px Helvetica, Arial, sans-serif !important;
+div.jstree {
+	background: transparent;
+	font: 12px/18px Helvetica, Arial, sans-serif !important;
 }
 .jstree a > .jstree-icon {
 	margin-right: 5px !important;
