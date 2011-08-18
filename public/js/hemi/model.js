@@ -175,6 +175,15 @@ var hemi = (function(hemi) {
 		 */
 		getTransforms: function() {
 			return this.pack.getObjectsByClassName('o3d.Transform');
+		},
+		
+		/**
+		 * Check if the pack contains any skinned meshes.
+		 * 
+		 * @returns {boolean} true if the pack contains any skinned meshes
+		 */
+		isSkinned: function() {
+			return this.pack.getObjectsByClassName('o3d.Skin').length > 0;
 		}
 	};
 
@@ -193,6 +202,7 @@ var hemi = (function(hemi) {
 		 * @default false
 		 */
 		this.isAnimating = false;
+		this.isSkinned = false;
 		this.fileName = '';
 		this.root = null;
 		this.materials = [];
@@ -300,11 +310,20 @@ var hemi = (function(hemi) {
 			var id = this.getId();
 			
 			this.name = getModelName(this.fileName);
+			this.isSkinned = config.isSkinned();
 			this.root = config.rootTransform;
 			this.root.name = this.name + '_Root';
 			// The deserialization process sets bad values for bounding boxes of
-			// transforms, so force them to be recalculated.
-			this.root.recalculateBoundingBox(true);
+			// transforms, so we force them to be recalculated.
+			if (this.isSkinned) {
+				// For some reason, skinned meshes need to be rendered once and
+				// then have both shapes and transforms recalculated.
+				hemi.view.viewInfo.renderGraphRoot.render();
+				this.root.recalculateBoundingBox(true, true);
+			} else {
+				this.root.recalculateBoundingBox(true);
+			}
+			
 			this.animParam = config.animationTime;
 			this.materials = config.getMaterials();
 			this.shapes = config.getShapes();
