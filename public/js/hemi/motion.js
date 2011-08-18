@@ -42,8 +42,7 @@ var hemi = (function(hemi) {
 		this.angle = cfg.angle || [0,0,0];
 		this.origin = cfg.origin || [0,0,0];
 		this.vel = cfg.vel || [0,0,0];
-		
-		this.enabled = true;
+
 		this.offset = hemi.core.math.mulScalarVector(-1,this.origin);
 		this.time = 0;
 		this.stopTime = 0;
@@ -53,14 +52,12 @@ var hemi = (function(hemi) {
 		this.stopAngle = this.angle;
 		this.toLoad = {};
 		this.transformObjs = [];
-		this.intFunc = function (val) {
-			return val;
-		};
-		
+	
 		if (opt_tran != null) {
 			this.addTransform(opt_tran);
-			hemi.view.addRenderListener(this);
 		}
+
+		this.enable();
 	};
 	
 	hemi.motion.Rotator.prototype = {
@@ -148,7 +145,6 @@ var hemi = (function(hemi) {
 			this.disable();
 			hemi.world.Citizen.prototype.cleanup.call(this);
 			this.clearTransforms();
-			this.intFunc = null;
 		},
 		
 		/**
@@ -185,10 +181,8 @@ var hemi = (function(hemi) {
 		 * Enable mouse interaction for the Rotator. 
 		 */
 		enable: function() {
-			if (!this.enabled) {
-				hemi.view.addRenderListener(this);
-				this.enabled = true;
-			}
+			this.enabled = true;
+			shouldRenderRotator.call(this);
 		},
 		
 		/**
@@ -208,7 +202,7 @@ var hemi = (function(hemi) {
 					trans.push(obj.offTran);
 				}
 			}
-			
+
 			return trans;
 		},
 		
@@ -222,15 +216,15 @@ var hemi = (function(hemi) {
 		 *     other rotations can be started until this one finishes
 		 */
 		rotate : function(theta,time,opt_mustComplete) {
-			if (!this.enabled || (this.mustComplete && this.steadyRotate)) return false;
+			if (!this.enabled || this.mustComplete) return false;
 			this.time = 0;
 			this.stopTime = time;
 			this.steadyRotate = true;
 			this.startAngle = this.angle;
 			this.mustComplete = opt_mustComplete || false;
 			this.stopAngle = hemi.core.math.addVector(this.angle,theta);
-			this.send(hemi.msg.start,{});
 			hemi.view.addRenderListener(this);
+			this.send(hemi.msg.start,{});
 			return true;
 		},
 		
@@ -247,11 +241,11 @@ var hemi = (function(hemi) {
 					this.time += t;
 					if (this.time >= this.stopTime) {
 						this.time = this.stopTime;
-						this.steadyRotate = false;
+						this.steadyRotate = this.mustComplete = false;
 						hemi.view.removeRenderListener(this);
 						this.send(hemi.msg.stop,{});
 					}
-					var t1 = this.intFunc(this.time/this.stopTime);
+					var t1 = this.time/this.stopTime;
 					this.angle = hemi.core.math.lerpVector(
 						this.startAngle,
 						this.stopAngle,
@@ -264,15 +258,8 @@ var hemi = (function(hemi) {
 							this.angle,
 							hemi.core.math.mulScalarVector(t,this.vel));
 				}
-				
-				for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-					var transformObj = this.transformObjs[i];
-					transformObj.offTran.identity();
-					transformObj.offTran.translate(this.offset);
-					transformObj.rotTran.identity();
-					transformObj.rotTran.translate(this.origin);
-					transformObj.rotTran.rotateZYX(this.angle);
-				}
+
+				applyRotator.call(this);
 			}
 		},
 		
@@ -321,6 +308,7 @@ var hemi = (function(hemi) {
 		 */
 		setAccel : function(accel) {
 			this.accel = accel;
+			shouldRenderRotator.call(this);
 		},
 		
 		/**
@@ -330,6 +318,7 @@ var hemi = (function(hemi) {
 		 */
 		setAngle : function(theta) {
 			this.angle = theta;
+			applyRotator.call(this);
 		},
 		
 		/**
@@ -349,6 +338,7 @@ var hemi = (function(hemi) {
 		 */
 		setVel : function(vel) {
 			this.vel = vel;
+			shouldRenderRotator.call(this);
 		},
 		
 		/**
@@ -405,7 +395,7 @@ var hemi = (function(hemi) {
 		hemi.motion.Rotator.prototype.msgSent.concat([
 			hemi.msg.start,
 			hemi.msg.stop]);
-	
+
 	/**
 	 * @class A Translator provides easy setting of linear velocity and
 	 * acceleration of shapes and transforms in the 3d scene.
@@ -431,9 +421,6 @@ var hemi = (function(hemi) {
 		this.stopPos = this.pos;
 		this.toLoad = {};
 		this.transformObjs = [];
-		this.intFunc = function (val) {
-			return val;
-		};
 		
 		if (opt_tran != null) {
 			this.addTransform(opt_tran);
@@ -505,7 +492,6 @@ var hemi = (function(hemi) {
 			this.disable();
 			hemi.world.Citizen.prototype.cleanup.call(this);
 			this.clearTransforms();
-			this.intFunc = null;
 		},
 		
 		/**
@@ -583,9 +569,6 @@ var hemi = (function(hemi) {
 			this.steadyMove = true;
 			this.startPos = this.pos;
 			this.mustComplete = opt_mustComplete || false;
-//			if (opt_intFunc) {
-//				this.intFunc = opt_intFunc;
-//			}
 			this.stopPos = hemi.core.math.addVector(this.pos,delta);
 			this.send(hemi.msg.start,{});
 			this.enable();
@@ -608,7 +591,7 @@ var hemi = (function(hemi) {
 						this.steadyMove = false;
 						this.send(hemi.msg.stop,{});
 					}
-					var t1 = this.intFunc(this.time/this.stopTime);
+					var t1 = this.time/this.stopTime;
 					this.pos = hemi.core.math.lerpVector(
 						this.startPos,
 						this.stopPos,
@@ -741,7 +724,7 @@ var hemi = (function(hemi) {
 	///////////////////////////////////////////////////////////////////////////
 	// Private functions
 	///////////////////////////////////////////////////////////////////////////
-	
+
 	var removeRotateTransforms = function(tranObj) {
 		var rotTran = tranObj.rotTran,
 			offTran = tranObj.offTran,
@@ -777,6 +760,26 @@ var hemi = (function(hemi) {
 		}
 	},
 	
+	applyRotator = function() {
+		for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+			var transformObj = this.transformObjs[i];
+			transformObj.offTran.identity();
+			transformObj.offTran.translate(this.offset);
+			transformObj.rotTran.identity();
+			transformObj.rotTran.translate(this.origin);
+			transformObj.rotTran.rotateZYX(this.angle);
+		}
+	},
+
+
+	shouldRenderRotator = function() {
+		if (!this.enabled ||  (this.accel.join() === '0,0,0' && this.vel.join() === '0,0,0')) {
+			hemi.view.removeRenderListener(this);
+		} else {
+			hemi.view.addRenderListener(this);
+		}
+	},
+
 	removeTranslateTransforms = function(tranObj) {
 		var origTran;
 		
