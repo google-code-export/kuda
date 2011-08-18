@@ -1027,7 +1027,10 @@ var hemi = (function(hemi) {
 	 *            listener the render listener to add
 	 */
 	hemi.view.addRenderListener = function(listener) {
-		hemi.view.renderListeners.push(listener);
+		var ndx = hemi.view.renderListeners.indexOf(listener);
+		if (ndx === -1) {
+			hemi.view.renderListeners.push(listener);
+		}
 	};
 
 	/**
@@ -1040,7 +1043,7 @@ var hemi = (function(hemi) {
 	hemi.view.removeRenderListener = function(listener) {
 		var ndx = hemi.view.renderListeners.indexOf(listener);
 		var retVal = null;
-		if (ndx != -1) {
+		if (ndx !== -1) {
 			retVal = hemi.view.renderListeners.splice(ndx, 1);
 		}
 
