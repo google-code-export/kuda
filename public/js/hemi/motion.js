@@ -182,7 +182,7 @@ var hemi = (function(hemi) {
 		 */
 		enable: function() {
 			this.enabled = true;
-			shouldRenderRotator.call(this);
+			shouldRender.call(this);
 		},
 		
 		/**
@@ -215,7 +215,7 @@ var hemi = (function(hemi) {
 		 * @param {boolean} opt_mustComplete optional flag indicating that no
 		 *     other rotations can be started until this one finishes
 		 */
-		rotate : function(theta,time,opt_mustComplete) {
+		rotate: function(theta,time,opt_mustComplete) {
 			if (!this.enabled || this.mustComplete) return false;
 			this.time = 0;
 			this.stopTime = time;
@@ -234,7 +234,7 @@ var hemi = (function(hemi) {
 		 * 
 		 * @param {o3d.Event} event message describing the render event
 		 */
-		onRender : function(event) {
+		onRender: function(event) {
 			if (this.transformObjs.length > 0) {
 				var t = event.elapsedTime;
 				if (this.steadyRotate) {
@@ -306,9 +306,9 @@ var hemi = (function(hemi) {
 		 * 
 		 * @param {number[3]} accel XYZ angular acceleration (in radians)
 		 */
-		setAccel : function(accel) {
+		setAccel: function(accel) {
 			this.accel = accel;
-			shouldRenderRotator.call(this);
+			shouldRender.call(this);
 		},
 		
 		/**
@@ -316,7 +316,7 @@ var hemi = (function(hemi) {
 		 * 
 		 * @param {number[3]} theta XYZ rotation angle (in radians)
 		 */
-		setAngle : function(theta) {
+		setAngle: function(theta) {
 			this.angle = theta;
 			applyRotator.call(this);
 		},
@@ -326,7 +326,7 @@ var hemi = (function(hemi) {
 		 * 
 		 * @param {number[3]} origin XYZ origin
 		 */
-		setOrigin : function(origin) {
+		setOrigin: function(origin) {
 			this.origin = origin;
 			this.offset = hemi.core.math.mulScalarVector(-1, origin);
 		},
@@ -336,9 +336,9 @@ var hemi = (function(hemi) {
 		 * 
 		 * @param {number[3]} vel XYZ angular velocity (in radians)
 		 */
-		setVel : function(vel) {
+		setVel: function(vel) {
 			this.vel = vel;
-			shouldRenderRotator.call(this);
+			shouldRender.call(this);
 		},
 		
 		/**
@@ -346,7 +346,7 @@ var hemi = (function(hemi) {
 	     *
 	     * @return {Object} the Octane structure representing the Rotator
 		 */
-		toOctane : function() {
+		toOctane: function() {
 			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
 				valNames = ['accel', 'angle', 'vel'];
 			
@@ -411,8 +411,7 @@ var hemi = (function(hemi) {
 		this.pos = cfg.pos || [0,0,0];
 		this.vel = cfg.vel || [0,0,0];
 		this.accel = cfg.accel || [0,0,0];
-		
-		this.enabled = false;
+
 		this.time = 0;
 		this.stopTime = 0;
 		this.mustComplete = false;
@@ -424,17 +423,18 @@ var hemi = (function(hemi) {
 		
 		if (opt_tran != null) {
 			this.addTransform(opt_tran);
-			this.enable();
 		}
+
+		this.enable();
 	};
-	
+
 	hemi.motion.Translator.prototype = {
 		/**
 		 * Add the Transform to the list of Transforms that will be moving.
 		 *
 		 * @param {o3d.Transform} transform the Transform to add
 		 */
-		addTransform : function(transform) {
+		addTransform: function(transform) {
 			hemi.world.tranReg.register(transform, this);
 			var param = transform.getParam('ownerId'),
 				obj = {},
@@ -526,10 +526,8 @@ var hemi = (function(hemi) {
 		 * Enable mouse interaction for the Translator. 
 		 */
 		enable: function() {
-			if (!this.enabled) {
-				hemi.view.addRenderListener(this);
-				this.enabled = true;
-			}
+			this.enabled = true;
+			shouldRender.call(this);
 		},
 		
 		/**
@@ -563,15 +561,15 @@ var hemi = (function(hemi) {
 		 *     other translations can be started until this one finishes
 		 */
 		move : function(delta,time,opt_mustComplete) {
-			if (this.mustComplete && this.steadyMove) return false;
+			if (!this.enabled || this.mustComplete) return false;
 			this.time = 0;
 			this.stopTime = time;
 			this.steadyMove = true;
 			this.startPos = this.pos;
 			this.mustComplete = opt_mustComplete || false;
 			this.stopPos = hemi.core.math.addVector(this.pos,delta);
+			hemi.view.addRenderListener(this);
 			this.send(hemi.msg.start,{});
-			this.enable();
 			return true;
 		},
 	
@@ -588,7 +586,8 @@ var hemi = (function(hemi) {
 					this.time += t;
 					if (this.time >= this.stopTime) {
 						this.time = this.stopTime;
-						this.steadyMove = false;
+						this.steadyMove = this.mustComplete = false;
+						hemi.view.removeRenderListener(this);
 						this.send(hemi.msg.stop,{});
 					}
 					var t1 = this.time/this.stopTime;
@@ -604,12 +603,8 @@ var hemi = (function(hemi) {
 							this.pos,
 							hemi.core.math.mulScalarVector(t,this.vel));
 				}
-				
-				for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-					var transform = this.transformObjs[i].tran;
-					transform.identity();
-					transform.translate(this.pos);
-				}
+
+				applyTranslator.call(this);
 			}
 		},
 		
@@ -652,8 +647,9 @@ var hemi = (function(hemi) {
 		 * 
 		 * @param {number[3]} a XYZ acceleration vector
 		 */
-		setAccel : function(a) {
+		setAccel: function(a) {
 			this.accel = a;
+			shouldRender.call(this);
 		},
 		
 		/**
@@ -661,16 +657,18 @@ var hemi = (function(hemi) {
 		 * 
 		 * @param {number[3]} x XYZ position
 		 */
-		setPos : function(x) {
+		setPos: function(x) {
 			this.pos = x;
+			applyTranslator.call(this);
 		},
 		
 		/**
 		 * Set the velocity.
 		 * @param {number[3]} v XYZ velocity vector
 		 */
-		setVel : function(v) {
+		setVel: function(v) {
 			this.vel = v;
+			shouldRender.call(this);
 		},
 		
 		/**
@@ -678,7 +676,7 @@ var hemi = (function(hemi) {
 	     *
 	     * @return {Object} the Octane structure representing the Translator
 		 */
-		toOctane : function() {
+		toOctane: function() {
 			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
 				valNames = ['pos', 'vel', 'accel'];
 			
@@ -772,11 +770,19 @@ var hemi = (function(hemi) {
 	},
 
 
-	shouldRenderRotator = function() {
+	shouldRender = function() {
 		if (!this.enabled ||  (this.accel.join() === '0,0,0' && this.vel.join() === '0,0,0')) {
 			hemi.view.removeRenderListener(this);
 		} else {
 			hemi.view.addRenderListener(this);
+		}
+	},
+
+	applyTranslator = function() {
+		for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+			var transform = this.transformObjs[i].tran;
+			transform.identity();
+			transform.translate(this.pos);
 		}
 	},
 
