@@ -43,7 +43,7 @@ var hemi = (function(hemi) {
 		this.origin = cfg.origin || [0,0,0];
 		this.vel = cfg.vel || [0,0,0];
 		
-		this.enabled = false;
+		this.enabled = true;
 		this.offset = hemi.core.math.mulScalarVector(-1,this.origin);
 		this.time = 0;
 		this.stopTime = 0;
@@ -59,7 +59,7 @@ var hemi = (function(hemi) {
 		
 		if (opt_tran != null) {
 			this.addTransform(opt_tran);
-			this.enable();
+			hemi.view.addRenderListener(this);
 		}
 	};
 	
@@ -222,7 +222,7 @@ var hemi = (function(hemi) {
 		 *     other rotations can be started until this one finishes
 		 */
 		rotate : function(theta,time,opt_mustComplete) {
-			if (this.mustComplete && this.steadyRotate) return false;
+			if (!this.enabled || (this.mustComplete && this.steadyRotate)) return false;
 			this.time = 0;
 			this.stopTime = time;
 			this.steadyRotate = true;
@@ -230,7 +230,7 @@ var hemi = (function(hemi) {
 			this.mustComplete = opt_mustComplete || false;
 			this.stopAngle = hemi.core.math.addVector(this.angle,theta);
 			this.send(hemi.msg.start,{});
-			this.enable();
+			hemi.view.addRenderListener(this);
 			return true;
 		},
 		
@@ -248,6 +248,7 @@ var hemi = (function(hemi) {
 					if (this.time >= this.stopTime) {
 						this.time = this.stopTime;
 						this.steadyRotate = false;
+						hemi.view.removeRenderListener(this);
 						this.send(hemi.msg.stop,{});
 					}
 					var t1 = this.intFunc(this.time/this.stopTime);
