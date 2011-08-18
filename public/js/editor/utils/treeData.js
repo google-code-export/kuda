@@ -153,6 +153,25 @@ var editor = (function(module) {
 		return nodeName.replace(' ', '_').replace('.', '_');
 	};
 	
+	var getNodePath = function(nodeName) {
+		var ndx = nodeName.indexOf('_'),
+			names = [];
+		
+		ndx = nodeName.indexOf('_', ndx + 1);
+		ndx = nodeName.indexOf('_', ndx + 1);
+		
+		if (ndx > -1) {
+			names.push(nodeName.substr(0, ndx));
+			ndx = nodeName.indexOf('_', ndx + 1);
+			
+			if (ndx > -1) {
+				names.push(nodeName.substr(0, ndx));
+			}
+		}
+		
+		return names;
+	};
+	
 	var createCitizenJson = function(citizen, prefix) {
 		var name = getNodeName(citizen, {
 			option: null,
@@ -174,6 +193,7 @@ var editor = (function(module) {
 	};
 	
 	module.treeData.getNodeName = getNodeName;
+	module.treeData.getNodePath = getNodePath;
 	module.treeData.createCitizenJson = createCitizenJson;
 	module.treeData.isCommon = isCommon;
 	

@@ -301,6 +301,34 @@ var editor = (function(module) {
 			}
 		},
 		
+		select: function(citizen, option) {
+			if (citizen === null || option === null) {
+				this.tree.jstree('deselect_all');
+			} else {
+				var nodeName = module.treeData.getNodeName(citizen, {
+						option: option,
+						prefix: this.pre,
+						id: citizen.getId ? citizen.getId() : null
+					}),
+					paths = module.treeData.getNodePath(nodeName);
+				
+				for (var i = 0; i < paths.length; i++) {
+					var node = jQuery('#' + paths[i], this.tree);
+					this.tree.jstree('open_node', node, false, true);
+				}
+				
+				var node = jQuery('#' + nodeName);
+				
+				if (this.tree.jstree('is_leaf', node)) {
+					this.tree.jstree('select_node', node, true);
+				} else {
+					this.tree.jstree('open_node', node, true);
+				}
+				
+				this.tree.parent().scrollTo(node, 400);
+			}
+		},
+		
 		unrestrictSelection: function(citizen, msgs) {
 			var id = citizen.getId ? citizen.getId() : null;
 			this.tree.removeClass('restricted');
