@@ -71,8 +71,8 @@ var editor = (function(module) {
 						newHeight = colHeight - colPadding - sbrPadding;
 						sbr.height(newHeight);
 				};
-			
-			this.container.append(this.minMaxBtn);
+			// Commenting this out for now until bugs get worked out. ~ekitson
+//			this.container.append(this.minMaxBtn);
 			
 			this.minMaxBtn.bind('click', function(evt) {
 				if (sidebar.minimized) {
@@ -168,7 +168,7 @@ var editor = (function(module) {
 			}
 			
 			for (var ndx = 0, len = this.minimizedWidgets.length; ndx < len; ndx++) {
-				this.minimizedWidgets[ndx].setVisible(false);
+				this.minimizedWidgets[ndx].setVisible(false, false);
 			}
 			
 			this.notifyListeners(module.EventTypes.Sidebar.Minimized, true);
@@ -180,7 +180,7 @@ var editor = (function(module) {
 			this.container.removeClass('minimized');			
 			
 			for (var ndx = 0, len = this.minimizedWidgets.length; ndx < len; ndx++) {
-				this.minimizedWidgets[ndx].setVisible(true);
+				this.minimizedWidgets[ndx].setVisible(true, false);
 			}
 			
 			this.notifyListeners(module.EventTypes.Sidebar.Minimized, false);
