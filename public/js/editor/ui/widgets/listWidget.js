@@ -33,7 +33,7 @@ var editor = (function(module, jQuery) {
 	 */
 	module.ui.ListDefaults = {
 		id: '',
-		cssClass: 'listWidget',
+		cssClass: '',
 		prefix: 'lst',
 		type: module.ui.ListType.UNORDERED,
 		sortable: false
@@ -94,7 +94,8 @@ var editor = (function(module, jQuery) {
 		finishLayout : function() {
 			this.container = this.list = 
 				this.config.type == module.ui.ListType.UNORDERED ?
-				jQuery('<ul></ul>') : jQuery('<ol></ol>');
+				jQuery('<ul class="listWidget"></ul>') : 
+				jQuery('<ol class="listWidget"></ol>');
 			this.list.attr('id', this.config.id)
 				.addClass(this.config.cssClass);
 			
