@@ -160,10 +160,8 @@ var editor = (function(module) {
 				argList = msgTarget.args;
 			}
 			
-			this.setMessageSource(source);
-			this.setMessageType(type);
-			this.setMessageHandler(handler);
-			this.setMethod(method);
+			this.setTrigger(source, type);
+			this.setAction(handler, method);
 			
 			if (argList != null) {
 				var meta = module.data.getMetaData(),
@@ -195,79 +193,6 @@ var editor = (function(module) {
 			}
 			
 	        this.notifyListeners(module.EventTypes.TargetRemoved, target);
-		},
-	    
-	    setMessageSource: function(source) {
-			if (source === null || source.getId != null) {
-				this.source = source;
-			} else if (source === hemi.dispatch.WILDCARD || source === module.treeData.MSG_WILDCARD) {
-				this.source = module.treeData.MSG_WILDCARD;
-			} else {
-				this.source = hemi.world.getCitizenById(source);
-			}
-	    },
-	    
-	    setMessageType: function(type) {
-			if (type === hemi.dispatch.WILDCARD || type === module.treeData.MSG_WILDCARD) {
-				this.type = module.treeData.MSG_WILDCARD;
-			} else {
-				this.type = type;
-			}
-			
-			this.notifyListeners(module.EventTypes.TriggerSet, {
-				source: this.source,
-				message: this.type
-			});
-	    },
-	    
-	    setMessageHandler: function(handler) {
-			this.handler = handler;
-	    },
-	    
-	    setMethod: function(method) {
-	        this.method = method;
-			this.args.clear();
-			
-			if (method !== null) {
-				var meta = module.data.getMetaData(),
-					citType = this.handler.getCitizenType(),
-					params = meta.getParameters(citType, method);
-				
-				if (!params) {
-					// If the metadata is missing, try the old way to get the
-					// parameter names. Unfortunately this won't work if Hemi
-					// is minified.
-					params = module.utils.getFunctionParams(this.handler[method]);
-				}
-				
-				for (var ndx = 0, len = params.length; ndx < len; ndx++) {
-					var param = params[ndx];
-					
-		            this.args.put(param, {
-						ndx: ndx,
-						value: null
-					});
-				}
-			}
-			
-			this.notifyListeners(module.EventTypes.ActionSet, {
-				handler: this.handler,
-				method: this.method
-			});
-	    },
-		
-		setArgument: function(argName, argValue) {
-	        var arg = this.args.get(argName);
-	        
-	        if (arg != null) {
-	            arg.value = argValue;
-	        }
-	        
-//	        this.args.put(argName, arg);
-			this.notifyListeners(module.EventTypes.ArgumentSet, {
-				name: argName,
-				value: argValue
-			});
 		},
 		
 	    save: function(name, opt_type, opt_actor) {
@@ -347,6 +272,82 @@ var editor = (function(module) {
 				value.value = null;
 			});
 		},
+	    
+	    setAction: function(handler, method) {
+	    	if (handler === this.handler && method === this.method) {
+				return;
+			}
+	    	
+	    	this.handler = handler;
+	        this.method = method;
+			this.args.clear();
+			
+			if (method !== null) {
+				var meta = module.data.getMetaData(),
+					citType = this.handler.getCitizenType(),
+					params = meta.getParameters(citType, method);
+				
+				if (!params) {
+					// If the metadata is missing, try the old way to get the
+					// parameter names. Unfortunately this won't work if Hemi
+					// is minified.
+					params = module.utils.getFunctionParams(this.handler[method]);
+				}
+				
+				for (var ndx = 0, len = params.length; ndx < len; ndx++) {
+					var param = params[ndx];
+					
+		            this.args.put(param, {
+						ndx: ndx,
+						value: null
+					});
+				}
+			}
+			
+			this.notifyListeners(module.EventTypes.ActionSet, {
+				handler: this.handler,
+				method: this.method
+			});
+	    },
+		
+		setArgument: function(argName, argValue) {
+	        var arg = this.args.get(argName);
+	        
+	        if (arg != null) {
+	            arg.value = argValue;
+	        }
+	        
+//	        this.args.put(argName, arg);
+			this.notifyListeners(module.EventTypes.ArgumentSet, {
+				name: argName,
+				value: argValue
+			});
+		},
+	    
+	    setTrigger: function(source, type) {
+			if (source === this.source && type === this.type) {
+				return;
+			}
+	    	
+	    	if (source === null || source.getId != null) {
+				this.source = source;
+			} else if (source === hemi.dispatch.WILDCARD || source === module.treeData.MSG_WILDCARD) {
+				this.source = module.treeData.MSG_WILDCARD;
+			} else {
+				this.source = hemi.world.getCitizenById(source);
+			}
+			
+			if (type === hemi.dispatch.WILDCARD || type === module.treeData.MSG_WILDCARD) {
+				this.type = module.treeData.MSG_WILDCARD;
+			} else {
+				this.type = type;
+			}
+			
+			this.notifyListeners(module.EventTypes.TriggerSet, {
+				source: this.source,
+				message: this.type
+			});
+	    },
 		
 		worldCleaned: function() {
 			var targets = this.dispatchProxy.getTargets();
@@ -487,34 +488,27 @@ var editor = (function(module) {
 					view.triggersTree.bindSelect(function(evt, data) {
 						var elem = data.rslt.obj,
 							metadata = elem.data('jstree'),
-							elemId = elem.attr('id'),
 							tree = view.triggersTree.getUI(),
 							isRestricted = tree.hasClass('restricted'),
-							isSelectable = elem.children('a').hasClass('restrictedSelectable');
+							isSelectable = elem.children('a').hasClass('restrictedSelectable'),
+							src = null,
+							msg = null;
 						
-						if (view.lastTrigger === elemId) {
+						if (tree.jstree('is_open', elem)) {
 							tree.jstree('close_node', elem);
-							view.lastTrigger = null;
-						} else {
-							var src, msg;
-							view.lastTrigger = elemId;
-							
-							if (isSelectable || !isRestricted) {
-								if (metadata.type === 'message') {
-									src = metadata.parent;
-									msg = metadata.msg;
-								} else if (metadata.type === 'citizen'
-								 		|| metadata.type === 'citType') {
-									tree.jstree('open_node', elem, false, false);
-									src = msg = null;
-								}
-								
-								view.notifyListeners(module.EventTypes.SelectTrigger, {
-									source: src,
-									message: msg
-								});
-							} 
+						} else if (isSelectable || !isRestricted) {
+							if (metadata.type === 'message') {
+								src = metadata.parent;
+								msg = metadata.msg;
+							} else {
+								tree.jstree('open_node', elem, false, false);
+							}
 						}
+						
+						view.notifyListeners(module.EventTypes.SelectTrigger, {
+							source: src,
+							message: msg
+						});
 					});
 				});
 				
@@ -525,17 +519,15 @@ var editor = (function(module) {
 			
 					view.actionsTree.bindSelect(function(evt, data) {
 						var elem = data.rslt.obj,
-							metadata = elem.data('jstree'),
 							elemId = elem.attr('id'),
-							tree = view.actionsTree.getUI();
+							metadata = elem.data('jstree'),
+							tree = view.actionsTree.getUI(),
+							cit = null,
+							meth = null;
 						
-						if (view.lastAction === elemId) {
+						if (tree.jstree('is_open', elem)) {
 							tree.jstree('close_node', elem);
-							view.lastAction = null;
 						} else {
-							var cit, meth;
-							view.lastAction = elemId;
-							
 							if (metadata.type === 'method') {
 								var path = tree.jstree('get_path', elem, true),
 									parentName = path[path.length - 2] + '_',
@@ -544,17 +536,15 @@ var editor = (function(module) {
 								parentName = parentName.replace(parId + '_MORE', parId);
 								cit = metadata.parent;
 								meth = elemId.replace(parentName, '');
-							
-								view.notifyListeners(module.EventTypes.SelectAction, {
-									handler: cit,
-									method: meth
-								});
-							} else if (metadata.type === 'citizen' 
-									|| metadata.type === 'citType') {
+							} else {
 								tree.jstree('open_node', elem, false, false);
-								cit = meth = null;
 							}
 						}
+						
+						view.notifyListeners(module.EventTypes.SelectAction, {
+							handler: cit,
+							method: meth
+						});
 					});
 				});
 	    },
@@ -867,58 +857,25 @@ var editor = (function(module) {
 		},
 		
 		selectAction: function(citizen, method) {
-			var nodeName = null,
-				actionText = jQuery('#msgEdtEffectTxt'),
-				tree = this.actionsTree.getUI();
+			var actionText = jQuery('#msgEdtEffectTxt');
 			
 			if (citizen === null || method === null) {
 				actionText.text('');
 			} else {
-				nodeName = module.treeData.getNodeName(citizen, {
-					option: method,
-					prefix: this.actionsTree.pre,
-					id: citizen.getId ? citizen.getId() : null
-				});
-				
 				actionText.text(citizen.name + ' ' + method);
 			}
 			
-			if (nodeName === null) {
-				tree.jstree('deselect_all');
-			} else {
-				var elem = jQuery('#' + nodeName),
-					elemId = elem.attr('id');
-					
-				if (this.lastAction !== elemId) {
-					var path = tree.jstree('get_path', elem, true);
-					
-					for (var i = 0; i < path.length; i++) {
-						var node = jQuery('#' + path[i]);
-						tree.jstree('open_node', node, false, true);
-					}
-					
-					tree.jstree('select_node', elem, true);
-					tree.parent().scrollTo(elem, 400);
-				}
-			}
+			this.actionsTree.select(citizen, method);
 		},
 		
 		selectTrigger: function(citizen, message) {
-			var nodeName = null,
-				triggerText = jQuery('#msgEdtCauseTxt'),
-				tree = this.triggersTree.getUI();
+			var triggerText = jQuery('#msgEdtCauseTxt');
 			
 			if (citizen === null || message === null) {
 				triggerText.text('');
 			} else {
 				var name = citizen === module.treeData.MSG_WILDCARD ? citizen : citizen.name,
 					msg;
-				
-				nodeName = module.treeData.getNodeName(citizen, {
-					option: message,
-					prefix: this.triggersTree.pre,
-					id: citizen.getId ? citizen.getId() : null
-				});
 				
 				if (citizen.camMove) {
 					var viewpoint = hemi.world.getCitizenById(message);
@@ -930,24 +887,7 @@ var editor = (function(module) {
 				triggerText.text(name + ' ' + msg);
 			}
 			
-			if (nodeName === null) {
-				tree.jstree('deselect_all');
-			} else {
-				var elem = jQuery('#' + nodeName),
-					elemId = elem.attr('id');
-					
-				if (this.lastTrigger !== elemId) {
-					var path = tree.jstree('get_path', elem, true);
-					
-					for (var i = 0; i < path.length; i++) {
-						var node = jQuery('#' + path[i]);
-						tree.jstree('open_node', node, false, true);
-					}
-					
-					tree.jstree('select_node', elem, true);
-					tree.parent().scrollTo(elem, 400);
-				}
-			}
+			this.triggersTree.select(citizen, message);
 		}
 	});
 	
@@ -1036,8 +976,7 @@ var editor = (function(module) {
 				model.save(data.name);
 			});
 			view.addListener(module.EventTypes.SelectAction, function(data) {
-				model.setMessageHandler(data.handler);
-				model.setMethod(data.method);
+				model.setAction(data.handler, data.method);
 			});
 			view.addListener(module.EventTypes.SelectTarget, function(data) {
 				if (data.target !== null) {
@@ -1047,8 +986,7 @@ var editor = (function(module) {
 				model.msgTarget = data.edit ? data.target : null;
 			});
 			view.addListener(module.EventTypes.SelectTrigger, function(data) {
-				model.setMessageSource(data.source);
-				model.setMessageType(data.message);
+				model.setTrigger(data.source, data.message);
 			});
 			
 			// model specific
@@ -1060,16 +998,22 @@ var editor = (function(module) {
 				view.updateSaveButton();
 			});			
 			model.addListener(module.EventTypes.ActionSet, function(data) {
-				var args = [],
-					vals = [];
+				var handler = data.handler,
+					method = data.method;
 					
-				view.selectAction(data.handler, data.method);
+				view.selectAction(handler, method);
 				view.updateSaveButton();
-				model.args.each(function(key, value) {
-					args[value.ndx] = key;
-					vals[value.ndx] = value.value;
-				});
-				view.prm.populateArgList(data.handler, data.method, args, vals);
+				
+				if (handler && method) {
+					var args = [],
+				 		vals = [];
+					
+					model.args.each(function(key, value) {
+						args[value.ndx] = key;
+						vals[value.ndx] = value.value;
+					});
+					view.prm.populateArgList(handler, method, args, vals);
+				}
 			});			
 			model.addListener(module.EventTypes.TargetCreated, function(data) {
 				var target = data.target;
@@ -1138,10 +1082,8 @@ var editor = (function(module) {
 					trigger = saveObj.trigger,
 					action = saveObj.action;
 				
-				model.setMessageSource(trigger.citizen);
-				model.setMessageType(trigger.type);
-				model.setMessageHandler(action.handler);
-				model.setMethod(action.method);
+				model.setTrigger(trigger.citizen, trigger.type);
+				model.setAction(action.handler, action.method);
 				
 				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
 					var arg = args[ndx];
@@ -1162,10 +1104,8 @@ var editor = (function(module) {
 					trigger = saveObj.trigger,
 					action = saveObj.action;
 				
-				model.setMessageSource(trigger.citizen);
-				model.setMessageType(trigger.type);
-				model.setMessageHandler(action.handler);
-				model.setMethod(action.method);
+				model.setTrigger(trigger.citizen, trigger.type);
+				model.setAction(action.handler, action.method);
 				
 				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
 					var arg = args[ndx];
