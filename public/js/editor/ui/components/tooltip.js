@@ -83,14 +83,18 @@ var editor = (function(editor) {
 				arrowLeft = arrowCenter > center ? 5 : center - arrowCenter,
 				windowWidth = window.innerWidth ? window.innerWidth 
 					: document.documentElement.offsetWidth,
+				windowHeight = jQuery(window).height(),
 				difference = width + offset.left > windowWidth 
 					? offset.left - (windowWidth - width) : 0,
 				top = atTop ? offset.top + elemHeight + arrowHeight  + off.top
-					: offset.top - height - off.top;
+					: offset.top - height - off.top,
+				bottom = atTop ? windowHeight - (offset.top + elemHeight 
+					+ arrowHeight + off.top + height) 
+					: windowHeight - (offset.top - off.top);
 			
 			// position this
-			ctn.offset({
-				top: top + 20,
+			ctn.css({
+				bottom: bottom - 20,
 				left: offset.left - difference
 			});
 			
@@ -115,7 +119,7 @@ var editor = (function(editor) {
 				this.isAnimating = true;				
 				ctn.css('opacity', 0).animate({
 					opacity: 1,
-					top: '-=20'
+					bottom: '+=20'
 				}, 200, function(){
 					wgt.isAnimating = false;
 					wgt.isVisible = true;
@@ -152,7 +156,7 @@ var editor = (function(editor) {
 				
 				ctn.animate({
 					opacity: 0,
-					top: '-=20'
+					bottom: '+=20'
 				}, 200, function(){
 					ctn.hide();
 					wgt.isVisible = false;

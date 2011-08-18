@@ -80,8 +80,9 @@ var editor = (function(editor) {
 	
 	var setVisible = function(visible) {
 			var ctn = this.container,
-				opacity = visible ? 1 : 0,
-				opacityStart = visible ? 0 : 1,
+				origOpacity = 0.85,
+				opacity = visible ? origOpacity : 0,
+				opacityStart = visible ? 0 : origOpacity,
 				location = 'top',
 				startLoc = visible ? -20 : 0,
 				animAmt = visible ? '+=20' : '-=20',
@@ -89,28 +90,40 @@ var editor = (function(editor) {
 					opacity: opacity
 				};
 			
+			// TODO: there's a better way to do this
 			if (!this.visible && !visible) {
-				ctn.css('opacity', 0);
+				ctn.css('opacity', 0).hide();
+			}
+			else if (this.visible && visible) {
+				ctn.css('opacity', origOpacity);
 			}
 			else {				
 				ctn.css('opacity', opacityStart);
-			}
+				
+				if (visible) {
+					ctn.show();
+				}
 			
-			switch(this.config.location) {
-				case editor.ui.Location.TOP:
-					animData.top = animAmt;			
-					break;
-				case editor.ui.Location.BOTTOM:
-					animData.bottom = animAmt;
-					location = 'bottom';				
-					break;
-				case editor.ui.Location.RIGHT:
-					animData.right = animAmt;
-					location = 'right';
-					break;
-			}
+				switch(this.config.location) {
+					case editor.ui.Location.TOP:
+						animData.top = animAmt;			
+						break;
+					case editor.ui.Location.BOTTOM:
+						animData.bottom = animAmt;
+						location = 'bottom';				
+						break;
+					case editor.ui.Location.RIGHT:
+						animData.right = animAmt;
+						location = 'right';
+						break;
+				}
 			
-			ctn.css(location, startLoc).animate(animData);
+				ctn.css(location, startLoc).animate(animData, function() {
+					if (!visible) {
+						ctn.hide();
+					}
+				});
+			}
 		};
 	
 	editor.ui.PanelDefaults = {

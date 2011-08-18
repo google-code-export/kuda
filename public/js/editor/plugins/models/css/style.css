@@ -238,11 +238,53 @@ div#mbrModelTree div#mbrTree {
 .mbrPopup .listWidget > li:nth-child(2n+1) {
 	background: #222;
 }
+.mbrPopup .details {
+	min-width: 200px;	
+}
+.mbrPopup .details h2 {
+	font: bold 14px/24px Helvetica, Arial, sans-serif;
+	color: #75d0f4; 
+	margin-bottom: 5px;
+	border-bottom: 1px dotted #aaa;
+	text-transform: capitalize;
+}
+.mbrPopup .details img {
+	max-width: 500px;
+}
+.mbrPopup .back {
+	width: 100%;
+	margin: 5px 0 0;
+}
+.mbrPopup dt {
+	font-weight: bold;
+	font-size: 12px;
+	padding: 5px 0;
+}
+.mbrPopup dt:after {
+	content: ':';
+}
+.mbrPopup dd {
+	font-size: 12px;
+}
+.mbrPopup dd ul {
+	margin-left: 10px;
+}
+.mbrPopup dd ul li {
+	padding: 2px 0;
+}
+.mbrPopup dd ul li span {
+	font-weight: bold;
+	margin-right: 5px;
+	min-width: 20px;
+}
+.mbrPopup dd ul li span:after {
+	content: ':'
+}
 
 /******************************************************************************
 * 								    Hidden Items							  *
  ******************************************************************************/
 
- #mbrHiddenTransforms .listWidget > li:nth-child(2n+1) {
+#mbrHiddenTransforms .listWidget > li:nth-child(2n+1) {
  	background: #ddd;
- }
+}

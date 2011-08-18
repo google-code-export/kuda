@@ -1577,6 +1577,10 @@ var editor = (function(editor) {
 			var params = material.params,
 				textures = {},
 				texList = new editor.ui.List(),
+				container = jQuery('<div></div>'),
+				detCtn = jQuery('<div><div class="details"></div><button class="back" href="#">Back</button></div>').hide(),
+				backBtn = detCtn.find('.back'),
+				detPnl = detCtn.find('.details'),
 				wgt = this;
 			
 			for (var i = 0, il = params.length; i < il; i++) {
@@ -1609,7 +1613,10 @@ var editor = (function(editor) {
 				item.title.bind('click', function(evt) {
 					var item = jQuery(this).data('liWidget'),
 						data = item.getAttachedObject();
-					wgt.notifyListeners(editor.EventTypes.SetTexture, data);
+						
+					showMaterialDetails(data.texture, data.model, detPnl);
+					detCtn.show();
+					texList.setVisible(false);
 				});
 				item.removeBtn.bind('click', function(evt) {
 					wgt.notifyListeners(editor.EventTypes.SetTexture, null);
@@ -1618,12 +1625,23 @@ var editor = (function(editor) {
 				texList.add(item);
 			}
 			
-			return texList.getUI();
+			backBtn.bind('click', function() {
+				detCtn.hide();
+				texList.setVisible(true);
+			});
+			
+			container.append(detCtn).append(texList.getUI());
+			
+			return container;
 		},
 		
 		buildTransformPopup = function(transform) {
 			var shapes = transform.shapes,
 				shapeList = new editor.ui.List(),
+				container = jQuery('<div></div>'),
+				detCtn = jQuery('<div><div class="details"></div><button class="back" href="#">Back</button></div>').hide(),
+				backBtn = detCtn.find('.back'),
+				detPnl = detCtn.find('.details'),
 				wgt = this;
 			
 			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
@@ -1642,17 +1660,73 @@ var editor = (function(editor) {
 					item.title.bind('click', function(evt) {
 						var item = jQuery(this).data('liWidget'),
 							data = item.getAttachedObject();
-						wgt.notifyListeners(editor.EventTypes.SetShape, data);
-					});
-					item.removeBtn.bind('click', function(evt) {
-						wgt.notifyListeners(editor.EventTypes.SetShape, null);
+//						wgt.notifyListeners(editor.EventTypes.SetShape, data);
+						showShapeDetails(data.shape, data.transform, detPnl);
+						detCtn.show();
+						shapeList.setVisible(false);
 					});
 					
 					shapeList.add(item);
 				}
 			};
 			
-			return shapeList.getUI();
+			backBtn.bind('click', function() {
+				detCtn.hide();
+				shapeList.setVisible(true);
+			});
+			
+			container.append(detCtn).append(shapeList.getUI());
+			
+			return container;
+		},
+		
+		showMaterialDetails = function(texture, model, pnl) {
+			var params = texture.params;
+			
+			pnl.empty().append('<h2>' + texture.name + '</h2>');
+				
+			for (var i = 0, il = params.length; i < il; i++) {
+				var param = params[i];
+				
+				if (param.name.toLowerCase().indexOf('uri') >= 0) {
+					var end = model.fileName.lastIndexOf('/'),
+						path = model.fileName.substring(0, end + 1);
+					
+					var img = jQuery('<img />');
+					img.attr('src', path + param.value);
+					pnl.append(img);
+				}
+			}
+		},
+		
+		showShapeDetails = function(shape, transform, pnl) {
+			var shapeInfo = hemi.picking.pickManager.createShapeInfo(shape, null),
+				box = shapeInfo.boundingBox,
+				minExtent = box.minExtent,
+				maxExtent = box.maxExtent,
+				title = jQuery('<h2>' + shape.name + '</h2>'),
+				dl = jQuery('<dl></dl>'),
+				liTemplate = jQuery.template(null, '<li><span class="label">${Label}</span>${Value}</li>'),
+				minDt = jQuery('<dt>Min Extent</dt>')
+				minDd = jQuery('<dd><ul></ul></dd>'),
+				maxDt = jQuery('<dt>Max Extent</dt>'),
+				maxDd = jQuery('<dd><ul></ul></dd>'),
+				minData = [
+					{ Label: 'x', Value: editor.utils.roundNumber(minExtent[0], 7) },
+					{ Label: 'y', Value: editor.utils.roundNumber(minExtent[1], 7) },
+					{ Label: 'z', Value: editor.utils.roundNumber(minExtent[2], 7) }
+				],
+				maxData = [
+					{ Label: 'x', Value: editor.utils.roundNumber(minExtent[0], 7) },
+					{ Label: 'y', Value: editor.utils.roundNumber(minExtent[1], 7) },
+					{ Label: 'z', Value: editor.utils.roundNumber(minExtent[2], 7) }
+				];
+				
+			dl.append(minDt).append(minDd).append(maxDt).append(maxDd);
+			pnl.empty().append(title).append(dl);
+			
+			jQuery.tmpl(liTemplate, minData).appendTo(minDd.find('ul'));
+			jQuery.tmpl(liTemplate, maxData).appendTo(maxDd.find('ul'));			
 		};
 	
 	var DetailsWidget = editor.ui.Widget.extend({
