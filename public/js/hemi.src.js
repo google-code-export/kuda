@@ -23,10 +23,10 @@ o3djs.base.o3d = o3d;
 var hemi = (function(hemi) {
 	
 	/**
-	 * The version of Hemi released: 8/9/11
+	 * The version of Hemi released: 8/19/11
 	 * @constant
 	 */
-	hemi.version = '1.4.1';
+	hemi.version = '1.4.2';
 
 	/**
 	 * @namespace A module for handling low level functionality and wrapping
@@ -6911,7 +6911,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Check if the pack contains any skinned meshes.
 		 * 
-		 * @returns {boolean} true if the pack contains any skinned meshes
+		 * @return {boolean} true if the pack contains any skinned meshes
 		 */
 		isSkinned: function() {
 			return this.pack.getObjectsByClassName('o3d.Skin').length > 0;
