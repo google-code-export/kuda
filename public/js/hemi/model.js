@@ -180,7 +180,7 @@ var hemi = (function(hemi) {
 		/**
 		 * Check if the pack contains any skinned meshes.
 		 * 
-		 * @returns {boolean} true if the pack contains any skinned meshes
+		 * @return {boolean} true if the pack contains any skinned meshes
 		 */
 		isSkinned: function() {
 			return this.pack.getObjectsByClassName('o3d.Skin').length > 0;
