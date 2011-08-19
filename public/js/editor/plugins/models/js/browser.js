@@ -58,11 +58,6 @@ var editor = (function(editor) {
 	// model tree sidebar widget events
 	editor.EventTypes.DeselectTreeItem = "modelbrowser.DeselectTreeItem";
 	editor.EventTypes.SelectTreeItem = "modelbrowser.SelectTreeItem";
-	editor.EventTypes.SetShape = "modelbrowser.SetShape";
-	editor.EventTypes.SetTexture = "modelbrowser.SetTexture";
-	
-	// info display events
-    editor.EventTypes.TextureReady = "infoDisplay.TextureReady";
 	
 	// TODO: We need a better way of testing for our highlight shapes than
 	// searching for this prefix.
@@ -861,108 +856,6 @@ var editor = (function(editor) {
 			this.tree.jstree('deselect_node', node);
 		},
 		
-		displayMaterialNode: function(material, model) {
-			var params = material.params,
-				textures = {},
-				texList = new editor.ui.List({
-					widgetId: 'mbrTextureList',
-					prefix: 'mbrTexLst',
-					type: editor.ui.ListType.UNORDERED
-				}),
-				wgt = this;
-			
-//			detailsList.addItem('Name:', material.name);
-			
-			for (var i = 0, il = params.length; i < il; i++) {
-				var param = params[i],
-					className = param.className.toLowerCase();
-				
-				if (className.indexOf('sampler') >= 0) {
-					var tex = param.value.texture;
-					
-					if (tex != null) {
-						textures[tex.clientId] = tex;
-					}
-				} else if (className.indexOf('texture') >= 0) {
-					var tex = param.value;
-					textures[tex.clientId] = tex;
-				}
-			}
-			
-			for (var tId in textures) {
-				var tex = textures[tId],
-					name = tex.name !== '' ? tex.name : 'unnamed',
-					item = new ChildListItem();
-				
-				item.setText(name);
-				item.attachObject({
-					model: model,
-					texture: tex
-				});
-				item.title.data('liWidget', item);
-				item.title.bind('click', function(evt) {
-					var item = jQuery(this).data('liWidget'),
-						data = item.getAttachedObject();
-					wgt.notifyListeners(editor.EventTypes.SetTexture, data);
-				});
-				item.removeBtn.bind('click', function(evt) {
-					wgt.notifyListeners(editor.EventTypes.SetTexture, null);
-				});
-				
-				texList.add(item);
-			}
-			
-			this.detailsList.slideUp(function() {
-				wgt.detailsList.empty().append('<h1>Textures</h1>')
-					.append(texList.getUI()).slideDown(function() {
-						subResize.call(wgt);
-					})
-			});
-		},
-		
-		displayTransformNode: function(transform) {
-			var shapes = transform.shapes,
-				shapeList = new editor.ui.List({
-					widgetId: 'mbrShapeList',
-					prefix: 'mbrShpLst',
-					type: editor.ui.ListType.UNORDERED
-				}),
-				wgt = this;
-			
-			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
-				var shape = shapes[ndx],
-					name = shape.name !== '' ? shape.name : 'unnamed'; 
-				
-				if (name.match(HIGHLIGHT_PRE) === null) {
-					var item = new ChildListItem();
-					
-					item.setText(name);
-					item.attachObject({
-						transform: transform,
-						shape: shape
-					});
-					item.title.data('liWidget', item);
-					item.title.bind('click', function(evt) {
-						var item = jQuery(this).data('liWidget'),
-							data = item.getAttachedObject();
-						wgt.notifyListeners(editor.EventTypes.SetShape, data);
-					});
-					item.removeBtn.bind('click', function(evt) {
-						wgt.notifyListeners(editor.EventTypes.SetShape, null);
-					});
-					
-					shapeList.add(item);
-				}
-			};
-			
-			this.detailsList.slideUp(function() {
-				wgt.detailsList.empty().append('<h1>Shapes</h1>')
-					.append(shapeList.getUI()).slideDown(function() {
-						subResize.call(wgt);
-					});				
-			});
-		},
-		
 		finishLayout: function() {
 			this._super();	
 				
@@ -1618,9 +1511,6 @@ var editor = (function(editor) {
 					detCtn.show();
 					texList.setVisible(false);
 				});
-				item.removeBtn.bind('click', function(evt) {
-					wgt.notifyListeners(editor.EventTypes.SetTexture, null);
-				});
 				
 				texList.add(item);
 			}
@@ -1660,7 +1550,6 @@ var editor = (function(editor) {
 					item.title.bind('click', function(evt) {
 						var item = jQuery(this).data('liWidget'),
 							data = item.getAttachedObject();
-//						wgt.notifyListeners(editor.EventTypes.SetShape, data);
 						showShapeDetails(data.shape, data.transform, detPnl);
 						detCtn.show();
 						shapeList.setVisible(false);
@@ -1835,323 +1724,7 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    	
-	
-	editor.tools.InfoDisplay = editor.utils.Listenable.extend({
-		init: function() {
-			this._super();
-			
-			this.currentOwner = null;
-			this.images = {};
-			this.visible = false;
-		},
 		
-		createHud: function() {
-			var textConfig = {
-				color: [0.9, 0.9, 1, 1],
-				textAlign: 'left',
-				textSize: 13
-			};
-			
-			this.nameText = new hemi.hud.HudText();
-			this.nameText.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeName';
-			this.nameText.setWidth(300);
-			this.nameText.setConfig(textConfig);
-			this.nameText.y = 15;
-			
-			this.boundTitle = new hemi.hud.HudText();
-			this.boundTitle.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeBound';
-			this.boundTitle.setWidth(300);
-			this.boundTitle.setConfig(textConfig);
-			this.boundTitle.setText('Bounding Box:');
-			
-			this.boundMin = new hemi.hud.HudText();
-			this.boundMin.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeBoundMin';
-			this.boundMin.setWidth(300);
-			this.boundMin.setConfig(textConfig);
-			this.boundMin.setText('Min Extent:');
-			
-			this.boundMax = new hemi.hud.HudText();
-			this.boundMax.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeBoundMax';
-			this.boundMax.setWidth(300);
-			this.boundMax.setConfig(textConfig);
-			this.boundMax.setText('Max Extent:');
-			
-			this.boundMinX = new hemi.hud.HudText();
-			this.boundMinX.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeBoundMinX';
-			this.boundMinX.setWidth(300);
-			this.boundMinX.setConfig(textConfig);
-			this.boundMinY = new hemi.hud.HudText();
-			this.boundMinY.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeBoundMinY';
-			this.boundMinY.setWidth(300);
-			this.boundMinY.setConfig(textConfig);
-			this.boundMinZ = new hemi.hud.HudText();
-			this.boundMinZ.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeBoundMinZ';
-			this.boundMinZ.setWidth(300);
-			this.boundMinZ.setConfig(textConfig);
-			
-			
-			this.boundMaxX = new hemi.hud.HudText();
-			this.boundMaxX.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeBoundMaxX';
-			this.boundMaxX.setWidth(300);
-			this.boundMaxX.setConfig(textConfig);
-			this.boundMaxY = new hemi.hud.HudText();
-			this.boundMaxY.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeBoundMaxY';
-			this.boundMaxY.setWidth(300);
-			this.boundMaxY.setConfig(textConfig);
-			this.boundMaxZ = new hemi.hud.HudText();
-			this.boundMaxZ.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapeBoundMaxZ';
-			this.boundMaxZ.setWidth(300);
-			this.boundMaxZ.setConfig(textConfig);
-			
-			var page = new hemi.hud.HudPage();
-			page.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ShapePage';
-			page.setConfig({
-				color: [0, 0, 0, 0.5],
-				curve: 0.08
-			});
-			page.addElement(this.nameText);
-			page.addElement(this.boundTitle);
-			page.addElement(this.boundMin);
-			page.addElement(this.boundMinX);
-			page.addElement(this.boundMinY);
-			page.addElement(this.boundMinZ);
-			page.addElement(this.boundMax);
-			page.addElement(this.boundMaxX);
-			page.addElement(this.boundMaxY);
-			page.addElement(this.boundMaxZ);
-			
-			var page2 = new hemi.hud.HudPage();
-			page2.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'TexturePage';
-			page2.setConfig({
-				color: [0, 0, 0, 0.3]
-			});
-			
-			this.display = new hemi.hud.HudDisplay();
-			this.display.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'ModelBrowserDisplay';
-			this.display.addPage(page);
-			this.display.addPage(page2);
-		},
-		
-		createImage: function(uri) {
-			var image = new hemi.hud.HudImage(),
-				that = this,
-				msgHandler = image.subscribe(hemi.msg.load,
-					function(msg) {
-						image.unsubscribe(msgHandler);
-						
-						// Give it a 15 pixel buffer for the page offset and
-						// margin.
-						var cHeight = hemi.core.client.height - 15,
-							cWidth = hemi.core.client.width - 15,
-							iHeight = image.height,
-							iWidth = image.width;
-						
-						if (iWidth > cWidth) {
-							var ratio = cWidth / iWidth;
-							iWidth *= ratio;
-							iHeight *= ratio;
-						}
-						if (iHeight > cHeight) {
-							var ratio = cHeight / iHeight;
-							iWidth *= ratio;
-							iHeight *= ratio;
-						}
-						
-						image.height = Math.round(iHeight);
-						image.width = Math.round(iWidth);
-						image.x = cWidth + 5 - image.width;
-						image.y = 10;
-						that.notifyListeners(editor.EventTypes.TextureReady, null);
-					});
-			
-			// So the HudImage doesn't accidentally end up in Octane.
-			hemi.world.removeCitizen(image);
-			image.setImageUrl(uri);
-			return image;
-		},
-		
-		createImageMulti: function(uris) {
-			var images = [],
-				handlers = [],
-				count = 0,
-				halfCount = Math.ceil(uris.length / 2),
-				// Give it a 15 pixel buffer for the page offset and margin.
-				cHeight = hemi.core.client.height - 15,
-				cWidth = hemi.core.client.width - 15,
-				// The images will be arranged in two rows
-				scaleHeight = cHeight / 2,
-				scaleWidth = cWidth / halfCount,
-				x = cWidth + 5,
-				y = 10,
-				maxHeight = 0;
-			
-			for (var i = 0, il = uris.length; i < il; i++) {
-				var image = new hemi.hud.HudImage(),
-					that = this;
-				
-				handlers[i] = image.subscribe(hemi.msg.load,
-					function(msg) {
-						image = images[count];
-						image.unsubscribe(handlers[count]);
-						++count;
-						
-						var iHeight = image.height,
-							iWidth = image.width;
-						
-						if (iWidth > scaleWidth) {
-							var ratio = scaleWidth / iWidth;
-							iWidth *= ratio;
-							iHeight *= ratio;
-						}
-						if (iHeight > scaleHeight) {
-							var ratio = scaleHeight / iHeight;
-							iWidth *= ratio;
-							iHeight *= ratio;
-						}
-						
-						image.height = Math.round(iHeight);
-						image.width = Math.round(iWidth);
-						
-						if (count <= halfCount) {
-							maxHeight = Math.max(maxHeight, image.height);
-						} else if (y === 10) {
-							x = cWidth + 5;
-							y += maxHeight;
-						}
-						
-						x -= image.width;
-						image.x = x;
-						image.y = y;
-						
-						if (count === uris.length) {
-							that.notifyListeners(editor.EventTypes.TextureReady, null);
-						} else {
-							images[count].setImageUrl(uris[count]);
-						}
-					});
-				
-				// So the HudImage doesn't accidentally end up in Octane.
-				hemi.world.removeCitizen(image);
-				images[i] = image;
-			}
-			
-			images[0].setImageUrl(uris[0]);
-			return images;
-		},
-		
-		deselect: function() {
-			this.setVisible(false);
-			this.currentOwner = null;
-		},
-		
-		refresh: function() {
-			if (this.visible) {
-				this.display.showPage();
-			}
-		},
-		
-		setShape: function(shape, owner) {
-			this.deselect();
-			
-			var shapeInfo = hemi.picking.pickManager.createShapeInfo(shape, null),
-				box = shapeInfo.boundingBox,
-				minExtent = box.minExtent,
-				maxExtent = box.maxExtent;
-			
-			this.nameText.setText('Name: ' + (shape.name ? shape.name : 'unnamed'));
-			this.boundMinX.setText('x: ' + editor.utils.roundNumber(minExtent[0], 5));
-			this.boundMinY.setText('y: ' + editor.utils.roundNumber(minExtent[1], 5));
-			this.boundMinZ.setText('z: ' + editor.utils.roundNumber(minExtent[2], 5));
-			this.boundMaxX.setText('x: ' + editor.utils.roundNumber(maxExtent[0], 5));
-			this.boundMaxY.setText('y: ' + editor.utils.roundNumber(maxExtent[1], 5));
-			this.boundMaxZ.setText('z: ' + editor.utils.roundNumber(maxExtent[2], 5));
-			
-			var x = hemi.core.client.width - (this.nameText.wrappedWidth + 15);
-			this.nameText.x = x;
-			this.boundTitle.x = x;
-			this.boundMin.x = x + 10;
-			this.boundMinX.x = x + 20;
-			this.boundMinY.x = x + 20;
-			this.boundMinZ.x = x + 20;
-			this.boundMax.x = x + 10;
-			this.boundMaxX.x = x + 20;
-			this.boundMaxY.x = x + 20;
-			this.boundMaxZ.x = x + 20;
-			
-			this.boundTitle.y = this.nameText.y + this.nameText.wrappedHeight;
-			this.boundMin.y = this.boundTitle.y + this.boundTitle.wrappedHeight;
-			this.boundMinX.y = this.boundMin.y + this.boundMin.wrappedHeight;
-			this.boundMinY.y = this.boundMinX.y + this.boundMinX.wrappedHeight;
-			this.boundMinZ.y = this.boundMinY.y + this.boundMinY.wrappedHeight;
-			this.boundMax.y = this.boundMinZ.y + this.boundMinZ.wrappedHeight;
-			this.boundMaxX.y = this.boundMax.y + this.boundMax.wrappedHeight;
-			this.boundMaxY.y = this.boundMaxX.y + this.boundMaxX.wrappedHeight;
-			this.boundMaxZ.y = this.boundMaxY.y + this.boundMaxY.wrappedHeight;
-						
-			// save state
-			this.currentOwner = owner;
-			this.display.currentPage = 0;
-		},
-		
-		setTexture: function(texture, model) {
-			this.deselect();
-			this.currentOwner = model;
-			this.display.currentPage = 1;
-			
-			var tId = texture.clientId,
-				page = this.display.getCurrentPage();
-			page.clearElements();
-			
-			if (this.images[tId] != null) {
-				var images = this.images[tId];
-				
-				for (var i = 0, il = images.length; i < il; i++) {
-					page.addElement(images[i]);
-				}
-				
-				this.notifyListeners(editor.EventTypes.TextureReady, null);
-			} else {
-				var params = texture.params,
-					uris = [];
-				
-				for (var i = 0, il = params.length; i < il; i++) {
-					var param = params[i];
-					
-					if (param.name.toLowerCase().indexOf('uri') >= 0) {
-						var end = model.fileName.lastIndexOf('/'),
-							path = model.fileName.substring(0, end + 1);
-						
-						uris.push(path + param.value);
-					}
-				}
-				
-				if (uris.length === 1) {
-					var image = this.createImage(uris[0]);
-					this.images[tId] = [image];
-					page.addElement(image);
-				} else if (uris.length > 1) {
-					var images = this.createImageMulti(uris);
-					this.images[tId] = images;
-					
-					for (var i = 0, il = images.length; i < il; i++) {
-						page.addElement(images[i]);
-					}
-				}
-			}
-		},
-		
-		setVisible: function(visible) {
-			if (visible) {
-				this.visible = true;
-				this.display.isVisible() ? this.display.showPage() 
-					: this.display.show();
-			} else if (this.display){
-				this.visible = false;
-				this.display.hide();
-			}
-		}
-	});
-	
 	/*
 	 * Configuration object for the ModelBrowserView.
 	 */
@@ -2168,7 +1741,6 @@ var editor = (function(editor) {
 			this._super(newOpts);
 			
 			this.isDown = false;
-			this.infoDisplay = new editor.tools.InfoDisplay();
 			
 			this.addPanel(new SidePanel());
 			this.addPanel(new editor.ui.Panel({
@@ -2192,117 +1764,6 @@ var editor = (function(editor) {
 			this.bottomPanel.addWidget(new OpacityWidget());
 			this.bottomPanel.addWidget(new DetailsWidget());
 			this.bottomPanel.addWidget(new VisibilityWidget());
-		},
-		
-		layoutActionBar: function() {
-			var widget = new editor.ui.ActionBarWidget({
-				uiFile: 'js/editor/tools/html/modelbrowserAxnBar.htm',
-				immediateLayout: false
-			});
-			var view = this;
-			
-			widget.finishLayout = function() {
-				var manipBtns = widget.find('#mbTranslate, #mbRotate, #mbScale'),
-					tBtn = manipBtns.filter('#mbTranslate'),
-					rBtn = manipBtns.filter('#mbRotate'),
-					sBtn = manipBtns.filter('#mbScale'),
-					down = editor.ui.ToolConstants.MODE_DOWN;
-									
-		        widget.find('form').submit(function() {
-		            return false;
-		        });
-		        
-		        widget.find('#mbHide').bind('click', function(evt) {
-		            view.notifyListeners(editor.EventTypes.ShowPicked, false);
-		        });
-		        
-		        widget.find('#mbShow').bind('click', function(evt) {
-					view.notifyListeners(editor.EventTypes.ShowPicked, true);
-		        });
-		        
-		        widget.find('#mbShowAll').bind('click', function(evt) {
-					view.hiddenItemsWidget.showAll();
-		        });
-		        
-		        widget.find('#mbShowHiddenItemsDlg').bind('click', function(evt) {
-		            var isVisible = view.hiddenItemsWidget.isVisible();
-		            view.hiddenItemsWidget.setVisible(!isVisible);
-		        });
-				
-				this.slider = widget.find('#mbTransparencySlider');
-				this.slider.slider({
-					value: 100,
-					slide: function(evt, ui) {								
-						view.notifyListeners(editor.EventTypes.SetTransOpacity, 
-							ui.value/100);
-					}
-				});
-				
-				this.manipSection = widget.find('#mbManipSection').hide();
-				this.effectsSection = widget.find('#mbEffectsSection').hide();
-		        
-		        manipBtns.bind('click', function(evt) {
-					var elem = jQuery(this),
-						id = elem.attr('id'),
-						isDown = elem.data('isDown'),
-						msg;
-						
-					switch(id) {
-						case 'mbTranslate':
-						    msg = editor.ui.trans.DrawState.TRANSLATE;
-							rBtn.data('isDown', false).removeClass(down);
-							sBtn.data('isDown', false).removeClass(down);
-							break;
-						case 'mbRotate':
-						    msg = editor.ui.trans.DrawState.ROTATE;
-							tBtn.data('isDown', false).removeClass(down);
-							sBtn.data('isDown', false).removeClass(down);
-							break;
-						case 'mbScale':
-						    msg = editor.ui.trans.DrawState.SCALE;
-							tBtn.data('isDown', false).removeClass(down);
-							rBtn.data('isDown', false).removeClass(down);
-							break;
-					}
-					
-					if (isDown) {						
-						msg = editor.ui.trans.DrawState.NONE;
-					}
-						
-		            view.notifyListeners(editor.EventTypes.ManipState, msg);
-					elem.data('isDown', !isDown);
-					
-					if (isDown) {
-						elem.removeClass(down);
-					}
-					else {
-						elem.addClass(down);
-					}
-		        })
-		        .data('isDown', false);
-				
-				view.actionBar.addWidget(widget);
-			};
-			
-			widget.layout();
-			
-			this.abWgt = widget;		
-		},
-		
-		transformDeselected: function() {
-			var wgt = this.abWgt;
-			
-			wgt.manipSection.hide();
-			wgt.effectsSection.hide();
-		},
-		
-		transformSelected: function(transform) {
-			var param = transform.getParam('opacity'),
-				wgt = this.abWgt;
-			
-			wgt.manipSection.show();
-			wgt.effectsSection.show();
-			wgt.slider.slider('value', param == null ? 100 : param.value * 100); 
 		}
 	});
 	
@@ -2357,12 +1818,8 @@ var editor = (function(editor) {
 				opaWgt = view.bottomPanel.opacityWidget,
 				adjWgt = view.bottomPanel.adjustWidget,
 				visWgt = view.bottomPanel.visibilityWidget,
-				detWgt = view.bottomPanel.detailsWidget,
-				infoDisp = view.infoDisplay;
+				detWgt = view.bottomPanel.detailsWidget;
 			
-			selModel.curHandle.setDrawCallback(function() {
-				infoDisp.refresh();
-			});
 			
 			// for when the tool gets selected/deselected	
 			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
@@ -2380,7 +1837,6 @@ var editor = (function(editor) {
 					handle.setDrawState(editor.ui.trans.DrawState.NONE);
 				}
 				
-				infoDisp.setVisible(isDown && infoDisp.currentOwner != null);
 				hidWgt.setVisible(isDown && hidWgt.hiddenItems.size() > 0);
 			});	        
 			
@@ -2411,22 +1867,6 @@ var editor = (function(editor) {
 			mbrWgt.addListener(editor.EventTypes.DeselectTreeItem, function(data) {
 				if (data.type === 'transform') {
 					selModel.deselectTransform(data.node);
-				} else {
-					infoDisp.deselect();
-				}
-			});
-			mbrWgt.addListener(editor.EventTypes.SetShape, function(data) {
-				if (data !== null) {
-					selModel.selectShape(data.shape, data.transform);
-				} else {
-					selModel.deselectShape();
-				}
-			});
-			mbrWgt.addListener(editor.EventTypes.SetTexture, function(data) {
-				if (data !== null) {
-					infoDisp.setTexture(data.texture, data.model);
-				} else {
-					infoDisp.deselect();
 				}
 			});
 			
@@ -2444,13 +1884,7 @@ var editor = (function(editor) {
 	                selModel.hideSelected();
 				}
 			});
-			
-			// info display specific
-			infoDisp.addListener(editor.EventTypes.TextureReady, function(value) {
-				var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
-				infoDisp.setVisible(isDown);
-	        });
-			
+						
 			// mbr model specific
 			model.addListener(editor.EventTypes.AddModel, function(json) {
 				mbrWgt.addModel(json);
@@ -2458,11 +1892,6 @@ var editor = (function(editor) {
 	        model.addListener(editor.EventTypes.RemoveModel, function(model) {
 	            mbrWgt.removeModel(model);
 				hidWgt.removeOwner(model);
-				
-				if (infoDisp.currentOwner != null 
-						&& model.getId() === infoDisp.currentOwner.getId()) {
-					infoDisp.deselect();			
-				}
 	        });	
 			model.addListener(editor.EventTypes.AddUserCreatedShape, function(json) {
 				var isDown = view.mode == editor.ui.ToolConstants.MODE_DOWN,
@@ -2479,10 +1908,6 @@ var editor = (function(editor) {
 				mbrWgt.removeShape(shape);
 				hidWgt.removeOwner(shape);
 				
-				if (infoDisp.currentOwner != null 
-						&& shape.getId() === infoDisp.currentOwner.getId()) {
-					infoDisp.deselect();
-				}
 				selModel.deselectTransform(shape.getTransform());
 			});		
 			model.addListener(editor.EventTypes.UpdateUserCreatedShape, function(shapeObj) {
@@ -2490,39 +1915,19 @@ var editor = (function(editor) {
 					shape = shapeObj.shape;
 				mbrWgt.updateShape(shapeObj.shapeData, shape);
 				
-				if (infoDisp.currentOwner != null 
-						&& shape.getId() === infoDisp.currentOwner.getId()) {
-					var tfm = shape.getTransform(),
-						shp = tfm.shapes[0];
-						
-					infoDisp.deselect();
-					selModel.selectTransform(tfm);
-					selModel.selectShape(shp, tfm);
-					infoDisp.setShape(shape.getTransform().shapes[0], shape);
-					infoDisp.setVisible(isDown);
-				}
+//					var tfm = shape.getTransform(),
+//						shp = tfm.shapes[0];
+//						
+//					selModel.selectTransform(tfm);
+//					selModel.selectShape(shp, tfm);
 			});			
-	        model.addListener(editor.EventTypes.WorldLoaded, function() {
-	            infoDisp.createHud();
-	        });
 			
 			// select model specific
 			selModel.addListener(editor.EventTypes.PickableSet, function(data) {
 	            hidWgt.setPickable(data.tran, data.pick);
 	        });
-			selModel.addListener(editor.EventTypes.ShapeSelected, function(shapeInfo) {
-				var isDown = view.mode == editor.ui.ToolConstants.MODE_DOWN;
-				
-				if (shapeInfo === null) {
-					infoDisp.deselect();
-				} else {
-					infoDisp.setShape(shapeInfo.shape, shapeInfo.owner);
-					infoDisp.setVisible(isDown);
-				}
-			});
 			selModel.addListener(editor.EventTypes.TransformDeselected, function(transform) {
 				mbrWgt.deselectNode(getNodeId(transform));
-				view.transformDeselected();
 			});
 	        selModel.addListener(editor.EventTypes.TransformHidden, function(obj) {
 				var isDown = view.mode == editor.ui.ToolConstants.MODE_DOWN;
@@ -2531,7 +1936,6 @@ var editor = (function(editor) {
 	        });
 			selModel.addListener(editor.EventTypes.TransformSelected, function(transform) {
 				mbrWgt.selectNode(getNodeId(transform));
-				view.transformSelected(transform);
 				detWgt.set(transform, DetailsType.TRANSFORM);
 				visWgt.set(transform);
 				view.bottomPanel.setVisible(true);

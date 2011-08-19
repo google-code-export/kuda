@@ -49,7 +49,7 @@ var editor = (function(editor) {
      * An ShapesModel handles the creation, updating, and removal of 
      * shapes
      */
-    editor.tools.ShapesModel = editor.tools.ToolModel.extend({
+    editor.tools.ShapesModel = editor.ui.ToolModel.extend({
 		init: function() {
 			this._super();
 			
@@ -110,7 +110,7 @@ var editor = (function(editor) {
 			}
 			
 			this.prevShape = new hemi.shape.Shape(this.shapeParams);
-			this.prevShape.name = editor.tools.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
+			this.prevShape.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
 			
 			if (this.shapeParams.position) {
 				var pos = this.shapeParams.position;
@@ -153,26 +153,34 @@ var editor = (function(editor) {
 			this.shapeParams = {};
 		}
 	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//                      	  Widget Private Methods     	                  //
+////////////////////////////////////////////////////////////////////////////////  
+	
+	var sizeAndPosition = function(height) {
+		var wgt = this,
+			container = this.container,
+			padding = parseInt(container.css('paddingBottom')) +
+				parseInt(container.css('paddingTop')),
+			win = jQuery(window),
+			winHeight = win.height(),
+			wgtHeight = winHeight/2 - padding;
+		
+		container.height(wgtHeight)
+	};
    	
 ////////////////////////////////////////////////////////////////////////////////
 //                     	   Create Shape Sidebar Widget                        //
 //////////////////////////////////////////////////////////////////////////////// 
-		
-	/*
-	 * Configuration object for the HiddenItemsSBWidget.
-	 */
-	editor.tools.CreateShpSBWidgetDefaults = {
-		name: 'createShapeSBWidget',
-		uiFile: 'js/editor/tools/html/shapesForms.htm',
-        instructions: 'Click on a model to select it',
-		manualVisible: true
-	};
-	
-	editor.tools.CreatShpSBWidget = editor.ui.SidebarWidget.extend({
-		init: function(options) {
-			var newOpts = jQuery.extend({}, 
-				editor.tools.CreateShpSBWidgetDefaults, options);
-		    this._super(newOpts);
+			
+	var CreateWidget = editor.ui.FormWidget.extend({
+		init: function() {
+		    this._super({
+				name: 'createShapeWidget',
+				uiFile: 'js/editor/plugins/models/html/shapesForms.htm',
+		        instructions: 'Click on a model to select it'
+			});
 				
 			this.inputsToCheck = [];
 		},
@@ -225,7 +233,7 @@ var editor = (function(editor) {
 					else if (hemi.utils.isNumeric(val)) {
 						var totalVal = wgt.vectors.getValue();
 						
-						if (totalVal.length > 0) {
+						if (totalVal == null) {
 							wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
 								paramName: wgt.vectors.config.paramName,
 								paramValue: totalVal
@@ -352,7 +360,6 @@ var editor = (function(editor) {
 			.attr('disabled', 'disabled');
 			
 			cancelBtn.bind('click', function(evt) {
-				wgt.setVisible(false);
 				wgt.reset();
 				wgt.notifyListeners(editor.EventTypes.CancelCreateShape, null);
 				wgt.find('input.error').removeClass('error');
@@ -375,6 +382,8 @@ var editor = (function(editor) {
 				
 				wgt.checkToggleButtons();
 			});
+			
+			sizeAndPosition.call(this);
 		},
 		
 		canSave: function() {
@@ -494,26 +503,21 @@ var editor = (function(editor) {
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                     	 	Shapes List Sidebar Widget                        //
+//                     	 		Shapes List Widget  	                      //
 ////////////////////////////////////////////////////////////////////////////////     
-	
-	/*
-	 * Configuration object for the HiddenItemsSBWidget.
-	 */
-	editor.tools.ShpListSBWidgetDefaults = {
-		name: 'shapeListSBWidget',
-		listId: 'shapeList',
-		prefix: 'shpLst',
-		title: 'Shapes',
-		instructions: "Click 'Create Shape' to create a new shape."
-	};
-	
-	editor.tools.ShpListSBWidget = editor.ui.ListSBWidget.extend({
-		init: function(options) {
-			var newOpts = jQuery.extend({}, editor.tools.ShpListSBWidgetDefaults, options);
-		    this._super(newOpts);
+		
+	var ListWidget = editor.ui.ListWidget.extend({
+		init: function() {
+		    this._super({
+				name: 'shapeListWidget',
+				listId: 'shapeList',
+				prefix: 'shpLst',
+				title: 'Shapes',
+				instructions: "Click 'Create Shape' to create a new shape."
+			});
 			
 			this.items = new Hashtable();		
+			sizeAndPosition.call(this);
 		},
 		
 		layoutExtra: function() {
@@ -574,14 +578,19 @@ var editor = (function(editor) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.ShapesViewDefaults as default options
      */
-    editor.tools.ShapesView = editor.tools.ToolView.extend({
+    editor.tools.ShapesView = editor.ui.ToolView.extend({
 		init: function(options) {
 	        var newOpts = jQuery.extend({}, editor.tools.ShapesViewDefaults, options);
 	        this._super(newOpts);
 			
-			this.addSidebarWidget(new editor.tools.CreatShpSBWidget());
-			this.addSidebarWidget(new editor.tools.ShpListSBWidget());
-			this.addSidebarWidget(editor.ui.getBehaviorWidget());
+			this.addPanel(new editor.ui.Panel({
+				classes: ['shpSidePanel'],
+				name: 'sidePanel'
+			}));
+			
+			this.sidePanel.addWidget(new CreateWidget());
+			this.sidePanel.addWidget(new ListWidget());
+			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
 	    }
 	});
     
@@ -593,7 +602,7 @@ var editor = (function(editor) {
      * The ShapesController facilitates ShapesModel and ShapesView
      * communication by binding event and message handlers.
      */
-    editor.tools.ShapesController = editor.tools.ToolController.extend({
+    editor.tools.ShapesController = editor.ui.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -607,21 +616,18 @@ var editor = (function(editor) {
 	        
 	        var model = this.model,
 	        	view = this.view,
-				crtWgt = view.createShapeSBWidget,
-				lstWgt = view.shapeListSBWidget,
-				bhvWgt = view.behaviorSBWidget,
+				crtWgt = view.sidePanel.createShapeWidget,
+				lstWgt = view.sidePanel.shapeListWidget,
+				bhvWgt = view.sidePanel.behaviorSBWidget,
 	        	that = this;
 	                	        
 			// special listener for when the toolbar button is clicked
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
+	            var isDown = value.newMode === editor.ui.ToolConstants.MODE_DOWN;
 	        });
 			
 			// create sidebar widget listeners
-			crtWgt.addListener(editor.EventTypes.SaveShape, function(name) {
-				crtWgt.setVisible(false);
-				lstWgt.setVisible(true);
-				
+			crtWgt.addListener(editor.EventTypes.SaveShape, function(name) {				
 				model.saveShape(name);
 				crtWgt.reset();
 			});		
@@ -633,18 +639,12 @@ var editor = (function(editor) {
 			});	
 			crtWgt.addListener(editor.EventTypes.CancelCreateShape, function() {
 				model.setShape(null);
-				lstWgt.setVisible(true);
 			});	
 			
 			// list sidebar widget listeners
 			lstWgt.addListener(editor.EventTypes.CreateShape, function() {
-				crtWgt.setVisible(true);
-				lstWgt.setVisible(false);
 			});	
-			lstWgt.addListener(editor.EventTypes.EditShape, function(shape) {
-				crtWgt.setVisible(true);
-				lstWgt.setVisible(false);
-				
+			lstWgt.addListener(editor.EventTypes.EditShape, function(shape) {				
 				model.setShape(shape);
 			});	
 			lstWgt.addListener(editor.EventTypes.RemoveShape, function(shape) {
@@ -675,9 +675,10 @@ var editor = (function(editor) {
 			// behavior widget specific
 			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
 				if (obj.updateMeta) {
-					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
+					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
 					
 					lstWgt.setVisible(!obj.visible && isDown);
+					crtWgt.setVisible(!obj.visible && isDown);
 				}
 			});
 	    }
