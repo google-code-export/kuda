@@ -21,6 +21,7 @@
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	editor.ui.getScript('js/editor/plugins/models/js/browser.js');
+	editor.ui.getScript('js/editor/plugins/models/js/shapes.js');
 	editor.ui.getCss('js/editor/plugins/models/css/style.css');
 	
 	
@@ -37,12 +38,20 @@
 		var mbrMdl = new editor.tools.ModelBrowserModel(),
 			selMdl = new editor.tools.SelectorModel(),
 			mbrView = new editor.tools.ModelBrowserView(),
-			mbrCtr = new editor.tools.ModelBrowserController();
+			mbrCtr = new editor.tools.ModelBrowserController(),
+			
+			shpMdl = new editor.tools.ShapesModel(),
+			shpView = new editor.tools.ShapesView(),
+			shpCtr = new editor.tools.ShapesController();
 		
 		mbrCtr.setModel(mbrMdl);
 		mbrCtr.setSelectorModel(selMdl);
 		mbrCtr.setView(mbrView);
+				
+		shpCtr.setModel(shpMdl);
+		shpCtr.setView(shpView);
 		
 		toolbar.add(mbrView);
+		toolbar.add(shpView);
 	});
 })();
