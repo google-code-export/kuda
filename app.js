@@ -257,14 +257,11 @@ app.post('/publish', function(req, res) {
 		fs.mkdirSync(toDir, stat.mode);
 		fs.mkdirSync(toDir + '/assets', stat.mode);
 		fs.mkdirSync(toDir + '/lib', stat.mode);
-		copyFiles('./public/js/hemi', toDir + '/hemi');
-		copyFiles('./public/js/o3d-webgl', toDir + '/o3d-webgl');
-		copyFiles('./public/js/o3djs', toDir + '/o3djs');
-		var data = fs.readFileSync('./public/js/lib/jshashtable.js');
-		fs.writeFileSync(toDir + '/lib/jshashtable.js', data);
-		data = fs.readFileSync(projectsPath + '/' + name + '.json');
+		copyFile('./public/js/hemi.min.js', toDir);
+		copyFile('./public/js/o3d.min.js', toDir);
+		copyFile('./public/js/lib/jshashtable.js', toDir + '/lib');
+		copyFile(projectsPath + '/' + name + '.json', toDir);
 		fs.writeFileSync(toDir + '/README', readme.concat(models));
-		fs.writeFileSync(toDir + '/' + name + '.json', data);
 		fs.writeFileSync(toDir + '/' + name + '.html',
 			content.replace(/%PROJECT%/g, name).replace(/%LOAD%/g, '.')
 				.replace(/%SCRIPT%/g, '.'));
@@ -282,6 +279,12 @@ app.post('/publish', function(req, res) {
 	}
 });
 
+var copyFile = function(srcFile, dstDir) {
+	var data = fs.readFileSync(srcFile),
+		newFile = dstDir + '/' + path.basename(srcFile);	
+	fs.writeFileSync(newFile, data);
+};
+
 var copyFiles = function(fromDir, toDir) {
 	var files = [],
 		dirs = [];
@@ -294,11 +297,7 @@ var copyFiles = function(fromDir, toDir) {
 	}
 	
 	for (var i = 0, il = files.length; i < il; i++) {
-		var file = files[i],
-			data = fs.readFileSync(file),
-			newFile = toDir + '/' + path.basename(file);
-		
-		fs.writeFileSync(newFile, data);
+		copyFile(files[i], toDir);
 	}
 	
 	for (var i = 0, il = dirs.length; i < il; i++) {
