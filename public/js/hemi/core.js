@@ -65,10 +65,10 @@ o3djs.require('hemi.timer');
 var hemi = (function(hemi) {
 	
 	/**
-	 * The version of Hemi released: 8/9/11
+	 * The version of Hemi released: 8/19/11
 	 * @constant
 	 */
-	hemi.version = '1.4.1';
+	hemi.version = '1.4.2';
 
 	/**
 	 * @namespace A module for handling low level functionality and wrapping
