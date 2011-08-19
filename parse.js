@@ -242,7 +242,7 @@ var parseParam = function(param) {
 			obj = null;
 			break;
 		default:
-			throw Error('Unrecognized parameter type tag.');
+			throw Error('Unrecognized parameter type tag: ' + pType);
 			break;
 	}
 	
