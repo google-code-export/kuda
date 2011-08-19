@@ -78,6 +78,7 @@ var editor = (function(editor) {
 					motion = new hemi.motion.Translator();
 				}
 				
+				motion.disable();
 				event = editor.EventTypes.MotionCreated;
 			} else {
 				motion.clear();
