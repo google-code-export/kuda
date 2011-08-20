@@ -408,7 +408,7 @@ ul.listWidget li>div {
 	margin-left: 10px;
 }
 .listWidget>li:nth-child(odd) {
-	background: #a6bcc4;
+	background: #bcd6e0;
 } 
 .listWidget li span {
 	float: left;

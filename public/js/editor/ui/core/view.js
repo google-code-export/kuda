@@ -428,6 +428,22 @@ var editor = (function(editor) {
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
+//                      	Convenient Widget Methods     	                  //
+////////////////////////////////////////////////////////////////////////////////  
+	
+	editor.ui.sizeAndPosition = function(height) {
+		var wgt = this,
+			container = this.container,
+			padding = parseInt(container.css('paddingBottom')) +
+				parseInt(container.css('paddingTop')),
+			win = jQuery(window),
+			winHeight = win.height(),
+			wgtHeight = winHeight/2 - padding;
+		
+		container.height(wgtHeight)
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
 //                     			   Public Methods  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 		

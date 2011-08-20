@@ -30,6 +30,7 @@ var editor = (function(editor) {
     editor.EventTypes.AnimationStopped = "animator.AnimationStopped";
 	
 	// create animation widget events
+    editor.EventTypes.ModelSelected = "crtAnm.ModelSelected";
     editor.EventTypes.RemoveAnmLoop = "crtAnm.RemoveAnmLoop";
     editor.EventTypes.SetAnimation = "crtAnm.SetAnimation";
     editor.EventTypes.StartPreview = "crtAnm.StartPreview";
@@ -57,7 +58,7 @@ var editor = (function(editor) {
      * An AnimatorModel handles the creation and playing of animations as well
      * as model picking for the animation tool.
      */
-    editor.tools.AnimatorModel = editor.tools.ToolModel.extend({
+    editor.tools.AnimatorModel = editor.ui.ToolModel.extend({
 		init: function() {
 			this._super();
 	        
@@ -147,15 +148,9 @@ var editor = (function(editor) {
 				this.msgHandler = null;
 			}
 	        
-	        if (enable) {
-	            this.msgHandler = hemi.world.subscribe(
-	                hemi.msg.pick,
-	                this,
-	                "onPick",
-	                [hemi.dispatch.MSG_ARG + "data.pickInfo"]);
-	            
+	        if (enable) {	            
 	            if (this.selectedModel) {
-	                this.hilightShapes();
+//	                this.hilightShapes();
 	            }
 	        }
 	        else {
@@ -165,6 +160,9 @@ var editor = (function(editor) {
 	
 	    /**
 	     * Highlights all shapes in the selected model.
+	     * 
+	     * TODO: Highlights cause performance problems. Try shader manipulation
+	     * instead.
 	     */
 	    hilightShapes: function() {
 	        var transforms = this.selectedModel.transforms;
@@ -210,15 +208,6 @@ var editor = (function(editor) {
 	        state.getStateParam('FillMode').value = 
 				hemi.core.o3d.State.WIREFRAME;
 	        this.hilightMaterial.state = state;
-	    },
-	    
-	    /**
-	     * Called when a pick occurs.  
-	     * 
-	     * @param {Object} pickInfo pick information
-	     */
-	    onPick: function(pickInfo) {
-	        this.selectModel(pickInfo);
 	    },
 	    
 	    /**
@@ -300,21 +289,6 @@ var editor = (function(editor) {
 			loop.iterations = iterations;
 			loop.current = 0;
 		},
-	    
-	    /**
-	     * Selects a model based off the pickInfo.  Once selected, the model
-	     * gets highlighted and sends a hemi.msg.modelPicked message.  
-	     * 
-	     * @param {Object} pickInfo the pick information
-	     */
-	    selectModel: function(pickInfo) {			
-	        if (pickInfo) {
-	            var transform = pickInfo.shapeInfo.parent.transform,
-					model = hemi.world.getTranOwner(transform);
-				
-				this.setModel(model);
-	        }
-	    },
 		
 		setAnimation: function(animation) {
 			this.animation = animation;
@@ -333,7 +307,9 @@ var editor = (function(editor) {
         		this.unSelectAll();
 				this.notifyListeners(editor.EventTypes.ModelPicked, model);
 	            this.selectedModel = model;
-	            this.hilightShapes();
+				if (model != null) {
+//					this.hilightShapes();
+				}
 			}
 		},
 		
@@ -389,24 +365,39 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 //                     Create Animation Sidebar Widget                        //
 //////////////////////////////////////////////////////////////////////////////// 
-		
-	/*
-	 * Configuration object for the HiddenItemsSBWidget.
-	 */
-	editor.tools.CreateAnmSBWidgetDefaults = {
-		name: 'createAnmSBWidget',
-		uiFile: 'js/editor/tools/html/animationsForms.htm',
-        instructions: 'Click on a model to select it',
-		manualVisible: true
+	
+	var ButtonText = {
+		START: 'Start Preview',
+		STOP: 'Stop Preview'
 	};
 	
-	editor.tools.CreateAnmSBWidget = editor.ui.SidebarWidget.extend({
+	var CreateWidget = editor.ui.FormWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, 
-				editor.tools.CreateAnmSBWidgetDefaults, options);
-		    this._super(newOpts);
+		    this._super({
+				name: 'createAnmWidget',
+				uiFile: 'js/editor/plugins/models/html/animationsForms.htm',
+		        instructions: 'Click on a model to select it',
+				manualVisible: true
+			});
 			
-			this.hiddenItems = new Hashtable();		
+			this.hiddenItems = new Hashtable();	
+			var wgt = this;	
+			
+			hemi.msg.subscribe(hemi.msg.load, function(msg) {
+				if (msg.src instanceof hemi.model.Model) {
+					var mdl = msg.src,
+						id = mdl.getId();
+					wgt.selector.append('<option id="anmMdlSel_' + id + '" value="' + id + '">'
+						+ mdl.name + '</option>');
+				}
+			});
+			
+			hemi.msg.subscribe(hemi.msg.unload, function(msg) {
+				if (msg.src instanceof hemi.Model) {
+					var id = 'anmMdlSel_' + msg.src.getId();						
+					wgt.find('#' + id).remove();
+				}
+			});
 		},
 		
 		addLoopInput: function(loop, min, max) {
@@ -538,11 +529,11 @@ var editor = (function(editor) {
 			this._super();
 			this.slider = this.find('#anmSlider');
 			
+			this.selector = this.find('#anmModelSelect');
 	        this.addBtn = this.find('#anmLoopAdd');
         	this.saveBtn = this.find('#anmSaveBtn');
 			this.cancelBtn = this.find('#anmCancelBtn');
-			this.startBtn = this.find('#anmStartBtn');
-			this.stopBtn = this.find('#anmStopBtn');
+			this.anmPreviewBtn = this.find('#anmPreviewBtn');
 			this.beginInput = this.find('#anmBeginFrame');
 			this.endInput = this.find('#anmEndFrame');
 			this.loopList = this.find('#anmLoopList');
@@ -589,6 +580,12 @@ var editor = (function(editor) {
 				}
 				
 				return msg;
+			});
+			
+			this.selector.bind('change', function(evt) {
+				var mdl = hemi.world.getCitizenById(
+					parseInt(jQuery(this).val()));
+				wgt.notifyListeners(editor.EventTypes.ModelSelected, mdl);
 			});
 	            
 	        inputs.bind('change', function(evt) {
@@ -687,23 +684,25 @@ var editor = (function(editor) {
 				}
 			});
 	        
-	        this.startBtn.bind('click', function(evt) {
-	            var start = parseInt(wgt.beginInput.val()),
-	            	end = parseInt(wgt.endInput.val());
-	            
-	            if (start != null && end != null) {
-	                wgt.notifyListeners(editor.EventTypes.StartPreview, {
-						start: start,
-						end: end
-					});
-					wgt.startBtn.attr('disabled', 'disabled');
-					wgt.stopBtn.removeAttr('disabled');
-	            }
-	        });
-	        
-	        this.stopBtn.bind('click', function(evt) {
-	            wgt.notifyListeners(editor.EventTypes.StopPreview, null);
-	            wgt.startBtn.removeAttr('disabled');
+	        this.anmPreviewBtn.bind('click', function(evt) {
+				var btn = jQuery(this);
+				
+				if (btn.data('previewing')) {
+	            	wgt.notifyListeners(editor.EventTypes.StopPreview, null);
+					btn.text(ButtonText.START).data('previewing', false);
+				}
+				else {
+					var start = parseInt(wgt.beginInput.val()), 
+						end = parseInt(wgt.endInput.val());
+					
+					if (start != null && end != null) {
+						wgt.notifyListeners(editor.EventTypes.StartPreview, {
+							start: start,
+							end: end
+						});
+					}
+					btn.text(ButtonText.STOP).data('previewing', true);
+				}
 	        });
 	        
 	        this.addBtn.bind('click', function(evt) {         
@@ -734,18 +733,18 @@ var editor = (function(editor) {
 	        });
 			
 			this.cancelBtn.bind('click', function(evt) {
-				wgt.setVisible(false);
 				wgt.reset();
 				wgt.notifyListeners(editor.EventTypes.CancelCreateAnm, null);
 				wgt.find('input.error').removeClass('error');
 			});
+			
+			editor.ui.sizeAndPosition.call(this);
 		},	
 	    
 	    modelSelected: function(model) { 
 			var max = parseInt(model.getMaxAnimationTime() * hemi.view.FPS);
 			
 			if (max > 0) {
-				this.insLabel.html(model.name);
 				this.find('#anmKeyframes, #anmLoops, #anmPreview').show(200);
 				this.slider.slider('option', {
 					min: 0,
@@ -757,9 +756,9 @@ var editor = (function(editor) {
 				this.notifyListeners(editor.EventTypes.SetAnmBeginFrame, 0);
 				this.notifyListeners(editor.EventTypes.SetAnmEndFrame, max);
 			}
-			else {
-				this.insLabel.html('Model has no animations');
-			}
+//			else {
+//				this.insLabel.html('Model has no animations');
+//			}
 	    },
 		
 		reset: function() {
@@ -817,7 +816,7 @@ var editor = (function(editor) {
 				values: [animation.beginTime * hemi.view.FPS,
 					animation.endTime * hemi.view.FPS]
 			});
-			this.startBtn.removeAttr('disabled');
+			this.anmPreviewBtn.removeAttr('disabled');
 			
 			this.notifyListeners(editor.EventTypes.SetAnimation, animation);
 		},
@@ -837,7 +836,7 @@ var editor = (function(editor) {
 				}
             } else {
                 this.saveBtn.attr('disabled', 'disabled');
-                this.startBtn.attr('disabled', 'disabled');
+                this.anmPreviewBtn.attr('disabled', 'disabled');
             }
 		}
 	});
@@ -845,24 +844,20 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 //                     	 Animation List Sidebar Widget                        //
 ////////////////////////////////////////////////////////////////////////////////     
-	
-	/*
-	 * Configuration object for the HiddenItemsSBWidget.
-	 */
-	editor.tools.AnmListSBWidgetDefaults = {
-		name: 'animationListSBWidget',
-		listId: 'animationList',
-		prefix: 'anmLst',
-		instructions: "Click 'Create Animation' to create a new animation.",
-		title: 'Animations'
-	};
-	
-	editor.tools.AnmListSBWidget = editor.ui.ListSBWidget.extend({
+		
+	var ListWidget = editor.ui.ListWidget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, editor.tools.AnmListSBWidgetDefaults, options);
-		    this._super(newOpts);
+		    this._super({
+				name: 'anmListWidget',
+				listId: 'animationList',
+				prefix: 'anmLst',
+				instructions: "Add animations above.",
+				title: 'Animations'
+			});
 			
-			this.items = new Hashtable();		
+			this.items = new Hashtable();	
+			this.container.addClass('second');			
+			editor.ui.sizeAndPosition.call(this);	
 		},
 		
 		bindButtons: function(li, obj) {
@@ -885,35 +880,12 @@ var editor = (function(editor) {
 		
 		getOtherHeights: function() {
 			return this.buttonDiv.outerHeight(true);
-		},
-		
-		layoutExtra: function() {
-			this.buttonDiv = jQuery('<div class="buttons"></div>');
-			this.createBtn = jQuery('<button id="createAnimation">Create Animation</button>');
-			var wgt = this;
-			
-			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.CreateAnimation, null);
-			});
-			
-			this.buttonDiv.append(this.createBtn);
-			
-			return this.buttonDiv;
 		}
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
-
-    /*
-     * Configuration object for the AnimatorView.
-     */
-    editor.tools.AnimatorViewDefaults = {
-        toolName: 'Animator',
-		toolTip: 'Animations: Create and edit animations',
-        widgetId: 'animationsBtn'
-    };
     
     /**
      * The AnimatorView controls the dialog and toolbar widget for the 
@@ -922,14 +894,22 @@ var editor = (function(editor) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.AnimatorViewDefaults as default options
      */
-    editor.tools.AnimatorView = editor.tools.ToolView.extend({
+    editor.tools.AnimatorView = editor.ui.ToolView.extend({
 		init: function(options){
-			var newOpts = jQuery.extend({}, editor.tools.AnimatorViewDefaults, options);
-			this._super(newOpts);
+			this._super({
+		        toolName: 'Animator',
+				toolTip: 'Animations: Create and edit animations',
+		        widgetId: 'animationsBtn'
+		    });
 			
-			this.addSidebarWidget(new editor.tools.CreateAnmSBWidget());
-			this.addSidebarWidget(new editor.tools.AnmListSBWidget());
-			this.addSidebarWidget(editor.ui.getBehaviorWidget());
+			this.addPanel(new editor.ui.Panel({
+				name: 'sidePanel',
+				classes: ['anmSidePanel']
+			}));
+			
+			this.sidePanel.addWidget(new CreateWidget());
+			this.sidePanel.addWidget(new ListWidget());
+			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
 		}
 	});
 	
@@ -942,7 +922,7 @@ var editor = (function(editor) {
      * The AnimatorController facilitates AnimatorModel and AnimatorView
      * communication by binding event and message handlers.
      */
-    editor.tools.AnimatorController = editor.tools.ToolController.extend({
+    editor.tools.AnimatorController = editor.ui.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -956,13 +936,13 @@ var editor = (function(editor) {
 	        
 	        var model = this.model,
 	        	view = this.view,
-				crtWgt = view.createAnmSBWidget,
-				lstWgt = view.animationListSBWidget,
-				bhvWgt = view.behaviorSBWidget,
+				crtWgt = view.sidePanel.createAnmWidget,
+				lstWgt = view.sidePanel.anmListWidget,
+				bhvWgt = view.sidePanel.behaviorSBWidget,
 	        	that = this;
 	        
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode == editor.tools.ToolConstants.MODE_DOWN;				
+	            var isDown = value.newMode == editor.ui.ToolConstants.MODE_DOWN;				
 	            model.enableModelPicking(isDown);
 	            model.stopAnimation();
 	        });	
@@ -978,7 +958,6 @@ var editor = (function(editor) {
 	            crtWgt.addLoopInput(loop, obj.start, obj.end);      
 	        });	  	
 			crtWgt.addListener(editor.EventTypes.CancelCreateAnm, function () {
-				lstWgt.setVisible(true);
 				model.unSelectAll();
 			});   
 	        crtWgt.addListener(editor.EventTypes.EditAnmLoop, function(obj) {				
@@ -992,8 +971,6 @@ var editor = (function(editor) {
 				var animation = model.saveAnimation();       	            
 	            if (animation) {
 					crtWgt.reset();
-					crtWgt.setVisible(false);
-					lstWgt.setVisible(true);
 	                model.unSelectAll();
 	            }
 			});			
@@ -1019,19 +996,16 @@ var editor = (function(editor) {
 			});	        
 	        crtWgt.addListener(editor.EventTypes.StopPreview, function(value) {
 	            model.stopAnimation();
-	        });	    	
+	        });	   
+	        crtWgt.addListener(editor.EventTypes.ModelSelected, function(mdl) {
+	            model.setModel(mdl);
+	        });		 	
 			
 			// animation list widget specific
-			lstWgt.addListener(editor.EventTypes.CreateAnimation, function() {
-				lstWgt.setVisible(false);
-				crtWgt.setVisible(true);
-			});			
 			lstWgt.addListener(editor.EventTypes.EditAnimation, function(animation) {
 				model.setModel(animation.target);
 				crtWgt.set(animation);
 				model.setAnimation(animation);
-				lstWgt.setVisible(false);
-				crtWgt.setVisible(true);
 			});			
 			lstWgt.addListener(editor.EventTypes.RemoveAnimation, function(animation) {
 				model.removeAnimation(animation);
@@ -1058,9 +1032,10 @@ var editor = (function(editor) {
 			// behavior widget specific
 			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
 				if (obj.updateMeta) {
-					var isDown = view.mode === editor.tools.ToolConstants.MODE_DOWN;
+					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
 					
 					lstWgt.setVisible(!obj.visible && isDown);
+					crtWgt.setVisible(!obj.visible && isDown);
 				}
 			});
 	    }

@@ -153,22 +153,6 @@ var editor = (function(editor) {
 			this.shapeParams = {};
 		}
 	});
-	
-////////////////////////////////////////////////////////////////////////////////
-//                      	  Widget Private Methods     	                  //
-////////////////////////////////////////////////////////////////////////////////  
-	
-	var sizeAndPosition = function(height) {
-		var wgt = this,
-			container = this.container,
-			padding = parseInt(container.css('paddingBottom')) +
-				parseInt(container.css('paddingTop')),
-			win = jQuery(window),
-			winHeight = win.height(),
-			wgtHeight = winHeight/2 - padding;
-		
-		container.height(wgtHeight)
-	};
    	
 ////////////////////////////////////////////////////////////////////////////////
 //                     	   Create Shape Sidebar Widget                        //
@@ -383,7 +367,7 @@ var editor = (function(editor) {
 				wgt.checkToggleButtons();
 			});
 			
-			sizeAndPosition.call(this);
+			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		canSave: function() {
@@ -513,25 +497,12 @@ var editor = (function(editor) {
 				listId: 'shapeList',
 				prefix: 'shpLst',
 				title: 'Shapes',
-				instructions: "Click 'Create Shape' to create a new shape."
+				instructions: "Add shapes above."
 			});
 			
-			this.items = new Hashtable();		
-			sizeAndPosition.call(this);
-		},
-		
-		layoutExtra: function() {
-			this.buttonDiv = jQuery('<div class="buttons"></div>');
-			this.createBtn = jQuery('<button id="createShape">Create Shape</button>');
-			var wgt = this;
-						
-			this.createBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.CreateShape, null);
-			});
-			
-			this.buttonDiv.append(this.createBtn);
-			
-			return this.buttonDiv;
+			this.items = new Hashtable();
+			this.container.addClass('second');		
+			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		bindButtons: function(li, obj) {

@@ -568,7 +568,7 @@ var editor = (function(editor) {
 				listId: 'camCurveList',
 				prefix: 'camCrvLst',
 				title: 'Camera Curves',
-				instructions: "Click 'Create Camera Curve' to add a curve."
+				instructions: "Add camera curves above."
 			});
 			
 			sizeAndPosition.call(this);

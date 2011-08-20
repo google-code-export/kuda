@@ -149,22 +149,6 @@ var editor = (function(editor) {
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                      	  Widget Private Methods     	                  //
-////////////////////////////////////////////////////////////////////////////////  
-	
-	var sizeAndPosition = function(height) {
-		var wgt = this,
-			container = this.container,
-			padding = parseInt(container.css('paddingBottom')) +
-				parseInt(container.css('paddingTop')),
-			win = jQuery(window),
-			winHeight = win.height(),
-			wgtHeight = winHeight/2 - padding;
-		
-		container.height(wgtHeight)
-	};
-	
-////////////////////////////////////////////////////////////////////////////////
 //                      	  Create Viewpoint Widget     	                  //
 ////////////////////////////////////////////////////////////////////////////////  
  	
@@ -295,7 +279,7 @@ var editor = (function(editor) {
 				wgt.checkToggleButtons();
 			});
 			
-			sizeAndPosition.call(this);
+			editor.ui.sizeAndPosition.call(this);
 		},	
 		
 		getParams: function() {
@@ -355,7 +339,7 @@ var editor = (function(editor) {
 				instructions: "Add new viewpoints above."
 			});
 			
-			sizeAndPosition.call(this);
+			editor.ui.sizeAndPosition.call(this);
 			this.container.addClass('second');
 		},
 		
