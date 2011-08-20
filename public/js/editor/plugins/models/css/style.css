@@ -171,10 +171,12 @@ div#mbrModelTree div#mbrTree {
 }
 
 /******************************************************************************
- * 								Transparency Slider							  *
+ * 								 	  Sliders								  *
  ******************************************************************************/
 
-#mbrTransparencySlider {
+#mbrTransparencySlider, 
+#anmSlider, 
+.loopSlider {
 	width: 250px;
 	height: 10px;
 	margin-top: 8px;
@@ -186,7 +188,9 @@ div#mbrModelTree div#mbrTree {
 	border: none;
 	float: left;
 }
-#mbrTransparencySlider .ui-slider-handle {
+#mbrTransparencySlider .ui-slider-handle, 
+#anmSlider .ui-slider-handle,
+.loopSlider .ui-slider-handle {
 	height: 20px;
 	width: 20px;
 	border-radius: 15px;
@@ -194,14 +198,44 @@ div#mbrModelTree div#mbrTree {
 	box-shadow: 0 1px 5px #000,
 		inset 0 1px 2px #eee;
 	background: -moz-linear-gradient(100% 100% 90deg, #555, #ccc);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555), to(#bbb));
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ccc), to(#555));
 	border: none;
 }
-#mbrTransparencySlider .ui-slider-range {
+#mbrTransparencySlider .ui-slider-range, 
+#anmSlider .ui-slider-range, 
+.loopSlider .ui-slider-range {
 	border-radius: 10px;
 	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
 	box-shadow: 0 1px #000,
+		inset 0 1px 2px #72bbe0;
+}
+
+#anmSlider,
+.loopSlider {
+	background: #ddd;
+	box-shadow: 0 1px 0 #fff,
+		inset 0 1px 3px #ccc;
+	margin-left: 15px;
+	margin-bottom: 15px;
+}
+.loopSlider {
+	width: 214px;
+}
+#anmSlider .ui-slider-handle,
+.loopSlider .ui-slider-handle {
+	box-shadow: 0 1px 5px #bbb,
+		inset 0 1px 2px #fff;
+	background: -moz-linear-gradient(100% 100% 90deg, #bbb, #eee);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#bbb));
+	border: 1px solid #bbb;
+	height: 15px;
+	width: 15px;
+	top: -3px;
+}
+#anmSlider .ui-slider-range,
+.loopSlider .ui-slider-range {
+	box-shadow: 0 1px #bbb,
 		inset 0 1px 2px #72bbe0;
 }
 

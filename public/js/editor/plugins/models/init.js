@@ -22,6 +22,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 	editor.ui.getScript('js/editor/plugins/models/js/browser.js');
 	editor.ui.getScript('js/editor/plugins/models/js/shapes.js');
+	editor.ui.getScript('js/editor/plugins/models/js/animator.js');
 	editor.ui.getCss('js/editor/plugins/models/css/style.css');
 	
 	
@@ -42,7 +43,11 @@
 			
 			shpMdl = new editor.tools.ShapesModel(),
 			shpView = new editor.tools.ShapesView(),
-			shpCtr = new editor.tools.ShapesController();
+			shpCtr = new editor.tools.ShapesController(),
+			
+			anmMdl = new editor.tools.AnimatorModel(),
+			anmView = new editor.tools.AnimatorView(),
+			anmCtr = new editor.tools.AnimatorController();
 		
 		mbrCtr.setModel(mbrMdl);
 		mbrCtr.setSelectorModel(selMdl);
@@ -50,8 +55,12 @@
 				
 		shpCtr.setModel(shpMdl);
 		shpCtr.setView(shpView);
+				
+		anmCtr.setModel(anmMdl);
+		anmCtr.setView(anmView);
 		
 		toolbar.add(mbrView);
 		toolbar.add(shpView);
+		toolbar.add(anmView);
 	});
 })();
