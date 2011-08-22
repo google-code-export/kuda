@@ -22,6 +22,18 @@
 //                                 Main App                                   //
 ////////////////////////////////////////////////////////////////////////////////
 
+	var initViewerStep1 = function() {			
+			o3djs.webgl.makeClients(function(clientElements) {
+				editor.ui.initializeView(clientElements);
+			});
+		},
+		
+		uninitViewer = function() {
+			if (hemi.core.client) {
+				hemi.core.client.cleanup();
+			}
+		};
+
 	var Application = function() {
 	};
 	
@@ -852,15 +864,15 @@
 	app = new Application();
 	
 	window.onload = function() {		
-		app.sizeViewerPane();
-		app.initViewerStep1();
+//		app.sizeViewerPane();
+		initViewerStep1();
 	};
 	
 	window.onunload = function() {
-		app.uninitViewer();
+		uninitViewer();
 	};
 	
 	jQuery(window).resize(function() {
-		app.sizeViewerPane();
+//		app.sizeViewerPane();
 	});
 })(window);

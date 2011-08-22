@@ -15,10 +15,10 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	module.ui = module.ui || {};
+var editor = (function(editor) {
+	editor.ui = editor.ui || {};
 	
-	module.EventTypes.Behavior = {
+	editor.EventTypes.Behavior = {
 		Cancel: 'behavior.cancel',
 		Save: 'behavior.save',
 		Update: 'behavior.update',
@@ -32,7 +32,7 @@ var editor = (function(module) {
 //                                Constants	    	                          //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	module.ui.BehaviorTypes = {
+	editor.ui.BehaviorTypes = {
 		TRIGGER: 'trigger',
 		ACTION: 'action',
 		NA: 'na'
@@ -55,9 +55,9 @@ var editor = (function(module) {
 				argList = msgTarget.handler.args;
 				
 				if (spec.src === hemi.world.WORLD_ID) {
-					source = module.treeData.createShapePickCitizen(msgTarget.handler.citizen);
+					source = editor.treeData.createShapePickCitizen(msgTarget.handler.citizen);
 				} else {
-					source = module.treeData.createCamMoveCitizen(hemi.world.camera);
+					source = editor.treeData.createCamMoveCitizen(hemi.world.camera);
 				}
 			} else {
 				source = spec.src;
@@ -108,8 +108,8 @@ var editor = (function(module) {
 			for (propName in citizen) {
 				var prop = citizen[propName];
 				
-				if (jQuery.isFunction(prop) && module.treeData.methodsToRemove.indexOf(propName) === -1) {					
-					hasMore = !module.treeData.isCommon(citizen, propName);
+				if (jQuery.isFunction(prop) && editor.treeData.methodsToRemove.indexOf(propName) === -1) {					
+					hasMore = !editor.treeData.isCommon(citizen, propName);
 					methods.push(propName);
 				}
 			}
@@ -144,7 +144,7 @@ var editor = (function(module) {
 		},
 		
 		openNode = function(tree, citizen, prefix) {
-			var nodeName = module.treeData.getNodeName(citizen, {
+			var nodeName = editor.treeData.getNodeName(citizen, {
 					prefix: prefix,
 					id: citizen.getId()
 				}),
@@ -165,7 +165,7 @@ var editor = (function(module) {
 			
 		restrictSelection = function(tree, citizen, prefix, options) {
 			tree.addClass('restricted');
-			var nodeName = module.treeData.getNodeName(citizen, {
+			var nodeName = editor.treeData.getNodeName(citizen, {
 					option: null,
 					prefix: prefix,
 					id: id
@@ -180,7 +180,7 @@ var editor = (function(module) {
 					
 			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
 				var id = citizen.getId ? citizen.getId() : null;
-				nodeName = module.treeData.getNodeName(citizen, {
+				nodeName = editor.treeData.getNodeName(citizen, {
 					option: options[ndx],
 					prefix: prefix,
 					id: id
@@ -196,7 +196,7 @@ var editor = (function(module) {
 				source = hemi.utils.isNumeric(data.source) ? 
 					hemi.world.getCitizenById(data.source) : data.source;
 					
-			var nodeName = module.treeData.getNodeName(source, {
+			var nodeName = editor.treeData.getNodeName(source, {
 						option: data.type,
 						prefix: this.trgTree.pre,
 						id: source.getId()
@@ -207,7 +207,7 @@ var editor = (function(module) {
 			openNode(trgT, actor, this.trgTree.pre);
 			this.trgChooser.select(nodeName);
 			
-			nodeName = module.treeData.getNodeName(data.handler, {
+			nodeName = editor.treeData.getNodeName(data.handler, {
 				option: data.method,
 				prefix: this.axnTree.pre,
 				id: data.handler.getId()
@@ -230,7 +230,7 @@ var editor = (function(module) {
 			if (data.trigger) {
 				var msg = data.trigger.type, 
 					cit = data.trigger.citizen,
-					nodeName = module.treeData.getNodeName(cit, {
+					nodeName = editor.treeData.getNodeName(cit, {
 						option: msg,
 						prefix: this.trgTree.pre,
 						id: cit.getId()
@@ -242,7 +242,7 @@ var editor = (function(module) {
 			if (data.action) {
 				var handler = data.action.handler,
 					func = data.action.method,
-					nodeName = module.treeData.getNodeName(handler, {
+					nodeName = editor.treeData.getNodeName(handler, {
 						option: [func],
 						prefix: this.axnTree.pre,
 						id: handler.getId()
@@ -264,7 +264,7 @@ var editor = (function(module) {
 		
 		unrestrictSelection = function(tree, citizen, prefix, options) {
 			tree.removeClass('restricted');
-			var nodeName = module.treeData.getNodeName(citizen, {
+			var nodeName = editor.treeData.getNodeName(citizen, {
 					option: null,
 					prefix: prefix,
 					id: id
@@ -279,7 +279,7 @@ var editor = (function(module) {
 			
 			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
 				var id = citizen.getId ? citizen.getId() : null;
-				nodeName = module.treeData.getNodeName(citizen, {
+				nodeName = editor.treeData.getNodeName(citizen, {
 					option: options[ndx],
 					prefix: prefix,
 					id: id
@@ -294,7 +294,7 @@ var editor = (function(module) {
 //                                	Widget		                              //
 ////////////////////////////////////////////////////////////////////////////////
 		
-	var BehaviorWidget = module.ui.FormSBWidget.extend({
+	var BehaviorWidget = editor.ui.FormWidget.extend({
 		init: function() {
 			this._super({
 				name: 'behaviorSBWidget',
@@ -355,7 +355,7 @@ var editor = (function(module) {
 							if (selector === wgt.axnChooser) {
 								var handler = metadata.parent,
 									method = path[path.length-1],
-									args = module.utils.getFunctionParams(handler[method]);
+									args = editor.utils.getFunctionParams(handler[method]);
 								if (args.length > 0) {
 									wgt.prmFieldset.show(200);
 								}
@@ -386,26 +386,26 @@ var editor = (function(module) {
 			this.saveBtn = saveBtn;
 			this.nameIpt = nameIpt;
 			
-			this.axnTree = module.ui.createActionsTree();
-			this.trgTree = module.ui.createTriggersTree();
+			this.axnTree = editor.ui.createActionsTree();
+			this.trgTree = editor.ui.createTriggersTree();
 							
-			this.prms = new module.ui.Parameters({
+			this.prms = new editor.ui.Parameters({
 					prefix: 'bhvEdt'
 				});
 			
 			paramsFieldset.find('li').append(this.prms.getUI());
 				
-			this.trgChooser = new module.ui.TreeSelector({
+			this.trgChooser = new editor.ui.TreeSelector({
 				tree: this.trgTree,
 				select: selFcn
 			}); 
 			
-			this.axnChooser = new module.ui.TreeSelector({
+			this.axnChooser = new editor.ui.TreeSelector({
 				tree: this.axnTree,
 				select: selFcn
 			});
 			
-			this.axnTree.addListener(module.EventTypes.Trees.TreeCreated, 
+			this.axnTree.addListener(editor.EventTypes.Trees.TreeCreated, 
 				function(treeUI) {
 					var li = jQuery('<li></li>');
 					
@@ -413,7 +413,7 @@ var editor = (function(module) {
 					actionFieldset.find('ol').append(li);
 				});
 				
-			this.trgTree.addListener(module.EventTypes.Trees.TreeCreated, 
+			this.trgTree.addListener(editor.EventTypes.Trees.TreeCreated, 
 				function(treeUI) {
 					var li = jQuery('<li></li>');
 					
@@ -431,15 +431,15 @@ var editor = (function(module) {
 					target: wgt.msgTarget,
 					actor: wgt.actor
 				},
-				msgType = wgt.msgTarget ? module.EventTypes.Behavior.Update :
-					module.EventTypes.Behavior.Save;
+				msgType = wgt.msgTarget ? editor.EventTypes.Behavior.Update :
+					editor.EventTypes.Behavior.Save;
 				
 				wgt.notifyListeners(msgType, data);
 				wgt.reset();
 			});
 			
 			cancelBtn.bind('click', function(evt) {
-				wgt.notifyListeners(module.EventTypes.Behavior.Cancel);
+				wgt.notifyListeners(editor.EventTypes.Behavior.Cancel);
 				wgt.reset();
 			});
 			
@@ -454,8 +454,8 @@ var editor = (function(module) {
 			this.container.append(form);
 			
 			// save checking
-			var trgChecker = new module.ui.InputChecker(this.trgChooser),
-				axnChecker = new module.ui.InputChecker(this.axnChooser);
+			var trgChecker = new editor.ui.InputChecker(this.trgChooser),
+				axnChecker = new editor.ui.InputChecker(this.axnChooser);
 			
 			trgChecker.saveable = axnChecker.saveable = function() {
 				return this.input.getSelection() != null;
@@ -494,7 +494,7 @@ var editor = (function(module) {
 				var vp = actor;
 				
 				switch(type) {
-					case module.ui.BehaviorTypes.ACTION:
+					case editor.ui.BehaviorTypes.ACTION:
 						actor = hemi.world.camera;	
 						
 						if (!data) {
@@ -509,8 +509,8 @@ var editor = (function(module) {
 							}];
 						}
 						break;
-					case module.ui.BehaviorTypes.TRIGGER:	
-						var cmc = module.treeData.createCamMoveCitizen(hemi.world.camera);
+					case editor.ui.BehaviorTypes.TRIGGER:	
+						var cmc = editor.treeData.createCamMoveCitizen(hemi.world.camera);
 						actor = cmc;
 						
 						if (!data) {
@@ -529,14 +529,14 @@ var editor = (function(module) {
 			this.savFieldset.show();
 			
 			switch(type) {
-				case module.ui.BehaviorTypes.ACTION:
+				case editor.ui.BehaviorTypes.ACTION:
 					// get the list of functions
 					restrictSelection(this.axnTree.getUI(), actor, 
 						this.axnTree.pre, getMethods(actor));
 					// open up to the actor's node
 					openNode(this.axnTree.getUI(), actor, this.axnTree.pre);
 					break;
-				case module.ui.BehaviorTypes.TRIGGER:
+				case editor.ui.BehaviorTypes.TRIGGER:
 					restrictSelection(this.trgTree.getUI(), actor, 
 						this.trgTree.pre, getMessages(actor));	
 					openNode(this.trgTree.getUI(), actor, this.trgTree.pre);		    
@@ -588,7 +588,7 @@ var editor = (function(module) {
 //                            Behavior List Widget	                          //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	module.ui.BhvListItemWidget = module.ui.EditableListItemWidget.extend({
+	editor.ui.BhvListItem = editor.ui.EditableListItem.extend({
 		init: function() {
 			this._super();
 			
@@ -597,7 +597,7 @@ var editor = (function(module) {
 		},
 		
 		add: function(msgTarget, spec, actor) {
-			var li = new module.ui.EditableListItemWidget(),
+			var li = new editor.ui.EditableListItem(),
 				name = getName(msgTarget, spec, actor);
 			
 			li.setText(name.join('.') + ': ' + msgTarget.name);
@@ -623,7 +623,7 @@ var editor = (function(module) {
 					obj = wgt.getAttachedObject();
 				
 				behaviorLiNotifier.notifyListeners(
-					module.EventTypes.Behavior.ListItemEdit, {
+					editor.EventTypes.Behavior.ListItemEdit, {
 						actor: obj,
 						target: msgTarget
 					});
@@ -633,7 +633,7 @@ var editor = (function(module) {
 				var msgTarget = li.getAttachedObject();
 				msgTarget.actor = wgt.getAttachedObject();
 				behaviorLiNotifier.notifyListeners(
-					module.EventTypes.Behavior.ListItemRemove, msgTarget);
+					editor.EventTypes.Behavior.ListItemRemove, msgTarget);
 			});
 		},
 		
@@ -644,7 +644,7 @@ var editor = (function(module) {
 			this.editBtn.after(this.behaviorBtn);
 			
 			this.behaviorBtn.bind('click', function() {
-				module.ui.showBehaviorMenu(jQuery(this), 
+				editor.ui.showBehaviorMenu(jQuery(this), 
 					wgt.getAttachedObject());
 			});
 			
@@ -654,7 +654,7 @@ var editor = (function(module) {
 				arrow = jQuery('<div class="bhvListArrow"></div>'),
 				wgt = this;
 			
-			this.list = new module.ui.ListWidget({
+			this.list = new editor.ui.ListWidget({
 				widgetClass: 'bhvList',
 				prefix: 'bhvLst'
 			});
@@ -715,21 +715,21 @@ var editor = (function(module) {
 	
 	var behaviorWidget = null,
 		behaviorLiTable = new Hashtable(),
-		behaviorLiNotifier = new module.utils.Listenable(),
-		behaviorMenu = new module.ui.PopupMenu(),
-		addTriggerMnuItm = new module.ui.MenuItem({
+		behaviorLiNotifier = new editor.utils.Listenable(),
+		behaviorMenu = new editor.ui.PopupMenu(),
+		addTriggerMnuItm = new editor.ui.MenuItem({
 			title: 'Trigger a behavior',
 			action: function(evt) {
 				behaviorWidget.setActor(behaviorMenu.actor, 
-					module.ui.BehaviorTypes.TRIGGER);
+					editor.ui.BehaviorTypes.TRIGGER);
 				behaviorWidget.setVisible(true);
 			}
 		}),
-		addActionMnuItm = new module.ui.MenuItem({
+		addActionMnuItm = new editor.ui.MenuItem({
 			title: 'Respond to a trigger',
 			action: function(evt) {
 				behaviorWidget.setActor(behaviorMenu.actor, 
-					module.ui.BehaviorTypes.ACTION);
+					editor.ui.BehaviorTypes.ACTION);
 				behaviorWidget.setVisible(true);
 			}
 		});
@@ -738,7 +738,7 @@ var editor = (function(module) {
 	behaviorMenu.addMenuItem(addActionMnuItm);
 	behaviorMenu.container.attr('id', 'behaviorMenu');
 	
-	module.ui.getBehaviorWidget = function() {
+	editor.ui.getBehaviorWidget = function() {
 		var body = jQuery('body'),
 			menuAdded = body.data('menuAdded');
 			
@@ -750,7 +750,7 @@ var editor = (function(module) {
 		return behaviorWidget;
 	};
 		
-	module.ui.showBehaviorMenu = function(parBtn, actor, view) {		
+	editor.ui.showBehaviorMenu = function(parBtn, actor, view) {		
 		var position = parBtn.offset();
 		
 		position.top += parBtn.outerHeight();
@@ -759,17 +759,17 @@ var editor = (function(module) {
 		behaviorMenu.actor = actor;
 	};
 	
-	module.ui.getBehaviorListItem = function(actor) {
+	editor.ui.getBehaviorListItem = function(actor) {
 		return actor ? behaviorLiTable.get(actor) : null;
 	};
 	
-	module.ui.addBehaviorListItemListener = function(eventType, listener) {
+	editor.ui.addBehaviorListItemListener = function(eventType, listener) {
 		behaviorLiNotifier.addListener(eventType, listener);
 	};
 	
-	module.ui.removeBehaviorListItemListener = function(listener) {
+	editor.ui.removeBehaviorListItemListener = function(listener) {
 		behaviorLiNotifier.removeListener(listener);
 	};
 	
-	return module;
+	return editor;
 })(editor || {});

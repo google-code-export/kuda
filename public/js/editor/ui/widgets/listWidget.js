@@ -31,17 +31,17 @@ var editor = (function(module, jQuery) {
 	/*
 	 * Configuration object for the Widget.
 	 */
-	module.ui.ListWidgetDefaults = {
-		widgetId: '',
-		widgetClass: 'listWidget',
+	module.ui.ListDefaults = {
+		id: '',
+		cssClass: '',
 		prefix: 'lst',
 		type: module.ui.ListType.UNORDERED,
 		sortable: false
 	};
 
-	module.ui.ListWidget = module.ui.Component.extend({
+	module.ui.List = module.ui.Component.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.ui.ListWidgetDefaults, options);
+			var newOpts = jQuery.extend({}, module.ui.ListDefaults, options);
 			this._super(newOpts);
 			
 			this.list;
@@ -94,9 +94,10 @@ var editor = (function(module, jQuery) {
 		finishLayout : function() {
 			this.container = this.list = 
 				this.config.type == module.ui.ListType.UNORDERED ?
-				jQuery('<ul></ul>') : jQuery('<ol></ol>');
-			this.list.attr('id', this.config.widgetId)
-				.addClass(this.config.widgetClass);
+				jQuery('<ul class="listWidget"></ul>') : 
+				jQuery('<ol class="listWidget"></ol>');
+			this.list.attr('id', this.config.id)
+				.addClass(this.config.cssClass);
 			
 			if (this.config.sortable) {
 				this.list.sortable();
@@ -116,7 +117,7 @@ var editor = (function(module, jQuery) {
 				widget.setParent(null);
 				this.listItems.remove(widget);
 			}
-			else if (idOrWidget instanceof module.ui.ListItemWidget) {
+			else if (idOrWidget instanceof module.ui.ListItem) {
 				li = this.listItems.remove(idOrWidget);
 			}
 			
@@ -126,7 +127,7 @@ var editor = (function(module, jQuery) {
 		}
 	});
 		
-	module.ui.ListItemWidget = module.ui.Component.extend({
+	module.ui.ListItem = module.ui.Component.extend({
 		init: function(options) {
 			this._super(options);
 		},
@@ -186,7 +187,7 @@ var editor = (function(module, jQuery) {
 		editable: true
 	};
 	
-	module.ui.EditableListItemWidget = module.ui.ListItemWidget.extend({
+	module.ui.EditableListItem = module.ui.ListItem.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, module.ui.EdtLiWgtDefaultOptions, options);
 			this._super(newOpts);
@@ -221,9 +222,9 @@ var editor = (function(module, jQuery) {
 ////////////////////////////////////////////////////////////////////////////////     
 	
 	/*
-	 * Configuration object for the ListSBWidget.
+	 * Configuration object for the ListWidget.
 	 */
-	module.ui.ListSBWidgetDefaults = {
+	module.ui.ListWidgetDefaults = {
 		name: 'listSBWidget',
 		listId: 'list',
 		prefix: 'lst',
@@ -233,9 +234,9 @@ var editor = (function(module, jQuery) {
 		sortable: false
 	};
 	
-	module.ui.ListSBWidget = module.ui.SidebarWidget.extend({
+	module.ui.ListWidget = module.ui.Widget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, module.tools.ListSBWidgetDefaults, options);
+			var newOpts = jQuery.extend({}, module.tools.ListWidgetDefaults, options);
 		    this._super(newOpts);
 			
 			this.items = new Hashtable();		
@@ -244,7 +245,7 @@ var editor = (function(module, jQuery) {
 	    add: function(obj) {			
 			var itm = this.items.get(obj.getId());
 			if (!itm) {
-				var li = this.createListItemWidget();
+				var li = this.createListItem();
 					
 				li.setText(obj.name);
 				li.attachObject(obj);
@@ -269,8 +270,8 @@ var editor = (function(module, jQuery) {
 			this.items.clear();
 		},
 		
-		createListItemWidget: function() {
-			return new module.ui.EditableListItemWidget();
+		createListItem: function() {
+			return new module.ui.EditableListItem();
 		},
 		
 		getOtherHeights: function() {
@@ -284,8 +285,8 @@ var editor = (function(module, jQuery) {
 			var wgt = this,
 				otherElems = this.layoutExtra();
 			
-			this.list = new module.ui.ListWidget({
-				widgetId: this.config.listId,
+			this.list = new module.ui.List({
+				id: this.config.listId,
 				prefix: this.config.prefix,
 				type: this.config.type,
 				sortable: this.config.sortable
@@ -317,26 +318,26 @@ var editor = (function(module, jQuery) {
 			return retVal;
 	    },
 		
-		resize: function(maxHeight) {
-			this._super(maxHeight);	
-			var list = this.list.getUI(),	
-				
-			// now determine button container height
-				insHeight = this.instructions.outerHeight(true),
-			
-			// get the header height
-				hdrHeight = this.title.outerHeight(true),
-				
-			// get other heights
-				otherHeight = this.getOtherHeights(),
-			
-			// adjust the list pane height
-			 	listHeight = maxHeight - insHeight - hdrHeight - otherHeight;
-				
-			if (listHeight > 0) {
-				list.height(listHeight);
-			}
-		},
+//		resize: function(maxHeight) {
+//			this._super(maxHeight);	
+//			var list = this.list.getUI(),	
+//				
+//			// now determine button container height
+//				insHeight = this.instructions.outerHeight(true),
+//			
+//			// get the header height
+//				hdrHeight = this.title.outerHeight(true),
+//				
+//			// get other heights
+//				otherHeight = this.getOtherHeights(),
+//			
+//			// adjust the list pane height
+//			 	listHeight = maxHeight - insHeight - hdrHeight - otherHeight;
+//				
+//			if (listHeight > 0) {
+//				list.height(listHeight);
+//			}
+//		},
 		
 		update: function(obj) {
 			var li = this.items.get(obj.getId()),

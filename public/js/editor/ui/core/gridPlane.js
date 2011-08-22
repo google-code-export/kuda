@@ -97,7 +97,7 @@ var editor = (function(module) {
 			modifyMaterial(this.markerMaterial, this.extent, this.fidelity * 5.0);
 			
 			this.markerMaterial.getParam('xAxisColor').value = [1.0, 0.0, 0.0, 1.0];
-			this.markerMaterial.getParam('zAxisColor').value = [0.0, 1.0, 0.0, 1.0];
+			this.markerMaterial.getParam('zAxisColor').value = [0.0, 0.0, 1.0, 1.0];
 		},
 		
 		setVisible: function(visible) {
