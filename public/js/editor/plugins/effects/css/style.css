@@ -1,0 +1,124 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+/**
+ * On/Off switch
+ */
+form .onOff {
+	display: block;
+	margin: 5px 0;
+	background: -moz-linear-gradient(19% 75% 90deg, #88b2cb, #6d95ad); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#6d95ad), to(#88b2cb));
+	border-radius: 4px;
+	-moz-border-radius: 4px;
+	border: 1px solid #aaa;
+	width: 80px;
+	position: relative;
+	height: 32px;
+}
+ 
+form .onOff:before {
+	content: "ON";
+	padding-left: 9px;
+	line-height: 32px;
+	color: #fff;
+	font-size: 14px;
+	font-weight: bold;
+	text-shadow: #093B5C 0px -1px 1px;
+ 
+}
+ 
+form .onOff:after {
+	content: "OFF";
+	padding-left: 12px;
+	line-height: 32px;
+	color: #fff;
+	font-size: 14px;
+	font-weight: bold;
+	text-shadow: #093B5C 0px -1px 1px;
+}
+ 
+.check { 
+	display: block;
+	width: 40px;
+	height: 30px;
+	border-radius: 3px;
+	-moz-border-radius: 3px;
+	background: -moz-linear-gradient(19% 75% 90deg, #eaeaea, #cacaca);
+	background: #fff -webkit-gradient(linear, 0% 0%, 0% 100%, from(#cacaca), to(#eaeaea));
+	border: 1px solid #e5e5e5;
+	position: absolute;
+	top: 0px;
+	left: 0px;
+}
+ 
+.onOff input[type=checkbox] {
+	display: none;
+}
+ 
+@-webkit-keyframes labelON {
+	0% {
+		top: 0px;
+    	left: 0px;
+	}
+	
+	100% { 
+		top: 0px;
+    	left: 38px;
+	}
+}
+ 
+.onOff input[type=checkbox]:checked + label.check {
+	top: 0px;
+	left: 38px;
+	-webkit-animation-name: labelON; 
+  	-webkit-animation-duration: .2s; 
+  	-webkit-animation-iteration-count: 1;
+  	-webkit-animation-timing-function: ease-in;
+  	-webkit-box-shadow: #244766 -1px 0px 3px;
+}
+ 
+@-webkit-keyframes labelOFF {
+	0% {
+		top: 0px;
+    	left: 38px;
+	}
+	
+	100% { 
+		top: 0px;
+    	left: 0px;
+	}
+}
+ 
+.onOff input[type=checkbox] + label.check {
+	top: 0px;
+	left: 0px;
+	-webkit-animation-name: labelOFF; 
+  	-webkit-animation-duration: .2s; 
+  	-webkit-animation-iteration-count: 1;
+  	-webkit-animation-timing-function: ease-in;
+  	-webkit-box-shadow: #244766 1px 0px 3px;
+}
+ 
+.onOff label.info {
+	position: absolute;
+	color: #000;
+	top: 0px;
+	left: 100px;
+	line-height: 32px;
+	width: 150px;
+}
