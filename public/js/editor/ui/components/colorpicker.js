@@ -43,10 +43,10 @@ var editor = (function(module) {
 			this.container.addClass(this.config.containerClass);
 			
 			// initialize inputs
-			this.rInput = jQuery('<input type="text" id="' + this.config.inputId + 'R" class="rNdx color"/>');
-			this.gInput = jQuery('<input type="text" id="' + this.config.inputId + 'G"  class="gNdx color"/>');
-			this.bInput = jQuery('<input type="text" id="' + this.config.inputId + 'B"  class="bNdx color"/>');
-			this.aInput = jQuery('<input type="text" id="' + this.config.inputId + 'A"  class="aNdx color"/>');
+			this.rInput = jQuery('<input type="text" id="' + this.config.inputId + 'R" class="rNdx color" placeholder="r" disabled />');
+			this.gInput = jQuery('<input type="text" id="' + this.config.inputId + 'G"  class="gNdx color" placeholder="g" disabled />');
+			this.bInput = jQuery('<input type="text" id="' + this.config.inputId + 'B"  class="bNdx color" placeholder="b" disabled />');
+			this.aInput = jQuery('<input type="text" id="' + this.config.inputId + 'A"  class="aNdx color" placeholder="a" disabled />');
 			
 			// initialize colorpicker button
 			this.pickerBtn = jQuery('<span id="' + this.config.buttonId + '" class="colorPicker"></span>');
@@ -92,10 +92,10 @@ var editor = (function(module) {
 			var colorPickedFcn = function(color) {
 				var rndFnc = module.utils.roundNumber;
 							 
-				r.val(rndFnc(color.val('r')/255, 2)).removeClass('vectorHelper');
-				g.val(rndFnc(color.val('g')/255, 2)).removeClass('vectorHelper');
-				b.val(rndFnc(color.val('b')/255, 2)).removeClass('vectorHelper');
-				a.val(rndFnc(color.val('a')/255, 2)).removeClass('vectorHelper');
+				r.val(rndFnc(color.val('r')/255, 2));
+				g.val(rndFnc(color.val('g')/255, 2));
+				b.val(rndFnc(color.val('b')/255, 2));
+				a.val(rndFnc(color.val('a')/255, 2));
 				
 				var val = [
 					parseFloat(r.val()), parseFloat(g.val()), parseFloat(b.val()), 
@@ -125,51 +125,15 @@ var editor = (function(module) {
 					found = true;
 				}
 			}
-			
-			this.setupAutoFills();
-		},
-	
-		setupAutoFills: function() {
-			var wgt = this;
-				
-			this.rInput.val('r');
-			this.gInput.val('g');
-			this.bInput.val('b');
-			this.aInput.val('a');
-						
-			this.find('.color').bind('keydown', function(evt) {
-				var elem = jQuery(this);
-				elem.removeClass('vectorHelper');
-			})
-			.bind('blur', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val(),
-					cls = elem.attr('class'),
-					param = elem.attr('id'),
-					totalVal = null,
-					type = cls.match(/rNdx|gNdx|bNdx|aNdx/);				
-				
-				if (val === '') {
-					elem.val(type[0].replace('Ndx', '')).addClass('vectorHelper');
-				}
-			})
-			.bind('focus', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val();
-				if (val === 'r' || val === 'g' || val === 'b' || val === 'a') {
-					elem.val('');
-				}
-			})
-			.addClass('vectorHelper').attr('disabled', 'disabled');
 		},
 		
 		setColor: function(color) {	
 			var pickers = jQuery.jPicker.List;
 				
-			this.rInput.val(color[0]).removeClass('vectorHelper');
-			this.gInput.val(color[1]).removeClass('vectorHelper');
-			this.bInput.val(color[2]).removeClass('vectorHelper');
-			this.aInput.val(color[3]).removeClass('vectorHelper');
+			this.rInput.val(color[0]);
+			this.gInput.val(color[1]);
+			this.bInput.val(color[2]);
+			this.aInput.val(color[3]);
 			
 			this.picker.color.active.val('rgba', {
 				r: color[0] * 255,
@@ -197,10 +161,10 @@ var editor = (function(module) {
 		},
 		
 		reset: function() {
-			this.rInput.val('r').addClass('vectorHelper');
-			this.gInput.val('g').addClass('vectorHelper');
-			this.bInput.val('b').addClass('vectorHelper');
-			this.aInput.val('a').addClass('vectorHelper');
+			this.rInput.val('');
+			this.gInput.val('');
+			this.bInput.val('');
+			this.aInput.val('');
 			
 			this.picker.color.active.val('hex', '#ffffff');
 		}

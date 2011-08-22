@@ -20,7 +20,7 @@ var editor = (function(editor) {
 	
 	editor.EventTypes = editor.EventTypes || {};
 	
-	var tooltip = new editor.ui.createTooltip();
+	var tooltip = new editor.ui.createTooltip('errorWrapper');
 	
 	editor.ui.Validator = editor.utils.Listenable.extend({
 		init: function(opt_elements, checkFunction) {
@@ -43,7 +43,6 @@ var editor = (function(editor) {
 				msg = vld.checkFunction(elem);
 				
 				if (msg) {
-					tooltip.setContainerClass(vld.containerClass);
 					tooltip.show(elem, msg, 2000);
 					elem.addClass('error');
 				}
@@ -89,7 +88,6 @@ var editor = (function(editor) {
 				if (msg) {
 					that.timeoutId = setTimeout(function() {
 						that.timeoutId = null;
-						tooltip.setContainerClass(that.containerClass);
 						tooltip.show(that.vector.getUI(), msg, 3000);
 						vecInputs.addClass('error');
 					}, 1500);

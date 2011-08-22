@@ -15,7 +15,7 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(base, jQuery) {
+var editor = (function(editor) {
     o3djs.require('o3djs.util');
     o3djs.require('o3djs.math');
     o3djs.require('o3djs.quaternions');
@@ -47,8 +47,9 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.ui.components.objectPicker');
 	o3djs.require('editor.ui.components.param');
 	
+	o3djs.require('editor.ui.core.view');
 	o3djs.require('editor.ui.core.progress');
-	o3djs.require('editor.ui.core.toolbar');
+	o3djs.require('editor.ui.core.tools');
 	o3djs.require('editor.ui.core.sidebar');
     o3djs.require('editor.ui.core.actionbar');
 	o3djs.require('editor.ui.core.transformHandles');
@@ -59,26 +60,15 @@ var editor = (function(base, jQuery) {
 	o3djs.require('editor.ui.widgets.listWidget');
 	o3djs.require('editor.ui.widgets.detailsList');
 	o3djs.require('editor.ui.widgets.behaviorWidget');
-
-    o3djs.require('editor.tools.baseTool');
-    o3djs.require('editor.tools.animator');
-    o3djs.require('editor.tools.manips');
-    o3djs.require('editor.tools.messaging');
-    o3djs.require('editor.tools.modelBrowser');
-    o3djs.require('editor.tools.motions');
-    o3djs.require('editor.tools.viewManip');
-    o3djs.require('editor.tools.viewpoints');
-	o3djs.require('editor.tools.particleEffects');
-	o3djs.require('editor.tools.preview');
-	o3djs.require('editor.tools.scenes');
-	o3djs.require('editor.tools.shapes');
-	o3djs.require('editor.tools.hudDisplays');
-	o3djs.require('editor.tools.fog');
-	o3djs.require('editor.tools.curves');
-	o3djs.require('editor.tools.timer');
+//
+//
+//	o3djs.require('editor.plugins.camera.js.viewpoints');
+//	o3djs.require('editor.plugins.camera.js.cameraCurves');
+//		
+//		o3djs.require('editor.plugins.camera.init');
 	
 	o3djs.require('hemi.loader');
 	o3djs.require('hemi.handlers.valueCheck');
 	
-	return base;
-})(editor || {}, jQuery);
+	return editor;
+})(editor || {});
