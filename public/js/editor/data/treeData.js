@@ -357,17 +357,17 @@ var editor = (function(editor) {
 		return node;
 	};
 	
-	editor.treeData.createeditorJson = function(editor, prefix) {
+	editor.treeData.createModuleJson = function(module, prefix) {
 		var methods = [];
 		
-		for (propName in editor) {
-			var prop = editor[propName];
+		for (propName in module) {
+			var prop = module[propName];
 			
 			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
-				var name = getNodeName(editor, {
+				var name = getNodeName(module, {
 					option: propName,
 					prefix: prefix,
-					id: editor.getId()
+					id: module.getId()
 				});
 				
 				methods.push({
@@ -378,26 +378,26 @@ var editor = (function(editor) {
 					},
 					metadata: {
 						type: 'method',
-						parent: editor
+						parent: module
 					}
 				});
 			}
 		}
 		
-		var name = getNodeName(editor, {
+		var name = getNodeName(module, {
 			prefix: prefix,
-			id: editor.getId()
+			id: module.getId()
 		});
 		
 		return {
-			data: editor.name,
+			data: module.name,
 			attr: {
 				id: name,
 				rel: 'citType'
 			},
 			metadata: {
 				type: 'citType',
-				citizen: editor
+				citizen: module
 			},
 			children: methods,
 			state: 'closed'
