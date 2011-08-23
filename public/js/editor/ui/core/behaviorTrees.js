@@ -432,29 +432,25 @@ var editor = (function(editor) {
 		
 		addToolTip = function(citizen, opt_func) {
 			var nodeId = editor.treeData.getNodeName(citizen, {
-						prefix: this.pre,
-						option: opt_func,
-						id: opt_func ? citizen.getId() : null
-					}),
-				node = jQuery('#' + nodeId, this.tree);
+					prefix: this.pre,
+					option: opt_func,
+					id: opt_func ? citizen.getId() : null
+				}),
+				type = citizen.getCitizenType(),
+				desc;
 			
-			if (node.length > 0) {
-				var type = citizen.getCitizenType(),
-					desc;
-				
-				if (opt_func) {
-					desc = editor.data.getMetaData().getDescription(type, opt_func);
-				} else if (type === editor.ui.ToolConstants.SHAPE_PICK) {
-					desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
-				} else if (type === editor.ui.ToolConstants.CAM_MOVE) {
-					desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
-				} else {
-					desc = editor.data.getMetaData().getDescription(type);
-				}
-				
-				if (desc != null) {
-					this.tooltips.put(nodeId, desc);
-				}
+			if (opt_func) {
+				desc = editor.data.getMetaData().getDescription(type, opt_func);
+			} else if (type === editor.ui.ToolConstants.SHAPE_PICK) {
+				desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
+			} else if (type === editor.ui.ToolConstants.CAM_MOVE) {
+				desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
+			} else {
+				desc = editor.data.getMetaData().getDescription(type);
+			}
+			
+			if (desc != null) {
+				this.tooltips.put(nodeId, desc);
 			}
 		},
 		
@@ -527,16 +523,13 @@ var editor = (function(editor) {
 						prefix: this.pre,
 						option: msg,
 						id: citizen.getId()
-					}),
-				node = jQuery('#' + nodeId, this.tree);
+					});
 			
-			if (node.length > 0) {
-				msg = msg.split('.').pop();
-				var desc = editor.data.getMetaData().getMsgDescription(citizen.getCitizenType(), msg);
-				
-				if (desc != null) {
-					this.tooltips.put(nodeId, desc);
-				}
+			msg = msg.split('.').pop();
+			var desc = editor.data.getMetaData().getMsgDescription(citizen.getCitizenType(), msg);
+			
+			if (desc != null) {
+				this.tooltips.put(nodeId, desc);
 			}
 		},
 		
