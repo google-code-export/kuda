@@ -159,8 +159,11 @@ var editor = (function(editor) {
 				var list = this.savedMatrices;
 				
 				for (var ndx = 0, len = list.length; ndx < len; ndx++) {
-					var m = list[ndx];
-					this.props.transforms[ndx].localMatrix = m;
+					var tran = this.props.transforms[ndx];
+					
+					if (!hemi.utils.isAnimated(tran)) {
+						tran.localMatrix = list[ndx];
+					}
 				}
 				
 				this.savedMatrices = null;

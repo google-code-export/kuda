@@ -257,14 +257,15 @@ var editor = (function(editor) {
 			this.toolbarWidget.append(this.toolHover);
 			
 			this.toolbarWidget.bind('click', function() {
-                view.notifyListeners(editor.EventTypes.ToolClicked, view);
-                view.setMode(editor.ui.ToolConstants.MODE_DOWN);
+				if (view.mode !== module.tools.ToolConstants.MODE_DOWN) {
+                	view.notifyListeners(module.EventTypes.ToolClicked, view);
+                    view.setMode(module.tools.ToolConstants.MODE_DOWN);
+                }
 			})
 			.bind('mouseover', function(evt) {
 				if (!view.toolHover.data('set')) {
-					var elem = jQuery(this), 
-						offset = elem.offset(), 
-						top = offset.top, 
+					var elem = jQuery(this),
+						offset = elem.offset(),
 						height = elem.height();
 					
 					view.toolHover.offset({
@@ -310,8 +311,7 @@ var editor = (function(editor) {
 	        var ndx = this.panels.indexOf(panel);
 	        
 	        if (ndx != -1) {
-	            var spliced = this.panels.splice(ndx, 1);
-				
+	            this.panels.splice(ndx, 1);
 				delete this[panel.getName()];
 	        }
 		},
@@ -383,9 +383,7 @@ var editor = (function(editor) {
 		 * communication.
 		 */
 		bindEvents: function() {
-			var model = this.model,
-				view = this.view,
-				ctr = this,
+			var view = this.view,
 				pnls = view.panels,
 				visFcn = function(val) {
 					if (val.updateMeta) {

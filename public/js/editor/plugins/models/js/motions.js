@@ -78,6 +78,7 @@ var editor = (function(editor) {
 					motion = new hemi.motion.Translator();
 				}
 				
+				motion.disable();
 				event = editor.EventTypes.MotionCreated;
 			} else {
 				motion.clear();
@@ -156,7 +157,11 @@ var editor = (function(editor) {
 				var trans = this.previewMotion.getTransforms();
 					
 				for (var i = 0, il = trans.length; i < il; i++) {
-					trans[i].localMatrix = this.matrices[i];
+					var tran = trans[i];
+					
+					if (!hemi.utils.isAnimated(tran)) {
+						tran.localMatrix = this.matrices[i];
+					}
 				}
 				
 				this.previewMotion.cleanup();
