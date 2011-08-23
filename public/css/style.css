@@ -930,11 +930,15 @@ div.jstree {
 	border-top-width: 0;
 	padding: 5px 10px;
 	border-radius: 0 0 3px 3px;
+	z-index: 800;
 }
 .treeSelector input.treeSelectorIpt {
 	width: 213px;
 	float: left;
 	border-radius: 3px 0 0 3px;
+}
+.treeSelectorBtn {
+	border-color: #ddd;
 }
 .treeSelectorBtn:hover {
 	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 

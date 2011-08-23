@@ -422,7 +422,8 @@ var editor = (function(editor) {
 		
 		if (complete) {
 			for (var i = 0, il = callbacks.length; i < il; i++) {
-				callbacks[i]();
+				var obj = callbacks[i];
+				obj.callback.apply(this, obj.params);
 			}
 		}
 	};
@@ -449,14 +450,6 @@ var editor = (function(editor) {
 		
 	editor.ui.addTabPane = function(tabpane) {
 		tabbar.add(tabpane);
-	};
-	
-	editor.ui.getCommonWidget = function(name) {
-		return this.commonWidgets.get(name);
-	};
-	
-	editor.ui.getCommonWidgets = function() {
-		return this.commonWidgets.values();
 	};
 	
 	editor.ui.getCss = function(url, media) {
@@ -499,15 +492,6 @@ var editor = (function(editor) {
 	    document.body.appendChild(script);
 	};
 	
-	editor.ui.registerCommonWidget = function(name, widget) {
-		this.commonWidgets.put(name, widget);
-	};
-	
-	editor.ui.whenDoneLoading = function(cb) {
-		callbacks.push(cb);
-	};	
-
-	
 	editor.ui.initializeView = function(clientElements) {
 		var bdy = jQuery('body');
 		
@@ -540,7 +524,15 @@ var editor = (function(editor) {
 					bdy = jQuery('body');
 				
 				for (var i = 0, il = plugins.length; i < il; i++) {
-					editor.ui.getScript('js/editor/plugins/' + plugins[i] + '/init.js'); 
+					var plugin = plugins[i];
+					
+					editor.ui.getScript('js/editor/plugins/' + plugin + '/init.js'); 
+					callbacks.push({
+						callback: function(name){
+							editor.tools[name].init();
+						},
+						params: [plugin]
+					});
 				}
 			})
 			.error(function(xhr, status, err) {

@@ -52,7 +52,7 @@ var editor = (function(editor) {
 	 */
 	editor.tools.CamCurveModel = editor.ui.ToolModel.extend({
 		init: function() {
-			this._super();
+			this._super('editor.tools.CamCurve');
 			this.camData = null;
 			this.curve = null;
 			this.prevHandler = null;
@@ -87,6 +87,7 @@ var editor = (function(editor) {
 		
 		removeCamCurve: function(curve) {
 			this.notifyListeners(editor.EventTypes.CamCurveRemoved, curve);
+			hemi.dispatch.postMessage(this, editor.msg.citizenDestroyed, curve);
 			curve.cleanup();
 		},
 		
@@ -111,7 +112,8 @@ var editor = (function(editor) {
 			
 			this.updateCurve();
 			this.curve.name = name;			
-			this.notifyListeners(msgType, this.curve);
+			this.notifyListeners(msgType, this.curve);	
+			hemi.dispatch.postMessage(this, editor.msg.citizenCreated, this.curve);
 			
 			// reset
 			this.curve = null;
@@ -562,7 +564,7 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////     
 		
 	var ListWidget = editor.ui.ListWidget.extend({
-		init: function(options) {
+		init: function(behaviorWidget) {
 		    this._super({
 				name: 'camCurveListWgt',
 				listId: 'camCurveList',
@@ -573,6 +575,7 @@ var editor = (function(editor) {
 			
 			sizeAndPosition.call(this);
 			this.container.addClass('second');
+			this.behaviorWidget = behaviorWidget;
 		},
 		
 		bindButtons: function(li, obj) {
@@ -590,7 +593,7 @@ var editor = (function(editor) {
 		},
 		
 		createListItem: function() {
-			return new editor.ui.BhvListItem();
+			return new editor.ui.BhvListItem(this.behaviorWidget);
 		},
 		
 		getOtherHeights: function() {
@@ -601,17 +604,7 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
-	
-	/*
-	 * Configuration object for the CamCurveView.
-	 */
-	editor.tools.CamCurveViewDefaults = {
-		axnBarId: 'vptActionBar',
-		toolName: 'CamCurve',
-        toolTip: 'Camera Viewpoints: Create and edit camera viewpoints',
-		widgetId: 'viewpointsBtn'
-	};
-	
+		
 	/**
 	 * The CamCurveView controls the dialog and toolbar widget for the
 	 * animation tool.
@@ -620,18 +613,22 @@ var editor = (function(editor) {
 	 *         editor.tools.CamCurveViewDefaults as default options
 	 */
 	editor.tools.CamCurveView = editor.ui.ToolView.extend({
-		init: function(options) {
-			var newOpts = jQuery.extend({}, editor.tools.CamCurveViewDefaults, options);
-			this._super(newOpts);
+		init: function() {
+			this._super({
+				toolName: 'CamCurve',
+		        toolTip: 'Camera Viewpoints: Create and edit camera viewpoints',
+				elemId: 'viewpointsBtn',
+				id: 'editor.tools.CamCurve'
+			});
 			this.pre = 'vp_';
 			
 			this.addPanel(new editor.ui.Panel({
 				name: 'mainPanel'
 			}));
 			
-			this.mainPanel.addWidget(new CreateWidget());
-			this.mainPanel.addWidget(new ListWidget());
 			this.mainPanel.addWidget(editor.ui.getBehaviorWidget());
+			this.mainPanel.addWidget(new CreateWidget());
+			this.mainPanel.addWidget(new ListWidget(this.mainPanel.behaviorWidget));
 		}
 	});
 		
@@ -658,9 +655,9 @@ var editor = (function(editor) {
 			var model = this.model,
 				view = this.view,
 				ctr = this,
-				bhvWgt = view.mainPanel.behaviorSBWidget,
-				crtCrvWgt = view.mainPanel.createCamCurveSBW,
-				crvLstWgt = view.mainPanel.camCurveListWgt;
+				bhvWgt = view.mainPanel.behaviorWidget,
+				crtWgt = view.mainPanel.createCamCurveSBW,
+				lstWgt = view.mainPanel.camCurveListWgt;
 			
 			// special listener for when the toolbar button is clicked
 			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
@@ -669,36 +666,36 @@ var editor = (function(editor) {
 			});
 			
 			// create camera curve widget specific
-			crtCrvWgt.addListener(editor.EventTypes.AddWaypoint, function(wpData) {
+			crtWgt.addListener(editor.EventTypes.AddWaypoint, function(wpData) {
 				model.addWaypoint(wpData.position, wpData.target);
 			});
-			crtCrvWgt.addListener(editor.EventTypes.CancelCamCurve, function() {
+			crtWgt.addListener(editor.EventTypes.CancelCamCurve, function() {
 				model.setCamCurve(null);
 			});
-			crtCrvWgt.addListener(editor.EventTypes.RemoveWaypoint, function(wp) {
+			crtWgt.addListener(editor.EventTypes.RemoveWaypoint, function(wp) {
 				model.removeWaypoint(wp);
 			});
-			crtCrvWgt.addListener(editor.EventTypes.SaveCamCurve, function(name) {
+			crtWgt.addListener(editor.EventTypes.SaveCamCurve, function(name) {
 				model.saveCamCurve(name);
 			});
-			crtCrvWgt.addListener(editor.EventTypes.StartCurvePreview, function() {
+			crtWgt.addListener(editor.EventTypes.StartCurvePreview, function() {
 				model.startPreview();
 			});
-			crtCrvWgt.addListener(editor.EventTypes.StopCurvePreview, function() {
+			crtWgt.addListener(editor.EventTypes.StopCurvePreview, function() {
 				model.stopPreview();
 			});
-			crtCrvWgt.addListener(editor.EventTypes.UpdateWaypoint, function(wpData) {
+			crtWgt.addListener(editor.EventTypes.UpdateWaypoint, function(wpData) {
 				model.updateWaypoint(wpData.point, wpData.position, wpData.target);
 			});
 			
 			// camera curve list widget specific
-			crvLstWgt.addListener(editor.EventTypes.AddCamCurve, function() {
+			lstWgt.addListener(editor.EventTypes.AddCamCurve, function() {
 			});
-			crvLstWgt.addListener(editor.EventTypes.EditCamCurve, function(crv) {
+			lstWgt.addListener(editor.EventTypes.EditCamCurve, function(crv) {
 				model.setCamCurve(crv);
-				crtCrvWgt.set(crv);
+				crtWgt.set(crv);
 			});
-			crvLstWgt.addListener(editor.EventTypes.RemoveCamCurve, function(crv) {
+			lstWgt.addListener(editor.EventTypes.RemoveCamCurve, function(crv) {
 				model.removeCamCurve(crv);
 			});
 			
@@ -707,32 +704,28 @@ var editor = (function(editor) {
 //				view.updateCameraInfo(value);
 			});
 			model.addListener(editor.EventTypes.CamCurveCreated, function(crv) {
-				crvLstWgt.add(crv);
+				lstWgt.add(crv);
 			});
 			model.addListener(editor.EventTypes.CamCurveRemoved, function(crv) {
-				crvLstWgt.remove(crv);
+				lstWgt.remove(crv);
 			});
 			model.addListener(editor.EventTypes.CamCurveUpdated, function(crv) {
-				crvLstWgt.update(crv);
+				lstWgt.update(crv);
 			});
 			model.addListener(editor.EventTypes.WaypointAdded, function(wp) {
-				crtCrvWgt.waypointAdded(wp);
+				crtWgt.waypointAdded(wp);
 			});
 			model.addListener(editor.EventTypes.WaypointRemoved, function(wp) {
-				crtCrvWgt.waypointRemoved(wp);
+				crtWgt.waypointRemoved(wp);
 			});
 			model.addListener(editor.EventTypes.WaypointUpdated, function(wp) {
-				crtCrvWgt.waypointUpdated(wp);
+				crtWgt.waypointUpdated(wp);
 			});
 			
 			// behavior widget specific
-			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
-				if (obj.updateMeta) {
-					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
-					
-					crvLstWgt.setVisible(!obj.visible && isDown);
-					crtCrvWgt.setVisible(!obj.visible && isDown);
-				}
+			bhvWgt.addListener(editor.EventTypes.WidgetVisible, function(obj) {
+				editor.ui.sizeAndPosition.call(bhvWgt);
+				crtWgt.setVisible(!obj.visible);
 			});
 		}
 	});

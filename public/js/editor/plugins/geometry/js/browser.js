@@ -94,7 +94,7 @@ var editor = (function(editor) {
 	
 	editor.tools.ModelBrowserModel = editor.ui.ToolModel.extend({
 		init: function() {
-			this._super();
+			this._super('editor.tools.ModelBrowser');
 			this.models = [];
 			this.shapes = [];
 			var that = this;
@@ -245,7 +245,7 @@ var editor = (function(editor) {
      */
     editor.tools.SelectorModel = editor.ui.ToolModel.extend({
 		init: function() {
-        	this._super();
+			this._super('editor.tools.ModelBrowser');
 	        
 			this.selected = new Hashtable();
 	        this.highlightedShapes = new Hashtable();
@@ -807,27 +807,6 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 //                            	Model Tree Widget                             //
 //////////////////////////////////////////////////////////////////////////////// 
-
-	
-	var ChildListItem = editor.ui.ListItem.extend({
-		init: function() {
-			this._super();
-		},
-						
-		finishLayout: function() {
-			this.container = jQuery('<div></div>');
-			this.title = jQuery('<span></span>');
-			this.removeBtn = jQuery('<button class="removeBtn">Remove</button>');
-			var btnDiv = jQuery('<div class="buttonContainer"></div>');
-			
-			btnDiv.append(this.removeBtn);
-			this.container.append(this.title).append(btnDiv);
-		},
-		
-		setText: function(text) {
-			this.title.text(text);
-		}
-	});
 	
 	
 	var ModelTreeWidget = editor.ui.Widget.extend({
@@ -915,7 +894,6 @@ var editor = (function(editor) {
 							wgt.treeParent.scrollTo(elem, 400);
 						}
 						
-//						wgt.displayTransformNode(metadata.actualNode);
 						break;
 					case 'material':
 						var material = metadata.actualNode,
@@ -936,7 +914,6 @@ var editor = (function(editor) {
 							type: metadata.type
 						});
 						
-//						wgt.displayMaterialNode(material, model);
 						break;
 					default:
 						wgt.tree.jstree('toggle_node', elem);
@@ -1085,7 +1062,7 @@ var editor = (function(editor) {
 			this._super();
 			
 			this.list = new editor.ui.List({
-				widgetId: 'mbrHiddenList',
+				listId: 'mbrHiddenList',
 				prefix: 'mbrHidLst',
 				type: editor.ui.ListType.UNORDERED
 			});
@@ -1179,7 +1156,7 @@ var editor = (function(editor) {
 		init: function() {
 			this._super({
 				name: 'modelLoader',
-				uiFile: 'js/editor/plugins/models/html/modelLoading.htm'
+				uiFile: 'js/editor/plugins/geometry/html/modelLoading.htm'
 			});
 		},
 		
@@ -1466,6 +1443,26 @@ var editor = (function(editor) {
 		MATERIAL: 1
 	};
 	
+	var ChildListItem = editor.ui.ListItem.extend({
+		init: function() {
+			this._super();
+		},
+						
+		finishLayout: function() {
+			this.container = jQuery('<div></div>');
+			this.title = jQuery('<span></span>');
+			this.removeBtn = jQuery('<button class="removeBtn">Remove</button>');
+			var btnDiv = jQuery('<div class="buttonContainer"></div>');
+			
+			btnDiv.append(this.removeBtn);
+			this.container.append(this.title).append(btnDiv);
+		},
+		
+		setText: function(text) {
+			this.title.text(text);
+		}
+	});
+	
 	var buildMaterialPopup = function(material, model) {
 			var params = material.params,
 				textures = {},
@@ -1724,21 +1721,15 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    	
-		
-	/*
-	 * Configuration object for the ModelBrowserView.
-	 */
-	editor.tools.ModelBrowserViewDefaults = {
-		axnBarId: 'mbActionBar',
-		toolName: 'Model Browser',
-		toolTip: 'Model Browser: browses transforms and shapes in models',
-		widgetId: 'modelBrowserBtn'
-	};
 	
 	editor.tools.ModelBrowserView = editor.ui.ToolView.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, editor.tools.ModelBrowserViewDefaults, options);
-			this._super(newOpts);
+			this._super({
+				toolName: 'Model Browser',
+				toolTip: 'Model Browser: browses transforms and shapes in models',
+				elemId: 'modelBrowserBtn',
+				id: 'editor.tools.ModelBrowserView'
+			});
 			
 			this.isDown = false;
 			

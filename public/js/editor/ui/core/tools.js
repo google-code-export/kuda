@@ -19,6 +19,21 @@ var editor = (function(editor) {
 	editor.ui = editor.ui || {};
 	
 ////////////////////////////////////////////////////////////////////////////////
+//                     			  Architecture	  		                      //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var models = new Hashtable(),
+		views = new Hashtable();
+		
+	editor.ui.getModel = function(name) {
+		return models.get(name);
+	};
+	
+	editor.ui.getView = function(name) {
+		return views.get(name);
+	};	
+	
+////////////////////////////////////////////////////////////////////////////////
 //                     			   	Tool Bar	  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
@@ -111,7 +126,9 @@ var editor = (function(editor) {
 	 */
 	editor.ui.ToolConstants = {
 		MODE_DOWN: 'down',
-		MODE_UP: 'up'
+		MODE_UP: 'up',
+		SHAPE_PICK: "ShapePick",
+		CAM_MOVE: "CameraMove"
 	};
 	
 	editor.EventTypes = editor.EventTypes || {};
@@ -138,8 +155,14 @@ var editor = (function(editor) {
      * an observable).
      */
 	editor.ui.ToolModel = editor.utils.Listenable.extend({
-		init: function() {
+		init: function(id) {
 			this._super();
+			this.id = id;
+			models.put(id, this);
+		},
+		
+		getId: function() {
+			return this.id;
 		}
 	});
     
@@ -151,10 +174,10 @@ var editor = (function(editor) {
      * Configuration object for the ToolView.
      */
     editor.ui.ToolViewDefaults = {
-        widgetId: null,
+        elemId: null,
+		id: '',
         toolName: 'toolName',
-		toolTip: '',
-		axnBarId: null
+		toolTip: ''
     };
 	
 	/**
@@ -169,24 +192,18 @@ var editor = (function(editor) {
 			this._super();
 				
 			this.config = jQuery.extend({}, editor.ui.ToolViewDefaults, options);
-			this.toolbarWidget = null;
+			this.toolbarContainer = null;
 			this.enabled = true;
 			this.mode = editor.ui.ToolConstants.MODE_UP;
 			this.panels = [];
 			this.visiblePanels = [];
 			
-			if (this.config.axnBarId) {
-				this.actionBar = new editor.ui.ActionBar({
-					containerId: this.config.axnBarId
-				});
-			
-				this.actionBar.setVisible(false);
-			}
-			if (this.config.widgetId) {
-				this.layoutToolbarWidget();
+			if (this.config.elemId) {
+				this.layoutToolbarContainer();
 			}
 			
-			this.layoutActionBar();
+			this.id = this.config.id;
+			views.put(this.id, this);
 		},
 		
 		/**
@@ -199,12 +216,12 @@ var editor = (function(editor) {
 			if (this.enabled != enabled) {
 				this.enabled = enabled;
 				
-				if (this.toolbarWidget) {
+				if (this.toolbarContainer) {
 					if (enabled) {
-						this.toolbarWidget.removeAttr('disabled');
+						this.toolbarContainer.removeAttr('disabled');
 					}
 					else {
-						this.toolbarWidget.attr('disabled', 'disabled');
+						this.toolbarContainer.attr('disabled', 'disabled');
 					}
 				}
 			}
@@ -221,9 +238,9 @@ var editor = (function(editor) {
 			var oldMode = this.mode;
 			this.mode = mode;
 			
-			if (this.toolbarWidget) {
-				this.toolbarWidget.removeClass(oldMode);
-				this.toolbarWidget.addClass(this.mode);
+			if (this.toolbarContainer) {
+				this.toolbarContainer.removeClass(oldMode);
+				this.toolbarContainer.addClass(this.mode);
 			}
 			
 			this.notifyListeners(editor.EventTypes.ToolModeSet, {
@@ -238,28 +255,28 @@ var editor = (function(editor) {
 		 * @return {jQuery Object} the toolbar widget
 		 */
 		getUI: function() {
-			return this.toolbarWidget;
+			return this.toolbarContainer;
 		},
 		
 		/**
 		 * Performs the layout of the toolbar widget.
 		 */
-		layoutToolbarWidget: function() {
+		layoutToolbarContainer: function() {
 			var view = this,
 				left = 70;
 			
-			this.toolbarWidget = jQuery('<div id="' + this.config.widgetId 
+			this.toolbarContainer = jQuery('<div id="' + this.config.elemId 
                 + '" class="toolBtn ' + this.mode 
 				+ '" title="' + this.config.toolTip + '"></div>');			
 			
 			this.toolHover = jQuery('<h3 class="toolHover">' + this.config.toolName + '</h3>')
 				.data('set', false).css('zIndex', editor.ui.Layer.TOOLBAR);
-			this.toolbarWidget.append(this.toolHover);
+			this.toolbarContainer.append(this.toolHover);
 			
-			this.toolbarWidget.bind('click', function() {
-				if (view.mode !== module.tools.ToolConstants.MODE_DOWN) {
-                	view.notifyListeners(module.EventTypes.ToolClicked, view);
-                    view.setMode(module.tools.ToolConstants.MODE_DOWN);
+			this.toolbarContainer.bind('click', function() {
+				if (view.mode !== editor.ui.ToolConstants.MODE_DOWN) {
+                	view.notifyListeners(editor.EventTypes.ToolClicked, view);
+                    view.setMode(editor.ui.ToolConstants.MODE_DOWN);
                 }
 			})
 			.bind('mouseover', function(evt) {
@@ -284,14 +301,6 @@ var editor = (function(editor) {
 					view.toolHover.hide();
 				});
 			});
-		},
-		
-		/**
-		 * Performs the layout of the actionbar.  Left empty intentionally since
-		 * each sub class needs to fill out this method.
-		 */
-		layoutActionBar: function() {
-			
 		},
 		
 		addPanel: function(panel) {
