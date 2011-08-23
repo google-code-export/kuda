@@ -823,18 +823,14 @@
 			model.setFileName(url);
 		},
 		
-		unloadModel: function(id, fcn) {
-			var model = hemi.world.getCitizenById(id),
-				that = this;
-			
+		unloadModel: function(model, fcn) {
 			var msgHandler = model.subscribe(hemi.msg.unload,
 				function(msg) {
-					that.mbrMdl.removeModel(model);
 					fcn();
 					model.unsubscribe(msgHandler, hemi.msg.unload);
 				});
 				
-			model.cleanup();
+			this.mbrMdl.removeModel(model);
 		}
 	};
 	

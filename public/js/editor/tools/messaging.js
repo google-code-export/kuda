@@ -1016,9 +1016,18 @@ var editor = (function(module) {
 				}
 			});			
 			model.addListener(module.EventTypes.TargetCreated, function(data) {
-				var target = data.target;
+				var target = data.target,
+					handler = target.handler,
+					spec = model.dispatchProxy.getTargetSpec(target);
 				
+				if (handler instanceof hemi.handlers.ValueCheck) {
+					handler = handler.handler;
+				}
+				
+				editor.depends.add(target, handler);
+				editor.depends.add(target, hemi.world.getCitizenById(spec.src));
 				view.addTarget(target);
+				
 				var editorPnl = view.mainPanel.find('#msgEditor'), 
 					editListPnl = view.mainPanel.find('#msgEvents .msgColWrapper');
 				
@@ -1026,8 +1035,7 @@ var editor = (function(module) {
 				editListPnl.show();
 				
 				// update the behavior widget
-				var spec = model.dispatchProxy.getTargetSpec(target),
-					li = module.ui.getBehaviorListItem(data.actor);
+				var li = module.ui.getBehaviorListItem(data.actor);
 					
 				if (li) {
 					li.add(target, spec, data.actor);
@@ -1036,6 +1044,15 @@ var editor = (function(module) {
 				bhvWgt.setVisible(false);
 			});			
 			model.addListener(module.EventTypes.TargetRemoved, function(target) {
+				var handler = target.handler,
+					spec = model.dispatchProxy.getTargetSpec(target);
+				
+				if (handler instanceof hemi.handlers.ValueCheck) {
+					handler = handler.handler;
+				}
+				
+				editor.depends.remove(target, handler);
+				editor.depends.remove(target, hemi.world.getCitizenById(spec.src));
 				view.removeTarget(target);
 				
 				var li = module.ui.getBehaviorListItem(target.actor);
@@ -1045,17 +1062,26 @@ var editor = (function(module) {
 				}
 			});			
 			model.addListener(module.EventTypes.TargetUpdated, function(data) {
-				var target = data.target;
+				var target = data.target,
+					handler = target.handler,
+					spec = model.dispatchProxy.getTargetSpec(target);
 				
+				if (handler instanceof hemi.handlers.ValueCheck) {
+					handler = handler.handler;
+				}
+				
+				editor.depends.reset(target);
+				editor.depends.add(target, handler);
+				editor.depends.add(target, hemi.world.getCitizenById(spec.src));
 				view.updateTarget(target);
+				
 				var editorPnl = view.mainPanel.find('#msgEditor'), 
 					editListPnl = view.mainPanel.find('#msgEvents .msgColWrapper');
 				
 				editorPnl.hide();
 				editListPnl.show();
 				
-				var spec = model.dispatchProxy.getTargetSpec(target),
-					li = module.ui.getBehaviorListItem(data.actor);
+				var li = module.ui.getBehaviorListItem(data.actor);
 				
 				if (li) {
 					li.update(target, spec, data.actor);

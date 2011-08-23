@@ -51,8 +51,8 @@ var editor = (function(editor) {
 	    },
 		
 		removeManip: function(manip) {
-			manip.cleanup();
 			this.notifyListeners(editor.EventTypes.ManipRemoved, manip);
+			manip.cleanup();
 		},
 		
 		saveManip: function(props) {
@@ -620,7 +620,9 @@ var editor = (function(editor) {
 			
 			li.removeBtn.bind('click', function(evt) {
 				var manip = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.RemoveManip, manip);
+				if (editor.depends.check(manip)) {
+					wgt.notifyListeners(editor.EventTypes.RemoveManip, manip);
+				}
 			});
 		},
 		
@@ -739,10 +741,29 @@ var editor = (function(editor) {
 			
 			// model events
 			model.addListener(editor.EventTypes.ManipCreated, function(manip) {
+				var trans = manip.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.add(manip, model);
+				}
+				
 				mnpWgt.add(manip);
 			});
 			
 			model.addListener(editor.EventTypes.ManipRemoved, function(manip) {
+				var trans = manip.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.remove(manip, model);
+				}
+				
+				editor.depends.clear(manip);
 				mnpWgt.remove(manip);
 			});
 			
@@ -766,6 +787,16 @@ var editor = (function(editor) {
 			});
 			
 			model.addListener(editor.EventTypes.ManipUpdated, function(manip) {
+				editor.depends.reset(manip);
+				var trans = manip.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.add(manip, model);
+				}
+				
 				mnpWgt.update(manip);
 			});
 			

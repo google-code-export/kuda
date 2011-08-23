@@ -113,11 +113,18 @@ var editor = (function(module) {
 		form.append(sel).append(btn);
 		
 		btn.bind('click', function() {
-			msg.text('Unloading Model...').show();
-			cb(parseInt(sel.val()), function() {
-				msg.text('').hide();
-				dlg.dialog('close');			
-			});
+			var id = parseInt(sel.val()),
+				model = hemi.world.getCitizenById(id);
+			
+			if (module.depends.check(model)) {
+				msg.text('Unloading Model...').show();
+				cb(model, function() {
+					msg.text('').hide();
+					dlg.dialog('close');			
+				});
+			} else {
+				dlg.dialog('close');
+			}
 		});
 			
 		dlg.dialog({
@@ -347,6 +354,38 @@ var editor = (function(module) {
 				msg.hide();
 				spn.text(name);
 			}
+		});
+		
+		return dlg;
+	};
+	
+	module.ui.createDependencyDialog = function(depList) {
+		var dlg = createSimpleDialog('showDeps', 'Unable to Remove'),
+			form = dlg.data('form').attr('style', 'float:none;'),
+			msg = dlg.data('msg').attr('style', 'text-align:left;'),
+			lbl = dlg.data('label').attr('for', 'depList').attr('style', 'float:none;'),
+			list = jQuery('<p style="text-align:left;" id="depList"></p>'),
+			btn = jQuery('<button id="okayBtn">Okay</button>');
+		
+		form.append(list);
+		dlg.append(btn);
+		lbl.text('Dependencies:');
+		msg.text('The following elements depend on this element either directly\
+				or indirectly. Please remove or modify them first.');
+		list.text(depList);
+		
+		btn.click(function() {
+			dlg.dialog('close');
+		});
+		dlg.dialog({
+			width: 300,
+			resizable: false,
+			autoOpen: false,
+			modal: true
+		})
+		.bind('dialogopen', function() {
+			form.show();
+			msg.show();
 		});
 		
 		return dlg;
