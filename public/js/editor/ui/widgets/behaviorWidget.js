@@ -297,7 +297,7 @@ var editor = (function(editor) {
 	var BehaviorWidget = editor.ui.FormWidget.extend({
 		init: function() {
 			this._super({
-				name: 'behaviorSBWidget',
+				name: 'behaviorWidget',
 				manualVisible: true
 			});
 		},
@@ -315,15 +315,15 @@ var editor = (function(editor) {
 		},
 		
 		finishLayout: function() {
-			this.container = jQuery('<div id="behaviorWgt"></div>');
+			this.container.attr('id', 'behaviorWgt');
+			
 			var form = jQuery('<form class="noSteps" action="" method="post"></form>'), 
 				triggerFieldset = jQuery('<fieldset><legend>Select a Trigger</legend><ol></ol></fieldset>'), 
 				actionFieldset = jQuery('<fieldset><legend>Select an Action</legend><ol></ol></fieldset>'), 
 				paramsFieldset = jQuery('<fieldset id="behaviorAxnParams"><legend>Set Action Parameters</legend><ol><li></li></ol></fieldset>'), 
 				saveFieldset = jQuery('<fieldset><legend>Save Behavior</legend><ol>' +
 					'<li>' +
-					'    <label>Name:</label>' +
-					'    <input type="text" class="nameField" autocomplete="off" />' +
+					'    <input type="text" class="nameField" autocomplete="off" placeholder="Name"/>' +
 					'	 <div class="buttons">' +
 					'        <button class="saveBtn" disabled="disabled">Save</button>' +
 					'        <button class="cancelBtn">Cancel</button>' +
@@ -439,8 +439,8 @@ var editor = (function(editor) {
 			});
 			
 			cancelBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.Behavior.Cancel);
 				wgt.reset();
+				wgt.setVisible(false);
 			});
 			
 			nameIpt.bind('keyup', function(evt) {				
@@ -451,7 +451,7 @@ var editor = (function(editor) {
 			
 			form.append(triggerFieldset).append(actionFieldset)
 				.append(paramsFieldset).append(saveFieldset);
-			this.container.append(form);
+			this.container.append('<h1>Create Behavior</h1>').append(form);
 			
 			// save checking
 			var trgChecker = new editor.ui.InputChecker(this.trgChooser),
@@ -464,6 +464,8 @@ var editor = (function(editor) {
 			this.addInputsToCheck(nameIpt);
 			this.addInputsToCheck(trgChecker);
 			this.addInputsToCheck(axnChecker);
+			this._super();
+			this.setVisible(false);
 		},
 		
 		reset: function() {
@@ -589,11 +591,12 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 	
 	editor.ui.BhvListItem = editor.ui.EditableListItem.extend({
-		init: function() {
+		init: function(behaviorWidget) {
 			this._super();
 			
 			this.isSorting = false;
 			this.targets = new Hashtable();
+			this.behaviorWidget = behaviorWidget;
 		},
 		
 		add: function(msgTarget, spec, actor) {
@@ -645,7 +648,8 @@ var editor = (function(editor) {
 			
 			this.behaviorBtn.bind('click', function() {
 				editor.ui.showBehaviorMenu(jQuery(this), 
-					wgt.getAttachedObject());
+					wgt.getAttachedObject(),
+					wgt.behaviorWidget);
 			});
 			
 			// attach the sub lists
@@ -720,17 +724,17 @@ var editor = (function(editor) {
 		addTriggerMnuItm = new editor.ui.MenuItem({
 			title: 'Trigger a behavior',
 			action: function(evt) {
-				behaviorWidget.setActor(behaviorMenu.actor, 
+				behaviorMenu.widget.setActor(behaviorMenu.actor, 
 					editor.ui.BehaviorTypes.TRIGGER);
-				behaviorWidget.setVisible(true);
+				behaviorMenu.widget.setVisible(true);
 			}
 		}),
 		addActionMnuItm = new editor.ui.MenuItem({
 			title: 'Respond to a trigger',
 			action: function(evt) {
-				behaviorWidget.setActor(behaviorMenu.actor, 
+				behaviorMenu.widget.setActor(behaviorMenu.actor, 
 					editor.ui.BehaviorTypes.ACTION);
-				behaviorWidget.setVisible(true);
+				behaviorMenu.widget.setVisible(true);
 			}
 		});
 		
@@ -744,19 +748,19 @@ var editor = (function(editor) {
 			
 		if (!menuAdded) {
 			body.append(behaviorMenu.getUI()).data('menuAdded', true);
-			behaviorWidget = new BehaviorWidget();
 		}
 		
-		return behaviorWidget;
+		return new BehaviorWidget();
 	};
 		
-	editor.ui.showBehaviorMenu = function(parBtn, actor, view) {		
+	editor.ui.showBehaviorMenu = function(parBtn, actor, bhvWgt) {		
 		var position = parBtn.offset();
 		
 		position.top += parBtn.outerHeight();
 		position.left -= behaviorMenu.container.outerWidth() - parBtn.outerWidth();
 		behaviorMenu.show(position, parBtn);
-		behaviorMenu.actor = actor;
+		behaviorMenu.actor = actor,
+		behaviorMenu.widget = bhvWgt;
 	};
 	
 	editor.ui.getBehaviorListItem = function(actor) {

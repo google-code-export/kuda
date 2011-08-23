@@ -18,27 +18,23 @@
 (function() {	
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                     			  	Extra Scripts  		                      //
-////////////////////////////////////////////////////////////////////////////////
-
-	editor.ui.getScript('js/editor/plugins/camera/js/viewpoints.js');
-	editor.ui.getScript('js/editor/plugins/camera/js/cameraCurves.js');
-	
-////////////////////////////////////////////////////////////////////////////////
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-
-	var tabpane = new editor.ui.TabPane('Camera'),
-		toolbar = new editor.ui.Toolbar();
-	
-	tabpane.setToolBar(toolbar);	
-	editor.ui.addTabPane(tabpane);
  
- 	editor.ui.whenDoneLoading(function() {
-		var vptMdl = new editor.tools.ViewpointsModel(),
-			vptView = new editor.tools.ViewpointsView(),
-			vptCtr = new editor.tools.ViewpointsController();
+	editor.tools = editor.tools || {};
+	editor.tools.camera = editor.tools.camera || {};
+
+ 	editor.tools.camera.init = function() {
+		var tabpane = new editor.ui.TabPane('Camera'),
+			toolbar = new editor.ui.Toolbar(),
 			
+			vptMdl = new editor.tools.ViewpointsModel(),
+			vptView = new editor.tools.ViewpointsView(),
+			vptCtr = new editor.tools.ViewpointsController();			
+		
+		tabpane.setToolBar(toolbar);	
+		editor.ui.addTabPane(tabpane);
+		
 	    vptCtr.setView(vptView);
 	    vptCtr.setModel(vptMdl);
 		
@@ -51,5 +47,12 @@
 		crvCtr.setModel(crvMdl);
 	
 		toolbar.add(crvView);
-	});
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			  	Extra Scripts  		                      //
+////////////////////////////////////////////////////////////////////////////////
+
+	editor.ui.getScript('js/editor/plugins/camera/js/viewpoints.js');
+	editor.ui.getScript('js/editor/plugins/camera/js/cameraCurves.js');
 })();

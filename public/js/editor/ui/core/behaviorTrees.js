@@ -15,11 +15,11 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	module.ui = module.ui || {};
+var editor = (function(editor) {
+	editor.ui = editor.ui || {};
 	
-	module.EventTypes = module.EventTypes || {};
-	module.EventTypes.Trees = {
+	editor.EventTypes = editor.EventTypes || {};
+	editor.EventTypes.Trees = {
 		// model specific
 		CitizenAdded: 'Trees.CitizenAdded',
 		CitizenRemoved: 'Trees.CitizenRemoved',
@@ -40,13 +40,18 @@ var editor = (function(module) {
 //                                 Tree Model                                 //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var TreeModel = module.utils.Listenable.extend({
+	var TreeModel = editor.utils.Listenable.extend({
 		init: function() {
 			this._super();
 			this.citizenTypes = new Hashtable();
 			
 			hemi.world.subscribe(hemi.msg.cleanup, this, 'worldCleaned');
 			hemi.world.subscribe(hemi.msg.ready, this, 'worldLoaded');
+			hemi.msg.subscribe(editor.msg.citizenCreated, this, 'addCitizen',
+				[hemi.dispatch.MSG_ARG + 'data']);
+			hemi.msg.subscribe(editor.msg.citizenDestroyed, this, 
+				'removeCitizen',
+				[hemi.dispatch.MSG_ARG + 'data']);
 		},
 		
 		addCitizen: function(citizen) {
@@ -71,7 +76,7 @@ var editor = (function(module) {
 			}
 			
 			if (add) {
-				this.notifyListeners(module.EventTypes.Trees.CitizenAdded, {
+				this.notifyListeners(editor.EventTypes.Trees.CitizenAdded, {
 					citizen: citizen,
 					createType: createType
 				});
@@ -82,7 +87,7 @@ var editor = (function(module) {
 			var cits = this.citizenTypes.get(type);
 			
 			if (cits !== null && cits.length > 0) {
-				this.notifyListeners(module.EventTypes.Trees.FilterByType, {
+				this.notifyListeners(editor.EventTypes.Trees.FilterByType, {
 					type: type,
 					citizens: cits
 				});
@@ -108,7 +113,7 @@ var editor = (function(module) {
 			}
 			
 			if (remove) {
-				this.notifyListeners(module.EventTypes.Trees.CitizenRemoved, {
+				this.notifyListeners(editor.EventTypes.Trees.CitizenRemoved, {
 					citizen: citizen,
 					removeType: removeType
 				});
@@ -116,7 +121,7 @@ var editor = (function(module) {
 		},
 		
 		updateCitizen: function(citizen) {
-			this.notifyListeners(module.EventTypes.Trees.CitizenUpdated, citizen);
+			this.notifyListeners(editor.EventTypes.Trees.CitizenUpdated, citizen);
 		},
 		
 		worldCleaned: function() {
@@ -129,7 +134,7 @@ var editor = (function(module) {
 			for (var ndx = 0, len = citizens.length; ndx < len; ndx++) {
 				var citizen = citizens[ndx];
 				
-				if (citizen.name.match(module.tools.ToolConstants.EDITOR_PREFIX) === null) {
+				if (citizen.name.match(editor.ui.ToolConstants.EDITOR_PREFIX) === null) {
 					this.addCitizen(citizen);
 				}
 			}
@@ -142,7 +147,7 @@ var editor = (function(module) {
 	var idCounter = 0,
 		tooltip = editor.ui.createTooltip();
 	
-	var TreeView = module.ui.Component.extend({
+	var TreeView = editor.ui.Component.extend({
 		init: function(type) {
 			this._super();
 			this.type = type;
@@ -157,7 +162,7 @@ var editor = (function(module) {
 				view = this;
 			this.pre = type + addOn;
 			
-			this.addListener(module.EventTypes.Trees.TreeCreated, function(tree) {
+			this.addListener(editor.EventTypes.Trees.TreeCreated, function(tree) {
 				tree.bind('hover_node.jstree', function(evt, data) {
 					var elem = data.rslt.obj,
 						id = elem.attr('id'),
@@ -227,7 +232,7 @@ var editor = (function(module) {
 		},
 		
 		filter: function(type) {
-			var id = module.treeData.getNodeName({
+			var id = editor.treeData.getNodeName({
 					getCitizenType: function() { return type; }
 				}, {
 					prefix: this.pre
@@ -248,7 +253,7 @@ var editor = (function(module) {
 		},
 		
 		notify: function(eventType, value) {
-			if (eventType === module.EventTypes.Trees.CitizenAdded) {
+			if (eventType === editor.EventTypes.Trees.CitizenAdded) {
 				var citizen = value.citizen, 
 					createType = value.createType;
 					
@@ -264,7 +269,7 @@ var editor = (function(module) {
 						break;
 				}
 			}
-			else if (eventType === module.EventTypes.Trees.CitizenRemoved) {
+			else if (eventType === editor.EventTypes.Trees.CitizenRemoved) {
 				var citizen = value.citizen, 
 					removeType = value.removeType;
 					
@@ -280,7 +285,7 @@ var editor = (function(module) {
 						break;
 				}
 			}
-			else if (eventType === module.EventTypes.Trees.CitizenUpdated) {
+			else if (eventType === editor.EventTypes.Trees.CitizenUpdated) {
 				this.update(value);
 			}
 		},
@@ -290,7 +295,7 @@ var editor = (function(module) {
 			this.tree.addClass('restricted');
 			
 			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
-				var nodeName = module.treeData.getNodeName(citizen, {
+				var nodeName = editor.treeData.getNodeName(citizen, {
 						option: msgs[ndx],
 						prefix: this.pre,
 						id: id
@@ -305,12 +310,12 @@ var editor = (function(module) {
 			if (citizen === null || option === null) {
 				this.tree.jstree('deselect_all');
 			} else {
-				var nodeName = module.treeData.getNodeName(citizen, {
+				var nodeName = editor.treeData.getNodeName(citizen, {
 						option: option,
 						prefix: this.pre,
 						id: citizen.getId ? citizen.getId() : null
 					}),
-					paths = module.treeData.getNodePath(nodeName);
+					paths = editor.treeData.getNodePath(nodeName);
 				
 				for (var i = 0; i < paths.length; i++) {
 					var node = jQuery('#' + paths[i], this.tree);
@@ -334,7 +339,7 @@ var editor = (function(module) {
 			this.tree.removeClass('restricted');
 			
 			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
-				var nodeName = module.treeData.getNodeName(citizen, {
+				var nodeName = editor.treeData.getNodeName(citizen, {
 						option: msgs[ndx],
 						prefix: this.pre,
 						id: id
@@ -346,7 +351,7 @@ var editor = (function(module) {
 		},
 		
 		update: function(citizen) {
-			var nodeName = module.treeData.getNodeName(citizen, {
+			var nodeName = editor.treeData.getNodeName(citizen, {
 						option: null,
 						prefix: this.type,
 						id: citizen.getId()
@@ -366,7 +371,7 @@ var editor = (function(module) {
 				addActionType.call(this, citizen);
 			}
 			
-			var actionNode = module.treeData.createActionJson(citizen, 
+			var actionNode = editor.treeData.createActionJson(citizen, 
 					this.pre),
 				type = citizen.getCitizenType().split('.').pop();
 				
@@ -384,7 +389,7 @@ var editor = (function(module) {
 		},
 		
 		addActionType = function(citizen) {
-			var json = module.treeData.createCitizenTypeJson(citizen, 
+			var json = editor.treeData.createCitizenTypeJson(citizen, 
 				this.pre);
 			
 			if (this.tree == null) {
@@ -403,7 +408,7 @@ var editor = (function(module) {
 				addCitizenType.call(this, citizen);
 			}
 			
-			var citizenNode = module.treeData.createCitizenJson(citizen, 
+			var citizenNode = editor.treeData.createCitizenJson(citizen, 
 					this.pre),
 				type = citizen.getCitizenType().split('.').pop();
 				
@@ -413,7 +418,7 @@ var editor = (function(module) {
 		},	
 		
 		addCitizenType = function(citizen) {
-			var json = module.treeData.createCitizenTypeJson(citizen, 
+			var json = editor.treeData.createCitizenTypeJson(citizen, 
 				this.pre);
 			
 			if (this.tree == null) {
@@ -426,26 +431,30 @@ var editor = (function(module) {
 		},
 		
 		addToolTip = function(citizen, opt_func) {
-			var nodeId = module.treeData.getNodeName(citizen, {
-					prefix: this.pre,
-					option: opt_func,
-					id: opt_func ? citizen.getId() : null
-				}),
-				type = citizen.getCitizenType(),
-				desc;
+			var nodeId = editor.treeData.getNodeName(citizen, {
+						prefix: this.pre,
+						option: opt_func,
+						id: opt_func ? citizen.getId() : null
+					}),
+				node = jQuery('#' + nodeId, this.tree);
 			
-			if (opt_func) {
-				desc = module.data.getMetaData().getDescription(type, opt_func);
-			} else if (type === module.tools.ToolConstants.SHAPE_PICK) {
-				desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
-			} else if (type === module.tools.ToolConstants.CAM_MOVE) {
-				desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
-			} else {
-				desc = module.data.getMetaData().getDescription(type);
-			}
-			
-			if (desc != null) {
-				this.tooltips.put(nodeId, desc);
+			if (node.length > 0) {
+				var type = citizen.getCitizenType(),
+					desc;
+				
+				if (opt_func) {
+					desc = editor.data.getMetaData().getDescription(type, opt_func);
+				} else if (type === editor.ui.ToolConstants.SHAPE_PICK) {
+					desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
+				} else if (type === editor.ui.ToolConstants.CAM_MOVE) {
+					desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
+				} else {
+					desc = editor.data.getMetaData().getDescription(type);
+				}
+				
+				if (desc != null) {
+					this.tooltips.put(nodeId, desc);
+				}
 			}
 		},
 		
@@ -454,11 +463,11 @@ var editor = (function(module) {
 				addTriggerType.call(this, citizen);
 			}
 			
-			var triggerNode = module.treeData.createTriggerJson(citizen, 
+			var triggerNode = editor.treeData.createTriggerJson(citizen, 
 					this.pre),
 				type = citizen.getCitizenType().split('.').pop(),
-				name = module.treeData.getNodeName(citizen, {
-						option: module.treeData.MSG_WILDCARD,
+				name = editor.treeData.getNodeName(citizen, {
+						option: editor.treeData.MSG_WILDCARD,
 						prefix: this.pre,
 						id: citizen.getId()
 					});
@@ -470,8 +479,8 @@ var editor = (function(module) {
 			});
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = module.treeData.createShapePickCitizen(citizen);
-					triggerNode = module.treeData.createShapePickJson(spc, 
+				var spc = editor.treeData.createShapePickCitizen(citizen);
+					triggerNode = editor.treeData.createShapePickJson(spc, 
 						this.pre);
 					type = spc.getCitizenType().split('.').pop();
 				
@@ -479,8 +488,8 @@ var editor = (function(module) {
 					json_data: triggerNode
 				});
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = module.treeData.createCamMoveCitizen(citizen),
-					triggerNode = module.treeData.createCamMoveJson(cmc, 
+				var cmc = editor.treeData.createCamMoveCitizen(citizen),
+					triggerNode = editor.treeData.createCamMoveJson(cmc, 
 						this.pre);
 					type = cmc.getCitizenType().split('.').pop();
 				
@@ -490,8 +499,8 @@ var editor = (function(module) {
 			} else if (citizen instanceof hemi.view.Viewpoint) {
 				// In future if we support multiple cameras, this will need to
 				// be updated
-				var cmc = module.treeData.createCamMoveCitizen(hemi.world.camera),
-					nodeName = module.treeData.getNodeName(cmc, {
+				var cmc = editor.treeData.createCamMoveCitizen(hemi.world.camera),
+					nodeName = editor.treeData.getNodeName(cmc, {
 						option: null,
 						prefix: this.pre,
 						id: cmc.getId()
@@ -499,7 +508,7 @@ var editor = (function(module) {
 					node = jQuery('#' + nodeName);
 				
 				if (node.length > 0) {
-					triggerNode = module.treeData.createViewpointJson(cmc, 
+					triggerNode = editor.treeData.createViewpointJson(cmc, 
 						citizen, this.pre);
 					
 					this.tree.jstree('create_node', node, 'inside', {
@@ -514,22 +523,25 @@ var editor = (function(module) {
 		},
 		
 		addTriggerToolTip = function(citizen, msg) {
-			var nodeId = module.treeData.getNodeName(citizen, {
-					prefix: this.pre,
-					option: msg,
-					id: citizen.getId()
-				});
+			var nodeId = editor.treeData.getNodeName(citizen, {
+						prefix: this.pre,
+						option: msg,
+						id: citizen.getId()
+					}),
+				node = jQuery('#' + nodeId, this.tree);
 			
-			msg = msg.split('.').pop();
-			var desc = module.data.getMetaData().getMsgDescription(citizen.getCitizenType(), msg);
-			
-			if (desc != null) {
-				this.tooltips.put(nodeId, desc);
+			if (node.length > 0) {
+				msg = msg.split('.').pop();
+				var desc = editor.data.getMetaData().getMsgDescription(citizen.getCitizenType(), msg);
+				
+				if (desc != null) {
+					this.tooltips.put(nodeId, desc);
+				}
 			}
 		},
 		
 		addTriggerType = function(citizen) {
-			var json = module.treeData.createCitizenTypeJson(citizen, this.pre);
+			var json = editor.treeData.createCitizenTypeJson(citizen, this.pre);
 			
 			if (this.tree == null) {
 				createTriggerTree.call(this, [json]);
@@ -542,8 +554,8 @@ var editor = (function(module) {
 			addToolTip.call(this, citizen);
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = module.treeData.createShapePickCitizen(citizen);
-					json = module.treeData.createShapePickTypeJson(spc, 
+				var spc = editor.treeData.createShapePickCitizen(citizen);
+					json = editor.treeData.createShapePickTypeJson(spc, 
 						this.pre);
 				
 				this.tree.jstree('create_node', -1, 'last', {
@@ -552,8 +564,8 @@ var editor = (function(module) {
 				
 				addToolTip.call(this, spc);
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = module.treeData.createCamMoveCitizen(citizen);
-				json = module.treeData.createCamMoveTypeJson(cmc, this.pre);
+				var cmc = editor.treeData.createCamMoveCitizen(citizen);
+				json = editor.treeData.createCamMoveTypeJson(cmc, this.pre);
 				
 				this.tree.jstree('create_node', -1, 'last', {
 					json_data: json
@@ -605,7 +617,7 @@ var editor = (function(module) {
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});	
 			
-			this.notifyListeners(module.EventTypes.Trees.TreeCreated, this.tree);
+			this.notifyListeners(editor.EventTypes.Trees.TreeCreated, this.tree);
 		},
 		
 		createCitizenTree = function(json) {
@@ -643,11 +655,11 @@ var editor = (function(module) {
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
 			
-			this.notifyListeners(module.EventTypes.Trees.TreeCreated, this.tree);
+			this.notifyListeners(editor.EventTypes.Trees.TreeCreated, this.tree);
 		},
 				
 		createTriggerTree = function(json) {
-			var wildcardTrigger = module.treeData.createWildcardJson(this.pre);
+			var wildcardTrigger = editor.treeData.createWildcardJson(this.pre);
 			
 			json.unshift(wildcardTrigger);
 			this.tree = jQuery('<div class="sharedTree"></div>');
@@ -690,28 +702,28 @@ var editor = (function(module) {
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
 			
-			var wildcard = module.treeData.MSG_WILDCARD,
-				name = module.treeData.getNodeName(wildcard, {
+			var wildcard = editor.treeData.MSG_WILDCARD,
+				name = editor.treeData.getNodeName(wildcard, {
 					option: wildcard,
 					prefix: this.pre
 				});
 			
 			this.tooltips.put(name, 'any trigger from any source');
 			
-			name = module.treeData.getNodeName(wildcard, {
+			name = editor.treeData.getNodeName(wildcard, {
 				option: null,
 				prefix: this.pre
 			});
 			
 			this.tooltips.put(name, 'a trigger from any source');
 			
-			this.notifyListeners(module.EventTypes.Trees.TreeCreated, this.tree);
+			this.notifyListeners(editor.EventTypes.Trees.TreeCreated, this.tree);
 		},
 		
 		deselectAction = function(data) {
 			var citizen = data.citizen, 
 				method = data.method,
-				nodeName = module.treeData.getNodeName(citizen, {
+				nodeName = editor.treeData.getNodeName(citizen, {
 					option: method,
 					prefix: this.pre,
 					id: citizen.getId()
@@ -727,7 +739,7 @@ var editor = (function(module) {
 			var citizen = data.citizen, 
 				message = data.message,
 				id = citizen.getId ? citizen.getId() : null,
-				nodeName = module.treeData.getNodeName(citizen, {
+				nodeName = editor.treeData.getNodeName(citizen, {
 					option: message,
 					prefix: this.pre,
 					id: id
@@ -740,7 +752,7 @@ var editor = (function(module) {
 		},
 		
 		removeAction = function(citizen, removeType) {
-			var nodeName = module.treeData.getNodeName(citizen, {
+			var nodeName = editor.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre,
 				id: citizen.getId()
@@ -755,7 +767,7 @@ var editor = (function(module) {
 		},
 		
 		removeActionType = function(citizen) {
-			var nodeName = module.treeData.getNodeName(citizen, {
+			var nodeName = editor.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre
 			});
@@ -765,7 +777,7 @@ var editor = (function(module) {
 		},
 		
 		removeCitizen = function(citizen, removeType) {
-			var nodeName = module.treeData.getNodeName(citizen, {
+			var nodeName = editor.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre,
 				id: citizen.getId()
@@ -780,7 +792,7 @@ var editor = (function(module) {
 		},
 		
 		removeCitizenType = function(citizen) {
-			var nodeName = module.treeData.getNodeName(citizen, {
+			var nodeName = editor.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre
 			});
@@ -791,7 +803,7 @@ var editor = (function(module) {
 		
 		removeTrigger = function(citizen, removeType) {
 			var id = citizen.getId ? citizen.getId() : null,
-				nodeName = module.treeData.getNodeName(citizen, {
+				nodeName = editor.treeData.getNodeName(citizen, {
 					option: null,
 					prefix: this.pre,
 					id: id
@@ -801,8 +813,8 @@ var editor = (function(module) {
 			this.tree.jstree('delete_node', node);
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = module.treeData.createShapePickCitizen(citizen);
-				nodeName = module.treeData.getNodeName(spc, {
+				var spc = editor.treeData.createShapePickCitizen(citizen);
+				nodeName = editor.treeData.getNodeName(spc, {
 					option: null,
 					prefix: this.pre,
 					id: id
@@ -811,8 +823,8 @@ var editor = (function(module) {
 				node = jQuery('#' + nodeName);
 				this.tree.jstree('delete_node', node);
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = module.treeData.createCamMoveCitizen(citizen);
-				nodeName = module.treeData.getNodeName(cmc, {
+				var cmc = editor.treeData.createCamMoveCitizen(citizen);
+				nodeName = editor.treeData.getNodeName(cmc, {
 					option: null,
 					prefix: this.pre,
 					id: id
@@ -823,8 +835,8 @@ var editor = (function(module) {
 			} else if (citizen instanceof hemi.view.Viewpoint) {
 				// In future if we support multiple cameras, this will need to
 				// be updated
-				var cmc = module.treeData.createCamMoveCitizen(hemi.world.camera);
-				nodeName = module.treeData.getNodeName(cmc, {
+				var cmc = editor.treeData.createCamMoveCitizen(hemi.world.camera);
+				nodeName = editor.treeData.getNodeName(cmc, {
 					option: id,
 					prefix: this.pre,
 					id: id
@@ -840,7 +852,7 @@ var editor = (function(module) {
 		},
 		
 		removeTriggerType = function(citizen) {
-			var nodeName = module.treeData.getNodeName(citizen, {
+			var nodeName = editor.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre
 			});
@@ -849,8 +861,8 @@ var editor = (function(module) {
 			this.tree.jstree('delete_node', node);
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = module.treeData.createShapePickCitizen(citizen);
-				nodeName = module.treeData.getNodeName(spc, {
+				var spc = editor.treeData.createShapePickCitizen(citizen);
+				nodeName = editor.treeData.getNodeName(spc, {
 					option: null,
 					prefix: this.pre
 				});
@@ -858,8 +870,8 @@ var editor = (function(module) {
 				node = jQuery('#' + nodeName);
 				this.tree.jstree('delete_node', node);
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = module.treeData.createCamMoveCitizen(citizen);
-				nodeName = module.treeData.getNodeName(cmc, {
+				var cmc = editor.treeData.createCamMoveCitizen(citizen);
+				nodeName = editor.treeData.getNodeName(cmc, {
 					option: null,
 					prefix: this.pre
 				});
@@ -874,13 +886,13 @@ var editor = (function(module) {
 ////////////////////////////////////////////////////////////////////////////////
 
 	var populateTree = function(tree) {
-		var treeModel = module.ui.treeModel,
+		var treeModel = editor.ui.treeModel,
 			table = treeModel.citizenTypes,
 			keys = table.keys();
 			
-		treeModel.addListener(module.EventTypes.Trees.CitizenAdded, tree);
-		treeModel.addListener(module.EventTypes.Trees.CitizenRemoved, tree);
-		treeModel.addListener(module.EventTypes.Trees.CitizenUpdated, tree);
+		treeModel.addListener(editor.EventTypes.Trees.CitizenAdded, tree);
+		treeModel.addListener(editor.EventTypes.Trees.CitizenRemoved, tree);
+		treeModel.addListener(editor.EventTypes.Trees.CitizenUpdated, tree);
 			
 		for (var i = 0, il = keys.length; i < il; i++) {
 			var list = table.get(keys[i]);
@@ -889,7 +901,7 @@ var editor = (function(module) {
 				var cit = list[j],
 					createType = j === 0;
 				
-				tree.notify(module.EventTypes.Trees.CitizenAdded, {
+				tree.notify(editor.EventTypes.Trees.CitizenAdded, {
 					citizen: cit,
 					createType: createType
 				});
@@ -897,23 +909,23 @@ var editor = (function(module) {
 		}
 	};
 	
-	module.ui.treeModel = new TreeModel();
+	editor.ui.treeModel = new TreeModel();
 	
-	module.ui.createCitizensTree = function() {
+	editor.ui.createCitizensTree = function() {
 		var tree = new TreeView(CITIZEN_PREFIX);
 		
 		populateTree(tree);
 		return tree;
 	};
 	
-	module.ui.createActionsTree = function() {
+	editor.ui.createActionsTree = function() {
 		var tree = new TreeView(ACTION_PREFIX);
 		
 		populateTree(tree);
 		return tree;
 	};
 	
-	module.ui.createTriggersTree = function() {
+	editor.ui.createTriggersTree = function() {
 		var tree = new TreeView(TRIGGER_PREFIX);
 		
 		populateTree(tree);
@@ -921,5 +933,5 @@ var editor = (function(module) {
 	};
 	
 	
-	return module;
+	return editor;
 })(editor || {});

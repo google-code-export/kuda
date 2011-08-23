@@ -60,7 +60,7 @@ var editor = (function(editor) {
      */
     editor.tools.AnimatorModel = editor.ui.ToolModel.extend({
 		init: function() {
-			this._super();
+			this._super('editor.tools.Animator');
 	        
 	        this.selectedModel;
 	        this.hilights = new Hashtable();
@@ -375,7 +375,7 @@ var editor = (function(editor) {
 		init: function(options) {
 		    this._super({
 				name: 'createAnmWidget',
-				uiFile: 'js/editor/plugins/models/html/animationsForms.htm',
+				uiFile: 'js/editor/plugins/geometry/html/animationsForms.htm',
 		        instructions: 'Click on a model to select it',
 				manualVisible: true
 			});
@@ -899,7 +899,8 @@ var editor = (function(editor) {
 			this._super({
 		        toolName: 'Animator',
 				toolTip: 'Animations: Create and edit animations',
-		        widgetId: 'animationsBtn'
+		        elemId: 'animationsBtn',
+				id: 'editor.tools.Animator'
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
@@ -938,7 +939,7 @@ var editor = (function(editor) {
 	        	view = this.view,
 				crtWgt = view.sidePanel.createAnmWidget,
 				lstWgt = view.sidePanel.anmListWidget,
-				bhvWgt = view.sidePanel.behaviorSBWidget,
+				bhvWgt = view.sidePanel.behaviorWidget,
 	        	that = this;
 	        
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {

@@ -16,6 +16,8 @@
  */
 
 var editor = (function(editor) {
+	"use strict";
+	
     editor.tools = editor.tools || {};
     
     editor.EventTypes = editor.EventTypes || {};
@@ -51,7 +53,7 @@ var editor = (function(editor) {
      */
     editor.tools.ShapesModel = editor.ui.ToolModel.extend({
 		init: function() {
-			this._super();
+			this._super('editor.tools.Shapes');
 			
 			this.currentShape = null;
 			this.prevShape = null;
@@ -162,7 +164,7 @@ var editor = (function(editor) {
 		init: function() {
 		    this._super({
 				name: 'createShapeWidget',
-				uiFile: 'js/editor/plugins/models/html/shapesForms.htm',
+				uiFile: 'js/editor/plugins/geometry/html/shapesForms.htm',
 		        instructions: 'Click on a model to select it'
 			});
 				
@@ -551,8 +553,12 @@ var editor = (function(editor) {
      */
     editor.tools.ShapesView = editor.ui.ToolView.extend({
 		init: function(options) {
-	        var newOpts = jQuery.extend({}, editor.tools.ShapesViewDefaults, options);
-	        this._super(newOpts);
+	        this._super({
+		        toolName: 'Shapes',
+				toolTip: 'Shapes: Create and edit shapes',
+				elemId: 'shapesBtn',
+				id: 'editor.tools.Shapes'
+		    });
 			
 			this.addPanel(new editor.ui.Panel({
 				classes: ['shpSidePanel'],
@@ -589,7 +595,7 @@ var editor = (function(editor) {
 	        	view = this.view,
 				crtWgt = view.sidePanel.createShapeWidget,
 				lstWgt = view.sidePanel.shapeListWidget,
-				bhvWgt = view.sidePanel.behaviorSBWidget,
+				bhvWgt = view.sidePanel.behaviorWidget,
 	        	that = this;
 	                	        
 			// special listener for when the toolbar button is clicked

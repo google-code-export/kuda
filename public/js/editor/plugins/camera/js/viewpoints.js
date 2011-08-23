@@ -45,7 +45,7 @@ var editor = (function(editor) {
 	 */
 	editor.tools.ViewpointsModel = editor.ui.ToolModel.extend({
 		init: function() {
-			this._super();
+			this._super('editor.tools.Viewpoints');
 			this.camData = null;
 			this.curve = null;
 			this.prevHandler = null;
@@ -109,6 +109,7 @@ var editor = (function(editor) {
 		
 		removeViewpoint: function(viewpoint) {
 			this.notifyListeners(editor.EventTypes.ViewpointRemoved, viewpoint);
+			hemi.dispatch.postMessage(this, editor.msg.citizenDestroyed, viewpoint);
 			viewpoint.cleanup();
 		},
 		
@@ -119,7 +120,7 @@ var editor = (function(editor) {
 				
 			this.notifyListeners(msgType, viewpoint);
 			// TODO: use dispatch to notify of citizen creation			
-//			hemi.dispatch.postMessage(this, editor.EventTypes.Created, viewpoint);
+			hemi.dispatch.postMessage(this, editor.msg.citizenCreated, viewpoint);
 			
 			if (this.camData) {
 				hemi.world.camera.moveToView(this.camData);
@@ -330,7 +331,7 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var ListWidget = editor.ui.ListWidget.extend({
-		init: function() {
+		init: function(behaviorWidget) {
 		    this._super({
 				name: 'viewpointListWidget',
 				listId: 'viewpointList',
@@ -341,6 +342,7 @@ var editor = (function(editor) {
 			
 			editor.ui.sizeAndPosition.call(this);
 			this.container.addClass('second');
+			this.behaviorWidget = behaviorWidget;
 		},
 		
 		bindButtons: function(li, obj) {
@@ -363,7 +365,7 @@ var editor = (function(editor) {
 		},
 		
 		createListItem: function() {
-			return new editor.ui.BhvListItem();
+			return new editor.ui.BhvListItem(this.behaviorWidget);
 		},
 		
 		getOtherHeights: function() {
@@ -373,18 +375,8 @@ var editor = (function(editor) {
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
-////////////////////////////////////////////////////////////////////////////////    
-	
-	/*
-	 * Configuration object for the ViewpointsView.
-	 */
-	editor.tools.ViewpointsViewDefaults = {
-		axnBarId: 'vptActionBar',
-		toolName: 'Viewpoints',
-        toolTip: 'Camera Viewpoints: Create and edit camera viewpoints',
-		widgetId: 'viewpointsBtn'
-	};
-	
+//////////////////////////////////////////////////////////////////////////////// 
+ 	
 	/**
 	 * The ViewpointsView controls the dialog and toolbar widget for the
 	 * animation tool.
@@ -394,16 +386,20 @@ var editor = (function(editor) {
 	 */
 	editor.tools.ViewpointsView = editor.ui.ToolView.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, editor.tools.ViewpointsViewDefaults, options);
-			this._super(newOpts);
+			this._super({
+				toolName: 'Viewpoints',
+		        toolTip: 'Camera Viewpoints: Create and edit camera viewpoints',
+				elemId: 'viewpointsBtn',
+				id: 'editor.tools.Viewpoints'
+			});
 			
 			this.addPanel(new editor.ui.Panel({
 				name: 'mainPanel'
 			}));
 			
-			this.mainPanel.addWidget(new CreateWidget());
-			this.mainPanel.addWidget(new ListWidget());
 			this.mainPanel.addWidget(editor.ui.getBehaviorWidget());
+			this.mainPanel.addWidget(new CreateWidget());
+			this.mainPanel.addWidget(new ListWidget(this.mainPanel.behaviorWidget));
 		}
 	});
 		
@@ -430,9 +426,9 @@ var editor = (function(editor) {
 			var model = this.model,
 				view = this.view,
 				ctr = this,
-				crtVptWgt = view.mainPanel.createVptWidget,
-				vptLstWgt = view.mainPanel.viewpointListWidget,
-				bhvWgt = view.mainPanel.behaviorSBWidget;
+				crtWgt = view.mainPanel.createVptWidget,
+				lstWgt = view.mainPanel.viewpointListWidget,
+				bhvWgt = view.mainPanel.behaviorWidget;
 			
 			// special listener for when the toolbar button is clicked
 			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
@@ -441,26 +437,26 @@ var editor = (function(editor) {
 			});
 			
 			// create viewpoint widget specific
-			crtVptWgt.addListener(editor.EventTypes.CancelViewpointEdit, function(params) {
+			crtWgt.addListener(editor.EventTypes.CancelViewpointEdit, function(params) {
 				model.cancelViewpointEdit();
-				crtVptWgt.reset();
+				crtWgt.reset();
 			});
-			crtVptWgt.addListener(editor.EventTypes.SaveViewpoint, function(params) {
+			crtWgt.addListener(editor.EventTypes.SaveViewpoint, function(params) {
 				model.saveViewpoint(params);
 			});
-			crtVptWgt.addListener(editor.EventTypes.PreviewViewpoint, function(params) {
+			crtWgt.addListener(editor.EventTypes.PreviewViewpoint, function(params) {
 				model.previewViewpoint(params);
 			});
 			
 			// viewpoint list widget specific
-			vptLstWgt.addListener(editor.EventTypes.AddViewpoint, function() {
+			lstWgt.addListener(editor.EventTypes.AddViewpoint, function() {
 			});
-			vptLstWgt.addListener(editor.EventTypes.RemoveViewpoint, function(vpt) {
+			lstWgt.addListener(editor.EventTypes.RemoveViewpoint, function(vpt) {
 				model.removeViewpoint(vpt);
 			});
-			vptLstWgt.addListener(editor.EventTypes.EditViewpoint, function(viewpoint) {
+			lstWgt.addListener(editor.EventTypes.EditViewpoint, function(viewpoint) {
 				model.editViewpoint(viewpoint);
-				crtVptWgt.set(viewpoint);
+				crtWgt.set(viewpoint);
 			});
 			
 			// model specific 
@@ -469,44 +465,40 @@ var editor = (function(editor) {
 			});
 			// TODO: replace with hemi dispatch
 			model.addListener(editor.EventTypes.ViewpointAdded, function(vpt) {
-				crtVptWgt.reset();
-				vptLstWgt.add(vpt);
+				crtWgt.reset();
+				lstWgt.add(vpt);
 			});
 			model.addListener(editor.EventTypes.ViewpointUpdated, function(vpt) {
-				vptLstWgt.update(vpt);
+				lstWgt.update(vpt);
 			});
 			model.addListener(editor.EventTypes.ViewpointRemoved, function(vpt) {
-				vptLstWgt.remove(vpt);
+				lstWgt.remove(vpt);
 			});
 			// see TODO above
 			hemi.msg.subscribe(editor.EventTypes.Created,
 				function(msg) {
 					if (msg.src instanceof editor.tools.ViewpointsModel) {
-						vptLstWgt.add(vpt);
+						lstWgt.add(vpt);
 					}
 				});
 			hemi.msg.subscribe(editor.EventTypes.Removed,
 				function(msg) {
 					if (msg.src instanceof editor.tools.ViewpointsModel) {
-						vptLstWgt.remove(vpt);
+						lstWgt.remove(vpt);
 					}
 				});
 			hemi.msg.subscribe(editor.EventTypes.Updated,
 				function(msg) {
 					if (msg.src instanceof editor.tools.ViewpointsModel) {
 						var isDown = view.mode == editor.ui.ToolConstants.MODE_DOWN;
-						vptLstWgt.update(vpt);
+						lstWgt.update(vpt);
 					}
 				});
 			
 			// behavior widget specific
-			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
-				if (obj.updateMeta) {
-					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
-					
-					vptLstWgt.setVisible(!obj.visible && isDown);
-					crvLstWgt.setVisible(!obj.visible && isDown);
-				}
+			bhvWgt.addListener(editor.EventTypes.WidgetVisible, function(obj) {
+				editor.ui.sizeAndPosition.call(bhvWgt);
+				crtWgt.setVisible(!obj.visible);
 			});
 		}
 	});

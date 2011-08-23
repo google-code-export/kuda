@@ -22,31 +22,49 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 	editor.tools = editor.tools || {};
-	editor.tools.effects = editor.tools.effects || {};
+	editor.tools.geometry = editor.tools.geometry || {};
 
-	editor.tools.effects.init = function() {
-		var tabpane = new editor.ui.TabPane('Effects'),
+	editor.tools.geometry.init = function() {
+		var tabpane = new editor.ui.TabPane('Geometry'),
 			toolbar = new editor.ui.Toolbar(),
 			
-			fogMdl = new editor.tools.FogModel(),
-			fogView = new editor.tools.FogView(),
-			fogCtr = new editor.tools.FogController();
+			mbrMdl = new editor.tools.ModelBrowserModel(),
+			selMdl = new editor.tools.SelectorModel(),
+			mbrView = new editor.tools.ModelBrowserView(),
+			mbrCtr = new editor.tools.ModelBrowserController(),
+			
+			shpMdl = new editor.tools.ShapesModel(),
+			shpView = new editor.tools.ShapesView(),
+			shpCtr = new editor.tools.ShapesController(),
+			
+			anmMdl = new editor.tools.AnimatorModel(),
+			anmView = new editor.tools.AnimatorView(),
+			anmCtr = new editor.tools.AnimatorController();
 		
 		tabpane.setToolBar(toolbar);	
 		editor.ui.addTabPane(tabpane);
 		
-		fogCtr.setModel(fogMdl);
-		fogCtr.setView(fogView);
+		mbrCtr.setModel(mbrMdl);
+		mbrCtr.setSelectorModel(selMdl);
+		mbrCtr.setView(mbrView);
+				
+		shpCtr.setModel(shpMdl);
+		shpCtr.setView(shpView);
+				
+		anmCtr.setModel(anmMdl);
+		anmCtr.setView(anmView);
 		
-		toolbar.add(fogView);
+		toolbar.add(mbrView);
+		toolbar.add(shpView);
+		toolbar.add(anmView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-//	editor.ui.getScript('js/editor/plugins/effects/js/curves.js');
-	editor.ui.getScript('js/editor/plugins/effects/js/fog.js');
-//	editor.ui.getScript('js/editor/plugins/effects/js/particleEffects.js');
-	editor.ui.getCss('js/editor/plugins/effects/css/style.css');
-	
+
+	editor.ui.getScript('js/editor/plugins/geometry/js/browser.js');
+	editor.ui.getScript('js/editor/plugins/geometry/js/shapes.js');
+	editor.ui.getScript('js/editor/plugins/geometry/js/animator.js');
+	editor.ui.getCss('js/editor/plugins/geometry/css/style.css');
 })();

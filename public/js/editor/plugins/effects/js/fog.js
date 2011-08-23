@@ -15,27 +15,27 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	module.tools = module.tools || {};
+var editor = (function(editor) {
+	editor.tools = editor.tools || {};
     
-    module.EventTypes = module.EventTypes || {};
+    editor.EventTypes = editor.EventTypes || {};
 	
 	// fog form sb widget events
-	module.EventTypes.FogOnOff = "fog.FogOnOff";
-	module.EventTypes.SaveFog = "fog.SaveFog";
-	module.EventTypes.CancelFogEdit = "fog.CancelFogEdit";
+	editor.EventTypes.FogOnOff = "fog.FogOnOff";
+	editor.EventTypes.SaveFog = "fog.SaveFog";
+	editor.EventTypes.CancelFogEdit = "fog.CancelFogEdit";
 	
 	// model events
-	module.EventTypes.FogVisible = "fog.FogVisible";
-	module.EventTypes.FogWorldLoaded = "fog.FogWorldLoaded";
+	editor.EventTypes.FogVisible = "fog.FogVisible";
+	editor.EventTypes.FogWorldLoaded = "fog.FogWorldLoaded";
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
 ////////////////////////////////////////////////////////////////////////////////
 
-	module.tools.FogModel = module.ui.ToolModel.extend({
+	editor.tools.FogModel = editor.ui.ToolModel.extend({
 		init: function() {
-			this._super();
+			this._super('editor.tools.Fog');
 		},
 		
 		setVisible: function(visible) {
@@ -48,7 +48,7 @@ var editor = (function(module) {
 				hemi.world.clearFog();
 			}
 			
-			this.notifyListeners(module.EventTypes.FogVisible, visible);
+			this.notifyListeners(editor.EventTypes.FogVisible, visible);
 		},
 		
 		save: function(params) {
@@ -59,21 +59,21 @@ var editor = (function(module) {
 		worldCleaned: function() {
 			this.currentVals = null;
 			this.setVisible(false);
-			this.notifyListeners(module.EventTypes.FogWorldLoaded, null);
+			this.notifyListeners(editor.EventTypes.FogWorldLoaded, null);
 	    },
 	    
 	    worldLoaded: function() {
 			var fog = hemi.world.fog;
 			
 			this.currentVals = fog;
-			this.notifyListeners(module.EventTypes.FogWorldLoaded, fog);
+			this.notifyListeners(editor.EventTypes.FogWorldLoaded, fog);
 	    }
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     		 Fog Form Sidebar Widget                          //
 //////////////////////////////////////////////////////////////////////////////// 
-	var FogFormWidget = module.ui.FormWidget.extend({
+	var FogFormWidget = editor.ui.FormWidget.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({
 					name: 'fogFormWidget',
@@ -94,7 +94,7 @@ var editor = (function(module) {
 				form = this.find('form');
 				
 			// add validation
-			new module.ui.Validator(wgt.find('input.short'), function(elem) {
+			new editor.ui.Validator(wgt.find('input.short'), function(elem) {
 				var val = elem.val(),
 					msg = null;
 					
@@ -105,14 +105,14 @@ var editor = (function(module) {
 				return msg;
 			});
 			
-			this.colorPicker = new module.ui.ColorPicker({
+			this.colorPicker = new editor.ui.ColorPicker({
 				inputId: 'fogFormColor',	
 				buttonId: 'fogFormColorPicker'			
 			});
 			
 			this.find('#fogFormColorLbl').after(this.colorPicker.getUI());
 			
-			this.colorPicker.addListener(module.EventTypes.ColorPicked, function(clr) {
+			this.colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
 				wgt.canSave();
 			});
 			
@@ -120,7 +120,7 @@ var editor = (function(module) {
 				var elem = jQuery(this),
 					checked = elem.is(':checked');
 				
-				wgt.notifyListeners(module.EventTypes.FogOnOff, checked);
+				wgt.notifyListeners(editor.EventTypes.FogOnOff, checked);
 			});
 			
 			form.find('input:not(type["checkbox"])').bind('keydown', function(evt) {
@@ -134,7 +134,7 @@ var editor = (function(module) {
 					end: parseInt(wgt.end.val())
 				};
 				
-				wgt.notifyListeners(module.EventTypes.SaveFog, vals);
+				wgt.notifyListeners(editor.EventTypes.SaveFog, vals);
 				
 				wgt.saveBtn.attr('disabled', 'disabled');
 				wgt.cancelBtn.attr('disabled', 'disabled');
@@ -142,7 +142,7 @@ var editor = (function(module) {
 			
 			this.cancelBtn.bind('click', function(evt) {
 				wgt.saveBtn.attr('disabled', 'disabled');
-				wgt.notifyListeners(module.EventTypes.CancelFogEdit, null);
+				wgt.notifyListeners(editor.EventTypes.CancelFogEdit, null);
 				wgt.find('input.error').removeClass('error');
 			});
 			
@@ -187,14 +187,14 @@ var editor = (function(module) {
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	module.tools.FogView = module.ui.ToolView.extend({
-		init: function(options) {
-			var newOpts = jQuery.extend({
-			        toolName: 'Fog',
-					toolTip: 'Fog: Create and edit fog',
-			        widgetId: 'fogBtn'
-			    }, options);
-			this._super(newOpts);
+	editor.tools.FogView = editor.ui.ToolView.extend({
+		init: function() {
+			this._super({
+		        toolName: 'Fog',
+				toolTip: 'Fog: Create and edit fog',
+		        elemId: 'fogBtn',
+				id: 'editor.tools.Fog'
+		    });
 			
 			this.addPanel(new editor.ui.Panel({
 				name: 'sidePanel',
@@ -209,7 +209,7 @@ var editor = (function(module) {
 //                                Controller                                  //
 ////////////////////////////////////////////////////////////////////////////////
 
-    module.tools.FogController = module.ui.ToolController.extend({
+    editor.tools.FogController = editor.ui.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -226,13 +226,13 @@ var editor = (function(module) {
 				fogWgt = view.sidePanel.fogFormWidget;
 			
 			// fog sb widget specific
-			fogWgt.addListener(module.EventTypes.FogOnOff, function(turnOn) {
+			fogWgt.addListener(editor.EventTypes.FogOnOff, function(turnOn) {
 				model.setVisible(turnOn);
 			});
-			fogWgt.addListener(module.EventTypes.SaveFog, function(params) {
+			fogWgt.addListener(editor.EventTypes.SaveFog, function(params) {
 				model.save(params);
 			});
-			fogWgt.addListener(module.EventTypes.CancelFogEdit, function() {
+			fogWgt.addListener(editor.EventTypes.CancelFogEdit, function() {
 				var curVals = model.currentVals;
 				
 				if (curVals) {
@@ -243,10 +243,10 @@ var editor = (function(module) {
 			});
 			
 			// model specific
-			model.addListener(module.EventTypes.FogVisible, function(visible) {
+			model.addListener(editor.EventTypes.FogVisible, function(visible) {
 				fogWgt.onOff.attr('checked', visible);
 			});
-			model.addListener(module.EventTypes.FogWorldLoaded, function(params) {
+			model.addListener(editor.EventTypes.FogWorldLoaded, function(params) {
 				if (fogWgt.colorPicker != null) {
 					fogWgt.set(params);
 				}
@@ -254,5 +254,5 @@ var editor = (function(module) {
 	    }
 	});
 	
-	return module;
+	return editor;
 })(editor || {});

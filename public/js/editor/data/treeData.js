@@ -15,16 +15,16 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	module.treeData = module.treeData || {};
+var editor = (function(editor) {
+	editor.treeData = editor.treeData || {};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Constants                                  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var MSG_WILDCARD = module.treeData.MSG_WILDCARD = 'Any';
+	var MSG_WILDCARD = editor.treeData.MSG_WILDCARD = 'Any';
 	
-	module.treeData.chainTable = (function() {
+	editor.treeData.chainTable = (function() {
 		var chainTable = new Hashtable();
 		// Animation
 		chainTable.put('hemi.animation.Animation' + '_' + 'onRender', [hemi.msg.stop]); // Calls stop()
@@ -77,7 +77,7 @@ var editor = (function(module) {
 		return chainTable;
 	})();
 	
-	var methodsToRemove = module.treeData.methodsToRemove = [
+	var methodsToRemove = editor.treeData.methodsToRemove = [
         'constructor',
 		'getId',
 		'setId',
@@ -192,18 +192,18 @@ var editor = (function(module) {
 		};
 	};
 	
-	module.treeData.getNodeName = getNodeName;
-	module.treeData.getNodePath = getNodePath;
-	module.treeData.createCitizenJson = createCitizenJson;
-	module.treeData.isCommon = isCommon;
+	editor.treeData.getNodeName = getNodeName;
+	editor.treeData.getNodePath = getNodePath;
+	editor.treeData.createCitizenJson = createCitizenJson;
+	editor.treeData.isCommon = isCommon;
 	
-	module.treeData.createShapePickCitizen = function(model) {
+	editor.treeData.createShapePickCitizen = function(model) {
 		return {
 			shapePick: true,
 			name: 'Picked Shape:',
 			citizen: model,
 			getCitizenType: function() {
-				return module.tools.ToolConstants.SHAPE_PICK;
+				return editor.ui.ToolConstants.SHAPE_PICK;
 			},
 			getId: function() {
 				return this.citizen.getId();
@@ -211,13 +211,13 @@ var editor = (function(module) {
 		};
 	};
 	
-	module.treeData.createCamMoveCitizen = function(camera) {
+	editor.treeData.createCamMoveCitizen = function(camera) {
 		return {
 			camMove: true,
 			name: 'Camera Move:',
 			citizen: camera,
 			getCitizenType: function() {
-				return module.tools.ToolConstants.CAM_MOVE;
+				return editor.ui.ToolConstants.CAM_MOVE;
 			},
 			getId: function() {
 				return this.citizen.getId();
@@ -225,7 +225,7 @@ var editor = (function(module) {
 		};
 	};
 	
-	module.treeData.createCitizenTypeJson = function(citizen, prefix) {
+	editor.treeData.createCitizenTypeJson = function(citizen, prefix) {
 		var type = citizen.getCitizenType().split('.').pop(),
 			name = getNodeName(citizen, {
 				option: null,
@@ -246,7 +246,7 @@ var editor = (function(module) {
 		};
 	};
 	
-	module.treeData.createTriggerJson = function(citizen, prefix) {
+	editor.treeData.createTriggerJson = function(citizen, prefix) {
 		var id = citizen.getId(),
 			name = getNodeName(citizen, {
 				option: MSG_WILDCARD,
@@ -294,7 +294,7 @@ var editor = (function(module) {
 		return node;
 	};
 	
-	module.treeData.createActionJson = function(citizen, prefix) {
+	editor.treeData.createActionJson = function(citizen, prefix) {
 		var methods = [],
 			moreMethods = [],
 			id = citizen.getId();
@@ -357,17 +357,17 @@ var editor = (function(module) {
 		return node;
 	};
 	
-	module.treeData.createModuleJson = function(module, prefix) {
+	editor.treeData.createeditorJson = function(editor, prefix) {
 		var methods = [];
 		
-		for (propName in module) {
-			var prop = module[propName];
+		for (propName in editor) {
+			var prop = editor[propName];
 			
 			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
-				var name = getNodeName(module, {
+				var name = getNodeName(editor, {
 					option: propName,
 					prefix: prefix,
-					id: module.getId()
+					id: editor.getId()
 				});
 				
 				methods.push({
@@ -378,38 +378,38 @@ var editor = (function(module) {
 					},
 					metadata: {
 						type: 'method',
-						parent: module
+						parent: editor
 					}
 				});
 			}
 		}
 		
-		var name = getNodeName(module, {
+		var name = getNodeName(editor, {
 			prefix: prefix,
-			id: module.getId()
+			id: editor.getId()
 		});
 		
 		return {
-			data: module.name,
+			data: editor.name,
 			attr: {
 				id: name,
 				rel: 'citType'
 			},
 			metadata: {
 				type: 'citType',
-				citizen: module
+				citizen: editor
 			},
 			children: methods,
 			state: 'closed'
 		};
 	};
 	
-	module.treeData.createCamMoveJson = function(cmCit, prefix) {
+	editor.treeData.createCamMoveJson = function(cmCit, prefix) {
 		var camera = cmCit.citizen,
 			viewpoints = hemi.world.getViewpoints();
 		
 		for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
-			var node = module.treeData.createViewpointJson(cmCit, viewpoints[ndx]);
+			var node = editor.treeData.createViewpointJson(cmCit, viewpoints[ndx]);
 			viewpoints.push(node);
 		}
 		
@@ -434,7 +434,7 @@ var editor = (function(module) {
 		};
 	};
 	
-	module.treeData.createCamMoveTypeJson = function(cmCit, prefix) {
+	editor.treeData.createCamMoveTypeJson = function(cmCit, prefix) {
 		var name = getNodeName(cmCit, {
 			option: null,
 			prefix: prefix
@@ -454,7 +454,7 @@ var editor = (function(module) {
 		};
 	};
 	
-	module.treeData.createViewpointJson = function(cmCit, viewpoint, prefix) {
+	editor.treeData.createViewpointJson = function(cmCit, viewpoint, prefix) {
 		var name = getNodeName(cmCit, {
 				option: viewpoint.getId(),
 				prefix: prefix,
@@ -475,7 +475,7 @@ var editor = (function(module) {
 		};
 	};
 	
-	module.treeData.createShapePickJson = function(spCit, prefix) {
+	editor.treeData.createShapePickJson = function(spCit, prefix) {
 		var model = spCit.citizen,
 			id = spCit.getId(),
 			shapes = [];
@@ -523,7 +523,7 @@ var editor = (function(module) {
 		};
 	};
 	
-	module.treeData.createShapePickTypeJson = function(spCit, prefix) {
+	editor.treeData.createShapePickTypeJson = function(spCit, prefix) {
 		var name = getNodeName(spCit, {
 			option: null,
 			prefix: prefix
@@ -543,7 +543,7 @@ var editor = (function(module) {
 		};
 	};
 	
-	module.treeData.createWildcardJson = function(prefix) {
+	editor.treeData.createWildcardJson = function(prefix) {
 		var name = getNodeName(MSG_WILDCARD, {
 				option: MSG_WILDCARD,
 				prefix: prefix
@@ -605,5 +605,5 @@ var editor = (function(module) {
 		};
 	};
 	
-	return module;
+	return editor;
 })(editor || {});
