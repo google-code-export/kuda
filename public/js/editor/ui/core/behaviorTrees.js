@@ -431,25 +431,21 @@ var editor = (function(module) {
 						option: opt_func,
 						id: opt_func ? citizen.getId() : null
 					}),
-				node = jQuery('#' + nodeId, this.tree);
+				type = citizen.getCitizenType(),
+				desc;
 			
-			if (node.length > 0) {
-				var type = citizen.getCitizenType(),
-					desc;
-				
-				if (opt_func) {
-					desc = module.data.getMetaData().getDescription(type, opt_func);
-				} else if (type === module.tools.ToolConstants.SHAPE_PICK) {
-					desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
-				} else if (type === module.tools.ToolConstants.CAM_MOVE) {
-					desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
-				} else {
-					desc = module.data.getMetaData().getDescription(type);
-				}
-				
-				if (desc != null) {
-					this.tooltips.put(nodeId, desc);
-				}
+			if (opt_func) {
+				desc = module.data.getMetaData().getDescription(type, opt_func);
+			} else if (type === module.tools.ToolConstants.SHAPE_PICK) {
+				desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
+			} else if (type === module.tools.ToolConstants.CAM_MOVE) {
+				desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
+			} else {
+				desc = module.data.getMetaData().getDescription(type);
+			}
+			
+			if (desc != null) {
+				this.tooltips.put(nodeId, desc);
 			}
 		},
 		
@@ -519,19 +515,16 @@ var editor = (function(module) {
 		
 		addTriggerToolTip = function(citizen, msg) {
 			var nodeId = module.treeData.getNodeName(citizen, {
-						prefix: this.pre,
-						option: msg,
-						id: citizen.getId()
-					}),
-				node = jQuery('#' + nodeId, this.tree);
+					prefix: this.pre,
+					option: msg,
+					id: citizen.getId()
+				});
 			
-			if (node.length > 0) {
-				msg = msg.split('.').pop();
-				var desc = module.data.getMetaData().getMsgDescription(citizen.getCitizenType(), msg);
-				
-				if (desc != null) {
-					this.tooltips.put(nodeId, desc);
-				}
+			msg = msg.split('.').pop();
+			var desc = module.data.getMetaData().getMsgDescription(citizen.getCitizenType(), msg);
+			
+			if (desc != null) {
+				this.tooltips.put(nodeId, desc);
 			}
 		},
 		
