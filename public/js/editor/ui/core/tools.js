@@ -36,17 +36,11 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 //                     			   	Tool Bar	  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-	
-	editor.ui.ToolbarDefaults = {
-		containerId: 'toolbar'
-	};
-	
+		
 	editor.ui.Toolbar = editor.ui.Component.extend({
 		init: function(options) {		
-			var newOpts = jQuery.extend({}, editor.ui.ToolbarDefaults, options);
-			this.tools = [];
-				
-			this._super(newOpts);
+			this.tools = [];				
+			this._super();
 		},
 		
 		add: function(tool) {
@@ -55,6 +49,8 @@ var editor = (function(editor) {
 				this.list.append(createListItem(tool));
 				
 				tool.addListener(editor.EventTypes.ToolClicked, this);
+				tool.addListener(editor.EventTypes.ToolMouseIn, this);
+				tool.addListener(editor.EventTypes.ToolMouseOut, this);
 			}
 		},
 		
@@ -68,9 +64,10 @@ var editor = (function(editor) {
 		
 		finishLayout: function() {		
 			this.container = jQuery('<div class="toolbar"></div>');
+			this.header = jQuery('<h3 class="toolTitle"></h3>');
 			this.list = jQuery('<ul></ul>');
 			
-			this.container.append(this.list);
+			this.container.append(this.header).append(this.list);
 		},
 		
 		getActiveTool: function() {
@@ -84,17 +81,34 @@ var editor = (function(editor) {
 			return null;
 		},
 		
+		loadState: function() {
+			var tool = this.currentTool ? this.currentTool : this.tools[0];
+			tool.setMode(editor.ui.ToolConstants.MODE_DOWN);
+			this.header.text(tool.toolTitle);
+		},
+		
 		notify: function(eventType, value) {
+			var tbr = this;
+			
 			if (eventType === editor.EventTypes.ToolClicked) {
-				var toolList = this.tools;		
-						
-	            for (ndx = 0, len = toolList.length; ndx < len; ndx++) {
-	                var t = toolList[ndx];
-	                
-	                if (t != value) {
-                        t.setMode(editor.ui.ToolConstants.MODE_UP);
-	                }
-	            }
+				var toolList = this.tools;
+				
+				for (ndx = 0, len = toolList.length; ndx < len; ndx++) {
+					var t = toolList[ndx];
+					
+					if (t != value) {
+						console.log(t.toolTitle);
+						t.setMode(editor.ui.ToolConstants.MODE_UP);
+					}
+				}
+				
+				this.header.text(value.toolTitle);
+			}
+			else if (eventType === editor.EventTypes.ToolMouseIn) {
+				this.header.css('opacity', 0);
+			}
+			else if (eventType === editor.EventTypes.ToolMouseOut) {
+				this.header.css('opacity', 1);
 			}
  		},
 		
@@ -112,6 +126,10 @@ var editor = (function(editor) {
 	        }
 	        
 	        return found;
+		},
+		
+		saveState: function() {
+			this.currentTool = this.getActiveTool();
 		},
 		
 		setEnabled: function(enabled) {
@@ -140,6 +158,8 @@ var editor = (function(editor) {
     editor.EventTypes.SidebarSet = "SidebarSet";	
     editor.EventTypes.ToolClicked = "ToolClicked";
     editor.EventTypes.ToolModeSet = "ToolModeSet";
+    editor.EventTypes.ToolMouseIn = "ToolMouseIn";
+    editor.EventTypes.ToolMouseOut = "ToolMouseOut";
     editor.EventTypes.WorldLoaded = "WorldLoaded";
     editor.EventTypes.WorldCleaned = "WorldCleaned";
 	editor.EventTypes.WidgetVisible = "WidgetVisible";
@@ -192,6 +212,7 @@ var editor = (function(editor) {
 			this._super();
 				
 			this.config = jQuery.extend({}, editor.ui.ToolViewDefaults, options);
+			this.toolTitle = this.config.toolName;
 			this.toolbarContainer = null;
 			this.enabled = true;
 			this.mode = editor.ui.ToolConstants.MODE_UP;
@@ -270,7 +291,7 @@ var editor = (function(editor) {
 				+ '" title="' + this.config.toolTip + '"></div>');			
 			
 			this.toolHover = jQuery('<h3 class="toolHover">' + this.config.toolName + '</h3>')
-				.data('set', false).css('zIndex', editor.ui.Layer.TOOLBAR);
+				.css('zIndex', editor.ui.Layer.TOOLBAR);
 			this.toolbarContainer.append(this.toolHover);
 			
 			this.toolbarContainer.bind('click', function() {
@@ -280,25 +301,13 @@ var editor = (function(editor) {
                 }
 			})
 			.bind('mouseover', function(evt) {
-				if (!view.toolHover.data('set')) {
-					var elem = jQuery(this),
-						offset = elem.offset(),
-						height = elem.height();
-					
-					view.toolHover.offset({
-						top: height / 2 - view.toolHover.outerHeight() / 2,
-						left: left
-					})
-					.data('set', true);
-				}
-				
-				if (view.mode !== editor.ui.ToolConstants.MODE_DOWN) {
-					view.toolHover.fadeIn(200);
-				}
+				view.toolHover.fadeIn(200);
+				view.notifyListeners(editor.EventTypes.ToolMouseIn);
 			})
 			.bind('mouseout', function(evt) {
-				view.toolHover.promise().done(function() {
+				view.toolHover.promise('fx').done(function() {
 					view.toolHover.hide();
+					view.notifyListeners(editor.EventTypes.ToolMouseOut);
 				});
 			});
 		},

@@ -55,9 +55,11 @@ var editor = (function(editor) {
 			this.panes.push(tabpane);
 			
 			var li = jQuery('<li></li>'),
+				ui = tabpane.getUI(),
 				wgt = this;
 			
-			li.append(tabpane.getUI()).bind('click', function(evt) {
+			li.append(ui);
+			ui.find('a').bind('click', function(evt) {
 				if (wgt.visiblePane && wgt.visiblePane !== tabpane) {
 					wgt.visiblePane.setVisible(false);
 				}
@@ -67,9 +69,47 @@ var editor = (function(editor) {
 			});
 			
 			this.list.append(li); 
+		}
+	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			   	 Tab Pane	  		                      //
+////////////////////////////////////////////////////////////////////////////////
+	
+	editor.ui.TabPane = editor.ui.Component.extend({
+		init: function(title, options) {	
+			this.toolbar = null;
+			this.title = title;
 			
-			if (this.panes.length === 1) {
-				li.click();
+			this._super(options);
+		},
+		
+		finishLayout: function() {
+			this.toolbarContainer = jQuery('<div class="toolbarContainer"></div>');
+			this.toolbarContainer.hide();
+			this.container = jQuery('<div></div>');
+			this.titleElem = jQuery('<h2><a href="#">' + this.title + '</a></h2>');
+			
+			this.container.append(this.titleElem).append(this.toolbarContainer);
+		},
+		
+		setToolBar: function(toolbar) {
+			this.toolbar = toolbar;
+			var ui = toolbar.getUI();
+			this.toolbarContainer.append(ui);
+		},
+		
+		setVisible: function(visible) {
+			if (visible) {
+				this.toolbarContainer.slideDown();
+				this.toolbar.loadState();
+				this.container.addClass('down');
+			}
+			else {
+				this.toolbarContainer.slideUp();
+				this.toolbar.saveState();
+				this.toolbar.deselect();
+				this.container.removeClass('down');
 			}
 		}
 	});
@@ -363,44 +403,6 @@ var editor = (function(editor) {
 			
 		}
 	};
-	
-////////////////////////////////////////////////////////////////////////////////
-//                     			   	 Tab Pane	  		                      //
-////////////////////////////////////////////////////////////////////////////////
-	
-	editor.ui.TabPane = editor.ui.Component.extend({
-		init: function(title, options) {	
-			this.toolbar = null;
-			this.title = title;
-			
-			this._super(options);
-		},
-		
-		finishLayout: function() {
-			this.toolbarContainer = jQuery('<div class="toolbarContainer"></div>');
-			this.toolbarContainer.hide();
-			this.container = jQuery('<div></div>');
-			var title = jQuery('<h2><a href="#">' + this.title + '</a></h2>');
-			
-			this.container.append(title).append(this.toolbarContainer);
-		},
-		
-		setToolBar: function(toolbar) {
-			this.toolbar = toolbar;
-			var ui = toolbar.getUI();
-			this.toolbarContainer.append(ui);
-		},
-		
-		setVisible: function(visible) {
-			if (visible) {
-				this.toolbarContainer.slideDown();
-			}
-			else {
-				this.toolbarContainer.slideUp();
-				this.toolbar.deselect();
-			}
-		}
-	});
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  Private Methods  		                      //
