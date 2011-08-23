@@ -874,8 +874,9 @@ var editor = (function(editor) {
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.RemoveAnimation, 
-					obj);
+				if (editor.depends.check(obj)) {
+					wgt.notifyListeners(editor.EventTypes.RemoveAnimation, obj);
+				}
 			});
 		},
 		
@@ -1039,10 +1040,13 @@ var editor = (function(editor) {
 	        
 			// model specific	
 			model.addListener(editor.EventTypes.AnimationCreated, function(animation) {
+				editor.depends.add(animation, animation.target);
 				lstWgt.add(animation);
 			});	     	
 	        model.addListener(editor.EventTypes.AnimationRemoved, function(animation) {
-	            lstWgt.remove(animation);
+	        	editor.depends.remove(animation, animation.target);
+	        	editor.depends.clear(animation);
+	        	lstWgt.remove(animation);
 	        });				
 	        model.addListener(editor.EventTypes.AnimationStopped, function(value) {
 	            crtWgt.find('#anmStartBtn').removeAttr('disabled');

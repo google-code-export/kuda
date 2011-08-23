@@ -145,8 +145,8 @@ var editor = (function(module) {
 		removeModel: function(model) {
 			var ndx = jQuery.inArray(model, this.models);			
 			this.models.splice(ndx, 1);
-			
 			this.notifyListeners(module.EventTypes.RemoveModel, model);
+			model.cleanup();
 		},
 		
 		removeShape: function(shape) {
@@ -1809,7 +1809,8 @@ var editor = (function(module) {
 				mbrWgt.addModel(json);
 			});			
 	        model.addListener(module.EventTypes.RemoveModel, function(model) {
-	            mbrWgt.removeModel(model);
+	        	module.depends.clear(model);
+	        	mbrWgt.removeModel(model);
 				hidWgt.removeOwner(model);
 				
 				if (infoDisp.currentOwner != null 

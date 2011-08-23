@@ -52,8 +52,8 @@ var editor = (function(editor) {
 	    },
 		
 		removeMotion: function(motion) {
-			motion.cleanup();
 			this.notifyListeners(editor.EventTypes.MotionRemoved, motion);
+			motion.cleanup();
 		},
 		
 		saveMotion: function(props) {
@@ -615,7 +615,9 @@ var editor = (function(editor) {
 			
 			li.removeBtn.bind('click', function(evt) {
 				var motion = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.RemoveMotion, motion);
+				if (editor.depends.check(motion)) {
+					wgt.notifyListeners(editor.EventTypes.RemoveMotion, motion);
+				}
 			});
 		},
 		
@@ -734,10 +736,29 @@ var editor = (function(editor) {
 			
 			// model events
 			model.addListener(editor.EventTypes.MotionCreated, function(motion) {
+				var trans = motion.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.add(motion, model);
+				}
+				
 				mtnWgt.add(motion);
 			});
 			
 			model.addListener(editor.EventTypes.MotionRemoved, function(motion) {
+				var trans = motion.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.remove(motion, model);
+				}
+				
+				editor.depends.clear(motion);
 				mtnWgt.remove(motion);
 			});
 			
@@ -761,6 +782,16 @@ var editor = (function(editor) {
 			});
 			
 			model.addListener(editor.EventTypes.MotionUpdated, function(motion) {
+				editor.depends.reset(motion);
+				var trans = motion.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.add(motion, model);
+				}
+				
 				mtnWgt.update(motion);
 			});
 			
