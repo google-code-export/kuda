@@ -792,7 +792,7 @@ form input:not([type=radio]), form textarea {
     font: 9pt Helvetica, Arial, Verdana, sans-serif;
     outline: none;
     padding: 5px;
-    width: 270px;
+    width: 260px;
     color: #555;
 	margin: 0;
 }
