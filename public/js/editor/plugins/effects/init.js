@@ -28,16 +28,24 @@
 		var tabpane = new editor.ui.TabPane('Effects'),
 			toolbar = new editor.ui.Toolbar(),
 			
+			pteMdl = new editor.tools.ParticleFxModel(),
+			pteView = new editor.tools.ParticleFxView(),
+			pteCtr = new editor.tools.ParticleFxController(),
+			
 			fogMdl = new editor.tools.FogModel(),
 			fogView = new editor.tools.FogView(),
 			fogCtr = new editor.tools.FogController();
 		
 		tabpane.setToolBar(toolbar);	
 		editor.ui.addTabPane(tabpane);
+
+		pteCtr.setModel(pteMdl);
+		pteCtr.setView(pteView);
 		
 		fogCtr.setModel(fogMdl);
 		fogCtr.setView(fogView);
-		
+
+		toolbar.add(pteView);
 		toolbar.add(fogView);
 	};
 	
@@ -46,7 +54,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //	editor.ui.getScript('js/editor/plugins/effects/js/curves.js');
 	editor.ui.getScript('js/editor/plugins/effects/js/fog.js');
-//	editor.ui.getScript('js/editor/plugins/effects/js/particleEffects.js');
+	editor.ui.getScript('js/editor/plugins/effects/js/particles.js');
 	editor.ui.getCss('js/editor/plugins/effects/css/style.css');
 	
 })();
