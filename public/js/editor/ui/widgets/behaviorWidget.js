@@ -60,8 +60,8 @@ var editor = (function(module) {
 					source = module.treeData.createCamMoveCitizen(hemi.world.camera);
 				}
 			} else {
-				source = spec.src;
-				type = spec.msg;
+				source = spec.src === hemi.dispatch.WILDCARD ? module.treeData.MSG_WILDCARD : spec.src;
+				type = spec.msg === hemi.dispatch.WILDCARD ? module.treeData.MSG_WILDCARD : spec.msg;
 				handler = msgTarget.handler;
 				method = msgTarget.func;
 				argList = msgTarget.args;
@@ -124,23 +124,27 @@ var editor = (function(module) {
 		getCitType = function(source) {
 			var cit = hemi.utils.isNumeric(source) ? 
 					hemi.world.getCitizenById(source) : source;
-					
+			
 			return cit.getCitizenType().split('.').pop();
 		},
 		
 		getName = function(msgTarget, spec, actor) {
 			var data = expandTargetData(msgTarget, spec),
-				citType = getCitType(data.source),
-				isId = hemi.utils.isNumeric(data.type),
-				name =  isId ? hemi.world.getCitizenById(data.type).name :
-					data.source.name,
-				name = [citType, name];
+				source = data.source,
+				nameArr;
+			
+			if (source === module.treeData.MSG_WILDCARD) {
+				nameArr = ['[any source]', data.type];
+			} else {
+				var citType = getCitType(source),
+					isId = hemi.utils.isNumeric(source),
+					name = isId ? hemi.world.getCitizenById(source).name :
+						source.name;
 				
-				if (!isId) {
-					name.push(data.type);
-				}
+				nameArr = [citType, name, data.type];
+			}
 				
-			return name;
+			return nameArr;
 		},
 		
 		openNode = function(tree, citizen, prefix) {
@@ -162,34 +166,6 @@ var editor = (function(module) {
 			tree.find('a').removeClass('restrictedSelectable');
 			tree.jstree('close_all');
 		},
-			
-		restrictSelection = function(tree, citizen, prefix, options) {
-			tree.addClass('restricted');
-			var nodeName = module.treeData.getNodeName(citizen, {
-					option: null,
-					prefix: prefix,
-					id: id
-				}),
-				node = jQuery('#' + nodeName),
-				path = tree.jstree('get_path', node, true);
-				
-			for (var i = 0, il = path.length; i < il; i++) {
-				var n = jQuery('#' + path[i]);
-				n.find('a').addClass('restrictedSelectable');
-			}
-					
-			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
-				var id = citizen.getId ? citizen.getId() : null;
-				nodeName = module.treeData.getNodeName(citizen, {
-					option: options[ndx],
-					prefix: prefix,
-					id: id
-				});
-				node = jQuery('#' + nodeName);
-				
-				node.find('a').addClass('restrictedSelectable');
-			}
-		},
 		
 		setByMsgTarget = function(msgTarget, spec, actor) {
 			var data = expandTargetData(msgTarget, spec),
@@ -199,7 +175,7 @@ var editor = (function(module) {
 			var nodeName = module.treeData.getNodeName(source, {
 						option: data.type,
 						prefix: this.trgTree.pre,
-						id: source.getId()
+						id: source.getId ? source.getId() : null
 					}),				
 				trgT = this.trgTree.getUI(),
 				axnT = this.axnTree.getUI();
@@ -260,34 +236,6 @@ var editor = (function(module) {
 			
 			this.nameIpt.val(data.name);
 			this.checkSaveButton();			
-		},
-		
-		unrestrictSelection = function(tree, citizen, prefix, options) {
-			tree.removeClass('restricted');
-			var nodeName = module.treeData.getNodeName(citizen, {
-					option: null,
-					prefix: prefix,
-					id: id
-				}),
-				node = jQuery('#' + nodeName),
-				path = tree.jstree('get_path', node, true);
-				
-			for (var i = 0, il = path.length; i < il; i++) {
-				var n = jQuery('#' + path[i]);
-				n.find('a').removeClass('restrictedSelectable');
-			}
-			
-			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
-				var id = citizen.getId ? citizen.getId() : null;
-				nodeName = module.treeData.getNodeName(citizen, {
-					option: options[ndx],
-					prefix: prefix,
-					id: id
-				});
-				node = jQuery('#' + nodeName);
-				
-				node.find('a').removeClass('restrictedSelectable');
-			}
 		};
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -507,6 +455,8 @@ var editor = (function(module) {
 								name: 'view',
 								value: 'id:' + vp.getId()
 							}];
+							this.prms.populateArgList(data.action.handler,
+									data.action.method, data.args);
 						}
 						break;
 					case module.ui.BehaviorTypes.TRIGGER:	
@@ -531,14 +481,12 @@ var editor = (function(module) {
 			switch(type) {
 				case module.ui.BehaviorTypes.ACTION:
 					// get the list of functions
-					restrictSelection(this.axnTree.getUI(), actor, 
-						this.axnTree.pre, getMethods(actor));
+					this.axnTree.restrictSelection(actor, getMethods(actor));
 					// open up to the actor's node
 					openNode(this.axnTree.getUI(), actor, this.axnTree.pre);
 					break;
 				case module.ui.BehaviorTypes.TRIGGER:
-					restrictSelection(this.trgTree.getUI(), actor, 
-						this.trgTree.pre, getMessages(actor));	
+					this.trgTree.restrictSelection(actor, getMessages(actor));	
 					openNode(this.trgTree.getUI(), actor, this.trgTree.pre);		    
 					break;
 			}

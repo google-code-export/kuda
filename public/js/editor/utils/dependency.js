@@ -70,16 +70,12 @@ var editor = (function(module) {
 			}
 		},
 		
-		resetDependencies: function(citizen) {
-			var id = citizen.getId();
-			
+		resetDependencies: function(child) {
 			this.depends.each(function(key, value) {
-				if (key !== id) {
-					var ndx = value.indexOf(citizen);
-					
-					if (ndx !== -1) {
-						value.splice(ndx, 1);
-					}
+				var ndx = value.indexOf(child);
+				
+				if (ndx !== -1) {
+					value.splice(ndx, 1);
 				}
 			});
 		}
@@ -172,7 +168,9 @@ var editor = (function(module) {
 	var mgr = new DependencyManager();
 	
 	module.depends.add = function(child, parent) {
-		mgr.addDependency(child, parent);
+		if (child && parent) {
+			mgr.addDependency(child, parent);
+		}
 	};
 	
 	module.depends.check = function(citizen) {
@@ -194,11 +192,13 @@ var editor = (function(module) {
 	};
 	
 	module.depends.remove = function(child, parent) {
-		mgr.removeDependency(child, parent);
+		if (child && parent) {
+			mgr.removeDependency(child, parent);
+		}
 	};
 	
-	module.depends.reset = function(citizen) {
-		mgr.resetDependencies(citizen);
+	module.depends.reset = function(child) {
+		mgr.resetDependencies(child);
 	};
 	
 	return module;
