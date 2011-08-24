@@ -1085,6 +1085,8 @@ var editor = (function(module) {
 				if (li) {
 					li.update(target, spec, data.actor);
 				}
+				
+				bhvWgt.setVisible(false);
 			});
 			
 			// behavior widget specific
