@@ -362,8 +362,8 @@ var editor = (function(module) {
 			var np = this.nearPlane.val(),
 				fp = this.farPlane.val(),
 				fov = this.fov.val(),
-				isSafe = this.eye.getValue().length > 0 
-					&& this.target.getValue().length > 0
+				isSafe = this.eye.getValue() != null
+					&& this.target.getValue() != null
 					&& hemi.utils.isNumeric(fov) && hemi.utils.isNumeric(np)
 					&& hemi.utils.isNumeric(fp);
 					
