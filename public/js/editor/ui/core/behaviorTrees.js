@@ -290,18 +290,31 @@ var editor = (function(editor) {
 			}
 		},
 		
-		restrictSelection: function(citizen, msgs) {
+		restrictSelection: function(citizen, options) {
 			var id = citizen.getId ? citizen.getId() : null;
+			var nodeName = editor.treeData.getNodeName(citizen, {
+					prefix: this.pre,
+					id: id
+				}),
+				paths = editor.treeData.getNodePath(nodeName);
+			
+			for (var i = 0; i < paths.length; i++) {
+				var node = jQuery('#' + paths[i], this.tree);
+				this.tree.jstree('open_node', node, false, true);
+			}
+			
+			var node = jQuery('#' + nodeName, this.tree);
+			this.tree.jstree('open_node', node, false, true);
 			this.tree.addClass('restricted');
 			
-			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
-				var nodeName = editor.treeData.getNodeName(citizen, {
-						option: msgs[ndx],
-						prefix: this.pre,
-						id: id
-					}),
-					node = jQuery('#' + nodeName, this.tree);
+			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
+				nodeName = editor.treeData.getNodeName(citizen, {
+					option: options[ndx],
+					prefix: this.pre,
+					id: id
+				});
 				
+				node = jQuery('#' + nodeName, this.tree);
 				node.find('a').addClass('restrictedSelectable');
 			}
 		},
