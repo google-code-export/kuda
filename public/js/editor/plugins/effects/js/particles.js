@@ -23,7 +23,6 @@ var editor = (function(editor) {
     editor.EventTypes.ParticleFxAdded = "particleFx.ParticleFxAdded";
     editor.EventTypes.ParticleFxUpdated = "particleFx.ParticleFxUpdated";
     editor.EventTypes.ParticleFxRemoved = "particleFx.ParticleFxRemoved";
-    editor.EventTypes.TemplatesLoaded = "particleFx.TemplatesLoaded";
 	
 	// view specific
     editor.EventTypes.ParticleFxType = "particleFx.ParticleFxType";
@@ -134,18 +133,6 @@ var editor = (function(editor) {
 			else {
 				this.currentParticleEffect = createFcn(); 
 			}
-		},
-		
-		loadTemplates: function() {			
-			var mdl = this;
-			
-			// load the template file, eventually, this will be grabbed
-			// from a server
-			hemi.loader.loadHtml('js/editor/plugins/effects/templates/particleFx.json', function(data) {
-				mdl.templates = JSON.parse(data);
-				mdl.notifyListeners(editor.EventTypes.TemplatesLoaded, 
-					mdl.templates);
-			});
 		},
 		
 		preview: function() {
@@ -445,6 +432,7 @@ var editor = (function(editor) {
 		
 		finishLayout: function() {
 			this._super();
+			this.loadTemplates();
 			
 			var saveBtn = this.find('#pteSaveBtn'),
 				cancelBtn = this.find('#pteCancelBtn'),
@@ -756,29 +744,36 @@ var editor = (function(editor) {
 			this.colorPickers.push(colorRampPicker);
 		},
 		
-		setupTemplates: function(tplData) {
+		loadTemplates: function() {
+			var wgt = this;
+			
 			this.tplSelect = this.find('#pteTemplateSelect');
-			var templates = this.templates = tplData.templates,
-				wgt = this;
-			
-			for (var ndx = 0, len = templates.length; ndx < len; ndx++) {
-				var tpl = templates[ndx],
-					option = jQuery('<option value="' + ndx + '">' + tpl.name + '</option>');
-					
-				this.tplSelect.append(option);				
-			}
-			
 			this.tplSelect.bind('change', function(evt) {
 				var elem = jQuery(this),
 					ndx = elem.val();
 					
 				if (ndx !== -1) {
-					var tpl = templates[ndx];
+					var tpl = wgt.templates[ndx];
 					wgt.notifyListeners(editor.EventTypes.TemplateSelected, tpl);
 					wgt.edit(tpl);
-				}
-				else {
+				} else {
 					wgt.reset();
+				}
+			});
+			
+			hemi.utils.get('js/editor/plugins/effects/templates/particleFx.json', function(data, status) {
+				if (data == null) {
+					hemi.core.error(status);
+				} else {
+					var tplData = JSON.parse(data);
+					wgt.templates = tplData.templates;
+					
+					for (var i = 0, il = wgt.templates.length; i < il; ++i) {
+						var tpl = wgt.templates[i],
+							option = jQuery('<option value="' + i + '">' + tpl.name + '</option>');
+						
+						wgt.tplSelect.append(option);				
+					}
 				}
 			});
 		}
@@ -873,8 +868,6 @@ var editor = (function(editor) {
 				pteCrt = view.sidePanel.createPteWidget,
 				pteLst = view.sidePanel.pteListWidget,
 				bhvWgt = view.sidePanel.behaviorWidget;
-				
-			model.loadTemplates();
 			
 			// create widget specific
 			pteCrt.addListener(editor.EventTypes.CancelCreateParticleFx, function() {
@@ -935,13 +928,10 @@ var editor = (function(editor) {
 			});			
 			model.addListener(editor.EventTypes.ParticleFxRemoved, function(value) {
 				pteCrt.reset();
-			});			
+			});
 			model.addListener(editor.EventTypes.ParticleFxUpdated, function(particleFx) {
 				pteLst.update(particleFx);
-			});		
-			model.addListener(editor.EventTypes.TemplatesLoaded, function(templates) {		
-				pteCrt.setupTemplates(templates);
-			});	
+			});
 			model.addListener(editor.EventTypes.WorldLoaded, function(effects) {		
 				for (var ndx = 0, len = effects.length; ndx < len; ndx++) {
 					var eft = effects[ndx];
