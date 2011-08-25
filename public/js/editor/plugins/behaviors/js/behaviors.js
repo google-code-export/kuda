@@ -185,14 +185,13 @@ var editor = (function(module) {
 			if (this.msgTarget === target) {
 				this.msgTarget = null;
 			}
-				
+
+	        this.notifyListeners(module.EventTypes.TargetRemoved, target);	
 			this.dispatchProxy.removeTarget(target);
 			
 			if (target.handler instanceof hemi.handlers.ValueCheck) {
 				target.handler.cleanup();
 			}
-			
-	        this.notifyListeners(module.EventTypes.TargetRemoved, target);
 		},
 		
 	    save: function(name, opt_type, opt_actor) {
@@ -1060,6 +1059,8 @@ var editor = (function(module) {
 				if (li) {
 					li.update(target, spec, data.actor);
 				}
+				
+				bhvWgt.setVisible(false);
 			});
 			
 			// behavior widget specific
