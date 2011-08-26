@@ -225,7 +225,7 @@ var editor = (function(editor) {
 					else if (hemi.utils.isNumeric(val)) {
 						var totalVal = wgt.vectors.getValue();
 						
-						if (totalVal.length > 0) {
+						if (totalVal != null) {
 							wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
 								paramName: wgt.vectors.config.paramName,
 								paramValue: totalVal
