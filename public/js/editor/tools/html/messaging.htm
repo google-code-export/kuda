@@ -1,0 +1,87 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+<div>
+	<div id="msgCauses" class="msgColumn">
+		<h1 class="msgColTitle">Triggers</h1>
+		<div id="causeTreeWrapper" class="msgColWrapper">
+		</div>
+	</div>
+	<div id="msgEffects" class="msgColumn">
+		<h1 class="msgColTitle">Actions</h1>
+		<div id="effectTreeWrapper" class="msgColWrapper">
+		</div>		
+	</div>
+	<div id="msgEvents" class="msgColumn">
+		<h1 class="msgColTitle">Behaviors</h1>
+		<div class="msgColWrapper">
+			<button id="msgAddEventBtn" class="dialogBtn">Create Behavior</button>
+		</div>
+		<div id="msgEditor">
+			<form class="noSteps" action="" method="post">
+		        <fieldset id="msgEdtCause">
+		            <legend>
+		                Trigger
+		            </legend>
+					<ol>
+						<li>
+							<span id="msgEdtCauseTxt"></span>
+						</li>
+					</ol>
+		        </fieldset>
+		        <fieldset id="msgEdtEffect">
+		            <legend>
+		                Action
+		            </legend>
+					<ol>
+						<li>
+							<span id="msgEdtEffectTxt"></span>
+						</li>
+					</ol>
+				</fieldset>
+				<fieldset id="msgEdtParams">
+					<legend>
+						Action Method Parameters
+					</legend>
+		            <ol>
+		                <li id="msgEdtTargetParamsList">
+		                </li>
+		            </ol>
+		        </fieldset>
+		        <fieldset id="msgEdtButtons">
+		            <legend>
+		                Save Behavior
+		            </legend>
+		            <ol>
+		                <li>
+		                    <label for="msgEdtName">
+		                        Name:
+		                    </label>
+		                    <input type="text" id="msgEdtName" autocomplete="off" />
+		                    <button id="msgEdtSaveBtn" disabled="disabled">
+		                        Save
+		                    </button>
+		                    <button id="msgEdtCancelBtn">
+		                        Cancel
+		                    </button>
+		                </li>
+		            </ol>
+		        </fieldset>
+			</form>
+		</div>
+	</div>
+</div>
