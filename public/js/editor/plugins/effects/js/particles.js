@@ -839,7 +839,6 @@ var editor = (function(editor) {
 			
 			this.sidePanel.addWidget(new CreateWidget());
 			this.sidePanel.addWidget(new ListWidget());
-			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
 	    }
 	});
     
@@ -866,8 +865,7 @@ var editor = (function(editor) {
 	        var model = this.model,
 	        	view = this.view,
 				pteCrt = view.sidePanel.createPteWidget,
-				pteLst = view.sidePanel.pteListWidget,
-				bhvWgt = view.sidePanel.behaviorWidget;
+				pteLst = view.sidePanel.pteListWidget;
 			
 			// create widget specific
 			pteCrt.addListener(editor.EventTypes.CancelCreateParticleFx, function() {
@@ -940,15 +938,6 @@ var editor = (function(editor) {
 			});			
 			model.addListener(editor.EventTypes.WorldCleaned, function(effects) {		
 				pteLst.clear();
-			});		
-			
-			// behavior widget specific
-			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
-				if (obj.updateMeta) {
-					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
-					pteLst.setVisible(!obj.visible && isDown);
-					pteCrt.setVisible(!obj.visible && isDown);
-				}
 			});
 	    }
 	});

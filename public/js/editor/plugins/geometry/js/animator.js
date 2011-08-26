@@ -393,7 +393,7 @@ var editor = (function(editor) {
 			});
 			
 			hemi.msg.subscribe(hemi.msg.unload, function(msg) {
-				if (msg.src instanceof hemi.Model) {
+				if (msg.src instanceof hemi.model.Model) {
 					var id = 'anmMdlSel_' + msg.src.getId();						
 					wgt.find('#' + id).remove();
 				}
@@ -826,9 +826,7 @@ var editor = (function(editor) {
             	end = this.endInput.val(),
             	name = this.find('#anmName').val();
             
-            if (start !== '' && end !== '') {
-				this.startBtn.removeAttr('disabled');
-				
+            if (start !== '' && end !== '') {				
 				if (name !== '') {
 	                this.saveBtn.removeAttr('disabled');
 	            } else {
@@ -898,7 +896,7 @@ var editor = (function(editor) {
 		init: function(options){
 			this._super({
 		        toolName: 'Animator',
-				toolTip: 'Animations: Create and edit animations',
+				toolTip: 'Create and edit key frame animations',
 		        elemId: 'animationsBtn',
 				id: 'editor.tools.Animator'
 		    });
@@ -910,7 +908,7 @@ var editor = (function(editor) {
 			
 			this.sidePanel.addWidget(new CreateWidget());
 			this.sidePanel.addWidget(new ListWidget());
-			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
+//			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
 		}
 	});
 	
@@ -1031,14 +1029,14 @@ var editor = (function(editor) {
 	        });		
 			
 			// behavior widget specific
-			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
-				if (obj.updateMeta) {
-					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
-					
-					lstWgt.setVisible(!obj.visible && isDown);
-					crtWgt.setVisible(!obj.visible && isDown);
-				}
-			});
+//			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
+//				if (obj.updateMeta) {
+//					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
+//					
+//					lstWgt.setVisible(!obj.visible && isDown);
+//					crtWgt.setVisible(!obj.visible && isDown);
+//				}
+//			});
 	    }
 	});
     

@@ -180,6 +180,10 @@ var editor = (function(editor) {
 			this.widgets = [];
 			this.visible = true;
 			
+			this.name = newOpts.location === editor.ui.Location.TOP ?
+				'topPanel' : newOpts.location === editor.ui.Location.BOTTOM ?
+				'bottomPanel' : 'sidePanel';
+
 			this._super(newOpts);
 		},
 		
@@ -224,7 +228,7 @@ var editor = (function(editor) {
 		},
 		
 		getName: function() {
-			return this.config.name;
+			return this.name;
 		},
 		
 		getPreferredHeight: function() {
@@ -412,6 +416,7 @@ var editor = (function(editor) {
 		commonWidgets = new Hashtable(),
 		scripts = new Hashtable(),
 		callbacks = [];
+		doneCallbacks = [];
 		grid = null;
 		
 	var loadingComplete = function() {
@@ -426,6 +431,10 @@ var editor = (function(editor) {
 			for (var i = 0, il = callbacks.length; i < il; i++) {
 				var obj = callbacks[i];
 				obj.callback.apply(this, obj.params);
+			}
+			
+			for (var i = 0, il = doneCallbacks.length; i < il; i++) {
+				doneCallbacks[i]();
 			}
 		}
 	};
@@ -492,6 +501,10 @@ var editor = (function(editor) {
 	    }
 		
 	    document.body.appendChild(script);
+	};
+	
+	editor.ui.whenDoneLoading = function(callback) {
+		doneCallbacks.push(callback);
 	};
 	
 	editor.ui.initializeView = function(clientElements) {

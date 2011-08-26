@@ -87,7 +87,7 @@ var editor = (function(editor) {
 		
 		removeCamCurve: function(curve) {
 			this.notifyListeners(editor.EventTypes.CamCurveRemoved, curve);
-			hemi.dispatch.postMessage(this, editor.msg.citizenDestroyed, curve);
+			hemi.world.send(this, editor.msg.citizenDestroyed, curve);
 			curve.cleanup();
 		},
 		
@@ -592,9 +592,9 @@ var editor = (function(editor) {
 			});
 		},
 		
-		createListItem: function() {
-			return new editor.ui.BhvListItem(this.behaviorWidget);
-		},
+//		createListItem: function() {
+//			return new editor.ui.BhvListItem(this.behaviorWidget);
+//		},
 		
 		getOtherHeights: function() {
 			return this.form.outerHeight(true);
@@ -615,20 +615,18 @@ var editor = (function(editor) {
 	editor.tools.CamCurveView = editor.ui.ToolView.extend({
 		init: function() {
 			this._super({
-				toolName: 'CamCurve',
-		        toolTip: 'Camera Viewpoints: Create and edit camera viewpoints',
+				toolName: 'Camera Curves',
+		        toolTip: 'Create curves for cameras to travel on',
 				elemId: 'viewpointsBtn',
 				id: 'editor.tools.CamCurve'
 			});
 			this.pre = 'vp_';
 			
-			this.addPanel(new editor.ui.Panel({
-				name: 'mainPanel'
-			}));
+			this.addPanel(new editor.ui.Panel());
 			
-			this.mainPanel.addWidget(editor.ui.getBehaviorWidget());
-			this.mainPanel.addWidget(new CreateWidget());
-			this.mainPanel.addWidget(new ListWidget(this.mainPanel.behaviorWidget));
+//			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
+			this.sidePanel.addWidget(new CreateWidget());
+			this.sidePanel.addWidget(new ListWidget());
 		}
 	});
 		
@@ -655,9 +653,9 @@ var editor = (function(editor) {
 			var model = this.model,
 				view = this.view,
 				ctr = this,
-				bhvWgt = view.mainPanel.behaviorWidget,
-				crtWgt = view.mainPanel.createCamCurveSBW,
-				lstWgt = view.mainPanel.camCurveListWgt;
+				bhvWgt = view.sidePanel.behaviorWidget,
+				crtWgt = view.sidePanel.createCamCurveSBW,
+				lstWgt = view.sidePanel.camCurveListWgt;
 			
 			// special listener for when the toolbar button is clicked
 			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
@@ -722,11 +720,11 @@ var editor = (function(editor) {
 				crtWgt.waypointUpdated(wp);
 			});
 			
-			// behavior widget specific
-			bhvWgt.addListener(editor.EventTypes.WidgetVisible, function(obj) {
-				editor.ui.sizeAndPosition.call(bhvWgt);
-				crtWgt.setVisible(!obj.visible);
-			});
+//			// behavior widget specific
+//			bhvWgt.addListener(editor.EventTypes.WidgetVisible, function(obj) {
+//				editor.ui.sizeAndPosition.call(bhvWgt);
+//				crtWgt.setVisible(!obj.visible);
+//			});
 		}
 	});
 	

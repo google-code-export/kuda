@@ -120,7 +120,7 @@ var editor = (function(editor) {
 				
 			this.notifyListeners(msgType, viewpoint);
 			// TODO: use dispatch to notify of citizen creation			
-			hemi.dispatch.postMessage(this, editor.msg.citizenCreated, viewpoint);
+			hemi.world.send(this, editor.msg.citizenCreated, viewpoint);
 			
 			if (this.camData) {
 				hemi.world.camera.moveToView(this.camData);
@@ -364,9 +364,9 @@ var editor = (function(editor) {
 			});
 		},
 		
-		createListItem: function() {
-			return new editor.ui.BhvListItem(this.behaviorWidget);
-		},
+//		createListItem: function() {
+//			return new editor.ui.BhvListItem(this.behaviorWidget);
+//		},
 		
 		getOtherHeights: function() {
 			return this.form.outerHeight(true);
@@ -388,18 +388,16 @@ var editor = (function(editor) {
 		init: function(options) {
 			this._super({
 				toolName: 'Viewpoints',
-		        toolTip: 'Camera Viewpoints: Create and edit camera viewpoints',
+		        toolTip: 'Create and edit viewpoints for cameras to move between',
 				elemId: 'viewpointsBtn',
 				id: 'editor.tools.Viewpoints'
 			});
 			
-			this.addPanel(new editor.ui.Panel({
-				name: 'mainPanel'
-			}));
+			this.addPanel(new editor.ui.Panel());
 			
-			this.mainPanel.addWidget(editor.ui.getBehaviorWidget());
-			this.mainPanel.addWidget(new CreateWidget());
-			this.mainPanel.addWidget(new ListWidget(this.mainPanel.behaviorWidget));
+//			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
+			this.sidePanel.addWidget(new CreateWidget());
+			this.sidePanel.addWidget(new ListWidget());
 		}
 	});
 		
@@ -426,9 +424,9 @@ var editor = (function(editor) {
 			var model = this.model,
 				view = this.view,
 				ctr = this,
-				crtWgt = view.mainPanel.createVptWidget,
-				lstWgt = view.mainPanel.viewpointListWidget,
-				bhvWgt = view.mainPanel.behaviorWidget;
+				crtWgt = view.sidePanel.createVptWidget,
+				lstWgt = view.sidePanel.viewpointListWidget,
+				bhvWgt = view.sidePanel.behaviorWidget;
 			
 			// special listener for when the toolbar button is clicked
 			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
@@ -495,11 +493,11 @@ var editor = (function(editor) {
 					}
 				});
 			
-			// behavior widget specific
-			bhvWgt.addListener(editor.EventTypes.WidgetVisible, function(obj) {
-				editor.ui.sizeAndPosition.call(bhvWgt);
-				crtWgt.setVisible(!obj.visible);
-			});
+//			// behavior widget specific
+//			bhvWgt.addListener(editor.EventTypes.WidgetVisible, function(obj) {
+//				editor.ui.sizeAndPosition.call(bhvWgt);
+//				crtWgt.setVisible(!obj.visible);
+//			});
 		}
 	});
 	

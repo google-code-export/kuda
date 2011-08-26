@@ -33,8 +33,7 @@ var editor = (function(editor) {
 	
     o3djs.require('editor.utils.listener');
 	o3djs.require('editor.utils.misc');
-	
-	o3djs.require('editor.data.treeData');	
+		
 	o3djs.require('editor.data.metadata');
 	
     o3djs.require('editor.ui.components.component');
@@ -55,18 +54,10 @@ var editor = (function(editor) {
     o3djs.require('editor.ui.core.actionbar');
 	o3djs.require('editor.ui.core.transformHandles');
 	o3djs.require('editor.ui.core.gridPlane');
-	o3djs.require('editor.ui.core.behaviorTrees');
     o3djs.require('editor.ui.core.dialogs');
 	
 	o3djs.require('editor.ui.widgets.listWidget');
 	o3djs.require('editor.ui.widgets.detailsList');
-	o3djs.require('editor.ui.widgets.behaviorWidget');
-//
-//
-//	o3djs.require('editor.plugins.camera.js.viewpoints');
-//	o3djs.require('editor.plugins.camera.js.cameraCurves');
-//		
-//		o3djs.require('editor.plugins.camera.init');
 	
 	o3djs.require('hemi.loader');
 	o3djs.require('hemi.handlers.valueCheck');
