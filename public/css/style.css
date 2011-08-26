@@ -289,8 +289,7 @@ p {
  ******************************************************************************/
 
 .panel {
-	background: -moz-linear-gradient(100% 100% 180deg, #eee, #fff);
-	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#fff), to(#eee));
+	background: #eee;
 	color: #333;
 	box-shadow: 0 0 10px #666;
 	opacity: 0.85;
@@ -811,6 +810,12 @@ form input.vector, form input.color, form input.quat {
 	width: 53px;
 	margin-right: 2px;
 }
+form input.color {
+	width: 29px;
+}
+form span.jPicker {
+	margin: 4px 5px 0 0;
+}
 form input.vector:last-child, form input.color:last-child,
 form input.quat:last-child {
 	margin-right: 0;
@@ -918,7 +923,7 @@ form button {
  * 									Trees									  *
  ******************************************************************************/
 
-div.jstree {
+div.jstree, div.jstree.jstree-focused {
 	background: transparent;
 	font: 12px/18px Helvetica, Arial, sans-serif !important;
 }

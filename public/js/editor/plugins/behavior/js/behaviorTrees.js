@@ -16,7 +16,8 @@
  */
 
 var editor = (function(editor) {
-	editor.ui = editor.ui || {};
+	editor.tools = editor.tools || {};
+	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
 	
 	editor.EventTypes = editor.EventTypes || {};
 	editor.EventTypes.Trees = {
@@ -47,9 +48,9 @@ var editor = (function(editor) {
 			
 			hemi.world.subscribe(hemi.msg.cleanup, this, 'worldCleaned');
 			hemi.world.subscribe(hemi.msg.ready, this, 'worldLoaded');
-			hemi.msg.subscribe(editor.msg.citizenCreated, this, 'addCitizen',
+			hemi.world.subscribe(editor.msg.citizenCreated, this, 'addCitizen',
 				[hemi.dispatch.MSG_ARG + 'data']);
-			hemi.msg.subscribe(editor.msg.citizenDestroyed, this, 
+			hemi.world.subscribe(editor.msg.citizenDestroyed, this, 
 				'removeCitizen',
 				[hemi.dispatch.MSG_ARG + 'data']);
 		},
@@ -892,7 +893,7 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 
 	var populateTree = function(tree) {
-		var treeModel = editor.ui.treeModel,
+		var treeModel = shorthand.treeModel,
 			table = treeModel.citizenTypes,
 			keys = table.keys();
 			
@@ -915,23 +916,23 @@ var editor = (function(editor) {
 		}
 	};
 	
-	editor.ui.treeModel = new TreeModel();
+	shorthand.treeModel = new TreeModel();
 	
-	editor.ui.createCitizensTree = function() {
+	shorthand.createCitizensTree = function() {
 		var tree = new TreeView(CITIZEN_PREFIX);
 		
 		populateTree(tree);
 		return tree;
 	};
 	
-	editor.ui.createActionsTree = function() {
+	shorthand.createActionsTree = function() {
 		var tree = new TreeView(ACTION_PREFIX);
 		
 		populateTree(tree);
 		return tree;
 	};
 	
-	editor.ui.createTriggersTree = function() {
+	shorthand.createTriggersTree = function() {
 		var tree = new TreeView(TRIGGER_PREFIX);
 		
 		populateTree(tree);

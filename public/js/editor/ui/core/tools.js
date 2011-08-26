@@ -29,9 +29,17 @@ var editor = (function(editor) {
 		return models.get(name);
 	};
 	
+	editor.ui.getModels = function() {
+		return models.values();
+	};
+	
 	editor.ui.getView = function(name) {
 		return views.get(name);
 	};	
+	
+	editor.ui.getViews = function() {
+		return views.values();
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			   	Tool Bar	  		                      //
@@ -39,7 +47,8 @@ var editor = (function(editor) {
 		
 	editor.ui.Toolbar = editor.ui.Component.extend({
 		init: function(options) {		
-			this.tools = [];				
+			this.tools = [];	
+			this.mousedIn = [];			
 			this._super();
 		},
 		
@@ -97,7 +106,6 @@ var editor = (function(editor) {
 					var t = toolList[ndx];
 					
 					if (t != value) {
-						console.log(t.toolTitle);
 						t.setMode(editor.ui.ToolConstants.MODE_UP);
 					}
 				}
@@ -106,26 +114,19 @@ var editor = (function(editor) {
 			}
 			else if (eventType === editor.EventTypes.ToolMouseIn) {
 				this.header.css('opacity', 0);
+				this.mousedIn.push(value);
 			}
 			else if (eventType === editor.EventTypes.ToolMouseOut) {
-				this.header.css('opacity', 1);
+				remove(value, this.mousedIn);
+				if (this.mousedIn.length === 0) {
+					this.header.css('opacity', 1);
+				}
 			}
  		},
 		
 		remove: function(tool) {
-	        var found = null;
-	        var ndx = this.tools.indexOf(tool);
-	        
-	        if (ndx != -1) {
-	            var spliced = this.tools.splice(ndx, 1);
-	            
-	            if (spliced.length == 1) {
-	                found = spliced[0];
-					found.getUI().remove();
-	            }
-	        }
-	        
-	        return found;
+			var tool = remove(tool, this.tools);
+			tool.getUI().remove();
 		},
 		
 		saveState: function() {
@@ -138,6 +139,21 @@ var editor = (function(editor) {
 			}
 		}
 	});
+	
+	var remove = function(item, list) {		
+        var found = null;
+        var ndx = list.indexOf(item);
+        
+        if (ndx != -1) {
+            var spliced = list.splice(ndx, 1);
+            
+            if (spliced.length == 1) {
+                found = spliced[0];
+            }
+        }
+        
+        return found;
+	};
 	
 	/**
 	 * Constants for setting up a tool.
@@ -301,13 +317,15 @@ var editor = (function(editor) {
                 }
 			})
 			.bind('mouseover', function(evt) {
-				view.toolHover.fadeIn(200);
-				view.notifyListeners(editor.EventTypes.ToolMouseIn);
+				if (view.mode === editor.ui.ToolConstants.MODE_UP) {
+					view.toolHover.fadeIn(100);
+					view.notifyListeners(editor.EventTypes.ToolMouseIn, view);
+				}
 			})
 			.bind('mouseout', function(evt) {
 				view.toolHover.promise('fx').done(function() {
-					view.toolHover.hide();
-					view.notifyListeners(editor.EventTypes.ToolMouseOut);
+					view.toolHover.fadeOut(100);
+					view.notifyListeners(editor.EventTypes.ToolMouseOut, view);
 				});
 			});
 		},

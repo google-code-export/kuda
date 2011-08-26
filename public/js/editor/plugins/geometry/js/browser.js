@@ -706,7 +706,6 @@ var editor = (function(editor) {
 	var SidePanel = editor.ui.Panel.extend({
 		init: function() {
 			this._super({
-				name: 'sidePanel',
 				classes: ['mbrSidePanel']
 			});
 			
@@ -799,7 +798,6 @@ var editor = (function(editor) {
 				height = this.container.outerHeight(),
 				detHeight = details.outerHeight();
 				
-			console.log(detHeight);
 			treePane.height(height - detHeight);
 		};
 	
@@ -1723,12 +1721,12 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////    	
 	
 	editor.tools.ModelBrowserView = editor.ui.ToolView.extend({
-		init: function(options) {
+		init: function() {
 			this._super({
-				toolName: 'Model Browser',
-				toolTip: 'Model Browser: browses transforms and shapes in models',
+				toolName: 'Geometry Browser',
+				toolTip: 'Browse through the transforms and materials of models and shapes',
 				elemId: 'modelBrowserBtn',
-				id: 'editor.tools.ModelBrowserView'
+				id: 'editor.tools.ModelBrowser'
 			});
 			
 			this.isDown = false;
@@ -1736,17 +1734,15 @@ var editor = (function(editor) {
 			this.addPanel(new SidePanel());
 			this.addPanel(new editor.ui.Panel({
 				location: editor.ui.Location.TOP,
-				classes: ['mbrTopPanel'],
-				name: 'topPanel'
+				classes: ['mbrTopPanel']
 			}));
 			this.addPanel(new editor.ui.Panel({
 				location: editor.ui.Location.BOTTOM,
 				classes: ['mbrBottomPanel'],
-				name: 'bottomPanel',
 				startsVisible: false
 			}));
 			
-			this.sidePanel.addWidget(new ModelTreeWidget(), "Model Tree");
+			this.sidePanel.addWidget(new ModelTreeWidget(), "Browser Tree");
 			this.sidePanel.addWidget(new HiddenItemsWidget(), "Hidden Transforms");
 			
 			this.topPanel.addWidget(new LoaderWidget());

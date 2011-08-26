@@ -191,13 +191,12 @@ var editor = (function(editor) {
 		init: function() {
 			this._super({
 		        toolName: 'Fog',
-				toolTip: 'Fog: Create and edit fog',
+				toolTip: 'Create and edit fog',
 		        elemId: 'fogBtn',
 				id: 'editor.tools.Fog'
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
-				name: 'sidePanel',
 				classes: ['fogSidePanel']
 			}));
 			

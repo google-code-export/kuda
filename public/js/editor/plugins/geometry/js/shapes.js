@@ -532,17 +532,7 @@ var editor = (function(editor) {
          
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
-////////////////////////////////////////////////////////////////////////////////    
-
-    /*
-     * Configuration object for the ShapesView.
-     */
-    editor.tools.ShapesViewDefaults = {
-        toolName: 'Shapes',
-		toolTip: 'Shapes: Create and edit shapes',
-		widgetId: 'shapesBtn',
-		axnBarId: 'shpActionBar'
-    };
+////////////////////////////////////////////////////////////////////////////////   
     
     /**
      * The ShapesView controls the dialog and toolbar widget for the 
@@ -555,19 +545,18 @@ var editor = (function(editor) {
 		init: function(options) {
 	        this._super({
 		        toolName: 'Shapes',
-				toolTip: 'Shapes: Create and edit shapes',
+				toolTip: 'Create and edit primitive shapes',
 				elemId: 'shapesBtn',
 				id: 'editor.tools.Shapes'
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
-				classes: ['shpSidePanel'],
-				name: 'sidePanel'
+				classes: ['shpSidePanel']
 			}));
 			
 			this.sidePanel.addWidget(new CreateWidget());
 			this.sidePanel.addWidget(new ListWidget());
-			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
+//			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
 	    }
 	});
     
@@ -649,15 +638,15 @@ var editor = (function(editor) {
 				lstWgt.clear();
 			});
 			
-			// behavior widget specific
-			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
-				if (obj.updateMeta) {
-					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
-					
-					lstWgt.setVisible(!obj.visible && isDown);
-					crtWgt.setVisible(!obj.visible && isDown);
-				}
-			});
+//			// behavior widget specific
+//			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
+//				if (obj.updateMeta) {
+//					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
+//					
+//					lstWgt.setVisible(!obj.visible && isDown);
+//					crtWgt.setVisible(!obj.visible && isDown);
+//				}
+//			});
 	    }
 	});
     

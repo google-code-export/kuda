@@ -18,31 +18,35 @@
 (function() {
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                     			  	Extra Scripts  		                      //
-////////////////////////////////////////////////////////////////////////////////
-//	editor.ui.getScript('js/editor/plugins/models/js/browser.js');
-//	editor.ui.getScript('js/editor/plugins/models/js/shapes.js');
-//	editor.ui.getScript('js/editor/plugins/models/js/animator.js');
-//	editor.ui.getCss('js/editor/plugins/models/css/style.css');
-	
-	
-////////////////////////////////////////////////////////////////////////////////
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-	var tabpane = new editor.ui.TabPane('Behaviors'),
-		toolbar = new editor.ui.Toolbar();
-	
-	tabpane.setToolBar(toolbar);	
-	editor.ui.addTabPane(tabpane);
 
-	editor.ui.whenDoneLoading(function() {
-//		var shpMdl = new editor.tools.ShapesModel(),
-//			shpView = new editor.tools.ShapesView(),
-//			shpCtr = new editor.tools.ShapesController();
-//				
-//		shpCtr.setModel(shpMdl);
-//		shpCtr.setView(shpView);
+	editor.tools = editor.tools || {};
+	editor.tools.projects = editor.tools.projects || {};
+
+	editor.tools.projects.init = function() {
+//		var tabpane = new editor.ui.TabPane('Projects'),
+//			toolbar = new editor.ui.Toolbar(),
+//			
+//			fogMdl = new editor.tools.FogModel(),
+//			fogView = new editor.tools.FogView(),
+//			fogCtr = new editor.tools.FogController();
 //		
-//		toolbar.add(shpView);
-	});
+//		tabpane.setToolBar(toolbar);	
+//		editor.ui.addTabPane(tabpane);
+//		
+//		fogCtr.setModel(fogMdl);
+//		fogCtr.setView(fogView);
+//		
+//		toolbar.add(fogView);
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			  	Extra Scripts  		                      //
+////////////////////////////////////////////////////////////////////////////////
+//	editor.ui.getScript('js/editor/plugins/effects/js/curves.js');
+//	editor.ui.getScript('js/editor/plugins/effects/js/fog.js');
+//	editor.ui.getScript('js/editor/plugins/effects/js/particleEffects.js');
+//	editor.ui.getCss('js/editor/plugins/effects/css/style.css');
+	
 })();
