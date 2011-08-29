@@ -149,6 +149,8 @@ var editor = (function(editor) {
 		},
 		
 		cancel: function() {
+			this.stopPreview();
+			
 			if (!this.isUpdate && this.currentSystem) {
 				this.currentSystem.cleanup();
 			}
@@ -171,7 +173,7 @@ var editor = (function(editor) {
 			this.config.particleCount = this.currentSystem.particles;
 			this.config.particleSize = this.currentSystem.size;
 			this.config.life = this.currentSystem.life;
-			this.config.particleShape = this.currentSystem.particleShape;
+			this.config.particleShape = this.currentSystem.ptcShape;
 			this.config.colors = [];
 			
 			var colors = this.currentSystem.colors;
@@ -182,8 +184,8 @@ var editor = (function(editor) {
 			var boxes = this.currentSystem.boxes;
 			for (var i = 0, il = boxes.length; i < il; i++) {
 				var b = boxes[i],
-					minExtent = b[0],
-					maxExtent = b[1],
+					minExtent = b.min,
+					maxExtent = b.max,
 					height = maxExtent[1] - minExtent[1],
 					width = maxExtent[0] - minExtent[0],
 					depth = maxExtent[2] - minExtent[2],
@@ -906,27 +908,31 @@ var editor = (function(editor) {
 				boxes = this.boxes.keys();
 			
 			for (var i = 0; i < boxes.length; i++) {
-				var b = boxes[i];
-				
-				if (b.transform == null) {
-					var transform = pack.createObject('Transform'), 
-						w = b.dimensions[1], 
-						h = b.dimensions[0], 
-						d = b.dimensions[2], 
-						x = b.position[0], 
-						y = b.position[1], 
-						z = b.position[2], 
-						box = o3djs.primitives.createBox(pack, this.boxMat, w, 
-							h, d);
-				
-					transform.addShape(box);
-					transform.translate(x,y,z);
-					transform.parent = hemi.picking.pickRoot;
-					b.transform = transform;
-				} 
-				else {
-					b.transform.visible = true;
-				}
+				var b = boxes[i], 
+					w = b.dimensions[1], 
+					h = b.dimensions[0], 
+					d = b.dimensions[2], 
+					x = b.position[0], 
+					y = b.position[1], 
+					z = b.position[2];
+			
+			if (b.transform == null) {
+				var transform = pack.createObject('Transform'), 
+					box = o3djs.primitives.createBox(pack, this.boxMat, 1, 
+						1, 1);
+			
+				transform.addShape(box);
+				transform.translate(x,y,z);
+				transform.scale(w,h,d);
+				transform.parent = hemi.picking.pickRoot;
+				b.transform = transform;
+			} 
+			else {
+				b.transform.identity();
+				b.transform.translate(x,y,z);
+				b.transform.scale(w,h,d);
+				b.transform.visible = true;
+			}
 			}
 		}
 	});
@@ -1144,7 +1150,7 @@ var editor = (function(editor) {
 				model.addBox(boxParams.position, boxParams.dimensions);
 			});
 			edtCrvWgt.addListener(editor.EventTypes.Cancel, function() {
-				model.reset();
+				model.cancel();
 			});
 			edtCrvWgt.addListener(editor.EventTypes.RemoveBox, function(box) {
 				model.removeBox(box);
