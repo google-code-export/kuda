@@ -163,34 +163,6 @@ var editor = (function(editor) {
 			tree.find('a').removeClass('restrictedSelectable');
 			tree.jstree('close_all');
 		},
-			
-		restrictSelection = function(tree, citizen, prefix, options) {
-			tree.addClass('restricted');
-			var nodeName = editor.treeData.getNodeName(citizen, {
-					option: null,
-					prefix: prefix,
-					id: id
-				}),
-				node = jQuery('#' + nodeName),
-				path = tree.jstree('get_path', node, true);
-				
-			for (var i = 0, il = path.length; i < il; i++) {
-				var n = jQuery('#' + path[i]);
-				n.find('a').addClass('restrictedSelectable');
-			}
-					
-			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
-				var id = citizen.getId ? citizen.getId() : null;
-				nodeName = editor.treeData.getNodeName(citizen, {
-					option: options[ndx],
-					prefix: prefix,
-					id: id
-				});
-				node = jQuery('#' + nodeName);
-				
-				node.find('a').addClass('restrictedSelectable');
-			}
-		},
 		
 		setByMsgTarget = function(msgTarget, spec, actor) {
 			var data = expandTargetData(msgTarget, spec),
@@ -261,34 +233,6 @@ var editor = (function(editor) {
 			
 			this.nameIpt.val(data.name);
 			this.checkSaveButton();			
-		},
-		
-		unrestrictSelection = function(tree, citizen, prefix, options) {
-			tree.removeClass('restricted');
-			var nodeName = editor.treeData.getNodeName(citizen, {
-					option: null,
-					prefix: prefix,
-					id: id
-				}),
-				node = jQuery('#' + nodeName),
-				path = tree.jstree('get_path', node, true);
-				
-			for (var i = 0, il = path.length; i < il; i++) {
-				var n = jQuery('#' + path[i]);
-				n.find('a').removeClass('restrictedSelectable');
-			}
-			
-			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
-				var id = citizen.getId ? citizen.getId() : null;
-				nodeName = editor.treeData.getNodeName(citizen, {
-					option: options[ndx],
-					prefix: prefix,
-					id: id
-				});
-				node = jQuery('#' + nodeName);
-				
-				node.find('a').removeClass('restrictedSelectable');
-			}
 		};
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -544,11 +488,10 @@ var editor = (function(editor) {
 					// get the list of functions
 					this.axnTree.restrictSelection(actor, getMethods(actor));
 					// open up to the actor's node
-					this.trgTree.restrictSelection(actor, getMessages(actor));
+					openNode(this.axnTree.getUI(), actor, this.axnTree.pre);
 					break;
 				case shorthand.BehaviorTypes.TRIGGER:
-					restrictSelection(this.trgTree.getUI(), actor, 
-						this.trgTree.pre, getMessages(actor));	
+					this.trgTree.restrictSelection(actor, getMessages(actor));
 					openNode(this.trgTree.getUI(), actor, this.trgTree.pre);		    
 					break;
 			}
