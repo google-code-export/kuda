@@ -1081,11 +1081,14 @@ var hemi = (function(hemi) {
 		}
 		
 		hemi.world.tranReg.unregister(tran, this);
-		tranObj.owner.unsubscribe(tranObj.msg, hemi.msg.cleanup);
 		var ndx = this.transformObjs.indexOf(tranObj);
 		
 		if (ndx > -1) {
 			this.transformObjs.splice(ndx, 1);
+		}
+		
+		if (tranObj.owner && tranObj.msg) {
+			tranObj.owner.unsubscribe(tranObj.msg, hemi.msg.cleanup);
 		}
 	};
 	
