@@ -317,6 +317,46 @@ p {
 }
 
 /******************************************************************************
+ * 								Bottom Panel								  *
+ ******************************************************************************/
+ 
+.bottomPanel {	
+	transition: width 0.3s ease-in-out, left 0.2;
+	-moz-transition: width 0.3s ease-in-out, left 0.2;
+	-webkit-transition: width 0.3s ease-in-out, left 0.2;
+	-o-transition: width 0.3s ease-in-out, left 0.2;
+}
+.bottomPanel .widget {
+	overflow: hidden;
+	background: none;
+	float: left;
+}
+.bottomPanel .widget:first-child {
+	padding-left: 10px;
+}
+.bottomPanel .widget:last-child {
+	padding-right: 10px;
+}
+.bottomPanel form {
+	border-top: none;
+	padding: 0 10px;
+	margin: 0;
+}
+.bottomPanel label {
+	width: auto;
+	padding-right: 10px;
+	font: bold 10pt/26px Helvetica, Arial, sans-serif;
+	color: #fff;
+	margin-right: 0;
+}
+.bottomPanel label:after {
+	content: ':';
+}
+.bottomPanel button:not(:last-child) {
+	margin-right: 5px;
+}
+
+/******************************************************************************
  * 								 Panel Buttons 								  *
  ******************************************************************************/
 

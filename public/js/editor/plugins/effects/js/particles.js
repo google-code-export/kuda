@@ -835,8 +835,7 @@ var editor = (function(editor) {
 	        });
 
 			this.addPanel(new editor.ui.Panel({
-				name: 'sidePanel',
-				classes: ['pteSidePanel']
+				classes: ['effectSidePanel']
 			}));
 			
 			this.sidePanel.addWidget(new CreateWidget());

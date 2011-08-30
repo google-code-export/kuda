@@ -20,24 +20,25 @@
  * 									 Forms									  *
  ******************************************************************************/
 
-#pteForm input:not([type=radio]), #pteForm textarea {
+.effectSidePanel form input:not([type=radio]),
+.effectSidePanel form textarea {
     width: 260px;
 }
-#pteForm li.ranged input {
+.effectSidePanel li.ranged input {
 	width: 123px;
 	float: left;
 	margin-right: 2px;
 }
-#pteForm li.ranged div:last-child input {
+.effectSidePanel li.ranged div:last-child input {
 	margin-right: 0;
 }
-#pteForm li input.vector {
+.effectSidePanel li input.vector {
 	width: 50px;
 }
-#pteForm li input.color {
+.effectSidePanel li input.color {
 	width: 24px;
 }
-#pteForm li input.quat {
+.effectSidePanel li input.quat {
 	width: 32px;
 }
 #pteColorRampWrapper {

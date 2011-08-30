@@ -1039,13 +1039,11 @@ var editor = (function(editor) {
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
-				name: 'sidePanel',
-				classes: ['ptcSidePanel']
+				classes: ['effectSidePanel']
 			}));
 			this.addPanel(new editor.ui.Panel({
 				location: editor.ui.Location.BOTTOM,
-				classes: ['mbrBottomPanel'],
-				name: 'bottomPanel',
+				classes: ['bottomPanel'],
 				startsVisible: false
 			}));
 			
