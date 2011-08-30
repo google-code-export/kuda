@@ -27,6 +27,10 @@
 	editor.tools.effects.init = function() {
 		var tabpane = new editor.ui.TabPane('Effects'),
 			toolbar = new editor.ui.Toolbar(),
+
+			ptcMdl = new editor.tools.ParticleCurvesModel(),
+			ptcView = new editor.tools.ParticleCurvesView(),
+			ptcCtr = new editor.tools.ParticleCurvesController(),
 			
 			pteMdl = new editor.tools.ParticleFxModel(),
 			pteView = new editor.tools.ParticleFxView(),
@@ -39,12 +43,16 @@
 		tabpane.setToolBar(toolbar);	
 		editor.ui.addTabPane(tabpane);
 
+		ptcCtr.setModel(ptcMdl);
+		ptcCtr.setView(ptcView);
+
 		pteCtr.setModel(pteMdl);
 		pteCtr.setView(pteView);
 		
 		fogCtr.setModel(fogMdl);
 		fogCtr.setView(fogView);
 
+		toolbar.add(ptcView);
 		toolbar.add(pteView);
 		toolbar.add(fogView);
 	};
@@ -52,7 +60,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-//	editor.ui.getScript('js/editor/plugins/effects/js/curves.js');
+	editor.ui.getScript('js/editor/plugins/effects/js/curves.js');
 	editor.ui.getScript('js/editor/plugins/effects/js/fog.js');
 	editor.ui.getScript('js/editor/plugins/effects/js/particles.js');
 	editor.ui.getCss('js/editor/plugins/effects/css/style.css');

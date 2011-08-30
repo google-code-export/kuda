@@ -330,6 +330,8 @@ var editor = (function(editor) {
 			} else {
 				this.transform = transform;
 			}
+			// make sure the render handler is called at least once
+			this.onRender();
 		},
 		
 		startRotate: function(axis, evt) {
