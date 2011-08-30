@@ -122,30 +122,30 @@ var editor = (function(editor) {
 			
 			if (props.type === 'rot') {
 				this.previewMotion = new hemi.motion.Rotator();
+				if (props.origin.join() !== '0,0,0') {
+					this.previewMotion.setOrigin(props.origin);
+				}
 			} else {
 				this.previewMotion = new hemi.motion.Translator();
-			}
-			
-			if (props.accel != null) {
-				this.previewMotion.setAccel(props.accel);
-			}
-			if (props.angle != null) {
-				this.previewMotion.setAngle(props.angle);
-			}
-			if (props.origin != null) {
-				this.previewMotion.setOrigin(props.origin);
-			}
-			if (props.pos != null) {
-				this.previewMotion.setPos(props.pos);
-			}
-			if (props.vel != null) {
-				this.previewMotion.setVel(props.vel);
+				if (props.pos.join() !== '0,0,0') {
+					this.previewMotion.setPos(props.pos);
+				}
 			}
 			
 			for (var i = 0, il = props.transforms.length; i < il; i++) {
 				var tran = props.transforms[i];
 				this.previewMotion.addTransform(tran);
 				this.matrices.push(hemi.utils.clone(tran.localMatrix));
+			}
+			
+			if (props.accel.join() !== '0,0,0') {
+				this.previewMotion.setAccel(props.accel);
+			}
+			if (props.angle.join() !== '0,0,0') {
+				this.previewMotion.setAngle(props.angle);
+			}
+			if (props.vel.join() !== '0,0,0') {
+				this.previewMotion.setVel(props.vel);
 			}
 			
 			this.previewMotion.name = editor.tools.ToolConstants.EDITOR_PREFIX + 'PreviewMotion';
