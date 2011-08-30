@@ -67,21 +67,18 @@
                 </select>
             </li>
             <li>
-                <label for="pte-numParticles" class="long">
-                    Number of Particles
-                </label>
-                <input type="text" value="" id="pte-numParticles" class="short" />
+                <input type="text" value="" id="pte-numParticles" placeholder="Number of Particles" />
             </li>
             <li>
                 <div class="long">
-                    <label for="pte-position">
+                    <label for="pte-position" class="short">
                         Position
                     </label>
                     <div id="pte-positionDiv">
                     </div>
                 </div>
                 <div class="long">
-                    <label for="pte-positionRange">
+                    <label for="pte-positionRange" class="short">
                         Range
                     </label>
                     <div id="pte-positionRangeDiv">
@@ -89,36 +86,21 @@
                 </div>
             </li>
             <li>
-                <label for="pte-timeRange" class="long">
-                    System Life Time
-                </label>
-                <input type="text" value="" id="pte-timeRange" class="short" />
+                <input type="text" value="" id="pte-timeRange" placeholder="System Life Time" />
             </li>
-            <li>
+            <li class="ranged">
                 <div>
-                    <label for="pte-lifeTime" class="long">
-                        Particle Life Time
-                    </label>
-                    <input type="text" value="" id="pte-lifeTime" class="short" />
+                    <input type="text" value="" id="pte-lifeTime" placeholder="Particle Life Time" />
                 </div>
                 <div>
-                    <label for="pte-lifeTimeRange" class="long">
-                        Range
-                    </label>
-                    <input type="text" value="" id="pte-lifeTimeRange" class="short" />
+                    <input type="text" value="" id="pte-lifeTimeRange" placeholder="Range" />
                 </div>
             </li>
             <li>
-                <label for="pte-startTime" class="long">
-                    Particle Start Time
-                </label>
-                <input type="text" value="" id="pte-startTime" class="short" />
+                <input type="text" value="" id="pte-startTime" placeholder="Particle Start Time" />
             </li>
             <li>
-                <label for="pteFireInterval" class="long">
-                    Fire Interval
-                </label>
-                <input type="text" value="" id="pteFireInterval" class="short" />
+                <input type="text" value="" id="pteFireInterval" placeholder="Fire Interval" />
             </li>
         </ol>
     </fieldset>
@@ -128,23 +110,20 @@
         </legend>
         <ol>
             <li>
-                <label for="pte-billboard" class="long">
-                    Billboard
-                </label>
-                <input type="text" value="" id="pte-billboard" class="short" />
+                <input type="text" value="" id="pte-billboard" placeholder="Billboard" />
             </li>
             <li>
-                <label for="pte-orientation" class="long">
+                <label for="pte-orientation" class="short">
                     Orientation
                 </label>
-                <div class="long" id="pte-orientationDiv">
+                <div id="pte-orientationDiv">
                 </div>
             </li>
             <li>
-                <label for="pteColorRamp0R" class="long" id="pteColorRamp0Lbl">
+                <label for="pteColorRamp0R" class="short" id="pteColorRamp0Lbl">
                     Color Ramp
                 </label>
-                <div id="pteColorRampWrapper" class="long">
+                <div id="pteColorRampWrapper">
                     <button id="pteAddColorToRamp">
                         Add Color
                     </button>
@@ -160,36 +139,24 @@
                     <label for="pte-colorMultRange" class="long">
                         Range
                     </label>
-                    <div class="long" class="pte-colorMultRangeDiv">
+                    <div id="pte-colorMultRangeDiv">
                     </div>
                 </div>
             </li>
-            <li>
+            <li class="ranged">
                 <div>
-                    <label for="pte-startSize" class="long">
-                        Start Size
-                    </label>
-                    <input type="text" value="" id="pte-startSize" class="short" />
+                    <input type="text" value="" id="pte-startSize" placeholder="Start Size" />
                 </div>
                 <div>
-                    <label for="pte-startSizeRange" class="long">
-                        Range
-                    </label>
-                    <input type="text" value="" id="pte-startSizeRange" class="short" />
+                    <input type="text" value="" id="pte-startSizeRange" placeholder="Range" />
                 </div>
             </li>
-            <li>
+            <li class="ranged">
                 <div>
-                    <label for="pte-endSize" class="long">
-                        End Size
-                    </label>
-                    <input type="text" value="" id="pte-endSize" class="short" />
+                    <input type="text" value="" id="pte-endSize" placeholder="End Size" />
                 </div>
                 <div>
-                    <label for="pte-endSizeRange" class="long">
-                        Range
-                    </label>
-                    <input type="text" value="" id="pte-endSizeRange" class="short" />
+                    <input type="text" value="" id="pte-endSizeRange" placeholder="Range" />
                 </div>
             </li>
         </ol>
@@ -204,14 +171,14 @@
                 <label for="pte-acceleration" class="long">
                     Local Acceleration
                 </label>
-                <div class="long" id="pte-accelerationDiv">                    	
+                <div id="pte-accelerationDiv">                    	
                 </div>
             </div>
             <div>
                 <label for="pte-accelerationRange" class="long">
                     Range
                 </label>
-                <div class="long" id="pte-accelerationRangeDiv">
+                <div id="pte-accelerationRangeDiv">
                 </div>
             </div>
         </li>
@@ -220,14 +187,14 @@
                 <label for="pte-velocity" class="long">
                     Local Velocity
                 </label>
-                <div class="long" id="pte-velocityDiv">
+                <div id="pte-velocityDiv">
                 </div>
             </div>
             <div>
                 <label for="pte-velocityRange" class="long">
                     Range
                 </label>
-                <div class="long" id="pte-velocityRangeDiv">
+                <div id="pte-velocityRangeDiv">
                 </div>
             </div>
         </li>
@@ -235,42 +202,30 @@
             <label for="pte-worldAcceleration" class="long">
                 World Acceleration
             </label>
-            <div class="long" id="pte-worldAccelerationDiv">
+            <div id="pte-worldAccelerationDiv">
             </div>
         </li>
         <li>
             <label for="pte-worldVelocity" class="long">
                 World Velocity
             </label>
-            <div class="long" id="pte-worldVelocityDiv">
+            <div id="pte-worldVelocityDiv">
             </div>
         </li>
-        <li>
+        <li class="ranged">
             <div>
-                <label for="pte-spinSpeed" class="long">
-                    Spin Speed
-                </label>
-                <input type="text" value="" id="pte-spinSpeed" class="short" />
+                <input type="text" value="" id="pte-spinSpeed" placeholder="Spin Speed" />
             </div>
             <div>
-                <label for="pte-spinSpeedRange" class="long">
-                    Range
-                </label>
-                <input type="text" value="" id="pte-spinSpeedRange" class="short" />
+                <input type="text" value="" id="pte-spinSpeedRange" placeholder="Range" />
             </div>
         </li>
-        <li>
+        <li class="ranged">
             <div>
-                <label for="pte-spinStart" class="long">
-                    Spin Start
-                </label>
-                <input type="text" value="" id="pte-spinStart" class="short" />
+                <input type="text" value="" id="pte-spinStart" placeholder="Spin Start" />
             </div>
             <div>
-                <label for="pte-spinStartRange" class="long">
-                    Range
-                </label>
-                <input type="text" value="" id="pte-spinStartRange" class="short" />
+                <input type="text" value="" id="pte-spinStartRange" placeholder="Range" />
             </div>
         </li>
     </fieldset>
@@ -280,30 +235,18 @@
         </legend>
         <ol>
             <li>
-                <label for="pte-numFrames" class="long">
-                    Number of Frames
-                </label>
-                <input type="text" value="" id="pte-numFrames" class="short" />
+                <input type="text" value="" id="pte-numFrames" placeholder="Number of Frames" />
             </li>
-            <li>
+            <li class="ranged">
                 <div>
-                    <label for="pte-frameStart" class="long">
-                        Frame Start
-                    </label>
-                    <input type="text" value="" id="pte-frameStart" class="short" />
+                    <input type="text" value="" id="pte-frameStart" placeholder="Frame Start" />
                 </div>
                 <div>
-                    <label for="pte-frameStartRange" class="long">
-                        Range
-                    </label>
-                    <input type="text" value="" id="pte-frameStartRange" class="short" />
+                    <input type="text" value="" id="pte-frameStartRange" placeholder="Range" />
                 </div>
             </li>
             <li>
-                <label for="pte-frameDuration" class="long">
-                    Frame Duration
-                </label>
-                <input type="text" value="" id="pte-frameDuration" class="short" />
+                <input type="text" value="" id="pte-frameDuration" placeholder="Frame Duration" />
             </li>
         </ol>
     </fieldset>
