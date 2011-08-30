@@ -1738,7 +1738,7 @@ var editor = (function(editor) {
 			}));
 			this.addPanel(new editor.ui.Panel({
 				location: editor.ui.Location.BOTTOM,
-				classes: ['mbrBottomPanel'],
+				classes: ['bottomPanel', 'mbrBottomPanel'],
 				startsVisible: false
 			}));
 			
