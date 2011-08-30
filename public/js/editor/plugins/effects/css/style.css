@@ -15,9 +15,48 @@
  * Boston, MA 02110-1301 USA.
  */
 
-/**
- * On/Off switch
- */
+
+/******************************************************************************
+ * 									 Forms									  *
+ ******************************************************************************/
+
+#pteForm input:not([type=radio]), #pteForm textarea {
+    width: 260px;
+}
+#pteForm li.ranged input {
+	width: 123px;
+	float: left;
+	margin-right: 2px;
+}
+#pteForm li.ranged div:last-child input {
+	margin-right: 0;
+}
+#pteForm li input.vector {
+	width: 50px;
+}
+#pteForm li input.color {
+	width: 24px;
+}
+#pteForm li input.quat {
+	width: 32px;
+}
+#pteColorRampWrapper {
+	float: right;
+	width: 192px;
+}
+#pteColorRampWrapper div {
+	float: left;
+}
+#pteColorRampWrapper button {
+	clear: both;
+	margin-left: 0;
+	margin-top: 10px;
+}
+
+/******************************************************************************
+ * 							     On/Off Switch								  *
+ ******************************************************************************/
+
 form .onOff {
 	display: block;
 	margin: 5px 0;

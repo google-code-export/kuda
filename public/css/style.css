@@ -719,7 +719,7 @@ form ol > li {
     overflow: hidden;
 	position: relative;
 }
-.widgetForm ol > li > div:not(.buttons) {
+.widgetForm ol > li div:not(.buttons) {
 	float: left;
 }
 .widgetForm li > div.ui-slider {
@@ -791,7 +791,7 @@ form input:not([type=radio]), form textarea {
     font: 9pt Helvetica, Arial, Verdana, sans-serif;
     outline: none;
     padding: 5px;
-    width: 260px;
+    width: 270px;
     color: #555;
 	margin: 0;
 }
@@ -1399,29 +1399,6 @@ li.even>ul>li:nth-child(even)>div {
 	border: none;
 	width: 100%;
 	height: 100%;
-}
-
-/**
- * Particle effects dialogs
- */
-#createParticleEffectDlg .vectorHelper {
-	color: #bbb;
-}
-#pteColorRampWrapper {
-	float: left;
-	width: 216px;
-}
-#pteColorRampWrapper div {
-	float: left;
-}
-#pteColorRampWrapper button {
-	clear: both;
-	margin-left: 0;
-	margin-top: 10px;
-}
-#pteActionBar span#pteCurrent {
-	font-weight: normal;
-	color: #ff8c00;
 }
 
 /**

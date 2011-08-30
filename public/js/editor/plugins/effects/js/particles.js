@@ -707,13 +707,13 @@ var editor = (function(editor) {
 			
 			this.colorMultPicker = new editor.ui.ColorPicker({
 				inputId: 'pte-colorMult',
-				containerClass: 'long',	
+				containerClass: '',	
 				buttonId: 'pteColorMultPicker'			
 			});
 			
 			var colorRampPicker = new editor.ui.ColorPicker({
 				inputId: 'pte-colorRamp0',	
-				containerClass: 'long',
+				containerClass: '',
 				buttonId: 'pteColorRamp0Picker'			
 			});
 			
@@ -794,6 +794,8 @@ var editor = (function(editor) {
 			});
 			
 			this.items = new Hashtable();		
+			this.container.addClass('second');
+			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		bindButtons: function(li, obj) {
