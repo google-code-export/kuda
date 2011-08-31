@@ -120,7 +120,7 @@ var editor = (function(editor) {
 				
 			this.notifyListeners(msgType, viewpoint);
 			// TODO: use dispatch to notify of citizen creation			
-			hemi.world.send(this, editor.msg.citizenCreated, viewpoint);
+			hemi.world.send(editor.msg.citizenCreated, viewpoint);
 			
 			if (this.camData) {
 				hemi.world.camera.moveToView(this.camData);

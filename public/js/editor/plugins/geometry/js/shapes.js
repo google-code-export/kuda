@@ -122,6 +122,7 @@ var editor = (function(editor) {
 		
 		removeShape: function(shape) {
 			this.notifyListeners(editor.EventTypes.ShapeRemoved, shape);
+			hemi.world.send(editor.msg.citizenDestroyed, shape);
 			shape.cleanup();
 		},
 		
@@ -149,6 +150,7 @@ var editor = (function(editor) {
 			
 			this.currentShape.setName(name);
 			this.notifyListeners(msgType, this.currentShape);
+			hemi.world.send(editor.msg.citizenCreated, this.currentShape);
 			
 			this.currentShape = null;
 			this.prevShape = null;

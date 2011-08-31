@@ -16,8 +16,8 @@
  */
 
 var editor = (function(editor) {
-	
-	editor.ui = editor.ui || {};
+	editor.tools = editor.tools || {};
+	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
 	
 	editor.EventTypes = editor.EventTypes || {};
 	
@@ -35,15 +35,15 @@ var editor = (function(editor) {
 	/*
 	 * Configuration object for the ParamWidget.
 	 */
-	editor.ui.ParamWidgetDefaults = {
+	shorthand.ParamWidgetDefaults = {
 		containerId: '',
 		prefix: 'prmWgt',
 		sendsNotifications: true
 	};
 	
-	editor.ui.Parameters = editor.ui.Component.extend({
+	shorthand.Parameters = editor.ui.Component.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, editor.ui.ParamWidgetDefaults, 
+			var newOpts = jQuery.extend({}, shorthand.ParamWidgetDefaults, 
 					options),
 				wgt = this;
 			this.curArgs = new Hashtable();
@@ -247,7 +247,7 @@ var editor = (function(editor) {
 					break;
 				default:
 					// citizen picker
-					ui = new editor.ui.ObjectPicker(prm, type);
+					ui = new shorthand.ObjectPicker(prm, type);
 					break;
 			}
 	

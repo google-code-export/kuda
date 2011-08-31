@@ -87,7 +87,7 @@ var editor = (function(editor) {
 		
 		removeCamCurve: function(curve) {
 			this.notifyListeners(editor.EventTypes.CamCurveRemoved, curve);
-			hemi.world.send(this, editor.msg.citizenDestroyed, curve);
+			hemi.world.send(editor.msg.citizenDestroyed, curve);
 			curve.cleanup();
 		},
 		
@@ -113,7 +113,7 @@ var editor = (function(editor) {
 			this.updateCurve();
 			this.curve.name = name;			
 			this.notifyListeners(msgType, this.curve);	
-			hemi.dispatch.postMessage(this, editor.msg.citizenCreated, this.curve);
+			hemi.world.send(editor.msg.citizenCreated, this.curve);
 			
 			// reset
 			this.curve = null;
