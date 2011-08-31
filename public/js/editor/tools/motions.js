@@ -74,8 +74,17 @@ var editor = (function(editor) {
 				
 				if (props.type === 'rot') {
 					motion = new hemi.motion.Rotator();
+					if (props.origin.join() !== '0,0,0') {
+						motion.setOrigin(props.origin);
+					}
+					if (props.angle.join() !== '0,0,0') {
+						motion.setAngle(props.angle);
+					}
 				} else {
 					motion = new hemi.motion.Translator();
+					if (props.pos.join() !== '0,0,0') {
+						motion.setPos(props.pos);
+					}
 				}
 				
 				motion.disable();
@@ -86,19 +95,10 @@ var editor = (function(editor) {
 				event = editor.EventTypes.MotionUpdated;
 			}
 			
-			if (props.accel != null) {
+			if (props.accel.join() !== '0,0,0') {
 				motion.setAccel(props.accel);
 			}
-			if (props.angle != null) {
-				motion.setAngle(props.angle);
-			}
-			if (props.origin != null) {
-				motion.setOrigin(props.origin);
-			}
-			if (props.pos != null) {
-				motion.setPos(props.pos);
-			}
-			if (props.vel != null) {
+			if (props.vel.join() !== '0,0,0') {
 				motion.setVel(props.vel);
 			}
 			
@@ -125,27 +125,27 @@ var editor = (function(editor) {
 				if (props.origin.join() !== '0,0,0') {
 					this.previewMotion.setOrigin(props.origin);
 				}
+				if (props.angle.join() !== '0,0,0') {
+					this.previewMotion.setAngle(props.angle);
+				}
 			} else {
 				this.previewMotion = new hemi.motion.Translator();
 				if (props.pos.join() !== '0,0,0') {
 					this.previewMotion.setPos(props.pos);
 				}
 			}
+
+			if (props.accel.join() !== '0,0,0') {
+				this.previewMotion.setAccel(props.accel);
+			}
+			if (props.vel.join() !== '0,0,0') {
+				this.previewMotion.setVel(props.vel);
+			}
 			
 			for (var i = 0, il = props.transforms.length; i < il; i++) {
 				var tran = props.transforms[i];
 				this.previewMotion.addTransform(tran);
 				this.matrices.push(hemi.utils.clone(tran.localMatrix));
-			}
-			
-			if (props.accel.join() !== '0,0,0') {
-				this.previewMotion.setAccel(props.accel);
-			}
-			if (props.angle.join() !== '0,0,0') {
-				this.previewMotion.setAngle(props.angle);
-			}
-			if (props.vel.join() !== '0,0,0') {
-				this.previewMotion.setVel(props.vel);
 			}
 			
 			this.previewMotion.name = editor.tools.ToolConstants.EDITOR_PREFIX + 'PreviewMotion';
