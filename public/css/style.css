@@ -367,9 +367,9 @@ p {
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
 	color: #fff;
     text-shadow: 0 -1px 0 #034d75;
-    border: 1px solid #333;
+    border: 1px solid #212121;
 	box-shadow: 0 1px 0 #444,
-		inset 0 1px 2px #72bbe0;
+		inset 0 0 1px #72bbe0;
 	margin-bottom: 0;
 }
 .topAligned button[disabled], 
@@ -400,7 +400,7 @@ p {
  ******************************************************************************/
 
 .widget {
-	background: #d5e0e4;
+	background: #333;
 	padding: 10px;
 	text-align: left;
 }
@@ -412,8 +412,14 @@ p {
 	font: bold 18px/20px "Myriad Pro", Helvetica, Arial, sans-serif; 
 	text-align: left;
 }
+.widget:not(.widgetWithForms) {
+	color: #eee;
+}
+.widget:not(.widgetWithForms) h1 {
+	color: #75d0f4;
+}
 .widget.second {
-	border-top: 1px solid #88b2cb;
+	border-top: 1px solid #000;
 }
 
 /******************************************************************************
@@ -453,10 +459,9 @@ ol.listWidget li>div {
 ul.listWidget li>div {
 	float: left;
 	width: 300px;
-	margin-left: 10px;
 }
 .listWidget>li:nth-child(odd) {
-	background: #bcd6e0;
+	background: #444;
 } 
 .listWidget li span {
 	float: left;
@@ -471,7 +476,7 @@ ol.listWidget li span {
 	padding: 5px 0;
 }
 .listWidget li:hover {
-	background: #e3eaed;
+	background: #555;
 }
 .listWidget li>div>span {
 	font-weight: bold;
@@ -498,8 +503,9 @@ ol.listWidget li span {
 	background: none;
 }
 .listWidget button.uiMenuShown {	
-	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
+	background: -moz-linear-gradient(100% 100% 90deg, #111, #222);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#222), to(#111));
+	border: 1px solid #000;
 }
 .listWidget button:before {
 	background: url(../images/listOptionsSprite.png) no-repeat;
@@ -1011,6 +1017,104 @@ div.jstree, div.jstree.jstree-focused {
 .sharedTree {
 	background: none !important;
 }
+
+/******************************************************************************
+ * 								  Behavior UI								  *
+ ******************************************************************************/
+
+#behaviorWgt {
+	
+}
+#behaviorAxnParams li {
+	list-style: none;
+	float: left;
+}
+#behaviorAxnParams label {
+	width: 80px;
+}
+#behaviorAxnParams input[type=text]:not(.short) {
+	width: 128px;
+	float: left;
+}
+#behaviorMenu {
+	position: absolute;
+	border-radius: 3px;
+	padding: 4px 8px;
+	color: #fff;
+	background: #333;
+	font: bold 12px/18px Helvetica, Verdana, Arial, sans-serif;
+	text-shadow: 0 -1px 0 #000;
+	box-shadow: 2px 3px 4px #999;
+	margin-top: 4px;
+}
+#behaviorMenu ul li {
+	padding: 2px 0;
+}
+#behaviorMenu ul li a {
+	cursor: pointer;
+}
+#behaviorMenu ul li a:hover {
+	text-shadow: 0 0 5px #444;
+	color: #c2dfef;
+}
+.bhvListWrapper {
+	float: left;
+	width: 259px;
+	margin: 0 0 0 -30px;
+	padding: 20px 10px 15px 30px;
+	background: url(../images/pattern.gif) repeat;
+	box-shadow: inset 0 0 5px #222;
+	font-weight: bold;
+	text-shadow: 0 1px 1px #222;
+}
+ul li .bhvListWrapper {
+	margin: 0;
+}
+.bhvListArrow {
+	display: block; 
+	position: absolute;
+	top: 33px; 
+	left: 35px; 
+	width: 13px;
+	height: 13px;
+	background: #216190;
+	box-shadow: inset 2px 2px 2px #333;
+	transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+.bhvListWrapper h2 {
+	float: left;
+	width: 100%;
+}
+.bhvListWrapper .widget {
+	background: transparent;
+}
+.bhvList {
+	float: left;
+	padding: 0 0 0 20px;
+}
+ul.bhvList li {
+	padding: 0;
+	list-style: circle inside;
+	width: 240px;
+}
+ul.bhvList li:hover {
+	background: none;
+}
+ul.bhvList li > div {	
+	width: 220px;
+}
+ul.bhvList li > div.add {
+	width: 240px;
+}
+ul.bhvList li .buttonContainer {
+	padding-right: 0;
+}
+ul.bhvList li.button {
+	list-style: none;
+}
+
 
 /**
  * Object picking widget
@@ -1584,99 +1688,6 @@ ul.scnEvtList li.button {
 	color: #555;
 	width: 195px;
 	font-size: 9pt;
-}
-
-/**
- * Behavior widget
- */
-#behaviorWgt {
-	
-}
-#behaviorAxnParams li {
-	list-style: none;
-	float: left;
-}
-#behaviorAxnParams label {
-	width: 80px;
-}
-#behaviorAxnParams input[type=text]:not(.short) {
-	width: 128px;
-	float: left;
-}
-#behaviorMenu {
-	position: absolute;
-	border-radius: 3px;
-	padding: 4px 8px;
-	color: #fff;
-	background: #333;
-	font: bold 12px/18px Helvetica, Verdana, Arial, sans-serif;
-	text-shadow: 0 -1px 0 #000;
-	box-shadow: 2px 3px 4px #999;
-	margin-top: 4px;
-}
-#behaviorMenu ul li {
-	padding: 2px 0;
-}
-#behaviorMenu ul li a {
-	cursor: pointer;
-}
-#behaviorMenu ul li a:hover {
-	text-shadow: 0 0 5px #444;
-	color: #c2dfef;
-}
-.bhvListWrapper {
-	float: left;
-	width: 259px;
-	margin: 0 0 0 -30px;
-	padding: 20px 10px 15px 30px;
-	background: #fffdf2;
-	box-shadow: 0 0 3px #ddd;
-	-moz-box-shadow: 0 0 3px #ddd;  
-}
-ul li .bhvListWrapper {
-	margin: 0;
-}
-.bhvListArrow {
-	display: block; 
-	position: absolute;
-	top: 35px; 
-	left: 35px; 
-	width: 13px;
-	height: 13px;
-	background: #fffdf2;
-	box-shadow: -1px -1px 2px #ddd;
-	-moz-box-shadow: -1px -1px 2px #ddd;  
-	transform: rotate(45deg);
-	-moz-transform: rotate(45deg);
-	-webkit-transform: rotate(45deg);
-}
-.bhvListWrapper h2 {
-	float: left;
-	width: 100%;
-}
-.bhvList {
-	float: left;
-	padding: 0 0 0 20px;
-}
-ul.bhvList li {
-	padding: 0;
-	list-style: circle inside;
-	width: 240px;
-}
-ul.bhvList li:hover {
-	background: none;
-}
-ul.bhvList li > div {	
-	width: 220px;
-}
-ul.bhvList li > div.add {
-	width: 240px;
-}
-ul.bhvList li .buttonContainer {
-	padding-right: 0;
-}
-ul.bhvList li.button {
-	list-style: none;
 }
 
 /**

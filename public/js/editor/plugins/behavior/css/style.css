@@ -1,0 +1,83 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+
+/******************************************************************************
+ * 									Panels									  *
+ ******************************************************************************/
+
+.bhvBottomPanel {
+}
+
+/******************************************************************************
+ * 									Widgets									  *
+ ******************************************************************************/
+
+.bhvBottomPanel .widget {
+	background: none;
+	color: #fff;
+}
+
+/******************************************************************************
+ * 									 Table									  *
+ ******************************************************************************/
+
+.dataTables_wrapper {
+	font: 12px/16px Helvetica, Arial, sans-serif;
+	float: left; 
+}
+.dataTables_wrapper table {
+	float: left;
+	margin: 20px 0;
+	clear: both;
+}
+.dataTables_wrapper table tbody tr:nth-child(2n+1) {
+	background: #444;
+}
+.dataTables_wrapper table thead {
+	background: #666;
+	font-weight: bold;
+	text-align: center;
+}
+.dataTables_wrapper table th:not(.editHead) {
+	width: 150px;
+	padding: 5px 10px;
+	text-shadow: 0 1px 0 #222;
+}
+.dataTables_wrapper table td {
+	padding: 5px 10px;
+}
+.dataTables_filter, .dataTables_paginate {
+	float: right;
+}
+.dataTables_length, .dataTables_info {
+	float: left;
+}
+.dataTables_info, .dataTables_paginate {
+	clear: both;
+}
+.dataTables_filter input {
+    background: #ffffff;
+    border: 1px solid #323232;
+	box-shadow: 0 1px 0 #434343;
+    border-radius: 3px;
+    font: 9pt Helvetica, Arial, Verdana, sans-serif;
+    outline: none;
+    padding: 2px 5px;
+    color: #555;
+	margin: 0;
+}

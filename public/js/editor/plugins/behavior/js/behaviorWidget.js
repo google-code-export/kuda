@@ -610,7 +610,7 @@ var editor = (function(editor) {
 				arrow = jQuery('<div class="bhvListArrow"></div>'),
 				wgt = this;
 			
-			this.list = new editor.ui.ListWidget({
+			this.list = new editor.ui.List({
 				widgetClass: 'bhvList',
 				prefix: 'bhvLst'
 			});
