@@ -8088,7 +8088,7 @@ var hemi = (function(hemi) {
 		rotate: function(theta,time,opt_mustComplete) {
 			if (!this.enabled || this.mustComplete) return false;
 			this.time = 0;
-			this.stopTime = time;
+			this.stopTime = time || 0.001;
 			this.steadyRotate = true;
 			this.startAngle = this.angle;
 			this.mustComplete = opt_mustComplete || false;
@@ -8433,7 +8433,7 @@ var hemi = (function(hemi) {
 		move : function(delta,time,opt_mustComplete) {
 			if (!this.enabled || this.mustComplete) return false;
 			this.time = 0;
-			this.stopTime = time;
+			this.stopTime = time || 0.001;
 			this.steadyMove = true;
 			this.startPos = this.pos;
 			this.mustComplete = opt_mustComplete || false;
