@@ -97,6 +97,8 @@
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
+	editor.ui.getScript('js/editor/plugins/behavior/js/objectPicker.js');
+	editor.ui.getScript('js/editor/plugins/behavior/js/param.js');
 	editor.ui.getScript('js/editor/plugins/behavior/js/treeData.js');
 	editor.ui.getScript('js/editor/plugins/behavior/js/behaviorTrees.js');
 	editor.ui.getScript('js/editor/plugins/behavior/js/behaviorWidget.js');

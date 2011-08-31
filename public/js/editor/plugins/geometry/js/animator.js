@@ -221,6 +221,7 @@ var editor = (function(editor) {
 		
 	    removeAnimation: function(animation) {
 	        this.notifyListeners(editor.EventTypes.AnimationRemoved, animation);
+			hemi.world.send(editor.msg.citizenDestroyed, animation);
 			animation.cleanup();
 		},
 	    
@@ -272,6 +273,7 @@ var editor = (function(editor) {
 			
 			this.stopAnimation();
 			this.notifyListeners(msgType, this.animation);
+			hemi.world.send(editor.msg.citizenCreated, this.animation);
 			
 			this.animation = null;
 			this.animDirty = this.isUpdate = false;	

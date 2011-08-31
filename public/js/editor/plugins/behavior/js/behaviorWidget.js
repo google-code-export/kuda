@@ -334,7 +334,7 @@ var editor = (function(editor) {
 			this.axnTree = shorthand.createActionsTree();
 			this.trgTree = shorthand.createTriggersTree();
 							
-			this.prms = new editor.ui.Parameters({
+			this.prms = new shorthand.Parameters({
 					prefix: 'bhvEdt'
 				});
 			

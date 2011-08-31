@@ -44,8 +44,6 @@ var editor = (function(editor) {
 	o3djs.require('editor.ui.components.treeSelector');
 	o3djs.require('editor.ui.components.tooltip');
 	o3djs.require('editor.ui.components.validator');
-	o3djs.require('editor.ui.components.objectPicker');
-	o3djs.require('editor.ui.components.param');
 	
 	o3djs.require('editor.ui.core.view');
 	o3djs.require('editor.ui.core.progress');

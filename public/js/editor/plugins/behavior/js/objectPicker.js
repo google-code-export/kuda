@@ -16,9 +16,10 @@
  */
 
 var editor = (function(module) {
-	module.ui = module.ui || {};
+	editor.tools = editor.tools || {};
+	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
 	
-    module.EventTypes = module.EventTypes || {};
+    editor.EventTypes = editor.EventTypes || {};
 	
 	var CIT_TREE_PNL_ID = 'objPkrCitTreePnl',
 		CIT_TREE_ID = 'objPkrCitTree';
@@ -32,10 +33,10 @@ var editor = (function(module) {
 	var createCitizenTree = function(filter) {
 			try {
 				if (citTree == null) {
-					citTree = module.ui.createCitizensTree();
+					citTree = shorthand.createCitizensTree();
 					
 					if (citTree.tree == null) {
-						citTree.addListener(module.EventTypes.Trees.TreeCreated, function(treeUI){
+						citTree.addListener(editor.EventTypes.Trees.TreeCreated, function(treeUI){
 							initCitizenTree(treeUI, filter);
 						});
 					}
@@ -43,7 +44,7 @@ var editor = (function(module) {
 						initCitizenTree(citTree.tree, filter);
 					}
 					
-					citTree.addListener(module.EventTypes.Trees.SelectCitizen, function(data){
+					citTree.addListener(editor.EventTypes.Trees.SelectCitizen, function(data){
 						var elem = citTreePnl.data('curElem'), 
 							btn = elem.children('button'), 
 							ipt = elem.children('input'), 
@@ -58,7 +59,7 @@ var editor = (function(module) {
 						btn.removeClass('open');
 						
 						if (wgt.config.sendsNotifications) {
-							wgt.notifyListeners(module.EventTypes.Params.SetArgument, data);
+							wgt.notifyListeners(editor.EventTypes.Params.SetArgument, data);
 						}
 					});
 				}
@@ -121,7 +122,7 @@ var editor = (function(module) {
 			citTree.filter(filter);
 		};
 	
-	module.ui.ObjectPicker = module.ui.Component.extend({
+	shorthand.ObjectPicker = editor.ui.Component.extend({
 		init: function(argName, filter) {
 			this.argName = argName;
 			this.filter = filter;
@@ -211,7 +212,7 @@ var editor = (function(module) {
 		
 		setValue: function(citizen) {
 			if (citizen != null && citizen.getCitizenType() === this.filter) {
-				var nodeId = module.treeData.getNodeName(citizen, {
+				var nodeId = editor.treeData.getNodeName(citizen, {
 					prefix: citTree.pre,
 					id: citizen.getId()
 				});
