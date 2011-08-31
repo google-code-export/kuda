@@ -102,5 +102,5 @@
 	editor.ui.getScript('js/editor/plugins/behavior/js/behaviorWidget.js');
 	editor.ui.getScript('js/editor/plugins/behavior/js/behaviors.js');
 //	editor.ui.getScript('js/editor/plugins/behavior/js/timer.js');
-//	editor.ui.getCss('js/editor/plugins/behavior/css/style.css');
+	editor.ui.getCss('js/editor/plugins/behavior/css/style.css');
 })();

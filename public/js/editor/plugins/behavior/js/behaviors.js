@@ -407,10 +407,35 @@ var editor = (function(module) {
 					editor.tools.behavior.getActionName(data).join('.'),
 					msgTarget.name
 				]),
+				td = jQuery('<td> \
+					<button class="editBtn">Edit</button>\
+					<button class="chainBtn">Chain</button>\
+					<button class="cloneBtn">Clone</button>\
+					<button class="removeBtn">Remove</button>\
+					</td>'),
 				tr = this.table.fnGetNodes(row);
 				
 			tr.data('behavior', msgTarget);
 			this.behaviors.put(msgTarget.dispatchId, tr);
+			
+			tr.prepend(td);			
+			
+			td.find('.editBtn').bind('click', function(evt) {
+				var bhv = tr.data('behavior');					
+				wgt.notifyListeners(editor.EventTypes.SelectTarget, bhv);
+			});
+			td.find('.chainBtn').bind('click', function(evt) { 
+				var tr = jQuery(this).parents('tr');
+				
+			});
+			td.find('.cloneBtn').bind('click', function(evt) {
+				var tr = jQuery(this).parents('tr');
+				
+			});
+			td.find('.removeBtn').bind('click', function(evt) {
+				var tr = jQuery(this).parents('tr');
+				
+			});
 		},
 		
 		finishLayout: function() {
@@ -427,40 +452,14 @@ var editor = (function(module) {
 				]
 			});
 			
-			var th = jQuery('<th></th>'),
-				td = jQuery('<td> \
-					<button class="editBtn">Edit</button>\
-					<button class="chainBtn">Chain</button>\
-					<button class="cloneBtn">Clone</button>\
-					<button class="removeBtn">Remove</button>\
-					</td>'),
+			var th = jQuery('<th class="editHead"></th>'),
 				wgt = this;
 					
 			this.tableElem.find('thead tr').each(function() {
 				jQuery(this).prepend(th);
 			});
-			this.tableElem.find('tbody tr').each(function() {
-				jQuery(this).prepend(td.clone());
-			});
 			
-			this.tableElem.find('.editBtn').bind('click', function(evt) {
-				var tr = jQuery(this).parents('tr'),
-					bhv = tr.data('behavior');
-					
-				wgt.notifyListeners(editor.EventTypes.SelectTarget, bhv);
-			});
-			this.tableElem.find('.chainBtn').bind('click', function(evt) { 
-				var tr = jQuery(this).parents('tr');
-				
-			});
-			this.tableElem.find('.cloneBtn').bind('click', function(evt) {
-				var tr = jQuery(this).parents('tr');
-				
-			});
-			this.tableElem.find('.removeBtn').bind('click', function(evt) {
-				var tr = jQuery(this).parents('tr');
-				
-			});
+			this.tableElem.find('.dataTables_empty').attr('colspan', 4);
 		},
 		
 		remove: function(msgTarget) {
@@ -998,20 +997,21 @@ var editor = (function(module) {
 				id: 'editor.tools.Behavior'
 			});
 			
-//			this.addPanel(new editor.ui.Panel({
-//				location: editor.ui.Location.TOP,
-//				classes: ['bhvTopPanel'],
-//				name: 'topPanel'
-//			}));
+			this.addPanel(new editor.ui.Panel({
+				location: editor.ui.Location.TOP,
+				classes: ['bhvTopPanel'],
+				name: 'topPanel'
+			}));
 			this.addPanel(new editor.ui.Panel({
 				location: editor.ui.Location.BOTTOM,
 				classes: ['bhvBottomPanel'],
 				name: 'bottomPanel'
 			}));
 						
-//			this.topPanel.addWidget(editor.ui.getBehaviorWidget());
-			
+			this.topPanel.addWidget(editor.tools.behavior.createBehaviorWidget());			
 			this.bottomPanel.addWidget(new TableWidget());
+			
+			this.topPanel.behaviorWidget.setVisible(true);
 		}
 	});
 	
