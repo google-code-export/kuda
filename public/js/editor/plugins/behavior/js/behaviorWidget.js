@@ -236,6 +236,39 @@ var editor = (function(editor) {
 		};
 	
 ////////////////////////////////////////////////////////////////////////////////
+//                         	 Custom Tree Selector	                          //
+////////////////////////////////////////////////////////////////////////////////
+		
+	
+	var BhvTreeSelector = editor.ui.TreeSelector.extend({
+		init: function(options) {
+			this._super(options);
+		},
+		
+		setTree: function(tree) {
+			var wgt = this,
+				pnl = this.panel;
+			
+			tree.addListener(editor.EventTypes.Trees.TreeCreated, 
+				function(treeUI) {
+					wgt.tree = treeUI;
+					wgt.tree.bind('select_node.jstree', wgt.selFcn).addClass('treeSelectorTree');
+			
+					wgt.panel.append(wgt.tree);
+									
+					wgt.input.attr('placeholder', 'Select an item');
+				});
+		
+			this.treeBorder = Math.ceil(parseFloat(pnl.css('borderRightWidth'))) 
+				+ Math.ceil(parseFloat(pnl.css('borderLeftWidth')));
+			this.treePadding = Math.ceil(parseFloat(pnl.css('paddingLeft'))) 
+				+ Math.ceil(parseFloat(pnl.css('paddingRight')));
+				
+			this.input.attr('placeholder', 'No items to select');
+		}
+	});
+	
+////////////////////////////////////////////////////////////////////////////////
 //                                	Widget		                              //
 ////////////////////////////////////////////////////////////////////////////////
 		
@@ -340,31 +373,25 @@ var editor = (function(editor) {
 			
 			paramsFieldset.find('li').append(this.prms.getUI());
 				
-			this.trgChooser = new editor.ui.TreeSelector({
+			this.trgChooser = new BhvTreeSelector({
 				tree: this.trgTree,
 				select: selFcn
 			}); 
 			
-			this.axnChooser = new editor.ui.TreeSelector({
+			this.axnChooser = new BhvTreeSelector({
 				tree: this.axnTree,
 				select: selFcn
 			});
 			
-			this.axnTree.addListener(editor.EventTypes.Trees.TreeCreated, 
-				function(treeUI) {
-					var li = jQuery('<li></li>');
-					
-					li.append(wgt.axnChooser.getUI());
-					actionFieldset.find('ol').append(li);
-				});
-				
-			this.trgTree.addListener(editor.EventTypes.Trees.TreeCreated, 
-				function(treeUI) {
-					var li = jQuery('<li></li>');
-					
-					li.append(wgt.trgChooser.getUI());
-					triggerFieldset.find('ol').append(li);
-				});
+			var li = jQuery('<li></li>');
+			
+			li.append(this.axnChooser.getUI());
+			actionFieldset.find('ol').append(li);
+			
+			li = jQuery('<li></li>');
+			
+			li.append(this.trgChooser.getUI());
+			triggerFieldset.find('ol').append(li);
 			
 			saveBtn.bind('click', function(evt) {
 				var data = {
