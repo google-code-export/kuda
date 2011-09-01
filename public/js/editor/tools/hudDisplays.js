@@ -456,10 +456,22 @@ var editor = (function(module) {
 		finishLayout: function() {
 			this._super();
 			
+			var wgt = this;
+			
 			this.displayEditor = this.find('#hudDpyEditor');
 			this.pageEditor = this.find('#hudPgeEditor');
 			this.textEditor = this.find('#hudTxtEditor');
+			this.textPosition = new module.ui.Vector({
+				container: wgt.find('#hudTxtPositionDiv'),
+				inputs: ['x', 'y'],
+				validator: module.ui.createDefaultValidator()
+			});
 			this.imageEditor = this.find('#hudImgEditor');
+			this.imagePosition = new module.ui.Vector({
+				container: wgt.find('#hudImgPositionDiv'),
+				inputs: ['x', 'y'],
+				validator: module.ui.createDefaultValidator()
+			});
 			
 			this.bindDisplayEditor();
 			this.bindPageEditor();
@@ -613,8 +625,6 @@ var editor = (function(module) {
 		
 		bindTextEditor: function() {
 			var txtEdt = this.textEditor,
-				xInput = txtEdt.find('#hudTxtPositionX'),
-				yInput = txtEdt.find('#hudTxtPositionY'),
 				inputs = txtEdt.find('input'),
 				required = txtEdt.find('input:not(.optional)'),
 				textInput = txtEdt.find('#hudTxtText'),
@@ -650,8 +660,6 @@ var editor = (function(module) {
 					
 					return msg;
 				});
-			
-			this.setupAutoFills(inputs.filter('.vector'));
 													
 			inputs.bind('blur', function(evt) {
 				var elem = jQuery(this),
@@ -672,13 +680,14 @@ var editor = (function(module) {
 					font = fontSelect.val(),
 					style = styleSelect.val(),
 					align = alignSelect.val(),
-					color = colorPicker.getColor();
+					color = colorPicker.getColor(),
+					pos = wgt.textPosition.getValue();
 				
 				var props = {
 					type: 'Text',
 					name: nameInput.val(),
-					x: parseFloat(xInput.val()),
-					y: parseFloat(yInput.val()),
+					x: pos[0],
+					y: pos[1],
 					text: textInput.val(),
 					width: parseFloat(widthInput.val()),
 					config: {}
@@ -723,8 +732,6 @@ var editor = (function(module) {
 		
 		bindImageEditor: function() {
 			var imgEdt = this.imageEditor,
-				xInput = imgEdt.find('#hudImgPositionX'), 
-				yInput = imgEdt.find('#hudImgPositionY'),
 				inputs = imgEdt.find('input'),
 				nameInput = imgEdt.find('#hudImgName'),
 				urlInput = imgEdt.find("#hudImgUrl"),
@@ -745,8 +752,6 @@ var editor = (function(module) {
 					
 					return msg;
 				});
-				
-			this.setupAutoFills(inputs.filter('.vector'));
 						
 			inputs.bind('blur', function(evt) {
 				var elem = jQuery(this),
@@ -763,13 +768,14 @@ var editor = (function(module) {
 			});
 			
 			saveBtn.bind('click', function(evt) {
-				var props = {
-					type: 'Image',
-					name: nameInput.val(),
-					x: parseFloat(xInput.val()),
-					y: parseFloat(yInput.val()),
-					url: urlInput.val()
-				};				
+				var pos = wgt.imagePosition.getValue(),
+					props = {
+						type: 'Image',
+						name: nameInput.val(),
+						x: pos[0],
+						y: pos[1],
+						url: urlInput.val()
+					};
 				
 				wgt.setImageEditor(null);
 				wgt.notifyListeners(module.EventTypes.SaveElement, props);
@@ -819,8 +825,6 @@ var editor = (function(module) {
 		setTextEditor: function(obj) {
 			var txtEdt = this.textEditor,
 				required = txtEdt.find('input:not(.optional)'),
-				xInput = txtEdt.find('#hudTxtPositionX'),
-				yInput = txtEdt.find('#hudTxtPositionY'),
 				textInput = txtEdt.find('#hudTxtText'),
 				widthInput = txtEdt.find('#hudTxtWidth'),
 				nameInput = txtEdt.find('#hudTxtName'),
@@ -835,8 +839,7 @@ var editor = (function(module) {
 				wgt = this;
 				
 			txtEdt.data('obj', obj).find('.displayName').text(obj ? obj.name : '');
-			xInput.val(obj ? obj.x : '').blur();
-			yInput.val(obj ? obj.y : '').blur();
+			obj ? this.textPosition.setValue([obj.x, obj.y]) : this.textPosition.reset();
 			widthInput.val(obj ? obj.width : '');
 			textInput.val(obj ? obj.text[0] : '');
 			nameInput.val(obj ? obj.name : '');
@@ -868,16 +871,13 @@ var editor = (function(module) {
 		
 		setImageEditor: function(obj) {
 			var imgEdt = this.imageEditor,
-				xInput = imgEdt.find('#hudImgPositionX'),
-				yInput = imgEdt.find('#hudImgPositionY'),
 				urlInput = imgEdt.find('#hudImgUrl'),
 				nameInput = imgEdt.find('#hudImgName'),
 				removeBtn = imgEdt.find('#hudImgRemoveBtn'),
 				wgt = this;
 				
 			imgEdt.data('obj', obj).find('.displayName').text(obj ? obj.name : '');
-			xInput.val(obj ? obj.x : '').blur();
-			yInput.val(obj ? obj.y : '').blur();
+			obj ? this.imagePosition.setValue([obj.x, obj.y]) : this.imagePosition.reset();
 			urlInput.val(obj ? obj.getImageUrl() : '');
 			nameInput.val(obj ? obj.name : '');
 			
@@ -894,40 +894,6 @@ var editor = (function(module) {
 			this.pageEditor.hide();
 			this.textEditor.hide();
 			this.displayEditor.hide();
-		},
-	
-		setupAutoFills: function(inputs) {
-			var wgt = this;
-			
-			inputs.filter('.xNdx').val('x');
-			inputs.filter('.yNdx').val('y');
-			inputs.filter('.zNdx').val('z');
-										
-			inputs.bind('keydown', function(evt) {
-				var elem = jQuery(this);
-				elem.removeClass('vectorHelper');
-			})
-			.bind('blur', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val(),
-					cls = elem.attr('class'),
-					param = elem.attr('id'),
-					totalVal = null,
-					type = cls.match(/xNdx|yNdx|zNdx/);
-				
-				
-				if (val === '') {
-					elem.val(type[0].replace('Ndx', '')).addClass('vectorHelper');
-				}
-			})
-			.bind('focus', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val();
-				if (val === 'x' || val === 'y' || val === 'z') {
-					elem.val('');
-				}
-			})
-			.addClass('vectorHelper');
 		},
 		
 		resize: function(maxHeight) {
