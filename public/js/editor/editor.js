@@ -116,7 +116,9 @@
 			this.mtnMdl.addListener(editor.EventTypes.MotionCreated, addFunc);
 			this.mtnMdl.addListener(editor.EventTypes.MotionUpdated, updateFunc);
 			this.vptMdl.addListener(editor.EventTypes.CamCurveCreated, addFunc);
+			this.vptMdl.addListener(editor.EventTypes.CamCurveUpdated, updateFunc);
 			this.vptMdl.addListener(editor.EventTypes.ViewpointAdded, addFunc);
+			this.vptMdl.addListener(editor.EventTypes.ViewpointUpdated, updateFunc);
 			this.scnMdl.addListener(editor.EventTypes.Scenes.SceneAdded, addFunc);
 			this.scnMdl.addListener(editor.EventTypes.Scenes.SceneUpdated, updateFunc);
 			this.pteMdl.addListener(editor.EventTypes.ParticleFxAdded, addFunc);
