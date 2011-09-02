@@ -41,7 +41,7 @@
 		editor.ui.addTabPane(tabpane);
 	};	
 	
-	editor.ui.whenDoneLoading(function() {	
+	editor.whenDoneLoading(function() {	
 		// grab all views
 		var views = editor.getViews();
 		
@@ -99,12 +99,12 @@
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.ui.getScript('js/editor/plugins/behavior/js/objectPicker.js');
-	editor.ui.getScript('js/editor/plugins/behavior/js/param.js');
-	editor.ui.getScript('js/editor/plugins/behavior/js/treeData.js');
-	editor.ui.getScript('js/editor/plugins/behavior/js/behaviorTrees.js');
-	editor.ui.getScript('js/editor/plugins/behavior/js/behaviorWidget.js');
-	editor.ui.getScript('js/editor/plugins/behavior/js/behaviors.js');
-//	editor.ui.getScript('js/editor/plugins/behavior/js/timer.js');
-	editor.ui.getCss('js/editor/plugins/behavior/css/style.css');
+	editor.getScript('js/editor/plugins/behavior/js/objectPicker.js');
+	editor.getScript('js/editor/plugins/behavior/js/param.js');
+	editor.getScript('js/editor/plugins/behavior/js/treeData.js');
+	editor.getScript('js/editor/plugins/behavior/js/behaviorTrees.js');
+	editor.getScript('js/editor/plugins/behavior/js/behaviorWidget.js');
+	editor.getScript('js/editor/plugins/behavior/js/behaviors.js');
+//	editor.getScript('js/editor/plugins/behavior/js/timer.js');
+	editor.getCss('js/editor/plugins/behavior/css/style.css');
 })();

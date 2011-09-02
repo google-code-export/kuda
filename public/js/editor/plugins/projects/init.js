@@ -44,9 +44,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-//	editor.ui.getScript('js/editor/plugins/effects/js/curves.js');
-//	editor.ui.getScript('js/editor/plugins/effects/js/fog.js');
-//	editor.ui.getScript('js/editor/plugins/effects/js/particleEffects.js');
-//	editor.ui.getCss('js/editor/plugins/effects/css/style.css');
+//	editor.getScript('js/editor/plugins/effects/js/curves.js');
+//	editor.getScript('js/editor/plugins/effects/js/fog.js');
+//	editor.getScript('js/editor/plugins/effects/js/particleEffects.js');
+//	editor.getCss('js/editor/plugins/effects/css/style.css');
 	
 })();

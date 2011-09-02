@@ -53,6 +53,6 @@
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.ui.getScript('js/editor/plugins/camera/js/viewpoints.js');
-	editor.ui.getScript('js/editor/plugins/camera/js/cameraCurves.js');
+	editor.getScript('js/editor/plugins/camera/js/viewpoints.js');
+	editor.getScript('js/editor/plugins/camera/js/cameraCurves.js');
 })();

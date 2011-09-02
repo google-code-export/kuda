@@ -15,16 +15,124 @@
  * Boston, MA 02110-1301 USA.
  */
 
-(function(window) {
+var editor = (function(editor) {
 	o3djs.require('editor.requires');
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Main App                                   //
 ////////////////////////////////////////////////////////////////////////////////
+	
+	var	callbacks = [],
+		doneCallbacks = [],
+		scripts = new Hashtable();
+		
+	var loadingComplete = function() {
+			var vals = scripts.values(),
+				complete = true;
+			
+			for (var i = 0, il = vals.length; i < il && complete; i++) {
+				complete &= vals[i];
+			}
+			
+			if (complete) {
+				for (var i = 0, il = callbacks.length; i < il; i++) {
+					var obj = callbacks[i];
+					obj.callback.apply(this, obj.params);
+				}
+				
+				for (var i = 0, il = doneCallbacks.length; i < il; i++) {
+					doneCallbacks[i]();
+				}
+			}
+		},
+			
+		loadPlugins = function() {		
+			jQuery.get('js/editor/plugins/plugins.json')
+				.success(function(data, status, xhr) {								
+					// data is a json array
+					var plugins = data.plugins,
+						bdy = jQuery('body');
+					
+					for (var i = 0, il = plugins.length; i < il; i++) {
+						var plugin = plugins[i];
+						
+						editor.getScript('js/editor/plugins/' + plugin + '/init.js'); 
+						callbacks.push({
+							callback: function(name){
+								editor.tools[name].init();
+//								editor.notifyListeners(name);
+							},
+							params: [plugin]
+						});
+					}
+				})
+				.error(function(xhr, status, err) {
+					// fail gracefully
+				});
+		};
+	
+	editor.getCss = function(url, media) {
+		jQuery( document.createElement('link') ).attr({
+	        href: url,
+	        media: media || 'screen',
+	        type: 'text/css',
+	        rel: 'stylesheet'
+	    }).appendTo('head');
+	};
+	
+	editor.getScript = function(url, callback) {
+		var script = document.createElement('script');
+		script.type = 'text/javascript';
+		script.src = url;
+		
+		scripts.put(script, false);
+		
+		{
+	        var done = false;
+	
+	        // Attach handlers for all browsers
+	        script.onload = script.onreadystatechange = function(){
+	            if (!done && (!this.readyState ||
+	            		this.readyState == "loaded" || 
+						this.readyState == "complete")) {
+	                done = true;
+                	scripts.put(script, true);
+					if (callback) {
+						callback();
+					}
+					loadingComplete();
+	
+	                // Handle memory leak in IE
+	                script.onload = script.onreadystatechange = null;
+	            }
+	        };
+	    }
+		
+	    document.body.appendChild(script);
+	};
+	
+	editor.whenDoneLoading = function(callback) {
+		doneCallbacks.push(callback);
+	};
 
-	var initViewerStep1 = function() {			
+	var initViewerStep1 = function() {	
+			var notifier = new editor.utils.Listenable();
+			
+			editor.addListener = function(eventType, listener) {
+				notifier.addListener(eventType, listener);
+			};
+			
+			editor.notifyListeners = function(eventType, value) {
+				notifier.notifyListeners(eventType, value);
+			};
+			
+			editor.removeListener = function(listener) {
+				notifier.removeListener(listener);
+			};
+					
 			o3djs.webgl.makeClients(function(clientElements) {
 				editor.ui.initializeView(clientElements);
+				loadPlugins();
 			});
 		},
 		
@@ -33,6 +141,10 @@
 				hemi.core.client.cleanup();
 			}
 		};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                         Remove the rest of this                            //
+////////////////////////////////////////////////////////////////////////////////
 
 	var Application = function() {
 	};
@@ -875,4 +987,6 @@
 	jQuery(window).resize(function() {
 //		app.sizeViewerPane();
 	});
-})(window);
+	
+	return editor;
+})(editor || {});

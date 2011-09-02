@@ -44,7 +44,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-	editor.ui.getScript('js/editor/plugins/hud/js/displays.js');
-	editor.ui.getCss('js/editor/plugins/hud/css/style.css');
+	editor.getScript('js/editor/plugins/hud/js/displays.js');
+	editor.getCss('js/editor/plugins/hud/css/style.css');
 	
 })();
