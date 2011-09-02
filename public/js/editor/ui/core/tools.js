@@ -179,6 +179,7 @@ var editor = (function(editor) {
     editor.EventTypes.WorldLoaded = "WorldLoaded";
     editor.EventTypes.WorldCleaned = "WorldCleaned";
 	editor.EventTypes.WidgetVisible = "WidgetVisible";
+	editor.EventTypes.WidgetResized = "WidgetResized";
 	editor.EventTypes.PanelVisible = "PanelVisible";
     
 ////////////////////////////////////////////////////////////////////////////////

@@ -27,6 +27,9 @@
  * 									Widgets									  *
  ******************************************************************************/
 
+.bhvTopPanel .widget {
+	border-radius: 0 0 6px 6px;
+}
 .bhvBottomPanel .widget {
 	background: none;
 	color: #fff;
@@ -80,4 +83,155 @@
     padding: 2px 5px;
     color: #555;
 	margin: 0;
+}
+
+/******************************************************************************
+ * 									 Forms									  *
+ ******************************************************************************/
+
+.bhvTopPanel h1 {
+	text-align: center;
+}
+.bhvTopPanel .widgetForm fieldset {
+	float: left;
+	border-bottom: none;
+	border-right: 1px dotted #aaa;
+	width: auto;
+	padding: 0 10px;
+}
+.bhvTopPanel .widgetForm fieldset:first-child {
+	padding-left: 0;
+}
+.bhvTopPanel .widgetForm fieldset:last-child {
+	border-right: none;
+	border-left: 1px dotted #aaa;
+}
+.bhvTopPanel .widgetForm fieldset:nth-child(3) {
+	border-right: none;
+}
+.bhvTopPanel .widgetForm input {
+	width: 150px;
+}
+.bhvTopPanel div.buttons {
+	margin-left: 2px;
+}
+.bhvTopPanel div.buttons button {
+	margin: 0 1px;
+}
+.bhvTopPanel form ol > li {
+	line-height: 25px;
+}
+
+/******************************************************************************
+ * 								 Object Picker								  *
+ ******************************************************************************/
+
+.objectPicker {
+	float: left;
+}
+
+label.objPkrCitTreeLbl {
+	width: 80px;
+}
+form .objectPicker input.treeSelectorIpt {
+	width: 128px;
+	float: left;    
+	border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+}
+
+
+/******************************************************************************
+ * 								  Behavior UI								  *
+ ******************************************************************************/
+
+#behaviorAxnParams li {
+	list-style: none;
+	float: left;
+	clear: both;
+}
+#behaviorAxnParams label {
+	width: 80px;
+}
+#behaviorAxnParams input[type=text]:not(.short) {
+	width: 128px;
+	float: left;
+}
+#behaviorMenu {
+	position: absolute;
+	border-radius: 3px;
+	padding: 4px 8px;
+	color: #fff;
+	background: #333;
+	font: bold 12px/18px Helvetica, Verdana, Arial, sans-serif;
+	text-shadow: 0 -1px 0 #000;
+	box-shadow: 2px 3px 4px #999;
+	margin-top: 4px;
+}
+#behaviorMenu ul li {
+	padding: 2px 0;
+}
+#behaviorMenu ul li a {
+	cursor: pointer;
+}
+#behaviorMenu ul li a:hover {
+	text-shadow: 0 0 5px #444;
+	color: #c2dfef;
+}
+.bhvListWrapper {
+	float: left;
+	width: 259px;
+	margin: 0 0 0 -30px;
+	padding: 20px 10px 15px 30px;
+	background: url(../images/pattern.gif) repeat;
+	box-shadow: inset 0 0 5px #222;
+	font-weight: bold;
+	text-shadow: 0 1px 1px #222;
+}
+ul li .bhvListWrapper {
+	margin: 0;
+}
+.bhvListArrow {
+	display: block; 
+	position: absolute;
+	top: 33px; 
+	left: 35px; 
+	width: 13px;
+	height: 13px;
+	background: #216190;
+	box-shadow: inset 2px 2px 2px #333;
+	transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+.bhvListWrapper h2 {
+	float: left;
+	width: 100%;
+}
+.bhvListWrapper .widget {
+	background: transparent;
+}
+.bhvList {
+	float: left;
+	padding: 0 0 0 20px;
+}
+ul.bhvList li {
+	padding: 0;
+	list-style: circle inside;
+	width: 240px;
+}
+ul.bhvList li:hover {
+	background: none;
+}
+ul.bhvList li > div {	
+	width: 220px;
+}
+ul.bhvList li > div.add {
+	width: 240px;
+}
+ul.bhvList li .buttonContainer {
+	padding-right: 0;
+}
+ul.bhvList li.button {
+	list-style: none;
 }

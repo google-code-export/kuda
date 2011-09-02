@@ -135,6 +135,7 @@ var editor = (function(editor) {
 			var json = this.createJsonObj(model);
 			this.models.push(model);
 			this.notifyListeners(editor.EventTypes.AddModel, json);
+			hemi.world.send(editor.msg.citizenCreated, model);
 		},
 		
 		addShape: function(shape) {
@@ -147,6 +148,7 @@ var editor = (function(editor) {
 			var ndx = jQuery.inArray(model, this.models);			
 			this.models.splice(ndx, 1);
 			
+			hemi.world.send(editor.msg.citizenDestroyed, model);
 			this.notifyListeners(editor.EventTypes.RemoveModel, model);
 		},
 		

@@ -203,7 +203,11 @@ var editor = (function(editor) {
 			this[widget.getName()] = widget;
 			this.widgets.push(widget);
 			
+			var pnl = this;
 			// TODO: listen to when a widget gets made visible/invisible
+			widget.addListener(editor.EventTypes.WidgetResized, function() {
+				pnl.resize();
+			});
 		},
 		
 		finishLayout: function() {
@@ -320,6 +324,10 @@ var editor = (function(editor) {
 		
 		getPreferredHeight: function() {
 			return this.preferredHeight;
+		},
+		
+		invalidate: function() {
+			this.notifyListeners(editor.EventTypes.WidgetResized);
 		},
 		
 		setVisible: function(visible, opt_updateMeta) {

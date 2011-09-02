@@ -25,11 +25,15 @@ var editor = (function(module) {
 		CIT_TREE_ID = 'objPkrCitTree';
 	
 	var citTree = null,
-		citTreePnl = jQuery('<div id="' + CIT_TREE_PNL_ID +'"></div>'),
+		citTreePnl = jQuery('<div id="' + CIT_TREE_PNL_ID +'" class="treeSelectorPnl"></div>'),
 		padding = 0,
 		border = 0,
 		outerWidth = 0;
 		
+	citTreePnl.css({
+		position: 'absolute'
+	});
+				
 	var createCitizenTree = function(filter) {
 			try {
 				if (citTree == null) {
@@ -176,8 +180,8 @@ var editor = (function(module) {
 								
 								if (parent.size() == 0 
 									&& id != CIT_TREE_PNL_ID
-									&& !target.hasClass('objPkrCitTreeBtn')
-									&& !target.hasClass('objPkrCitTreeIpt')) {
+									&& !target.hasClass('treeSelectorBtn')
+									&& !target.hasClass('treeSelectorIpt')) {
 									citTreePnl.slideUp(200);
 									ipt.removeClass('open');
 									btn.removeClass('open');
@@ -189,8 +193,8 @@ var editor = (function(module) {
 						citTree.currentParamIpt = ipt;
 					}
 				},			
-				ip = jQuery('<input type="text" class="objPkrCitTreeIpt" id="objPkr_' + argName + '"></input>'),
-				cb = jQuery('<button class="objPkrCitTreeBtn dialogBtn">Citizens</button>');
+				ip = jQuery('<input type="text" class="treeSelectorIpt" id="objPkr_' + argName + '"></input>'),
+				cb = jQuery('<button class="treeSelectorBtn dialogBtn">Citizens</button>');
 				
 	            this.container.append(ip).append(cb);
 				
