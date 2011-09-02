@@ -290,14 +290,9 @@ var editor = (function(module) {
 			var nodeName = module.treeData.getNodeName(citizen, {
 					prefix: this.pre,
 					id: id
-				}),
-				paths = module.treeData.getNodePath(nodeName);
+				});
 			
-			for (var i = 0; i < paths.length; i++) {
-				var node = jQuery('#' + paths[i], this.tree);
-				this.tree.jstree('open_node', node, false, true);
-			}
-			
+			generateNodes.call(this, nodeName, true);
 			var node = jQuery('#' + nodeName, this.tree);
 			this.tree.jstree('open_node', node, false, true);
 			this.tree.addClass('restricted');
@@ -322,14 +317,9 @@ var editor = (function(module) {
 						option: option,
 						prefix: this.pre,
 						id: citizen.getId ? citizen.getId() : null
-					}),
-					paths = module.treeData.getNodePath(nodeName);
+					});
 				
-				for (var i = 0; i < paths.length; i++) {
-					var node = jQuery('#' + paths[i], this.tree);
-					this.tree.jstree('open_node', node, false, true);
-				}
-				
+				generateNodes.call(this, nodeName, false);
 				var node = jQuery('#' + nodeName);
 				
 				if (this.tree.jstree('is_leaf', node)) {
@@ -361,11 +351,12 @@ var editor = (function(module) {
 		update: function(citizen) {
 			var nodeName = module.treeData.getNodeName(citizen, {
 						option: null,
-						prefix: this.type,
+						prefix: this.pre,
 						id: citizen.getId()
-					}),
-				node = jQuery('#' + nodeName);
+					});
 			
+			generateNodes.call(this, nodeName, true);
+			var node = jQuery('#' + nodeName, this.tree);
 			this.tree.jstree('rename_node', node, citizen.name);
 		}
 	});
@@ -750,6 +741,25 @@ var editor = (function(module) {
 			
 			this.tree.jstree('deselect_node', node);
 			triggerText.text('');
+		},
+		
+		generateNodes = function(nodeName, closePath) {
+			var paths = module.treeData.getNodePath(nodeName),
+				toClose = [];
+			
+			for (var i = 0; i < paths.length; ++i) {
+				var node = jQuery('#' + paths[i], this.tree);
+				
+				if (closePath && this.tree.jstree('is_closed', node)) {
+					toClose.unshift(node);
+				}
+				
+				this.tree.jstree('open_node', node, false, true);
+			}
+			
+			for (var i = 0; i < toClose.length; ++i) {
+				this.tree.jstree('close_node', toClose[i], true);
+			}
 		},
 		
 		removeAction = function(citizen, removeType) {
