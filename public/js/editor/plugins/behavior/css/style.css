@@ -225,7 +225,7 @@ form .objectPicker input.treeSelectorIpt {
 	background: #333;
 	font: bold 12px/18px Helvetica, Verdana, Arial, sans-serif;
 	text-shadow: 0 -1px 0 #000;
-	box-shadow: 2px 3px 4px #999;
+	box-shadow: 2px 3px 4px #222;
 	margin-top: 4px;
 }
 #behaviorMenu ul li {

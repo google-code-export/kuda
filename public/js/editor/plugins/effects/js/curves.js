@@ -94,7 +94,7 @@ var editor = (function(editor) {
     /**
      * A ParticleCurvesModel...
      */
-    editor.tools.ParticleCurvesModel = editor.ui.ToolModel.extend({
+    editor.tools.ParticleCurvesModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.ParticleCurvesModel');
 			this.config = {
@@ -989,7 +989,7 @@ var editor = (function(editor) {
 			this._super();
 			
 			var manipBtns = this.getUI().find('#boxTranslate, #boxScale'),
-				downMode = editor.ui.ToolConstants.MODE_DOWN,
+				downMode = editor.ToolConstants.MODE_DOWN,
 				that = this;
 
 			this.boxNumberTxt = this.getUI().find('#boxNumber');
@@ -1031,7 +1031,7 @@ var editor = (function(editor) {
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////  
     
-    editor.tools.ParticleCurvesView = editor.ui.ToolView.extend({
+    editor.tools.ParticleCurvesView = editor.ToolView.extend({
 		init: function(options){
 			this._super({
 				toolName: 'Particle Curves',
@@ -1086,7 +1086,7 @@ var editor = (function(editor) {
      * The CurveEditorController facilitates CurveEditorModel and CurveEditorView
      * communication by binding event and message handlers.
      */
-    editor.tools.ParticleCurvesController = editor.ui.ToolController.extend({
+    editor.tools.ParticleCurvesController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -1105,7 +1105,7 @@ var editor = (function(editor) {
 				adjWgt = view.bottomPanel.adjustBoxWidget;
 	        
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode == editor.ui.ToolConstants.MODE_DOWN,
+	            var isDown = value.newMode == editor.ToolConstants.MODE_DOWN,
 					root = isDown ? hemi.core.client.root : hemi.picking.pickRoot;	
 				
 				hemi.model.modelRoot.parent = root;

@@ -58,7 +58,7 @@ var editor = (function(editor) {
      * An AnimatorModel handles the creation and playing of animations as well
      * as model picking for the animation tool.
      */
-    editor.tools.AnimatorModel = editor.ui.ToolModel.extend({
+    editor.tools.AnimatorModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.Animator');
 	        
@@ -894,7 +894,7 @@ var editor = (function(editor) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.AnimatorViewDefaults as default options
      */
-    editor.tools.AnimatorView = editor.ui.ToolView.extend({
+    editor.tools.AnimatorView = editor.ToolView.extend({
 		init: function(options){
 			this._super({
 		        toolName: 'Animator',
@@ -923,7 +923,7 @@ var editor = (function(editor) {
      * The AnimatorController facilitates AnimatorModel and AnimatorView
      * communication by binding event and message handlers.
      */
-    editor.tools.AnimatorController = editor.ui.ToolController.extend({
+    editor.tools.AnimatorController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -943,7 +943,7 @@ var editor = (function(editor) {
 	        	that = this;
 	        
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode == editor.ui.ToolConstants.MODE_DOWN;				
+	            var isDown = value.newMode == editor.ToolConstants.MODE_DOWN;				
 	            model.enableModelPicking(isDown);
 	            model.stopAnimation();
 	        });	
@@ -1033,7 +1033,7 @@ var editor = (function(editor) {
 			// behavior widget specific
 //			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
 //				if (obj.updateMeta) {
-//					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
+//					var isDown = view.mode === editor.ToolConstants.MODE_DOWN;
 //					
 //					lstWgt.setVisible(!obj.visible && isDown);
 //					crtWgt.setVisible(!obj.visible && isDown);

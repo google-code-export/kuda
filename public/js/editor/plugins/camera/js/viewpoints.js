@@ -43,7 +43,7 @@ var editor = (function(editor) {
 	 * An ViewpointsModel handles the creation and playing of animations as well
 	 * as model picking for the animation tool.
 	 */
-	editor.tools.ViewpointsModel = editor.ui.ToolModel.extend({
+	editor.tools.ViewpointsModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.Viewpoints');
 			this.camData = null;
@@ -384,7 +384,7 @@ var editor = (function(editor) {
 	 * @param {Object} options configuration options.  Uses
 	 *         editor.tools.ViewpointsViewDefaults as default options
 	 */
-	editor.tools.ViewpointsView = editor.ui.ToolView.extend({
+	editor.tools.ViewpointsView = editor.ToolView.extend({
 		init: function(options) {
 			this._super({
 				toolName: 'Viewpoints',
@@ -409,7 +409,7 @@ var editor = (function(editor) {
 	 * The ViewpointsController facilitates ViewpointsModel and ViewpointsView
 	 * communication by binding event and message handlers.
 	 */
-	editor.tools.ViewpointsController = editor.ui.ToolController.extend({
+	editor.tools.ViewpointsController = editor.ToolController.extend({
 		init: function() {
 			this._super();
 		},
@@ -430,7 +430,7 @@ var editor = (function(editor) {
 			
 			// special listener for when the toolbar button is clicked
 			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-				var isDown = value.newMode === editor.ui.ToolConstants.MODE_DOWN;
+				var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
 				model.enableMonitoring(isDown);
 			});
 			
@@ -488,7 +488,7 @@ var editor = (function(editor) {
 			hemi.msg.subscribe(editor.EventTypes.Updated,
 				function(msg) {
 					if (msg.src instanceof editor.tools.ViewpointsModel) {
-						var isDown = view.mode == editor.ui.ToolConstants.MODE_DOWN;
+						var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
 						lstWgt.update(vpt);
 					}
 				});

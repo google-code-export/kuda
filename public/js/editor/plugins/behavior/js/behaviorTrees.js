@@ -135,7 +135,7 @@ var editor = (function(editor) {
 			for (var ndx = 0, len = citizens.length; ndx < len; ndx++) {
 				var citizen = citizens[ndx];
 				
-				if (citizen.name.match(editor.ui.ToolConstants.EDITOR_PREFIX) === null) {
+				if (citizen.name.match(editor.ToolConstants.EDITOR_PREFIX) === null) {
 					this.addCitizen(citizen);
 				}
 			}
@@ -447,9 +447,9 @@ var editor = (function(editor) {
 			
 			if (opt_func) {
 				desc = editor.data.getMetaData().getDescription(type, opt_func);
-			} else if (type === editor.ui.ToolConstants.SHAPE_PICK) {
+			} else if (type === editor.ToolConstants.SHAPE_PICK) {
 				desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
-			} else if (type === editor.ui.ToolConstants.CAM_MOVE) {
+			} else if (type === editor.ToolConstants.CAM_MOVE) {
 				desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
 			} else {
 				desc = editor.data.getMetaData().getDescription(type);
@@ -751,7 +751,7 @@ var editor = (function(editor) {
 		},
 		
 		generateNodes = function(nodeName, closePath) {
-			var paths = module.treeData.getNodePath(nodeName),
+			var paths = editor.treeData.getNodePath(nodeName),
 				toClose = [];
 			
 			for (var i = 0; i < paths.length; ++i) {

@@ -43,7 +43,7 @@
 	
 	editor.ui.whenDoneLoading(function() {	
 		// grab all views
-		var views = editor.ui.getViews();
+		var views = editor.getViews();
 		
 		// for each view, if there is a list widget, insert a behavior widget
 		// and replace the createListItem() method in the list widget

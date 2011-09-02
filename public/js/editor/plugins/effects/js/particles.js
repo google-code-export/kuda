@@ -52,7 +52,7 @@ var editor = (function(editor) {
     /**
      * A ParticleFxModel ...
      */
-    editor.tools.ParticleFxModel = editor.ui.ToolModel.extend({
+    editor.tools.ParticleFxModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.ParticleFx');
 			this.particleEffectParams = {};
@@ -825,7 +825,7 @@ var editor = (function(editor) {
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
     
-    editor.tools.ParticleFxView = editor.ui.ToolView.extend({
+    editor.tools.ParticleFxView = editor.ToolView.extend({
 		init: function() {
 	        this._super({
 	            toolName: 'Particle Effects',
@@ -851,7 +851,7 @@ var editor = (function(editor) {
      * The ParticleFxController facilitates ParticleFxModel and ParticleFxView
      * communication by binding event and message handlers.
      */
-    editor.tools.ParticleFxController = editor.ui.ToolController.extend({
+    editor.tools.ParticleFxController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},

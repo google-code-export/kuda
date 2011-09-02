@@ -18,15 +18,15 @@
 var editor = (function(editor) {	
 	editor.tools = editor.tools || {};
 	
-    editor.ui.ToolConstants = editor.ui.ToolConstants || {};
-	editor.ui.ToolConstants.EDITOR_PREFIX = 'EditorCitizen:';
-    editor.ui.ToolConstants.SEL_HIGHLIGHT = 'selectorHighlight';
-    editor.ui.ToolConstants.X_AXIS = 'x';
-    editor.ui.ToolConstants.Y_AXIS = 'y';
-    editor.ui.ToolConstants.Z_AXIS = 'z';
-    editor.ui.ToolConstants.XY_PLANE = 'xyPlane';
-    editor.ui.ToolConstants.XZ_PLANE = 'xzPlane';
-    editor.ui.ToolConstants.YZ_PLANE = 'yzPlane';
+    editor.ToolConstants = editor.ToolConstants || {};
+	editor.ToolConstants.EDITOR_PREFIX = 'EditorCitizen:';
+    editor.ToolConstants.SEL_HIGHLIGHT = 'selectorHighlight';
+    editor.ToolConstants.X_AXIS = 'x';
+    editor.ToolConstants.Y_AXIS = 'y';
+    editor.ToolConstants.Z_AXIS = 'z';
+    editor.ToolConstants.XY_PLANE = 'xyPlane';
+    editor.ToolConstants.XZ_PLANE = 'xzPlane';
+    editor.ToolConstants.YZ_PLANE = 'yzPlane';
 	
 	editor.EventTypes = editor.EventTypes || {};
 	
@@ -92,7 +92,7 @@ var editor = (function(editor) {
 //                          ModelBrowser Model                                //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.tools.ModelBrowserModel = editor.ui.ToolModel.extend({
+	editor.tools.ModelBrowserModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.ModelBrowser');
 			this.models = [];
@@ -245,7 +245,7 @@ var editor = (function(editor) {
      * The SelectorModel handles the shape picking behavior of the selection
      * tool.    
      */
-    editor.tools.SelectorModel = editor.ui.ToolModel.extend({
+    editor.tools.SelectorModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.ModelBrowser');
 	        
@@ -463,9 +463,9 @@ var editor = (function(editor) {
 			state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
 			
 			this.tranHighlightMat.state = state;
-			this.tranHighlightMat.name = editor.ui.ToolConstants.SEL_HIGHLIGHT;
+			this.tranHighlightMat.name = editor.ToolConstants.SEL_HIGHLIGHT;
 			this.shapHighlightMat.state = state;
-			this.shapHighlightMat.name = editor.ui.ToolConstants.SEL_HIGHLIGHT + 'Shape';
+			this.shapHighlightMat.name = editor.ToolConstants.SEL_HIGHLIGHT + 'Shape';
 		},
 		
 		isSelected: function(transform, opt_owner) {
@@ -1722,7 +1722,7 @@ var editor = (function(editor) {
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    	
 	
-	editor.tools.ModelBrowserView = editor.ui.ToolView.extend({
+	editor.tools.ModelBrowserView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 				toolName: 'Geometry Browser',
@@ -1760,7 +1760,7 @@ var editor = (function(editor) {
 //                                Controller                                  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.tools.ModelBrowserController = editor.ui.ToolController.extend({
+	editor.tools.ModelBrowserController = editor.ToolController.extend({
 		init: function() {
 			this._super();
 		},
@@ -1780,7 +1780,7 @@ var editor = (function(editor) {
 		},
 		
 		/**
-		 * Overrides editor.ui.ToolController.checkBindEvents()
+		 * Overrides editor.ToolController.checkBindEvents()
 		 *
 		 * Returns true if the orthographic model, wireframe model, and view are all
 		 * set.
@@ -1812,8 +1812,8 @@ var editor = (function(editor) {
 			
 			// for when the tool gets selected/deselected	
 			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-				var isDown = value.newMode === editor.ui.ToolConstants.MODE_DOWN,
-					wasDown = value.oldMode === editor.ui.ToolConstants.MODE_DOWN,
+				var isDown = value.newMode === editor.ToolConstants.MODE_DOWN,
+					wasDown = value.oldMode === editor.ToolConstants.MODE_DOWN,
 					savedState = selModel.savedDrawState,
 					handle = selModel.curHandle;
 				selModel.enableSelection(isDown);
@@ -1883,7 +1883,7 @@ var editor = (function(editor) {
 				hidWgt.removeOwner(model);
 	        });	
 			model.addListener(editor.EventTypes.AddUserCreatedShape, function(json) {
-				var isDown = view.mode == editor.ui.ToolConstants.MODE_DOWN,
+				var isDown = view.mode == editor.ToolConstants.MODE_DOWN,
 					shape = json.metadata.actualNode;
 				
 				mbrWgt.addShape(json);
@@ -1900,7 +1900,7 @@ var editor = (function(editor) {
 				selModel.deselectTransform(shape.getTransform());
 			});		
 			model.addListener(editor.EventTypes.UpdateUserCreatedShape, function(shapeObj) {
-				var isDown = view.mode == editor.ui.ToolConstants.MODE_DOWN,
+				var isDown = view.mode == editor.ToolConstants.MODE_DOWN,
 					shape = shapeObj.shape;
 				mbrWgt.updateShape(shapeObj.shapeData, shape);
 				
@@ -1919,7 +1919,7 @@ var editor = (function(editor) {
 				mbrWgt.deselectNode(getNodeId(transform));
 			});
 	        selModel.addListener(editor.EventTypes.TransformHidden, function(obj) {
-				var isDown = view.mode == editor.ui.ToolConstants.MODE_DOWN;
+				var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
 	            hidWgt.addHiddenItem(obj.transform, obj.owner);
 				hidWgt.setVisible(isDown);
 	        });

@@ -51,7 +51,7 @@ var editor = (function(editor) {
      * An ShapesModel handles the creation, updating, and removal of 
      * shapes
      */
-    editor.tools.ShapesModel = editor.ui.ToolModel.extend({
+    editor.tools.ShapesModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.Shapes');
 			
@@ -112,7 +112,7 @@ var editor = (function(editor) {
 			}
 			
 			this.prevShape = new hemi.shape.Shape(this.shapeParams);
-			this.prevShape.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
+			this.prevShape.name = editor.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
 			
 			if (this.shapeParams.position) {
 				var pos = this.shapeParams.position;
@@ -543,7 +543,7 @@ var editor = (function(editor) {
      * @param {Object} options configuration options.  Uses 
      *         editor.tools.ShapesViewDefaults as default options
      */
-    editor.tools.ShapesView = editor.ui.ToolView.extend({
+    editor.tools.ShapesView = editor.ToolView.extend({
 		init: function(options) {
 	        this._super({
 		        toolName: 'Shapes',
@@ -570,7 +570,7 @@ var editor = (function(editor) {
      * The ShapesController facilitates ShapesModel and ShapesView
      * communication by binding event and message handlers.
      */
-    editor.tools.ShapesController = editor.ui.ToolController.extend({
+    editor.tools.ShapesController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -591,7 +591,7 @@ var editor = (function(editor) {
 	                	        
 			// special listener for when the toolbar button is clicked
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode === editor.ui.ToolConstants.MODE_DOWN;
+	            var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
 	        });
 			
 			// create sidebar widget listeners
@@ -643,7 +643,7 @@ var editor = (function(editor) {
 //			// behavior widget specific
 //			bhvWgt.addListener(editor.EventTypes.Sidebar.WidgetVisible, function(obj) {
 //				if (obj.updateMeta) {
-//					var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
+//					var isDown = view.mode === editor.ToolConstants.MODE_DOWN;
 //					
 //					lstWgt.setVisible(!obj.visible && isDown);
 //					crtWgt.setVisible(!obj.visible && isDown);

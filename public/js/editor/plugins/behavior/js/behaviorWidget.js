@@ -458,6 +458,7 @@ var editor = (function(editor) {
 			reset(this.trgTree.getUI());
 			reset(this.axnTree.getUI());
 			
+			this.checkSaveButton();
 			this.msgTarget = null;
 			this.invalidate();
 		},
@@ -641,7 +642,7 @@ var editor = (function(editor) {
 				wgt = this;
 			
 			this.list = new editor.ui.List({
-				widgetClass: 'bhvList',
+				cssClass: 'bhvList',
 				prefix: 'bhvLst'
 			});
 			

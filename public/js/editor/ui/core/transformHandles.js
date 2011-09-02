@@ -380,7 +380,7 @@ var editor = (function(editor) {
 		startTranslate: function(plane, evt) {
 			hemi.world.camera.disableControl();		
 			this.dragger = new hemi.manip.Draggable();
-			this.dragger.name = editor.ui.ToolConstants.EDITOR_PREFIX + 'Dragger';
+			this.dragger.name = editor.ToolConstants.EDITOR_PREFIX + 'Dragger';
 			this.dragger.setPlane(plane);
 			this.dragger.subscribe(
 				hemi.msg.drag,
