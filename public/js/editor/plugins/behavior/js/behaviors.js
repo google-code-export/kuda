@@ -402,23 +402,21 @@ var editor = (function(module) {
 		
 		add: function(msgTarget, spec) {
 			var data = editor.tools.behavior.expandBehaviorData(msgTarget, spec),
-				row = this.table.fnAddData([
-					editor.tools.behavior.getTriggerName(data).join('.'),
-					editor.tools.behavior.getActionName(data).join('.'),
-					msgTarget.name
-				]),
-				td = jQuery('<td> \
+				row = this.table.fnAddData(['<td> \
 					<button class="editBtn">Edit</button>\
 					<button class="chainBtn">Chain</button>\
 					<button class="cloneBtn">Clone</button>\
 					<button class="removeBtn">Remove</button>\
-					</td>'),
-				tr = this.table.fnGetNodes(row);
+					</td>',
+					editor.tools.behavior.getTriggerName(data).join('.'),
+					editor.tools.behavior.getActionName(data).join('.'),
+					msgTarget.name
+				]),
+				tr = jQuery(this.table.fnGetNodes(row)),
+				td = tr.find('td:first-child');
 				
 			tr.data('behavior', msgTarget);
 			this.behaviors.put(msgTarget.dispatchId, tr);
-			
-			tr.prepend(td);			
 			
 			td.find('.editBtn').bind('click', function(evt) {
 				var bhv = tr.data('behavior');					
@@ -436,6 +434,8 @@ var editor = (function(module) {
 				var tr = jQuery(this).parents('tr');
 				
 			});
+			
+			this.invalidate();
 		},
 		
 		finishLayout: function() {
@@ -446,20 +446,15 @@ var editor = (function(module) {
 			
 			this.table = this.tableElem.dataTable({
 				'aoColumns' : [
+					{ 
+						'sTitle': '', 
+						'sClass': 'editHead'
+					},
 					{ 'sTitle': 'Trigger' },
 					{ 'sTitle': 'Action' },
 					{ 'sTitle': 'Behavior' }
 				]
 			});
-			
-			var th = jQuery('<th class="editHead"></th>'),
-				wgt = this;
-					
-			this.tableElem.find('thead tr').each(function() {
-				jQuery(this).prepend(th);
-			});
-			
-			this.tableElem.find('.dataTables_empty').attr('colspan', 4);
 		},
 		
 		remove: function(msgTarget) {
@@ -999,7 +994,7 @@ var editor = (function(module) {
 			
 			this.addPanel(new editor.ui.Panel({
 				location: editor.ui.Location.TOP,
-				classes: ['bhvTopPanel'],
+				classes: ['bhvTopPanel', 'noSpecialButtons'],
 				name: 'topPanel'
 			}));
 			this.addPanel(new editor.ui.Panel({
@@ -1039,6 +1034,7 @@ var editor = (function(module) {
 			var model = this.model,
 				view = this.view,
 				tblWgt = view.bottomPanel.behaviorTableWidget,
+				bhvWgt = view.topPanel.behaviorWidget,
 				controller = this;
 			
 			// view specific
@@ -1101,7 +1097,7 @@ var editor = (function(module) {
 			model.addListener(editor.EventTypes.TargetCreated, function(data) {
 				var target = data.target,
 					spec = model.dispatchProxy.getTargetSpec(target),
-					li = editor.ui.getBehaviorListItem(data.actor);
+					li = editor.tools.behavior.getBehaviorListItem(data.actor);
 				
 				tblWgt.add(target, spec);
 					
@@ -1115,7 +1111,7 @@ var editor = (function(module) {
 				view.removeTarget(target);
 				tblWgt.remove(target);
 				
-				var li = editor.ui.getBehaviorListItem(target.actor);
+				var li = editor.tools.behavior.getBehaviorListItem(target.actor);
 				
 				if (li) {
 					li.remove(target);
@@ -1145,6 +1141,11 @@ var editor = (function(module) {
 				editor.EventTypes.ListItemRemove, function(target) {
 					model.removeTarget(target);
 				});
+				
+			bhvWgt.cancelBtn.text('Clear');
+			bhvWgt.setVisible = function(visible) {
+				
+			};
 //				
 //			bhvWgt.addListener(editor.EventTypes.Behavior.Cancel, function() {
 //				bhvWgt.setVisible(false);
@@ -1188,10 +1189,11 @@ var editor = (function(module) {
 //				model.save(saveObj.name, saveObj.type, saveObj.actor);
 //			});
 
-			hemi.world.subscribe(editor.msg.behaviorCreated, this, function(saveObj) {
-				var args = saveObj.args || [],
-					trigger = saveObj.trigger,
-					action = saveObj.action;
+			hemi.world.subscribe(editor.msg.behaviorCreated, function(saveObj) {
+				var data = saveObj.data,
+					args = data.args || [],
+					trigger = data.trigger,
+					action = data.action;
 				
 				model.setTrigger(trigger.citizen, trigger.type);
 				model.setAction(action.handler, action.method);
@@ -1202,18 +1204,19 @@ var editor = (function(module) {
 					model.setArgument(arg.name, arg.value);
 				}
 				
-				model.save(saveObj.name, saveObj.type, saveObj.actor);
+				model.save(data.name, data.type, data.actor);
 			});
-			hemi.world.subscribe(editor.msg.behaviorUpdated, this, function(saveObj) {				
-				if (saveObj.target !== null) {
-					model.copyTarget(saveObj.target);
+			hemi.world.subscribe(editor.msg.behaviorUpdated, function(saveObj) {				
+				var data = saveObj.data,
+					args = data.args || [],
+					trigger = data.trigger,
+					action = data.action;
+								
+				if (data.target !== null) {
+					model.copyTarget(data.target);
 				}
 				
-				model.msgTarget = saveObj.target;
-				
-				var args = saveObj.args || [],
-					trigger = saveObj.trigger,
-					action = saveObj.action;
+				model.msgTarget = data.target;
 				
 				model.setTrigger(trigger.citizen, trigger.type);
 				model.setAction(action.handler, action.method);
@@ -1224,7 +1227,7 @@ var editor = (function(module) {
 					model.setArgument(arg.name, arg.value);
 				}
 				
-				model.save(saveObj.name, saveObj.type, saveObj.actor);
+				model.save(data.name, data.type, data.actor);
 			});
 		}
 	});

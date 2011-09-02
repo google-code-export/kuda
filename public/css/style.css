@@ -360,7 +360,7 @@ p {
  * 								 Panel Buttons 								  *
  ******************************************************************************/
 
-.topAligned button, 
+.topAligned:not(.noSpecialButtons) button, 
 .bottomAligned button {
 	float: left;
 	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
@@ -372,7 +372,7 @@ p {
 		inset 0 0 1px #72bbe0;
 	margin-bottom: 0;
 }
-.topAligned button[disabled], 
+.topAligned:not(.noSpecialButtons) button[disabled], 
 .bottomAligned button[disabled] {
 	background: -moz-linear-gradient(100% 100% 90deg, #888, #aaa);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#888));
@@ -387,7 +387,7 @@ p {
 	background: -moz-linear-gradient(100% 100% 90deg, #489ec9, #63b7dd);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#63b7dd), to(#489ec9));
 } 
-.topAligned button:active,
+.topAligned:not(.noSpecialButtons) button:active,
 .bottomAligned button:active {
 	-webkit-transform: translate(0, 2px);
 	-moz-transform: translate(0, 2px);
@@ -568,8 +568,7 @@ ol.listWidget li span {
 	background-position: -16px -96px;
 }
 
-form input.prmWgtCitTreeIpt, form input.treeSelectorIpt,
-form input.objPkrCitTreeIpt {
+form input.prmWgtCitTreeIpt, form input.treeSelectorIpt {
 	border-bottom-right-radius: 0;
 	border-top-right-radius: 0;
 }
@@ -997,9 +996,6 @@ div.jstree, div.jstree.jstree-focused {
 	float: left;
 	border-radius: 3px 0 0 3px;
 }
-.treeSelectorBtn {
-	border-color: #ddd;
-}
 .treeSelectorBtn:hover {
 	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#eee));
@@ -1009,120 +1005,7 @@ div.jstree, div.jstree.jstree-focused {
 	-moz-transform: none;
 	-webkit-transform: none;
 }
-
-/**
- * Trees
- */
-
-.sharedTree {
-	background: none !important;
-}
-
-/******************************************************************************
- * 								  Behavior UI								  *
- ******************************************************************************/
-
-#behaviorWgt {
-	
-}
-#behaviorAxnParams li {
-	list-style: none;
-	float: left;
-}
-#behaviorAxnParams label {
-	width: 80px;
-}
-#behaviorAxnParams input[type=text]:not(.short) {
-	width: 128px;
-	float: left;
-}
-#behaviorMenu {
-	position: absolute;
-	border-radius: 3px;
-	padding: 4px 8px;
-	color: #fff;
-	background: #333;
-	font: bold 12px/18px Helvetica, Verdana, Arial, sans-serif;
-	text-shadow: 0 -1px 0 #000;
-	box-shadow: 2px 3px 4px #999;
-	margin-top: 4px;
-}
-#behaviorMenu ul li {
-	padding: 2px 0;
-}
-#behaviorMenu ul li a {
-	cursor: pointer;
-}
-#behaviorMenu ul li a:hover {
-	text-shadow: 0 0 5px #444;
-	color: #c2dfef;
-}
-.bhvListWrapper {
-	float: left;
-	width: 259px;
-	margin: 0 0 0 -30px;
-	padding: 20px 10px 15px 30px;
-	background: url(../images/pattern.gif) repeat;
-	box-shadow: inset 0 0 5px #222;
-	font-weight: bold;
-	text-shadow: 0 1px 1px #222;
-}
-ul li .bhvListWrapper {
-	margin: 0;
-}
-.bhvListArrow {
-	display: block; 
-	position: absolute;
-	top: 33px; 
-	left: 35px; 
-	width: 13px;
-	height: 13px;
-	background: #216190;
-	box-shadow: inset 2px 2px 2px #333;
-	transform: rotate(45deg);
-	-moz-transform: rotate(45deg);
-	-webkit-transform: rotate(45deg);
-}
-.bhvListWrapper h2 {
-	float: left;
-	width: 100%;
-}
-.bhvListWrapper .widget {
-	background: transparent;
-}
-.bhvList {
-	float: left;
-	padding: 0 0 0 20px;
-}
-ul.bhvList li {
-	padding: 0;
-	list-style: circle inside;
-	width: 240px;
-}
-ul.bhvList li:hover {
-	background: none;
-}
-ul.bhvList li > div {	
-	width: 220px;
-}
-ul.bhvList li > div.add {
-	width: 240px;
-}
-ul.bhvList li .buttonContainer {
-	padding-right: 0;
-}
-ul.bhvList li.button {
-	list-style: none;
-}
-
-
-/**
- * Object picking widget
- */
-.objectPicker {
-	float: left;
-}
-.treeSelectorBtn, .objPkrCitTreeBtn {
+.treeSelectorBtn {
 	padding: 0;
 	overflow: hidden;
 	text-indent: -500px;
@@ -1131,14 +1014,14 @@ ul.bhvList li.button {
 	border-bottom-left-radius: 0;
 	border-top-left-radius: 0;
 	border-left-width: 0;
+	border-color: #ddd;
 }
-.treeSelectorBtn::-moz-focus-inner,
-.objPkrCitTreeBtn::-moz-focus-inner { 
+.treeSelectorBtn::-moz-focus-inner { 
 	border: 0; 
 	padding: 0; 
 	margin:0; 
 }
-.treeSelectorBtn:after, .objPkrCitTreeBtn:after {
+.treeSelectorBtn:after {
 	background: url(../images/listOptionsSprite.png) -32px -7px no-repeat;
 	height: 7px;
 	width: 8px;
@@ -1147,34 +1030,22 @@ ul.bhvList li.button {
 	padding: 0;
 	content: "";
 }
-.treeSelectorBtn.open:after, .objPkrCitTreeBtn.open:after {
+.treeSelectorBtn.open:after {
 	background-position: -32px 0px;
 }
 form input.open, .treeSelectorBtn.open, 
-.treeSelector input.treeSelectorIpt.open,
-.objPkrCitTreeBtn.open {
+.treeSelector input.treeSelectorIpt.open {
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
 }
+/**
+ * Trees
+ */
 
-label.objPkrCitTreeLbl {
-	width: 80px;
+.sharedTree {
+	background: none !important;
 }
-form input.objPkrCitTreeIpt {
-	width: 128px;
-	float: left;    
-	border-bottom-right-radius: 0;
-    border-top-right-radius: 0;
-}
-#objPkrCitTreePnl {
-	float: left;
-	position: absolute;
-	border: 1px solid #ddd;
-	border-top-width: 0;
-	background: #fff;
-	padding: 5px 10px;
-	border-radius: 0 0 3px 3px;
-}
+
 
 /**
  * Vector component

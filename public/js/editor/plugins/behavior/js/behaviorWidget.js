@@ -197,6 +197,7 @@ var editor = (function(editor) {
 			this.nameIpt.val(msgTarget.name);
 			this.msgTarget = msgTarget;
 			this.checkSaveButton();
+			this.prmInstructions.hide();
 		},
 		
 		setBySavedData = function(data, actor) {			
@@ -292,9 +293,7 @@ var editor = (function(editor) {
 			}
 		},
 		
-		finishLayout: function() {
-			this.container.attr('id', 'behaviorWgt');
-			
+		finishLayout: function() {			
 			var form = jQuery('<form class="noSteps" action="" method="post"></form>'), 
 				triggerFieldset = jQuery('<fieldset><legend>Select a Trigger</legend><ol></ol></fieldset>'), 
 				actionFieldset = jQuery('<fieldset><legend>Select an Action</legend><ol></ol></fieldset>'), 
@@ -310,6 +309,7 @@ var editor = (function(editor) {
 				nameIpt = saveFieldset.find('.nameField'), 
 				saveBtn = saveFieldset.find('.saveBtn'), 
 				cancelBtn = saveFieldset.find('.cancelBtn'),
+				paramsIns = jQuery('<p>Select an action first</p>'),
 				wgt = this, 
 				selFcn = function(data, selector){
 					var elem = data.rslt.obj, 
@@ -341,6 +341,8 @@ var editor = (function(editor) {
 									wgt.prmFieldset.hide();
 								}
 								wgt.prms.populateArgList(handler, method, args);
+								wgt.prmInstructions.hide();
+								wgt.invalidate();
 								data.handler = handler;
 								data.method = method;
 							}
@@ -362,7 +364,9 @@ var editor = (function(editor) {
 			this.prmFieldset = paramsFieldset;
 			this.savFieldset = saveFieldset;
 			this.saveBtn = saveBtn;
+			this.cancelBtn = cancelBtn;
 			this.nameIpt = nameIpt;
+			this.prmInstructions = paramsIns;
 			
 			this.axnTree = shorthand.createActionsTree();
 			this.trgTree = shorthand.createTriggersTree();
@@ -372,6 +376,7 @@ var editor = (function(editor) {
 				});
 			
 			paramsFieldset.find('li').append(this.prms.getUI());
+			paramsFieldset.find('legend').after(paramsIns);
 				
 			this.trgChooser = new BhvTreeSelector({
 				tree: this.trgTree,
@@ -395,25 +400,22 @@ var editor = (function(editor) {
 			
 			saveBtn.bind('click', function(evt) {
 				var data = {
-					trigger: wgt.trgChooser.getSelection(),
-					action: wgt.axnChooser.getSelection(),
-					args: wgt.prms.getArguments(),
-					name: nameIpt.val(),
-					type: wgt.type,
-					target: wgt.msgTarget,
-					actor: wgt.actor
-				},
-//				msgType = wgt.msgTarget ? editor.EventTypes.Behavior.Update :
-//					editor.EventTypes.Behavior.Save;
-//				
-//				wgt.notifyListeners(msgType, data);
-					
-				// TODO: change the notification to use messages
-				msgType = wgt.msgTarget ? editor.msg.behaviorUpdated :
-					editor.msg.behaviorCreated;
-				hemi.world.send(msg, data);	
+						trigger: wgt.trgChooser.getSelection(),
+						action: wgt.axnChooser.getSelection(),
+						args: wgt.prms.getArguments(),
+						name: nameIpt.val(),
+						type: wgt.type,
+						target: wgt.msgTarget,
+						actor: wgt.actor
+					},
+						
+					// TODO: change the notification to use messages
+					msgType = wgt.msgTarget ? editor.msg.behaviorUpdated :
+						editor.msg.behaviorCreated;
+				hemi.world.send(msgType, data);	
 				
 				wgt.reset();
+				wgt.setVisible(false);
 			});
 			
 			cancelBtn.bind('click', function(evt) {
@@ -450,17 +452,14 @@ var editor = (function(editor) {
 			this.trgChooser.reset();
 			this.axnChooser.reset();
 			this.prms.reset();
+			this.prmInstructions.show();
 			this.nameIpt.val('');
-			
-			this.trgFieldset.hide();
-			this.axnFieldset.hide();
-			this.prmFieldset.hide();
-			this.savFieldset.hide();
 			
 			reset(this.trgTree.getUI());
 			reset(this.axnTree.getUI());
 			
 			this.msgTarget = null;
+			this.invalidate();
 		},
 		
 		setActor: function(actor, type, data, opt_spec) {
