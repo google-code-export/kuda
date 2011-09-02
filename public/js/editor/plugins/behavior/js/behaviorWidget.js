@@ -164,7 +164,7 @@ var editor = (function(editor) {
 			tree.jstree('close_all');
 		},
 		
-		setByMsgTarget = function(msgTarget, spec, actor) {
+		setByMsgTarget = function(msgTarget, spec) {
 			var data = expandTargetData(msgTarget, spec),
 				source = hemi.utils.isNumeric(data.source) ? 
 					hemi.world.getCitizenById(data.source) : data.source;
@@ -177,7 +177,7 @@ var editor = (function(editor) {
 				trgT = this.trgTree.getUI(),
 				axnT = this.axnTree.getUI();
 			
-			openNode(trgT, actor, this.trgTree.pre);
+			openNode(trgT, source, this.trgTree.pre);
 			this.trgChooser.select(nodeName);
 			
 			nodeName = editor.treeData.getNodeName(data.handler, {
@@ -523,7 +523,7 @@ var editor = (function(editor) {
 			}
 			
 			if (data instanceof hemi.dispatch.MessageTarget) {
-				setByMsgTarget.call(this, data, opt_spec, actor);
+				setByMsgTarget.call(this, data, opt_spec);
 			}
 			else if (data != null) {
 				setBySavedData.call(this, data, actor);
@@ -556,6 +556,10 @@ var editor = (function(editor) {
 			}
 			
 			this._super(view);
+		},
+		
+		setTarget: function(msgTarget, spec) {
+			setByMsgTarget.call(this, msgTarget, spec);
 		},
 		
 		setVisible: function(visible, etc) {
@@ -745,7 +749,7 @@ var editor = (function(editor) {
 	shorthand.expandBehaviorData = expandTargetData;
 	
 	shorthand.getActionName = function(data) {
-		return [data.handler, data.method];
+		return [data.handler.getCitizenType().split('.').pop(), data.method];
 	};
 	
 	shorthand.getBehaviorListItem = function(actor) {

@@ -45,7 +45,7 @@
 }
 .dataTables_wrapper table {
 	float: left;
-	margin: 20px 0;
+	margin: 20px -10px;
 	clear: both;
 }
 .dataTables_wrapper table tbody tr:nth-child(2n+1) {
@@ -54,15 +54,19 @@
 .dataTables_wrapper table thead {
 	background: #666;
 	font-weight: bold;
-	text-align: center;
 }
 .dataTables_wrapper table th:not(.editHead) {
-	width: 150px;
+	width: 200px;
 	padding: 5px 10px;
 	text-shadow: 0 1px 0 #222;
+	border-right: 1px solid #333;
+}
+.dataTables_wrapper table td.editHead {
+	width: 96px;
 }
 .dataTables_wrapper table td {
 	padding: 5px 10px;
+	white-space: nowrap;
 }
 .dataTables_filter, .dataTables_paginate {
 	float: right;
@@ -72,6 +76,7 @@
 }
 .dataTables_info, .dataTables_paginate {
 	clear: both;
+	margin-bottom: 5px;
 }
 .dataTables_filter input {
     background: #ffffff;
@@ -83,6 +88,61 @@
     padding: 2px 5px;
     color: #555;
 	margin: 0;
+}
+.dataTables_wrapper button {
+	text-indent: -5000px;
+	height: 24px;
+	width: 24px;
+	border: 1px solid transparent;
+	box-shadow: none;
+	padding: 3px;
+	background: none;
+}
+.dataTables_wrapper button.uiMenuShown {	
+	background: -moz-linear-gradient(100% 100% 90deg, #111, #222);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#222), to(#111));
+	border: 1px solid #000;
+}
+.dataTables_wrapper button:before {
+	background: url(/images/listOptionsSprite.png) no-repeat;
+	height: 16px;
+	width: 16px;
+	border: none;
+	padding: 0;
+	content: "";
+	float: left;
+}
+.dataTables_wrapper button:not(.uiMenuShown):hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #888, #999); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#999), to(#888));
+	border-color: #666;
+}
+.dataTables_wrapper button.editBtn:before {
+	background-position: 0 0;
+}
+.dataTables_wrapper button.editBtn:hover:before {
+	background-position: -16px 0;
+}
+.dataTables_wrapper button.removeBtn:before {
+	background-position: 0 -32px;
+}
+.dataTables_wrapper button.removeBtn:hover:before {
+	background-position: -16px -32px;
+}
+.dataTables_wrapper button.cloneBtn:before {
+	background-position: 0 -64px;
+}
+.dataTables_wrapper button.cloneBtn:hover:before {
+	background-position: -16px -64px;
+}
+.dataTables_wrapper button.chainBtn:before {
+	background-position: 0 -48px;
+}
+.dataTables_wrapper button.chainBtn:hover:before {
+	background-position: -16px -48px;
+}
+.dataTables_wrapper button.chainBtn[disabled]:before {
+	background-position: 0 -80px;
 }
 
 /******************************************************************************
@@ -183,7 +243,7 @@ form .objectPicker input.treeSelectorIpt {
 	width: 259px;
 	margin: 0 0 0 -30px;
 	padding: 20px 10px 15px 30px;
-	background: url(../images/pattern.gif) repeat;
+	background: url(/images/pattern.gif) repeat;
 	box-shadow: inset 0 0 5px #222;
 	font-weight: bold;
 	text-shadow: 0 1px 1px #222;
@@ -235,3 +295,12 @@ ul.bhvList li .buttonContainer {
 ul.bhvList li.button {
 	list-style: none;
 }
+.restricted a:not(.restrictedSelectable) {
+	color: #999;
+	background: none;
+	border: none;
+	padding: 0 2px;
+	cursor: default;
+}
+
+
