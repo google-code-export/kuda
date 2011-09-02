@@ -417,35 +417,12 @@ var editor = (function(editor) {
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                     			  Private Methods  		                      //
+//                     			  Private Vars  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var tabbar = new TabBar(),
 		commonWidgets = new Hashtable(),
-		scripts = new Hashtable(),
-		callbacks = [];
-		doneCallbacks = [];
 		grid = null;
-		
-	var loadingComplete = function() {
-		var vals = scripts.values(),
-			complete = true;
-		
-		for (var i = 0, il = vals.length; i < il && complete; i++) {
-			complete &= vals[i];
-		}
-		
-		if (complete) {
-			for (var i = 0, il = callbacks.length; i < il; i++) {
-				var obj = callbacks[i];
-				obj.callback.apply(this, obj.params);
-			}
-			
-			for (var i = 0, il = doneCallbacks.length; i < il; i++) {
-				doneCallbacks[i]();
-			}
-		}
-	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                      	Convenient Widget Methods     	                  //
@@ -471,50 +448,6 @@ var editor = (function(editor) {
 		tabbar.add(tabpane);
 	};
 	
-	editor.ui.getCss = function(url, media) {
-		jQuery( document.createElement('link') ).attr({
-	        href: url,
-	        media: media || 'screen',
-	        type: 'text/css',
-	        rel: 'stylesheet'
-	    }).appendTo('head');
-	};
-	
-	editor.ui.getScript = function(url, callback) {
-		var script = document.createElement('script');
-		script.type = 'text/javascript';
-		script.src = url;
-		
-		scripts.put(script, false);
-		
-		{
-	        var done = false;
-	
-	        // Attach handlers for all browsers
-	        script.onload = script.onreadystatechange = function(){
-	            if (!done && (!this.readyState ||
-	            		this.readyState == "loaded" || 
-						this.readyState == "complete")) {
-	                done = true;
-                	scripts.put(script, true);
-					if (callback) {
-						callback();
-					}
-					loadingComplete();
-	
-	                // Handle memory leak in IE
-	                script.onload = script.onreadystatechange = null;
-	            }
-	        };
-	    }
-		
-	    document.body.appendChild(script);
-	};
-	
-	editor.ui.whenDoneLoading = function(callback) {
-		doneCallbacks.push(callback);
-	};
-	
 	editor.ui.initializeView = function(clientElements) {
 		var bdy = jQuery('body');
 		
@@ -535,32 +468,6 @@ var editor = (function(editor) {
 		vd.eye = [0, 10, 40];
 		vd.target = [0, 0, 0];
         hemi.world.camera.moveToView(vd);
-			
-		// search for tabpanes (plugins) to add to the tabbar
-		// this is the way for now. in the future, this will be a server call
-		// so that the server can do an auto roll-call. the fall back will be
-		// this method
-		jQuery.get('js/editor/plugins/plugins.json')
-			.success(function(data, status, xhr) {								
-				// data is a json array
-				var plugins = data.plugins,
-					bdy = jQuery('body');
-				
-				for (var i = 0, il = plugins.length; i < il; i++) {
-					var plugin = plugins[i];
-					
-					editor.ui.getScript('js/editor/plugins/' + plugin + '/init.js'); 
-					callbacks.push({
-						callback: function(name){
-							editor.tools[name].init();
-						},
-						params: [plugin]
-					});
-				}
-			})
-			.error(function(xhr, status, err) {
-				// fail gracefully
-			});
 	};
 	
 	return editor;

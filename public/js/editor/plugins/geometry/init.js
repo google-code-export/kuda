@@ -63,8 +63,8 @@
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.ui.getScript('js/editor/plugins/geometry/js/browser.js');
-	editor.ui.getScript('js/editor/plugins/geometry/js/shapes.js');
-	editor.ui.getScript('js/editor/plugins/geometry/js/animator.js');
-	editor.ui.getCss('js/editor/plugins/geometry/css/style.css');
+	editor.getScript('js/editor/plugins/geometry/js/browser.js');
+	editor.getScript('js/editor/plugins/geometry/js/shapes.js');
+	editor.getScript('js/editor/plugins/geometry/js/animator.js');
+	editor.getCss('js/editor/plugins/geometry/css/style.css');
 })();
