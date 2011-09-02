@@ -125,6 +125,30 @@
 	content: ':';
 }
 
+/**
+ * animation form specific
+ */
+#anmKeyframes, #anmLoops, #anmPreview {
+    display: none;
+} 
+
+form #anmKeyframes input:not([type=radio]),
+form #anmLoops input:not([type=radio]) {
+    float: left;
+    width: 27px;
+    margin-right: 5px;
+}
+
+form #anmKeyframes label, 
+form #anmLoops label {
+    float: left;
+    width: auto;
+    margin-right: 5px;
+    height: 26px;
+    line-height: 26px;
+}
+
+
 /******************************************************************************
  * 								 	Model Tree								  *
  ******************************************************************************/

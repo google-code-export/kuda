@@ -146,7 +146,9 @@ var editor = (function(editor) {
 //                                 Tree View                                  //
 ////////////////////////////////////////////////////////////////////////////////
 	var idCounter = 0,
-		tooltip = editor.ui.createTooltip();
+		tooltip = editor.ui.createTooltip({
+			cls: 'tree'
+		});
 	
 	var TreeView = editor.ui.Component.extend({
 		init: function(type) {
@@ -174,7 +176,6 @@ var editor = (function(editor) {
 						
 						var t = setTimeout(function() {
 							elem.data('timeout', null);
-							tooltip.setContainerClass('tree');
 							tooltip.show(elem, desc);
 						}, 500);
 						

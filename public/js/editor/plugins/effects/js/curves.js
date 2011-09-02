@@ -453,7 +453,7 @@ var editor = (function(editor) {
 			 	tensionVdr = editor.ui.createDefaultValidator(null, 1),
 			 	numPrtVdr = editor.ui.createDefaultValidator(1),
 				sizeVdr = editor.ui.createDefaultValidator(0.01),
-				isNumVdr = editor.ui.createDefaultValidator();
+				isNumVdr = editor.ui.createDefaultValidator(),
 				wgt = this;
 			
 			this.boxAddBtn = boxAddBtn;
@@ -946,7 +946,9 @@ var editor = (function(editor) {
 				instructions: "Add particle curves above."
 			});
 			
-			this.items = new Hashtable();		
+			this.items = new Hashtable();
+			this.container.addClass('second');
+			editor.ui.sizeAndPosition.call(this);		
 		},
 		
 		bindButtons: function(li, obj) {

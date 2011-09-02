@@ -41,8 +41,7 @@
 		editor.ui.addTabPane(tabpane);
 	};	
 	
-	editor.ui.whenDoneLoading(function() {
-		hemi.world.send(editor.msg.citizenCreated, hemi.world.camera);		
+	editor.ui.whenDoneLoading(function() {	
 		// grab all views
 		var views = editor.ui.getViews();
 		
@@ -92,6 +91,8 @@
 				}
 			}
 		}
+		
+		hemi.world.send(editor.msg.citizenCreated, hemi.world.camera);	
 	});
 
 ////////////////////////////////////////////////////////////////////////////////
