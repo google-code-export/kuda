@@ -292,7 +292,7 @@ var editor = (function(module) {
 					id: id
 				});
 			
-			generateNodes.call(this, nodeName, true);
+			generateNodes.call(this, nodeName, false);
 			var node = jQuery('#' + nodeName, this.tree);
 			this.tree.jstree('open_node', node, false, true);
 			this.tree.addClass('restricted');
