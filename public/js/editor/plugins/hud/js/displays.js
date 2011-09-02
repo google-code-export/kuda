@@ -57,7 +57,7 @@ var editor = (function(editor) {
      * A HudModel handles the creation, updating, and removal of heads-up 
      * displays.
      */
-    editor.tools.HudModel = editor.ui.ToolModel.extend({
+    editor.tools.HudModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.HudModel');
 			
@@ -899,7 +899,7 @@ var editor = (function(editor) {
     /**
      * The HudView controls the widgets for the Hud tool.
      */
-    editor.tools.HudView = editor.ui.ToolView.extend({
+    editor.tools.HudView = editor.ToolView.extend({
 		init: function(options) {
 	        this._super({
 	            toolName: 'Heads-Up Displays',
@@ -925,7 +925,7 @@ var editor = (function(editor) {
      * The HudController facilitates HudModel and HudView communication by
      * binding event and message handlers.
      */
-    editor.tools.HudController = editor.ui.ToolController.extend({
+    editor.tools.HudController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -945,7 +945,7 @@ var editor = (function(editor) {
 			// special listener for when the toolbar button is clicked
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
 	            if (model.currentDisplay) {
-	            	var isDown = value.newMode === editor.ui.ToolConstants.MODE_DOWN;
+	            	var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
 					
 					if (isDown) {
 						model.currentDisplay.currentPage = model.savedPage ? 

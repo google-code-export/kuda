@@ -203,7 +203,7 @@ var editor = (function(editor) {
 			name: 'Picked Shape:',
 			citizen: model,
 			getCitizenType: function() {
-				return editor.ui.ToolConstants.SHAPE_PICK;
+				return editor.ToolConstants.SHAPE_PICK;
 			},
 			getId: function() {
 				return this.citizen.getId();
@@ -217,7 +217,7 @@ var editor = (function(editor) {
 			name: 'Camera Move:',
 			citizen: camera,
 			getCitizenType: function() {
-				return editor.ui.ToolConstants.CAM_MOVE;
+				return editor.ToolConstants.CAM_MOVE;
 			},
 			getId: function() {
 				return this.citizen.getId();

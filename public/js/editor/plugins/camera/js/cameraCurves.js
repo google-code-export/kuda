@@ -50,7 +50,7 @@ var editor = (function(editor) {
 	 * An CamCurveModel handles the creation and playing of animations as well
 	 * as model picking for the animation tool.
 	 */
-	editor.tools.CamCurveModel = editor.ui.ToolModel.extend({
+	editor.tools.CamCurveModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.CamCurve');
 			this.camData = null;
@@ -612,7 +612,7 @@ var editor = (function(editor) {
 	 * @param {Object} options configuration options.  Uses
 	 *         editor.tools.CamCurveViewDefaults as default options
 	 */
-	editor.tools.CamCurveView = editor.ui.ToolView.extend({
+	editor.tools.CamCurveView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 				toolName: 'Camera Curves',
@@ -638,7 +638,7 @@ var editor = (function(editor) {
 	 * The CamCurveController facilitates CamCurveModel and CamCurveView
 	 * communication by binding event and message handlers.
 	 */
-	editor.tools.CamCurveController = editor.ui.ToolController.extend({
+	editor.tools.CamCurveController = editor.ToolController.extend({
 		init: function() {
 			this._super();
 		},
@@ -659,7 +659,7 @@ var editor = (function(editor) {
 			
 			// special listener for when the toolbar button is clicked
 			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-				var isDown = value.newMode === editor.ui.ToolConstants.MODE_DOWN;
+				var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
 				model.enableMonitoring(isDown);
 			});
 			

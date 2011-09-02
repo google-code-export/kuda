@@ -18,9 +18,9 @@
 var editor = (function(module) {
     editor.tools = editor.tools || {};
     
-    editor.ui.ToolConstants = editor.ui.ToolConstants || {};
-	editor.ui.ToolConstants.SHAPE_PICK = "ShapePick";
-	editor.ui.ToolConstants.CAM_MOVE = "CameraMove";
+    editor.ToolConstants = editor.ToolConstants || {};
+	editor.ToolConstants.SHAPE_PICK = "ShapePick";
+	editor.ToolConstants.CAM_MOVE = "CameraMove";
 	
     editor.EventTypes = editor.EventTypes || {};
 	editor.EventTypes.ArgumentSet = "messaging.ArgumentSet";
@@ -117,7 +117,7 @@ var editor = (function(module) {
     /**
      * A BehaviorModel
      */
-    editor.tools.BehaviorModel = editor.ui.ToolModel.extend({
+    editor.tools.BehaviorModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.Behavior');
 			
@@ -372,7 +372,7 @@ var editor = (function(module) {
 			for (var ndx = 0, len = targets.length; ndx < len; ndx++) {
 				var target = targets[ndx];
 				
-				if (target.name.match(editor.ui.ToolConstants.EDITOR_PREFIX) === null) {
+				if (target.name.match(editor.ToolConstants.EDITOR_PREFIX) === null) {
 					this.notifyListeners(editor.EventTypes.TargetCreated, {
 						target: target
 					});
@@ -543,7 +543,7 @@ var editor = (function(module) {
 //     * @param {Object} options configuration options.  Uses 
 //     *         editor.tools.BehaviorViewDefaults as default options
 //     */
-//    editor.tools.BehaviorView = editor.ui.ToolView.extend({
+//    editor.tools.BehaviorView = editor.ToolView.extend({
 //		init: function(options) {
 //	        var newOpts = jQuery.extend({}, editor.tools.BehaviorViewDefaults, 
 //				options);
@@ -985,7 +985,7 @@ var editor = (function(module) {
 //		}
 //	});
 
-	editor.tools.BehaviorView = editor.ui.ToolView.extend({
+	editor.tools.BehaviorView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 				toolName: 'Behaviors',
@@ -1021,7 +1021,7 @@ var editor = (function(module) {
      * The BehaviorController facilitates BehaviorModel and BehaviorView
      * communication by binding event and message handlers.
      */
-    editor.tools.BehaviorController = editor.ui.ToolController.extend({
+    editor.tools.BehaviorController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -1041,7 +1041,7 @@ var editor = (function(module) {
 			
 			// view specific
 			view.addListener(editor.EventTypes.ToolModeSet, function(data) {
-				var isDown = data.newMode === editor.ui.ToolConstants.MODE_DOWN;
+				var isDown = data.newMode === editor.ToolConstants.MODE_DOWN;
 			});			
 //			view.addListener(editor.EventTypes.RemoveTarget, function(data) {
 //				model.removeTarget(data);

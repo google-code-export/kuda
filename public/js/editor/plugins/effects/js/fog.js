@@ -33,7 +33,7 @@ var editor = (function(editor) {
 //                                   Model                                    //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.FogModel = editor.ui.ToolModel.extend({
+	editor.tools.FogModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.Fog');
 		},
@@ -187,7 +187,7 @@ var editor = (function(editor) {
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.tools.FogView = editor.ui.ToolView.extend({
+	editor.tools.FogView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 		        toolName: 'Fog',
@@ -208,7 +208,7 @@ var editor = (function(editor) {
 //                                Controller                                  //
 ////////////////////////////////////////////////////////////////////////////////
 
-    editor.tools.FogController = editor.ui.ToolController.extend({
+    editor.tools.FogController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},

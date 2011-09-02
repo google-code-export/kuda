@@ -15,7 +15,7 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+var editor = (function(editor) {	
 	editor.ui = editor.ui || {};
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -25,19 +25,19 @@ var editor = (function(editor) {
 	var models = new Hashtable(),
 		views = new Hashtable();
 		
-	editor.ui.getModel = function(name) {
+	editor.getModel = function(name) {
 		return models.get(name);
 	};
 	
-	editor.ui.getModels = function() {
+	editor.getModels = function() {
 		return models.values();
 	};
 	
-	editor.ui.getView = function(name) {
+	editor.getView = function(name) {
 		return views.get(name);
 	};	
 	
-	editor.ui.getViews = function() {
+	editor.getViews = function() {
 		return views.values();
 	};
 	
@@ -53,7 +53,7 @@ var editor = (function(editor) {
 		},
 		
 		add: function(tool) {
-			if (tool instanceof editor.ui.ToolView) {
+			if (tool instanceof editor.ToolView) {
 				this.tools.push(tool);
 				this.list.append(createListItem(tool));
 				
@@ -67,7 +67,7 @@ var editor = (function(editor) {
 			var tool = this.getActiveTool();
 			
 			if (tool) {
-				tool.setMode(editor.ui.ToolConstants.MODE_UP);
+				tool.setMode(editor.ToolConstants.MODE_UP);
 			}
 		},
 		
@@ -82,7 +82,7 @@ var editor = (function(editor) {
 		getActiveTool: function() {
 			for (var i = 0, il = this.tools.length; i < il; i++) {
 				var tool = this.tools[i];
-				if (tool.mode === editor.ui.ToolConstants.MODE_DOWN) {
+				if (tool.mode === editor.ToolConstants.MODE_DOWN) {
 					return tool;
 				}
 			}
@@ -92,7 +92,7 @@ var editor = (function(editor) {
 		
 		loadState: function() {
 			var tool = this.currentTool ? this.currentTool : this.tools[0];
-			tool.setMode(editor.ui.ToolConstants.MODE_DOWN);
+			tool.setMode(editor.ToolConstants.MODE_DOWN);
 			this.header.text(tool.toolTitle);
 		},
 		
@@ -106,7 +106,7 @@ var editor = (function(editor) {
 					var t = toolList[ndx];
 					
 					if (t != value) {
-						t.setMode(editor.ui.ToolConstants.MODE_UP);
+						t.setMode(editor.ToolConstants.MODE_UP);
 					}
 				}
 				
@@ -158,7 +158,7 @@ var editor = (function(editor) {
 	/**
 	 * Constants for setting up a tool.
 	 */
-	editor.ui.ToolConstants = {
+	editor.ToolConstants = {
 		MODE_DOWN: 'down',
 		MODE_UP: 'up',
 		SHAPE_PICK: "ShapePick",
@@ -191,7 +191,7 @@ var editor = (function(editor) {
      * inherit this class to gain basic tool model functionality (such as being
      * an observable).
      */
-	editor.ui.ToolModel = editor.utils.Listenable.extend({
+	editor.ToolModel = editor.utils.Listenable.extend({
 		init: function(id) {
 			this._super();
 			this.id = id;
@@ -210,7 +210,7 @@ var editor = (function(editor) {
     /*
      * Configuration object for the ToolView.
      */
-    editor.ui.ToolViewDefaults = {
+    editor.ToolViewDefaults = {
         elemId: null,
 		id: '',
         toolName: 'toolName',
@@ -222,17 +222,17 @@ var editor = (function(editor) {
 	 * inherit from this in order to be added to the toolbar.
 	 * 
 	 * @param {Object} options configuration options.  The defaults are defined
-	 *         in editor.ui.ToolViewDefaults.
+	 *         in editor.ToolViewDefaults.
 	 */
-	editor.ui.ToolView = editor.utils.Listenable.extend({
+	editor.ToolView = editor.utils.Listenable.extend({
 		init: function(options) {
 			this._super();
 				
-			this.config = jQuery.extend({}, editor.ui.ToolViewDefaults, options);
+			this.config = jQuery.extend({}, editor.ToolViewDefaults, options);
 			this.toolTitle = this.config.toolName;
 			this.toolbarContainer = null;
 			this.enabled = true;
-			this.mode = editor.ui.ToolConstants.MODE_UP;
+			this.mode = editor.ToolConstants.MODE_UP;
 			this.panels = [];
 			this.visiblePanels = [];
 			
@@ -266,11 +266,11 @@ var editor = (function(editor) {
 		},
 		
 		/**
-		 * Sets the tool mode (either editor.ui.ToolConstants.MODE_UP or
-		 * editor.ui.ToolConstants.MODE_DOWN).
+		 * Sets the tool mode (either editor.ToolConstants.MODE_UP or
+		 * editor.ToolConstants.MODE_DOWN).
 		 * 
-		 * @param {string} mode either editor.ui.ToolConstants.MODE_UP or
-		 *        editor.ui.ToolConstants.MODE_DOWN
+		 * @param {string} mode either editor.ToolConstants.MODE_UP or
+		 *        editor.ToolConstants.MODE_DOWN
 		 */
 		setMode: function(mode) {
 			var oldMode = this.mode;
@@ -312,13 +312,13 @@ var editor = (function(editor) {
 			this.toolbarContainer.append(this.toolHover);
 			
 			this.toolbarContainer.bind('click', function() {
-				if (view.mode !== editor.ui.ToolConstants.MODE_DOWN) {
+				if (view.mode !== editor.ToolConstants.MODE_DOWN) {
                 	view.notifyListeners(editor.EventTypes.ToolClicked, view);
-                    view.setMode(editor.ui.ToolConstants.MODE_DOWN);
+                    view.setMode(editor.ToolConstants.MODE_DOWN);
                 }
 			})
 			.bind('mouseover', function(evt) {
-				if (view.mode === editor.ui.ToolConstants.MODE_UP) {
+				if (view.mode === editor.ToolConstants.MODE_UP) {
 					view.toolHover.fadeIn(100);
 					view.notifyListeners(editor.EventTypes.ToolMouseIn, view);
 				}
@@ -372,7 +372,7 @@ var editor = (function(editor) {
      * controllers should inherit from this to get basic tool controller 
      * functionality.
      */
-	editor.ui.ToolController = editor.Class.extend({
+	editor.ToolController = editor.Class.extend({
 		init: function() {					
 			this.model;
 			this.view;
@@ -382,7 +382,7 @@ var editor = (function(editor) {
 		 * Sets the view to the given view.  If a model is already given, this
 		 * calls bindEvents().
 		 * 
-		 * @param {editor.ui.ToolView} view the new view
+		 * @param {editor.ToolView} view the new view
 		 */
 		setView: function(view) {
 			this.view = view;
@@ -396,7 +396,7 @@ var editor = (function(editor) {
 		 * Sets the model to the given model.  If a view is already given, this
 		 * calls bindEvents().
 		 * 
-		 * @param {editor.ui.ToolModel} model the new model
+		 * @param {editor.ToolModel} model the new model
 		 */
 		setModel: function(model) {
 			this.model = model;
@@ -460,7 +460,7 @@ var editor = (function(editor) {
 			}
         
 	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode === editor.ui.ToolConstants.MODE_DOWN;
+	            var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
 				
 				if (view.actionBar) {
 					view.actionBar.setVisible(isDown);
@@ -471,7 +471,7 @@ var editor = (function(editor) {
 			
 			view.addListener(editor.EventTypes.SidebarSet, function(sidebar) {			
 				sidebar.addListener(editor.EventTypes.Sidebar.Minimized, function(val) {
-	            	var isDown = view.mode === editor.ui.ToolConstants.MODE_DOWN;
+	            	var isDown = view.mode === editor.ToolConstants.MODE_DOWN;
 					handleWidgets(!val && isDown);
 				});
 			});
