@@ -26,7 +26,28 @@ var editor = (function(editor) {
 		doneCallbacks = [],
 		scripts = new Hashtable();
 		
-	var loadingComplete = function() {
+	var initViewerStep1 = function() {			
+			var notifier = new editor.utils.Listenable();
+					
+			editor.addListener = function(eventType, listener) {
+				notifier.addListener(eventType, listener);
+			};
+			
+			editor.notifyListeners = function(eventType, value) {
+				notifier.notifyListeners(eventType, value);
+			};
+			
+			editor.removeListener = function(listener) {
+				notifier.removeListener(listener);
+			};			
+						
+			o3djs.webgl.makeClients(function(clientElements) {
+				editor.ui.initializeView(clientElements);
+				loadPlugins();
+			});
+		},
+		
+		loadingComplete = function() {
 			var vals = scripts.values(),
 				complete = true;
 			
@@ -69,7 +90,17 @@ var editor = (function(editor) {
 				.error(function(xhr, status, err) {
 					// fail gracefully
 				});
+		},
+		
+		uninitViewer = function() {
+			if (hemi.core.client) {
+				hemi.core.client.cleanup();
+			}
 		};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                             Editor Utilities                               //
+////////////////////////////////////////////////////////////////////////////////
 	
 	editor.getCss = function(url, media) {
 		jQuery( document.createElement('link') ).attr({
@@ -114,33 +145,6 @@ var editor = (function(editor) {
 	editor.whenDoneLoading = function(callback) {
 		doneCallbacks.push(callback);
 	};
-
-	var initViewerStep1 = function() {	
-			var notifier = new editor.utils.Listenable();
-			
-			editor.addListener = function(eventType, listener) {
-				notifier.addListener(eventType, listener);
-			};
-			
-			editor.notifyListeners = function(eventType, value) {
-				notifier.notifyListeners(eventType, value);
-			};
-			
-			editor.removeListener = function(listener) {
-				notifier.removeListener(listener);
-			};
-					
-			o3djs.webgl.makeClients(function(clientElements) {
-				editor.ui.initializeView(clientElements);
-				loadPlugins();
-			});
-		},
-		
-		uninitViewer = function() {
-			if (hemi.core.client) {
-				hemi.core.client.cleanup();
-			}
-		};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                         Remove the rest of this                            //

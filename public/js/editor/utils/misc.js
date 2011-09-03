@@ -15,10 +15,10 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module, jQuery) {
-	module.utils = module.utils || {};
+var editor = (function(editor) {
+	editor.utils = editor.utils || {};
 	
-	module.utils.roundNumber = function(num, dec) {
+	editor.utils.roundNumber = function(num, dec) {
 	    var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
 	    return result;
 	};
@@ -28,9 +28,9 @@ var editor = (function(module, jQuery) {
 	 * has been minified, the parameter names will most likely be different
 	 * than what may be expected.
 	 */
-	module.utils.getFunctionParams = function(func) {
+	editor.utils.getFunctionParams = function(func) {
 		return func.toString().match(/\((.*?)\)/)[1].match(/[\w]+/g) || [];
     };
 	
-	return module;
+	return editor;
 })(editor || {}, jQuery);
