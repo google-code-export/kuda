@@ -25,20 +25,16 @@
 	editor.tools.camera = editor.tools.camera || {};
 
  	editor.tools.camera.init = function() {
-		var tabpane = new editor.ui.TabPane('Camera'),
-			toolbar = new editor.ui.Toolbar(),
+		var tabpane = editor.ui.getTabPane('Camera'),
 			
 			vptMdl = new editor.tools.ViewpointsModel(),
 			vptView = new editor.tools.ViewpointsView(),
-			vptCtr = new editor.tools.ViewpointsController();			
-		
-		tabpane.setToolBar(toolbar);	
-		editor.ui.addTabPane(tabpane);
+			vptCtr = new editor.tools.ViewpointsController();
 		
 	    vptCtr.setView(vptView);
 	    vptCtr.setModel(vptMdl);
 		
-		toolbar.add(vptView);
+		tabpane.toolbar.add(vptView);
 		var crvMdl = new editor.tools.CamCurveModel(),
 			crvView = new editor.tools.CamCurveView(),
 			crvCtr = new editor.tools.CamCurveController();
@@ -46,7 +42,7 @@
 		crvCtr.setView(crvView);
 		crvCtr.setModel(crvMdl);
 	
-		toolbar.add(crvView);
+		tabpane.toolbar.add(crvView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

@@ -36,7 +36,7 @@ var editor = (function(editor) {
 	
 	var TabBar = editor.ui.Component.extend({
 		init: function() {
-			this.panes = [];
+			this.panes = new Hashtable();
 			this.visiblePane = null;
 			
 			this._super();
@@ -52,7 +52,7 @@ var editor = (function(editor) {
 		},
 		
 		add: function(tabpane) {
-			this.panes.push(tabpane);
+			this.panes.put(tabpane.title, tabpane);
 			
 			var li = jQuery('<li></li>'),
 				ui = tabpane.getUI(),
@@ -69,6 +69,10 @@ var editor = (function(editor) {
 			});
 			
 			this.list.append(li); 
+		},
+		
+		get: function(title) {
+			return this.panes.get(title);
 		}
 	});
 	
@@ -446,6 +450,18 @@ var editor = (function(editor) {
 		
 	editor.ui.addTabPane = function(tabpane) {
 		tabbar.add(tabpane);
+	};
+	
+	editor.ui.getTabPane = function(title) {
+		var tabpane = tabbar.get(title);
+		
+		if (!tabpane) {
+			tabpane = new editor.ui.TabPane(title);
+			tabpane.setToolBar(new editor.ui.Toolbar());
+			tabbar.add(tabpane);
+		}
+		
+		return tabpane;
 	};
 	
 	editor.ui.initializeView = function(clientElements) {

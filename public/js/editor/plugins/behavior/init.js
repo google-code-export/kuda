@@ -26,8 +26,7 @@
 		bhvMdl = null;
 	
 	shorthand.init = function() {		
-		var tabpane = new editor.ui.TabPane('Behaviors'),
-			toolbar = new editor.ui.Toolbar();
+		var tabpane = editor.ui.getTabPane('Behaviors');
 
 		var bhvView = new editor.tools.BehaviorView(),
 			bhvCtr = new editor.tools.BehaviorController();
@@ -36,10 +35,7 @@
 		bhvCtr.setModel(bhvMdl);
 		bhvCtr.setView(bhvView);
 		
-		toolbar.add(bhvView);
-		
-		tabpane.setToolBar(toolbar);	
-		editor.ui.addTabPane(tabpane);
+		tabpane.toolbar.add(bhvView);
 	};	
 	
 	editor.whenDoneLoading(function() {	
