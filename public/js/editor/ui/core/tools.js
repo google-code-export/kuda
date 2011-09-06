@@ -57,9 +57,9 @@ var editor = (function(editor) {
 				this.tools.push(tool);
 				this.list.append(createListItem(tool));
 				
-				tool.addListener(editor.EventTypes.ToolClicked, this);
-				tool.addListener(editor.EventTypes.ToolMouseIn, this);
-				tool.addListener(editor.EventTypes.ToolMouseOut, this);
+				tool.addListener(editor.events.ToolClicked, this);
+				tool.addListener(editor.events.ToolMouseIn, this);
+				tool.addListener(editor.events.ToolMouseOut, this);
 			}
 		},
 		
@@ -99,7 +99,7 @@ var editor = (function(editor) {
 		notify: function(eventType, value) {
 			var tbr = this;
 			
-			if (eventType === editor.EventTypes.ToolClicked) {
+			if (eventType === editor.events.ToolClicked) {
 				var toolList = this.tools;
 				
 				for (ndx = 0, len = toolList.length; ndx < len; ndx++) {
@@ -112,11 +112,11 @@ var editor = (function(editor) {
 				
 				this.header.text(value.toolTitle);
 			}
-			else if (eventType === editor.EventTypes.ToolMouseIn) {
+			else if (eventType === editor.events.ToolMouseIn) {
 				this.header.css('opacity', 0);
 				this.mousedIn.push(value);
 			}
-			else if (eventType === editor.EventTypes.ToolMouseOut) {
+			else if (eventType === editor.events.ToolMouseOut) {
 				remove(value, this.mousedIn);
 				if (this.mousedIn.length === 0) {
 					this.header.css('opacity', 1);
@@ -164,23 +164,6 @@ var editor = (function(editor) {
 		SHAPE_PICK: "ShapePick",
 		CAM_MOVE: "CameraMove"
 	};
-	
-	editor.EventTypes = editor.EventTypes || {};
-	
-    editor.EventTypes.Created = "Created";	
-    editor.EventTypes.Updated = "Updated";
-    editor.EventTypes.Removed = "Removed";		
-    editor.EventTypes.Cancel = "Cancel";	
-    editor.EventTypes.SidebarSet = "SidebarSet";	
-    editor.EventTypes.ToolClicked = "ToolClicked";
-    editor.EventTypes.ToolModeSet = "ToolModeSet";
-    editor.EventTypes.ToolMouseIn = "ToolMouseIn";
-    editor.EventTypes.ToolMouseOut = "ToolMouseOut";
-    editor.EventTypes.WorldLoaded = "WorldLoaded";
-    editor.EventTypes.WorldCleaned = "WorldCleaned";
-	editor.EventTypes.WidgetVisible = "WidgetVisible";
-	editor.EventTypes.WidgetResized = "WidgetResized";
-	editor.EventTypes.PanelVisible = "PanelVisible";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -281,7 +264,7 @@ var editor = (function(editor) {
 				this.toolbarContainer.addClass(this.mode);
 			}
 			
-			this.notifyListeners(editor.EventTypes.ToolModeSet, {
+			this.notifyListeners(editor.events.ToolModeSet, {
 				oldMode: oldMode,
 				newMode: mode
 			});
@@ -313,20 +296,20 @@ var editor = (function(editor) {
 			
 			this.toolbarContainer.bind('click', function() {
 				if (view.mode !== editor.ToolConstants.MODE_DOWN) {
-                	view.notifyListeners(editor.EventTypes.ToolClicked, view);
+                	view.notifyListeners(editor.events.ToolClicked, view);
                     view.setMode(editor.ToolConstants.MODE_DOWN);
                 }
 			})
 			.bind('mouseover', function(evt) {
 				if (view.mode === editor.ToolConstants.MODE_UP) {
 					view.toolHover.fadeIn(100);
-					view.notifyListeners(editor.EventTypes.ToolMouseIn, view);
+					view.notifyListeners(editor.events.ToolMouseIn, view);
 				}
 			})
 			.bind('mouseout', function(evt) {
 				view.toolHover.promise('fx').done(function() {
 					view.toolHover.fadeOut(100);
-					view.notifyListeners(editor.EventTypes.ToolMouseOut, view);
+					view.notifyListeners(editor.events.ToolMouseOut, view);
 				});
 			});
 		},
@@ -355,7 +338,7 @@ var editor = (function(editor) {
 		
 		setSidebar: function(sidebar) {
 			this.sidebar = sidebar;
-			this.notifyListeners(editor.EventTypes.SidebarSet, sidebar);
+			this.notifyListeners(editor.events.SidebarSet, sidebar);
 		},
 		
 		getSidebar: function() {
@@ -456,10 +439,10 @@ var editor = (function(editor) {
 					
 			for (var ndx = 0, len = pnls.length; ndx < len; ndx++) {
 				var pnl = pnls[ndx];
-				pnl.addListener(editor.EventTypes.PanelVisible, visFcn);
+				pnl.addListener(editor.events.PanelVisible, visFcn);
 			}
         
-	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+	        view.addListener(editor.events.ToolModeSet, function(value) {
 	            var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
 				
 				if (view.actionBar) {
@@ -469,7 +452,7 @@ var editor = (function(editor) {
 				handleWidgets(isDown);
 	        });
 			
-			view.addListener(editor.EventTypes.SidebarSet, function(sidebar) {			
+			view.addListener(editor.events.SidebarSet, function(sidebar) {			
 				sidebar.addListener(editor.EventTypes.Sidebar.Minimized, function(val) {
 	            	var isDown = view.mode === editor.ToolConstants.MODE_DOWN;
 					handleWidgets(!val && isDown);

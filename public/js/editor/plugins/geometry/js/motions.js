@@ -29,9 +29,6 @@ var editor = (function(editor) {
 	editor.EventTypes.StopPreview = "Motion.StopPreview";
 	
 	// model specific
-	editor.EventTypes.MotionCreated = "Motion.MotionCreated";
-	editor.EventTypes.MotionRemoved = "Motion.MotionRemoved";
-	editor.EventTypes.MotionUpdated = "Motion.MotionUpdated";
 	editor.EventTypes.MotionSet = "Motion.MotionSet";
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +50,7 @@ var editor = (function(editor) {
 		
 		removeMotion: function(motion) {
 			motion.cleanup();
-			this.notifyListeners(editor.EventTypes.MotionRemoved, motion);
+			this.notifyListeners(editor.events.Removed, motion);
 		},
 		
 		saveMotion: function(props) {
@@ -79,11 +76,11 @@ var editor = (function(editor) {
 				}
 				
 				motion.disable();
-				event = editor.EventTypes.MotionCreated;
+				event = editor.events.Created;
 			} else {
 				motion.clear();
 				motion.clearTransforms();
-				event = editor.EventTypes.MotionUpdated;
+				event = editor.events.Updated;
 			}
 			
 			if (props.accel != null) {
@@ -175,10 +172,10 @@ var editor = (function(editor) {
 				trans = hemi.world.getTranslators();
 			
 			for (var i = 0, il = rots.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.MotionRemoved, rots[i]);
+				this.notifyListeners(editor.events.Removed, rots[i]);
 			}
 			for (var i = 0, il = trans.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.MotionRemoved, trans[i]);
+				this.notifyListeners(editor.events.Removed, trans[i]);
 			}
 	    },
 	    
@@ -187,10 +184,10 @@ var editor = (function(editor) {
 				trans = hemi.world.getTranslators();
 			
 			for (var i = 0, il = rots.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.MotionCreated, rots[i]);
+				this.notifyListeners(editor.events.Created, rots[i]);
 			}
 			for (var i = 0, il = trans.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.MotionCreated, trans[i]);
+				this.notifyListeners(editor.events.Created, trans[i]);
 			}
 	    }
 	});
@@ -727,17 +724,17 @@ var editor = (function(editor) {
 				model.setMotion(motion);
 			});
 			
-			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+			view.addListener(editor.events.ToolModeSet, function(value) {
 				var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
 				selModel.enableSelection(isDown);
 			});
 			
 			// model events
-			model.addListener(editor.EventTypes.MotionCreated, function(motion) {
+			model.addListener(editor.events.Created, function(motion) {
 				mtnWgt.add(motion);
 			});
 			
-			model.addListener(editor.EventTypes.MotionRemoved, function(motion) {
+			model.addListener(editor.events.Removed, function(motion) {
 				mtnWgt.remove(motion);
 			});
 			
@@ -760,7 +757,7 @@ var editor = (function(editor) {
 				}
 			});
 			
-			model.addListener(editor.EventTypes.MotionUpdated, function(motion) {
+			model.addListener(editor.events.Updated, function(motion) {
 				mtnWgt.update(motion);
 			});
 			

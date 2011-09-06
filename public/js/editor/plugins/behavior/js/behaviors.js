@@ -26,15 +26,15 @@ var editor = (function(module) {
 	editor.EventTypes.ArgumentSet = "messaging.ArgumentSet";
 	editor.EventTypes.TriggerSet = "messaging.TriggerSet";
 	editor.EventTypes.ActionSet = "messaging.ActionSet";
-	editor.EventTypes.TargetCreated = "messaging.TargetCreated";
-    editor.EventTypes.TargetRemoved = "messaging.TargetRemoved";
-    editor.EventTypes.TargetUpdated = "messaging.TargetUpdated";
     editor.EventTypes.EditTarget = "messaging.view.EditTarget";
     editor.EventTypes.RemoveTarget = "messaging.eventList.RemoveTarget";
     editor.EventTypes.SaveTarget = "messaging.view.SaveTarget";
 	editor.EventTypes.SelectTrigger = "messaging.SelectTrigger";
 	editor.EventTypes.SelectAction = "messaging.SelectAction";
 	editor.EventTypes.SelectTarget = "messaging.SelectTarget";
+
+	editor.EventTypes.CreateBehavior = "messaging.CreateBehavior";
+	editor.EventTypes.UpdateBehavior = "messaging.UpdateBehavior";
 	
 	var TRIGGER_WRAPPER = '#causeTreeWrapper',
 		ACTION_WRAPPER = '#effectTreeWrapper';
@@ -181,12 +181,37 @@ var editor = (function(module) {
 			}
 		},
 		
+		notify: function(eventType, data) {
+			var args = data.args || [],
+				trigger = data.trigger,
+				action = data.action;
+			
+			if (eventType === editor.EventTypes.UpdateBehavior) {
+				if (data.target !== null) {
+					this.copyTarget(data.target);
+				}
+				
+				this.msgTarget = data.target;
+			}
+			
+			this.setTrigger(trigger.citizen, trigger.type);
+			this.setAction(action.handler, action.method);
+			
+			for (var ndx = 0, len = args.length; ndx < len; ndx++) {
+				var arg = args[ndx];
+				
+				this.setArgument(arg.name, arg.value);
+			}
+			
+			this.save(data.name, data.type, data.actor);
+		},
+		
 		removeTarget: function(target) {
 			if (this.msgTarget === target) {
 				this.msgTarget = null;
 			}
 
-	        this.notifyListeners(editor.EventTypes.TargetRemoved, target);	
+	        this.notifyListeners(editor.events.Removed, target);	
 			this.dispatchProxy.removeTarget(target);
 			
 			if (target.handler instanceof hemi.handlers.ValueCheck) {
@@ -261,9 +286,9 @@ var editor = (function(module) {
 			
 			if (this.msgTarget !== null) {
 				newTarget.dispatchId = this.msgTarget.dispatchId;
-				this.notifyListeners(editor.EventTypes.TargetUpdated, data);
+				this.notifyListeners(editor.events.Updated, data);
 			} else {
-				this.notifyListeners(editor.EventTypes.TargetCreated, data);
+				this.notifyListeners(editor.events.Created, data);
 			}
 			
 			this.msgTarget = null;
@@ -353,7 +378,7 @@ var editor = (function(module) {
 			
 			for (var ndx = 0, len = targets.length; ndx < len; ndx++) {
 	            var target = targets[ndx];
-	            this.notifyListeners(editor.EventTypes.TargetRemoved, target);
+	            this.notifyListeners(editor.events.Removed, target);
 	        }
 			
 			this.dispatchProxy.cleanup();
@@ -373,7 +398,7 @@ var editor = (function(module) {
 				var target = targets[ndx];
 				
 				if (target.name.match(editor.ToolConstants.EDITOR_PREFIX) === null) {
-					this.notifyListeners(editor.EventTypes.TargetCreated, {
+					this.notifyListeners(editor.events.Created, {
 						target: target
 					});
 				}
@@ -1039,10 +1064,13 @@ var editor = (function(module) {
 				bhvWgt = view.topPanel.behaviorWidget,
 				controller = this;
 			
+			bhvWgt.addListener(editor.EventTypes.CreateBehavior, model);
+			bhvWgt.addListener(editor.EventTypes.UpdateBehavior, model);
+			
 			// view specific
-			view.addListener(editor.EventTypes.ToolModeSet, function(data) {
-				var isDown = data.newMode === editor.ToolConstants.MODE_DOWN;
-			});			
+//			view.addListener(editor.EventTypes.ToolModeSet, function(data) {
+//				var isDown = data.newMode === editor.ToolConstants.MODE_DOWN;
+//			});			
 //			view.addListener(editor.EventTypes.RemoveTarget, function(data) {
 //				model.removeTarget(data);
 //			});			
@@ -1094,7 +1122,7 @@ var editor = (function(module) {
 //					view.prm.populateArgList(handler, method, args, vals);
 //				}
 //			});			
-			model.addListener(editor.EventTypes.TargetCreated, function(data) {
+			model.addListener(editor.events.Created, function(data) {
 				var target = data.target,
 					spec = model.dispatchProxy.getTargetSpec(target),
 					li = editor.tools.behavior.getBehaviorListItem(data.actor);
@@ -1107,7 +1135,7 @@ var editor = (function(module) {
 				
 				bhvWgt.setVisible(false);
 			});			
-			model.addListener(editor.EventTypes.TargetRemoved, function(target) {
+			model.addListener(editor.events.Removed, function(target) {
 				view.removeTarget(target);
 				tblWgt.remove(target);
 				
@@ -1117,7 +1145,7 @@ var editor = (function(module) {
 					li.remove(target);
 				}
 			});			
-			model.addListener(editor.EventTypes.TargetUpdated, function(data) {
+			model.addListener(editor.events.Updated, function(data) {
 				var target = data.target,
 					spec = model.dispatchProxy.getTargetSpec(target),
 					li = editor.ui.getBehaviorListItem(data.actor);
@@ -1146,47 +1174,6 @@ var editor = (function(module) {
 			bhvWgt.setVisible = function(visible) {
 				
 			};
-			
-			hemi.world.subscribe(editor.msg.behaviorCreated, function(saveObj) {
-				var data = saveObj.data,
-					args = data.args || [],
-					trigger = data.trigger,
-					action = data.action;
-				
-				model.setTrigger(trigger.citizen, trigger.type);
-				model.setAction(action.handler, action.method);
-				
-				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
-					var arg = args[ndx];
-					
-					model.setArgument(arg.name, arg.value);
-				}
-				
-				model.save(data.name, data.type, data.actor);
-			});
-			hemi.world.subscribe(editor.msg.behaviorUpdated, function(saveObj) {				
-				var data = saveObj.data,
-					args = data.args || [],
-					trigger = data.trigger,
-					action = data.action;
-								
-				if (data.target !== null) {
-					model.copyTarget(data.target);
-				}
-				
-				model.msgTarget = data.target;
-				
-				model.setTrigger(trigger.citizen, trigger.type);
-				model.setAction(action.handler, action.method);
-				
-				for (var ndx = 0, len = args.length; ndx < len; ndx++) {
-					var arg = args[ndx];
-					
-					model.setArgument(arg.name, arg.value);
-				}
-				
-				model.save(data.name, data.type, data.actor);
-			});
 		}
 	});
 	

@@ -19,10 +19,6 @@ var editor = (function(editor) {
 	editor.tools = editor.tools || {};
 	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
 	
-	editor.msg.behaviorCreated = 'editor.bhvCreated';
-	editor.msg.behaviorDestroyed = 'editor.bhvDestroyed';
-	editor.msg.behaviorUpdated = 'editor.bhvUpdated';
-	
 	editor.EventTypes.ListItemEdit = 'behavior.listitemedit';
 	editor.EventTypes.ListItemRemove = 'behavior.listitemremove';
 	
@@ -408,12 +404,10 @@ var editor = (function(editor) {
 						target: wgt.msgTarget,
 						actor: wgt.actor
 					},
-						
-					// TODO: change the notification to use messages
-					msgType = wgt.msgTarget ? editor.msg.behaviorUpdated :
-						editor.msg.behaviorCreated;
-				hemi.world.send(msgType, data);	
+					msgType = wgt.msgTarget ? editor.EventTypes.UpdateBehavior :
+						editor.EventTypes.CreateBehavior;
 				
+				wgt.notifyListeners(msgType, data);
 				wgt.reset();
 				wgt.setVisible(false);
 			});

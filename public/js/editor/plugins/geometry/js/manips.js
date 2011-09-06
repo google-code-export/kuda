@@ -29,9 +29,6 @@ var editor = (function(editor) {
 	editor.EventTypes.StopPreview = "Manip.StopPreview";
 	
 	// model specific
-	editor.EventTypes.ManipCreated = "Manip.ManipCreated";
-	editor.EventTypes.ManipRemoved = "Manip.ManipRemoved";
-	editor.EventTypes.ManipUpdated = "Manip.ManipUpdated";
 	editor.EventTypes.ManipSet = "Manip.ManipSet";
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -52,7 +49,7 @@ var editor = (function(editor) {
 		
 		removeManip: function(manip) {
 			manip.cleanup();
-			this.notifyListeners(editor.EventTypes.ManipRemoved, manip);
+			this.notifyListeners(editor.events.Removed, manip);
 		},
 		
 		saveManip: function(props) {
@@ -77,11 +74,11 @@ var editor = (function(editor) {
 					manip = new hemi.manip.Turnable();
 				}
 				
-				event = editor.EventTypes.ManipCreated;
+				event = editor.events.Created;
 			} else {
 				manip.clearLimits();
 				manip.clearTransforms();
-				event = editor.EventTypes.ManipUpdated;
+				event = editor.events.Updated;
 			}
 			
 			if (props.axis != null) {
@@ -177,10 +174,10 @@ var editor = (function(editor) {
 				turns = hemi.world.getTurnables();
 			
 			for (var i = 0, il = drags.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.ManipRemoved, drags[i]);
+				this.notifyListeners(editor.events.Removed, drags[i]);
 			}
 			for (var i = 0, il = turns.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.ManipRemoved, turns[i]);
+				this.notifyListeners(editor.events.Removed, turns[i]);
 			}
 	    },
 	    
@@ -189,10 +186,10 @@ var editor = (function(editor) {
 				turns = hemi.world.getTurnables();
 			
 			for (var i = 0, il = drags.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.ManipCreated, drags[i]);
+				this.notifyListeners(editor.events.Created, drags[i]);
 			}
 			for (var i = 0, il = turns.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.ManipCreated, turns[i]);
+				this.notifyListeners(editor.events.Created, turns[i]);
 			}
 	    }
 	});
@@ -732,17 +729,17 @@ var editor = (function(editor) {
 				model.setManip(manip);
 			});
 			
-			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+			view.addListener(editor.events.ToolModeSet, function(value) {
 				var isDown = value.newMode === editor.tools.ToolConstants.MODE_DOWN;
 				selModel.enableSelection(isDown);
 			});
 			
 			// model events
-			model.addListener(editor.EventTypes.ManipCreated, function(manip) {
+			model.addListener(editor.events.Created, function(manip) {
 				mnpWgt.add(manip);
 			});
 			
-			model.addListener(editor.EventTypes.ManipRemoved, function(manip) {
+			model.addListener(editor.events.Removed, function(manip) {
 				mnpWgt.remove(manip);
 			});
 			
@@ -765,7 +762,7 @@ var editor = (function(editor) {
 				}
 			});
 			
-			model.addListener(editor.EventTypes.ManipUpdated, function(manip) {
+			model.addListener(editor.events.Updated, function(manip) {
 				mnpWgt.update(manip);
 			});
 			

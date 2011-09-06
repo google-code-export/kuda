@@ -22,16 +22,17 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 	editor.tools = editor.tools || {};
-	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
+	var shorthand = editor.tools.behavior = editor.tools.behavior || {},
+		bhvMdl = null;
 	
 	shorthand.init = function() {		
 		var tabpane = new editor.ui.TabPane('Behaviors'),
 			toolbar = new editor.ui.Toolbar();
 
-		var bhvMdl = new editor.tools.BehaviorModel(),
-			bhvView = new editor.tools.BehaviorView(),
+		var bhvView = new editor.tools.BehaviorView(),
 			bhvCtr = new editor.tools.BehaviorController();
-				
+		
+		bhvMdl = new editor.tools.BehaviorModel();
 		bhvCtr.setModel(bhvMdl);
 		bhvCtr.setView(bhvView);
 		
@@ -60,6 +61,8 @@
 					
 					if (widget instanceof editor.ui.ListWidget) {
 						var bhvWgt = shorthand.createBehaviorWidget();
+						bhvWgt.addListener(editor.EventTypes.CreateBehavior, bhvMdl);
+						bhvWgt.addListener(editor.EventTypes.UpdateBehavior, bhvMdl);
 						
 						// add the behavior widget
 						view.sidePanel.addWidget(bhvWgt);
@@ -68,10 +71,10 @@
 						widget.behaviorWidget = bhvWgt;
 						widget.createListItem = function() {
 							return new shorthand.BhvListItem(this.behaviorWidget);
-						}
+						};
 						
 						bhvWgt.parentPanel = view.sidePanel;
-						bhvWgt.addListener(editor.EventTypes.WidgetVisible, function(obj) {
+						bhvWgt.addListener(editor.events.WidgetVisible, function(obj) {
 							var thisWgt = obj.widget,
 								wgts = thisWgt.parentPanel.widgets;
 							
@@ -92,7 +95,7 @@
 			}
 		}
 		
-		hemi.world.send(editor.msg.citizenCreated, hemi.world.camera);	
+		shorthand.treeModel.addCitizen(hemi.world.camera);	
 	});
 
 ////////////////////////////////////////////////////////////////////////////////

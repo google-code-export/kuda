@@ -21,8 +21,6 @@ var editor = (function(editor) {
     editor.EventTypes = editor.EventTypes || {};
 		
 	// model specific
-	editor.EventTypes.DisplayCreated = "Hud.DisplayCreated";
-	editor.EventTypes.DisplayRemoved = "Hud.DisplayRemoved";
 	editor.EventTypes.DisplaySet = "Hud.DisplaySet";
 	editor.EventTypes.ElementCreated = "Hud.ElementCreated";
 	editor.EventTypes.ElementRemoved = "Hud.ElementRemoved";
@@ -70,7 +68,7 @@ var editor = (function(editor) {
 		createDisplay: function(name) {
 			var display = new hemi.hud.HudDisplay();
 			display.name = name;
-			this.notifyListeners(editor.EventTypes.DisplayCreated, display);
+			this.notifyListeners(editor.events.Created, display);
 			this.setDisplay(display);
 		},
 		
@@ -92,7 +90,7 @@ var editor = (function(editor) {
 			}
 			
 			display.cleanup();		
-			this.notifyListeners(editor.EventTypes.DisplayRemoved, display);
+			this.notifyListeners(editor.events.Removed, display);
 		},
 		
 		removeElement: function(element) {
@@ -235,7 +233,7 @@ var editor = (function(editor) {
 			var displays = hemi.world.getHudDisplays();
 			
 			for (var ndx = 0, len = displays.length; ndx < len; ndx++) {
-				this.notifyListeners(editor.EventTypes.DisplayRemoved, displays[ndx]);
+				this.notifyListeners(editor.events.Removed, displays[ndx]);
 			}
 	    },
 	    
@@ -943,7 +941,7 @@ var editor = (function(editor) {
 				crtWgt = view.sidePanel.createHudWidget;
 	                	        
 			// special listener for when the toolbar button is clicked
-	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+	        view.addListener(editor.events.ToolModeSet, function(value) {
 	            if (model.currentDisplay) {
 	            	var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
 					
@@ -1009,12 +1007,12 @@ var editor = (function(editor) {
 			// view specific listeners
 			
 			// model specific listeners
-			model.addListener(editor.EventTypes.DisplayCreated, function(display) {
+			model.addListener(editor.events.Created, function(display) {
 				crtWgt.edit(display);
 				treeWgt.add(display);
 				treeWgt.select(display);
 			});
-			model.addListener(editor.EventTypes.DisplayRemoved, function(display) {
+			model.addListener(editor.events.Removed, function(display) {
 				treeWgt.remove(display);
 			});
 			model.addListener(editor.EventTypes.DisplaySet, function(display) {

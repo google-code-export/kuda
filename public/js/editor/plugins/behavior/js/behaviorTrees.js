@@ -48,11 +48,6 @@ var editor = (function(editor) {
 			
 			hemi.world.subscribe(hemi.msg.cleanup, this, 'worldCleaned');
 			hemi.world.subscribe(hemi.msg.ready, this, 'worldLoaded');
-			hemi.world.subscribe(editor.msg.citizenCreated, this, 'addCitizen',
-				[hemi.dispatch.MSG_ARG + 'data']);
-			hemi.world.subscribe(editor.msg.citizenDestroyed, this, 
-				'removeCitizen',
-				[hemi.dispatch.MSG_ARG + 'data']);
 		},
 		
 		addCitizen: function(citizen) {
@@ -92,6 +87,23 @@ var editor = (function(editor) {
 					type: type,
 					citizens: cits
 				});
+			}
+		},
+		
+		// TODO: call this on all tool models
+		listenTo: function(toolModel) {
+			toolModel.addListener(editor.events.Created, this);
+			toolModel.addListener(editor.events.Removed, this);
+			toolModel.addListener(editor.events.Updated, this);
+		},
+		
+		notify: function(eventType, value) {
+			if (eventType === editor.events.Created) {
+				this.addCitizen(value);
+			} else if (eventType === editor.events.Removed) {
+				this.removeCitizen(value);
+			} else if (eventType === editor.events.Updated) {
+				this.updateCitizen(value);
 			}
 		},
 		
