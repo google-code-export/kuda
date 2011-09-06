@@ -21,15 +21,14 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools = editor.tools || {};
 	editor.tools.browser = editor.tools.browser || {};
 
 	editor.tools.browser.init = function() {
 		var tabpane = editor.ui.getTabPane('Geometry'),
 			
-			mbrMdl = new editor.tools.BrowserModel(),
-			mbrView = new editor.tools.BrowserView(),
-			mbrCtr = new editor.tools.BrowserController();
+			mbrMdl = new BrowserModel(),
+			mbrView = new BrowserView(),
+			mbrCtr = new BrowserController();
 		
 		mbrCtr.setModel(mbrMdl);
 		mbrCtr.setView(mbrView);
@@ -176,9 +175,9 @@
 //                            Browser Model                                   //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.tools.BrowserModel = editor.ToolModel.extend({
+	var BrowserModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.browser');
+			this._super('browser');
 	        
 			this.selected = new Hashtable();
 	        this.highlightedShapes = new Hashtable();
@@ -1673,13 +1672,13 @@
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    	
 	
-	editor.tools.BrowserView = editor.ToolView.extend({
+	var BrowserView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 				toolName: 'Geometry Browser',
 				toolTip: 'Browse through the transforms and materials of models and shapes',
 				elemId: 'browserBtn',
-				id: 'editor.tools.browser'
+				id: 'browser'
 			});
 			
 			this.isDown = false;
@@ -1711,7 +1710,7 @@
 //                                Controller                                  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.tools.BrowserController = editor.ToolController.extend({
+	var BrowserController = editor.ToolController.extend({
 		init: function() {
 			this._super();
 		},

@@ -21,7 +21,6 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools = editor.tools || {};
 	editor.tools.projects = editor.tools.projects || {};
 
 	editor.tools.projects.init = function() {

@@ -21,15 +21,14 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools = editor.tools || {};
 	editor.tools.fog = editor.tools.fog || {};
 
 	editor.tools.fog.init = function() {
 		var tabpane = editor.ui.getTabPane('Effects'),
 			
-			fogMdl = new editor.tools.FogModel(),
-			fogView = new editor.tools.FogView(),
-			fogCtr = new editor.tools.FogController();
+			fogMdl = new FogModel(),
+			fogView = new FogView(),
+			fogCtr = new FogController();
 		
 		fogCtr.setModel(fogMdl);
 		fogCtr.setView(fogView);
@@ -55,9 +54,9 @@
 //                                   Model                                    //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.FogModel = editor.ToolModel.extend({
+	var FogModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.fog');
+			this._super('fog');
 		},
 		
 		setVisible: function(visible) {
@@ -209,13 +208,13 @@
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.tools.FogView = editor.ToolView.extend({
+	var FogView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 		        toolName: 'Fog',
 				toolTip: 'Create and edit fog',
 		        elemId: 'fogBtn',
-				id: 'editor.tools.fog'
+				id: 'fog'
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
@@ -230,7 +229,7 @@
 //                                Controller                                  //
 ////////////////////////////////////////////////////////////////////////////////
 
-    editor.tools.FogController = editor.ToolController.extend({
+    var FogController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},

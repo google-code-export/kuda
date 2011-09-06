@@ -21,15 +21,14 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
  
-	editor.tools = editor.tools || {};
 	editor.tools.cameraCurves = editor.tools.cameraCurves || {};
 
  	editor.tools.cameraCurves.init = function() {
 		var tabpane = editor.ui.getTabPane('Camera'),
 		
-			crvMdl = new editor.tools.CamCurveModel(),
-			crvView = new editor.tools.CamCurveView(),
-			crvCtr = new editor.tools.CamCurveController();
+			crvMdl = new CamCurveModel(),
+			crvView = new CamCurveView(),
+			crvCtr = new CamCurveController();
 				
 		crvCtr.setView(crvView);
 		crvCtr.setModel(crvMdl);
@@ -69,9 +68,9 @@
 	 * An CamCurveModel handles the creation and playing of animations as well
 	 * as model picking for the animation tool.
 	 */
-	editor.tools.CamCurveModel = editor.ToolModel.extend({
+	var CamCurveModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.cameraCurves');
+			this._super('cameraCurves');
 			this.camData = null;
 			this.curve = null;
 			this.prevHandler = null;
@@ -625,17 +624,14 @@
 	/**
 	 * The CamCurveView controls the dialog and toolbar widget for the
 	 * animation tool.
-	 *
-	 * @param {Object} options configuration options.  Uses
-	 *         editor.tools.CamCurveViewDefaults as default options
 	 */
-	editor.tools.CamCurveView = editor.ToolView.extend({
+	var CamCurveView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 				toolName: 'Camera Curves',
 		        toolTip: 'Create curves for cameras to travel on',
 				elemId: 'viewpointsBtn',
-				id: 'editor.tools.cameraCurves'
+				id: 'cameraCurves'
 			});
 			this.pre = 'vp_';
 			
@@ -655,7 +651,7 @@
 	 * The CamCurveController facilitates CamCurveModel and CamCurveView
 	 * communication by binding event and message handlers.
 	 */
-	editor.tools.CamCurveController = editor.ToolController.extend({
+	var CamCurveController = editor.ToolController.extend({
 		init: function() {
 			this._super();
 		},

@@ -21,15 +21,14 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools = editor.tools || {};
 	editor.tools.animations = editor.tools.animations || {};
 
 	editor.tools.animations.init = function() {
 		var tabpane = editor.ui.getTabPane('Geometry'),
 			
-			anmMdl = new editor.tools.AnimatorModel(),
-			anmView = new editor.tools.AnimatorView(),
-			anmCtr = new editor.tools.AnimatorController();
+			anmMdl = new AnimatorModel(),
+			anmView = new AnimatorView(),
+			anmCtr = new AnimatorController();
 						
 		anmCtr.setModel(anmMdl);
 		anmCtr.setView(anmView);
@@ -75,9 +74,9 @@
      * An AnimatorModel handles the creation and playing of animations as well
      * as model picking for the animation tool.
      */
-    editor.tools.AnimatorModel = editor.ToolModel.extend({
+    var AnimatorModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.animations');
+			this._super('animations');
 	        
 	        this.selectedModel;
 	        this.hilights = new Hashtable();
@@ -905,17 +904,14 @@
     /**
      * The AnimatorView controls the dialog and toolbar widget for the 
      * animation tool.
-     * 
-     * @param {Object} options configuration options.  Uses 
-     *         editor.tools.AnimatorViewDefaults as default options
      */
-    editor.tools.AnimatorView = editor.ToolView.extend({
-		init: function(options){
+    var AnimatorView = editor.ToolView.extend({
+		init: function() {
 			this._super({
 		        toolName: 'Animator',
 				toolTip: 'Create and edit key frame animations',
 		        elemId: 'animationsBtn',
-				id: 'editor.tools.animations'
+				id: 'animations'
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
@@ -937,7 +933,7 @@
      * The AnimatorController facilitates AnimatorModel and AnimatorView
      * communication by binding event and message handlers.
      */
-    editor.tools.AnimatorController = editor.ToolController.extend({
+    var AnimatorController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},

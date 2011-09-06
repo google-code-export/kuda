@@ -71,17 +71,16 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools = editor.tools || {};
 	var shorthand = editor.tools.behavior = editor.tools.behavior || {},
 		bhvMdl = null;
 	
 	shorthand.init = function() {		
 		var tabpane = editor.ui.getTabPane('Behaviors');
 
-		var bhvView = new editor.tools.BehaviorView(),
-			bhvCtr = new editor.tools.BehaviorController();
+		var bhvView = new BehaviorView(),
+			bhvCtr = new BehaviorController();
 		
-		bhvMdl = new editor.tools.BehaviorModel();
+		bhvMdl = new BehaviorModel();
 		bhvCtr.setModel(bhvMdl);
 		bhvCtr.setView(bhvView);
 		
@@ -106,7 +105,7 @@
 		shorthand.treeModel.addCitizen(hemi.world.camera);	
 		
 		editor.addListener(editor.events.PluginAdded, function(name) {
-			var view = editor.getView('editor.tools.' + name);
+			var view = editor.getView(name);
 			injectBehaviorWidget(view);
 		});
 		editor.addListener(editor.events.PluginRemoved, function(name) {
@@ -143,7 +142,7 @@
 //                                 Utilities                                  //
 ////////////////////////////////////////////////////////////////////////////////
 		
-	editor.tools.DispatchProxy = function() {
+	var DispatchProxy = function() {
 		// The set of MessageSpecs (and MessageTargets) being created by the
 		// messaging tool
 		this.worldSpecs = new hemi.utils.Hashtable();
@@ -151,7 +150,7 @@
 		this.editorSpecs = null;
 	};
 	
-	editor.tools.DispatchProxy.prototype = {
+	DispatchProxy.prototype = {
 		swap: function() {
 			if (this.editorSpecs === null) {
 				this.editorSpecs = hemi.dispatch.msgSpecs;
@@ -217,11 +216,11 @@
     /**
      * A BehaviorModel
      */
-    editor.tools.BehaviorModel = editor.ToolModel.extend({
+    var BehaviorModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.behavior');
+			this._super('behavior');
 			
-			this.dispatchProxy = new editor.tools.DispatchProxy();
+			this.dispatchProxy = new DispatchProxy();
 			this.msgTarget = null;
 			this.source = null;
 			this.type = null;
@@ -1110,13 +1109,13 @@
 //		}
 //	});
 
-	editor.tools.BehaviorView = editor.ToolView.extend({
+	var BehaviorView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 				toolName: 'Behaviors',
 				toolTip: 'Overview of behaviors',
 				elemId: 'behaviorBtn',
-				id: 'editor.tools.behavior'
+				id: 'behavior'
 			});
 			
 			this.addPanel(new editor.ui.Panel({
@@ -1146,7 +1145,7 @@
      * The BehaviorController facilitates BehaviorModel and BehaviorView
      * communication by binding event and message handlers.
      */
-    editor.tools.BehaviorController = editor.ToolController.extend({
+    var BehaviorController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},

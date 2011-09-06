@@ -21,15 +21,14 @@
 //								Initialization								  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-    editor.tools = editor.tools || {};
 	editor.tools.hud = editor.tools.hud || {};
 	
 	editor.tools.hud.init = function() {
 		var tabpane = editor.ui.getTabPane('HUD'),
 		
-		hudMdl = new editor.tools.HudModel(),
-		hudView = new editor.tools.HudView(),
-		hudCtr = new editor.tools.HudController();
+		hudMdl = new HudModel(),
+		hudView = new HudView(),
+		hudCtr = new HudController();
 		
 		hudCtr.setModel(hudMdl);
 		hudCtr.setView(hudView);
@@ -78,9 +77,9 @@
      * A HudModel handles the creation, updating, and removal of heads-up 
      * displays.
      */
-    editor.tools.HudModel = editor.ToolModel.extend({
+    var HudModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.HudModel');
+			this._super('hud');
 			
 			this.currentDisplay = null;
 			this.currentPage = null;
@@ -920,13 +919,13 @@
     /**
      * The HudView controls the widgets for the Hud tool.
      */
-    editor.tools.HudView = editor.ToolView.extend({
+    var HudView = editor.ToolView.extend({
 		init: function(options) {
 	        this._super({
 	            toolName: 'Heads-Up Displays',
 	    		toolTip: 'Create and edit heads-up displays',
 	    		elemId: 'hudBtn',
-	    		id: 'editor.tools.Hud'
+	    		id: 'hud'
 	        });
 			
 	        this.addPanel(new editor.ui.Panel({
@@ -946,7 +945,7 @@
      * The HudController facilitates HudModel and HudView communication by
      * binding event and message handlers.
      */
-    editor.tools.HudController = editor.ToolController.extend({
+    var HudController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},
@@ -1076,11 +1075,6 @@
 				for (var ndx = 0, len = displays.length; ndx < len; ndx++) {
 					var display = displays[ndx],
 						pages = display.pages;
-					
-					// Skip the HUD display used by the editor
-					if (display.name.match(editor.tools.ToolConstants.EDITOR_PREFIX) !== null) {
-						continue;
-					}
 					
 					treeWgt.add(display);
 					

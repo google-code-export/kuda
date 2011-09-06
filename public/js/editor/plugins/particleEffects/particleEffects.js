@@ -21,15 +21,14 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools = editor.tools || {};
 	editor.tools.particleEffects = editor.tools.particleEffects || {};
 
 	editor.tools.particleEffects.init = function() {
 		var tabpane = editor.ui.getTabPane('Effects'),
 			
-			pteMdl = new editor.tools.ParticleFxModel(),
-			pteView = new editor.tools.ParticleFxView(),
-			pteCtr = new editor.tools.ParticleFxController();
+			pteMdl = new ParticleFxModel(),
+			pteView = new ParticleFxView(),
+			pteCtr = new ParticleFxController();
 
 		pteCtr.setModel(pteMdl);
 		pteCtr.setView(pteView);
@@ -70,9 +69,9 @@
     /**
      * A ParticleFxModel ...
      */
-    editor.tools.ParticleFxModel = editor.ToolModel.extend({
+    var ParticleFxModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.particles');
+			this._super('particleEffects');
 			this.particleEffectParams = {};
 			this.currentParticleEffect = null;
 			this.type = null;
@@ -851,13 +850,13 @@
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
     
-    editor.tools.ParticleFxView = editor.ToolView.extend({
+    var ParticleFxView = editor.ToolView.extend({
 		init: function() {
 	        this._super({
 	            toolName: 'Particle Effects',
 	    		toolTip: 'Particle Effects: Create and edit particle effects',
 	    		elemId: 'particleEffectsBtn',
-	    		id: 'editor.tools.particles'
+	    		id: 'particleEffects'
 	        });
 
 			this.addPanel(new editor.ui.Panel({
@@ -877,7 +876,7 @@
      * The ParticleFxController facilitates ParticleFxModel and ParticleFxView
      * communication by binding event and message handlers.
      */
-    editor.tools.ParticleFxController = editor.ToolController.extend({
+    var ParticleFxController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},

@@ -16,7 +16,6 @@
  */
 
 var editor = (function(editor) {
-	editor.tools = editor.tools || {};
 	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
 	
 	editor.EventTypes.ListItemEdit = 'behavior.listitemedit';

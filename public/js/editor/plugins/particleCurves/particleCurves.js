@@ -20,16 +20,15 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-
-	editor.tools = editor.tools || {};
+	
 	editor.tools.particleCurves = editor.tools.particleCurves || {};
 
 	editor.tools.particleCurves.init = function() {
 		var tabpane = editor.ui.getTabPane('Effects'),
 
-			ptcMdl = new editor.tools.ParticleCurvesModel(),
-			ptcView = new editor.tools.ParticleCurvesView(),
-			ptcCtr = new editor.tools.ParticleCurvesController();
+			ptcMdl = new ParticleCurvesModel(),
+			ptcView = new ParticleCurvesView(),
+			ptcCtr = new ParticleCurvesController();
 
 		ptcCtr.setModel(ptcMdl);
 		ptcCtr.setView(ptcView);
@@ -112,9 +111,9 @@
     /**
      * A ParticleCurvesModel...
      */
-    editor.tools.ParticleCurvesModel = editor.ToolModel.extend({
+    var ParticleCurvesModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.curves');
+			this._super('particleCurves');
 			this.config = {
 				fast: true,
 				boxes: []
@@ -1049,13 +1048,13 @@
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////  
     
-    editor.tools.ParticleCurvesView = editor.ToolView.extend({
+    var ParticleCurvesView = editor.ToolView.extend({
 		init: function(options){
 			this._super({
 				toolName: 'Particle Curves',
 				toolTip: 'Create and edit particle curves',
 		        elemId: 'particleCurvesBtn',
-		        id: 'editor.tools.curves'
+		        id: 'particleCurves'
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
@@ -1104,7 +1103,7 @@
      * The CurveEditorController facilitates CurveEditorModel and CurveEditorView
      * communication by binding event and message handlers.
      */
-    editor.tools.ParticleCurvesController = editor.ToolController.extend({
+    var ParticleCurvesController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},

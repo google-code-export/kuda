@@ -21,15 +21,14 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
  
-	editor.tools = editor.tools || {};
 	editor.tools.viewpoints = editor.tools.viewpoints || {};
 
  	editor.tools.viewpoints.init = function() {
 		var tabpane = editor.ui.getTabPane('Camera'),
 			
-			vptMdl = new editor.tools.ViewpointsModel(),
-			vptView = new editor.tools.ViewpointsView(),
-			vptCtr = new editor.tools.ViewpointsController();
+			vptMdl = new ViewpointsModel(),
+			vptView = new ViewpointsView(),
+			vptCtr = new ViewpointsController();
 		
 	    vptCtr.setView(vptView);
 	    vptCtr.setModel(vptMdl);
@@ -62,9 +61,9 @@
 	 * An ViewpointsModel handles the creation and playing of animations as well
 	 * as model picking for the animation tool.
 	 */
-	editor.tools.ViewpointsModel = editor.ToolModel.extend({
+	var ViewpointsModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.viewpoints');
+			this._super('viewpoints');
 			this.camData = null;
 			this.curve = null;
 			this.prevHandler = null;
@@ -396,17 +395,14 @@
 	/**
 	 * The ViewpointsView controls the dialog and toolbar widget for the
 	 * animation tool.
-	 *
-	 * @param {Object} options configuration options.  Uses
-	 *         editor.tools.ViewpointsViewDefaults as default options
 	 */
-	editor.tools.ViewpointsView = editor.ToolView.extend({
-		init: function(options) {
+	var ViewpointsView = editor.ToolView.extend({
+		init: function() {
 			this._super({
 				toolName: 'Viewpoints',
 		        toolTip: 'Create and edit viewpoints for cameras to move between',
 				elemId: 'viewpointsBtn',
-				id: 'editor.tools.viewpoints'
+				id: 'viewpoints'
 			});
 			
 			this.addPanel(new editor.ui.Panel());
@@ -425,7 +421,7 @@
 	 * The ViewpointsController facilitates ViewpointsModel and ViewpointsView
 	 * communication by binding event and message handlers.
 	 */
-	editor.tools.ViewpointsController = editor.ToolController.extend({
+	var ViewpointsController = editor.ToolController.extend({
 		init: function() {
 			this._super();
 		},

@@ -21,15 +21,14 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools = editor.tools || {};
 	editor.tools.shapes = editor.tools.shapes || {};
 
 	editor.tools.shapes.init = function() {
 		var tabpane = editor.ui.getTabPane('Geometry'),
 			
-			shpMdl = new editor.tools.ShapesModel(),
-			shpView = new editor.tools.ShapesView(),
-			shpCtr = new editor.tools.ShapesController();
+			shpMdl = new ShapesModel(),
+			shpView = new ShapesView(),
+			shpCtr = new ShapesController();
 						
 		shpCtr.setModel(shpMdl);
 		shpCtr.setView(shpView);
@@ -68,9 +67,9 @@
      * An ShapesModel handles the creation, updating, and removal of 
      * shapes
      */
-    editor.tools.ShapesModel = editor.ToolModel.extend({
+    var ShapesModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.shapes');
+			this._super('shapes');
 			
 			this.currentShape = null;
 			this.prevShape = null;
@@ -554,17 +553,14 @@
     /**
      * The ShapesView controls the dialog and toolbar widget for the 
      * animation tool.
-     * 
-     * @param {Object} options configuration options.  Uses 
-     *         editor.tools.ShapesViewDefaults as default options
      */
-    editor.tools.ShapesView = editor.ToolView.extend({
-		init: function(options) {
+    var ShapesView = editor.ToolView.extend({
+		init: function() {
 	        this._super({
 		        toolName: 'Shapes',
 				toolTip: 'Create and edit primitive shapes',
 				elemId: 'shapesBtn',
-				id: 'editor.tools.shapes'
+				id: 'shapes'
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
@@ -585,7 +581,7 @@
      * The ShapesController facilitates ShapesModel and ShapesView
      * communication by binding event and message handlers.
      */
-    editor.tools.ShapesController = editor.ToolController.extend({
+    var ShapesController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},
