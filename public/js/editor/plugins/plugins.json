@@ -6,7 +6,7 @@
 		"shapes", 
 		"animations", 
 		"particles",
-		"curves",
+		"particleCurves",
 		"fog",
 		"behavior", 
 		"hud"
