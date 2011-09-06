@@ -392,7 +392,7 @@
 		init: function(options) {
 		    this._super({
 				name: 'createAnmWidget',
-				uiFile: 'js/editor/plugins/geometry/html/animationsForms.htm',
+				uiFile: 'js/editor/plugins/animations/html/animationsForms.htm',
 		        instructions: 'Click on a model to select it',
 				manualVisible: true
 			});
@@ -1050,8 +1050,5 @@
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.getScript('js/editor/plugins/geometry/js/browser.js');
-	editor.getScript('js/editor/plugins/geometry/js/shapes.js');
-	editor.getScript('js/editor/plugins/geometry/js/animator.js');
 	editor.getCss('js/editor/plugins/geometry/css/style.css');
 })();

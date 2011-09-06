@@ -1,0 +1,264 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+
+/******************************************************************************
+ * 								 	 Panels									  *
+ ******************************************************************************/
+
+.mbrSidePanel {
+	width: 300px;
+}
+.mbrSidePanel .panelButtons {
+	position: relative;
+	float: left;
+	clear: both;
+	width: 100%;
+}
+.panelButtons button {
+	background: -moz-linear-gradient(100% 100% 90deg, #eaeaea, #eee);
+	background: -webkit-gradient(linear, 0% 0%, 100% 0%, from(#eee), to(#eaeaea));
+	border: none;
+	border-right: 1px solid #ddd;
+	border-bottom: 1px solid #ddd;
+	border-radius: 0;
+	width: 50%;
+	margin: 0;
+}
+.panelButtons button.down {
+	background: #d5e0e4;
+}
+
+/******************************************************************************
+ * 									Widget									  *
+ ******************************************************************************/
+
+.mbrSidePanel .widget {
+	background: #eee;
+	float: left;
+	width: 300px;
+	padding: 0;
+	overflow: auto;
+}
+.mbrTopPanel .widget {
+	overflow: hidden;
+	background: none;
+	border-radius: 10px;
+}
+.mbrBottomPanel .widget:not(.opacity) {
+	padding: 10px 0;
+}
+
+/******************************************************************************
+ * 								 	  Forms								  	  *	
+ ******************************************************************************/
+
+.mbrTopPanel p {	
+    text-align: center;
+	height: 25px;
+	background: #555;
+	font: bold 12px/25px Helvetica, Arial, sans-serif;
+	color: #fff;
+	border-radius: 6px;
+	margin-bottom: 10px;
+}
+.mbrTopPanel form,
+.mbrBottomPanel form {
+	border-right: 1px dotted #aaa;
+}
+.mbrTopPanel form {
+	border-top: none;
+	padding: 0 10px;
+	margin: 0;
+}
+.mbrBottomPanel .widget:nth-child(n+2) form {
+	border-right: none;
+	border-left: 1px dotted #aaa;
+}
+.mbrTopPanel form:first-child {
+	padding-left: none;
+}
+.mbrTopPanel form:last-child {
+	border: none;
+	padding-right: none;
+}
+.mbrTopPanel form input[type=text],
+.mbrTopPanel form select {
+	width: 165px;
+	float: left;
+	margin-right: 5px;
+}
+.mbrTopPanel form input[type=text] {
+	background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eee);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#dadada));
+    border: 1px solid #333;
+	box-shadow: 0 1px 0 #666;
+}
+.mbrTopPanel form input[type=text]:focus {
+	background: -moz-linear-gradient(100% 100% 90deg, #c2dfef, #dbeff9);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dbeff9), to(#c2dfef));
+}
+.mbrTopPanel form span,
+.mbrTopPanel label {
+	width: auto;
+	padding-right: 10px;
+	font: bold 10pt/26px Helvetica, Arial, sans-serif;
+	float: left;
+	color: #fff;
+	margin-right: 0;
+}
+.mbrTopPanel label:after {
+	content: ':';
+}
+
+/******************************************************************************
+ * 								 	Model Tree								  *
+ ******************************************************************************/
+
+#mbrTreeWrapper {
+	width: 300px;
+}
+div#mbrBrowserTree div#mbrTree {
+	margin: 10px 0;
+	background: url(../images/treeBack.png) transparent repeat;
+}
+#mbrDetails {
+	width: 300px;
+	padding: 10px 10px 0 10px;
+	border-bottom: 1px solid #ddd;
+	overflow: hidden;
+	background: #d5e0e4;
+}
+
+/******************************************************************************
+ * 								 	  Sliders								  *
+ ******************************************************************************/
+
+#mbrTransparencySlider {
+	width: 250px;
+	height: 10px;
+	margin-top: 8px;
+	margin-right: 10px;
+	background: #222;
+	box-shadow: 0 1px 0 #444,
+		inset 0 1px 3px #111;
+	border-radius: 10px;
+	border: none;
+	float: left;
+}
+#mbrTransparencySlider .ui-slider-handle {
+	height: 20px;
+	width: 20px;
+	border-radius: 15px;
+	top: -5px;
+	box-shadow: 0 1px 5px #000,
+		inset 0 1px 2px #eee;
+	background: -moz-linear-gradient(100% 100% 90deg, #555, #ccc);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ccc), to(#555));
+	border: none;
+}
+#mbrTransparencySlider .ui-slider-range {
+	border-radius: 10px;
+	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
+	box-shadow: inset 0 1px 1px #72bbe0;
+	height: 8px;
+	border: 1px solid #222;
+}
+
+/******************************************************************************
+ * 									   Popup 								  *
+ ******************************************************************************/
+
+.mbrPopup .content {	
+	color: #fff;
+	background: #333;
+	border: 1px solid #666;
+}
+/* creates triangle */
+.mbrPopup .arrow {
+	border-color: #333 transparent;
+	left: 10px;
+}
+.mbrPopup .outer {
+	border-color: #666 transparent;
+}
+.mbrPopup .innerArrow {
+	border-top-color: #333;
+	left: 10px;
+}
+/* creates the larger triangle */
+.mbrPopup .arrow.top {
+	border-bottom-color: #666;
+}
+/* creates the smaller  triangle */
+.mbrPopup .innerArrow.top {
+	border-bottom-color: #333;
+}
+.mbrPopup .listWidget > li:nth-child(2n+1) {
+	background: #222;
+}
+.mbrPopup .details {
+	min-width: 200px;	
+}
+.mbrPopup .details h2 {
+	font: bold 14px/24px Helvetica, Arial, sans-serif;
+	color: #75d0f4; 
+	margin-bottom: 5px;
+	border-bottom: 1px dotted #aaa;
+	text-transform: capitalize;
+}
+.mbrPopup .details img {
+	max-width: 500px;
+}
+.mbrPopup .back {
+	width: 100%;
+	margin: 5px 0 0;
+}
+.mbrPopup dt {
+	font-weight: bold;
+	font-size: 12px;
+	padding: 5px 0;
+}
+.mbrPopup dt:after {
+	content: ':';
+}
+.mbrPopup dd {
+	font-size: 12px;
+}
+.mbrPopup dd ul {
+	margin-left: 10px;
+}
+.mbrPopup dd ul li {
+	padding: 2px 0;
+}
+.mbrPopup dd ul li span {
+	font-weight: bold;
+	margin-right: 5px;
+	min-width: 20px;
+}
+.mbrPopup dd ul li span:after {
+	content: ':'
+}
+
+/******************************************************************************
+ * 								    Hidden Items							  *
+ ******************************************************************************/
+
+#mbrHiddenTransforms .listWidget > li:nth-child(2n+1) {
+ 	background: #ddd;
+}
