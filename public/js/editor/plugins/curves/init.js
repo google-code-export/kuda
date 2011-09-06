@@ -15,9 +15,31 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function() {
 	
+////////////////////////////////////////////////////////////////////////////////
+//                     			   Initialization  		                      //
+////////////////////////////////////////////////////////////////////////////////
+
 	editor.tools = editor.tools || {};
+	editor.tools.curves = editor.tools.curves || {};
+
+	editor.tools.curves.init = function() {
+		var tabpane = editor.ui.getTabPane('Effects'),
+
+			ptcMdl = new editor.tools.ParticleCurvesModel(),
+			ptcView = new editor.tools.ParticleCurvesView(),
+			ptcCtr = new editor.tools.ParticleCurvesController();
+
+		ptcCtr.setModel(ptcMdl);
+		ptcCtr.setView(ptcView);
+
+		tabpane.toolbar.add(ptcView);
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			  Tool Definition  		                      //
+////////////////////////////////////////////////////////////////////////////////	
 	
     editor.EventTypes = editor.EventTypes || {};
 	
@@ -92,7 +114,7 @@ var editor = (function(editor) {
      */
     editor.tools.ParticleCurvesModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.ParticleCurvesModel');
+			this._super('editor.tools.curves');
 			this.config = {
 				fast: true,
 				boxes: []
@@ -428,7 +450,7 @@ var editor = (function(editor) {
 			
 		    this._super({
 				name: 'createPtcCurveWidget',
-				uiFile: 'js/editor/plugins/effects/html/curvesForms.htm',
+				uiFile: 'js/editor/plugins/curves/html/curvesForms.htm',
 				manualVisible: true
 			});
 		},
@@ -1033,7 +1055,7 @@ var editor = (function(editor) {
 				toolName: 'Particle Curves',
 				toolTip: 'Create and edit particle curves',
 		        elemId: 'particleCurvesBtn',
-		        id: 'editor.tools.ParticleCurves'
+		        id: 'editor.tools.curves'
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
@@ -1196,7 +1218,5 @@ var editor = (function(editor) {
 				crtWgt.reset();
 			});
 	    }
-	});
-	
-	return editor;
-})(editor || {});
+	});	
+})();

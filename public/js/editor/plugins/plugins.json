@@ -1,3 +1,14 @@
 {
-"plugins": ["viewpoints", "cameraCurves", "browser", "shapes", "animations", "behavior", "hud"]
+	"plugins": [
+		"viewpoints", 
+		"cameraCurves", 
+		"browser", 
+		"shapes", 
+		"animations", 
+		"particles",
+		"curves",
+		"fog",
+		"behavior", 
+		"hud"
+	]
 }

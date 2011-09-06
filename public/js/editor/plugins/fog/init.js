@@ -15,8 +15,31 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function() {
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			   Initialization  		                      //
+////////////////////////////////////////////////////////////////////////////////
+
 	editor.tools = editor.tools || {};
+	editor.tools.fog = editor.tools.fog || {};
+
+	editor.tools.fog.init = function() {
+		var tabpane = editor.ui.getTabPane('Effects'),
+			
+			fogMdl = new editor.tools.FogModel(),
+			fogView = new editor.tools.FogView(),
+			fogCtr = new editor.tools.FogController();
+		
+		fogCtr.setModel(fogMdl);
+		fogCtr.setView(fogView);
+
+		tabpane.toolbar.add(fogView);
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			  Tool Definition  		                      //
+////////////////////////////////////////////////////////////////////////////////
     
     editor.EventTypes = editor.EventTypes || {};
 	
@@ -34,7 +57,7 @@ var editor = (function(editor) {
 
 	editor.tools.FogModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.Fog');
+			this._super('editor.tools.fog');
 		},
 		
 		setVisible: function(visible) {
@@ -76,7 +99,7 @@ var editor = (function(editor) {
 		init: function(options) {
 			var newOpts = jQuery.extend({
 					name: 'fogFormWidget',
-					uiFile: 'js/editor/plugins/effects/html/fogForms.htm'
+					uiFile: 'js/editor/plugins/fog/html/fogForms.htm'
 				}, options);
 		    this._super(newOpts);
 		},
@@ -192,7 +215,7 @@ var editor = (function(editor) {
 		        toolName: 'Fog',
 				toolTip: 'Create and edit fog',
 		        elemId: 'fogBtn',
-				id: 'editor.tools.Fog'
+				id: 'editor.tools.fog'
 		    });
 			
 			this.addPanel(new editor.ui.Panel({
@@ -252,5 +275,10 @@ var editor = (function(editor) {
 	    }
 	});
 	
-	return editor;
-})(editor || {});
+////////////////////////////////////////////////////////////////////////////////
+//                     			  	Extra Scripts  		                      //
+////////////////////////////////////////////////////////////////////////////////
+
+	editor.getCss('js/editor/plugins/fog/css/style.css');
+	
+})();

@@ -15,8 +15,31 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
-    editor.tools = editor.tools || {};
+(function() {
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			   Initialization  		                      //
+////////////////////////////////////////////////////////////////////////////////
+
+	editor.tools = editor.tools || {};
+	editor.tools.particles = editor.tools.particles || {};
+
+	editor.tools.particles.init = function() {
+		var tabpane = editor.ui.getTabPane('Effects'),
+			
+			pteMdl = new editor.tools.ParticleFxModel(),
+			pteView = new editor.tools.ParticleFxView(),
+			pteCtr = new editor.tools.ParticleFxController();
+
+		pteCtr.setModel(pteMdl);
+		pteCtr.setView(pteView);
+
+		tabpane.toolbar.add(pteView);
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			  Tool Definition  		                      //
+////////////////////////////////////////////////////////////////////////////////
 	
     editor.EventTypes = editor.EventTypes || {};
 	
@@ -49,7 +72,7 @@ var editor = (function(editor) {
      */
     editor.tools.ParticleFxModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.ParticleFx');
+			this._super('editor.tools.particles');
 			this.particleEffectParams = {};
 			this.currentParticleEffect = null;
 			this.type = null;
@@ -307,7 +330,7 @@ var editor = (function(editor) {
 			
 		    this._super({
 				name: 'createPteWidget',
-				uiFile: 'js/editor/plugins/effects/html/particleFxForms.htm',
+				uiFile: 'js/editor/plugins/particles/html/particleFxForms.htm',
 				manualVisible: true
 			});	
 		},
@@ -834,7 +857,7 @@ var editor = (function(editor) {
 	            toolName: 'Particle Effects',
 	    		toolTip: 'Particle Effects: Create and edit particle effects',
 	    		elemId: 'particleEffectsBtn',
-	    		id: 'editor.tools.ParticleFx'
+	    		id: 'editor.tools.particles'
 	        });
 
 			this.addPanel(new editor.ui.Panel({
@@ -936,6 +959,11 @@ var editor = (function(editor) {
 			});
 	    }
 	});
-    
-    return editor;
-})(editor || {});
+	
+////////////////////////////////////////////////////////////////////////////////
+//                     			  	Extra Scripts  		                      //
+////////////////////////////////////////////////////////////////////////////////
+
+	editor.getCss('js/editor/plugins/particles/css/style.css');
+	
+})();
