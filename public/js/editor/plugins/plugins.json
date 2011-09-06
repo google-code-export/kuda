@@ -5,7 +5,7 @@
 		"browser", 
 		"shapes", 
 		"animations", 
-		"particles",
+		"particleEffects",
 		"particleCurves",
 		"fog",
 		"behavior", 
