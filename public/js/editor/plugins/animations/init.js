@@ -1050,5 +1050,5 @@
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.getCss('js/editor/plugins/geometry/css/style.css');
+	editor.getCss('js/editor/plugins/animations/css/style.css');
 })();
