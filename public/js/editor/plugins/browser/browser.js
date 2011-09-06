@@ -27,13 +27,11 @@
 	editor.tools.browser.init = function() {
 		var tabpane = editor.ui.getTabPane('Geometry'),
 			
-			mbrMdl = new editor.tools.ModelBrowserModel(),
-			selMdl = new editor.tools.SelectorModel(),
-			mbrView = new editor.tools.ModelBrowserView(),
-			mbrCtr = new editor.tools.ModelBrowserController();
+			mbrMdl = new editor.tools.BrowserModel(),
+			mbrView = new editor.tools.BrowserView(),
+			mbrCtr = new editor.tools.BrowserController();
 		
 		mbrCtr.setModel(mbrMdl);
-		mbrCtr.setSelectorModel(selMdl);
 		mbrCtr.setView(mbrView);
 		
 		tabpane.toolbar.add(mbrView);
@@ -55,31 +53,29 @@
 	
 	editor.EventTypes = editor.EventTypes || {};
 	
-	// modelbrowser model events
-	editor.EventTypes.AddUserCreatedShape = "modelbrowser.AddUserCreatedShape";
-	editor.EventTypes.RemoveUserCreatedShape = "modelbrowser.RemoveUserCreatedShape";
-	editor.EventTypes.UpdateUserCreatedShape = "modelbrowser.UpdateUserCreatedShape";
+	// browser model events
+	editor.EventTypes.AddUserCreatedShape = "browser.AddUserCreatedShape";
+	editor.EventTypes.PickableSet = "browser.PickableSet";
+	editor.EventTypes.RemoveUserCreatedShape = "browser.RemoveUserCreatedShape";
+	editor.EventTypes.ShapeSelected = "browser.ShapeSelected";
+	editor.EventTypes.TransformDeselected = "browser.TransformDeselected";
+	editor.EventTypes.TransformHidden = "browser.TransformHidden";
+	editor.EventTypes.TransformSelected = "browser.TransformSelected";
+	editor.EventTypes.TransformShown = "browser.TransformShown";
+	editor.EventTypes.UpdateUserCreatedShape = "browser.UpdateUserCreatedShape";
 	
 	// view events
-    editor.EventTypes.ShowPicked = "modelbrowser.ShowPicked";
-    editor.EventTypes.ManipState = "modelbrowser.ManipState";
-    editor.EventTypes.SetTransOpacity = "modelbrowser.SetTransOpacity";
-	
-	// selector model events
-	editor.EventTypes.PickableSet = "selector.PickableSet";
-	editor.EventTypes.ShapeSelected = "selector.ShapeSelected";
-	editor.EventTypes.TransformDeselected = "selector.TransformDeselected";
-	editor.EventTypes.TransformHidden = "selector.TransformHidden";
-	editor.EventTypes.TransformSelected = "selector.TransformSelected";
-	editor.EventTypes.TransformShown = "selector.TransformShown";
+    editor.EventTypes.ShowPicked = "browser.ShowPicked";
+    editor.EventTypes.ManipState = "browser.ManipState";
+    editor.EventTypes.SetTransOpacity = "browser.SetTransOpacity";
 	
 	// hidden items sidebar widget events
-	editor.EventTypes.SetPickable = "hiddenItems.SetPickable";
-    editor.EventTypes.ShowHiddenItem = "hiddenItems.ShowHiddenItem";
+	editor.EventTypes.SetPickable = "browser.SetPickable";
+    editor.EventTypes.ShowHiddenItem = "browser.ShowHiddenItem";
 	
 	// model tree sidebar widget events
-	editor.EventTypes.DeselectTreeItem = "modelbrowser.DeselectTreeItem";
-	editor.EventTypes.SelectTreeItem = "modelbrowser.SelectTreeItem";
+	editor.EventTypes.DeselectTreeItem = "browser.DeselectTreeItem";
+	editor.EventTypes.SelectTreeItem = "browser.SelectTreeItem";
 	
 	// TODO: We need a better way of testing for our highlight shapes than
 	// searching for this prefix.
@@ -90,108 +86,8 @@
 //                          	Helper Methods                                //
 ////////////////////////////////////////////////////////////////////////////////
 		
-	getNodeType = function(node) {
-		var isCitizen = jQuery.isFunction(node.getCitizenType);
-		
-		if (isCitizen) {
-			return 'citizen';
-		}
-		return node.className.split('.').pop().toLowerCase();
-	};
-	
-	getNodeId = function(node) {
-		// assumes nodes are always tranforms
-		var isCitizen = jQuery.isFunction(node.getCitizenType);
-		
-		if (isCitizen) {
-			return node.getId();
-		}
-		
-		return node.clientId;
-	};
-	
-////////////////////////////////////////////////////////////////////////////////
-//                          ModelBrowser Model                                //
-////////////////////////////////////////////////////////////////////////////////
-	
-	editor.tools.ModelBrowserModel = editor.ToolModel.extend({
-		init: function() {
-			this._super('editor.tools.browser');
-			this.models = [];
-			this.shapes = [];
-			var that = this;
-			
-			hemi.msg.subscribe(hemi.msg.load,
-				function(msg) {
-					if (msg.src instanceof hemi.model.Model) {
-						that.addModel(msg.src);
-					}
-				});
-			hemi.msg.subscribe(hemi.msg.unload,
-				function(msg) {
-					if (msg.src instanceof hemi.model.Model) {
-						that.removeModel(msg.src);
-					}
-				});
-		},
-			
-		worldCleaned: function() {			
-			for (var ndx = 0, len = this.models.length; ndx < len; ndx++) {
-				this.notifyListeners(editor.events.Removed, this.models[ndx]);
-			}
-			
-			for (var ndx = 0, len = this.shapes.length; ndx < len; ndx++) {
-				var s = hemi.world.getCitizenById(this.shapes[ndx]);
-				this.notifyListeners(editor.EventTypes.RemoveUserCreatedShape, s);
-			}
-			
-			this.models = [];
-			this.shapes = [];
-		},
-			
-		worldLoaded: function() {
-			
-		},
-		
-		addModel: function(model) {
-			var json = this.createJsonObj(model);
-			this.models.push(model);
-			this.notifyListeners(editor.events.Created, json);
-		},
-		
-		addShape: function(shape) {
-			var json = this.createJsonObj(shape);
-			this.shapes.push(shape.getId());
-			this.notifyListeners(editor.EventTypes.AddUserCreatedShape, json);
-		},
-		
-		removeModel: function(model) {
-			var ndx = jQuery.inArray(model, this.models);			
-			this.models.splice(ndx, 1);
-			
-			this.notifyListeners(editor.events.Removed, model);
-		},
-		
-		removeShape: function(shape) {
-			var ndx = jQuery.inArray(shape.getId(), this.shapes);			
-			this.shapes.splice(ndx, 1);
-			
-			this.notifyListeners(editor.EventTypes.RemoveUserCreatedShape, shape);
-		},
-		
-		updateShape: function(shape) {
-			var json = this.createJsonObj(shape);
-			var ndx = jQuery.inArray(shape.getId(), this.shapes);
-			this.shapes[ndx] = shape;
-			
-			this.notifyListeners(editor.EventTypes.UpdateUserCreatedShape, {
-				shapeData: json,
-				shape: shape
-			});
-		},
-		
-		createJsonObj: function(node, parentNode) {
-			var c = this.getNodeChildren(node),
+	var createJsonObj = function(node, parentNode) {
+			var c = getNodeChildren(node),
 				nodeType = getNodeType(node),
 				children = [];
 			
@@ -200,7 +96,7 @@
 			}
 			
 			for (var i = 0; c && i < c.length; i++) {
-				var nodeJson = this.createJsonObj(c[i], parentNode);
+				var nodeJson = createJsonObj(c[i], parentNode);
 				children.push(nodeJson);
 			}
 			
@@ -222,7 +118,7 @@
 			return tNode;
 		},
 		
-		getNodeChildren: function(node) {
+		getNodeChildren = function(node) {
 			var children;
 			
 			if (jQuery.isFunction(node.getCitizenType)) {
@@ -254,24 +150,38 @@
 			}
 			
 			return children;
-		}
-	});
+		},
+	
+		getNodeId = function(node) {
+			// assumes nodes are always tranforms
+			var isCitizen = jQuery.isFunction(node.getCitizenType);
+			
+			if (isCitizen) {
+				return node.getId();
+			}
+			
+			return node.clientId;
+		},
+		
+		getNodeType = function(node) {
+			var isCitizen = jQuery.isFunction(node.getCitizenType);
+			
+			if (isCitizen) {
+				return 'citizen';
+			}
+			return node.className.split('.').pop().toLowerCase();
+		};
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                              Selector Model                                //
+//                            Browser Model                                   //
 ////////////////////////////////////////////////////////////////////////////////
-    
-    /**
-     * The SelectorModel handles the shape picking behavior of the selection
-     * tool.    
-     */
-    editor.tools.SelectorModel = editor.ToolModel.extend({
+	
+	editor.tools.BrowserModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.selectorModel');
+			this._super('editor.tools.browser');
 	        
 			this.selected = new Hashtable();
 	        this.highlightedShapes = new Hashtable();
-			this.rotationAmount = 0.785398163; // 45 degrees
 			this.currentShape = null;
 			this.currentHighlightShape = null;
 			this.currentTransform = null;
@@ -287,6 +197,7 @@
 				function(msg) {
 					if (msg.src instanceof hemi.model.Model) {
 						that.processModel(msg.src);
+						that.addModel(msg.src);
 					}
 				});
 			hemi.msg.subscribe(hemi.msg.unload,
@@ -295,7 +206,15 @@
 						that.removeModel(msg.src);
 					}
 				});
-	    },
+		},
+		
+		addModel: function(model) {
+			this.notifyListeners(editor.events.Created, model);
+		},
+		
+		addShape: function(shape) {
+			this.notifyListeners(editor.EventTypes.AddUserCreatedShape, shape);
+		},
 		
 		deselectAll: function() {
 			var ids = this.selected.keys();
@@ -492,7 +411,7 @@
 			var transforms;
 			
 			if (opt_owner != null) {
-				opt_owner = this.selected.get(opt_owner.getId());
+				transforms = this.selected.get(opt_owner.getId());
 			} else {
 				transforms = this.getSelectedTransforms();
 			}
@@ -544,9 +463,16 @@
 			while (transforms && transforms.length > 0) {
 				this.deselectTransform(transforms[0], model);
 			}
+			
+			this.notifyListeners(editor.events.Removed, model);
 		},
-	    
-	    selectShape: function(shape, transform) {
+		
+		removeShape: function(shape) {
+			this.deselectTransform(shape.getTransform());
+			this.notifyListeners(editor.EventTypes.RemoveUserCreatedShape, shape);
+		},
+		
+		selectShape: function(shape, transform) {
 			var shapeName = HIGHLIGHT_PRE + shape.name,
 				shapes = transform.shapes,
 				highlightShape = null;
@@ -715,9 +641,32 @@
 			}
 	    },
 		
+		updateShape: function(shape) {
+			this.notifyListeners(editor.EventTypes.UpdateUserCreatedShape, shape);
+		},
+			
 		worldCleaned: function() {
+			var models = hemi.world.getCitizens({
+					citizenType: hemi.model.Model.prototype.citizenType
+				}),
+				shapes = hemi.world.getCitizens({
+					citizenType: hemi.shape.Shape.prototype.citizenType
+				});
+			
 			// turn off handles
 			this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
+			
+			for (var i = 0, il = models.length; i < il; ++i) {
+				this.notifyListeners(editor.events.Removed, models[i]);
+			}
+			
+			for (var i = 0, il = shapes.length; i < il; ++i) {
+				this.notifyListeners(editor.EventTypes.RemoveUserCreatedShape, shapes[i]);
+			}
+		},
+			
+		worldLoaded: function() {
+			
 		}
 	});
 	
@@ -780,29 +729,11 @@
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                      	  	  Bottom Panel		     	                  //
-////////////////////////////////////////////////////////////////////////////////
-
-	var BottomPanel = editor.ui.Panel.extend({
-		init: function() {
-			this._super({
-				name: 'bottomPanel',
-				classes: ['mbrBottomPanel']
-			});
-		},
-		
-		setVisible: function(visible) {
-			
-		}
-	});
-	
-////////////////////////////////////////////////////////////////////////////////
 //                      	  Widget Private Methods     	                  //
 ////////////////////////////////////////////////////////////////////////////////  
 	
 	var sizeAndPosition = function() {
-			var wgt = this,
-				container = this.container,
+			var container = this.container,
 				btnPnlHeight = jQuery('.mbrSidePanel .panelButtons').outerHeight(),
 				padding = parseInt(container.css('paddingBottom')) +
 					parseInt(container.css('paddingTop')),
@@ -810,12 +741,11 @@
 				winHeight = win.height(),
 				wgtHeight = winHeight - padding - btnPnlHeight;
 			
-			container.height(wgtHeight)
+			container.height(wgtHeight);
 		},
 		
 		subResize = function() {
-			var wgt = this,
-				details = this.detailsList,
+			var details = this.detailsList,
 				treePane = this.treeParent,
 				height = this.container.outerHeight(),
 				detHeight = details.outerHeight();
@@ -836,14 +766,18 @@
 			});
 		},
 		
-		addModel: function(modelData) {
+		addModel: function(model) {
+			var modelData = createJsonObj(model);
+			
 			this.tree.jstree('create_node', jQuery('#node_models'), 
 				'inside', {
 					json_data: modelData
 				});
 		},
 		
-		addShape: function(shapeData) {
+		addShape: function(shape) {
+			var shapeData = createJsonObj(shape);
+			
 			this.tree.jstree('create_node', jQuery('#node_shapes'), 
 				'inside', {
 					json_data: shapeData
@@ -1014,7 +948,6 @@
 		selectNode: function(nodeName) {
 			var elem = jQuery('#node_' + nodeName);
 			var path = this.tree.jstree('get_path', elem, true);
-			var temp;
 			
 			for (var i = 0, il = path.length - 1; i < il; i++) {
 				var node = jQuery('#' + path[i]);
@@ -1025,10 +958,12 @@
 			this.notifyListeners(editor.EventTypes.Sidebar.WidgetInvalidate);
 		},
 		
-		updateShape: function(shapeData, shape) {
+		updateShape: function(shape) {
 			// shape transforms may invariably change so we need to replace the
 			// whole node
-			var node = jQuery('#node_' + getNodeId(shape));
+			var shapeData = createJsonObj(shape),
+				node = jQuery('#node_' + getNodeId(shape));
+			
 			this.tree.jstree('create_node', node, 'after', {
 				json_data: shapeData
 			});
@@ -1233,8 +1168,7 @@
 		},
 		
 		createLoadPanel: function() {				
-			var pnl = this.find('#mbrLoadPnl'),							
-				lbl = pnl.find('label'),
+			var pnl = this.find('#mbrLoadPnl'),
 				sel = pnl.find('select'),
 				ipt = pnl.find('input').hide(),
 				btn = pnl.find('button'),
@@ -1270,8 +1204,7 @@
 		},
 		
 		createUnloadPanel: function() {			
-			var pnl = this.find('#mbrUnloadPnl'),							
-				lbl = pnl.find('label'),
+			var pnl = this.find('#mbrUnloadPnl'),
 				sel = pnl.find('select'),
 				btn = pnl.find('button'),
 				msg = this.msgPanel,
@@ -1490,8 +1423,7 @@
 				container = jQuery('<div></div>'),
 				detCtn = jQuery('<div><div class="details"></div><button class="back" href="#">Back</button></div>').hide(),
 				backBtn = detCtn.find('.back'),
-				detPnl = detCtn.find('.details'),
-				wgt = this;
+				detPnl = detCtn.find('.details');
 			
 			for (var i = 0, il = params.length; i < il; i++) {
 				var param = params[i],
@@ -1548,8 +1480,7 @@
 				container = jQuery('<div></div>'),
 				detCtn = jQuery('<div><div class="details"></div><button class="back" href="#">Back</button></div>').hide(),
 				backBtn = detCtn.find('.back'),
-				detPnl = detCtn.find('.details'),
-				wgt = this;
+				detPnl = detCtn.find('.details');
 			
 			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
 				var shape = shapes[ndx],
@@ -1613,7 +1544,7 @@
 				title = jQuery('<h2>' + shape.name + '</h2>'),
 				dl = jQuery('<dl></dl>'),
 				liTemplate = jQuery.template(null, '<li><span class="label">${Label}</span>${Value}</li>'),
-				minDt = jQuery('<dt>Min Extent</dt>')
+				minDt = jQuery('<dt>Min Extent</dt>'),
 				minDd = jQuery('<dd><ul></ul></dd>'),
 				maxDt = jQuery('<dt>Max Extent</dt>'),
 				maxDd = jQuery('<dd><ul></ul></dd>'),
@@ -1623,9 +1554,9 @@
 					{ Label: 'z', Value: editor.utils.roundNumber(minExtent[2], 7) }
 				],
 				maxData = [
-					{ Label: 'x', Value: editor.utils.roundNumber(minExtent[0], 7) },
-					{ Label: 'y', Value: editor.utils.roundNumber(minExtent[1], 7) },
-					{ Label: 'z', Value: editor.utils.roundNumber(minExtent[2], 7) }
+					{ Label: 'x', Value: editor.utils.roundNumber(maxExtent[0], 7) },
+					{ Label: 'y', Value: editor.utils.roundNumber(maxExtent[1], 7) },
+					{ Label: 'z', Value: editor.utils.roundNumber(maxExtent[2], 7) }
 				];
 				
 			dl.append(minDt).append(minDd).append(maxDt).append(maxDd);
@@ -1742,12 +1673,12 @@
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    	
 	
-	editor.tools.ModelBrowserView = editor.ToolView.extend({
+	editor.tools.BrowserView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 				toolName: 'Geometry Browser',
 				toolTip: 'Browse through the transforms and materials of models and shapes',
-				elemId: 'modelBrowserBtn',
+				elemId: 'browserBtn',
 				id: 'editor.tools.browser'
 			});
 			
@@ -1780,36 +1711,9 @@
 //                                Controller                                  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.tools.ModelBrowserController = editor.ToolController.extend({
+	editor.tools.BrowserController = editor.ToolController.extend({
 		init: function() {
 			this._super();
-		},
-				
-		/**
-		 * Sets the selector model to the given model.  If the model browser view
-		 * and model are already given, this calls bindEvents().
-		 *
-		 * @param {editor.tools.SelectorModel} model the new model
-		 */
-		setSelectorModel: function(model) {
-			this.selModel = model;
-			
-			if (this.checkBindEvents()) {
-				this.bindEvents();
-			}
-		},
-		
-		/**
-		 * Overrides editor.ToolController.checkBindEvents()
-		 *
-		 * Returns true if the orthographic model, wireframe model, and view are all
-		 * set.
-		 *
-		 * @return true if orthographic model, wireframe model, and view are all
-		 *      set, false otherwise.
-		 */
-		checkBindEvents: function() {
-			return this.selModel && this.model && this.view;
 		},
 		
 		/**
@@ -1820,7 +1724,6 @@
 			this._super();
 			
 			var model = this.model,
-				selModel = this.selModel,
 				view = this.view,
 				mbrWgt = view.sidePanel.modelTreeWidget,
 				hidWgt = view.sidePanel.hiddenItemsWidget,
@@ -1834,15 +1737,16 @@
 			view.addListener(editor.events.ToolModeSet, function(value) {
 				var isDown = value.newMode === editor.ToolConstants.MODE_DOWN,
 					wasDown = value.oldMode === editor.ToolConstants.MODE_DOWN,
-					savedState = selModel.savedDrawState,
-					handle = selModel.curHandle;
-				selModel.enableSelection(isDown);
+					savedState = model.savedDrawState,
+					handle = model.curHandle;
+				
+				model.enableSelection(isDown);
 				
 				if (isDown && savedState != null) {
 					handle.setDrawState(savedState);
 				}
 				else if (!isDown && wasDown) {
-					selModel.savedDrawState = selModel.curHandle.drawState;
+					model.savedDrawState = model.curHandle.drawState;
 					handle.setDrawState(editor.ui.trans.DrawState.NONE);
 				}
 				
@@ -1851,22 +1755,22 @@
 			
 			// hidden list widget specific
 			hidWgt.addListener(editor.EventTypes.SetPickable, function(data) {
-				selModel.setTransformPickable(data.tran, data.pick);
+				model.setTransformPickable(data.tran, data.pick);
 			});
 			hidWgt.addListener(editor.EventTypes.ShowHiddenItem, function(transform) {
-                selModel.showTransform(transform);
+                model.showTransform(transform);
 			});
 			
 			// mdl browser widget specific
 			mbrWgt.addListener(editor.EventTypes.SelectTreeItem, function(value) {
 				if (value.type === 'transform') {
 					if (!value.mouseEvent.shiftKey) {
-						selModel.deselectAll();
+						model.deselectAll();
 					}
 					
-					selModel.selectTransform(value.transform);
+					model.selectTransform(value.transform);
 				} else if (value.type === 'material') {
-					selModel.deselectAll();
+					model.deselectAll();
 					detWgt.set(value, DetailsType.MATERIAL);
 					view.bottomPanel.setVisible(true);
 					// TODO: Do something useful like highlight the material so
@@ -1875,38 +1779,37 @@
 			});			
 			mbrWgt.addListener(editor.EventTypes.DeselectTreeItem, function(data) {
 				if (data.type === 'transform') {
-					selModel.deselectTransform(data.node);
+					model.deselectTransform(data.node);
 				}
 			});
 			
 			// bottom panel			  
 	        adjWgt.addListener(editor.EventTypes.ManipState, function(state) {
-				selModel.setManipState(state);
+				model.setManipState(state);
 	        });
 	        opaWgt.addListener(editor.EventTypes.SetTransOpacity, function(opacity) {
-				selModel.setOpacity(opacity);
+				model.setOpacity(opacity);
 	        });
 	        visWgt.addListener(editor.EventTypes.ShowPicked, function(value) {
 				if (value) {
-	                selModel.showSelected();
+	                model.showSelected();
 				} else {
-	                selModel.hideSelected();
+	                model.hideSelected();
 				}
 			});
 						
 			// mbr model specific
-			model.addListener(editor.events.Created, function(json) {
-				mbrWgt.addModel(json);
+			model.addListener(editor.events.Created, function(model) {
+				mbrWgt.addModel(model);
 			});			
 	        model.addListener(editor.events.Removed, function(model) {
 	            mbrWgt.removeModel(model);
 				hidWgt.removeOwner(model);
 	        });	
-			model.addListener(editor.EventTypes.AddUserCreatedShape, function(json) {
-				var isDown = view.mode == editor.ToolConstants.MODE_DOWN,
-					shape = json.metadata.actualNode;
+			model.addListener(editor.EventTypes.AddUserCreatedShape, function(shape) {
+				var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
 				
-				mbrWgt.addShape(json);
+				mbrWgt.addShape(shape);
 				
 				if (shape.transform.visible === false) {
 					hidWgt.addHiddenItem(shape.transform, shape);
@@ -1916,40 +1819,28 @@
 			model.addListener(editor.EventTypes.RemoveUserCreatedShape, function(shape) {
 				mbrWgt.removeShape(shape);
 				hidWgt.removeOwner(shape);
-				
-				selModel.deselectTransform(shape.getTransform());
 			});		
-			model.addListener(editor.EventTypes.UpdateUserCreatedShape, function(shapeObj) {
-				var isDown = view.mode == editor.ToolConstants.MODE_DOWN,
-					shape = shapeObj.shape;
-				mbrWgt.updateShape(shapeObj.shapeData, shape);
-				
-//					var tfm = shape.getTransform(),
-//						shp = tfm.shapes[0];
-//						
-//					selModel.selectTransform(tfm);
-//					selModel.selectShape(shp, tfm);
-			});			
-			
-			// select model specific
-			selModel.addListener(editor.EventTypes.PickableSet, function(data) {
+			model.addListener(editor.EventTypes.UpdateUserCreatedShape, function(shape) {
+				mbrWgt.updateShape(shape);
+			});
+			model.addListener(editor.EventTypes.PickableSet, function(data) {
 	            hidWgt.setPickable(data.tran, data.pick);
 	        });
-			selModel.addListener(editor.EventTypes.TransformDeselected, function(transform) {
+			model.addListener(editor.EventTypes.TransformDeselected, function(transform) {
 				mbrWgt.deselectNode(getNodeId(transform));
 			});
-	        selModel.addListener(editor.EventTypes.TransformHidden, function(obj) {
+	        model.addListener(editor.EventTypes.TransformHidden, function(obj) {
 				var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
 	            hidWgt.addHiddenItem(obj.transform, obj.owner);
 				hidWgt.setVisible(isDown);
 	        });
-			selModel.addListener(editor.EventTypes.TransformSelected, function(transform) {
+			model.addListener(editor.EventTypes.TransformSelected, function(transform) {
 				mbrWgt.selectNode(getNodeId(transform));
 				detWgt.set(transform, DetailsType.TRANSFORM);
 				visWgt.set(transform);
 				view.bottomPanel.setVisible(true);
 			});
-	        selModel.addListener(editor.EventTypes.TransformShown, function(transform) {
+	        model.addListener(editor.EventTypes.TransformShown, function(transform) {
 	            hidWgt.removeHiddenItem(transform);
 	        });
 		}
