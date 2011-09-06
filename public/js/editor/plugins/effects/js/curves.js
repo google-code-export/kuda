@@ -22,9 +22,6 @@ var editor = (function(editor) {
     editor.EventTypes = editor.EventTypes || {};
 	
 	// model specific
-    editor.EventTypes.CurveCreated = "Curves.CurveCreated";
-    editor.EventTypes.CurveRemoved = "Curves.CurveRemoved";
-    editor.EventTypes.CurveUpdated = "Curves.CurveUpdated";
     editor.EventTypes.CurveSet = "Curves.CurveSet";
     editor.EventTypes.BoxAdded = "Curves.BoxAdded";
     editor.EventTypes.BoxSelected = "Curves.BoxSelected";
@@ -49,7 +46,6 @@ var editor = (function(editor) {
 	editor.EventTypes.StartPreview = "Curves.StartPreview";
 	editor.EventTypes.StopPreview = "Curves.StopPreview";
 	editor.EventTypes.SetCurveColor = "Curves.SetCurveColor";
-	editor.EventTypes.Cancel = "Curves.Cancel";
 	editor.EventTypes.Save = "Curves.Save";
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -227,7 +223,7 @@ var editor = (function(editor) {
 			this.stopPreview();
 			system.cleanup();			
 			this.reset();
-			this.notifyListeners(editor.EventTypes.CurveRemoved, system);
+			this.notifyListeners(editor.events.Removed, system);
 		},
 		
 		removeBox: function(box) {				
@@ -272,8 +268,8 @@ var editor = (function(editor) {
 		
 		save: function(name) {
 			this.stopPreview();
-			var msgType = this.isUpdate ? editor.EventTypes.CurveUpdated :
-				editor.EventTypes.CurveCreated;
+			var msgType = this.isUpdate ? editor.events.Updated :
+				editor.events.Created;
 			
 			if (!this.currentSystem) {
 				this.createSystem();
@@ -389,7 +385,7 @@ var editor = (function(editor) {
 			this.reset();
 			
 			for (var i = 0, il = systems.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.CurveRemoved, systems[i]);
+				this.notifyListeners(editor.events.Removed, systems[i]);
 			}
 			
 			this.notifyListeners(editor.EventTypes.CurveWorldCleaned);
@@ -401,7 +397,7 @@ var editor = (function(editor) {
 			});
 			
 			for (var i = 0, il = systems.length; i < il; i++) {
-				this.notifyListeners(editor.EventTypes.CurveCreated, systems[i]);
+				this.notifyListeners(editor.events.Created, systems[i]);
 			}
 	    }
 	});
@@ -494,7 +490,7 @@ var editor = (function(editor) {
 			});
 			
 			cancelBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.Cancel);
+				wgt.notifyListeners(editor.events.Cancel);
 			});
 			
 			previewBtn.bind('click', function(evt) {
@@ -1104,7 +1100,7 @@ var editor = (function(editor) {
 				lstWgt = view.sidePanel.ptcCurveListWidget,
 				adjWgt = view.bottomPanel.adjustBoxWidget;
 	        
-	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+	        view.addListener(editor.events.ToolModeSet, function(value) {
 	            var isDown = value.newMode == editor.ToolConstants.MODE_DOWN,
 					root = isDown ? hemi.core.client.root : hemi.picking.pickRoot;	
 				
@@ -1128,7 +1124,7 @@ var editor = (function(editor) {
 			crtWgt.addListener(editor.EventTypes.AddBox, function(boxParams) {
 				model.addBox(boxParams.position, boxParams.dimensions);
 			});
-			crtWgt.addListener(editor.EventTypes.Cancel, function() {
+			crtWgt.addListener(editor.events.Cancel, function() {
 				model.cancel();
 			});
 			crtWgt.addListener(editor.EventTypes.RemoveBox, function(box) {
@@ -1179,10 +1175,10 @@ var editor = (function(editor) {
 			model.addListener(editor.EventTypes.BoxUpdated, function(box) {
 				crtWgt.boxUpdated(box);
 			});
-			model.addListener(editor.EventTypes.CurveCreated, function(curve) {
+			model.addListener(editor.events.Created, function(curve) {
 				lstWgt.add(curve);
 			});
-			model.addListener(editor.EventTypes.CurveRemoved, function(curve) {
+			model.addListener(editor.events.Removed, function(curve) {
 				lstWgt.remove(curve);
 			});
 			model.addListener(editor.EventTypes.CurveSet, function(curve) {
@@ -1193,7 +1189,7 @@ var editor = (function(editor) {
 					view.boxSelected(null, -1);
 				}
 			});
-			model.addListener(editor.EventTypes.CurveUpdated, function(curve) {
+			model.addListener(editor.events.Updated, function(curve) {
 				lstWgt.update(curve);
 			});
 			model.addListener(editor.EventTypes.CurveWorldCleaned, function() {

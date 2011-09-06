@@ -205,7 +205,7 @@ var editor = (function(editor) {
 			
 			var pnl = this;
 			// TODO: listen to when a widget gets made visible/invisible
-			widget.addListener(editor.EventTypes.WidgetResized, function() {
+			widget.addListener(editor.events.WidgetResized, function() {
 				pnl.resize();
 			});
 		},
@@ -286,7 +286,7 @@ var editor = (function(editor) {
 			opt_updateMeta = opt_updateMeta == null ? true : opt_updateMeta;
 			
 			this.resize();
-			this.notifyListeners(editor.EventTypes.PanelVisible, {
+			this.notifyListeners(editor.events.PanelVisible, {
 				panel: pnl,
 				visible: visible,
 				updateMeta: opt_updateMeta
@@ -327,7 +327,7 @@ var editor = (function(editor) {
 		},
 		
 		invalidate: function() {
-			this.notifyListeners(editor.EventTypes.WidgetResized);
+			this.notifyListeners(editor.events.WidgetResized);
 		},
 		
 		setVisible: function(visible, opt_updateMeta) {
@@ -335,7 +335,7 @@ var editor = (function(editor) {
 			var wgt = this;
 			opt_updateMeta = opt_updateMeta == null ? true : opt_updateMeta;
 			
-			this.notifyListeners(editor.EventTypes.WidgetVisible, {
+			this.notifyListeners(editor.events.WidgetVisible, {
 				widget: wgt,
 				visible: visible,
 				updateMeta: opt_updateMeta

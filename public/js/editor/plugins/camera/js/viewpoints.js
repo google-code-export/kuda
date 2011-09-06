@@ -21,13 +21,9 @@ var editor = (function(editor) {
 	editor.EventTypes = editor.EventTypes || {};
 	// model events
     editor.EventTypes.CameraUpdated = "viewpoints.CameraUpdated";
-	editor.EventTypes.ViewpointAdded = "viewpoints.ViewpointAdded";
-	editor.EventTypes.ViewpointRemoved = "viewpoints.ViewpointRemoved";
-	editor.EventTypes.ViewpointUpdated = "viewpoints.ViewpointUpdated";
 	
 	// Create Viewpoint Widget events
 	editor.EventTypes.SaveViewpoint = "viewpoints.SaveViewpoint";
-	editor.EventTypes.CancelViewpointEdit = "viewpoints.CancelViewpointEdit";
 	editor.EventTypes.PreviewViewpoint = "viewpoints.PreviewViewpoint";
 	
 	// Viewpoint List Widget events
@@ -108,19 +104,16 @@ var editor = (function(editor) {
 		},
 		
 		removeViewpoint: function(viewpoint) {
-			this.notifyListeners(editor.EventTypes.ViewpointRemoved, viewpoint);
-			hemi.dispatch.postMessage(this, editor.msg.citizenDestroyed, viewpoint);
+			this.notifyListeners(editor.events.Removed, viewpoint);
 			viewpoint.cleanup();
 		},
 		
 		saveViewpoint: function(params) {
 			var viewpoint = this.createViewpoint(params),
-				msgType = this.currentVp ? editor.EventTypes.ViewpointUpdated
-					: editor.EventTypes.ViewpointAdded;
+				msgType = this.currentVp ? editor.events.Updated
+					: editor.events.Created;
 				
 			this.notifyListeners(msgType, viewpoint);
-			// TODO: use dispatch to notify of citizen creation			
-			hemi.world.send(editor.msg.citizenCreated, viewpoint);
 			
 			if (this.camData) {
 				hemi.world.camera.moveToView(this.camData);
@@ -135,7 +128,7 @@ var editor = (function(editor) {
 	        
 	        for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
 	            var vpt = viewpoints[ndx];
-	            this.notifyListeners(editor.EventTypes.ViewpointRemoved, vpt);
+	            this.notifyListeners(editor.events.Removed, vpt);
 	        }
 	    },
 	    
@@ -144,7 +137,7 @@ var editor = (function(editor) {
 	        
 	        for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
 	            var vpt = viewpoints[ndx];
-	            this.notifyListeners(editor.EventTypes.ViewpointAdded, vpt);
+	            this.notifyListeners(editor.events.Created, vpt);
 	        }
 	    }
 	});
@@ -262,7 +255,7 @@ var editor = (function(editor) {
 			});
 			
 			this.cancelBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.CancelViewpointEdit, null);
+				wgt.notifyListeners(editor.events.Cancel, null);
 			});
 			
 			this.previewBtn.bind('click', function(evt) {					
@@ -429,13 +422,13 @@ var editor = (function(editor) {
 				bhvWgt = view.sidePanel.behaviorWidget;
 			
 			// special listener for when the toolbar button is clicked
-			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+			view.addListener(editor.events.ToolModeSet, function(value) {
 				var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
 				model.enableMonitoring(isDown);
 			});
 			
 			// create viewpoint widget specific
-			crtWgt.addListener(editor.EventTypes.CancelViewpointEdit, function(params) {
+			crtWgt.addListener(editor.events.Cancel, function(params) {
 				model.cancelViewpointEdit();
 				crtWgt.reset();
 			});
@@ -462,42 +455,16 @@ var editor = (function(editor) {
 //				view.updateCameraInfo(value);
 			});
 			// TODO: replace with hemi dispatch
-			model.addListener(editor.EventTypes.ViewpointAdded, function(vpt) {
+			model.addListener(editor.events.Created, function(vpt) {
 				crtWgt.reset();
 				lstWgt.add(vpt);
 			});
-			model.addListener(editor.EventTypes.ViewpointUpdated, function(vpt) {
+			model.addListener(editor.events.Updated, function(vpt) {
 				lstWgt.update(vpt);
 			});
-			model.addListener(editor.EventTypes.ViewpointRemoved, function(vpt) {
+			model.addListener(editor.events.Removed, function(vpt) {
 				lstWgt.remove(vpt);
 			});
-			// see TODO above
-			hemi.msg.subscribe(editor.EventTypes.Created,
-				function(msg) {
-					if (msg.src instanceof editor.tools.ViewpointsModel) {
-						lstWgt.add(vpt);
-					}
-				});
-			hemi.msg.subscribe(editor.EventTypes.Removed,
-				function(msg) {
-					if (msg.src instanceof editor.tools.ViewpointsModel) {
-						lstWgt.remove(vpt);
-					}
-				});
-			hemi.msg.subscribe(editor.EventTypes.Updated,
-				function(msg) {
-					if (msg.src instanceof editor.tools.ViewpointsModel) {
-						var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
-						lstWgt.update(vpt);
-					}
-				});
-			
-//			// behavior widget specific
-//			bhvWgt.addListener(editor.EventTypes.WidgetVisible, function(obj) {
-//				editor.ui.sizeAndPosition.call(bhvWgt);
-//				crtWgt.setVisible(!obj.visible);
-//			});
 		}
 	});
 	

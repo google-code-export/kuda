@@ -162,7 +162,7 @@ var editor = (function(editor) {
 			});
 			
 			this.cancelBtn.bind('click', function() {
-				wgt.notifyListeners(editor.EventTypes.Cancel);
+				wgt.notifyListeners(editor.events.Cancel);
 			});
 			
 			validator.setElements(this.startTimeIpt);
@@ -308,7 +308,7 @@ var editor = (function(editor) {
 				bhvWgt = view.behaviorSBWidget;
 			
 			// create widget specific
-			crtWgt.addListener(editor.EventTypes.Cancel, function() {
+			crtWgt.addListener(editor.events.Cancel, function() {
 				crtWgt.setVisible(false);
 				lstWgt.setVisible(true);
 			});

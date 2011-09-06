@@ -29,7 +29,6 @@ var editor = (function(editor) {
 	editor.EventTypes.RemoveShapeParam = "Shapes.RemoveShapeParam";
     editor.EventTypes.PreviewShape = "Shapes.PreviewShape";
     editor.EventTypes.SaveShape = "Shapes.SaveShape";
-    editor.EventTypes.CancelCreateShape = "Shapes.CancelCreateShape";
 	
 	// list sidebar widget specific
     editor.EventTypes.CreateShape = "Shapes.CreateShape";
@@ -37,9 +36,6 @@ var editor = (function(editor) {
     editor.EventTypes.RemoveShape = "Shapes.RemoveShape";
 	
 	// model specific
-    editor.EventTypes.ShapeCreated = "Shapes.ShapeCreated";
-    editor.EventTypes.ShapeRemoved = "Shapes.ShapeRemoved";
-    editor.EventTypes.ShapeUpdated = "Shapes.ShapeUpdated";
     editor.EventTypes.ShapeSet = "Shapes.ShapeSet";
 	editor.EventTypes.ShapeWorldCleaned = "Shapes.ShapeWorldCleaned";
     
@@ -68,7 +64,7 @@ var editor = (function(editor) {
 			var shapes = hemi.world.getShapes();
 			
 			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
-				this.notifyListeners(editor.EventTypes.ShapeCreated, shapes[ndx]);
+				this.notifyListeners(editor.events.Created, shapes[ndx]);
 			}
 	    },
 		
@@ -121,8 +117,7 @@ var editor = (function(editor) {
 		},
 		
 		removeShape: function(shape) {
-			this.notifyListeners(editor.EventTypes.ShapeRemoved, shape);
-			hemi.world.send(editor.msg.citizenDestroyed, shape);
+			this.notifyListeners(editor.events.Removed, shape);
 			shape.cleanup();
 		},
 		
@@ -137,10 +132,10 @@ var editor = (function(editor) {
 				this.currentShape.change(this.shapeParams);
 				this.currentShape.transform.identity();
 				this.currentShape.transform.visible = true;
-				msgType = editor.EventTypes.ShapeUpdated;
+				msgType = editor.events.Updated;
 			} else {
 				this.currentShape = new hemi.shape.Shape(this.shapeParams);
-				msgType = editor.EventTypes.ShapeCreated;
+				msgType = editor.events.Created;
 			}
 			
 			if (this.shapeParams.position) {
@@ -150,7 +145,6 @@ var editor = (function(editor) {
 			
 			this.currentShape.setName(name);
 			this.notifyListeners(msgType, this.currentShape);
-			hemi.world.send(editor.msg.citizenCreated, this.currentShape);
 			
 			this.currentShape = null;
 			this.prevShape = null;
@@ -349,7 +343,7 @@ var editor = (function(editor) {
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.reset();
-				wgt.notifyListeners(editor.EventTypes.CancelCreateShape, null);
+				wgt.notifyListeners(editor.events.Cancel, null);
 				wgt.find('input.error').removeClass('error');
 			});
 			
@@ -588,11 +582,6 @@ var editor = (function(editor) {
 				lstWgt = view.sidePanel.shapeListWidget,
 				bhvWgt = view.sidePanel.behaviorWidget,
 	        	that = this;
-	                	        
-			// special listener for when the toolbar button is clicked
-	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
-	            var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
-	        });
 			
 			// create sidebar widget listeners
 			crtWgt.addListener(editor.EventTypes.SaveShape, function(name) {				
@@ -605,7 +594,7 @@ var editor = (function(editor) {
 			crtWgt.addListener(editor.EventTypes.SetShapeParam, function(paramObj) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
 			});	
-			crtWgt.addListener(editor.EventTypes.CancelCreateShape, function() {
+			crtWgt.addListener(editor.events.Cancel, function() {
 				model.setShape(null);
 			});	
 			
@@ -622,13 +611,13 @@ var editor = (function(editor) {
 			// view specific listeners
 			
 			// model specific listeners
-			model.addListener(editor.EventTypes.ShapeCreated, function(shape) {
+			model.addListener(editor.events.Created, function(shape) {
 				lstWgt.add(shape);
 			});		
-			model.addListener(editor.EventTypes.ShapeUpdated, function(shape) {
+			model.addListener(editor.events.Updated, function(shape) {
 				lstWgt.update(shape);
 			});		
-			model.addListener(editor.EventTypes.ShapeRemoved, function(shape) {
+			model.addListener(editor.events.Removed, function(shape) {
 				lstWgt.remove(shape);
 			});
 			model.addListener(editor.EventTypes.ShapeSet, function(shape) {

@@ -19,10 +19,6 @@ var editor = (function(editor) {
     editor.tools = editor.tools || {};
 	
     editor.EventTypes = editor.EventTypes || {};
-	// model specific
-    editor.EventTypes.ParticleFxAdded = "particleFx.ParticleFxAdded";
-    editor.EventTypes.ParticleFxUpdated = "particleFx.ParticleFxUpdated";
-    editor.EventTypes.ParticleFxRemoved = "particleFx.ParticleFxRemoved";
 	
 	// view specific
     editor.EventTypes.ParticleFxType = "particleFx.ParticleFxType";
@@ -37,7 +33,6 @@ var editor = (function(editor) {
     editor.EventTypes.SetParticleFxState = "particleFx.SetParticleFxState";
     editor.EventTypes.SetParticleFxFireInterval = "particleFx.SetParticleFxFireInterval";
     editor.EventTypes.PreviewCurrentFx = "particleFx.PreviewCurrentFx";
-	editor.EventTypes.CancelCreateParticleFx = "particleFx.CancelCreateParticleFx";
 	editor.EventTypes.TemplateSelected = "particleFx.TemplateSelected";
 	
 	// list sidebar widget specific
@@ -157,6 +152,7 @@ var editor = (function(editor) {
 		
 		removeEffect: function(effect) {
 			effect.cleanup();
+			this.notifyListeners(editor.events.Removed, effect);
 		},
 	    
 	    removeParam: function(paramName) {
@@ -172,8 +168,8 @@ var editor = (function(editor) {
 		save: function(name) {
 			this.create();
 			
-			var msgType = this.isUpdating ? editor.EventTypes.ParticleFxUpdated 
-				: editor.EventTypes.ParticleFxAdded;
+			var msgType = this.isUpdating ? editor.events.Updated 
+				: editor.events.Created;
 										
 			this.currentParticleEffect.name = name;
 			this.currentParticleEffect.particles = null;
@@ -286,11 +282,18 @@ var editor = (function(editor) {
 		
 	    worldLoaded: function() {
 			var effects = hemi.world.getEffects();
-			this.notifyListeners(editor.EventTypes.WorldLoaded, effects);
+			
+			for (var ndx = 0, len = effects.length; ndx < len; ndx++) {
+				this.notifyListeners(editor.events.Created, effects[ndx]);
+			}
 	    },
 	    
 	    worldCleaned: function() {
-			this.notifyListeners(editor.EventTypes.WorldCleaned, null);
+	    	var effects = hemi.world.getEffects();
+			
+			for (var ndx = 0, len = effects.length; ndx < len; ndx++) {
+				this.notifyListeners(editor.events.Removed, effects[ndx]);
+			}
 	    }
 	});
 	
@@ -527,7 +530,7 @@ var editor = (function(editor) {
 			// bind cancel button
 			cancelBtn.bind('click', function(evt) {
 				wgt.reset();
-				wgt.notifyListeners(editor.EventTypes.CancelCreateParticleFx, null);
+				wgt.notifyListeners(editor.events.Cancel, null);
 			});
 			
 			// bind preview button
@@ -869,7 +872,7 @@ var editor = (function(editor) {
 				pteLst = view.sidePanel.pteListWidget;
 			
 			// create widget specific
-			pteCrt.addListener(editor.EventTypes.CancelCreateParticleFx, function() {
+			pteCrt.addListener(editor.events.Cancel, function() {
 				model.cancelParticleFxEdit();
 			});			
 			pteCrt.addListener(editor.EventTypes.ParticleFxType, function(value) {
@@ -918,27 +921,18 @@ var editor = (function(editor) {
 			});			
 			pteLst.addListener(editor.EventTypes.RemoveParticleFx, function(effect) {
 				model.removeEffect(effect);
-				pteCrt.reset();
 			});
 			
 			// model specific
-			model.addListener(editor.EventTypes.ParticleFxAdded, function(particleFx) {
+			model.addListener(editor.events.Created, function(particleFx) {
 				pteLst.add(particleFx);			
 			});			
-			model.addListener(editor.EventTypes.ParticleFxRemoved, function(value) {
+			model.addListener(editor.events.Removed, function(value) {
 				pteCrt.reset();
+				pteLst.remove(value);
 			});
-			model.addListener(editor.EventTypes.ParticleFxUpdated, function(particleFx) {
+			model.addListener(editor.events.Updated, function(particleFx) {
 				pteLst.update(particleFx);
-			});
-			model.addListener(editor.EventTypes.WorldLoaded, function(effects) {		
-				for (var ndx = 0, len = effects.length; ndx < len; ndx++) {
-					var eft = effects[ndx];
-					pteLst.add(eft);
-				}
-			});			
-			model.addListener(editor.EventTypes.WorldCleaned, function(effects) {		
-				pteLst.clear();
 			});
 	    }
 	});

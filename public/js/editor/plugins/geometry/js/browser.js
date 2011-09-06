@@ -31,12 +31,9 @@ var editor = (function(editor) {
 	editor.EventTypes = editor.EventTypes || {};
 	
 	// modelbrowser model events
-	editor.EventTypes.AddModel = "modelbrowser.AddModel";
-    editor.EventTypes.RemoveModel = "modelbrowser.RemoveModel";
 	editor.EventTypes.AddUserCreatedShape = "modelbrowser.AddUserCreatedShape";
 	editor.EventTypes.RemoveUserCreatedShape = "modelbrowser.RemoveUserCreatedShape";
 	editor.EventTypes.UpdateUserCreatedShape = "modelbrowser.UpdateUserCreatedShape";
-	editor.EventTypes.WorldLoaded = "modelbrowser.WorldLoaded";
 	
 	// view events
     editor.EventTypes.ShowPicked = "modelbrowser.ShowPicked";
@@ -115,7 +112,7 @@ var editor = (function(editor) {
 			
 		worldCleaned: function() {			
 			for (var ndx = 0, len = this.models.length; ndx < len; ndx++) {
-				this.notifyListeners(editor.EventTypes.RemoveModel, this.models[ndx]);
+				this.notifyListeners(editor.events.Removed, this.models[ndx]);
 			}
 			
 			for (var ndx = 0, len = this.shapes.length; ndx < len; ndx++) {
@@ -128,14 +125,13 @@ var editor = (function(editor) {
 		},
 			
 		worldLoaded: function() {
-			this.notifyListeners(editor.EventTypes.WorldLoaded, null);
+			
 		},
 		
 		addModel: function(model) {
 			var json = this.createJsonObj(model);
 			this.models.push(model);
-			this.notifyListeners(editor.EventTypes.AddModel, json);
-			hemi.world.send(editor.msg.citizenCreated, model);
+			this.notifyListeners(editor.events.Created, json);
 		},
 		
 		addShape: function(shape) {
@@ -148,8 +144,7 @@ var editor = (function(editor) {
 			var ndx = jQuery.inArray(model, this.models);			
 			this.models.splice(ndx, 1);
 			
-			hemi.world.send(editor.msg.citizenDestroyed, model);
-			this.notifyListeners(editor.EventTypes.RemoveModel, model);
+			this.notifyListeners(editor.events.Removed, model);
 		},
 		
 		removeShape: function(shape) {
@@ -1811,7 +1806,7 @@ var editor = (function(editor) {
 			
 			
 			// for when the tool gets selected/deselected	
-			view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+			view.addListener(editor.events.ToolModeSet, function(value) {
 				var isDown = value.newMode === editor.ToolConstants.MODE_DOWN,
 					wasDown = value.oldMode === editor.ToolConstants.MODE_DOWN,
 					savedState = selModel.savedDrawState,
@@ -1875,10 +1870,10 @@ var editor = (function(editor) {
 			});
 						
 			// mbr model specific
-			model.addListener(editor.EventTypes.AddModel, function(json) {
+			model.addListener(editor.events.Created, function(json) {
 				mbrWgt.addModel(json);
 			});			
-	        model.addListener(editor.EventTypes.RemoveModel, function(model) {
+	        model.addListener(editor.events.Removed, function(model) {
 	            mbrWgt.removeModel(model);
 				hidWgt.removeOwner(model);
 	        });	

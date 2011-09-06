@@ -23,7 +23,6 @@ var editor = (function(editor) {
 	// fog form sb widget events
 	editor.EventTypes.FogOnOff = "fog.FogOnOff";
 	editor.EventTypes.SaveFog = "fog.SaveFog";
-	editor.EventTypes.CancelFogEdit = "fog.CancelFogEdit";
 	
 	// model events
 	editor.EventTypes.FogVisible = "fog.FogVisible";
@@ -142,7 +141,7 @@ var editor = (function(editor) {
 			
 			this.cancelBtn.bind('click', function(evt) {
 				wgt.saveBtn.attr('disabled', 'disabled');
-				wgt.notifyListeners(editor.EventTypes.CancelFogEdit, null);
+				wgt.notifyListeners(editor.events.Cancel, null);
 				wgt.find('input.error').removeClass('error');
 			});
 			
@@ -231,7 +230,7 @@ var editor = (function(editor) {
 			fogWgt.addListener(editor.EventTypes.SaveFog, function(params) {
 				model.save(params);
 			});
-			fogWgt.addListener(editor.EventTypes.CancelFogEdit, function() {
+			fogWgt.addListener(editor.events.Cancel, function() {
 				var curVals = model.currentVals;
 				
 				if (curVals) {

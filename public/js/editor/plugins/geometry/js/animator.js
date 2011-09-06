@@ -24,9 +24,6 @@ var editor = (function(editor) {
 	
 	// model events
     editor.EventTypes.ModelPicked = "animator.ModelPicked";
-    editor.EventTypes.AnimationCreated = "animator.AnimationCreated";
-    editor.EventTypes.AnimationUpdated = "animator.AnimationUpdated";
-	editor.EventTypes.AnimationRemoved = "animator.AnimationRemoved";
     editor.EventTypes.AnimationStopped = "animator.AnimationStopped";
 	
 	// create animation widget events
@@ -41,7 +38,6 @@ var editor = (function(editor) {
 	editor.EventTypes.SetAnmBeginFrame = "crtAnm.SetAnmBeginFrame";
 	editor.EventTypes.SetAnmEndFrame = "crtAnm.SetAnmEndFrame";
 	editor.EventTypes.SetAnmName = "crtAnm.SetAnmName";
-	editor.EventTypes.CancelCreateAnm = "crtAnm.CancelCreateAnm";
 	
 	// animation list events
 	editor.EventTypes.CreateAnimation = "anmList.CreateAnimation";
@@ -220,8 +216,7 @@ var editor = (function(editor) {
 	    }, 
 		
 	    removeAnimation: function(animation) {
-	        this.notifyListeners(editor.EventTypes.AnimationRemoved, animation);
-			hemi.world.send(editor.msg.citizenDestroyed, animation);
+	        this.notifyListeners(editor.events.Removed, animation);
 			animation.cleanup();
 		},
 	    
@@ -264,8 +259,8 @@ var editor = (function(editor) {
 		
 	    saveAnimation: function() {
 			var retVal = null,
-				msgType = this.isUpdate ? editor.EventTypes.AnimationUpdated
-					: editor.EventTypes.AnimationCreated;
+				msgType = this.isUpdate ? editor.events.Updated
+					: editor.events.Created;
 			
 			this.createAnimation();
 			
@@ -273,7 +268,6 @@ var editor = (function(editor) {
 			
 			this.stopAnimation();
 			this.notifyListeners(msgType, this.animation);
-			hemi.world.send(editor.msg.citizenCreated, this.animation);
 			
 			this.animation = null;
 			this.animDirty = this.isUpdate = false;	
@@ -350,7 +344,7 @@ var editor = (function(editor) {
 	    	
 	        for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
 	            var anm = animations[ndx];
-	            this.notifyListeners(editor.EventTypes.AnimationRemoved, anm);
+	            this.notifyListeners(editor.events.Removed, anm);
 	        }
 	    },
 		
@@ -359,7 +353,7 @@ var editor = (function(editor) {
 			
 			for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
 				var anm = animations[ndx];
-	            this.notifyListeners(editor.EventTypes.AnimationCreated, anm);
+	            this.notifyListeners(editor.events.Created, anm);
 			}
 	    }
 	});
@@ -736,7 +730,7 @@ var editor = (function(editor) {
 			
 			this.cancelBtn.bind('click', function(evt) {
 				wgt.reset();
-				wgt.notifyListeners(editor.EventTypes.CancelCreateAnm, null);
+				wgt.notifyListeners(editor.events.Cancel, null);
 				wgt.find('input.error').removeClass('error');
 			});
 			
@@ -942,7 +936,7 @@ var editor = (function(editor) {
 				bhvWgt = view.sidePanel.behaviorWidget,
 	        	that = this;
 	        
-	        view.addListener(editor.EventTypes.ToolModeSet, function(value) {
+	        view.addListener(editor.events.ToolModeSet, function(value) {
 	            var isDown = value.newMode == editor.ToolConstants.MODE_DOWN;				
 	            model.enableModelPicking(isDown);
 	            model.stopAnimation();
@@ -958,7 +952,7 @@ var editor = (function(editor) {
 						
 	            crtWgt.addLoopInput(loop, obj.start, obj.end);      
 	        });	  	
-			crtWgt.addListener(editor.EventTypes.CancelCreateAnm, function () {
+			crtWgt.addListener(editor.events.Cancel, function () {
 				model.unSelectAll();
 			});   
 	        crtWgt.addListener(editor.EventTypes.EditAnmLoop, function(obj) {				
@@ -1013,17 +1007,17 @@ var editor = (function(editor) {
 			});
 	        
 			// model specific	
-			model.addListener(editor.EventTypes.AnimationCreated, function(animation) {
+			model.addListener(editor.events.Created, function(animation) {
 				lstWgt.add(animation);
 			});	     	
-	        model.addListener(editor.EventTypes.AnimationRemoved, function(animation) {
+	        model.addListener(editor.events.Removed, function(animation) {
 	            lstWgt.remove(animation);
 	        });				
 	        model.addListener(editor.EventTypes.AnimationStopped, function(value) {
 	            crtWgt.find('#anmStartBtn').removeAttr('disabled');
 	            crtWgt.find('#anmStopBtn').attr('disabled', 'disabled');
 	        });   
-	        model.addListener(editor.EventTypes.AnimationUpdated, function(animation) {
+	        model.addListener(editor.events.Updated, function(animation) {
 	            lstWgt.update(animation);
 	        });		
 	        model.addListener(editor.EventTypes.ModelPicked, function(model) {

@@ -17,30 +17,43 @@
 
 var editor = (function(editor) {
 	/**
-	 * @namespace A module for managing the string literals for Message types.
+	 * @namespace A module for managing the string literals for event types.
 	 * @example
-	 * The documentation for each Message type has an example of a typical
-	 * Message body for that type (the 'data' property of a Message).
+	 * The documentation for each event type has an example of a typical data
+	 * payload for that event type.
 	 */
-	editor.msg = {
-		/**
-		 * @type string
-		 * @constant
-		 * @example
-		 * data = {
-		 * 	   citizen: (hemi.world.Citizen) the newly created citizen
-		 * }
-		 */
-		citizenCreated: 'editor.citCreated',
-		/**
-		 * @type string
-		 * @constant
-		 * @example
-		 * data = {
-		 *     citizen: (hemi.world.Citizen) the recently destroyed citizen
-		 * }
-		 */
-		citizenDestroyed: 'editor.citDestroyed'
+	editor.events = {
+		Cancel: 'editor.Cancel',
+		
+		Created: 'editor.Created',
+		
+		PanelVisible: 'editor.PanelVisible',
+		
+		PluginAdded: 'editor.PluginAdded',
+		
+		PluginRemoved: 'editor.PluginRemoved',
+		
+		Removed: 'editor.Removed',
+		
+		SidebarSet: 'editor.SidebarSet',
+		
+		ToolClicked: 'editor.ToolClicked',
+		
+		ToolModeSet: 'editor.ToolModeSet',
+		
+		ToolMouseIn: 'editor.ToolMouseIn',
+		
+		ToolMouseOut: 'editor.ToolMouseOut',
+		
+		Updated: 'editor.Updated',
+		
+		WidgetVisible: 'editor.WidgetVisible',
+		
+		WidgetResized: 'editor.WidgetResized',
+		
+		WorldCleaned: 'editor.WorldCleaned',
+		
+		WorldLoaded: 'editor.WorldLoaded'
 	};
 
 	return editor;
