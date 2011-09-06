@@ -787,7 +787,7 @@
 				}
 			});
 			
-			hemi.utils.get('js/editor/plugins/effects/templates/particleFx.json', function(data, status) {
+			hemi.utils.get('js/editor/plugins/particles/templates/particleFx.json', function(data, status) {
 				if (data == null) {
 					hemi.core.error(status);
 				} else {

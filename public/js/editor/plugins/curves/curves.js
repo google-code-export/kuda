@@ -996,7 +996,7 @@
 		init: function() {
 			this._super({
 				name: 'adjustBoxWidget',
-				uiFile: 'js/editor/plugins/effects/html/curvesBoxPanel.htm'
+				uiFile: 'js/editor/plugins/curves/html/curvesBoxPanel.htm'
 			});
 			
 			this.drawState = editor.ui.trans.DrawState.NONE;
