@@ -25,20 +25,16 @@
 	editor.tools.hud = editor.tools.hud || {};
 
 	editor.tools.hud.init = function() {
-		var tabpane = new editor.ui.TabPane('HUD'),
-			toolbar = new editor.ui.Toolbar(),
+		var tabpane = editor.ui.getTabPane('HUD'),
 			
 			hudMdl = new editor.tools.HudModel(),
 			hudView = new editor.tools.HudView(),
 			hudCtr = new editor.tools.HudController();
-		
-		tabpane.setToolBar(toolbar);	
-		editor.ui.addTabPane(tabpane);
 
 		hudCtr.setModel(hudMdl);
 		hudCtr.setView(hudView);
 
-		toolbar.add(hudView);
+		tabpane.toolbar.add(hudView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

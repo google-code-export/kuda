@@ -25,8 +25,7 @@
 	editor.tools.effects = editor.tools.effects || {};
 
 	editor.tools.effects.init = function() {
-		var tabpane = new editor.ui.TabPane('Effects'),
-			toolbar = new editor.ui.Toolbar(),
+		var tabpane = editor.ui.getTabPane('Effects'),
 
 			ptcMdl = new editor.tools.ParticleCurvesModel(),
 			ptcView = new editor.tools.ParticleCurvesView(),
@@ -39,9 +38,6 @@
 			fogMdl = new editor.tools.FogModel(),
 			fogView = new editor.tools.FogView(),
 			fogCtr = new editor.tools.FogController();
-		
-		tabpane.setToolBar(toolbar);	
-		editor.ui.addTabPane(tabpane);
 
 		ptcCtr.setModel(ptcMdl);
 		ptcCtr.setView(ptcView);
@@ -52,9 +48,9 @@
 		fogCtr.setModel(fogMdl);
 		fogCtr.setView(fogView);
 
-		toolbar.add(ptcView);
-		toolbar.add(pteView);
-		toolbar.add(fogView);
+		tabpane.toolbar.add(ptcView);
+		tabpane.toolbar.add(pteView);
+		tabpane.toolbar.add(fogView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

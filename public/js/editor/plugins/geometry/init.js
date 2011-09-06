@@ -25,8 +25,7 @@
 	editor.tools.geometry = editor.tools.geometry || {};
 
 	editor.tools.geometry.init = function() {
-		var tabpane = new editor.ui.TabPane('Geometry'),
-			toolbar = new editor.ui.Toolbar(),
+		var tabpane = editor.ui.getTabPane('Geometry'),
 			
 			mbrMdl = new editor.tools.ModelBrowserModel(),
 			selMdl = new editor.tools.SelectorModel(),
@@ -41,9 +40,6 @@
 			anmView = new editor.tools.AnimatorView(),
 			anmCtr = new editor.tools.AnimatorController();
 		
-		tabpane.setToolBar(toolbar);	
-		editor.ui.addTabPane(tabpane);
-		
 		mbrCtr.setModel(mbrMdl);
 		mbrCtr.setSelectorModel(selMdl);
 		mbrCtr.setView(mbrView);
@@ -54,9 +50,9 @@
 		anmCtr.setModel(anmMdl);
 		anmCtr.setView(anmView);
 		
-		toolbar.add(mbrView);
-		toolbar.add(shpView);
-		toolbar.add(anmView);
+		tabpane.toolbar.add(mbrView);
+		tabpane.toolbar.add(shpView);
+		tabpane.toolbar.add(anmView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
