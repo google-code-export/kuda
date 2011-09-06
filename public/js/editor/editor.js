@@ -142,7 +142,7 @@ var editor = (function(editor) {
 	
 	editor.loadPlugin = function(pluginName) {	
 		if (loadedPlugins.indexOf(pluginName) === -1) {
-			editor.getScript('js/editor/plugins/' + pluginName + '/init.js');
+			editor.getScript('js/editor/plugins/' + pluginName + '/' + pluginName + '.js');
 			callbacks.push({
 				callback: function(name){
 					editor.tools[name].init();
