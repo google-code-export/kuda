@@ -27,6 +27,8 @@ var editor = (function(editor) {
 		
 		Created: 'editor.Created',
 		
+		DoneLoading: 'editor.DoneLoading',
+		
 		PanelVisible: 'editor.PanelVisible',
 		
 		PluginAdded: 'editor.PluginAdded',

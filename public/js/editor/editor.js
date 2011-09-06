@@ -23,7 +23,6 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var	callbacks = [],
-		doneCallbacks = [],
 		scripts = new Hashtable(),
 		activePlugins = [],
 		loadedPlugins = [];
@@ -68,9 +67,7 @@ var editor = (function(editor) {
 					obj.callback.apply(this, obj.params);
 				}
 				
-				for (var i = 0, il = doneCallbacks.length; i < il; i++) {
-					doneCallbacks[i]();
-				}
+				editor.notifyListeners(editor.events.DoneLoading);
 			}
 		},
 			
@@ -161,10 +158,6 @@ var editor = (function(editor) {
 	
 	editor.removePlugin = function(name) {
 		activePlugins.splice(activePlugins.indexOf(name), 1);
-	};
-	
-	editor.whenDoneLoading = function(callback) {
-		doneCallbacks.push(callback);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

@@ -88,7 +88,7 @@
 		tabpane.toolbar.add(bhvView);
 	};	
 	
-	editor.whenDoneLoading(function() {	
+	editor.addListener(editor.events.DoneLoading, function() {	
 		// grab all views
 		var views = editor.getViews(),
 			models = editor.getModels();
