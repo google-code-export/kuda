@@ -24,7 +24,14 @@ var editor = (function(editor) {
 	
 	var	callbacks = [],
 		doneCallbacks = [],
-		scripts = new Hashtable();
+		scripts = new Hashtable(),
+		activePlugins = [],
+		loadedPlugins = [];
+		
+//	test = {
+//		activePlugins: activePlugins,
+//		loadedPlugins: loadedPlugins
+//	};
 		
 	var initViewerStep1 = function() {			
 			var notifier = new editor.utils.Listenable();
@@ -75,16 +82,7 @@ var editor = (function(editor) {
 						bdy = jQuery('body');
 					
 					for (var i = 0, il = plugins.length; i < il; i++) {
-						var plugin = plugins[i];
-						
-						editor.getScript('js/editor/plugins/' + plugin + '/init.js'); 
-						callbacks.push({
-							callback: function(name){
-								editor.tools[name].init();
-//								editor.notifyListeners(name);
-							},
-							params: [plugin]
-						});
+						editor.loadPlugin(plugins[i]);
 					}
 				})
 				.error(function(xhr, status, err) {
@@ -140,6 +138,29 @@ var editor = (function(editor) {
 	    }
 		
 	    document.body.appendChild(script);
+	};
+	
+	editor.loadPlugin = function(pluginName) {	
+		if (loadedPlugins.indexOf(pluginName) === -1) {
+			editor.getScript('js/editor/plugins/' + pluginName + '/init.js');
+			callbacks.push({
+				callback: function(name){
+					editor.tools[name].init();
+					editor.notifyListeners(editor.events.PluginAdded, name);
+					activePlugins.push(name);
+					loadedPlugins.push(name);
+				},
+				params: [pluginName]
+			});
+		}
+		else if (activePlugins.indexOf(pluginName) === -1) {
+			activePlugins.push(pluginName);
+			// now notify that the plugin is active again
+		}
+	};
+	
+	editor.removePlugin = function(name) {
+		activePlugins.splice(activePlugins.indexOf(name), 1);
 	};
 	
 	editor.whenDoneLoading = function(callback) {

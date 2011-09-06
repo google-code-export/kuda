@@ -18,6 +18,56 @@
 (function() {
 
 ////////////////////////////////////////////////////////////////////////////////
+//                     			   Helper Methods  		                      //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var injectBehaviorWidget = function(view) {		
+		var panels = view.panels,
+			done = false;
+			
+		for (var j = 0, jl = panels.length; j < jl && !done; j++) {
+			var widgets = panels[j].widgets;
+			
+			for (var k = 0, kl = widgets.length; k < kl && !done; k++) {
+				var widget = widgets[k];
+				
+				if (widget instanceof editor.ui.ListWidget) {
+					var bhvWgt = shorthand.createBehaviorWidget();
+					bhvWgt.addListener(editor.EventTypes.CreateBehavior, bhvMdl);
+					bhvWgt.addListener(editor.EventTypes.UpdateBehavior, bhvMdl);
+					
+					// add the behavior widget
+					view.sidePanel.addWidget(bhvWgt);
+					
+					// replace the createListItem method
+					widget.behaviorWidget = bhvWgt;
+					widget.createListItem = function() {
+						return new shorthand.BhvListItem(this.behaviorWidget);
+					};
+					
+					bhvWgt.parentPanel = view.sidePanel;
+					bhvWgt.addListener(editor.events.WidgetVisible, function(obj) {
+						var thisWgt = obj.widget,
+							wgts = thisWgt.parentPanel.widgets;
+						
+						editor.ui.sizeAndPosition.call(bhvWgt);
+						
+						for (var ndx = 0, len = wgts.length; ndx < len; ndx++) {
+							var wgt = wgts[ndx];
+							
+							if (wgt !== thisWgt) {
+								wgt.setVisible(!obj.visible);
+							}
+						}
+					});
+					
+					done = true;
+				}
+			}
+		}
+	};
+
+////////////////////////////////////////////////////////////////////////////////
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -40,58 +90,28 @@
 	
 	editor.whenDoneLoading(function() {	
 		// grab all views
-		var views = editor.getViews();
+		var views = editor.getViews(),
+			models = editor.getModels();
 		
 		// for each view, if there is a list widget, insert a behavior widget
 		// and replace the createListItem() method in the list widget
 		for (var i = 0, il = views.length; i < il; i++) {
-			var view = views[i],
-				panels = view.panels,
-				done = false;
-				
-			for (var j = 0, jl = panels.length; j < jl && !done; j++) {
-				var widgets = panels[j].widgets;
-				
-				for (var k = 0, kl = widgets.length; k < kl && !done; k++) {
-					var widget = widgets[k];
-					
-					if (widget instanceof editor.ui.ListWidget) {
-						var bhvWgt = shorthand.createBehaviorWidget();
-						bhvWgt.addListener(editor.EventTypes.CreateBehavior, bhvMdl);
-						bhvWgt.addListener(editor.EventTypes.UpdateBehavior, bhvMdl);
-						
-						// add the behavior widget
-						view.sidePanel.addWidget(bhvWgt);
-						
-						// replace the createListItem method
-						widget.behaviorWidget = bhvWgt;
-						widget.createListItem = function() {
-							return new shorthand.BhvListItem(this.behaviorWidget);
-						};
-						
-						bhvWgt.parentPanel = view.sidePanel;
-						bhvWgt.addListener(editor.events.WidgetVisible, function(obj) {
-							var thisWgt = obj.widget,
-								wgts = thisWgt.parentPanel.widgets;
-							
-							editor.ui.sizeAndPosition.call(bhvWgt);
-							
-							for (var ndx = 0, len = wgts.length; ndx < len; ndx++) {
-								var wgt = wgts[ndx];
-								
-								if (wgt !== thisWgt) {
-									wgt.setVisible(!obj.visible);
-								}
-							}
-						});
-						
-						done = true;
-					}
-				}
-			}
+			injectBehaviorWidget(views[i]);
+		}
+		
+		for (var i = 0, il = models.length; i < il; i++) {
+			shorthand.treeModel.listenTo(models[i]);
 		}
 		
 		shorthand.treeModel.addCitizen(hemi.world.camera);	
+		
+		editor.addListener(editor.events.PluginAdded, function(name) {
+			var view = editor.getView('editor.tools.' + name);
+			injectBehaviorWidget(view);
+		});
+		editor.addListener(editor.events.PluginRemoved, function(name) {
+			
+		});
 	});
 
 ////////////////////////////////////////////////////////////////////////////////

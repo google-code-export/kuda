@@ -119,7 +119,7 @@ var editor = (function(module) {
      */
     editor.tools.BehaviorModel = editor.ToolModel.extend({
 		init: function() {
-			this._super('editor.tools.Behavior');
+			this._super('editor.tools.behavior');
 			
 			this.dispatchProxy = new editor.tools.DispatchProxy();
 			this.msgTarget = null;
@@ -1016,7 +1016,7 @@ var editor = (function(module) {
 				toolName: 'Behaviors',
 				toolTip: 'Overview of behaviors',
 				elemId: 'behaviorBtn',
-				id: 'editor.tools.Behavior'
+				id: 'editor.tools.behavior'
 			});
 			
 			this.addPanel(new editor.ui.Panel({
