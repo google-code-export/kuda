@@ -22,9 +22,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 	editor.tools = editor.tools || {};
-	editor.tools.curves = editor.tools.curves || {};
+	editor.tools.particleCurves = editor.tools.particleCurves || {};
 
-	editor.tools.curves.init = function() {
+	editor.tools.particleCurves.init = function() {
 		var tabpane = editor.ui.getTabPane('Effects'),
 
 			ptcMdl = new editor.tools.ParticleCurvesModel(),
@@ -450,7 +450,7 @@
 			
 		    this._super({
 				name: 'createPtcCurveWidget',
-				uiFile: 'js/editor/plugins/curves/html/curvesForms.htm',
+				uiFile: 'js/editor/plugins/particleCurves/html/curvesForms.htm',
 				manualVisible: true
 			});
 		},
@@ -996,7 +996,7 @@
 		init: function() {
 			this._super({
 				name: 'adjustBoxWidget',
-				uiFile: 'js/editor/plugins/curves/html/curvesBoxPanel.htm'
+				uiFile: 'js/editor/plugins/particleCurves/html/curvesBoxPanel.htm'
 			});
 			
 			this.drawState = editor.ui.trans.DrawState.NONE;

@@ -22,9 +22,9 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 	editor.tools = editor.tools || {};
-	editor.tools.particles = editor.tools.particles || {};
+	editor.tools.particleEffects = editor.tools.particleEffects || {};
 
-	editor.tools.particles.init = function() {
+	editor.tools.particleEffects.init = function() {
 		var tabpane = editor.ui.getTabPane('Effects'),
 			
 			pteMdl = new editor.tools.ParticleFxModel(),
@@ -330,7 +330,7 @@
 			
 		    this._super({
 				name: 'createPteWidget',
-				uiFile: 'js/editor/plugins/particles/html/particleFxForms.htm',
+				uiFile: 'js/editor/plugins/particleEffects/html/particleFxForms.htm',
 				manualVisible: true
 			});	
 		},
@@ -787,7 +787,7 @@
 				}
 			});
 			
-			hemi.utils.get('js/editor/plugins/particles/templates/particleFx.json', function(data, status) {
+			hemi.utils.get('js/editor/plugins/particleEffects/templates/particleFx.json', function(data, status) {
 				if (data == null) {
 					hemi.core.error(status);
 				} else {
@@ -964,6 +964,6 @@
 //                     			  	Extra Scripts  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.getCss('js/editor/plugins/particles/css/style.css');
+	editor.getCss('js/editor/plugins/particleEffects/css/style.css');
 	
 })();
