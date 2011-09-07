@@ -419,6 +419,142 @@ var editor = (function(editor) {
 			
 		}
 	};
+   
+////////////////////////////////////////////////////////////////////////////////
+//                     		   Convenient List Widget                   	  //
+////////////////////////////////////////////////////////////////////////////////     
+	
+	/*
+	 * Configuration object for the ListWidget.
+	 */
+	editor.ui.ListWidgetDefaults = {
+		name: 'listSBWidget',
+		listId: 'list',
+		prefix: 'lst',
+		title: '',
+		instructions: '',
+		type: editor.ui.ListType.UNORDERED,
+		sortable: false
+	};
+	
+	editor.ui.ListWidget = editor.ui.Widget.extend({
+		init: function(options) {
+			var newOpts = jQuery.extend({}, editor.tools.ListWidgetDefaults, options);
+		    this._super(newOpts);
+			
+			this.items = new Hashtable();		
+		},
+			    
+	    add: function(obj) {			
+			var itm = this.items.get(obj.getId());
+			if (!itm) {
+				var li = this.createListItem();
+					
+				li.setText(obj.name);
+				li.attachObject(obj);
+				
+				this.bindButtons(li, obj);
+				
+				this.list.add(li);
+				this.items.put(obj.getId(), li);
+			
+				return li;
+			}
+			
+			return itm;
+	    },
+		
+		bindButtons: function() {
+			
+		},
+		
+		clear: function() {
+			this.list.clear();
+			this.items.clear();
+		},
+		
+		createListItem: function() {
+			return new editor.ui.EditableListItem();
+		},
+		
+		getOtherHeights: function() {
+			return 0;
+		},
+		
+		finishLayout: function() {
+			this._super();
+			this.title = jQuery('<h1>' + this.config.title + '</h1>');
+			this.instructions = jQuery('<p>' + this.config.instructions + '</p>');
+			var wgt = this,
+				otherElems = this.layoutExtra();
+			
+			this.list = new editor.ui.List({
+				id: this.config.listId,
+				prefix: this.config.prefix,
+				type: this.config.type,
+				sortable: this.config.sortable
+			});
+			
+			this.container.append(this.title).append(this.instructions)
+				.append(this.list.getUI());
+				
+			if (otherElems !== null) {
+				this.instructions.after(otherElems);
+			}
+		},
+		
+		layoutExtra: function() {
+			return null;
+		},
+	    
+	    remove: function(obj) {
+			var li = this.items.get(obj.getId()),
+				retVal = false;
+			
+			if (li) {
+				li.removeObject();
+				this.list.remove(li);
+				this.items.remove(obj.getId());
+				retVal = true;
+			}
+			
+			return retVal;
+	    },
+		
+//		resize: function(maxHeight) {
+//			this._super(maxHeight);	
+//			var list = this.list.getUI(),	
+//				
+//			// now determine button container height
+//				insHeight = this.instructions.outerHeight(true),
+//			
+//			// get the header height
+//				hdrHeight = this.title.outerHeight(true),
+//				
+//			// get other heights
+//				otherHeight = this.getOtherHeights(),
+//			
+//			// adjust the list pane height
+//			 	listHeight = maxHeight - insHeight - hdrHeight - otherHeight;
+//				
+//			if (listHeight > 0) {
+//				list.height(listHeight);
+//			}
+//		},
+		
+		update: function(obj) {
+			var li = this.items.get(obj.getId()),
+				retVal = false;
+			
+			if (li) {
+				li.setText(obj.name);
+				li.attachObject(obj);
+				retVal = true;
+			}
+			
+			return retVal;
+		}
+	});
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  Private Vars  		                      //

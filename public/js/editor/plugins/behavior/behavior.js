@@ -567,7 +567,7 @@
 				wgt = this;
 				
 			tr.data('behavior', msgTarget);
-			this.behaviors.put(msgTarget.dispatchId, tr);
+			this.behaviors.put(msgTarget.dispatchId, tr[0]);
 			
 			td.find('.editBtn').bind('click', function(evt) {
 				var bhv = tr.data('behavior');					
@@ -629,6 +629,7 @@
 			this.container.append(this.tableElem);
 			
 			this.table = this.tableElem.dataTable({
+				'bAutoWidth': false,
 				'aoColumns' : [
 					{ 'sTitle': 'Trigger' },
 					{ 'sTitle': 'Action' },
@@ -644,6 +645,8 @@
 		remove: function(msgTarget) {
 			var tr = this.behaviors.remove(msgTarget.dispatchId);
 			this.table.fnDeleteRow(tr);
+			
+			this.invalidate();
 		},
 		
 		update: function(msgTarget, spec) {
@@ -655,6 +658,8 @@
 				editor.tools.behavior.getActionName(data).join('.'),
 				msgTarget.name
 			], row);
+			
+			this.invalidate();
 		}
 	});
 	

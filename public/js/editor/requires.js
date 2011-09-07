@@ -43,19 +43,15 @@ var editor = (function(editor) {
 	o3djs.require('editor.ui.components.vector');
 	o3djs.require('editor.ui.components.treeSelector');
 	o3djs.require('editor.ui.components.tooltip');
-	o3djs.require('editor.ui.components.validator');
+	o3djs.require('editor.ui.components.validator');	
+	o3djs.require('editor.ui.components.list');
 	
 	o3djs.require('editor.ui.core.view');
 	o3djs.require('editor.ui.core.progress');
 	o3djs.require('editor.ui.core.tools');
-	o3djs.require('editor.ui.core.sidebar');
-    o3djs.require('editor.ui.core.actionbar');
 	o3djs.require('editor.ui.core.transformHandles');
 	o3djs.require('editor.ui.core.gridPlane');
     o3djs.require('editor.ui.core.dialogs');
-	
-	o3djs.require('editor.ui.widgets.listWidget');
-	o3djs.require('editor.ui.widgets.detailsList');
 	
 	o3djs.require('hemi.loader');
 	o3djs.require('hemi.handlers.valueCheck');
