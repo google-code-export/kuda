@@ -65,7 +65,7 @@ o3djs.require('hemi.timer');
 var hemi = (function(hemi) {
 	
 	/**
-	 * The version of Hemi released: 8/24/11
+	 * The version of Hemi released: 9/7/11
 	 * @constant
 	 */
 	hemi.version = '1.4.3';
