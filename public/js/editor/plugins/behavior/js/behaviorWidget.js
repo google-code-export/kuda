@@ -557,6 +557,19 @@ var editor = (function(editor) {
 			setByMsgTarget.call(this, msgTarget, spec);
 		},
 		
+		setTrigger: function(source, messages) {
+			this.trgTree.restrictSelection(source, messages);
+			openNode(this.trgTree.getUI(), source, this.trgTree.pre);
+			
+			var nodeId = editor.treeData.getNodeName(source, {
+				option: messages[0],
+				prefix: this.trgTree.pre,
+				id: source.getId ? source.getId() : null
+			});
+			
+			this.trgChooser.select(nodeId);
+		},
+		
 		setVisible: function(visible, etc) {
 			this._super(visible, etc);
 		}

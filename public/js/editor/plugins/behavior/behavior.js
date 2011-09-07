@@ -100,7 +100,11 @@
 		}
 		
 		for (var i = 0, il = models.length; i < il; i++) {
-			shorthand.treeModel.listenTo(models[i]);
+			var mdl = models[i];
+			
+			if (!(mdl instanceof editor.tools.BehaviorModel)) {
+				shorthand.treeModel.listenTo(mdl);
+			}
 		}
 		
 		shorthand.treeModel.addCitizen(hemi.world.camera);	
@@ -132,6 +136,7 @@
 	editor.EventTypes.SelectTrigger = "messaging.SelectTrigger";
 	editor.EventTypes.SelectAction = "messaging.SelectAction";
 	editor.EventTypes.SelectTarget = "messaging.SelectTarget";
+	editor.EventTypes.CloneTarget = "messaging.CloneTarget";
 
 	editor.EventTypes.CreateBehavior = "messaging.CreateBehavior";
 	editor.EventTypes.UpdateBehavior = "messaging.UpdateBehavior";
@@ -507,10 +512,28 @@
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                              Creation Widget                               //
+//                              Private Methods                               //
 ////////////////////////////////////////////////////////////////////////////////   
 	
-	// use the behavior widget, but style it differently
+		
+	var	getChainMessages = function(citizen, method) {
+		var type = citizen.getCitizenType ? citizen.getCitizenType() : citizen.name,
+			key = type + '_' + method,
+			msgList = editor.treeData.chainTable.get(key),
+			messages;
+		
+		if (citizen.parent != null) {
+			messages = getChainMessages(citizen.parent, method);
+		} else {
+			messages = [];
+		}
+		
+		if (msgList !== null) {
+			messages = messages.concat(msgList);
+		}
+		
+		return messages;
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                               Table Widget                                 //
@@ -539,7 +562,8 @@
 					</td>'
 				]),
 				tr = jQuery(this.table.fnGetNodes(row)),
-				td = tr.find('td.editHead'),
+				td = tr.find('td.editHead'),			
+				msgs = getChainMessages(data.handler, data.method),
 				wgt = this;
 				
 			tr.data('behavior', msgTarget);
@@ -549,17 +573,50 @@
 				var bhv = tr.data('behavior');					
 				wgt.notifyListeners(editor.EventTypes.SelectTarget, bhv);
 			});
-			td.find('.chainBtn').bind('click', function(evt) { 
-				var tr = jQuery(this).parents('tr');
-				
-			});
+			
+			if (msgs.length > 0) {
+				td.find('.chainBtn').data('chainMsgs', msgs)
+				.bind('click', function(evt) {
+					var tr = jQuery(this).parents('tr'),
+						target = tr.data('behavior'),
+						handler = target.handler,
+						messages = jQuery(this).data('chainMsgs');
+					
+					if (handler instanceof hemi.handlers.ValueCheck) {
+						target = handler;
+						handler = target.handler;
+					}
+					
+					// special case
+					if (target.func === 'moveToView') {
+						handler = editor.treeData.createCamMoveCitizen(hemi.world.camera);
+						messages = [parseInt(target.args[0].replace(
+							hemi.dispatch.ID_ARG, ''))];
+					}
+					wgt.notifyListeners(editor.EventTypes.SelectTrigger, {
+						source: handler,
+						messages: messages
+					});
+				});
+			} else {
+				td.find('.chainBtn').attr('disabled', 'disabled');
+			}
+			
 			td.find('.cloneBtn').bind('click', function(evt) {
-				var tr = jQuery(this).parents('tr');
+				var tr = jQuery(this).parents('tr'),
+					target = tr.data('behavior');
+				
+				wgt.notifyListeners(editor.EventTypes.CloneTarget, {
+					target: target,
+					name: 'Copy of ' + target.name
+				});
 				
 			});
 			td.find('.removeBtn').bind('click', function(evt) {
-				var tr = jQuery(this).parents('tr');
-				
+				var tr = jQuery(this).parents('tr'),
+					target = tr.data('behavior');
+					
+				wgt.notifyListeners(editor.EventTypes.RemoveTarget, target);
 			});
 			
 			this.invalidate();
@@ -604,511 +661,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////   
-
-//	editor.tools.EventListItemWidget = editor.ui.ListItemWidget.extend({
-//		init: function(eventsPanel) {
-//			this.eventsPanel = eventsPanel;
-//			this.subList = null;
-//			this.children = [];
-//			this._super();
-//		},
-//		
-//		layout: function() {
-//			this.container = jQuery('<div class="msgEdtListItm"></div>');
-//			this.title = jQuery('<span class="msgEdtItemTitle"></span>');
-//			this.buttonDiv = jQuery('<div class="msgEdtButtons"></div>');
-//			this.removeBtn = jQuery('<button class="removeBtn" title="Remove">Remove</button>');
-//			this.editBtn = jQuery('<button class="editBtn" title="Edit">Edit</button>');
-//			this.chainBtn = jQuery('<button class="chainBtn" title="Chain">Chain</button>');
-//			this.cloneBtn = jQuery('<button class="cloneBtn" title="Clone">Clone</button>');
-//			
-//			this.buttonDiv.append(this.editBtn).append(this.chainBtn)
-//				.append(this.cloneBtn).append(this.removeBtn);
-//			this.container.append(this.title).append(this.buttonDiv);
-//			
-//			var wgt = this;
-//		},
-//	
-//		setText: function(text) {
-//			this.title.text(text);
-//		},
-//	
-//		setSubList: function(list) {
-//			this.subList = list;
-//			this.getUI().parent().append(this.subList.getUI());
-//		},
-//	
-//		addChild: function(child) {
-//			this.children.push(child);
-//		},
-//	
-//		removeChild: function(child) {
-//	        var ndx = this.children.indexOf(child);
-//	        
-//	        if (ndx != -1) {
-//	            this.children.splice(ndx, 1);
-//	        }
-//		}
-//	});
-//
-//    /*
-//     * Configuration object for the BehaviorView.
-//     */
-//    editor.tools.BehaviorViewDefaults = {
-//        toolName: 'Behaviors',
-//        toolTip: 'Behavior Editing: Create and edit behaviors',
-//        widgetId: 'messagingBtn',
-//        listInstructions: "List is empty.  Click 'Create New Behavior' to add to this list."
-//    };
-//    
-//    /**
-//     * The BehaviorView controls the dialog and toolbar widget for the 
-//     * animation tool.
-//     * 
-//     * @param {Object} options configuration options.  Uses 
-//     *         editor.tools.BehaviorViewDefaults as default options
-//     */
-//    editor.tools.BehaviorView = editor.ToolView.extend({
-//		init: function(options) {
-//	        var newOpts = jQuery.extend({}, editor.tools.BehaviorViewDefaults, 
-//				options);
-//	        this._super(newOpts);
-//			
-//			this.triggersTree = editor.ui.createTriggersTree();
-//			this.actionsTree = editor.ui.createActionsTree();
-//			this.chainParent = null;
-//			
-//			this.eventList = new editor.ui.ListWidget({
-//				widgetId: 'msgEvtList',
-//				prefix: 'msgEvt',
-//				type: editor.ui.ListType.UNORDERED
-//			});
-//			
-//			var pnl = this.mainPanel = new editor.ui.Component({
-//				id: 'msgPnl',
-//				uiFile: 'js/editor/tools/html/messaging.htm',
-//				immediateLayout: false
-//			});
-//				
-//			var view = this;
-//				
-//			this.prm = new editor.ui.Parameters({
-//				containerId: 'msgEdtTargetParams',
-//				prefix: 'msgEdt'
-//			});
-//			
-//			this.layoutMainPanel();
-//			
-//			this.triggersTree.addListener(editor.EventTypes.Trees.TreeCreated, 
-//				function(treeUI) {
-//					var causeWrapper = pnl.find(TRIGGER_WRAPPER);				
-//					causeWrapper.append(treeUI);
-//			
-//					view.triggersTree.bindSelect(function(evt, data) {
-//						var elem = data.rslt.obj,
-//							metadata = elem.data('jstree'),
-//							tree = view.triggersTree.getUI(),
-//							isRestricted = tree.hasClass('restricted'),
-//							isSelectable = elem.children('a').hasClass('restrictedSelectable'),
-//							src = null,
-//							msg = null;
-//						
-//						if (tree.jstree('is_open', elem)) {
-//							tree.jstree('close_node', elem);
-//						} else if (isSelectable || !isRestricted) {
-//							if (metadata.type === 'message') {
-//								src = metadata.parent;
-//								msg = metadata.msg;
-//							} else {
-//								tree.jstree('open_node', elem, false, false);
-//							}
-//						}
-//						
-//						view.notifyListeners(editor.EventTypes.SelectTrigger, {
-//							source: src,
-//							message: msg
-//						});
-//					});
-//				});
-//				
-//			this.actionsTree.addListener(editor.EventTypes.Trees.TreeCreated, 
-//				function(treeUI) {
-//					var effectWrapper = pnl.find(ACTION_WRAPPER);				
-//					effectWrapper.append(treeUI);
-//			
-//					view.actionsTree.bindSelect(function(evt, data) {
-//						var elem = data.rslt.obj,
-//							elemId = elem.attr('id'),
-//							metadata = elem.data('jstree'),
-//							tree = view.actionsTree.getUI(),
-//							cit = null,
-//							meth = null;
-//						
-//						if (tree.jstree('is_open', elem)) {
-//							tree.jstree('close_node', elem);
-//						} else {
-//							if (metadata.type === 'method') {
-//								var path = tree.jstree('get_path', elem, true),
-//									parentName = path[path.length - 2] + '_',
-//									parId = metadata.parent.getId() + '';
-//								
-//								parentName = parentName.replace(parId + '_MORE', parId);
-//								cit = metadata.parent;
-//								meth = elemId.replace(parentName, '');
-//							} else {
-//								tree.jstree('open_node', elem, false, false);
-//							}
-//						}
-//						
-//						view.notifyListeners(editor.EventTypes.SelectAction, {
-//							handler: cit,
-//							method: meth
-//						});
-//					});
-//				});
-//	    },
-//		
-//		addTarget: function(target) {
-//			var pnl = this.mainPanel,
-//				eventsPanel = pnl.find('#msgEvents'),
-//				li = new editor.tools.EventListItemWidget(eventsPanel),
-//				editListPnl = pnl.find('#msgEvents .msgColWrapper'),
-//				editorPnl = pnl.find('#msgEditor'),
-//				editorNameInput = editorPnl.find('#msgEdtName'),
-//				view = this;
-//			
-//			var lastChild = function(item) {
-//				if (item.children.length > 0) {
-//					return lastChild(item.children[item.children.length - 1]);
-//				}
-//				else {
-//					return item;
-//				}
-//			};
-//			
-//			var unchain = function(item, level) {
-//				// get children
-//				var children = item.children;
-//				
-//				for (var ndx = 0, len = children.length; ndx < len; ndx++) {
-//					unchain(children[ndx], level + 1);
-//				}
-//				
-//				item.getUI().data('level', level)
-//					.find('span').css('paddingLeft', level * 20 + 'px');
-//			};
-//			
-//			if (view.chainParent != null) {
-//				var level = view.chainParent.data('level') + 1,
-//					lastItem = lastChild(view.chainParent);
-//				
-//				this.eventList.after(li, lastItem);
-//				li.getUI().data('chainParent', view.chainParent)
-//					.data('level', level)
-//					.find('span').css('paddingLeft', level * 20 + 'px');
-//				
-//				view.chainParent.addChild(li);
-//				view.chainParent = null;
-//			}
-//			else {
-//				this.eventList.add(li);
-//				li.data('level', 0);
-//			}
-//			
-//			li.setId('msgTarget_' + target.dispatchId);
-//			li.attachObject(target);
-//			li.setText(target.name);
-//			
-//			// now bind the appropriate buttons
-//			li.title.bind('click', function(evt) {
-//				view.notifyListeners(editor.EventTypes.SelectTarget, {
-//					target: li.getAttachedObject(),
-//					edit: false
-//				});
-//			});
-//			
-//			li.removeBtn.bind('click', function(evt) {
-//				while (li.children.length > 0) {
-//					var child = li.children[0];
-//					unchain(child, 0);
-//					li.removeChild(child);
-//				}
-//				
-//				// remove from parent
-//				var par = li.data('chainParent');
-//				
-//				if (par != null) {
-//					par.removeChild(li);
-//				}
-//				
-//				// now notify others
-//				view.notifyListeners(editor.EventTypes.RemoveTarget, 
-//					li.getAttachedObject());
-//			});
-//				
-//			li.editBtn.bind('click', function(evt) {
-//				var target = li.getAttachedObject();
-//				view.notifyListeners(editor.EventTypes.SelectTarget, {
-//					target: target,
-//					edit: true
-//				});
-//				
-//				editListPnl.hide();
-//				editorNameInput.val(target.name);
-//				view.updateSaveButton();
-//				editorPnl.show();
-//			});
-//			
-//			var handler = target.handler,
-//				method = target.func;
-//			
-//			if (handler instanceof hemi.handlers.ValueCheck) {
-//				method = handler.func;
-//				handler = handler.handler;
-//			}
-//			
-//			var msgs = this.getChainMessages(handler, method);
-//			
-//			if (msgs.length > 0) {
-//				li.chainBtn.data('chainMsgs', msgs)
-//				.bind('click', function(evt) {
-//					var target = li.getAttachedObject(),
-//						handler = target.handler,
-//						messages = jQuery(this).data('chainMsgs');
-//					
-//					if (handler instanceof hemi.handlers.ValueCheck) {
-//						target = handler;
-//						handler = target.handler;
-//					}
-//					
-//					// special case
-//					if (target.func === 'moveToView') {
-//						handler = editor.treeData.createCamMoveCitizen(hemi.world.camera);
-//						messages = [parseInt(target.args[0].replace(
-//							hemi.dispatch.ID_ARG, ''))];
-//					}
-//					view.triggersTree.restrictSelection(handler, messages);
-//					view.chainParent = li;
-//					view.notifyListeners(editor.EventTypes.SelectTrigger, {
-//						source: handler,
-//						message: messages[0]
-//					});
-//					view.notifyListeners(editor.EventTypes.SelectAction, {
-//						handler: null,
-//						method: null
-//					});
-//					
-//					editListPnl.hide();
-//					editorPnl.show();
-//				});
-//			} else {
-//				li.chainBtn.attr('disabled', 'disabled');
-//			}
-//			
-//			li.cloneBtn.bind('click', function(evt) {
-//				var target = li.getAttachedObject();
-//				
-//				view.notifyListeners(editor.EventTypes.SelectTarget, {
-//					target: target,
-//					edit: false
-//				});
-//				
-//				view.chainParent = li.data('chainParent');
-//				view.notifyListeners(editor.EventTypes.SaveTarget,
-//					{name: 'Copy of ' + target.name});
-//			});
-//		},
-//		
-//		getChainMessages: function(citizen, method) {
-//			var type = citizen.getCitizenType ? citizen.getCitizenType() : citizen.name,
-//				key = type + '_' + method,
-//				msgList = editor.treeData.chainTable.get(key),
-//				messages;
-//			
-//			if (citizen.parent != null) {
-//				messages = this.getChainMessages(citizen.parent, method);
-//			} else {
-//				messages = [];
-//			}
-//			
-//			if (msgList !== null) {
-//				messages = messages.concat(msgList);
-//			}
-//			
-//			return messages;
-//		},
-//		
-//		layoutMainPanel: function() {
-//			var pnl = this.mainPanel,
-//				evtLst = this.eventList,
-//				view = this;
-//				
-//			pnl.finishLayout = function() {
-//				var editListPnl = pnl.find('#msgEvents .msgColWrapper'),
-//					editorPnl = pnl.find('#msgEditor'),
-//					editorForm = editorPnl.find('form'),
-//					editorNameInput = editorPnl.find('#msgEdtName'),
-//					editorSaveBtn = editorPnl.find('#msgEdtSaveBtn'),
-//					editorCancelBtn = editorPnl.find('#msgEdtCancelBtn'),
-//					addBtn = pnl.find('#msgAddEventBtn'),
-//					replacementPnl = jQuery('#o3d'),
-//					list = pnl.find('#msgEdtTargetParamsList'),
-//					panelUI = pnl.getUI();
-//				
-//				list.append(view.prm.getUI());
-//				
-//				editListPnl.append(evtLst.getUI());
-//				editorForm.bind('submit', function(evt) {
-//					return false;
-//				});
-//				
-//				addBtn.bind('click', function(evt) {
-//					editListPnl.hide();
-//					editorPnl.show();
-//					view.notifyListeners(editor.EventTypes.SelectTarget, {
-//						target: null,
-//						edit: false
-//					});
-//				});
-//				
-//				editorNameInput.bind('keyup', function(evt) {
-//					view.updateSaveButton();
-//				});
-//				
-//				editorSaveBtn.bind('click', function(evt) {
-//					var data = {
-//						args: view.prm.getArguments(),
-//						name: editorNameInput.val()
-//					};
-//					
-//					if (view.chainParent != null) {
-//						var li = view.chainParent,
-//							target = li.getAttachedObject(),
-//							handler = target.handler,
-//							messages = li.chainBtn.data('chainMsgs');
-//						
-//						if (handler instanceof hemi.handlers.ValueCheck) {
-//							target = handler;
-//							handler = target.handler;
-//						}
-//						
-//						// special case
-//						if (target.func === 'moveToView') {
-//							handler = editor.treeData.createCamMoveCitizen(hemi.world.camera);
-//							messages = [parseInt(target.args[0].replace(
-//								hemi.dispatch.ID_ARG, ''))];
-//						}
-//						
-//						view.triggersTree.unrestrictSelection(handler, messages);
-//					}
-//					
-//					view.notifyListeners(editor.EventTypes.SaveTarget, 
-//						data);
-//					editorNameInput.val('');
-//				});
-//				
-//				editorCancelBtn.bind('click', function(evt) {
-//					if (view.chainParent != null) {
-//						var li = view.chainParent,
-//							target = li.getAttachedObject(),
-//							handler = target.handler,
-//							messages = li.chainBtn.data('chainMsgs');
-//						
-//						if (handler instanceof hemi.handlers.ValueCheck) {
-//							target = handler;
-//							handler = target.handler;
-//						}
-//						
-//						// special case
-//						if (target.func === 'moveToView') {
-//							handler = editor.treeData.createCamMoveCitizen(hemi.world.camera);
-//							messages = [parseInt(target.args[0].replace(
-//								hemi.dispatch.ID_ARG, ''))];
-//						}
-//						
-//						view.triggersTree.unrestrictSelection(handler, messages);
-//						view.chainParent = null;
-//					}
-//					
-//					editorPnl.hide();
-//					editorNameInput.val('');
-//					editListPnl.show();
-//				});
-//				
-//				panelUI.bind('editor.mainView.resize', function(evt) {
-//					var height = panelUI.height(),
-//						columns = panelUI.find('.msgColumn'),
-//						containers = columns.find('.msgColWrapper'),
-//						headerHeight = panelUI.find('.msgColTitle').first().outerHeight();
-//						
-//					columns.height(height);
-//					containers.height(height - headerHeight);
-//				});
-//				
-//				replacementPnl.after(panelUI);
-//			};
-//			
-//			pnl.layout();
-//		},
-//		
-//		removeTarget: function(target) {
-//			this.eventList.remove('msgTarget_' + target.dispatchId);
-//		},
-//		
-//		updateSaveButton: function() {
-//			var saveButton = this.mainPanel.find('#msgEdtSaveBtn'),
-//				causeText = this.mainPanel.find('#msgEdtCauseTxt').text(),
-//				effectText = this.mainPanel.find('#msgEdtEffectTxt').text(),
-//				name = this.mainPanel.find('#msgEdtName').val();
-//			
-//			if (name === '' || causeText === '' || effectText === '') {
-//				saveButton.attr('disabled', 'disabled');
-//			} else {
-//				saveButton.removeAttr('disabled');
-//			}
-//		},
-//		
-//		updateTarget: function(target) {
-//			this.eventList.edit(
-//				'msgTarget_' + target.dispatchId,
-//				target,
-//				target.name);
-//		},
-//		
-//		selectAction: function(citizen, method) {
-//			var actionText = jQuery('#msgEdtEffectTxt');
-//			
-//			if (citizen === null || method === null) {
-//				actionText.text('');
-//			} else {
-//				actionText.text(citizen.name + ' ' + method);
-//			}
-//			
-//			this.actionsTree.select(citizen, method);
-//		},
-//		
-//		selectTrigger: function(citizen, message) {
-//			var triggerText = jQuery('#msgEdtCauseTxt');
-//			
-//			if (citizen === null || message === null) {
-//				triggerText.text('');
-//			} else {
-//				var name = citizen === editor.treeData.MSG_WILDCARD ? citizen : citizen.name,
-//					msg;
-//				
-//				if (citizen.camMove) {
-//					var viewpoint = hemi.world.getCitizenById(message);
-//					msg = viewpoint.name;
-//				} else {
-//					msg = message;
-//				}
-//				
-//				triggerText.text(name + ' ' + msg);
-//			}
-//			
-//			this.triggersTree.select(citizen, message);
-//		}
-//	});
 
 	editor.tools.BehaviorView = editor.ToolView.extend({
 		init: function() {
@@ -1168,60 +720,23 @@
 			bhvWgt.addListener(editor.EventTypes.UpdateBehavior, model);
 			
 			// view specific
-//			view.addListener(editor.EventTypes.ToolModeSet, function(data) {
-//				var isDown = data.newMode === editor.ToolConstants.MODE_DOWN;
-//			});			
-//			view.addListener(editor.EventTypes.RemoveTarget, function(data) {
-//				model.removeTarget(data);
-//			});			
-//			view.addListener(editor.EventTypes.SaveTarget, function(data) {
-//				var args = data.args || [];
-//				
-//				for (var i = 0, il = args.length; i < il; i++) {
-//					var arg = args[i];
-//					model.setArgument(arg.name, arg.value);
-//				}
-//				
-//				model.save(data.name);
-//			});
-//			view.addListener(editor.EventTypes.SelectAction, function(data) {
-//				model.setAction(data.handler, data.method);
-//			});
-			tblWgt.addListener(editor.EventTypes.SelectTarget, function(target) {				
+			tblWgt.addListener(editor.EventTypes.CloneTarget, function(data) {
+				model.copyTarget(data.target);
+				model.save(data.name);
+			})
+			tblWgt.addListener(editor.EventTypes.RemoveTarget, function(target) {
+				model.removeTarget(target);
+			});			
+			tblWgt.addListener(editor.EventTypes.SelectTarget, function(target) {	
 				var spec = model.dispatchProxy.getTargetSpec(target);
-					
+				
 				bhvWgt.setTarget(target, spec);
 			});
-//			view.addListener(editor.EventTypes.SelectTrigger, function(data) {
-//				model.setTrigger(data.source, data.message);
-//			});
+			tblWgt.addListener(editor.EventTypes.SelectTrigger, function(data) {
+				bhvWgt.setTrigger(data.source, data.messages);
+			});
 			
-			// model specific
-//			model.addListener(editor.EventTypes.ArgumentSet, function(data) {
-//				view.prm.setArgument(data.name, data.value);
-//			});			
-//			model.addListener(editor.EventTypes.TriggerSet, function(data) {
-//				view.selectTrigger(data.source, data.message);
-//				view.updateSaveButton();
-//			});			
-//			model.addListener(editor.EventTypes.ActionSet, function(data) {
-//				var handler = data.handler,
-//					method = data.method;
-//					
-//				view.selectAction(handler, method);
-//				view.updateSaveButton();
-//				
-//				if (handler && method) {
-//					var args = [],
-//				 		vals = [];
-//					
-//					model.args.each(function(key, value) {
-//						args[value.ndx] = key;
-//						vals[value.ndx] = value.value;
-//					});
-//					view.prm.populateArgList(handler, method, args, vals);
-//				}
-//			});			
+			// model specific	
 			model.addListener(editor.events.Created, function(data) {
 				var target = data.target,
 					spec = model.dispatchProxy.getTargetSpec(target),
@@ -1236,7 +751,6 @@
 				bhvWgt.setVisible(false);
 			});			
 			model.addListener(editor.events.Removed, function(target) {
-				view.removeTarget(target);
 				tblWgt.remove(target);
 				
 				var li = editor.tools.behavior.getBehaviorListItem(target.actor);
