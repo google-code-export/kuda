@@ -1837,7 +1837,10 @@
 				mbrWgt.selectNode(getNodeId(transform));
 				detWgt.set(transform, DetailsType.TRANSFORM);
 				visWgt.set(transform);
-				view.bottomPanel.setVisible(true);
+				
+				if (view.mode === editor.ToolConstants.MODE_DOWN) {
+					view.bottomPanel.setVisible(true);
+				}
 			});
 	        model.addListener(editor.EventTypes.TransformShown, function(transform) {
 	            hidWgt.removeHiddenItem(transform);
