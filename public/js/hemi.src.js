@@ -23,7 +23,7 @@ o3djs.base.o3d = o3d;
 var hemi = (function(hemi) {
 	
 	/**
-	 * The version of Hemi released: 8/24/11
+	 * The version of Hemi released: 9/7/11
 	 * @constant
 	 */
 	hemi.version = '1.4.3';
