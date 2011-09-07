@@ -24,7 +24,7 @@
 	editor.tools.animations = editor.tools.animations || {};
 
 	editor.tools.animations.init = function() {
-		var tabpane = editor.ui.getTabPane('Geometry'),
+		var tabpane = editor.ui.getTabPane('Animation'),
 			
 			anmMdl = new AnimatorModel(),
 			anmView = new AnimatorView(),
@@ -719,7 +719,7 @@
 					}
 					btn.text(ButtonText.STOP).data('previewing', true);
 				}
-	        });
+	        }).data('previewing', false);
 	        
 	        this.addBtn.bind('click', function(evt) {         
 	            var start = parseInt(wgt.beginInput.val()),
