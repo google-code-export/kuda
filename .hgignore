@@ -5,3 +5,6 @@ glob:public/projects
 
 syntax: regexp
 ^\.project$
+public/js/editor/data/hemi\.json
+public/js/lib/jquery\.dataTables\.js
+public/js/lib/jshashtable\.js
