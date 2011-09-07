@@ -222,7 +222,7 @@
     /**
      * A BehaviorModel
      */
-    BehaviorModel = editor.ToolModel.extend({
+    var BehaviorModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('editor.tools.behavior');
 			
@@ -662,7 +662,7 @@
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////   
 
-	BehaviorView = editor.ToolView.extend({
+	var BehaviorView = editor.ToolView.extend({
 		init: function() {
 			this._super({
 				toolName: 'Behaviors',
@@ -698,7 +698,7 @@
      * The BehaviorController facilitates BehaviorModel and BehaviorView
      * communication by binding event and message handlers.
      */
-    BehaviorController = editor.ToolController.extend({
+    var BehaviorController = editor.ToolController.extend({
 		init: function() {
 			this._super();
     	},
