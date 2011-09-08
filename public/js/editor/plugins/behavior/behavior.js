@@ -143,77 +143,7 @@
 	
 	var TRIGGER_WRAPPER = '#causeTreeWrapper',
 		ACTION_WRAPPER = '#effectTreeWrapper';
-	
-////////////////////////////////////////////////////////////////////////////////
-//                                 Utilities                                  //
-////////////////////////////////////////////////////////////////////////////////
-		
-	editor.tools.DispatchProxy = function() {
-		// The set of MessageSpecs (and MessageTargets) being created by the
-		// messaging tool
-		this.worldSpecs = new hemi.utils.Hashtable();
-		// The set of MessageSpecs used by the editor
-		this.editorSpecs = null;
-	};
-	
-	editor.tools.DispatchProxy.prototype = {
-		swap: function() {
-			if (this.editorSpecs === null) {
-				this.editorSpecs = hemi.dispatch.msgSpecs;
-				hemi.dispatch.msgSpecs = this.worldSpecs;
-			}
-		},
-		
-		unswap: function() {
-			if (this.editorSpecs !== null) {
-				hemi.dispatch.msgSpecs = this.editorSpecs;
-				this.editorSpecs = null;
-			}
-		},
-		
-		getTargetSpec: function(target) {
-			this.swap();
-			var ret = hemi.dispatch.getTargetSpec(target);
-			this.unswap();
-			return ret;
-		},
-		
-		getTargets: function(attributes, wildcards) {
-			this.swap();
-			var ret = hemi.dispatch.getTargets(attributes, wildcards);
-			this.unswap();
-			return ret;
-		},
-		
-		registerTarget: function(src, msg, handler, opt_func, opt_args) {
-			this.swap();
-			var ret = hemi.dispatch.registerTarget(src, msg, handler, opt_func, 
-				opt_args);
-			this.unswap();
-			return ret;
-		},
-		
-		removeTarget: function(target, opt_attributes) {
-			this.swap();
-			var ret = hemi.dispatch.removeTarget(target, opt_attributes);
-			this.unswap();
-			return ret;
-		},
-		
-		cleanup: function() {
-			this.swap();
-			hemi.dispatch.cleanup();
-			this.unswap();
-		},
-		
-		toOctane: function() {
-			this.swap();
-			var ret = hemi.dispatch.toOctane();
-			this.unswap();
-			return ret;
-		}
-	};
-    
+	    
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
 ////////////////////////////////////////////////////////////////////////////////
@@ -226,7 +156,7 @@
 		init: function() {
 			this._super('editor.tools.behavior');
 			
-			this.dispatchProxy = new editor.tools.DispatchProxy();
+			this.dispatchProxy = editor.getDispatchProxy();
 			this.msgTarget = null;
 			this.source = null;
 			this.type = null;
