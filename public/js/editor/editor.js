@@ -22,6 +22,78 @@ var editor = (function(editor) {
 	editor.tools = {};
 	
 ////////////////////////////////////////////////////////////////////////////////
+//                               Dispatch Proxy                               //
+////////////////////////////////////////////////////////////////////////////////
+
+	var DispatchProxy = function() {
+		// The set of MessageSpecs (and MessageTargets) being created by the
+		// messaging tool
+		this.worldSpecs = new hemi.utils.Hashtable();
+		// The set of MessageSpecs used by the editor
+		this.editorSpecs = null;
+	};
+	
+	DispatchProxy.prototype = {
+		swap: function() {
+			if (this.editorSpecs === null) {
+				this.editorSpecs = hemi.dispatch.msgSpecs;
+				hemi.dispatch.msgSpecs = this.worldSpecs;
+			}
+		},
+		
+		unswap: function() {
+			if (this.editorSpecs !== null) {
+				hemi.dispatch.msgSpecs = this.editorSpecs;
+				this.editorSpecs = null;
+			}
+		},
+		
+		getTargetSpec: function(target) {
+			this.swap();
+			var ret = hemi.dispatch.getTargetSpec(target);
+			this.unswap();
+			return ret;
+		},
+		
+		getTargets: function(attributes, wildcards) {
+			this.swap();
+			var ret = hemi.dispatch.getTargets(attributes, wildcards);
+			this.unswap();
+			return ret;
+		},
+		
+		registerTarget: function(src, msg, handler, opt_func, opt_args) {
+			this.swap();
+			var ret = hemi.dispatch.registerTarget(src, msg, handler, opt_func, 
+				opt_args);
+			this.unswap();
+			return ret;
+		},
+		
+		removeTarget: function(target, opt_attributes) {
+			this.swap();
+			var ret = hemi.dispatch.removeTarget(target, opt_attributes);
+			this.unswap();
+			return ret;
+		},
+		
+		cleanup: function() {
+			this.swap();
+			hemi.dispatch.cleanup();
+			this.unswap();
+		},
+		
+		toOctane: function() {
+			this.swap();
+			var ret = hemi.dispatch.toOctane();
+			this.unswap();
+			return ret;
+		}
+	};
+	
+	var dispatchProxy = new DispatchProxy();
+	
+////////////////////////////////////////////////////////////////////////////////
 //                                 Main App                                   //
 ////////////////////////////////////////////////////////////////////////////////
 	
@@ -35,21 +107,7 @@ var editor = (function(editor) {
 //		loadedPlugins: loadedPlugins
 //	};
 		
-	var initViewerStep1 = function() {			
-			var notifier = new editor.utils.Listenable();
-					
-			editor.addListener = function(eventType, listener) {
-				notifier.addListener(eventType, listener);
-			};
-			
-			editor.notifyListeners = function(eventType, value) {
-				notifier.notifyListeners(eventType, value);
-			};
-			
-			editor.removeListener = function(listener) {
-				notifier.removeListener(listener);
-			};			
-						
+	var initViewerStep1 = function() {						
 			o3djs.webgl.makeClients(function(clientElements) {
 				editor.ui.initializeView(clientElements);
 				loadPlugins();
@@ -107,6 +165,19 @@ var editor = (function(editor) {
 	        type: 'text/css',
 	        rel: 'stylesheet'
 	    }).appendTo('head');
+	};
+	
+	editor.getDispatchProxy = function() {
+		return dispatchProxy;
+	};
+			
+	editor.getProjectOctane = function() {
+		dispatchProxy.swap();
+		var data = hemi.world.toOctane(function(citizen) {
+			return citizen.name.search(editor.ToolConstants.EDITOR_PREFIX) === -1;
+		});
+		dispatchProxy.unswap();
+		return data;
 	};
 	
 	editor.getScript = function(url, callback) {

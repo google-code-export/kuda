@@ -43,11 +43,13 @@ p {
 /******************************************************************************
  * 									TabBar									  *
  ******************************************************************************/
+
 #tabBar {
 	position: relative;
 	float: left;
 	background: -moz-linear-gradient(100% 100% 180deg, #333, #383838);
 	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#383838), to(#333));
+	background: #333;
 	color: #fff;
 	height: 100%;
 	font-family: "Myriad Pro", Helvetica, Arial, sans-serif;
@@ -216,11 +218,11 @@ p {
     background-position: -96px -48px;
 }
 
-#messagingBtn:after {
+#behaviorBtn:after {
 	background-position: -192px 0;
 }
 
-#messagingBtn:hover:after, #messagingBtn.down:after {
+#behaviorBtn:hover:after, #behaviorBtn.down:after {
     background-position: -192px -48px;
 }
 
@@ -282,6 +284,39 @@ p {
 
 .toolBtn.down {
 	background: #75d0f4;   
+}
+
+/******************************************************************************
+ * 							Custom Project Tabpane							  *
+ ******************************************************************************/
+
+#prjPane .toolbarContainer {
+	border-bottom: 1px dotted #666;
+	padding-bottom: 20px;
+	margin-bottom: 10px;
+}
+#prjPane h2, #prjPane h3 {
+	display: none;
+}
+#prjSaveIpt {
+	width: 154px;
+	padding: 2px;
+	background: #333;
+	border: 1px solid #333;
+	border-radius: 3px;
+	margin-bottom: 10px;
+	color: #ddd;
+	font: bold 14px/16px Myriad Pro, Helvetica, sans-serif;
+}
+#prjSaveIpt:hover {
+	border-color: #444;
+}
+#prjSaveIpt:focus {
+	background: #555;
+	border-color: #777;
+}
+#prjMsg a {
+	color: #fff;
 }
 
 /******************************************************************************

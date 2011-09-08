@@ -53,6 +53,8 @@ var editor = (function(editor) {
 	o3djs.require('editor.ui.core.gridPlane');
     o3djs.require('editor.ui.core.dialogs');
 	
+	o3djs.require('editor.project');
+	
 	o3djs.require('hemi.loader');
 	o3djs.require('hemi.handlers.valueCheck');
 	

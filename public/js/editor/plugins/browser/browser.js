@@ -1158,11 +1158,11 @@
 			});	
 			
 			testServer.call(this, function() {
-				btn.show();
-				lbl.show();
+				pnl.show();
+				wgt.invalidate();
 			}, function() {
-				btn.hide();
-				lbl.hide();
+				pnl.hide();
+				wgt.invalidate();
 			});
 		},
 		

@@ -15,19 +15,19 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module, jQuery) {
-	module.utils = module.utils || {};
+var editor = (function(editor) {
+	editor.utils = editor.utils || {};
 		
     /**
      * EventTypes constants object.  Event types are used to differentiate
      * listeners of model notifications.
      */
-	module.EventTypes = module.EventTypes || {};
+	editor.EventTypes = editor.EventTypes || {};
 			
     /**
      * The Listenable ...
      */
-	module.utils.Listenable = module.Class.extend({
+	editor.utils.Listenable = editor.Class.extend({
 		init: function() {
 			this.listeners = new Hashtable();
 		},
@@ -111,5 +111,20 @@ var editor = (function(module, jQuery) {
         }
 	});
 	
-	return module;
-})(editor || {}, jQuery);
+	// make the editor a listener
+	var notifier = new editor.utils.Listenable();
+			
+	editor.addListener = function(eventType, listener) {
+		notifier.addListener(eventType, listener);
+	};
+	
+	editor.notifyListeners = function(eventType, value) {
+		notifier.notifyListeners(eventType, value);
+	};
+	
+	editor.removeListener = function(listener) {
+		notifier.removeListener(listener);
+	};			
+	
+	return editor;
+})(editor || {});
