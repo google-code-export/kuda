@@ -304,7 +304,7 @@ p {
 	background: #333;
 	border: 1px solid #333;
 	border-radius: 3px;
-	margin-bottom: 10px;
+	margin: 0 -2px 10px;
 	color: #ddd;
 	font: bold 14px/16px Myriad Pro, Helvetica, sans-serif;
 }
@@ -317,6 +317,17 @@ p {
 }
 #prjMsg a {
 	color: #fff;
+}
+#prjPane button {
+    background: #555;
+	background: -moz-linear-gradient(100% 100% 90deg, #555, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#555));
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    color: #eee;
+    padding: 4px 3px;
+    text-shadow: 0 -1px 0 #000;
+	margin-right: 2px;
 }
 
 /******************************************************************************
@@ -939,10 +950,6 @@ form input#viewpointName {
  */
 button {
     background: #eee;
-	background: -moz-linear-gradient(100% 100% 90deg, #eee, #fafafa);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eee));
-	background: -moz-linear-gradient(100% 100% 90deg, #75d0f4, #91dbf6);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#91dbf6), to(#75d0f4));
 	background: -moz-linear-gradient(100% 100% 90deg, #ddd, #eee);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));
     border: 1px solid #aaa;
