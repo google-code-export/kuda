@@ -9,7 +9,8 @@
 		"particleEffects",
 		"particleCurves",
 		"fog",
-		"behavior", 
+		"behavior",
+		"manips",
 		"hud"
 	]
 }
