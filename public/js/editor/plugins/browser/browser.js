@@ -954,7 +954,6 @@
 			}
 			
 			this.tree.jstree('select_node', elem, false);
-			this.notifyListeners(editor.EventTypes.Sidebar.WidgetInvalidate);
 		},
 		
 		updateShape: function(shape) {
