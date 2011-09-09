@@ -329,6 +329,12 @@ p {
     text-shadow: 0 -1px 0 #000;
 	margin-right: 2px;
 }
+#prjPane button[disabled] {
+    background: #444;
+	background: -moz-linear-gradient(100% 100% 90deg, #444, #555);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555), to(#444));
+	color: #888;
+}
 
 /******************************************************************************
  * 									Panel									  *
@@ -450,7 +456,7 @@ p {
 	padding: 10px;
 	text-align: left;
 }
-.widgetWithForms {
+.widgetWithForms, .fullSideWidget {
 	background: #eee;
 	overflow: auto;
 }
@@ -458,10 +464,10 @@ p {
 	font: bold 18px/20px "Myriad Pro", Helvetica, Arial, sans-serif; 
 	text-align: left;
 }
-.widget:not(.widgetWithForms) {
+.widget:not(.widgetWithForms):not(.fullSideWidget) {
 	color: #eee;
 }
-.widget:not(.widgetWithForms) h1 {
+.widget:not(.widgetWithForms):not(.fullSideWidget) h1 {
 	color: #75d0f4;
 }
 .widget.second {
@@ -477,7 +483,7 @@ p {
 	padding: 0;
 	margin: 0 -10px;
 	float: left;
-	width: 320px;
+	width: 300px;
 	overflow: auto;
 }
 ol.listWidget {
@@ -507,6 +513,9 @@ ul.listWidget li>div {
 	width: 300px;
 }
 .listWidget>li:nth-child(odd) {
+	background: #e4e4e4;
+} 
+.listWidget.second>li:nth-child(odd) {
 	background: #444;
 } 
 .listWidget li span {
@@ -522,6 +531,9 @@ ol.listWidget li span {
 	padding: 5px 0;
 }
 .listWidget li:hover {
+	background: #fff;
+}
+.listWidget.second li:hover {
 	background: #555;
 }
 .listWidget li>div>span {

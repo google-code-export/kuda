@@ -1607,7 +1607,7 @@
 						parent = target.parents('.tooltip, #mbrDetailsBtn');
 					
 					if (parent.size() == 0 && target.attr('id') != 'mbrDetailsBtn') {
-						popup.hide();
+						popup.hide(0);
 						jQuery(document).unbind('click.mbr');
 					}
 				});

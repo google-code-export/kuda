@@ -15,7 +15,9 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+var editor = {};
+
+(function() {
 	o3djs.require('editor.requires');
 	
 	// The container for tool plugins
@@ -111,6 +113,7 @@ var editor = (function(editor) {
 			o3djs.webgl.makeClients(function(clientElements) {
 				editor.ui.initializeView(clientElements);
 				loadPlugins();
+				setupWorldMessages();
 			});
 		},
 		
@@ -129,6 +132,14 @@ var editor = (function(editor) {
 				}
 				
 				editor.notifyListeners(editor.events.DoneLoading);
+				var mdls = editor.getModels();
+				
+				for (var i = 0, il = mdls.length; i < il; i++) {
+					var mdl = mdls[i];
+					
+					editor.addListener(editor.events.WorldCleaned, mdl);
+					editor.addListener(editor.events.WorldLoaded, mdl);	
+				}
 			}
 		},
 			
@@ -146,6 +157,15 @@ var editor = (function(editor) {
 				.error(function(xhr, status, err) {
 					// fail gracefully
 				});
+		},
+		
+		setupWorldMessages = function() {			
+			hemi.world.subscribe(hemi.msg.cleanup, this, function() {
+				editor.notifyListeners(editor.events.WorldCleaned);
+			});
+			hemi.world.subscribe(hemi.msg.ready, this, function() {
+				editor.notifyListeners(editor.events.WorldLoaded);
+			});
 		},
 		
 		uninitViewer = function() {
@@ -1079,6 +1099,4 @@ var editor = (function(editor) {
 	jQuery(window).resize(function() {
 //		app.sizeViewerPane();
 	});
-	
-	return editor;
-})(editor || {});
+})();
