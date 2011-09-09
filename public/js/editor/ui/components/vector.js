@@ -28,7 +28,6 @@ var editor = (function(editor) {
 		inputs: ['x', 'y', 'z'],
 		type: 'vector',
 		inputType: 'number',
-		paramName: '',
 		onBlur: null,
 		validator: null
 	};
@@ -83,6 +82,27 @@ var editor = (function(editor) {
 		
 		reset: function() {
 			this.find('input').focus().val('').blur();
+		},
+		
+		setInputName: function(name, ndx1, opt_ndx2) {
+			var found = false;
+			
+			for (var i = 0, il = this.inputs.length; i < il && !found; ++i) {
+				var obj = this.inputs[i];
+				
+				if (obj.ndx1 === ndx1 && obj.ndx2 == opt_ndx2) {
+					obj.elem.setName(name);
+					found = true;
+				}
+			}
+			
+			return found;
+		},
+		
+		setInputType: function(inputType) {
+			for (var i = 0, il = this.inputs.length; i < il; ++i) {
+				this.inputs[i].elem.setType(inputType);
+			}
 		}
 	});
 	
@@ -90,11 +110,7 @@ var editor = (function(editor) {
 //                              Private Methods                               //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var createInput = function() {
-			return jQuery('<input type="text" class="' + this.config.type + '" />');
-		},
-		
-		createDiv = function(ndx) {
+	var createDiv = function(ndx) {
 			var div = jQuery('<div class="vectorVec"></div>'),
 				addBtn = jQuery('<button>Add</button>'),
 				elem = new editor.ui.Input({
@@ -191,14 +207,14 @@ var editor = (function(editor) {
 		
 		layoutBounded = function() {
 			var inputs = this.config.inputs,
-				param = this.config.paramName,
+				inputType = this.config.inputType,
 				type = this.config.type,
-				wgt = this,
+				validator = this.config.validator,
 				il = inputs.length,
 				noPlaceHolders = false;
 				
 			// first detect a number or a list of placeholders
-			if (inputs.length === 1 && hemi.utils.isNumeric(inputs[0])) {
+			if (il === 1 && hemi.utils.isNumeric(inputs[0])) {
 				il = inputs[0];
 				noPlaceHolders = true;
 			}
@@ -216,13 +232,13 @@ var editor = (function(editor) {
 					for (var j = 0; j < jl; j++) {
 						var inputTxt = ipt[j],
 							elem = new editor.ui.Input({
-								validator: this.config.validator,
-								inputClass: this.config.type,
-								type: this.config.inputType
+								validator: validator,
+								inputClass: type,
+								type: inputType
 							});
 						
 						if (!noPlaceHolders) {
-							elem.container.attr('placeholder', inputTxt);
+							elem.setName(inputTxt);
 						}
 						
 						this.inputs.push({
@@ -237,13 +253,13 @@ var editor = (function(editor) {
 				}
 				else {
 					var elem = new editor.ui.Input({
-						validator: this.config.validator,
-						inputClass: this.config.type,
-						type: this.config.inputType
+						validator: validator,
+						inputClass: type,
+						type: inputType
 					});
 					
 					if (!noPlaceHolders) {
-						elem.container.attr('placeholder', ipt);
+						elem.setName(ipt);
 					}
 					
 					this.inputs.push({
