@@ -230,7 +230,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 //                     	   Create Motion Sidebar Widget                        //
 //////////////////////////////////////////////////////////////////////////////// 
-		
+    var NO_TRANS = 'NONE_SELECTED';
+    
 	var CreateWidget = editor.ui.FormWidget.extend({
 		init: function() {
 		    this._super({
@@ -240,12 +241,25 @@
 			});
 			
 			this.transforms = [];
+			this.tranList = {};
 		},
 		
 		addTransform: function(transform) {
 			var ndx = this.transforms.indexOf(transform);
 			
 			if (ndx === -1) {
+				var name = transform.name,
+					li = this.tranList[name],
+					ol = this.find('#mtnTranList');
+				
+				if (li == null) {
+					this.tranList[name] = li = jQuery('<li><label>' + name + '</label></li>');
+				}
+				if (this.transforms.length === 0) {
+					this.tranList[NO_TRANS].detach();
+				}
+				
+				ol.append(li);
 				this.transforms.push(transform);
 				this.checkStatus();
 			}
@@ -280,33 +294,34 @@
 				cancelBtn = this.find('#mtnCancelBtn'),
 				nameInput = this.find('#mtnName'),
 				prevBtn = this.find('#mtnPrevBtn'),
+				ol = this.find('#mtnTranList'),
 				wgt = this;
 			
 			this.origin = new editor.ui.Vector({
 				container: wgt.find('#mtnOriginDiv'),
-				paramName: 'origin',
+				inputType: 'angle',
 				validator: editor.ui.createDefaultValidator()
 			});
 			this.angle = new editor.ui.Vector({
 				container: wgt.find('#mtnAngleDiv'),
-				paramName: 'angle',
+				inputType: 'angle',
 				validator: editor.ui.createDefaultValidator()
 			});
 			this.position = new editor.ui.Vector({
 				container: wgt.find('#mtnPosDiv'),
-				paramName: 'position',
 				validator: editor.ui.createDefaultValidator()
 			});
 			this.velocity = new editor.ui.Vector({
 				container: wgt.find('#mtnVelDiv'),
-				paramName: 'velocity',
 				validator: editor.ui.createDefaultValidator()
 			});
 			this.acceleration = new editor.ui.Vector({
 				container: wgt.find('#mtnAccelDiv'),
-				paramName: 'acceleration',
 				validator: editor.ui.createDefaultValidator()
 			});
+			
+			this.tranList[NO_TRANS] = jQuery('<li><label>None selected</label></li>');
+			ol.append(this.tranList[NO_TRANS]);
 			
 			// bind type selection
 			typeSel.bind('change', function(evt) {
@@ -319,12 +334,18 @@
 				// switch between shapes
 				switch(val) {
 					case 'rot':
+						wgt.velocity.setInputType('angle');
+						wgt.acceleration.setInputType('angle');
+						
 						wgt.origin.getUI().parent().show();
 						wgt.angle.getUI().parent().show();
 						wgt.velocity.getUI().parent().show();
 						wgt.acceleration.getUI().parent().show();
 						break;
 					case 'trans':
+						wgt.velocity.setInputType('number');
+						wgt.acceleration.setInputType('number');
+						
 						wgt.position.getUI().parent().show();
 						wgt.velocity.getUI().parent().show();
 						wgt.acceleration.getUI().parent().show();
@@ -401,6 +422,13 @@
 			var ndx = this.transforms.indexOf(transform);
 			
 			if (ndx !== -1) {
+				this.tranList[transform.name].detach();
+				
+				if (this.transforms.length === 1) {
+					var ol = this.find('#mtnTranList');
+					ol.append(this.tranList[NO_TRANS]);
+				}
+				
 				this.transforms.splice(ndx, 1);
 				this.checkStatus();
 			}
@@ -427,7 +455,9 @@
 						
 			// disable the save and preview buttons
 			this.find('#mtnSaveBtn').attr('disabled', 'disabled');
-			this.find('#mtnPrevBtn').attr('disabled', 'disabled');
+			this.find('#mtnPrevBtn').attr('disabled', 'disabled')
+				.text('Start Preview')
+				.data('previewing', false);
 		},
 		
 		resize: function(maxHeight) {
@@ -452,21 +482,6 @@
 		
 		setMotion: function(motion) {
 			var typeSel = this.find('#mtnTypeSelect'),
-				originX = this.find('#mtnOriginX'),
-				originY = this.find('#mtnOriginY'),
-				originZ = this.find('#mtnOriginZ'),
-				angleX = this.find('#mtnAngleX'),
-				angleY = this.find('#mtnAngleY'),
-				angleZ = this.find('#mtnAngleZ'),
-				posX = this.find('#mtnPosX'),
-				posY = this.find('#mtnPosY'),
-				posZ = this.find('#mtnPosZ'),
-				velX = this.find('#mtnVelX'),
-				velY = this.find('#mtnVelY'),
-				velZ = this.find('#mtnVelZ'),
-				accelX = this.find('#mtnAccelX'),
-				accelY = this.find('#mtnAccelY'),
-				accelZ = this.find('#mtnAccelZ'),
 				nameInput = this.find('#mtnName');
 			
 			if (motion instanceof hemi.motion.Rotator) {
@@ -597,6 +612,7 @@
 		init: function() {
 			this._super();
 			this.bound = false;
+			this.bwrModel = null;
 		},
 		
 		setBrowserModel: function(model) {
