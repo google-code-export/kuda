@@ -138,7 +138,8 @@ var editor = (function(editor) {
 		
 		hideTimer: function(resetTimer, opt_time) {
 			var wgt = this,
-				id = this.id;
+				id = this.id,
+				time = opt_time == null ? 2000 : opt_time;
 			
 			if (resetTimer) {
 				id = this.id += 1;
@@ -146,7 +147,7 @@ var editor = (function(editor) {
 			
 			setTimeout(function() {
 				wgt.hideMessage(id);
-			}, opt_time || 2000);
+			}, time);
 		},
 		
 		hideMessage: function(id) {

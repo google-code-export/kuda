@@ -21,7 +21,11 @@
 //                     			   Helper Methods  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var injectBehaviorWidget = function(view) {		
+	var injectBehaviorWidget = function(view) {
+		if (view.toolTitle.match(/Project|project/) != null) {
+			return;
+		}
+		
 		var panels = view.panels,
 			done = false;
 			

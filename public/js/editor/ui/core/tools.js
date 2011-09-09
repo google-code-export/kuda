@@ -183,6 +183,25 @@ var editor = (function(editor) {
 		
 		getId: function() {
 			return this.id;
+		},
+		
+		notify: function(eventType, value) {
+			switch(eventType) {
+				case editor.events.WorldCleaned:
+					this.worldCleaned();
+					break;
+				case editor.events.WorldLoaded:
+					this.worldLoaded();
+					break;
+			}
+		},
+		
+		worldCleaned: function() {
+			
+		},
+		
+		worldLoaded: function() {
+			
 		}
 	});
     

@@ -446,8 +446,9 @@ var editor = (function(editor) {
 		},
 			    
 	    add: function(obj) {			
-			var itm = this.items.get(obj.getId());
-			if (!itm) {
+			var li = this.items.get(obj.getId());
+			
+			if (!li) {
 				var li = this.createListItem();
 					
 				li.setText(obj.name);
@@ -457,11 +458,9 @@ var editor = (function(editor) {
 				
 				this.list.add(li);
 				this.items.put(obj.getId(), li);
-			
-				return li;
 			}
 			
-			return itm;
+			return li;
 	    },
 		
 		bindButtons: function() {

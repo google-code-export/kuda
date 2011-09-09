@@ -564,10 +564,6 @@
 			});
 		},
 		
-		createListItemWidget: function() {
-			return new editor.ui.BhvListItemWidget();
-		},
-		
 		getOtherHeights: function() {
 			return this.buttonDiv.outerHeight(true);
 		}
