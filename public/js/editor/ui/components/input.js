@@ -95,6 +95,14 @@ var editor = (function(editor) {
 			}
 		},
 		
+		setName: function(name) {
+			this.container.attr('placeholder', name);
+		},
+		
+		setType: function(type) {
+			this.config.type = type;
+		},
+		
 		setValue: function(value) {
 			if (value == null) {
 				this.reset();
