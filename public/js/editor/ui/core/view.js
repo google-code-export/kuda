@@ -73,6 +73,10 @@ var editor = (function(editor) {
 		
 		get: function(title) {
 			return this.panes.get(title);
+		},
+		
+		setVisible: function(visible) {
+			setVisible.call(this, visible);
 		}
 	});
 	
@@ -160,6 +164,9 @@ var editor = (function(editor) {
 						animData.right = animAmt;
 						location = 'right';
 						break;
+					default: 
+						animData.left = animAmt;
+						location = 'left';
 				}
 			
 				ctn.css(location, startLoc).animate(animData, function() {
@@ -173,7 +180,6 @@ var editor = (function(editor) {
 	editor.ui.PanelDefaults = {
 		location: editor.ui.Location.RIGHT,
 		classes: [],
-		name: 'Panel',
 		startsVisible: true
 	};
 	
@@ -232,7 +238,7 @@ var editor = (function(editor) {
 				this.config.location === editor.ui.Location.TOP ? 'topAligned' : 
 				'bottomAligned');
 			
-			this.setVisible(false, false, true);
+			this.setVisible(false, false);
 		},
 		
 		getName: function() {
@@ -283,7 +289,7 @@ var editor = (function(editor) {
 			this.viewMeta.put(view, meta);
 		},
 		
-		setVisible: function(visible, opt_updateMeta, opt_noAnimate) {
+		setVisible: function(visible, opt_updateMeta) {
 			setVisible.call(this, visible);
 					
 			var pnl = this;
@@ -585,6 +591,10 @@ var editor = (function(editor) {
 		
 	editor.ui.addTabPane = function(tabpane) {
 		tabbar.add(tabpane);
+	};
+	
+	editor.ui.getTabBar = function() {
+		return tabbar;
 	};
 	
 	editor.ui.getTabPane = function(title) {
