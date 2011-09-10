@@ -14,6 +14,8 @@ var editor = (function(editor) {
 		Save: 'save',
 		Saved: 'saved',
 		ServerRunning: 'serverRunning',
+		StartPreview: 'startPreview',
+		StopPreview: 'stopPreview',
 		UpdateProjects: 'updateProjects'
 	}
 	    
@@ -106,10 +108,6 @@ var editor = (function(editor) {
 			}
 		},
 		
-		preview: function() {
-			
-		},
-		
 		remove: function(name) {
 			// TODO: implement this
 		},
@@ -144,6 +142,149 @@ var editor = (function(editor) {
 					});					
 				}
 			});
+		},
+		
+		startPreview: function() {
+			if (this.worldState !== null) {
+				return;
+			}
+			
+			// save current world props (and editor props)
+			var hi = hemi.input,
+				hr = hemi.core.client.root,
+				hw = hemi.world,
+				data = module.getProjectOctane();
+			
+			// make a deep copy, so the preview world created from the data
+			// won't affect the editor world
+			data = hemi.utils.clone(data);
+			
+			this.worldState = {
+				camera: hw.camera,
+				citizens: hw.citizens,
+				loader: hw.loader,
+				pickGrabber: hw.pickGrabber,
+				tranReg: hw.tranReg,
+				fog: hw.fog,
+				nextId: hw.checkNextId(),
+				msgSpecs: hemi.dispatch.msgSpecs,
+				pickRoot: hemi.picking.pickRoot,
+				pickManager: hemi.picking.pickManager,
+				modelRoot: hemi.model.modelRoot,
+				shapeRoot: hemi.shape.root,
+				children: hr.children,
+				rL: hemi.view.renderListeners,
+				mdL: hi.mouseDownListeners,
+				muL: hi.mouseUpListeners,
+				mmL: hi.mouseMoveListeners,
+				mwL: hi.mouseWheelListeners,
+		        kdL: hi.keyDownListeners,
+		        kuL: hi.keyUpListeners,
+		        kpL: hi.keyPressListeners,
+				tool: module.getActiveTool()
+			};
+			
+			// Hide the currently rendered tree
+			var children = hr.children;
+			hr.children = [];
+			
+			for (var ndx = 0; ndx < children.length; ndx++) {
+				children[ndx].parent = null;
+			}
+			
+			// set the world to its initial state
+			hemi.view.renderListeners = [hemi.view.clientSize];
+			hi.mouseDownListeners = [hw];
+			hi.mouseUpListeners = [];
+			hi.mouseMoveListeners = [];
+			hi.mouseWheelListeners = [];
+	        hi.keyDownListeners = [];
+	        hi.keyUpListeners = [];
+	        hi.keyPressListeners = [];
+			hw.citizens = new hemi.utils.Hashtable();
+			hw.camera = null;
+			hw.loader = {finish: function(){}};
+			hw.pickGrabber = null;
+			hw.tranReg = new hemi.world.TransformRegistry();
+			hw.fog = null;
+			
+			hemi.dispatch.msgSpecs = new hemi.utils.Hashtable();
+			hemi.picking.init();
+			hemi.model.init();
+			hemi.shape.root = hemi.core.mainPack.createObject('Transform');
+			hemi.shape.root.name = hemi.shape.SHAPE_ROOT;
+			hemi.shape.root.parent = hemi.picking.pickRoot;
+			
+			hemi.world.subscribe(hemi.msg.progress, module.ui.progressUI, 'msgUpdate');
+			
+			// now load the preview data
+			hemi.octane.createWorld(data);
+			hemi.world.ready();
+			this.notifyListeners(module.EventTypes.PreviewStarted, null);
+		},
+		
+		stopPreview: function() {
+			if (this.worldState === null) {
+				return;
+			}
+			
+			var hi = hemi.input,
+				hr = hemi.core.client.root,
+				hw = hemi.world,
+				ws = this.worldState;
+			
+			// Clean up the preview world
+			hw.cleanup();
+			hemi.dispatch.cleanup();
+			hw.camera.cleanup();
+			hemi.hud.hudMgr.clearDisplay();
+			hemi.model.modelRoot.parent = null;
+			hemi.core.mainPack.removeObject(hemi.model.modelRoot);
+			hemi.shape.root.parent = null;
+			hemi.core.mainPack.removeObject(hemi.shape.root);
+			hemi.picking.pickRoot.parent = null;
+			hemi.core.mainPack.removeObject(hemi.picking.pickRoot);
+			
+			// restore the world back to original state
+			hemi.dispatch.msgSpecs = ws.msgSpecs;
+			hemi.picking.pickRoot = ws.pickRoot;
+			hemi.picking.pickManager = ws.pickManager;
+			hemi.model.modelRoot = ws.modelRoot;
+			hemi.shape.root = ws.shapeRoot;
+			hemi.shape.material.getParam('lightWorldPos').bind(ws.camera.light.position);
+			hemi.shape.transMaterial.getParam('lightWorldPos').bind(ws.camera.light.position);
+			
+			if (ws.fog != null) {
+				hw.fog = ws.fog;
+				hemi.view.setBGColor(ws.fog.color);
+			}
+			
+			hw.tranReg = ws.tranReg;
+			hw.pickGrabber = ws.pickGrabber;
+			hw.loader = ws.loader;
+			hw.camera = ws.camera;
+			hw.citizens = ws.citizens;
+			hw.setNextId(ws.nextId);
+			hi.mouseDownListeners = ws.mdL;
+			hi.mouseUpListeners = ws.muL;
+			hi.mouseMoveListeners = ws.mmL;
+			hi.mouseWheelListeners = ws.mwL;
+	        hi.keyDownListeners = ws.kdL;
+	        hi.keyUpListeners = ws.kuL;
+	        hi.keyPressListeners = ws.kpL;
+			hemi.view.renderListeners = ws.rL;
+			
+			// Restore the render tree
+			hr.children = ws.children;
+			
+			for (var ndx = 0; ndx < ws.children.length; ndx++) {
+				ws.children[ndx].parent = hr;
+			}
+			
+			hw.camera.update();
+			hw.camera.updateProjection();
+			this.notifyListeners(module.EventTypes.PreviewStopped, null);
+			this.worldState = null;
 		}
 	});
 	
@@ -305,6 +446,32 @@ var editor = (function(editor) {
 			return retVal;
 	    }
 	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//                              Loading Widget                                //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var PreviewWidget = editor.ui.Widget.extend({
+		init: function() {
+			this._super({
+				name: 'previewWidget'
+			});
+		},
+		
+		finishLayout: function() {
+			this._super();
+			var wgt = this,
+				title = jQuery('<h1>World<span>Editor</span> Preview Mode</h1>');
+			
+			this.stopBtn = jQuery('<button id="prjStopPreviewBtn">Stop Preview</button>');
+			
+			this.stopBtn.bind('click', function() {
+				wgt.notifyListeners(event.StopPreview);
+			});
+			
+			this.container.append(title).append(this.stopBtn);
+		}
+	});
 		
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
@@ -324,11 +491,16 @@ var editor = (function(editor) {
 			// panels
 			this.addPanel(new editor.ui.Panel({
 				classes: ['prjSidePanel'],
-				name: 'sidePanel',
+				startsVisible: false
+			}));
+			this.addPanel(new editor.ui.Panel({
+				location: editor.ui.Location.TOP,
+				classes: ['prjTopPanel'],
 				startsVisible: false
 			}));
 			
 			this.sidePanel.addWidget(new LoadListWidget());
+			this.topPanel.addWidget(new PreviewWidget());
 		},
 		
 		checkSaveable: function() {
@@ -361,12 +533,35 @@ var editor = (function(editor) {
 				saveIpt = this.saveIpt = ctn.find('#prjSaveIpt'),
 				saveBtn = this.saveBtn = ctn.find('#prjSaveBtn'),
 				loadBtn = this.loadBtn = ctn.find('#prjLoadBtn'),
+				previewBtn = this.previewBtn = ctn.find('#prjPreviewBtn'),
 				curPrjCtn = this.curPrjCtn = ctn.find('#prjCur');						
 			
 			this.msg = ctn.find('#prjMsg').hide();
 			
 			loadBtn.bind('click', function(evt) {
 				view.notifyListeners(event.UpdateProjects);
+			});
+			
+			previewBtn.bind('click', function(evt) {
+				view.notifyListeners(event.StartPreview);
+				
+				// proceed to hide all panels
+				var panels = [];
+				view.visiblePanels = [];
+				
+				for (var i = 0, il = view.allPanels.length; i < il; i++) {
+					var pnl = view.allPanels[j];
+					
+					if (pnl.isVisible()) {
+						view.visiblePanels.push(pnl);
+						pnl.setVisible(false, false);
+					}
+				}
+				// hide the main panel
+				editor.ui.getTabBar().setVisible(false);
+				
+				// show the preview panel
+				view.topPanel.setVisible(true);
 			});
 			
 			saveBtn.bind('click', function(evt) {
@@ -407,6 +602,15 @@ var editor = (function(editor) {
 			});
 			
 			this.checkSaveable();
+		},
+		
+		stopPreview: function() {
+			for (var i = 0, il = view.visiblePanels.length; i < il; i++) {
+				view.visiblePanels[i].setVisible(true, false);
+			}
+			
+			editor.ui.getTabBar().setVisible(true);
+			this.topPanel.setVisible(false);
 		},
 		
 		updateExists: function(exists, name) {
@@ -518,6 +722,7 @@ var editor = (function(editor) {
 			var model = this.model,
 				view = this.view,
 				lstWgt = view.sidePanel.prjListWidget,
+				prvWgt = view.topPanel.previewWidget,
 				controller = this;
 			
 			// view specific
@@ -527,6 +732,9 @@ var editor = (function(editor) {
 			view.addListener(event.Save, function(data) {
 				model.save(data.project, data.replace);
 			});
+			view.addListener(event.StartPreview, function() {
+				model.startPreview();
+			});
 			view.addListener(event.UpdateProjects, function() {
 				model.getProjects();
 			});
@@ -534,6 +742,10 @@ var editor = (function(editor) {
 			// widget specific
 			lstWgt.addListener(event.Load, function(project) {
 				model.load(project);
+			});
+			prvWgt.addListener(event.StopPreview, function() {
+				model.stopPreview();
+				view.stopPreview();
 			});
 			
 			// model specific		
@@ -576,20 +788,10 @@ var editor = (function(editor) {
 		prjPane.setVisible(true);
 		
 		// listen to changes
-		editor.addListener(editor.events.DoneLoading, function() {
-//			var models = editor.getModels();
-//			
-//			for (var i = 0, il = models.length; i < il; i++) {
-//				var mdl = models[i];
-//				
-//				mdl.addListener(editor.events.Created, prjMdl);			
-//				mdl.addListener(editor.events.Removed, prjMdl);			
-//				mdl.addListener(editor.events.Updated, prjMdl);
-//			}
-			
+		editor.addListener(editor.events.DoneLoading, function() {			
 			// get the list of panels
 			var views = editor.getViews(),
-				panels = [];
+				panels = prjView.allPanels = [];
 				
 			for (var i = 0, il = views.length; i < il; i++) {
 				var view = views[i];
@@ -610,7 +812,7 @@ var editor = (function(editor) {
 						if (pnl.isVisible()) {
 							prjView.visiblePanels.push(pnl);
 							// now hide them
-							pnl.setVisible(false, false, false);
+							pnl.setVisible(false, false);
 						}
 					}
 				}
@@ -618,7 +820,7 @@ var editor = (function(editor) {
 					var visPnls = prjView.visiblePanels;
 					
 					for (var i = 0, il = visPnls.length; i < il; i++) {
-						visPnls[i].setVisible(true, false, false);
+						visPnls[i].setVisible(true, false);
 					}
 				}
 			});
