@@ -628,7 +628,7 @@ var editor = (function(editor) {
 		var vd = hemi.view.createViewData(hemi.world.camera);
 		vd.eye = [0, 10, 40];
 		vd.target = [0, 0, 0];
-        hemi.world.camera.moveToView(vd);
+        hemi.world.camera.moveToView(vd, 0);
 	};
 	
 	return editor;
