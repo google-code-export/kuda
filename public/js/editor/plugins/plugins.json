@@ -11,6 +11,7 @@
 		"fog",
 		"behavior",
 		"manips",
+		"timers",
 		"hud"
 	]
 }
