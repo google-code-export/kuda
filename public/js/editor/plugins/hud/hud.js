@@ -453,8 +453,7 @@
 		init: function(options) {
 			this._super({
 				name: 'createHudWidget',
-				uiFile: 'js/editor/plugins/hud/html/displaysForms.htm',
-				manualVisible: true
+				uiFile: 'js/editor/plugins/hud/html/displaysForms.htm'
 			});	
 		},
 		

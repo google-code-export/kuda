@@ -329,8 +329,7 @@
 			
 		    this._super({
 				name: 'createPteWidget',
-				uiFile: 'js/editor/plugins/particleEffects/html/particleFxForms.htm',
-				manualVisible: true
+				uiFile: 'js/editor/plugins/particleEffects/html/particleFxForms.htm'
 			});	
 		},
 		

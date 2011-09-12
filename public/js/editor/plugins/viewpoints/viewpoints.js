@@ -172,8 +172,7 @@
 		init: function(options) {
 		    this._super({
 				name: 'createVptWidget',
-				uiFile: 'js/editor/plugins/viewpoints/html/viewpointsForms.htm',
-				manualVisible: true
+				uiFile: 'js/editor/plugins/viewpoints/html/viewpointsForms.htm'
 			});
 		},
 		

@@ -1003,8 +1003,7 @@
 	var HiddenItemsWidget = editor.ui.Widget.extend({
 		init: function(options) {
 		    this._super({
-				name: 'hiddenItemsWidget',
-				manualVisible: true
+				name: 'hiddenItemsWidget'
 			});
 			
 			this.hiddenItems = new Hashtable();		

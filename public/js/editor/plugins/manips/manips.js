@@ -239,8 +239,7 @@
 		init: function() {
 			this._super({
 				name: 'createMnpWidget',
-				uiFile: 'js/editor/plugins/manips/html/manipsForms.htm',
-				manualVisible: true
+				uiFile: 'js/editor/plugins/manips/html/manipsForms.htm'
 			});
 				
 			this.inputsToCheck = [];

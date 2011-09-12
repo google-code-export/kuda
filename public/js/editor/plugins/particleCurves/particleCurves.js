@@ -449,8 +449,7 @@
 			
 		    this._super({
 				name: 'createPtcCurveWidget',
-				uiFile: 'js/editor/plugins/particleCurves/html/curvesForms.htm',
-				manualVisible: true
+				uiFile: 'js/editor/plugins/particleCurves/html/curvesForms.htm'
 			});
 		},
 		

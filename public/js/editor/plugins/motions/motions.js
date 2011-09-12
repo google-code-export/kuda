@@ -236,8 +236,7 @@
 		init: function() {
 		    this._super({
 				name: 'createMtnWidget',
-				uiFile: 'js/editor/plugins/motions/html/motionsForms.htm',
-				manualVisible: true
+				uiFile: 'js/editor/plugins/motions/html/motionsForms.htm'
 			});
 			
 			this.transforms = [];
