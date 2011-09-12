@@ -304,8 +304,7 @@
 		init: function(options) {
 		    this._super({
 				name: 'createCamCurveSBW',
-				uiFile: 'js/editor/plugins/cameraCurves/html/camCurvesForms.htm',
-				manualVisible: true
+				uiFile: 'js/editor/plugins/cameraCurves/html/camCurvesForms.htm'
 			});
 			this.waypoints = [];
 		},

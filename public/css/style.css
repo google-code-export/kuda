@@ -345,6 +345,7 @@ p {
 	color: #333;
 	box-shadow: 0 0 10px #666;
 	opacity: 0.85;
+	overflow: hidden;
 }
 .rightAligned {
 	position: absolute;
@@ -455,6 +456,7 @@ p {
 	background: #333;
 	padding: 10px;
 	text-align: left;
+	overflow: hidden;
 }
 .widgetWithForms, .fullSideWidget {
 	background: #eee;
@@ -629,6 +631,36 @@ ol.listWidget li span {
 form input.prmWgtCitTreeIpt, form input.treeSelectorIpt {
 	border-bottom-right-radius: 0;
 	border-top-right-radius: 0;
+}
+
+/******************************************************************************
+ * 							  Custom Preview Panel							  *
+ ******************************************************************************/
+
+.prjTopPanel .previewWidget div {
+	float: left;
+	margin-right: 10px;
+	padding-right: 10px;
+	border-right: 1px dotted #666;
+}
+.prjTopPanel .widget.previewWidget h1 {
+	text-transform: uppercase;
+	color: #fff;
+	float: right;
+}
+.prjTopPanel .previewWidget h1 span {
+	color: #75d0f4;
+}
+.prjTopPanel .previewWidget h2 {
+	color: #fff;
+	clear: right;
+	float: right;
+	font: bold 14px/18px "Myriad Pro", Helvetica, sans-serif;
+	text-transform: uppercase;
+}
+.prjTopPanel .previewWidget button {
+	float: left;
+	margin-top: 5px;
 }
 
 /******************************************************************************

@@ -309,15 +309,27 @@ var editor = (function(editor) {
 //                     			   	  Widget	  		                      //
 ////////////////////////////////////////////////////////////////////////////////	
 	
+	editor.ui.WidgetDefaults = {
+		classes: [],
+		height: null,
+		name: 'defaultName'
+	};
+	
 	editor.ui.Widget = editor.ui.Component.extend({
 		init: function(options) {
 			this.viewMeta = new Hashtable();
 			
-			this._super(options);
+			var newOpts = jQuery.extend({}, editor.ui.WidgetDefaults, options);
+			this._super(newOpts);
 		},
 		
 		layout: function() {
 			this.container = jQuery('<div class="widget"></div>');
+			
+			for (var i = 0, il = this.config.classes.length; i < il; i++) {
+				this.container.addClass(this.config.classes[i]);
+			}
+			
 			this._super();
 		},
 		

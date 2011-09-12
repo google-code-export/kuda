@@ -160,10 +160,10 @@ var editor = {};
 		},
 		
 		setupWorldMessages = function() {			
-			hemi.world.subscribe(hemi.msg.cleanup, this, function() {
+			hemi.world.subscribe(hemi.msg.cleanup, function() {
 				editor.notifyListeners(editor.events.WorldCleaned);
 			});
-			hemi.world.subscribe(hemi.msg.ready, this, function() {
+			hemi.world.subscribe(hemi.msg.ready, function() {
 				editor.notifyListeners(editor.events.WorldLoaded);
 			});
 		},
@@ -177,6 +177,10 @@ var editor = {};
 ////////////////////////////////////////////////////////////////////////////////
 //                             Editor Utilities                               //
 ////////////////////////////////////////////////////////////////////////////////
+	
+	editor.getActiveTool = function() {
+		return app.toolbar.getActiveTool();
+	};
 	
 	editor.getCss = function(url, media) {
 		jQuery( document.createElement('link') ).attr({

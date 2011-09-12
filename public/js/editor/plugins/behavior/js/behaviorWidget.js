@@ -271,8 +271,7 @@ var editor = (function(editor) {
 	var BehaviorWidget = editor.ui.FormWidget.extend({
 		init: function() {
 			this._super({
-				name: 'behaviorWidget',
-				manualVisible: true
+				name: 'behaviorWidget'
 			});
 		},
 		

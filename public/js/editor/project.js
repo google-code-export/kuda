@@ -145,7 +145,7 @@ var editor = (function(editor) {
 		},
 		
 		startPreview: function() {
-			if (this.worldState !== null) {
+			if (this.worldState != null) {
 				return;
 			}
 			
@@ -153,7 +153,7 @@ var editor = (function(editor) {
 			var hi = hemi.input,
 				hr = hemi.core.client.root,
 				hw = hemi.world,
-				data = module.getProjectOctane();
+				data = editor.getProjectOctane();
 			
 			// make a deep copy, so the preview world created from the data
 			// won't affect the editor world
@@ -180,8 +180,7 @@ var editor = (function(editor) {
 				mwL: hi.mouseWheelListeners,
 		        kdL: hi.keyDownListeners,
 		        kuL: hi.keyUpListeners,
-		        kpL: hi.keyPressListeners,
-				tool: module.getActiveTool()
+		        kpL: hi.keyPressListeners
 			};
 			
 			// Hide the currently rendered tree
@@ -215,16 +214,15 @@ var editor = (function(editor) {
 			hemi.shape.root.name = hemi.shape.SHAPE_ROOT;
 			hemi.shape.root.parent = hemi.picking.pickRoot;
 			
-			hemi.world.subscribe(hemi.msg.progress, module.ui.progressUI, 'msgUpdate');
+			hemi.world.subscribe(hemi.msg.progress, editor.ui.progressUI, 'msgUpdate');
 			
 			// now load the preview data
 			hemi.octane.createWorld(data);
 			hemi.world.ready();
-			this.notifyListeners(module.EventTypes.PreviewStarted, null);
 		},
 		
 		stopPreview: function() {
-			if (this.worldState === null) {
+			if (this.worldState == null) {
 				return;
 			}
 			
@@ -283,7 +281,6 @@ var editor = (function(editor) {
 			
 			hw.camera.update();
 			hw.camera.updateProjection();
-			this.notifyListeners(module.EventTypes.PreviewStopped, null);
 			this.worldState = null;
 		}
 	});
@@ -448,20 +445,23 @@ var editor = (function(editor) {
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                              Loading Widget                                //
+//                              Preview Widget                                //
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var PreviewWidget = editor.ui.Widget.extend({
 		init: function() {
 			this._super({
-				name: 'previewWidget'
+				name: 'previewWidget',
+				classes: ['previewWidget']
 			});
 		},
 		
 		finishLayout: function() {
 			this._super();
 			var wgt = this,
-				title = jQuery('<h1>World<span>Editor</span> Preview Mode</h1>');
+				title = jQuery('<h1>World<span>Editor</span></h1>'),
+				subTitle = jQuery('<h2>Preview Mode</h2>'),
+				titleCtn = jQuery('<div></div>');
 			
 			this.stopBtn = jQuery('<button id="prjStopPreviewBtn">Stop Preview</button>');
 			
@@ -469,7 +469,8 @@ var editor = (function(editor) {
 				wgt.notifyListeners(event.StopPreview);
 			});
 			
-			this.container.append(title).append(this.stopBtn);
+			titleCtn.append(title).append(subTitle);
+			this.container.append(titleCtn).append(this.stopBtn);
 		}
 	});
 		
@@ -546,15 +547,19 @@ var editor = (function(editor) {
 				view.notifyListeners(event.StartPreview);
 				
 				// proceed to hide all panels
-				var panels = [];
+				var views = editor.getViews();
 				view.visiblePanels = [];
 				
-				for (var i = 0, il = view.allPanels.length; i < il; i++) {
-					var pnl = view.allPanels[j];
+				for (var i = 0, il = views.length; i < il; i++) {
+					var pnls = views[i].panels;
 					
-					if (pnl.isVisible()) {
-						view.visiblePanels.push(pnl);
-						pnl.setVisible(false, false);
+					for (var j = 0, jl = pnls.length; j < jl; j++) {
+						var pnl = pnls[j];
+						
+						if (pnl.isVisible()) {
+							view.visiblePanels.push(pnl);
+							pnl.setVisible(false, false);
+						}
 					}
 				}
 				// hide the main panel
@@ -605,8 +610,8 @@ var editor = (function(editor) {
 		},
 		
 		stopPreview: function() {
-			for (var i = 0, il = view.visiblePanels.length; i < il; i++) {
-				view.visiblePanels[i].setVisible(true, false);
+			for (var i = 0, il = this.visiblePanels.length; i < il; i++) {
+				this.visiblePanels[i].setVisible(true, false);
 			}
 			
 			editor.ui.getTabBar().setVisible(true);
@@ -791,7 +796,7 @@ var editor = (function(editor) {
 		editor.addListener(editor.events.DoneLoading, function() {			
 			// get the list of panels
 			var views = editor.getViews(),
-				panels = prjView.allPanels = [];
+				panels = [];
 				
 			for (var i = 0, il = views.length; i < il; i++) {
 				var view = views[i];

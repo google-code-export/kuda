@@ -392,8 +392,7 @@
 		    this._super({
 				name: 'createAnmWidget',
 				uiFile: 'js/editor/plugins/animations/html/animationsForms.htm',
-		        instructions: 'Click on a model to select it',
-				manualVisible: true
+		        instructions: 'Click on a model to select it'
 			});
 			
 			this.hiddenItems = new Hashtable();	
