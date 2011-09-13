@@ -203,6 +203,7 @@
 			this._super();
 			
 			var wgt = this,
+				validator = editor.ui.createDefaultValidator(),
 				inputs = this.find('input:not(#vptName)'),
 				form = this.find('form');
 			
@@ -224,6 +225,24 @@
 				container: wgt.find('#vptName'),
 				type: 'string'
 			});
+			this.eye = new editor.ui.Vector({
+				container: wgt.find('#vptCameraDiv'),
+				paramName: 'eye',
+				onBlur: function(elem, evt) {					
+					wgt.checkToggleButtons();
+				},
+				validator: validator
+			});
+			this.target = new editor.ui.Vector({
+				container: wgt.find('#vptTargetDiv'),
+				paramName: 'position',
+				onBlur: function(elem, evt) {
+					wgt.checkToggleButtons();
+				},
+				validator: validator
+			});
+
+			validator.setElements(inputs);
 			
 			inputs.bind('blur', function(evt) {
 				wgt.checkToggleButtons();
@@ -231,53 +250,6 @@
 			
 			form.bind('submit', function() {
 				return false;
-			});
-			
-			new editor.ui.Validator(inputs, function(elem) {
-				var val = elem.val(),
-					msg = null;
-					
-				if (val !== '' && !hemi.utils.isNumeric(val)) {
-					msg = 'must be a number';
-				}
-				
-				return msg;
-			});
-			
-			this.eye = new editor.ui.Vector({
-				container: wgt.find('#vptCameraDiv'),
-				paramName: 'eye',
-				onBlur: function(elem, evt) {					
-					wgt.checkToggleButtons();
-				},
-				validator: new editor.ui.Validator(null, function(elem) {
-						var val = elem.val(),
-							msg = null;
-							
-						if (val !== '' && !hemi.utils.isNumeric(val)) {
-							msg = 'must be a number';
-						}
-						
-						return msg;
-					})
-			});
-			
-			this.target = new editor.ui.Vector({
-				container: wgt.find('#vptTargetDiv'),
-				paramName: 'position',
-				onBlur: function(elem, evt) {
-					wgt.checkToggleButtons();
-				},
-				validator: new editor.ui.Validator(null, function(elem) {
-						var val = elem.val(),
-							msg = null;
-							
-						if (val !== '' && !hemi.utils.isNumeric(val)) {
-							msg = 'must be a number';
-						}
-						
-						return msg;
-					})
 			});
 			
 			this.saveBtn.bind('click', function(evt) {					

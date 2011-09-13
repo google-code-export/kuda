@@ -397,7 +397,7 @@ var editor = (function(editor) {
 				};
 				this.checkers.push(checker);
 			}
-			else if (inputs instanceof editor.ui.Vector) {
+			else if (inputs instanceof editor.ui.Input || inputs instanceof editor.ui.Vector) {
 				var checker = {
 					input: inputs,
 					saveable: function() {
