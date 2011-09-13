@@ -56,17 +56,23 @@ p {
 	text-shadow: 0 -1px 1px #333;
 	box-shadow: 0 0 10px #333;
 	opacity: 0.95;
+	width: 185px;
 }
 #tabBar>h1 {
 	font-size: 24px;
 	line-height: 30px;
 	font-weight: bold;
 	padding: 10px 0;
-	margin: 30px 20px 10px 10px;
+	margin: 30px 10px 10px 10px;
 	border-bottom: 1px dotted #666;
 	text-transform: uppercase;
+	float: left;
 }
 #tabBar>h1 span {
+	display: block;
+	float: left;
+}
+#tabBar>h1 span.editor {	
 	color: #75d0f4;
 }
 #tabBar>ul {
@@ -304,19 +310,22 @@ p {
 	background: #333;
 	border: 1px solid #333;
 	border-radius: 3px;
-	margin: 0 0 10px;
+	margin: 0;
 	color: #ddd;
 	font: bold 14px/16px Myriad Pro, Helvetica, sans-serif;
 }
 #prjSaveIpt:hover {
 	border-color: #444;
 }
-#prjSaveIpt:focus {
+#prjSaveIpt:focus, #prjSaveIpt.overwrite {
 	background: #555;
 	border-color: #777;
 }
 #prjMsg a {
 	color: #fff;
+}
+#prjPane .buttons {
+	margin-top: 3px;
 }
 #prjPane button {
     background: #555;
@@ -332,16 +341,34 @@ p {
 	-webkit-transition: color 0.25s ease-in-out;
 	-moz-transition: color 0.25s ease-in-out;
 	-o-transition: color 0.25s ease-in-out;
+	width: 80px;
 }
-#prjPane #prjPublishBtn {
+#prjPane #prjSaveBtn {
 	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
     text-shadow: 0 -1px 0 #034d75;
     border: 1px solid #212121;
 	box-shadow: 0 1px 0 #444,
 		inset 0 0 1px #72bbe0;
-	width: 161px;
-	clear: both;
+	width: 162px;
+}
+#prjPane #prjSaveBtn.overwrite {
+	width: 100px;
+}
+#prjPane #prjCancelBtn {
+	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
+    text-shadow: 0 -1px 0 #034d75;
+    border: 1px solid #212121;
+	box-shadow: 0 1px 0 #444,
+		inset 0 0 1px #72bbe0;
+	width: 0;
+}
+#prjPane #prjCancelBtn.overwrite {
+	width: 60px;
+}
+#prjPane button:nth-child(3) {
+	clear: left;
 }
 #prjPane button[disabled] {
     background: #444;
