@@ -139,14 +139,20 @@
 		},
 		
 		finishLayout: function() {
+			var validator = editor.ui.createDefaultValidator(),
+				wgt = this;
+			
 			this.form = this.find('form');
 			this.saveBtn = this.find('#tmrSaveBtn');
 			this.cancelBtn = this.find('#tmrCancelBtn');
-			this.nameIpt = this.find('#tmrName');
-			this.startTimeIpt = this.find('#tmrStartTime');
-			
-			var validator = editor.ui.createDefaultValidator(),
-				wgt = this;
+			this.nameIpt = new editor.ui.Input({
+				container: wgt.find('#tmrName'),
+				type: 'string'
+			});
+			this.startTimeIpt = new editor.ui.Input({
+				container: wgt.find('#tmrStartTime'),
+				validator: validator
+			});
 			
 			this.form.submit(function() { return false; });
 			
@@ -156,8 +162,8 @@
 			
 			this.saveBtn.bind('click', function() {
 				var data = {
-						startTime: parseInt(wgt.startTimeIpt.val()),
-						name: wgt.nameIpt.val()
+						startTime: wgt.startTimeIpt.getValue(),
+						name: wgt.nameIpt.getValue()
 					};
 				
 				wgt.reset();
@@ -169,8 +175,6 @@
 				wgt.notifyListeners(editor.EventTypes.EditTimer, null);
 			});
 			
-			validator.setElements(this.startTimeIpt);
-			
 			this.addInputsToCheck(this.startTimeIpt);
 			this.addInputsToCheck(this.nameIpt);
 			
@@ -179,14 +183,14 @@
 		},
 		
 		edit: function(timer) {
-			this.startTimeIpt.val(timer.startTime);
-			this.nameIpt.val(timer.name);
+			this.startTimeIpt.setValue(timer.startTime);
+			this.nameIpt.setValue(timer.name);
 			this.checkSaveButton();
 		},
 		
 		reset: function() {
-			this.startTimeIpt.val('');
-			this.nameIpt.val('');
+			this.startTimeIpt.reset();
+			this.nameIpt.reset();
 			this.checkSaveButton();
 		}
 	});

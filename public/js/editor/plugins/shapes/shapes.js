@@ -42,11 +42,7 @@
     
     editor.EventTypes = editor.EventTypes || {};
 	
-	// view specific
-	
 	// create sidebar widget specific
-	editor.EventTypes.SetShapeParam = "Shapes.SetShapeParam";
-	editor.EventTypes.RemoveShapeParam = "Shapes.RemoveShapeParam";
     editor.EventTypes.PreviewShape = "Shapes.PreviewShape";
     editor.EventTypes.SaveShape = "Shapes.SaveShape";
 	
@@ -57,7 +53,6 @@
 	
 	// model specific
     editor.EventTypes.ShapeSet = "Shapes.ShapeSet";
-	editor.EventTypes.ShapeWorldCleaned = "Shapes.ShapeWorldCleaned";
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -73,11 +68,14 @@
 			
 			this.currentShape = null;
 			this.prevShape = null;
-			this.shapeParams = {};
 	    },
 			
 		worldCleaned: function() {
-			this.notifyListeners(editor.EventTypes.ShapeWorldCleaned, null);
+			var shapes = hemi.world.getShapes();
+			
+			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
+				this.notifyListeners(editor.events.Removed, shapes[ndx]);
+			}
 	    },
 	    
 	    worldLoaded: function() {
@@ -88,38 +86,20 @@
 			}
 	    },
 		
-		setParam: function(paramName, paramValue) {
-			if (paramValue === '') {
-				delete this.shapeParams[paramName];
-			}
-			else {
-				this.shapeParams[paramName] = paramValue;
-			}
-		},
-		
 		setShape: function(shape) {
 			if (this.prevShape !== null) {
 				this.prevShape.cleanup();
 				this.prevShape = null;
 			}
-			
-			this.currentShape = shape;
-			
-			// set the params
-			if (shape !== null) {
-				this.shapeParams = jQuery.extend({
-						type: shape.shapeType,
-						color: shape.color
-					},
-					shape.dim);
-			} else {
-				this.shapeParams = {};
+			if (this.currentShape !== null) {
+				this.currentShape.transform.visible = true;
 			}
 			
+			this.currentShape = shape;
 			this.notifyListeners(editor.EventTypes.ShapeSet, shape);
 		},
 		
-		previewShape: function() {
+		previewShape: function(props) {
 			if (this.currentShape !== null) {
 				this.currentShape.transform.visible = false;
 			}
@@ -127,13 +107,10 @@
 				this.prevShape.cleanup();
 			}
 			
-			this.prevShape = new hemi.shape.Shape(this.shapeParams);
+			this.prevShape = new hemi.shape.Shape(props.shapeInfo);
 			this.prevShape.name = editor.ToolConstants.EDITOR_PREFIX + 'PreviewShape';
-			
-			if (this.shapeParams.position) {
-				var pos = this.shapeParams.position;
-				this.prevShape.translate(pos[0], pos[1], pos[2]);
-			}
+			var pos = props.position;
+			this.prevShape.translate(pos[0], pos[1], pos[2]);
 		},
 		
 		removeShape: function(shape) {
@@ -141,34 +118,30 @@
 			shape.cleanup();
 		},
 		
-		saveShape: function(name) {
+		saveShape: function(props) {
 			var msgType;
 			
 			if (this.prevShape !== null) {
 				this.prevShape.cleanup();
+				this.prevShape = null;
 			}
 			
 			if (this.currentShape !== null) {
-				this.currentShape.change(this.shapeParams);
+				this.currentShape.change(props.shapeInfo);
 				this.currentShape.transform.identity();
 				this.currentShape.transform.visible = true;
 				msgType = editor.events.Updated;
 			} else {
-				this.currentShape = new hemi.shape.Shape(this.shapeParams);
+				this.currentShape = new hemi.shape.Shape(props.shapeInfo);
 				msgType = editor.events.Created;
 			}
 			
-			if (this.shapeParams.position) {
-				var pos = this.shapeParams.position;
-				this.currentShape.translate(pos[0], pos[1], pos[2]);
-			}
-			
-			this.currentShape.setName(name);
+			var pos = props.position;
+			this.currentShape.translate(pos[0], pos[1], pos[2]);
+			this.currentShape.setName(props.name);
 			this.notifyListeners(msgType, this.currentShape);
 			
 			this.currentShape = null;
-			this.prevShape = null;
-			this.shapeParams = {};
 		}
 	});
    	
@@ -191,149 +164,109 @@
 			this._super();
 			
 			var form = this.find('form'),
-				typeSel = this.find('#shpTypeSelect'),
 				saveBtn = this.find('#shpSaveBtn'),
 				cancelBtn = this.find('#shpCancelBtn'),
-				nameInput = this.find('#shpName'),
 				inputs = this.find('input:not(#shpName, .vector, .color)'),
-				params = this.find('#shpShapeParams'),
 				previewBtn = this.find('#shpPreviewBtn'),
-				optionalInputs = this.find('.optional'),
-				wgt = this,
-				vecValidator = new editor.ui.Validator(null, function(elem) {
-						var val = elem.val(),
-							msg = null;
-							
-						if (val !== '' && !hemi.utils.isNumeric(val)) {
-							msg = 'must be a number';
-						}
-						
-						return msg;
-					});
+				validator = editor.ui.createDefaultValidator(),
+				wgt = this;
+			
+			this.shapeType = this.find('#shpTypeSelect');
+			
+			this.shapeHeight = new editor.ui.Input({
+				container: wgt.find('#shpHeight')
+			});
+			this.shapeWidth = new editor.ui.Input({
+				container: wgt.find('#shpWidth')
+			});
+			this.shapeDepth = new editor.ui.Input({
+				container: wgt.find('#shpDepth')
+			});
+			this.shapeSize = new editor.ui.Input({
+				container: wgt.find('#shpSize')
+			});
+			this.shapeTail = new editor.ui.Input({
+				container: wgt.find('#shpTail')
+			});
+			this.shapeRadius = new editor.ui.Input({
+				container: wgt.find('#shpRadius')
+			});
+			this.shapeName = new editor.ui.Input({
+				container: wgt.find('#shpName'),
+				type: 'string'
+			});
 			
 			this.colorPicker = new editor.ui.ColorPicker({
 				inputId: 'shpColor',
 				buttonId: 'shpColorPicker'
 			});
-			
 			this.find('#shpColorLbl').after(this.colorPicker.getUI());
-				
-			// hide optional inputs
-			optionalInputs.parent().hide();
 			
-			this.vectors = new editor.ui.Vector({
+			this.shapePosition = new editor.ui.Vector({
 				container: wgt.find('#shpPositionDiv'),
 				paramName: 'position',
 				onBlur: function(elem, evt) {
-					var val = elem.val(),
-						ndx = elem.data('ndx');
-					
-					if (val === '') {
-						wgt.notifyListeners(editor.EventTypes.RemoveShapeParam, 
-							wgt.vectors.config.paramName);
-					}
-					else if (hemi.utils.isNumeric(val)) {
-						var totalVal = wgt.vectors.getValue();
-						
-						if (totalVal == null) {
-							wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
-								paramName: wgt.vectors.config.paramName,
-								paramValue: totalVal
-							});
-						}
-					}
-					
 					wgt.checkToggleButtons();
 				},
-				validator: vecValidator
+				validator: validator
 			});
 			
+			// hide optional inputs
+			this.find('.optional').parent().hide();
+			
 			// add validation
-			new editor.ui.Validator(inputs, function(elem) {
-				var val = elem.val(),
-					msg = null;
-				
-				if (val != '' && !hemi.utils.isNumeric(val)) {
-					msg = 'must be a number';
-				}
-				
-				return msg;
-			});
+			validator.setElements(inputs);
 								
 			// bind inputs
 			inputs.bind('blur', function(evt) {
-				var elem = jQuery(this),
-					origVal = elem.val(),
-					val = parseInt(origVal),
-					param = elem.attr('id').replace('shp', '').toLowerCase();
-					
-				if (origVal == '' || !isNaN(val)) {
-					val = isNaN(val) ? origVal : val;
-					wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
-						paramName: param,
-						paramValue: val
-					});
-				
-					wgt.checkToggleButtons();
-				}
+				wgt.checkToggleButtons();
 			});
 			
 			// bind type selection
-			typeSel.bind('change', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val(),
-					heightInput = wgt.find('#shpHeight'),
-					widthInput = wgt.find('#shpWidth'),
-					depthInput = wgt.find('#shpDepth'),
-					sizeInput = wgt.find('#shpSize'),
-					tailInput = wgt.find('#shpTail'),
-					radiusInput = wgt.find('#shpRadius'),
-					inputs = [];
+			this.shapeType.bind('change', function(evt) {
+				var val = wgt.shapeType.val(),
+					inputs = [wgt.shapePosition];
 				
-				heightInput.val('').blur().parent().hide();
-				widthInput.val('').blur().parent().hide();
-				depthInput.val('').blur().parent().hide();
-				radiusInput.val('').blur().parent().hide();
-				sizeInput.val('').blur().parent().hide();
-				tailInput.val('').blur().parent().hide();
-				
-				wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
-					paramName: 'type',
-					paramValue: val
-				});
+				wgt.shapeHeight.reset();
+				wgt.shapeWidth.reset();
+				wgt.shapeDepth.reset();
+				wgt.shapeRadius.reset();
+				wgt.shapeSize.reset();
+				wgt.shapeTail.reset();
+				wgt.find('.optional').parent().hide();
 				
 				// switch between shapes
 				switch(val) {
 					case hemi.shape.BOX:
 					case hemi.shape.PYRAMID:
-						heightInput.parent().show();
-						widthInput.parent().show();
-						depthInput.parent().show();
-						inputs.push(heightInput);
-						inputs.push(widthInput);
-						inputs.push(depthInput);
+						wgt.shapeHeight.getUI().parent().show();
+						wgt.shapeWidth.getUI().parent().show();
+						wgt.shapeDepth.getUI().parent().show();
+						inputs.push(wgt.shapeHeight);
+						inputs.push(wgt.shapeWidth);
+						inputs.push(wgt.shapeDepth);
 						break;
 					case hemi.shape.SPHERE:
-						radiusInput.parent().show();
-						inputs.push(radiusInput);
+						wgt.shapeRadius.getUI().parent().show();
+						inputs.push(wgt.shapeRadius);
 						break;
 					case hemi.shape.CONE:
 					case hemi.shape.CYLINDER:
-						radiusInput.parent().show();
-						heightInput.parent().show();
-						inputs.push(radiusInput);
-						inputs.push(heightInput);
+						wgt.shapeRadius.getUI().parent().show();
+						wgt.shapeHeight.getUI().parent().show();
+						inputs.push(wgt.shapeRadius);
+						inputs.push(wgt.shapeHeight);
 						break;
 					case hemi.shape.ARROW:
-						sizeInput.parent().show();
-						tailInput.parent().show();
-						inputs.push(sizeInput);
-						inputs.push(tailInput);
+						wgt.shapeSize.getUI().parent().show();
+						wgt.shapeTail.getUI().parent().show();
+						inputs.push(wgt.shapeSize);
+						inputs.push(wgt.shapeTail);
 					case hemi.shape.CUBE:
 					case hemi.shape.TETRA:
 					case hemi.shape.OCTA:
-						sizeInput.parent().show();
-						inputs.push(sizeInput);
+						wgt.shapeSize.getUI().parent().show();
+						inputs.push(wgt.shapeSize);
 						break;
 				}
 				
@@ -342,22 +275,13 @@
 				previewBtn.attr('disabled', 'disabled');
 			});
 			
-			
-			nameInput.bind('keyup', function(evt) {
-				var val = nameInput.val();
-				
-				if (val !== '' && wgt.canSave()) {
-					saveBtn.removeAttr('disabled');
-				}
-				else {
-					saveBtn.attr('disabled', 'disabled');
-				}
+			this.shapeName.getUI().bind('keyup', function(evt) {
+				wgt.checkToggleButtons();
 			});
 			
 			saveBtn.bind('click', function(evt) {
-				var name = nameInput.val();
-				
-				wgt.notifyListeners(editor.EventTypes.SaveShape, name);
+				var props = wgt.getProperties();
+				wgt.notifyListeners(editor.EventTypes.SaveShape, props);
 			})
 			.attr('disabled', 'disabled');
 			
@@ -368,7 +292,8 @@
 			});
 			
 			previewBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.PreviewShape, null);
+				var props = wgt.getProperties();
+				wgt.notifyListeners(editor.EventTypes.PreviewShape, props);
 			})
 			.attr('disabled', 'disabled');
 			
@@ -377,45 +302,76 @@
 			});
 			
 			this.colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
-				wgt.notifyListeners(editor.EventTypes.SetShapeParam, {
-					paramName: 'color',
-					paramValue: clr
-				});
-				
 				wgt.checkToggleButtons();
 			});
 			
 			editor.ui.sizeAndPosition.call(this);
 		},
 		
-		canSave: function() {
-			var list = this.inputsToCheck,
-				isSafe = this.vectors.getValue() != null && this.colorPicker.getColor() != null;
-			
-			for (var ndx = 0, len = list.length; ndx < len && isSafe; ndx++) {
-				isSafe = list[ndx].val() !== '';
-			}
-			
-			return isSafe;
-		},
-		
 		checkToggleButtons: function() {
-			var name = this.find('#shpName').val(),
-				canSave = this.canSave(),
+			var name = this.shapeName.getValue(),
 				saveBtn = this.find('#shpSaveBtn'),
-				previewBtn = this.find('#shpPreviewBtn');				
-					
-			if (name !== '' && canSave) {
-				saveBtn.removeAttr('disabled');
-				previewBtn.removeAttr('disabled');
+				previewBtn = this.find('#shpPreviewBtn'),
+				list = this.inputsToCheck,
+				isSafe = this.colorPicker.getColor() != null;
+			
+			for (var i = 0, il = list.length; i < il && isSafe; ++i) {
+				isSafe = list[i].getValue() != null;
 			}
-			else if (canSave) {
+			
+			if (isSafe) {
 				previewBtn.removeAttr('disabled');
-			}
-			else {
+				
+				if (name != null) {
+					saveBtn.removeAttr('disabled');
+				} else {
+					saveBtn.attr('disabled', 'disabled');
+				}
+			} else {
 				previewBtn.attr('disabled', 'disabled');
 				saveBtn.attr('disabled', 'disabled');
 			}
+		},
+		
+		getProperties: function() {
+			var type = this.shapeType.val(),
+				wgt = this,
+				props = {
+					name: wgt.shapeName.getValue(),
+					position: wgt.shapePosition.getValue()
+				},
+				shapeInfo = {
+					color: wgt.colorPicker.getColor(),
+					type: type
+				};
+			
+			switch (type) {
+				case hemi.shape.BOX:
+				case hemi.shape.PYRAMID:
+					shapeInfo.height = this.shapeHeight.getValue();
+					shapeInfo.width= this.shapeWidth.getValue();
+					shapeInfo.depth = this.shapeDepth.getValue();
+					break;
+				case hemi.shape.SPHERE:
+					shapeInfo.radius= this.shapeRadius.getValue();
+					break;
+				case hemi.shape.CONE:
+				case hemi.shape.CYLINDER:
+					shapeInfo.radius= this.shapeRadius.getValue();
+					shapeInfo.height = this.shapeHeight.getValue();
+					break;
+				case hemi.shape.ARROW:
+					shapeInfo.size= this.shapeSize.getValue();
+					shapeInfo.tail= this.shapeTail.getValue();
+				case hemi.shape.CUBE:
+				case hemi.shape.TETRA:
+				case hemi.shape.OCTA:
+					shapeInfo.size= this.shapeSize.getValue();
+					break;
+			}
+			
+			props.shapeInfo = shapeInfo;
+			return props;
 		},
 		
 		reset: function() {		
@@ -423,13 +379,19 @@
 			this.find('.optional').parent().hide();
 			
 			// reset selects
-			this.find('#shpTypeSelect').val(-1);
+			this.shapeType.val(-1);
 			
-			// set all inputs to blank
-			this.find('form input').val('');
+			// reset all inputs
+			this.shapeHeight.reset();
+			this.shapeWidth.reset();
+			this.shapeDepth.reset();
+			this.shapeSize.reset();
+			this.shapeTail.reset();
+			this.shapeRadius.reset();
+			this.shapeName.reset();
 			
-			// reset the hints
-			this.vectors.reset();
+			// reset the position
+			this.shapePosition.reset();
 		
 			// reset the colorpicker
 			this.colorPicker.reset();
@@ -440,23 +402,12 @@
 		},
 		
 		set: function(shape) {
-			var heightInput = this.find('#shpHeight'),
-				widthInput = this.find('#shpWidth'),
-				depthInput = this.find('#shpDepth'),
-				sizeInput = this.find('#shpSize'),
-				tailInput = this.find('#shpTail'),
-				radiusInput = this.find('#shpRadius'),
-				r = shape.color[0],
-				g = shape.color[1],
-				b = shape.color[2],
-				a = shape.color[3];
-			
 			// set the type
-			this.find('#shpTypeSelect').val(shape.shapeType).change();
+			this.shapeType.val(shape.shapeType).change();
 			
 			// set the position
 			var translation = hemi.core.math.matrix4.getTranslation(shape.transform.localMatrix);
-			this.vectors.setValue({
+			this.shapePosition.setValue({
 				x: translation[0],
 				y: translation[1],
 				z: translation[2]
@@ -465,24 +416,25 @@
 			// set the dimension values
 			for (var prop in shape.dim) {
 				var val = shape.dim[prop];
+				
 				switch(prop) {
 					case 'height':
-					    heightInput.val(val).blur();
+					    this.shapeHeight.setValue(val);
 						break;
 					case 'width':
-					    widthInput.val(val).blur();
+						this.shapeWidth.setValue(val);
 						break;
 					case 'depth':
-					    depthInput.val(val).blur();
+						this.shapeDepth.setValue(val);
 						break;
 					case 'size':
-					    sizeInput.val(val).blur();
+						this.shapeSize.setValue(val);
 						break;
 					case 'tail':
-					    tailInput.val(val).blur();
+						this.shapeTail.setValue(val);
 						break;
 					case 'radius':
-					    radiusInput.val(val).blur();
+						this.shapeRadius.setValue(val);
 						break;
 				}
 			}
@@ -491,16 +443,10 @@
 			this.colorPicker.setColor(shape.color);
 			
 			// set the name
-			this.find('#shpName').val(shape.name);
+			this.shapeName.setValue(shape.name);
 			
 			// set the buttons
-			this.find('#shpSaveBtn').attr('disabled', 'disabled');
-			this.find('#shpPreviewBtn').attr('disabled', 'disabled');
-			
-			this.notifyListeners(editor.EventTypes.SetShapeParam, {
-				paramName: 'position',
-				paramValue: translation
-			});
+			this.checkToggleButtons();
 		}
 	});
 	
@@ -592,21 +538,16 @@
 	        var model = this.model,
 	        	view = this.view,
 				crtWgt = view.sidePanel.createShapeWidget,
-				lstWgt = view.sidePanel.shapeListWidget,
-				bhvWgt = view.sidePanel.behaviorWidget,
-	        	that = this;
+				lstWgt = view.sidePanel.shapeListWidget;
 			
 			// create sidebar widget listeners
-			crtWgt.addListener(editor.EventTypes.SaveShape, function(name) {				
-				model.saveShape(name);
+			crtWgt.addListener(editor.EventTypes.SaveShape, function(props) {				
+				model.saveShape(props);
 				crtWgt.reset();
 			});		
-			crtWgt.addListener(editor.EventTypes.PreviewShape, function() {
-				model.previewShape();
+			crtWgt.addListener(editor.EventTypes.PreviewShape, function(props) {
+				model.previewShape(props);
 			});
-			crtWgt.addListener(editor.EventTypes.SetShapeParam, function(paramObj) {
-				model.setParam(paramObj.paramName, paramObj.paramValue);
-			});	
 			crtWgt.addListener(editor.events.Cancel, function() {
 				model.setShape(null);
 			});	
@@ -620,8 +561,6 @@
 			lstWgt.addListener(editor.EventTypes.RemoveShape, function(shape) {
 				model.removeShape(shape);
 			});
-			
-			// view specific listeners
 			
 			// model specific listeners
 			model.addListener(editor.events.Created, function(shape) {
@@ -637,9 +576,6 @@
 				if (shape != null) {
 					crtWgt.set(shape);
 				}
-			});
-			model.addListener(editor.EventTypes.ShapeWorldCleaned, function() {
-				lstWgt.clear();
 			});
 	    }
 	});
