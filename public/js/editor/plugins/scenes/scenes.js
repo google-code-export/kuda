@@ -118,7 +118,7 @@
 		},
 	    
 	    worldCleaned: function() {
-			this.notifyListeners(editor.EventTypes.WorldCleaned, null);
+			this.notifyListeners(editor.events.WorldCleaned, null);
 	    },
 		    
 	    worldLoaded: function() {

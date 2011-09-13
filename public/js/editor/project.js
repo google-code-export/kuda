@@ -11,6 +11,8 @@ var editor = (function(editor) {
 		Loaded: 'loaded',
 		Projects: 'projects',
 		ProjectExists: 'projectExsits',
+		Publish: 'publish',
+		Published: 'published',
 		Save: 'save',
 		Saved: 'saved',
 		ServerRunning: 'serverRunning',
@@ -77,10 +79,11 @@ var editor = (function(editor) {
 				url: '/project',
 				data: data,
 				dataType: 'json',
-				success: function(data, status, xhr){
+				success: function(data, status, xhr) {
+					hemi.world.send(hemi.msg.cleanup);
 					dispatchProxy.swap();
 					hemi.octane.createWorld(data);
-					dispatchProxy.swap();
+					dispatchProxy.unswap();
 					hemi.world.ready();
 					
 					mdl.notifyListeners(event.Loaded, {
@@ -106,6 +109,47 @@ var editor = (function(editor) {
 					this.save();
 					break;
 			}
+		},
+		
+		publish: function(name) {
+			this.save(name, true);
+			
+			var data = {
+					name: name
+				},
+				models = hemi.world.getModels(),
+				mdl = this;
+			
+			if (models.length > 0) {
+				var names = [];
+				
+				for (var i = 0, il = models.length; i < il; i++) {
+					names.push(models[i].name);
+				}
+				
+				data.models = names.join(', ');
+			} else {
+				data.models = 'No models needed!';
+			}
+			
+			jQuery.ajax({
+				url: '/publish',
+				data: data,
+				dataType: 'json',
+				type: 'post',
+				success: function(data, status, xhr) {
+					mdl.notifyListeners(event.Published, {
+						succeeded: true
+					});
+				},
+				error: function(xhr, status, err) {
+					mdl.notifyListeners(event.Published, {
+						succeeded: false,
+						message: ''
+					})
+				}
+			});
+			
 		},
 		
 		remove: function(name) {
@@ -378,7 +422,8 @@ var editor = (function(editor) {
 				name: 'prjListWidget',
 				listId: 'projectList',
 				prefix: 'prjLst',
-				title: 'Projects'
+				title: 'Projects',
+				instructions: ''
 			});
 			
 			this.items = new Hashtable();	
@@ -510,9 +555,11 @@ var editor = (function(editor) {
 			
 			if (!saveable) {
 				this.saveBtn.attr('disabled', 'disabled');
+				this.publishBtn.attr('disabled', 'disabled');
 			}
 			else {
 				this.saveBtn.removeAttr('disabled');
+				this.publishBtn.removeAttr('disabled');
 			}
 			
 			return saveable;
@@ -525,8 +572,9 @@ var editor = (function(editor) {
 					<p id="prjCur"><input type="text" id="prjSaveIpt" value="Unsaved Project" /></p> \
 					<div class="buttons"> \
 						<button id="prjSaveBtn">Save</button> \
-						<button id="prjLoadBtn">Load</button> \
+						<button id="prjLoadBtn">Open</button> \
 						<button id="prjPreviewBtn">Preview</button> \
+						<button id="prjPublishBtn">Publish</button> \
 					</div> \
 				</div>');			
 				
@@ -535,6 +583,7 @@ var editor = (function(editor) {
 				saveBtn = this.saveBtn = ctn.find('#prjSaveBtn'),
 				loadBtn = this.loadBtn = ctn.find('#prjLoadBtn'),
 				previewBtn = this.previewBtn = ctn.find('#prjPreviewBtn'),
+				publishBtn = this.publishBtn = ctn.find('#prjPublishBtn'),
 				curPrjCtn = this.curPrjCtn = ctn.find('#prjCur');						
 			
 			this.msg = ctn.find('#prjMsg').hide();
@@ -569,8 +618,13 @@ var editor = (function(editor) {
 				view.topPanel.setVisible(true);
 			});
 			
+			publishBtn.bind('click', function() {
+				view.notifyListeners(event.Publish, saveIpt.val());
+			});
+			
 			saveBtn.bind('click', function(evt) {
 				view.notifyListeners(event.CheckProjectExists, saveIpt.val());
+				view.dontSave = false;
 			});
 			
 			saveIpt.bind('keydown', function(evt) {
@@ -579,7 +633,6 @@ var editor = (function(editor) {
 				
 				if (view.checkSaveable() && code === 13) {
 					view.dontSave = false;
-					view.notifyListeners(event.CheckProjectExists, val);
 				}
 				else if (code == 27) {
 					saveIpt.val('').blur();
@@ -598,10 +651,6 @@ var editor = (function(editor) {
 				if (val === '') {
 					saveIpt.val(view.loadedProject == null ? 'Unsaved Project' :
 						view.loadedProject);
-				}
-				else {
-					view.dontSave = true;		
-					view.notifyListeners(event.CheckProjectExists, val);
 				}
 				view.checkSaveable();
 			});
@@ -660,6 +709,8 @@ var editor = (function(editor) {
 				this.saveIpt.show();
 				this.msg.text('Server Down. Could not load.').show();
 			}
+			
+			this.loadBtn.removeAttr('disabled');
 		},
 		
 		updateProjects: function(projects) {
@@ -671,22 +722,26 @@ var editor = (function(editor) {
 			if (projects === null) {
 				this.msg.empty().text('Server Down').show();
 			}
-			
-			for (var i = 0, il = projects.length; i < il; i++) {
-				lstWgt.add(projects[i]);
-			}
-				
-			jQuery(document).bind('click.prj', function(e) {
-				var target = jQuery(e.target),
-					parent = target.parents('.prjSidePanel, #prjPane'),
-					isTool = target.parents('.toolBtn').size() > 0 || 
-						target.hasClass('toolBtn');
-				
-				if (parent.size() == 0 && target.attr('id') !== 'prjPane') {
-					view.sidePanel.setVisible(false, !isTool);
-					jQuery(document).unbind('click.prj');
+			else {
+				for (var i = 0, il = projects.length; i < il; i++) {
+					lstWgt.add(projects[i]);
 				}
-			});
+				
+				jQuery(document).bind('click.prj', function(e){
+					var target = jQuery(e.target), 
+						parent = target.parents('.prjSidePanel, #prjPane'), 
+						isTool = target.parents('.toolBtn').size() > 0 ||
+							target.hasClass('toolBtn');
+					
+					if (parent.size() == 0 && target.attr('id') !== 'prjPane') {
+						view.sidePanel.setVisible(false, !isTool);
+						view.loadBtn.removeAttr('disabled');
+						jQuery(document).unbind('click.prj');
+					}
+				});
+				
+				this.loadBtn.attr('disabled', 'disabled');
+			}
 		},
 		
 		updateSaved: function(name, succeeded) {
@@ -694,6 +749,7 @@ var editor = (function(editor) {
 				this.saveIpt.val(name).effect('highlight', {
 					color: '#777'
 				});
+				this.loadedProject = name;
 				this.msg.hide();
 			}
 			else {
@@ -734,6 +790,9 @@ var editor = (function(editor) {
 			view.addListener(event.CheckProjectExists, function(name) {
 				model.checkExisting(name);
 			});
+			view.addListener(event.Publish, function(name) {
+				model.publish(name);
+			});
 			view.addListener(event.Save, function(data) {
 				model.save(data.project, data.replace);
 			});
@@ -763,6 +822,9 @@ var editor = (function(editor) {
 			model.addListener(event.Projects, function(projects) {
 				view.sidePanel.setVisible(true);
 				view.updateProjects(projects);
+			});
+			model.addListener(event.Published, function(data) {
+				view.updatePublished();
 			});
 			model.addListener(event.Saved, function(data) {
 				view.updateSaved(data.project, data.saved);

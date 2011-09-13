@@ -137,7 +137,15 @@ var editor = (function(editor) {
 		},
 		
 		worldCleaned: function() {
+			var citizens = hemi.world.getCitizens();
 			
+			for (var ndx = 0, len = citizens.length; ndx < len; ndx++) {
+				var citizen = citizens[ndx];
+				
+				if (citizen.name.match(editor.ToolConstants.EDITOR_PREFIX) === null) {
+					this.removeCitizen(citizen);
+				}
+			}
 		},
 		
 		worldLoaded: function() {
