@@ -177,9 +177,9 @@
 		},
 		
 		checkToggleButtons: function() {
-			var np = this.nearPlane.val(),
-				fp = this.farPlane.val(),
-				fov = this.fov.val(),
+			var np = this.nearPlane.getValue(),
+				fp = this.farPlane.getValue(),
+				fov = this.fov.getValue(),
 				isSafe = this.eye.getValue() != null 
 					&& this.target.getValue() != null
 					&& hemi.utils.isNumeric(fov) && hemi.utils.isNumeric(np)
@@ -188,7 +188,7 @@
 			if (isSafe) {
 				this.previewBtn.removeAttr('disabled');
 				
-				if (this.name.val() !== '') {
+				if (this.name.getValue() != null) {
 					this.saveBtn.removeAttr('disabled');
 				} else {
 					this.saveBtn.attr('disabled', 'disabled');
@@ -210,10 +210,20 @@
 			this.cancelBtn = this.find('#vptCancelBtn');
 			this.previewBtn = this.find('#vptPreviewBtn');
 			this.autofillBtn = this.find('#vptAutoFill');
-			this.fov = this.find('#vptFov');
-			this.nearPlane = this.find('#vptNearPlane');
-			this.farPlane = this.find('#vptFarPlane');
-			this.name = this.find('#vptName');
+			this.fov = new editor.ui.Input({
+				container: wgt.find('#vptFov'),
+				type: 'angle'
+			});
+			this.nearPlane = new editor.ui.Input({
+				container: wgt.find('#vptNearPlane')
+			});
+			this.farPlane = new editor.ui.Input({
+				container: wgt.find('#vptFarPlane')
+			});
+			this.name = new editor.ui.Input({
+				container: wgt.find('#vptName'),
+				type: 'string'
+			});
 			
 			inputs.bind('blur', function(evt) {
 				wgt.checkToggleButtons();
@@ -290,7 +300,7 @@
 				wgt.checkToggleButtons();
 			});
 			
-			this.name.bind('keyup', function(evt) {
+			this.name.getUI().bind('keyup', function(evt) {
 				wgt.checkToggleButtons();
 			});
 			
@@ -303,10 +313,10 @@
 				params = {
 					eye: eyeVal,
 					target: tgtVal,
-					fov: hemi.core.math.degToRad(parseFloat(this.fov.val())),
-					np: parseFloat(this.nearPlane.val()),
-					fp: parseFloat(this.farPlane.val()),
-					name: this.name.val()
+					fov: this.fov.getValue(),
+					np: this.nearPlane.getValue(),
+					fp: this.farPlane.getValue(),
+					name: this.name.getValue()
 				};
 				
 			return params;
@@ -315,10 +325,12 @@
 		reset: function() {
 			this.eye.reset();
 			this.target.reset();
-			this.fov.val('');
-			this.nearPlane.val('');
-			this.farPlane.val('');
-			this.name.val('');
+			this.fov.reset();
+			this.nearPlane.reset();
+			this.farPlane.reset();
+			this.name.reset();
+			this.saveBtn.attr('disabled', 'disabled');
+			this.previewBtn.attr('disabled', 'disabled');
 		},
 		
 		set: function(viewpoint) {
@@ -332,10 +344,10 @@
 				y: viewpoint.target[1],
 				z: viewpoint.target[2]
 			});
-			this.fov.val(hemi.core.math.radToDeg(viewpoint.fov));
-			this.nearPlane.val(viewpoint.np);
-			this.farPlane.val(viewpoint.fp);
-			this.name.val(viewpoint.name);
+			this.fov.setValue(viewpoint.fov);
+			this.nearPlane.setValue(viewpoint.np);
+			this.farPlane.setValue(viewpoint.fp);
+			this.name.setValue(viewpoint.name);
 			this.previewBtn.removeAttr('disabled');
 		}
 	});
