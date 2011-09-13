@@ -179,6 +179,8 @@ var editor = (function(editor) {
 			this._super();
 			this.id = id;
 			models.put(id, this);
+			editor.addListener(editor.events.WorldCleaned, this);
+			editor.addListener(editor.events.WorldLoaded, this);
 		},
 		
 		getId: function() {

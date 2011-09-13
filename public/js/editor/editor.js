@@ -111,9 +111,9 @@ var editor = {};
 		
 	var initViewerStep1 = function() {						
 			o3djs.webgl.makeClients(function(clientElements) {
+				setupWorldMessages();
 				editor.ui.initializeView(clientElements);
 				loadPlugins();
-				setupWorldMessages();
 			});
 		},
 		
