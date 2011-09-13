@@ -98,7 +98,8 @@
 		init: function(options) {
 			var newOpts = jQuery.extend({
 					name: 'fogFormWidget',
-					uiFile: 'js/editor/plugins/fog/html/fogForms.htm'
+					uiFile: 'js/editor/plugins/fog/html/fogForms.htm',
+					height: editor.ui.Height.FULL
 				}, options);
 		    this._super(newOpts);
 		},
@@ -170,8 +171,6 @@
 			form.bind('submit', function(evt) {
 				return false;
 			});
-			
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		set: function(vals) {

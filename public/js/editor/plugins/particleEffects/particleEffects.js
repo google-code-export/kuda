@@ -669,7 +669,6 @@
 			});
 			
 			this.setupColorPickers();
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		reset: function() {      
@@ -817,9 +816,7 @@
 				instructions: "Add particle effects above."
 			});
 			
-			this.items = new Hashtable();		
-			this.container.addClass('second');
-			editor.ui.sizeAndPosition.call(this);
+			this.items = new Hashtable();
 		},
 		
 		bindButtons: function(li, obj) {

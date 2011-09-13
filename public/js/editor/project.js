@@ -497,7 +497,8 @@ var editor = (function(editor) {
 		init: function() {
 			this._super({
 				name: 'previewWidget',
-				classes: ['previewWidget']
+				classes: ['previewWidget'],
+				height: editor.ui.Height.MANUAL
 			});
 		},
 		
@@ -766,6 +767,7 @@ var editor = (function(editor) {
 					if (parent.size() == 0 && target.attr('id') !== 'prjPane') {
 						view.sidePanel.setVisible(false, !isTool);
 						view.hideButtons();
+						view.saveIpt.val('').blur();
 						jQuery(document).unbind('click.prj');
 					}
 				});

@@ -179,7 +179,6 @@
 			this.addInputsToCheck(this.nameIpt);
 			
 			this._super();
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		edit: function(timer) {
@@ -208,8 +207,6 @@
 				title: 'Timers',
 				instructions: 'Add timers above.'
 			});
-			
-		    editor.ui.sizeAndPosition.call(this);
 		},
 		
 		bindButtons: function(li, obj) {

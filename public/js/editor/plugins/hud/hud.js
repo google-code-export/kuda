@@ -365,8 +365,6 @@
 				},
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
-			
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		getNode: function(obj) {
@@ -491,7 +489,6 @@
 			this.pageEditor.hide();
 			this.textEditor.hide();
 			this.imageEditor.hide();
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		edit: function(obj, citizenType) {

@@ -931,6 +931,9 @@
 			this.detailsList = jQuery('<div id="mbrDetails"></div>').hide();
 			this.treeParent.append(this.tree);
 			this.container.append(this.detailsList).append(this.treeParent);
+		},
+		
+		layoutDone: function() {			
 			sizeAndPosition.call(this);
 		},
 		
@@ -1020,6 +1023,9 @@
 			});
 			
 			this.container.append(this.list.getUI());
+		},
+		
+		layoutDone: function() {			
 			sizeAndPosition.call(this);
 		},
 		
@@ -1108,7 +1114,8 @@
 		init: function() {
 			this._super({
 				name: 'modelLoader',
-				uiFile: 'js/editor/plugins/browser/html/modelLoading.htm'
+				uiFile: 'js/editor/plugins/browser/html/modelLoading.htm',
+				height: editor.ui.Height.MANUAL
 			});
 		},
 		
@@ -1306,7 +1313,8 @@
 	var AdjustWidget = editor.ui.Widget.extend({
 		init: function() {
 			this._super({
-				name: 'adjustWidget'
+				name: 'adjustWidget',
+				height: editor.ui.Height.MANUAL
 			});
 			
 			this.state = AdjustState.NONE;
@@ -1360,7 +1368,8 @@
 	var OpacityWidget = editor.ui.Widget.extend({
 		init: function() {
 			this._super({
-				name: 'opacityWidget'
+				name: 'opacityWidget',
+				height: editor.ui.Height.MANUAL
 			});
 		},
 		
@@ -1566,7 +1575,8 @@
 	var DetailsWidget = editor.ui.Widget.extend({
 		init: function() {
 			this._super({
-				name: 'detailsWidget'
+				name: 'detailsWidget',
+				height: editor.ui.Height.MANUAL
 			});
 		},
 		
@@ -1636,7 +1646,8 @@
 	var VisibilityWidget = editor.ui.Widget.extend({
 		init: function() {
 			this._super({
-				name: 'visibilityWidget'
+				name: 'visibilityWidget',
+				height: editor.ui.Height.MANUAL
 			});
 		},
 		

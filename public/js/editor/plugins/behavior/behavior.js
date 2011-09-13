@@ -36,7 +36,9 @@
 				var widget = widgets[k];
 				
 				if (widget instanceof editor.ui.ListWidget) {
-					var bhvWgt = shorthand.createBehaviorWidget();
+					var bhvWgt = shorthand.createBehaviorWidget({
+						height: editor.ui.Height.FULL
+					});
 					bhvWgt.addListener(editor.EventTypes.CreateBehavior, bhvMdl);
 					bhvWgt.addListener(editor.EventTypes.UpdateBehavior, bhvMdl);
 					
@@ -53,8 +55,6 @@
 					bhvWgt.addListener(editor.events.WidgetVisible, function(obj) {
 						var thisWgt = obj.widget,
 							wgts = thisWgt.parentPanel.widgets;
-						
-						editor.ui.sizeAndPosition.call(bhvWgt);
 						
 						for (var ndx = 0, len = wgts.length; ndx < len; ndx++) {
 							var wgt = wgts[ndx];
@@ -483,7 +483,8 @@
 			this.behaviors = new Hashtable();
 			
 			this._super({
-				name: 'behaviorTableWidget'
+				name: 'behaviorTableWidget',
+				height: editor.ui.Height.MANUAL
 			});
 		},
 		
@@ -626,7 +627,9 @@
 				name: 'bottomPanel'
 			}));
 						
-			this.topPanel.addWidget(editor.tools.behavior.createBehaviorWidget());			
+			this.topPanel.addWidget(editor.tools.behavior.createBehaviorWidget({
+				height: editor.ui.Height.MANUAL
+			}));			
 			this.bottomPanel.addWidget(new TableWidget());
 			
 			this.topPanel.behaviorWidget.setVisible(true);
