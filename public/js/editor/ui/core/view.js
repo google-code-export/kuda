@@ -76,6 +76,9 @@ var editor = (function(editor) {
 		},
 		
 		setVisible: function(visible) {
+			if (this.origOpacity == null) {
+				this.origOpacity = this.container.css('opacity');
+			}
 			setVisible.call(this, visible);
 		}
 	});
@@ -128,7 +131,7 @@ var editor = (function(editor) {
 	
 	var setVisible = function(visible) {
 			var ctn = this.container,
-				origOpacity = 0.85,
+				origOpacity = this.origOpacity,
 				opacity = visible ? origOpacity : 0,
 				opacityStart = visible ? 0 : origOpacity,
 				location = 'top',
@@ -187,6 +190,7 @@ var editor = (function(editor) {
 		init: function(options) {
 			var newOpts = jQuery.extend({}, editor.ui.PanelDefaults, options);
 			this.viewMeta = new Hashtable();
+			this.origOpacity = null;
 			this.widgets = [];
 			this.visible = true;
 			
@@ -290,6 +294,9 @@ var editor = (function(editor) {
 		},
 		
 		setVisible: function(visible, opt_updateMeta) {
+			if (this.origOpacity == null) {				
+				this.origOpacity = this.container.css('opacity');
+			}
 			setVisible.call(this, visible);
 					
 			var pnl = this;
