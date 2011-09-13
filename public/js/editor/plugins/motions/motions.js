@@ -388,8 +388,6 @@
 			form.submit(function(evt) {
 				return false;
 			});
-			
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		getProperties: function() {
@@ -543,8 +541,6 @@
 				title: 'Motions',
 				instructions: "Add motions above."
 			});
-			
-		    editor.ui.sizeAndPosition.call(this);
 		},
 		
 		bindButtons: function(li, obj) {

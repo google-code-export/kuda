@@ -752,8 +752,6 @@
 				wgt.notifyListeners(editor.events.Cancel, null);
 				wgt.find('input.error').removeClass('error');
 			});
-			
-			editor.ui.sizeAndPosition.call(this);
 		},	
 	    
 	    modelSelected: function(model) { 
@@ -869,8 +867,6 @@
 			});
 			
 			this.items = new Hashtable();	
-			this.container.addClass('second');			
-			editor.ui.sizeAndPosition.call(this);	
 		},
 		
 		bindButtons: function(li, obj) {

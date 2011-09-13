@@ -452,8 +452,6 @@
 			form.submit(function(evt) {
 				return false;
 			});
-			
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		getProperties: function() {
@@ -577,8 +575,6 @@
 				title: 'Manipulations',
 				instructions: "Add manipulations above."
 			});
-			
-		    editor.ui.sizeAndPosition.call(this);
 		},
 		
 		bindButtons: function(li, obj) {

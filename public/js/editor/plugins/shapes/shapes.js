@@ -304,8 +304,6 @@
 			this.colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
 				wgt.checkToggleButtons();
 			});
-			
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		checkToggleButtons: function() {
@@ -465,8 +463,6 @@
 			});
 			
 			this.items = new Hashtable();
-			this.container.addClass('second');		
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		bindButtons: function(li, obj) {

@@ -596,7 +596,6 @@
 			this.setupColorPicker();
 			this.addInputsToCheck(nameIpt);
 			this.addInputsToCheck(checker);
-			editor.ui.sizeAndPosition.call(this);
 		},
 		
 		addColorInput: function() {
@@ -962,9 +961,7 @@
 				instructions: "Add particle curves above."
 			});
 			
-			this.items = new Hashtable();
-			this.container.addClass('second');
-			editor.ui.sizeAndPosition.call(this);		
+			this.items = new Hashtable();	
 		},
 		
 		bindButtons: function(li, obj) {

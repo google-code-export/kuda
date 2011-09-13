@@ -162,7 +162,8 @@
 				title: 'Scenes',
 				instructions: "Type in a name and click 'Add Scene' to add a new scene.  Click and drag a scene to reorder it in the list",
 				type: editor.ui.ListType.ORDERED,
-				sortable: true
+				sortable: true,
+				height: editor.ui.Height.FULL
 			});
 			
 			this.items = new Hashtable();
@@ -216,8 +217,6 @@
 					next: next ? next : null
 				});
 			});
-			
-		    editor.ui.sizeAndPosition.call(this);
 		},
 		
 		getOtherHeights: function() {

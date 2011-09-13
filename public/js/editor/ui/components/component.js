@@ -48,7 +48,12 @@ var editor = (function(module) {
 			}
 			else {
 				this.finishLayout();
+				this.layoutDone();
 			}
+		},
+		
+		layoutDone: function() {
+			
 		},
 		
 		finishLayout: function() {
@@ -73,6 +78,7 @@ var editor = (function(module) {
 						cmp.container = jQuery(cleaned);
 					}
 					cmp.finishLayout();
+					cmp.layoutDone();
 				});
 			}
 		},

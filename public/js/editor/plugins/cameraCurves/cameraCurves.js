@@ -276,22 +276,6 @@
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                      	  Widget Private Methods     	                  //
-////////////////////////////////////////////////////////////////////////////////  
-	
-	var sizeAndPosition = function(height) {
-		var wgt = this,
-			container = this.container,
-			padding = parseInt(container.css('paddingBottom')) +
-				parseInt(container.css('paddingTop')),
-			win = jQuery(window),
-			winHeight = win.height(),
-			wgtHeight = winHeight/2 - padding;
-		
-		container.height(wgtHeight)
-	};
-	
-////////////////////////////////////////////////////////////////////////////////
 //                     		Create Camera Curve Widget         	              //
 ////////////////////////////////////////////////////////////////////////////////     
 	
@@ -428,8 +412,6 @@
 			
 			this.addInputsToCheck(nameIpt);
 			this.addInputsToCheck(checker);
-			
-			sizeAndPosition.call(this);
 		},
 		
 		checkPreview: function() {
@@ -579,7 +561,7 @@
 ////////////////////////////////////////////////////////////////////////////////     
 		
 	var ListWidget = editor.ui.ListWidget.extend({
-		init: function(behaviorWidget) {
+		init: function() {
 		    this._super({
 				name: 'camCurveListWgt',
 				listId: 'camCurveList',
@@ -587,10 +569,6 @@
 				title: 'Camera Curves',
 				instructions: "Add camera curves above."
 			});
-			
-			sizeAndPosition.call(this);
-			this.container.addClass('second');
-			this.behaviorWidget = behaviorWidget;
 		},
 		
 		bindButtons: function(li, obj) {
@@ -606,10 +584,6 @@
 				wgt.notifyListeners(editor.EventTypes.RemoveCamCurve, crv);
 			});
 		},
-		
-//		createListItem: function() {
-//			return new editor.ui.BhvListItem(this.behaviorWidget);
-//		},
 		
 		getOtherHeights: function() {
 			return this.form.outerHeight(true);

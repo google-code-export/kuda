@@ -22,6 +22,13 @@ var editor = (function(editor) {
 		TOP: 0,
 		RIGHT: 1,
 		BOTTOM: 2
+	};
+	
+	editor.ui.Height = {
+		FULL: 0,
+		HALF: 1,
+		THIRD: 2,
+		MANUAL: 3
 	}
 	
 	var EXTENT = 50,		// Grid will reach 50 meters in each direction
@@ -318,7 +325,7 @@ var editor = (function(editor) {
 	
 	editor.ui.WidgetDefaults = {
 		classes: [],
-		height: null,
+		height: editor.ui.Height.HALF,
 		name: 'defaultName'
 	};
 	
@@ -359,6 +366,10 @@ var editor = (function(editor) {
 			this.notifyListeners(editor.events.WidgetResized);
 		},
 		
+		layoutDone: function() {
+			this.sizeAndPosition();
+		},
+		
 		setVisible: function(visible, opt_updateMeta) {
 			this._super(visible);
 			var wgt = this;
@@ -369,6 +380,30 @@ var editor = (function(editor) {
 				visible: visible,
 				updateMeta: opt_updateMeta
 			});
+		},
+		
+		sizeAndPosition: function() {
+			var wgt = this,
+				container = this.container,
+				padding = parseInt(container.css('paddingBottom')) +
+					parseInt(container.css('paddingTop')),
+				win = jQuery(window),
+				winHeight = win.height(),
+				wgtHeight = 0;
+			
+			switch(this.config.height) {
+				case editor.ui.Height.FULL:
+					container.height(winHeight - padding);
+					break;
+				case editor.ui.Height.HALF:
+					container.height(winHeight/2 - padding);
+					break;
+				case editor.ui.Height.THIRD:
+					container.height(winHeight/3 - padding);
+					break;
+				case editor.ui.Height.MANUAL:
+					break;
+			}
 		}
 	});
    

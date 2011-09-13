@@ -352,6 +352,11 @@ p {
 		inset 0 0 1px #72bbe0;
 	width: 162px;
 }
+#prjPane #prjSaveBtn[disabled] {
+	background: -moz-linear-gradient(100% 100% 90deg, #6a8da0, #7ca5ba);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#7ca5ba), to(#6a8da0));
+	color: #bbb;
+}
 #prjPane #prjSaveBtn.overwrite {
 	width: 100px;
 }
@@ -515,7 +520,7 @@ p {
 .widget:not(.widgetWithForms):not(.fullSideWidget) h1 {
 	color: #75d0f4;
 }
-.widget.second {
+.widget:nth-child(n+2) {
 	border-top: 1px solid #000;
 }
 
@@ -560,7 +565,7 @@ ul.listWidget li>div {
 .listWidget>li:nth-child(odd) {
 	background: #e4e4e4;
 } 
-.second .listWidget>li:nth-child(odd) {
+.widget:nth-child(n+2) .listWidget>li:nth-child(odd) {
 	background: #444;
 } 
 .listWidget li span {
@@ -578,7 +583,7 @@ ol.listWidget li span {
 .listWidget li:hover {
 	background: #fff;
 }
-.second .listWidget li:hover {
+.widget:nth-child(n+2) .listWidget li:hover {
 	background: #555;
 }
 .listWidget li>div>span {

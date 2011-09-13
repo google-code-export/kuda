@@ -269,10 +269,10 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 		
 	var BehaviorWidget = editor.ui.FormWidget.extend({
-		init: function() {
-			this._super({
+		init: function(options) {
+			this._super(jQuery.extend({
 				name: 'behaviorWidget'
-			});
+			}, options));
 		},
 		
 		checkSaveButton: function() {
@@ -731,7 +731,7 @@ var editor = (function(editor) {
 	behaviorMenu.addMenuItem(addActionMnuItm);
 	behaviorMenu.container.attr('id', 'behaviorMenu');
 	
-	shorthand.createBehaviorWidget = function() {
+	shorthand.createBehaviorWidget = function(options) {
 		var body = jQuery('body'),
 			menuAdded = body.data('menuAdded');
 			
@@ -739,7 +739,7 @@ var editor = (function(editor) {
 			body.append(behaviorMenu.getUI()).data('menuAdded', true);
 		}
 		
-		return new BehaviorWidget();
+		return new BehaviorWidget(options);
 	};
 		
 	shorthand.showBehaviorMenu = function(parBtn, actor, bhvWgt) {		

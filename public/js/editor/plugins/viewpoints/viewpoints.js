@@ -275,8 +275,6 @@
 			this.name.getUI().bind('keyup', function(evt) {
 				wgt.checkToggleButtons();
 			});
-			
-			editor.ui.sizeAndPosition.call(this);
 		},	
 		
 		getParams: function() {
@@ -329,7 +327,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var ListWidget = editor.ui.ListWidget.extend({
-		init: function(behaviorWidget) {
+		init: function() {
 		    this._super({
 				name: 'viewpointListWidget',
 				listId: 'viewpointList',
@@ -337,10 +335,6 @@
 				title: 'Camera Viewpoints',
 				instructions: "Add new viewpoints above."
 			});
-			
-			editor.ui.sizeAndPosition.call(this);
-			this.container.addClass('second');
-			this.behaviorWidget = behaviorWidget;
 		},
 		
 		bindButtons: function(li, obj) {
@@ -361,10 +355,6 @@
 				wgt.notifyListeners(editor.EventTypes.RemoveViewpoint, vpt);
 			});
 		},
-		
-//		createListItem: function() {
-//			return new editor.ui.BhvListItem(this.behaviorWidget);
-//		},
 		
 		getOtherHeights: function() {
 			return this.form.outerHeight(true);
