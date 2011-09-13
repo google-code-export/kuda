@@ -160,7 +160,7 @@
 				listId: 'sceneList',
 				prefix: 'scnLst',
 				title: 'Scenes',
-				instructions: "Type in a name and click 'Create Scene' to add a new scene.  Click and drag a scene to reorder it in the list",
+				instructions: "Type in a name and click 'Add Scene' to add a new scene.  Click and drag a scene to reorder it in the list",
 				type: editor.ui.ListType.ORDERED,
 				sortable: true
 			});
