@@ -667,7 +667,6 @@ var editor = (function(editor) {
 				
 				if (val === '') {
 					view.reset();
-					view.hideButtons();
 				}
 				view.checkSaveable();
 			});
@@ -757,7 +756,7 @@ var editor = (function(editor) {
 					lstWgt.add(projects[i]);
 				}
 				
-				jQuery(document).bind('click.prj', function(e){
+				jQuery(document).bind('click.prj', function(e) {
 					var target = jQuery(e.target), 
 						parent = target.parents('.prjSidePanel, #prjPane'), 
 						isTool = target.parents('.toolBtn').size() > 0 ||
@@ -766,7 +765,7 @@ var editor = (function(editor) {
 					
 					if (parent.size() == 0 && target.attr('id') !== 'prjPane') {
 						view.sidePanel.setVisible(false, !isTool);
-						view.loadBtn.removeAttr('disabled');
+						view.hideButtons();
 						jQuery(document).unbind('click.prj');
 					}
 				});
