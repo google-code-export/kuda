@@ -34,7 +34,6 @@ var editor = (function(editor) {
 	editor.ui.Input = editor.ui.Component.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, InputDefaults, options);
-			this.validator = newOpts.validator;
 			this.value = null;
 			this._super(newOpts);
 		},
@@ -65,8 +64,8 @@ var editor = (function(editor) {
 			if (this.config.inputClass) {
 				this.container.attr('class', this.config.inputClass);
 			}
-			if (this.validator) {
-				this.validator.setElements(this.container);
+			if (this.config.validator) {
+				this.config.validator.setElements(this.container);
 			}
 			
 			this.container.bind('blur', function(evt) {
