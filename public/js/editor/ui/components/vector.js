@@ -81,7 +81,9 @@ var editor = (function(editor) {
 		},
 		
 		reset: function() {
-			this.find('input').focus().val('').blur();
+			for (var i = 0, il = this.inputs.length; i < il; ++i) {
+				this.inputs[i].elem.reset();
+			}
 		},
 		
 		setInputName: function(name, ndx1, opt_ndx2) {

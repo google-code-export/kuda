@@ -22,81 +22,79 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 //                                Input                                       //
 ////////////////////////////////////////////////////////////////////////////////
-			
+	
 	var InputDefaults =  {
+		container: null,
+		inputClass: null,
+		placeHolder: null,
 		type: 'number',
-		validator: null,
-		inputClass: null
+		validator: null
 	};
 			
 	editor.ui.Input = editor.ui.Component.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, InputDefaults, options);
 			this.validator = newOpts.validator;
+			this.value = null;
 			this._super(newOpts);
 		},
 		
 		finishLayout: function() {
-			switch (this.config.type) {
-				case 'number':
-				case 'angle':
-					this.container = jQuery('<input type="text" />');
-					break;
-				case 'string':
-					this.container = jQuery('<input type="text" />');					
-					break;
-				case 'boolean':
-					this.container = jQuery('<input type="checkbox" />');
-					break;
+			var wgt = this;
+			
+			if (this.config.container) {
+				this.container = this.config.container;
+				
+				if (!this.config.placeHolder) {
+					this.config.placeHolder = this.container.attr('placeholder');
+				}
+			} else {
+				switch (this.config.type) {
+					case 'boolean':
+						this.container = jQuery('<input type="checkbox" />');
+						break;
+					default:
+						this.container = jQuery('<input type="text" />');
+						break;
+				}
 			}
 			
+			if (this.config.placeHolder) {
+				this.container.attr('placeholder', this.config.placeHolder);
+			}
 			if (this.config.inputClass) {
 				this.container.attr('class', this.config.inputClass);
 			}
 			if (this.validator) {
 				this.validator.setElements(this.container);
 			}
+			
+			this.container.bind('blur', function(evt) {
+				var val = getContainerValue.call(wgt);
+				wgt.setValue(val);
+			})
+			.bind('focus', function(evt) {
+				setContainerValue.call(wgt, wgt.value);
+			});
 		},
 		
 		getValue: function() {
-			var val;
-			
-			switch (this.config.type) {
-				case 'number':
-					val = parseFloat(this.container.val());
-					break;
-				case 'boolean':
-					val = this.container.prop('checked');
-					break;
-				case 'angle':
-					var deg = parseFloat(this.container.val());
-					val = hemi.core.math.degToRad(deg);
-					break;
-				default:
-					val = this.container.val();
-					break;
+			if (this.container.is(':focus')) {
+				return getContainerValue.call(this);
+			} else {
+				return this.value;
 			}
-			
-			if (isNaN(val)) {
-				val = null;
-			}
-			
-			return val;
 		},
 		
 		reset: function() {
-			switch (this.config.type) {
-				case 'boolean':
-					this.container.prop('checked', false);
-					break;
-				default:
-					this.container.val('');
-					break;
-			}
+			this.value = null;
+			setContainerValue.call(this, null);
 		},
 		
 		setName: function(name) {
+			this.config.placeHolder = name;
 			this.container.attr('placeholder', name);
+			this.setValue(this.value);
 		},
 		
 		setType: function(type) {
@@ -107,21 +105,90 @@ var editor = (function(editor) {
 			if (value == null) {
 				this.reset();
 			} else {
+				this.value = value;
+				
 				switch (this.config.type) {
 					case 'boolean':
 						this.container.prop('checked', value);
 						break;
 					case 'angle':
-						var deg = hemi.core.math.radToDeg(value);
-						this.container.val(deg);
-						break;
+						value = hemi.core.math.radToDeg(value);
 					default:
-						this.container.val(value);
+						if (this.config.placeHolder) {
+							this.container.val(this.config.placeHolder + ': ' + value);
+						} else {
+							this.container.val(value);
+						}
+						
 						break;
 				}
 			}
 		}
 	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//								Private Methods								  //
+////////////////////////////////////////////////////////////////////////////////
+	
+	var getContainerValue = function() {
+		var val;
+		
+		switch (this.config.type) {
+			case 'number':
+				val = parseFloat(this.container.val());
+				
+				if (isNaN(val)) {
+					val = null;
+				}
+				break;
+			case 'boolean':
+				val = this.container.prop('checked');
+				break;
+			case 'angle':
+				var deg = parseFloat(this.container.val());
+				val = hemi.core.math.degToRad(deg);
+				
+				if (isNaN(val)) {
+					val = null;
+				}
+				break;
+			default:
+				val = this.container.val();
+				
+				if (val === '') {
+					val = null;
+				}
+				break;
+		}
+		
+		return val;
+	},
+	
+	setContainerValue = function(value) {
+		if (value == null) {
+			switch (this.config.type) {
+				case 'boolean':
+					this.container.prop('checked', false);
+					break;
+				default:
+					this.container.val('');
+					break;
+			}
+		} else {
+			switch (this.config.type) {
+				case 'boolean':
+					this.container.prop('checked', value);
+					break;
+				case 'angle':
+					var deg = hemi.core.math.radToDeg(value);
+					this.container.val(deg);
+					break;
+				default:
+					this.container.val(value);
+					break;
+			}
+		}
+	};
 	
 	return editor;
 })(editor || {});
