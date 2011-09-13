@@ -45,7 +45,7 @@ var editor = (function(editor) {
 		finishLayout: function() {
 			this.container = jQuery('<div id="tabBar"></div>');
 			this.list = jQuery('<ul></ul>');
-			var title = jQuery('<h1>World<span>Editor</span></h1>');
+			var title = jQuery('<h1><span>World</span><span class="editor">Editor</span></h1>');
 			
 			this.container.append(title).append(this.list)
 				.css('zIndex', editor.ui.Layer.TOOLBAR);

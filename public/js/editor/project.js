@@ -565,14 +565,18 @@ var editor = (function(editor) {
 			return saveable;
 		},
 		
+		hideButtons: function() {
+			this.buttons.slideUp(200);
+		},
+		
 		layoutToolbarContainer: function() {			
 			var ctn = this.toolbarContainer = jQuery('<div id="' 
 				+ this.config.elemId + '"> \
 					<p id="prjMsg"></p> \
-					<p id="prjCur"><input type="text" id="prjSaveIpt" value="Unsaved Project" /></p> \
+					<input type="text" id="prjSaveIpt" value="Unsaved Project" /> \
 					<div class="buttons"> \
 						<button id="prjSaveBtn">Save</button> \
-						<button id="prjLoadBtn">Open</button> \
+						<button id="prjCancelBtn">Cancel</button> \
 						<button id="prjPreviewBtn">Preview</button> \
 						<button id="prjPublishBtn">Publish</button> \
 					</div> \
@@ -581,17 +585,21 @@ var editor = (function(editor) {
 			var view = this,
 				saveIpt = this.saveIpt = ctn.find('#prjSaveIpt'),
 				saveBtn = this.saveBtn = ctn.find('#prjSaveBtn'),
+				cancelBtn = this.cancelBtn = ctn.find('#prjCancelBtn').hide(),
 				loadBtn = this.loadBtn = ctn.find('#prjLoadBtn'),
 				previewBtn = this.previewBtn = ctn.find('#prjPreviewBtn'),
 				publishBtn = this.publishBtn = ctn.find('#prjPublishBtn'),
+				buttons = this.buttons = ctn.find('div.buttons').hide(),
 				curPrjCtn = this.curPrjCtn = ctn.find('#prjCur');						
 			
 			this.msg = ctn.find('#prjMsg').hide();
 			
-			loadBtn.bind('click', function(evt) {
-				view.notifyListeners(event.UpdateProjects);
+			cancelBtn.bind('click', function() {
+				view.reset();
+				view.hideButtons();
+				view.sidePanel.setVisible(false);
 			});
-			
+						
 			previewBtn.bind('click', function(evt) {
 				view.notifyListeners(event.StartPreview);
 				
@@ -623,8 +631,16 @@ var editor = (function(editor) {
 			});
 			
 			saveBtn.bind('click', function(evt) {
-				view.notifyListeners(event.CheckProjectExists, saveIpt.val());
-				view.dontSave = false;
+				if (saveBtn.hasClass('overwrite')) {
+					view.notifyListeners(event.Save, {
+						project: saveIpt.val(),
+						replace: true
+					});
+				}
+				else {
+					view.notifyListeners(event.CheckProjectExists, saveIpt.val());
+					view.dontSave = false;
+				}
 			});
 			
 			saveIpt.bind('keydown', function(evt) {
@@ -636,26 +652,44 @@ var editor = (function(editor) {
 				}
 				else if (code == 27) {
 					saveIpt.val('').blur();
+					view.sidePanel.setVisible(false);
 				}
 			})
 			.bind('focus', function(evt) {				
 				if (saveIpt.val() === 'Unsaved Project') {
 					saveIpt.val('');
 				}
-				view.msg.empty();
-				view.sidePanel.setVisible(false);
+				view.notifyListeners(event.UpdateProjects);
+				view.showButtons();
 			})
 			.bind('blur', function() {	
 				var val = saveIpt.val();			
 				
 				if (val === '') {
-					saveIpt.val(view.loadedProject == null ? 'Unsaved Project' :
-						view.loadedProject);
+					view.reset();
+					view.hideButtons();
 				}
 				view.checkSaveable();
 			});
 			
 			this.checkSaveable();
+		},
+		
+		reset: function() {
+			this.saveIpt.val(this.loadedProject == null ? 'Unsaved Project' :
+				this.loadedProject);
+			this.msg.empty().hide();
+			this.cancelBtn.hide().removeClass('overwite');
+			this.saveBtn.text('Save').removeClass('overwrite');
+			this.saveIpt.removeClass('overwrite');
+			
+			if (this.loadedProject == null) {
+				this.saveBtn.attr('disabled', 'disabled');
+			}
+		},
+		
+		showButtons: function() {
+			this.buttons.slideDown(200);
 		},
 		
 		stopPreview: function() {
@@ -671,14 +705,10 @@ var editor = (function(editor) {
 			var view = this;
 			
 			if (exists) {
-				this.msg.empty().html('Already exists. <a class="ovr" href="#">Overwrite?</a>').show();
-				
-				this.msg.find('a').bind('click', function(evt) {
-					view.notifyListeners(event.Save, {
-						project: view.saveIpt.val(),
-						replace: true
-					});
-				});
+				this.msg.empty().html('Already exists.').show();
+				this.saveIpt.addClass('overwrite');
+				this.cancelBtn.show().addClass('overwrite');
+				this.saveBtn.text('Overwrite').addClass('overwrite');
 			}
 			else {
 				this.msg.hide();
@@ -731,7 +761,8 @@ var editor = (function(editor) {
 					var target = jQuery(e.target), 
 						parent = target.parents('.prjSidePanel, #prjPane'), 
 						isTool = target.parents('.toolBtn').size() > 0 ||
-							target.hasClass('toolBtn');
+							target.hasClass('toolBtn') ||
+							target.parents('#tabBar h2');
 					
 					if (parent.size() == 0 && target.attr('id') !== 'prjPane') {
 						view.sidePanel.setVisible(false, !isTool);
@@ -746,11 +777,12 @@ var editor = (function(editor) {
 		
 		updateSaved: function(name, succeeded) {
 			if (succeeded) {
-				this.saveIpt.val(name).effect('highlight', {
+				this.loadedProject = name;
+				this.reset();
+				this.hideButtons();
+				this.saveIpt.effect('highlight', {
 					color: '#777'
 				});
-				this.loadedProject = name;
-				this.msg.hide();
 			}
 			else {
 				this.msg.empty().text('Server Down. Could not save.').show();
