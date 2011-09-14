@@ -18,11 +18,6 @@
 var editor = (function(module) {
 	module.ui = module.ui || {};
 	
-    module.EventTypes = module.EventTypes || {};
-	
-	// jquery triggered events
-	module.EventTypes.ColorPicked = 'editor.TreeSelector.ColorPicked';
-	
 	var eventNdx = 0;
 	
 	module.ui.TreeSelectorDefaults = {

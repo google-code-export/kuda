@@ -20,7 +20,7 @@
  * 									 Forms									  *
  ******************************************************************************/
 
-.effectSidePanel form input:not([type=radio]),
+.effectSidePanel form input:not([type=checkBox]),
 .effectSidePanel form textarea {
     width: 260px;
 }

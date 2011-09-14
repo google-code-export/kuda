@@ -42,23 +42,13 @@
 	
     editor.EventTypes = editor.EventTypes || {};
 	
-	// view specific
-    editor.EventTypes.ParticleFxType = "particleFx.ParticleFxType";
-	
 	// create fx sidebar widget specific
-	editor.EventTypes.RemoveParticleFxParam = "particleFx.RemoveParticleFxParam";
     editor.EventTypes.SaveParticleFx = "particleFx.SaveParticleFx";
     editor.EventTypes.StartParticleFxPreview = "particleFx.StartParticleFxPreview";
     editor.EventTypes.StopParticleFxPreview = "particleFx.StopParticleFxPreview";
-    editor.EventTypes.SetParticleFxParam = "particleFx.SetParticleFxParam";
-    editor.EventTypes.SetParticleFxColorRamp = "particleFx.SetParticleFxColorRamp";
-    editor.EventTypes.SetParticleFxState = "particleFx.SetParticleFxState";
-    editor.EventTypes.SetParticleFxFireInterval = "particleFx.SetParticleFxFireInterval";
-    editor.EventTypes.PreviewCurrentFx = "particleFx.PreviewCurrentFx";
 	editor.EventTypes.TemplateSelected = "particleFx.TemplateSelected";
 	
 	// list sidebar widget specific
-	editor.EventTypes.CreateParticleFx = "particleFx.CreateParticleFx";
     editor.EventTypes.EditParticleFx = "particleFx.EditParticleFx";
     editor.EventTypes.RemoveParticleFx = "particleFx.RemoveParticleFx";	
     
@@ -72,32 +62,9 @@
     var ParticleFxModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('particleEffects');
-			this.particleEffectParams = {};
 			this.currentParticleEffect = null;
-			this.type = null;
-			this.state = null;
-			this.colorRamp = null;
-			this.fireInterval = null;
 			this.isUpdating = false;
 	    },
-		
-		addToColorRamp: function(ndx, color) {
-			if (this.colorRamp === null) {
-				this.colorRamp = [];
-			}
-			if (this.colorRamp.length <= ndx) {
-				this.colorRamp = this.colorRamp.concat(color);	
-			}
-			else {
-				for (var i = 0; i < color.length; ++i) {
-					this.colorRamp[ndx + i] = color[i];
-				}
-			}
-			
-			if (this.currentParticleEffect) {
-				this.currentParticleEffect.colorRamp = this.colorRamp.slice(0);
-			}
-		},
 		
 		cancelParticleFxEdit: function() {
 			this.stopPreview();
@@ -107,103 +74,69 @@
 			}
 			
 			this.currentParticleEffect = null;
-			this.fireInterval = null;
-			this.type = null;
-			this.state = null;
-			this.colorRamp = null;
 			this.isUpdating = false;
-			this.particleEffectParams = {};
 		},
 		
-		create: function() {
-			var mdl = this,
-				createFcn = function() {	
-					var particleFx = null,
-						clrRmp = [];
-				
-					for (var ndx = 0, len = mdl.colorRamp.length; ndx < len; ndx++) {
-						clrRmp = clrRmp.concat(mdl.colorRamp[ndx]);
-					};
-								
-					switch (mdl.type) {
-						case 'Burst':
-							particleFx = hemi.effect.createBurst(mdl.state, clrRmp, mdl.particleEffectParams);
-							break;
-						case 'Trail':
-							particleFx = hemi.effect.createTrail(mdl.state, clrRmp, mdl.particleEffectParams, mdl.fireInterval);
-							break;
-						case 'Emitter':
-							particleFx = hemi.effect.createEmitter(mdl.state, clrRmp, mdl.particleEffectParams);
-							break;
-					}
-					
-					return particleFx;
-				};
+		create: function(props) {
+			var oldId = null;
 				
 			if (this.currentParticleEffect) {
 				this.stopPreview();
-				var oldId = this.currentParticleEffect.getId();
+				oldId = this.currentParticleEffect.getId();
 				this.currentParticleEffect.cleanup();
-				this.currentParticleEffect = createFcn();
+			}
+			
+			switch (props.type) {
+				case 'Burst':
+					this.currentParticleEffect = hemi.effect.createBurst(props.state, props.colorRamp, props.params);
+					break;
+				case 'Trail':
+					this.currentParticleEffect = hemi.effect.createTrail(props.state, props.colorRamp, props.params, props.fireInterval);
+					break;
+				case 'Emitter':
+					this.currentParticleEffect = hemi.effect.createEmitter(props.state, props.colorRamp, props.params);
+					break;
+			}
+			
+			if (oldId) {
 				this.currentParticleEffect.setId(oldId);
 			}
-			else {
-				this.currentParticleEffect = createFcn(); 
-			}
 		},
 		
-		preview: function() {
-			this.create();
+		preview: function(props) {
+			this.create(props);
 			this.currentParticleEffect.particles = null;
-			this.previewEffect(this.currentParticleEffect);		
-		},
-		
-		previewEffect: function(effect) {		
-			switch(effect.citizenType) {
+			
+			switch(this.currentParticleEffect.citizenType) {
 				case 'hemi.effect.Burst':
-					effect.trigger();
+					this.currentParticleEffect.trigger();
 					break;
 				case 'hemi.effect.Trail':
-					effect.start();
+					this.currentParticleEffect.start();
 					break;
 				case 'hemi.effect.Emitter':
-					effect.show();
+					this.currentParticleEffect.show();
 					break;
-			}	
+			}
 		},
 		
 		removeEffect: function(effect) {
 			effect.cleanup();
 			this.notifyListeners(editor.events.Removed, effect);
 		},
-	    
-	    removeParam: function(paramName) {
-			if (this.particleEffectParams[paramName] !== undefined) {
-				delete this.particleEffectParams[paramName];
-				
-				if (this.currentParticleEffect) {
-					this.currentParticleEffect.params = this.particleEffectParams;
-				}
-			}
-	    },
 		
-		save: function(name) {
-			this.create();
+		save: function(props) {
+			this.create(props);
 			
 			var msgType = this.isUpdating ? editor.events.Updated 
 				: editor.events.Created;
 										
-			this.currentParticleEffect.name = name;
+			this.currentParticleEffect.name = props.name;
 			this.currentParticleEffect.particles = null;
 				
 			this.notifyListeners(msgType, this.currentParticleEffect);
 			
 			this.currentParticleEffect = null;
-			this.fireInterval = null;
-			this.type = null;
-			this.state = null;
-			this.colorRamp = null;
-			this.particleEffectParams = {};
 			this.isUpdating = false;	
 		},
 		
@@ -213,92 +146,25 @@
 		
 		setEffect: function(effect) {
 			this.currentParticleEffect = effect;
-			this.particleEffectParams = jQuery.extend(true, {}, effect.params);
-			this.colorRamp = effect.colorRamp;
-			this.state = effect.state;
-			this.type = effect.citizenType.replace('hemi.effect.', '');
 			this.isUpdating = true;
 		},
 		
-		setState: function(state) {
-			if (state === -1) {
-				this.state = null;
-			}
-			else {
-				this.state = state;
-				if (this.currentParticleEffect) {
-					this.currentParticleEffect.state = state;
-				}
-			}
-		},
-		
 		setTemplate: function(tpl) {
-			var oldId = null;			
-			this.particleEffectParams = {};
-			
 			if (this.isUpdating) {
-				oldId = this.currentParticleEffect.getId();
-				this.stopPreview();
-				this.currentParticleEffect.cleanup();
-				this.currentParticleEffect = null;
-			}
-			this.setType(tpl.type);
-			this.setState(tpl.state);
-			if (tpl.fireInterval) {
-				this.setFireInterval(tpl.fireInterval);
-			}
-			if (tpl.colorRamp) {
-				this.colorRamp = tpl.colorRamp;
-			}
-			
-			var prm = tpl.params;
-			
-			for (var key in prm) {
-				this.setParam(key, prm[key]);
-			}
-			
-			if (this.isUpdating) {
-				this.create();
-				this.currentParticleEffect.setId(oldId);
+				this.create(tpl);
 			}
 		},
-		
-		setType: function(type) {
-			this.type = type;
-			if (this.currentParticleEffect && this.currentParticleEffect.citizenType.replace('hemi.effect.', '') !== type) {
-				this.currentParticleEffect.cleanup();
-			}
-		},
-		
-		setFireInterval: function(interval) {
-			this.fireInterval = interval;
-			if (this.currentParticleEffect) {
-				this.currentParticleEffect.fireInterval = interval;
-			}
-		},
-	    
-	    setParam: function(paramName, paramVal) {
-			this.particleEffectParams[paramName] = paramVal;
-			
-			if (this.currentParticleEffect) {
-				this.currentParticleEffect.params = this.particleEffectParams;
-			}
-	    },
 		
 		stopPreview: function() {
 			if (this.currentParticleEffect) {
-				this.stopPreviewEffect(this.currentParticleEffect);
-			}		
-		},
-		
-		stopPreviewEffect: function(effect) {		
-			switch(effect.citizenType) {
-				case 'hemi.effect.Trail':
-					effect.stop();
-					break;
-				case 'hemi.effect.Emitter':
-					effect.hide();
-					break;
+				switch(this.currentParticleEffect.citizenType) {
+					case 'hemi.effect.Trail':
+						this.currentParticleEffect.stop();
+						break;
+					case 'hemi.effect.Emitter':
+						this.currentParticleEffect.hide();
+						break;
+				}
 			}
 		},
 		
@@ -346,11 +212,8 @@
 					buttonId: 'pteColorRamp' + ndx + 'Picker'
 				});			
 				
-				colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
-					wgt.notifyListeners(editor.EventTypes.SetParticleFxColorRamp, {
-						color: clr,
-						ndx: ndx
-					});
+				colorPicker.addListener(editor.events.ColorPicked, function(clr) {
+					wgt.canSave();
 				});
 			
 				this.colorPickers.push(colorPicker);
@@ -364,34 +227,27 @@
 		},
 		
 		canSave: function() {
-			var nameInput = this.find('#pteName'),
-				typeInput = this.find('#pteType'),
-				stateInput = this.find('#pteState'),
-				colorRampInput = this.find('#pteColorRamp0r'),
+			var colorRampInput = this.find('#pteColorRamp0'),
 				saveBtn = this.find('#pteSaveBtn'),
 				previewBtn = this.find('#ptePreviewBtn'),
-				fireInterval = this.find('#pteFireInterval'),
-				typeVal = typeInput.val(),
-				stateVal = stateInput.val(),
+				typeVal = this.typeSelect.val(),
+				stateVal = this.stateSelect.val(),
 				clrRmpVal = colorRampInput.val(),
-				nameVal = nameInput.val(),
-				fireIntVal = fireInterval.val(),
+				nameVal = this.name.getValue(),
+				fireInterval = this.fireInterval.getValue(),
 				type = typeVal.replace('hemi.effect.', '');
-				
-			if (nameVal !== '' && typeVal !== -1 && stateVal !== -1 
-				&& clrRmpVal !== 'r' && (type !== 'Trail' || fireIntVal !== '')) {
-				saveBtn.removeAttr('disabled');
-			}
-			else {
-				saveBtn.attr('disabled', 'disabled');
-			}
 			
-			if (stateVal !== -1 && clrRmpVal !== 'r' && typeVal !== -1
-				&& (type !== 'Trail' || fireIntVal !== '')) {
+			if (stateVal !== '-1' && clrRmpVal !== 'r' && typeVal !== '-1' && (type !== 'Trail' || fireInterval != null)) {
 				previewBtn.removeAttr('disabled');
-			}
-			else {
+				
+				if (nameVal != null) {
+					saveBtn.removeAttr('disabled');
+				} else {
+					saveBtn.attr('disabled', 'disabled');
+				}
+			} else {
 				previewBtn.attr('disabled', 'disabled');
+				saveBtn.attr('disabled', 'disabled');
 			}
 		},
 		
@@ -407,31 +263,24 @@
 					fireInt = effect.fireInterval, 
 					numColors = colorRamp.length / 4;
 				
-				this.find('#pteTemplateSelect').val(-1);
-				this.find('#pteType').val(type).change();
-				this.find('#pteName').val(effect.name);
+				this.tplSelect.val(-1);
+				this.typeSelect.val(type).change();
+				this.stateSelect.val(state);
+				this.name.setValue(effect.name);
 				
 				for (var paramName in params) {
 					var val = params[paramName];
 					
 					if (paramName.match('colorMult')) {
-						this.colorMultPicker.setColor(val);
+						this.colorMult.setColor(val);
 					}
-					else 
-						if (paramName.match(/acceleration|position|velocity|world/)) {							
-							this[paramName].setValue(val);
-						}
-						else if (paramName.match('orientation')) {
-							this[paramName].setValue(val);
-						}
-						else {
-							this.find('#pte-' + paramName).val(val);
-						}
+					else {
+						this[paramName].setValue(val);
+					}
 				}
 				
-				this.find('#pteState').val(state);
 				if (fireInt) {
-					this.find('#pteFireInterval').val(fireInt);
+					this.fireInterval.setValue(fireInt);
 				}
 				
 				var count = 1;
@@ -456,97 +305,181 @@
 		
 		finishLayout: function() {
 			this._super();
-			this.loadTemplates();
 			
 			var saveBtn = this.find('#pteSaveBtn'),
 				cancelBtn = this.find('#pteCancelBtn'),
 				previewBtn = this.find('#ptePreviewBtn'),
-	        	typeSelect = this.find('#pteType'),
 				inputs = this.find('input:not(.vector, .color, .quat, #pteName, #pteFireInterval)'),
-				stateSelect = this.find('#pteState'),
-				fireInterval = this.find('#pteFireInterval'),
 				form = this.find('form'),
-				nameInput = this.find('#pteName'),
 				wgt = this,
-				vecValidator = new editor.ui.Validator(null, function(elem) {
-						var val = elem.val(),
-							msg = null;
-							
-						if (val !== '' && !hemi.utils.isNumeric(val)) {
-							msg = 'must be a number';
-						}
-						
-						return msg;
-					}),
-				onBlurFcn = function(elem, evt, vecWgt) {
-					var val = elem.val();
-					
-					if (val === '') {
-						wgt.notifyListeners(editor.EventTypes.RemoveShapeParam, 
-							vecWgt.config.paramName);
-					}
-					else if (hemi.utils.isNumeric(val)) {
-						var totalVal = vecWgt.getValue();
-						
-						if (totalVal.length > 0) {
-							wgt.notifyListeners(editor.EventTypes.SetParticleFxParam, {
-								paramName: vecWgt.config.paramName,
-								paramVal: totalVal
-							});
-						}
-					}
+				validator = new editor.ui.createDefaultValidator(),
+				onBlurFcn = function(ipt, evt) {
+					wgt.canSave();
 				};
-						
+			
+			this.stateSelect = this.find('#pteState');
+			this.tplSelect = this.find('#pteTemplateSelect');
+        	this.typeSelect = this.find('#pteType');
+			this.loadTemplates();
+			
+			this.numParticles = new editor.ui.Input({
+				container: wgt.find('#pte-numParticles')
+			});
+			this.timeRange = new editor.ui.Input({
+				container: wgt.find('#pte-timeRange')
+			});
+			this.lifeTime = new editor.ui.Input({
+				container: wgt.find('#pte-lifeTime')
+			});
+			this.lifeTimeRange = new editor.ui.Input({
+				container: wgt.find('#pte-lifeTimeRange')
+			});
+			this.startTime = new editor.ui.Input({
+				container: wgt.find('#pte-startTime')
+			});
+			this.fireInterval = new editor.ui.Input({
+				container: wgt.find('#ptefireInterval')
+			});
+			this.billboard = new editor.ui.Input({
+				container: wgt.find('#pte-billboard'),
+				type: 'boolean'
+			});
+			this.startSize = new editor.ui.Input({
+				container: wgt.find('#pte-startSize')
+			});
+			this.startSizeRange = new editor.ui.Input({
+				container: wgt.find('#pte-startSizeRange')
+			});
+			this.endSize = new editor.ui.Input({
+				container: wgt.find('#pte-endSize')
+			});
+			this.endSizeRange = new editor.ui.Input({
+				container: wgt.find('#pte-endSizeRange')
+			});
+			this.spinSpeed = new editor.ui.Input({
+				container: wgt.find('#pte-spinSpeed')
+			});
+			this.spinSpeedRange = new editor.ui.Input({
+				container: wgt.find('#pte-spinSpeedRange')
+			});
+			this.spinStart = new editor.ui.Input({
+				container: wgt.find('#pte-spinStart')
+			});
+			this.spinStartRange = new editor.ui.Input({
+				container: wgt.find('#pte-spinStartRange')
+			});
+			this.numFrames = new editor.ui.Input({
+				container: wgt.find('#pte-numFrames')
+			});
+			this.frameStart = new editor.ui.Input({
+				container: wgt.find('#pte-frameStart')
+			});
+			this.frameStartRange = new editor.ui.Input({
+				container: wgt.find('#pte-frameStartRange')
+			});
+			this.frameDuration = new editor.ui.Input({
+				container: wgt.find('#pte-frameDuration')
+			});
+			this.name = new editor.ui.Input({
+				container: wgt.find('#pteName'),
+				type: 'string'
+			});
+			
+			this.position = new editor.ui.Vector({
+				container: wgt.find('#pte-positionDiv'),
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			this.positionRange = new editor.ui.Vector({
+				container: wgt.find('#pte-positionRangeDiv'),
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			this.orientation = new editor.ui.Vector({
+				container: wgt.find('#pte-orientationDiv'),
+				inputs: ['a', 'b', 'c', 'd'],
+				type: 'quat',
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			this.colorMultRange = new editor.ui.Vector({
+				container: wgt.find('#pte-colorMultRangeDiv'),
+				inputs: ['r', 'g', 'b', 'a'],
+				type: 'color',
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			this.acceleration = new editor.ui.Vector({
+				container: wgt.find('#pte-accelerationDiv'),
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			this.accelerationRange = new editor.ui.Vector({
+				container: wgt.find('#pte-accelerationRangeDiv'),
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			this.velocity = new editor.ui.Vector({
+				container: wgt.find('#pte-velocityDiv'),
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			this.velocityRange = new editor.ui.Vector({
+				container: wgt.find('#pte-velocityRangeDiv'),
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			this.worldAcceleration = new editor.ui.Vector({
+				container: wgt.find('#pte-worldAccelerationDiv'),
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			this.worldVelocity = new editor.ui.Vector({
+				container: wgt.find('#pte-worldVelocityDiv'),
+				onBlur: onBlurFcn,
+				validator: validator
+			});
+			
+			validator.setElements(inputs);
+			
 			form.bind('submit', function() {
 				return false;
 			});
 			
-			fireInterval.parent().hide();
-			saveBtn.attr('disabled', 'disabled');
-			
 			// bind selectbox
-			typeSelect.bind('change', function(evt) {
+			this.typeSelect.bind('change', function(evt) {
 				var elem = jQuery(this),
 					val = elem.val();
 				
 				if (val != -1) {
 					if (val === 'Trail') {
-						fireInterval.parent().show();
+						wgt.fireInterval.getUI().parent().show();
+					} else {
+						wgt.fireInterval.getUI().parent().hide();
 					}
-					else {
-						fireInterval.parent().hide();
-					}
-					
-					wgt.notifyListeners(editor.EventTypes.ParticleFxType, val);
-				}
-				else {
+				} else {
 					wgt.reset();
 				}
 			});
 			
-			stateSelect.bind('change', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val();
-					
-				wgt.notifyListeners(editor.EventTypes.SetParticleFxState, val);
+			this.stateSelect.bind('change', function(evt) {
 				wgt.canSave();
 			});
 			
-			nameInput.bind('keydown', function(evt) {
+			this.name.getUI().bind('keyup', function(evt) {
 				wgt.canSave();
 			});
 			
-			fireInterval.bind('change', function(evt) {
-				var val = fireInterval.val();
-				
-				wgt.notifyListeners(editor.EventTypes.SetParticleFxFireInterval, val);
-			});
+			this.fireInterval.getUI().bind('keyup', function(evt) {
+				wgt.canSave();
+			}).parent().hide();
 			
 			// bind save button
 			saveBtn.bind('click', function(evt) {				
-				wgt.notifyListeners(editor.EventTypes.SaveParticleFx, nameInput.val());
+				var props = wgt.getProperties();
+				wgt.notifyListeners(editor.EventTypes.SaveParticleFx, props);
 				wgt.reset();
-			});
+			}).attr('disabled', 'disabled');
 			
 			// bind cancel button
 			cancelBtn.bind('click', function(evt) {
@@ -563,125 +496,96 @@
 					btn.text('Start Preview').data('previewing', false);
 				}
 				else {
-					wgt.notifyListeners(editor.EventTypes.StartParticleFxPreview, null);
+					var props = wgt.getProperties();
+					wgt.notifyListeners(editor.EventTypes.StartParticleFxPreview, props);
 					btn.text('Stop Preview').data('previewing', true);
 				}
-			});
-			
-			this.position = new editor.ui.Vector({
-				container: wgt.find('#pte-positionDiv'),
-				paramName: 'position',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-			this.positionRange = new editor.ui.Vector({
-				container: wgt.find('#pte-positionRangeDiv'),
-				paramName: 'positionRange',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-			this.orientation = new editor.ui.Vector({
-				container: wgt.find('#pte-orientationDiv'),
-				paramName: 'orientation',
-				inputs: ['a', 'b', 'c', 'd'],
-				type: 'quat',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-			this.colorMultRange = new editor.ui.Vector({
-				container: wgt.find('#pte-colorMultRangeDiv'),
-				paramName: 'colorMultRange',
-				inputs: ['r', 'g', 'b', 'a'],
-				type: 'color',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-			this.acceleration = new editor.ui.Vector({
-				container: wgt.find('#pte-accelerationDiv'),
-				paramName: 'acceleration',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-			this.accelerationRange = new editor.ui.Vector({
-				container: wgt.find('#pte-accelerationRangeDiv'),
-				paramName: 'accelerationRange',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-			this.velocity = new editor.ui.Vector({
-				container: wgt.find('#pte-velocityDiv'),
-				paramName: 'velocity',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-			this.velocityRange = new editor.ui.Vector({
-				container: wgt.find('#pte-velocityRangeDiv'),
-				paramName: 'velocityRange',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-			this.worldAcceleration = new editor.ui.Vector({
-				container: wgt.find('#pte-worldAccelerationDiv'),
-				paramName: 'worldAcceleration',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-			this.worldVelocity = new editor.ui.Vector({
-				container: wgt.find('#pte-worldVelocityDiv'),
-				paramName: 'worldVelocity',
-				onBlur: onBlurFcn,
-				validator: vecValidator
-			});
-						
-			var validator = new editor.ui.Validator(inputs, function(elem) {
-				var val = elem.val(),
-					msg = null,
-					param = elem.attr('id').replace('pte-', '');
-					
-				if (val === '') {
-					wgt.notifyListeners(editor.EventTypes.RemoveParticleFxParam, param);
-				}
-				else {
-					if (param === 'billboard') {
-						val = val.toLowerCase();
-						
-						if (val !== 'true' && val !== 'false') {
-							msg = 'must be a boolean';
-						}
-					}
-					else {
-						val = parseFloat(val);
-						
-						if (isNaN(val)) {
-							msg = 'must be a number';
-						}
-					}
-					
-					if (msg === null) {
-						wgt.notifyListeners(editor.EventTypes.SetParticleFxParam, {
-							paramName: param,
-							paramVal: val
-						});
-					}
-				}
-				
-				return msg;
-			});
+			}).attr('disabled', 'disabled');
 			
 			this.setupColorPickers();
 		},
 		
+		getColorRamp: function() {
+			var ramp = [];
+			
+			for (var i = 0, il = this.colorPickers.length; i < il; ++i) {
+				ramp = ramp.concat(this.colorPickers[i].getColor());
+			}
+			
+			return ramp;
+		},
+		
+		getProperties: function() {
+			var wgt = this,
+				names = ['numParticles', 'timeRange', 'lifeTime',
+					'lifeTimeRange', 'startTime', 'billboard', 'startSize',
+					'startSizeRange', 'endSize', 'endSizeRange', 'spinSpeed',
+					'spinSpeedRange', 'spinStart', 'spinStartRange',
+					'numFrames', 'frameStart', 'frameStartRange',
+					'frameDuration', 'position', 'positionRange', 'orientation',
+					'colorMult', 'colorMultRange', 'acceleration',
+					'accelerationRange', 'velocity', 'velocityRange',
+					'worldAcceleration', 'worldVelocity'],
+				props = {
+					colorRamp: wgt.getColorRamp(),
+					fireInterval: wgt.fireInterval.getValue(),
+					name: wgt.name.getValue(),
+					state: parseInt(wgt.stateSelect.val()),
+					type: wgt.typeSelect.val()
+				},
+				params = {};
+			
+			for (var i = 0, il = names.length; i < il; ++i) {
+				var name = names[i],
+					elem = wgt[name],
+					val = null;
+				
+				if (elem.getValue) {
+					val = elem.getValue();
+				} else if (elem.getColor) {
+					val = elem.getColor();
+				}
+				
+				if (val != null) {
+					params[name] = val;
+				}
+			}
+			
+			props.params = params;
+			return props;
+		},
+		
 		reset: function() {      
 			// reset selects
-			this.find('#pteTemplateSelect').val(-1);
-			this.find('#pteType').val(-1).removeAttr('disabled');
-			this.find('#pteState').val(-1);
+			this.tplSelect.val(-1);
+			this.typeSelect.val(-1).removeAttr('disabled');
+			this.stateSelect.val(-1);
 			
 			// set all inputs to blank
-			this.find('form input:not(.vector, .color, .quat)').val('').blur();
+			this.numParticles.reset();
+			this.timeRange.reset();
+			this.lifeTime.reset();
+			this.lifeTimeRange.reset();
+			this.startTime.reset();
+			this.fireInterval.reset();
+			this.billboard.reset();
+			this.startSize.reset();
+			this.startSizeRange.reset();
+			this.endSize.reset();
+			this.endSizeRange.reset();
+			this.spinSpeed.reset();
+			this.spinSpeedRange.reset();
+			this.spinStart.reset();
+			this.spinStartRange.reset();
+			this.numFrames.reset();
+			this.frameStart.reset();
+			this.frameStartRange.reset();
+			this.frameDuration.reset();
+			this.name.reset();
 			this.position.reset();
 			this.positionRange.reset();
 			this.orientation.reset();
+			this.colorMult.reset();
 			this.colorMultRange.reset();
 			this.acceleration.reset();
 			this.accelerationRange.reset();
@@ -692,46 +596,23 @@
 			
 			// disable the save button
 			this.find('#pteSaveBtn').attr('disabled', 'disabled');
-			this.find('#ptePreviewBtn').text('Start Preview').data('previewing', false);
+			this.find('#ptePreviewBtn').text('Start Preview').data('previewing', false).attr('disabled', 'disabled');
 			
 			// remove additional color ramp values
 			this.find('.colorRampAdd').remove();
-			var colorRampPicker = this.colorPickers[0];
 			this.find('#pteAddColorToRamp').data('ndx', 1);
-			
-			// reset color pickers
-			this.colorMultPicker.reset();
-			colorRampPicker.reset();	
-		},
-		
-		resize: function(maxHeight) {
-			this._super(maxHeight);	
-			
-			var form = this.find('form:visible'),
-				padding = parseInt(form.css('paddingTop')) 
-					+ parseInt(form.css('paddingBottom')),
-				newHeight = maxHeight - padding,
-				oldHeight = form.outerHeight(true);
-			
-			if (oldHeight > newHeight) {
-				form.addClass('scrolling');
-			}
-			else {
-				form.removeClass('scrolling');
-			}
-			if (newHeight > 0) {
-				this.find('form:visible').height(newHeight);
-			}
+			var colorRampPicker = this.colorPickers[0];
+			colorRampPicker.reset();
 		},
 		
 		setupColorPickers: function() {
 			var wgt = this,
 				colorAdder = this.find('#pteAddColorToRamp');
 			
-			this.colorMultPicker = new editor.ui.ColorPicker({
+			this.colorMult = new editor.ui.ColorPicker({
 				inputId: 'pte-colorMult',
 				containerClass: '',	
-				buttonId: 'pteColorMultPicker'			
+				buttonId: 'pteColorMult'			
 			});
 			
 			var colorRampPicker = new editor.ui.ColorPicker({
@@ -741,21 +622,15 @@
 			});
 			
 			this.find('#pteColorRamp0Lbl').after(colorRampPicker.getUI());
-			this.find('#pteColorMultLbl').after(this.colorMultPicker.getUI());
+			this.find('#pteColorMultLbl').after(this.colorMult.getUI());
 			
 			// add listeners
-			this.colorMultPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {				
-				wgt.notifyListeners(editor.EventTypes.SetParticleFxParam, {
-					paramName: 'colorMult',
-					paramVal: clr
-				});
+			this.colorMult.addListener(editor.events.ColorPicked, function(clr) {				
+				wgt.canSave();
 			});
 			
-			colorRampPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
-				wgt.notifyListeners(editor.EventTypes.SetParticleFxColorRamp, {
-					color: clr,
-					ndx: 0
-				});
+			colorRampPicker.addListener(editor.events.ColorPicked, function(clr) {
+				wgt.canSave();
 			});
 			
 			// setup the color ramp adder
@@ -770,7 +645,6 @@
 		loadTemplates: function() {
 			var wgt = this;
 			
-			this.tplSelect = this.find('#pteTemplateSelect');
 			this.tplSelect.bind('change', function(evt) {
 				var elem = jQuery(this),
 					ndx = elem.val();
@@ -815,8 +689,6 @@
 				title: 'Particle Effects',
 				instructions: "Add particle effects above."
 			});
-			
-			this.items = new Hashtable();
 		},
 		
 		bindButtons: function(li, obj) {
@@ -888,51 +760,25 @@
 			// create widget specific
 			pteCrt.addListener(editor.events.Cancel, function() {
 				model.cancelParticleFxEdit();
-			});			
-			pteCrt.addListener(editor.EventTypes.ParticleFxType, function(value) {
-				model.setType(value);
-			});	        
-			pteCrt.addListener(editor.EventTypes.PreviewCurrentFx, function(value) {
-				if (value.show) {
-					model.previewEffect(value.effect);	
-				}			
-				else {
-					model.stopPreviewEffect(value.effect);
-				}
-			});		
-	        pteCrt.addListener(editor.EventTypes.RemoveParticleFxParam, function(value) {
-	        	model.removeParam(value);
-	        });	        	
-			pteCrt.addListener(editor.EventTypes.SaveParticleFx, function(name) {
-				model.save(name);
-			});		
-	        pteCrt.addListener(editor.EventTypes.SetParticleFxParam, function(value) {
-	        	model.setParam(value.paramName, value.paramVal);
-	        });	        
-	        pteCrt.addListener(editor.EventTypes.SetParticleFxColorRamp, function(value) {
-	        	model.addToColorRamp(value.ndx * 4, value.color);
-	        });			
-			pteCrt.addListener(editor.EventTypes.SetParticleFxFireInterval, function(value) {
-				model.setFireInterval(value);
-			});		
-			pteCrt.addListener(editor.EventTypes.SetParticleFxState, function(value) {
-				model.setState(value);
-			});				
-			pteCrt.addListener(editor.EventTypes.StartParticleFxPreview, function(value) {
-				model.preview();
-			});			
+			});
+			pteCrt.addListener(editor.EventTypes.SaveParticleFx, function(props) {
+				model.save(props);
+			});
+			pteCrt.addListener(editor.EventTypes.StartParticleFxPreview, function(props) {
+				model.preview(props);
+			});
 			pteCrt.addListener(editor.EventTypes.StopParticleFxPreview, function(value) {
 				model.stopPreview();
-			});				
+			});
 			pteCrt.addListener(editor.EventTypes.TemplateSelected, function(template) {
 				model.setTemplate(template);
-			});		
+			});
 			
 			// list widget specific
 			pteLst.addListener(editor.EventTypes.EditParticleFx, function(effect) {
 				model.setEffect(effect);
 				pteCrt.edit(effect);
-			});			
+			});
 			pteLst.addListener(editor.EventTypes.RemoveParticleFx, function(effect) {
 				model.removeEffect(effect);
 			});
@@ -940,7 +786,7 @@
 			// model specific
 			model.addListener(editor.events.Created, function(particleFx) {
 				pteLst.add(particleFx);			
-			});			
+			});
 			model.addListener(editor.events.Removed, function(value) {
 				pteCrt.reset();
 				pteLst.remove(value);

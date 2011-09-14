@@ -134,7 +134,7 @@
 			
 			this.find('#fogFormColorLbl').after(this.colorPicker.getUI());
 			
-			this.colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
+			this.colorPicker.addListener(editor.events.ColorPicked, function(clr) {
 				wgt.canSave();
 			});
 			

@@ -611,7 +611,7 @@
 					buttonId: 'crvColorRamp' + ndx + 'Picker'
 				});			
 				
-				colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
+				colorPicker.addListener(editor.events.ColorPicked, function(clr) {
 					wgt.notifyListeners(editor.EventTypes.SetCurveColor, {
 						color: clr,
 						ndx: ndx
@@ -886,7 +886,7 @@
 			this.find('#crvColorRamp0Lbl').after(colorRampPicker.getUI());
 			
 			// add listeners			
-			colorRampPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
+			colorRampPicker.addListener(editor.events.ColorPicked, function(clr) {
 				wgt.notifyListeners(editor.EventTypes.SetCurveColor, {
 					color: clr,
 					ndx: 0

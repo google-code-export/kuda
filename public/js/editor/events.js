@@ -25,6 +25,8 @@ var editor = (function(editor) {
 	editor.events = {
 		Cancel: 'editor.Cancel',
 		
+		ColorPicked: 'editor.ColorPicked',
+		
 		Created: 'editor.Created',
 		
 		DoneLoading: 'editor.DoneLoading',

@@ -204,8 +204,7 @@
 			
 			this.shapePosition = new editor.ui.Vector({
 				container: wgt.find('#shpPositionDiv'),
-				paramName: 'position',
-				onBlur: function(elem, evt) {
+				onBlur: function(ipt, evt) {
 					wgt.checkToggleButtons();
 				},
 				validator: validator
@@ -301,7 +300,7 @@
 				return false;
 			});
 			
-			this.colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {
+			this.colorPicker.addListener(editor.events.ColorPicked, function(clr) {
 				wgt.checkToggleButtons();
 			});
 		},
