@@ -786,10 +786,12 @@ var editor = (function(editor) {
 						parent = target.parents('.prjSidePanel, #prjPane'), 
 						isTool = target.parents('.toolBtn').size() > 0 ||
 							target.hasClass('toolBtn') ||
-							target.parents('#tabBar h2');
+							target.parents('#tabBar h2'),
+						isDown = target.hasClass('down');
 					
 					if (parent.size() == 0 && target.attr('id') !== 'prjPane') {
-						view.sidePanel.setVisible(false, !isTool);
+						view.sidePanel.setVisible(false, 
+							isTool ? !isDown : true);
 						view.hideButtons();
 						view.saveIpt.val('').blur();
 						jQuery(document).unbind('click.prj');
