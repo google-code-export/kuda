@@ -13,6 +13,8 @@ var editor = (function(editor) {
 		ProjectExists: 'projectExsits',
 		Publish: 'publish',
 		Published: 'published',
+		Remove: 'remove',
+		Removed: 'removed',
 		Save: 'save',
 		Saved: 'saved',
 		ServerRunning: 'serverRunning',
@@ -49,17 +51,17 @@ var editor = (function(editor) {
 			});
 		},
 		
-		checkExisting: function(name) {
+		checkExisting: function(project) {
 			var exists = false;
 			
 			for (var i = 0, il = this.projectCache.length; i < il && !exists; i++) {
 				exists |= this.projectCache[i].toLowerCase() 
-					=== name.toLowerCase();
+					=== project.toLowerCase();
 			}
 			
 			this.notifyListeners(event.ProjectExists, {
 				exists: exists,
-				project: name
+				project: project
 			});
 		},
 		
@@ -68,9 +70,9 @@ var editor = (function(editor) {
 				this.projectCache : null);
 		},
 		
-		load: function(name) {
+		load: function(project) {
 			var data = {
-					name: name
+					name: project
 				},
 				dispatchProxy = editor.getDispatchProxy(),
 				mdl = this;
@@ -87,13 +89,13 @@ var editor = (function(editor) {
 					hemi.world.ready();
 					
 					mdl.notifyListeners(event.Loaded, {
-						project: name,
+						project: project,
 						succeeded: true
 					});
 				},
 				error: function(xhr, status, err){
 					mdl.notifyListeners(event.Loaded, {
-						project: name,
+						project: project,
 						succeeded: false
 					});
 				}
@@ -111,11 +113,11 @@ var editor = (function(editor) {
 			}
 		},
 		
-		publish: function(name) {
-			this.save(name, true);
+		publish: function(project) {
+			this.save(project, true);
 			
 			var data = {
-					name: name
+					name: project
 				},
 				models = hemi.world.getModels(),
 				mdl = this;
@@ -152,15 +154,37 @@ var editor = (function(editor) {
 			
 		},
 		
-		remove: function(name) {
-			// TODO: implement this
+		remove: function(project) {								
+			var data = {
+					name: project
+				},
+				mdl = this;
+			
+			jQuery.ajax({
+				url: '/project',
+				data: data,
+				dataType: 'json',
+				type: 'delete',
+				success: function(data, status, xhr) {
+					mdl.notifyListeners(event.Removed, data.name);
+					
+					var ndx = mdl.projectCache.indexOf(project);
+					
+					if (ndx !== -1) {
+						mdl.projectCache.splice(ndx, 1);
+					}
+				},
+				error: function(xhr, status, err) {
+					mdl.serverRunning = false;
+				}
+			});
 		},
 		
-		save: function(name, replace) {
+		save: function(project, replace) {
 			replace = replace || false;
 								
 			var data = {
-					name: name,
+					name: project,
 					octane: JSON.stringify(editor.getProjectOctane()),
 					replace: replace
 				},
@@ -173,15 +197,15 @@ var editor = (function(editor) {
 				type: 'post',
 				success: function(data, status, xhr) {
 					mdl.notifyListeners(event.Saved, {
-						project: name,
+						project: project,
 						saved: true
 					});
-					mdl.projectCache.push(name);
+					mdl.projectCache.push(project);
 				},
 				error: function(xhr, status, err) {
 					mdl.serverRunning = false;
 					mdl.notifyListeners(event.Saved, {
-						project: name,
+						project: project,
 						saved: false
 					});					
 				}
@@ -357,7 +381,7 @@ var editor = (function(editor) {
 			this.versionsHash = new Hashtable();
 		},
 		
-		add: function(name, version) {
+		add: function(project, version) {
 			var li = new editor.ui.EditableListItem({
 					editable: false,
 					removeable: false
@@ -431,30 +455,30 @@ var editor = (function(editor) {
 			sizeAndPosition.call(this);	
 		},
 			    
-	    add: function(name) {			
-			var li = this.items.get(name);
+	    add: function(project) {			
+			var li = this.items.get(project);
 			
 			if (!li) {
 				li = this.createListItem();
 					
-				li.setText(name);
-				li.attachObject(name);
+				li.setText(project);
+				li.attachObject(project);
 				
-				this.bindButtons(li, name);
+				this.bindButtons(li, project);
 				
 				this.list.add(li);
-				this.items.put(name, li);
+				this.items.put(project, li);
 			}
 			
 			return li;
 	    },
 		
-		bindButtons: function(li, name) {
+		bindButtons: function(li, project) {
 			var wgt = this;
 			
 			li.removeBtn.bind('click', function(evt) {
-				wgt.notifyListeners(event.RemoveProject, 
-					name);
+				wgt.notifyListeners(event.Remove, 
+					project);
 			});
 		},
 		
@@ -474,14 +498,14 @@ var editor = (function(editor) {
 			return this.buttonDiv.outerHeight(true);
 		},
 	    
-	    remove: function(name) {
-			var li = this.items.get(name),
+	    remove: function(project) {
+			var li = this.items.get(project),
 				retVal = false;
 			
 			if (li) {
 				li.removeObject();
 				this.list.remove(li);
-				this.items.remove(name);
+				this.items.remove(project);
 				retVal = true;
 			}
 			
@@ -701,7 +725,7 @@ var editor = (function(editor) {
 			this.topPanel.setVisible(false);
 		},
 		
-		updateExists: function(exists, name) {
+		updateExists: function(exists, project) {
 			var view = this;
 			
 			if (exists) {
@@ -715,7 +739,7 @@ var editor = (function(editor) {
 				
 				if (!this.dontSave) {
 					this.notifyListeners(event.Save, {
-						project: name,
+						project: project,
 						replace: false
 					});
 					
@@ -724,12 +748,12 @@ var editor = (function(editor) {
 			}
 		},
 		
-		updateLoaded: function(name, succeeded) {
+		updateLoaded: function(project, succeeded) {
 			if (succeeded) {
-				this.saveIpt.val(name).show().effect('highlight', {
-					color: '#777'
+				this.saveIpt.val(project).show().effect('highlight', {
+					color: '#3b5e77'
 				});
-				this.loadedProject = name;
+				this.loadedProject = project;
 				this.sidePanel.setVisible(false);
 				this.msg.hide();
 				this.checkSaveable();
@@ -776,13 +800,20 @@ var editor = (function(editor) {
 			}
 		},
 		
-		updateSaved: function(name, succeeded) {
+		updateRemoved: function(project) {
+			if (this.loadedProject === project) {
+				this.loadedProject = null;
+				this.reset();
+			}
+		},
+		
+		updateSaved: function(project, succeeded) {
 			if (succeeded) {
-				this.loadedProject = name;
+				this.loadedProject = project;
 				this.reset();
 				this.hideButtons();
 				this.saveIpt.effect('highlight', {
-					color: '#777'
+					color: '#3b5e77'
 				});
 			}
 			else {
@@ -820,11 +851,11 @@ var editor = (function(editor) {
 				controller = this;
 			
 			// view specific
-			view.addListener(event.CheckProjectExists, function(name) {
-				model.checkExisting(name);
+			view.addListener(event.CheckProjectExists, function(project) {
+				model.checkExisting(project);
 			});
-			view.addListener(event.Publish, function(name) {
-				model.publish(name);
+			view.addListener(event.Publish, function(project) {
+				model.publish(project);
 			});
 			view.addListener(event.Save, function(data) {
 				model.save(data.project, data.replace);
@@ -839,6 +870,9 @@ var editor = (function(editor) {
 			// widget specific
 			lstWgt.addListener(event.Load, function(project) {
 				model.load(project);
+			});
+			lstWgt.addListener(event.Remove, function(project) {
+				model.remove(project);
 			});
 			prvWgt.addListener(event.StopPreview, function() {
 				model.stopPreview();
@@ -859,8 +893,13 @@ var editor = (function(editor) {
 			model.addListener(event.Published, function(data) {
 				view.updatePublished();
 			});
+			model.addListener(event.Removed, function(project) {
+				view.updateRemoved(project);
+				lstWgt.remove(project);
+			});
 			model.addListener(event.Saved, function(data) {
 				view.updateSaved(data.project, data.saved);
+				lstWgt.add(data.project);
 			});
 			model.addListener(event.ServerRunning, function(isRunning) {
 				view.updateServerRunning(isRunning);

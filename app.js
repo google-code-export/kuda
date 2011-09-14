@@ -127,6 +127,24 @@ app.get('/project', function(req, res) {
 	}
 });
 
+app.del('/project', function(req, res) {
+	if (req.xhr) {
+		var name = req.param('name'),
+			filePath = projectsPath + '/' + name + '.json';
+			
+		if (path.existsSync(filePath)) {
+			fs.unlinkSync(filePath);
+			res.send({
+				name: name,
+				msg: 'Successfully removed ' + name
+			}, 200);
+		}
+		else {
+			res.send('File named ' + name + ' does not exist', 400);
+		}
+	}
+});
+
 app.get('/models', function(req, res) {
 	var data = {
 		models: []
