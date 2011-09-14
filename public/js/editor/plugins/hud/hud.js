@@ -574,7 +574,7 @@
 			
 			this.find('#hudPgeColorLbl').after(colorPicker.getUI());
 			
-			colorPicker.addListener(editor.EventTypes.ColorPicked, function(clr) {		
+			colorPicker.addListener(editor.events.ColorPicked, function(clr) {		
 				saveBtn.removeAttr('disabled');
 				cancelBtn.removeAttr('disabled');
 			});

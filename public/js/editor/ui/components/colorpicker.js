@@ -18,11 +18,6 @@
 var editor = (function(module) {
 	module.ui = module.ui || {};
 	
-    module.EventTypes = module.EventTypes || {};
-	
-	// jquery triggered events
-	module.EventTypes.ColorPicked = 'editor.colorPicker.ColorPicked';
-	
 	module.ui.ColorPickerDefaults = {
 		container: null,
 		inputId: 'color',
@@ -107,7 +102,7 @@ var editor = (function(module) {
 				
 			colorPickerElem.jPicker(options, function(color, context) {
 				var clr = colorPickedFcn(color);
-				wgt.notifyListeners(module.EventTypes.ColorPicked, clr);
+				wgt.notifyListeners(module.events.ColorPicked, clr);
 			});
 			
 			setTimeout(function() {
@@ -128,8 +123,6 @@ var editor = (function(module) {
 		},
 		
 		setColor: function(color) {	
-			var pickers = jQuery.jPicker.List;
-				
 			this.rInput.val(color[0]);
 			this.gInput.val(color[1]);
 			this.bInput.val(color[2]);
@@ -144,17 +137,21 @@ var editor = (function(module) {
 		},
 		
 		getColor: function() {
-			var r = this.rInput.val();
-				g = this.gInput.val();
-				b = this.bInput.val();
+			var r = this.rInput.val(),
+				g = this.gInput.val(),
+				b = this.bInput.val(),
 				a = this.aInput.val(),
 				color = null;
 			
-			if (r !== 'r' && g !== 'g' && b !== 'b' && a !== 'a') {
-				color = [
-					parseFloat(r), parseFloat(g), parseFloat(b), 
-					parseFloat(a)
-				];
+			if (r !== '' && g !== '' && b !== '' && a !== '') {
+				r = parseFloat(r);
+				g = parseFloat(g);
+				b = parseFloat(b);
+				a = parseFloat(a);
+				
+				if (!(isNaN(r) || isNaN(g) || isNaN(b) || isNaN(a))) {
+					color = [r, g, b, a];
+				}
 			}
 			
 			return color;

@@ -205,7 +205,10 @@
 			var wgt = this,
 				validator = editor.ui.createDefaultValidator(),
 				inputs = this.find('input:not(#vptName)'),
-				form = this.find('form');
+				form = this.find('form'),
+				onBlurFcn = function(ipt, evt) {
+					wgt.checkToggleButtons();
+				};
 			
 			this.saveBtn = this.find('#vptSaveBtn');
 			this.cancelBtn = this.find('#vptCancelBtn');
@@ -228,17 +231,13 @@
 			this.eye = new editor.ui.Vector({
 				container: wgt.find('#vptCameraDiv'),
 				paramName: 'eye',
-				onBlur: function(elem, evt) {					
-					wgt.checkToggleButtons();
-				},
+				onBlur: onBlurFcn,
 				validator: validator
 			});
 			this.target = new editor.ui.Vector({
 				container: wgt.find('#vptTargetDiv'),
 				paramName: 'position',
-				onBlur: function(elem, evt) {
-					wgt.checkToggleButtons();
-				},
+				onBlur: onBlurFcn,
 				validator: validator
 			});
 
