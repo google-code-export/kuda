@@ -89,17 +89,33 @@ p {
 }
 #tabBar>ul>li>div {
 	padding-left: 10px;
+	position: relative;
 }
 #tabBar h2>a {
 	text-decoration: none;
 	display: block;
 	color: #fff;
+	outline: none;
 }
 #tabBar h2>a:hover {
 	color: #75d0f4;
 }
 #tabBar>ul>li>div.down h2>a {
 	color: #75d0f4;
+}
+#tabBar .toolbarArrow {
+	display: block; 
+	position: absolute;
+	top: 25px; 
+	left: 35px; 
+	width: 13px;
+	height: 13px;
+	background: #585858;
+	box-shadow: inset 2px 2px 2px #222;
+	transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+	z-index: 1;
 }
 
 /******************************************************************************
@@ -129,6 +145,11 @@ p {
 	float: left;
 	position: relative;
 	color: #fff; 
+	background: url(/images/patternGray.gif) repeat;
+	box-shadow: inset 0 0 4px #222;
+	margin: 5px -10px 10px;
+	padding: 5px 10px;
+	width: 165px;
 }
 .toolbar {
 	float: left;
@@ -165,8 +186,11 @@ p {
 	-o-transition: background-color 0.25s ease-in-out;
 	z-index: 10;
 	border: 1px solid #222;
-	border-radius: 6px;
+	border-radius: 8px;
 	background: #444;
+	box-shadow: inset 0 0 9px #333333, 
+		0 1px 0 #777777;
+	margin-right: 3px;
 }
 .toolTitle {
 	height: 18px;
@@ -182,8 +206,8 @@ p {
 	font: bold 14px/22px "Myriad Pro", Helvetica, Arial, sans-serif;
 	text-indent: 0;
 	white-space: nowrap;
-	top: 0;
-	left: 0;
+	top: 5px;
+	left: 10px;
 }
 .toolBtn:after {
 	content: '';
@@ -298,8 +322,15 @@ p {
 
 #prjPane .toolbarContainer {
 	border-bottom: 1px dotted #666;
-	padding-bottom: 20px;
 	margin-bottom: 10px;
+	background: none;
+	box-shadow: none;
+	margin: 0;
+	width: auto;
+	padding: 0 0 20px;
+}
+#prjPane .toolbarArrow {
+	display: none !important;
 }
 #prjPane h2, #prjPane h3 {
 	display: none;
@@ -352,11 +383,6 @@ p {
 		inset 0 0 1px #72bbe0;
 	width: 162px;
 }
-#prjPane #prjSaveBtn[disabled] {
-	background: -moz-linear-gradient(100% 100% 90deg, #6a8da0, #7ca5ba);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#7ca5ba), to(#6a8da0));
-	color: #bbb;
-}
 #prjPane #prjSaveBtn.overwrite {
 	width: 100px;
 }
@@ -375,11 +401,14 @@ p {
 #prjPane button:nth-child(3) {
 	clear: left;
 }
-#prjPane button[disabled] {
+#prjPane button[disabled], #prjPane #prjSaveBtn[disabled] {
     background: #444;
 	background: -moz-linear-gradient(100% 100% 90deg, #444, #555);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555), to(#444));
 	color: #888;
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    text-shadow: 0 -1px 0 #000;
 }
 
 /******************************************************************************

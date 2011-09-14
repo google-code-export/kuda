@@ -107,8 +107,10 @@ var editor = (function(editor) {
 			this.toolbarContainer.hide();
 			this.container = jQuery('<div></div>');
 			this.titleElem = jQuery('<h2><a href="#">' + this.title + '</a></h2>');
+//			this.arrow = jQuery('<div class="toolbarArrow"></div>').hide();
 			
-			this.container.append(this.titleElem).append(this.toolbarContainer);
+			this.container.append(this.titleElem)//.append(this.arrow)
+				.append(this.toolbarContainer);
 		},
 		
 		setToolBar: function(toolbar) {
@@ -120,11 +122,13 @@ var editor = (function(editor) {
 		setVisible: function(visible) {
 			if (visible) {
 				this.toolbarContainer.slideDown();
+//				this.arrow.show(100);
 				this.toolbar.loadState();
 				this.container.addClass('down');
 			}
 			else {
 				this.toolbarContainer.slideUp();
+//				this.arrow.hide(100);
 				this.toolbar.saveState();
 				this.toolbar.deselect();
 				this.container.removeClass('down');
@@ -316,6 +320,10 @@ var editor = (function(editor) {
 				updateMeta: opt_updateMeta
 			});
 			this.visible = visible;
+			
+			for (var i = 0, il = this.widgets.length; i < il; i++) {
+				this.widgets[i].sizeAndPosition();	
+			}
 		}
 	});
 	
