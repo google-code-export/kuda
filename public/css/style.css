@@ -146,10 +146,13 @@ p {
 	position: relative;
 	color: #fff; 
 	background: url(/images/patternGray.gif) repeat;
-	box-shadow: inset 0 0 4px #222;
+	box-shadow: inset 0 2px 8px #222,
+		0 1px 0 #444;
 	margin: 5px -10px 10px;
 	padding: 5px 10px;
 	width: 165px;
+	border: 1px solid #2a2a2a;
+	border-width: 1px 0;
 }
 .toolbar {
 	float: left;
@@ -189,7 +192,7 @@ p {
 	border-radius: 8px;
 	background: #444;
 	box-shadow: inset 0 0 9px #333333, 
-		0 1px 0 #777777;
+		0 1px 0 #5f8eaf;
 	margin-right: 3px;
 }
 .toolTitle {
@@ -321,6 +324,7 @@ p {
  ******************************************************************************/
 
 #prjPane .toolbarContainer {
+	border-top: none;
 	border-bottom: 1px dotted #666;
 	margin-bottom: 10px;
 	background: none;
@@ -349,8 +353,9 @@ p {
 	border-color: #444;
 }
 #prjSaveIpt:focus, #prjSaveIpt.overwrite {
-	background: #555;
-	border-color: #777;
+	background: #626262;
+	border-color: #222;
+	box-shadow: 0 1px 0 #444;
 }
 #prjMsg a {
 	color: #fff;
