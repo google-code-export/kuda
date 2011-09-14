@@ -26,6 +26,7 @@ var editor = (function(editor) {
 	var InputDefaults =  {
 		container: null,
 		inputClass: null,
+		onBlur: null,
 		placeHolder: null,
 		type: 'number',
 		validator: null
@@ -71,6 +72,10 @@ var editor = (function(editor) {
 			this.container.bind('blur', function(evt) {
 				var val = getContainerValue.call(wgt);
 				wgt.setValue(val);
+				
+				if (wgt.config.onBlur) {
+					wgt.config.onBlur(wgt, evt);
+				}
 			})
 			.bind('focus', function(evt) {
 				setContainerValue.call(wgt, wgt.value);

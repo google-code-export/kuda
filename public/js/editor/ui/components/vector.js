@@ -18,11 +18,6 @@
 var editor = (function(editor) {
 	editor.ui = editor.ui || {};
 	
-    editor.EventTypes = editor.EventTypes || {};
-	
-	// jquery triggered events
-	editor.EventTypes.VectorValueSet = 'editor.vector.VectorValueSet';
-	
 	editor.ui.VectorDefaults = {
 		container: null,
 		inputs: ['x', 'y', 'z'],
@@ -115,21 +110,13 @@ var editor = (function(editor) {
 	var createDiv = function(ndx) {
 			var div = jQuery('<div class="vectorVec"></div>'),
 				addBtn = jQuery('<button>Add</button>'),
-				elem = new editor.ui.Input({
-					validator: this.config.validator,
-					inputClass: this.config.type,
-					type: this.config.inputType
-				}),
+				elem = createInput.call(this),
 				wgt = this;
 				
 			addBtn.bind('click', function() {
 				var btn = jQuery(this),
 					i = btn.data('ndx'),
-					newElem = new editor.ui.Input({
-						validator: wgt.config.validator,
-						inputClass: wgt.config.type,
-						type: wgt.config.inputType
-					});
+					newElem = createInput.call(wgt);
 					
 				wgt.inputs[i].push(newElem);
 				btn.before(newElem.container);
@@ -143,6 +130,17 @@ var editor = (function(editor) {
 				inputs: [elem]
 			};
 		},
+		
+		createInput = function() {
+			var cfg = this.config;
+			
+			return new editor.ui.Input({
+				inputClass: cfg.type,
+				onBlur: cfg.onBlur,
+				type: cfg.inputType,
+				validator: cfg.validator
+			});
+		},
 			
 		getBoundedValue = function() {
 			var values = [],
@@ -150,8 +148,9 @@ var editor = (function(editor) {
 			
 			for (var i = 0, il = this.inputs.length; i < il && isComplete; i++) {
 				var obj = this.inputs[i],
-					val = obj.elem.getValue(),
-					isComplete = val !== '' && val !== null;
+					val = obj.elem.getValue();
+				
+				isComplete = val !== '' && val !== null;
 				
 				if (isComplete) {
 					if (this.multiDim) {
@@ -209,9 +208,6 @@ var editor = (function(editor) {
 		
 		layoutBounded = function() {
 			var inputs = this.config.inputs,
-				inputType = this.config.inputType,
-				type = this.config.type,
-				validator = this.config.validator,
 				il = inputs.length,
 				noPlaceHolders = false;
 				
@@ -233,11 +229,7 @@ var editor = (function(editor) {
 					
 					for (var j = 0; j < jl; j++) {
 						var inputTxt = ipt[j],
-							elem = new editor.ui.Input({
-								validator: validator,
-								inputClass: type,
-								type: inputType
-							});
+							elem = createInput.call(this);
 						
 						if (!noPlaceHolders) {
 							elem.setName(inputTxt);
@@ -254,11 +246,7 @@ var editor = (function(editor) {
 					this.container.append(div);
 				}
 				else {
-					var elem = new editor.ui.Input({
-						validator: validator,
-						inputClass: type,
-						type: inputType
-					});
+					var elem = createInput.call(this);
 					
 					if (!noPlaceHolders) {
 						elem.setName(ipt);
@@ -290,11 +278,7 @@ var editor = (function(editor) {
 					this.container.append(obj.div);
 				}
 				else {
-					var elem = new editor.ui.Input({
-						validator: this.config.validator,
-						inputClass: this.config.type,
-						type: this.config.inputType
-					});
+					var elem = createInput.call(this);
 					this.inputs.push(elem);
 					this.container.append(elem.container);
 				}
@@ -312,11 +296,7 @@ var editor = (function(editor) {
 					btn.before(obj.div);
 				}
 				else {
-					var elem = new editor.ui.Input({
-						validator: this.config.validator,
-						inputClass: this.config.type,
-						type: this.config.inputType
-					});
+					var elem = createInput.call(this);
 					this.inputs.push(elem);
 					btn.before(elem.container);
 				}
@@ -339,15 +319,14 @@ var editor = (function(editor) {
 			})
 			.bind('blur', function(evt) {
 				var elem = jQuery(this),
-					val = elem.val(),
-					totVal = wgt.getValue();
+					val = wgt.getValue();
 				
 				if (wgt.config.onBlur) {
 					wgt.config.onBlur(elem, evt, wgt);
 				}	
-				else if (totVal != null) {
+				else if (val != null) {
 					wgt.notifyListeners(editor.EventTypes.VectorValueSet, 
-						totVal);
+						val);
 				}
 			});
 		},
@@ -425,11 +404,7 @@ var editor = (function(editor) {
 						input.div = obj.div;
 					}
 					else {
-						input = this.inputs[i] = new editor.ui.Input({
-							validator: this.config.validator,
-							inputClass: this.config.type,
-							type: this.config.inputType
-						});					
+						input = this.inputs[i] = createInput.call(this);
 						this.addBtn.before(input.container);	
 					}				
 				}
@@ -440,11 +415,7 @@ var editor = (function(editor) {
 							ipt = input[j];
 						
 						if (ipt == null) {
-							ipt = input[j] = new editor.ui.Input({
-								validator: this.config.validator,
-								inputClass: this.config.type,
-								type: this.config.inputType
-							});
+							ipt = input[j] = createInput.call(this);
 						}
 						ipt.setValue(val);
 						input.div.find('button').before(ipt.container);
