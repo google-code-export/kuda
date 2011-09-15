@@ -425,11 +425,14 @@ p {
 	bottom: 0;
 	background: #222;
 	z-index: 800;
+	margin-bottom: 0;
 }
 #plgPane .toolbarContainer {
 	background: none;
 	border: none;
 	box-shadow: none;
+	margin-bottom: 0;
+	padding-bottom: 0;
 }
 #plgPane .listWidget {
 	width: 185px;

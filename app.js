@@ -10,6 +10,7 @@ var express = require('express'),
 
 var app = module.exports = express.createServer(),
 	projectsPath = 'public/projects',
+	pluginsPath = 'public/js/editor/plugins',
 	assetsPath = 'public/assets',
 	uploadPath = 'public/tmp',
 	procFds = [process.stdin.fd, process.stdout.fd, process.stderr.fd];
@@ -142,6 +143,43 @@ app.del('/project', function(req, res) {
 		else {
 			res.send('File named ' + name + ' does not exist', 400);
 		}
+	}
+});
+
+app.get('/plugins', function(req, res) {
+	if (req.xhr) {
+		var data = {
+			plugins: []
+		};
+		
+		if (path.existsSync(pluginsPath)) {
+			var files = fs.readdirSync(pluginsPath);
+			
+			for (var i = 0, il = files.length; i < il; i++) {				
+				var file = files[i],	
+					dir = pluginsPath + '/' + file,
+					stat = fs.statSync(dir);
+				
+				if (stat.isDirectory()) {
+					var pFiles = fs.readdirSync(dir),
+						found = false;
+					
+					for (var j = 0, jl = pFiles.length; j < jl && !found; j++) {
+						var pFile = pFiles[j];
+						
+						if (pFile.match(file)) {
+							found = true;
+						}
+					}
+					
+					if (found) {
+						data.plugins.push(file);
+					}
+				}
+			}
+		}
+		
+		res.send(data, 200);		
 	}
 });
 

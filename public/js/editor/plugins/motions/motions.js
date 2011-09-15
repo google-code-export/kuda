@@ -43,7 +43,7 @@
 			mtnCtr.setBrowserModel(model);
 		}
 		
-		editor.addListener(editor.events.PluginAdded, function(name) {
+		editor.addListener(editor.events.PluginLoaded, function(name) {
 			if (name === 'browser' && !mtnCtr.bound) {
 				mtnCtr.setBrowserModel(editor.getModel(name));
 			}
