@@ -316,10 +316,6 @@ var editor = (function(editor) {
 				
 				if (wgt.config.onBlur) {
 					wgt.config.onBlur(elem, evt, wgt);
-				}	
-				else if (val != null) {
-					wgt.notifyListeners(editor.EventTypes.VectorValueSet, 
-						val);
 				}
 			});
 		},
