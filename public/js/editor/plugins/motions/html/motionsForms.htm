@@ -1,0 +1,102 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+<h1>Create Motion</h1>
+    <form id="mtnForm" class="withSteps" method="post" action="">
+        <fieldset id="mtnTransforms">
+            <legend>
+                Select Transforms
+            </legend>
+            <ol id="mtnTranList">
+            </ol>
+        </fieldset>
+        <fieldset id="mtnType">
+            <legend>
+                Select Motion Type
+            </legend>
+            <ol>
+                <li>
+                    <select id="mtnTypeSelect">
+                        <option value="-1">Select Type</option>
+                        <option value="rot">Rotator</option>
+                        <option value="trans">Translator</option>
+                    </select>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mtnParams">
+            <legend>
+                Set Optional Parameters
+            </legend>
+            <ol>
+            	<li>
+                    <label for="mtnOrigin">
+                        Origin
+                    </label>
+					<div id="mtnOriginDiv" ></div>
+                </li>
+            	<li>
+                    <label for="mtnAngle">
+                        Angle
+                    </label>
+					<div id="mtnAngleDiv" ></div>
+                </li>
+            	<li>
+                    <label for="mtnPos">
+                        Position
+                    </label>
+                    <div id="mtnPosDiv" ></div>
+                </li>
+            	<li>
+                    <label for="mtnVel">
+                        Velocity
+                    </label>
+					<div id="mtnVelDiv" ></div>
+                </li>
+            	<li>
+                    <label for="mtnAccel">
+                        Acceleration
+                    </label>
+					<div id="mtnAccelDiv" ></div>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mtnSave">
+            <legend>
+                Save Motion
+            </legend>
+            <ol>
+                <li>
+                    <label for="mtnName">
+                        Name:
+                    </label>
+                    <input type="text" id="mtnName" class="name" autocomplete="off" />
+                    <div class="buttons">
+                        <button id="mtnPrevBtn">
+                            Start Preview
+                        </button>
+                        <button id="mtnSaveBtn" disabled="disabled">
+                            Save
+                        </button>
+                        <button id="mtnCancelBtn">
+                            Clear
+                        </button>
+                    </div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
