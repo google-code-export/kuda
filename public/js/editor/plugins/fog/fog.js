@@ -107,24 +107,20 @@
 		finishLayout: function() {
 			this._super();
 			
+			var wgt = this,
+				form = this.find('form'),
+				validator = editor.ui.createDefaultValidator();
+			
 			this.onOff = this.find('#fogFormOnOff');
-			this.start = this.find('#fogFormStart');
-			this.end = this.find('#fogFormEnd');
 			this.saveBtn = this.find('#fogFormSaveBtn');
 			this.cancelBtn = this.find('#fogFormCancelBtn');
-			var wgt = this,
-				form = this.find('form');
-				
-			// add validation
-			new editor.ui.Validator(wgt.find('input.short'), function(elem) {
-				var val = elem.val(),
-					msg = null;
-					
-				if (val !== '' && !hemi.utils.isNumeric(val)) {
-					msg = 'must be a number';
-				}
-				
-				return msg;
+			this.start = new editor.ui.Input({
+				container: wgt.find('#fogFormStart'),
+				validator: validator
+			});
+			this.end = new editor.ui.Input({
+				container: wgt.find('#fogFormEnd'),
+				validator: validator
 			});
 			
 			this.colorPicker = new editor.ui.ColorPicker({
@@ -152,8 +148,8 @@
 			this.saveBtn.bind('click', function(evt) {
 				var vals = {
 					color: wgt.colorPicker.getColor(),
-					start: parseInt(wgt.start.val()),
-					end: parseInt(wgt.end.val())
+					start: wgt.start.getValue(),
+					end: wgt.end.getValue()
 				};
 				
 				wgt.notifyListeners(editor.EventTypes.SaveFog, vals);
@@ -176,13 +172,13 @@
 		set: function(vals) {
 			if (vals === null) {
 				this.colorPicker.reset();
-				this.start.val('');
-				this.end.val('');
+				this.start.reset();
+				this.end.reset();
 				this.onOff.attr('checked', false);
 			} else {
 				this.colorPicker.setColor(vals.color);
-				this.start.val(vals.start);
-				this.end.val(vals.end);
+				this.start.setValue(vals.start);
+				this.end.setValue(vals.end);
 				this.onOff.attr('checked', true);
 			}
 			
@@ -191,8 +187,7 @@
 		},
 		
 		canSave: function() {
-			if (this.start.val() !== '' &&
-				this.end.val() !== '' &&
+			if (this.start.getValue() != null && this.end.getValue() != null &&
 				this.colorPicker.getColor() !== null) {
 					this.saveBtn.removeAttr('disabled');
 					this.cancelBtn.removeAttr('disabled');
