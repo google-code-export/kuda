@@ -458,7 +458,8 @@
 		finishLayout: function() {
 			this._super();
 			
-			var wgt = this;
+			var wgt = this,
+				validator = editor.ui.createDefaultValidator();
 			
 			this.displayEditor = this.find('#hudDpyEditor');
 			this.pageEditor = this.find('#hudPgeEditor');
@@ -466,18 +467,18 @@
 			this.textPosition = new editor.ui.Vector({
 				container: wgt.find('#hudTxtPositionDiv'),
 				inputs: ['x', 'y'],
-				validator: editor.ui.createDefaultValidator()
+				validator: validator
 			});
 			this.imageEditor = this.find('#hudImgEditor');
 			this.imagePosition = new editor.ui.Vector({
 				container: wgt.find('#hudImgPositionDiv'),
 				inputs: ['x', 'y'],
-				validator: editor.ui.createDefaultValidator()
+				validator: validator
 			});
 			
 			this.bindDisplayEditor();
 			this.bindPageEditor();
-			this.bindTextEditor();
+			this.bindTextEditor(validator);
 			this.bindImageEditor();
 			
 			this.find('form').bind('submit', function(evt) {
@@ -525,9 +526,7 @@
 			var	canSave = true;
 			
 			for (var ndx = 0, len = inputs.length; canSave && ndx < len; ndx++) {
-				var clsAtt = jQuery(inputs[ndx]).attr('class');
-				canSave = clsAtt.indexOf('vectorHelper') === -1;
-				canSave = canSave && inputs[ndx].value !== '';
+				canSave = inputs[ndx].value !== '';
 			}
 			
 			if (canSave) {
@@ -623,43 +622,39 @@
 			.attr('disabled', 'disabled');
 		},
 		
-		bindTextEditor: function() {
+		bindTextEditor: function(validator) {
 			var txtEdt = this.textEditor,
 				inputs = txtEdt.find('input'),
 				required = txtEdt.find('input:not(.optional)'),
 				textInput = txtEdt.find('#hudTxtText'),
-				widthInput = txtEdt.find('#hudTxtWidth'),
-				nameInput = txtEdt.find('#hudTxtName'),
-				sizeInput = txtEdt.find('#hudTxtSize'),
 				fontSelect = txtEdt.find('#hudTxtFont'),
 				styleSelect = txtEdt.find('#hudTxtStyle'),
 				alignSelect = txtEdt.find('#hudTxtAlign'),
 				saveBtn = txtEdt.find('#hudTxtSaveBtn'),
 				cancelBtn = txtEdt.find('#hudTxtCancelBtn'),
 				removeBtn = txtEdt.find('#hudTxtRemoveBtn'),
+				colorPicker = new editor.ui.ColorPicker({
+					inputId: 'hudTxtColor',
+					buttonId: 'hudTxtColorPicker'
+				}),
 				wgt = this;
-			
-			var colorPicker = new editor.ui.ColorPicker({
-				inputId: 'hudTxtColor',
-				buttonId: 'hudTxtColorPicker'
+
+			this.txtNameInput = new editor.ui.Input({
+				container: txtEdt.find('#hudTxtName'),
+				type: 'string'
 			});
-			
+			this.sizeInput = new editor.ui.Input({
+				container: txtEdt.find('#hudTxtSize'),
+				type: 'integer',
+				validator: validator
+			});
+			this.widthInput = new editor.ui.Input({
+				container: txtEdt.find('#hudTxtWidth'),
+				validator: validator
+			});
 			this.find('#hudTxtColorLbl').after(colorPicker.getUI());
 			
 			txtEdt.data('colorPicker', colorPicker);
-			
-			// add validation
-			new editor.ui.Validator(inputs.filter('.vector, .short'), 
-				function(elem) {
-					var val = elem.val(),
-						msg = null;
-						
-					if (val !== '' && !hemi.utils.isNumeric(val)) {
-						msg = 'must be a number';
-					}
-					
-					return msg;
-				});
 													
 			inputs.bind('blur', function(evt) {
 				wgt.canSave(required, [saveBtn]);
@@ -668,12 +663,12 @@
 				wgt.canSave(required, [saveBtn]);
 			}); 
 			
-			nameInput.bind('keyup', function(evt) {
+			this.txtNameInput.getUI().bind('keyup', function(evt) {
 				wgt.canSave(required, [saveBtn]);
 			});
 			
 			saveBtn.bind('click', function(evt) {
-				var size = sizeInput.val(),
+				var size = wgt.sizeInput.getValue(),
 					font = fontSelect.val(),
 					style = styleSelect.val(),
 					align = alignSelect.val(),
@@ -682,19 +677,19 @@
 				
 				var props = {
 					type: 'Text',
-					name: nameInput.val(),
+					name: wgt.txtNameInput.getValue(),
 					x: pos[0],
 					y: pos[1],
 					text: textInput.val(),
-					width: parseFloat(widthInput.val()),
+					width: wgt.widthInput.getValue(),
 					config: {}
 				};
 				
 				if (color != null) {
 					props.config.color = color;
 				}
-				if (size !== '') {
-					props.config.textSize = parseInt(size);
+				if (size != null) {
+					props.config.textSize = size;
 				}
 				if (font !== '-1') {
 					props.config.textTypeface = font;
@@ -729,25 +724,19 @@
 		bindImageEditor: function() {
 			var imgEdt = this.imageEditor,
 				inputs = imgEdt.find('input'),
-				nameInput = imgEdt.find('#hudImgName'),
-				urlInput = imgEdt.find("#hudImgUrl"),
 				saveBtn = imgEdt.find('#hudImgSaveBtn'),
 				cancelBtn = imgEdt.find('#hudImgCancelBtn'),
 				removeBtn = imgEdt.find('#hudImgRemoveBtn'),
 				wgt = this;
-			
-			// add validation
-			new editor.ui.Validator(inputs.filter('.vector, .short'), 
-				function(elem) {
-					var val = elem.val(),
-						msg = null;
-						
-					if (val !== '' && !hemi.utils.isNumeric(val)) {
-						msg = 'must be a number';
-					}
-					
-					return msg;
-				});
+
+			this.imgNameInput = new editor.ui.Input({
+				container: imgEdt.find('#hudImgName'),
+				type: 'string'
+			});
+			this.urlInput = new editor.ui.Input({
+				container: imgEdt.find('#hudImgUrl'),
+				type: 'string'
+			});
 						
 			inputs.bind('blur', function(evt) {
 				wgt.canSave(inputs, [saveBtn]);
@@ -756,7 +745,7 @@
 				wgt.canSave(inputs, [saveBtn]);
 			});
 			
-			nameInput.bind('keyup', function(evt) {
+			this.imgNameInput.getUI().bind('keyup', function(evt) {
 				wgt.canSave(inputs, [saveBtn]);
 			});
 			
@@ -764,10 +753,10 @@
 				var pos = wgt.imagePosition.getValue(),
 					props = {
 						type: 'Image',
-						name: nameInput.val(),
+						name: wgt.imgNameInput.getValue(),
 						x: pos[0],
 						y: pos[1],
-						url: urlInput.val()
+						url: wgt.urlInput.getValue()
 					};
 				
 				wgt.setImageEditor(null);
@@ -818,9 +807,6 @@
 			var txtEdt = this.textEditor,
 				required = txtEdt.find('input:not(.optional)'),
 				textInput = txtEdt.find('#hudTxtText'),
-				widthInput = txtEdt.find('#hudTxtWidth'),
-				nameInput = txtEdt.find('#hudTxtName'),
-				sizeInput = txtEdt.find('#hudTxtSize'),
 				fontSelect = txtEdt.find('#hudTxtFont'),
 				styleSelect = txtEdt.find('#hudTxtStyle'),
 				alignSelect = txtEdt.find('#hudTxtAlign'),
@@ -831,10 +817,10 @@
 				
 			txtEdt.data('obj', obj).find('.displayName').text(obj ? obj.name : '');
 			obj ? this.textPosition.setValue([obj.x, obj.y]) : this.textPosition.reset();
-			widthInput.val(obj ? obj.width : '');
+			this.widthInput.setValue(obj ? obj.width : null);
 			textInput.val(obj ? obj.text[0] : '');
-			nameInput.val(obj ? obj.name : '');
-			sizeInput.val(obj && obj.config.textSize ? obj.config.textSize 
+			this.txtNameInput.setValue(obj ? obj.name : null);
+			this.sizeInput.setValue(obj && obj.config.textSize ? obj.config.textSize 
 				: hemi.hud.theme.text.textSize);
 			fontSelect.val(obj && obj.config.textTypeface
 				? obj.config.textTypeface : hemi.hud.theme.text.textTypeface);
@@ -862,14 +848,12 @@
 		
 		setImageEditor: function(obj) {
 			var imgEdt = this.imageEditor,
-				urlInput = imgEdt.find('#hudImgUrl'),
-				nameInput = imgEdt.find('#hudImgName'),
 				removeBtn = imgEdt.find('#hudImgRemoveBtn');
 				
 			imgEdt.data('obj', obj).find('.displayName').text(obj ? obj.name : '');
 			obj ? this.imagePosition.setValue([obj.x, obj.y]) : this.imagePosition.reset();
-			urlInput.val(obj ? obj.getImageUrl() : '');
-			nameInput.val(obj ? obj.name : '');
+			this.urlInput.setValue(obj ? obj.getImageUrl() : null);
+			this.imgNameInput.setValue(obj ? obj.name : null);
 			
 			if (obj) {
 				removeBtn.show();

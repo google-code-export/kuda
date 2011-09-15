@@ -270,7 +270,6 @@
 		
 		checkStatus: function() {
 			var list = this.inputsToCheck,
-				nameInput = this.find('#mnpName'),
 				prevBtn = this.find('#mnpPrevBtn'),
 				saveBtn = this.find('#mnpSaveBtn'),
 				isSafe = this.transforms.length > 0 && list.length > 0;
@@ -285,7 +284,7 @@
 				prevBtn.attr('disabled', 'disabled');
 			}
 			
-			if (isSafe && nameInput.val() !== '') {
+			if (isSafe && this.nameInput.getValue() != null) {
 				saveBtn.removeAttr('disabled');
 			} else {
 				saveBtn.attr('disabled', 'disabled');
@@ -305,39 +304,39 @@
 				planeMax = this.find('#mnpPlaneMaxDiv'),
 				saveBtn = this.find('#mnpSaveBtn'),
 				cancelBtn = this.find('#mnpCancelBtn'),
-				nameInput = this.find('#mnpName'),
 				prevBtn = this.find('#mnpPrevBtn'),
 				ol = this.find('#mnpTranList'),
 				optionalInputs = this.find('.optional'),
+				validator = editor.ui.createDefaultValidator(),
 				wgt = this;
 
 			this.axisMin = new editor.ui.Input({
-					validator: editor.ui.createDefaultValidator(),
-					type: 'angle'
-				});
+				validator: validator,
+				type: 'angle'
+			});
 			this.axisMax = new editor.ui.Input({
-					validator: editor.ui.createDefaultValidator(),
-					type: 'angle'
-				});
+				validator: validator,
+				type: 'angle'
+			});
 			this.uMin = new editor.ui.Input({
-					validator: editor.ui.createDefaultValidator(),
-					inputClass: 'vector',
-					type: 'number'
-				});
+				validator: validator,
+				inputClass: 'vector'
+			});
 			this.vMin = new editor.ui.Input({
-				validator: editor.ui.createDefaultValidator(),
-				inputClass: 'vector',
-				type: 'number'
+				validator: validator,
+				inputClass: 'vector'
 			});
 			this.uMax = new editor.ui.Input({
-				validator: editor.ui.createDefaultValidator(),
-				inputClass: 'vector',
-				type: 'number'
+				validator: validator,
+				inputClass: 'vector'
 			});
 			this.vMax = new editor.ui.Input({
-				validator: editor.ui.createDefaultValidator(),
-				inputClass: 'vector',
-				type: 'number'
+				validator: validator,
+				inputClass: 'vector'
+			});
+			this.nameInput = new editor.ui.Input({
+				container: wgt.find('#mnpName'),
+				type: 'string'
 			});
 			
 			axMin.append(this.axisMin.getUI());
@@ -420,7 +419,7 @@
 				wgt.checkStatus();
 			});
 			
-			nameInput.bind('keyup', function(evt) {
+			this.nameInput.getUI().bind('keyup', function(evt) {
 				wgt.checkStatus();
 			});
 			
@@ -458,9 +457,9 @@
 			var typeSel = this.find('#mnpTypeSelect'),
 				planeSel = this.find('#mnpPlaneSelect'),
 				axisSel = this.find('#mnpAxisSelect'),
-				nameInput = this.find('#mnpName'),
+				name = this.nameInput.getValue(),
 				props = {
-					name: nameInput.val(),
+					name: name,
 					transforms: this.transforms,
 					type: typeSel.val()
 				};
@@ -538,8 +537,7 @@
 		setManip: function(manip) {
 			var typeSel = this.find('#mnpTypeSelect'),
 				planeSel = this.find('#mnpPlaneSelect'),
-				axisSel = this.find('#mnpAxisSelect'),
-				nameInput = this.find('#mnpName');
+				axisSel = this.find('#mnpAxisSelect');
 			
 			if (manip instanceof hemi.manip.Draggable) {
 				var planeStr = hemi.manip.Plane.get(manip.plane);
@@ -558,7 +556,8 @@
 				this.axisMax.setValue(manip.max);
 			}
 			
-			nameInput.val(manip.name).keyup();
+			this.nameInput.setValue(manip.name);
+			this.checkStatus();
 		}
 	});
 
