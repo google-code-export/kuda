@@ -265,8 +265,7 @@
 		},
 		
 		checkStatus: function() {
-			var nameInput = this.find('#mtnName'),
-				typeSelect = this.find('#mtnTypeSelect'),
+			var typeSelect = this.find('#mtnTypeSelect'),
 				prevBtn = this.find('#mtnPrevBtn'),
 				saveBtn = this.find('#mtnSaveBtn'),
 				isSafe = this.transforms.length > 0 && typeSelect.val() !== '-1';
@@ -277,7 +276,7 @@
 				prevBtn.attr('disabled', 'disabled');
 			}
 			
-			if (isSafe && nameInput.val() !== '') {
+			if (isSafe && this.nameInput.getValue() != null) {
 				saveBtn.removeAttr('disabled');
 			} else {
 				saveBtn.attr('disabled', 'disabled');
@@ -291,32 +290,36 @@
 				typeSel = this.find('#mtnTypeSelect'),
 				saveBtn = this.find('#mtnSaveBtn'),
 				cancelBtn = this.find('#mtnCancelBtn'),
-				nameInput = this.find('#mtnName'),
 				prevBtn = this.find('#mtnPrevBtn'),
 				ol = this.find('#mtnTranList'),
+				validator = editor.ui.createDefaultValidator(),
 				wgt = this;
 			
 			this.origin = new editor.ui.Vector({
 				container: wgt.find('#mtnOriginDiv'),
 				inputType: 'angle',
-				validator: editor.ui.createDefaultValidator()
+				validator: validator
 			});
 			this.angle = new editor.ui.Vector({
 				container: wgt.find('#mtnAngleDiv'),
 				inputType: 'angle',
-				validator: editor.ui.createDefaultValidator()
+				validator: validator
 			});
 			this.position = new editor.ui.Vector({
 				container: wgt.find('#mtnPosDiv'),
-				validator: editor.ui.createDefaultValidator()
+				validator: validator
 			});
 			this.velocity = new editor.ui.Vector({
 				container: wgt.find('#mtnVelDiv'),
-				validator: editor.ui.createDefaultValidator()
+				validator: validator
 			});
 			this.acceleration = new editor.ui.Vector({
 				container: wgt.find('#mtnAccelDiv'),
-				validator: editor.ui.createDefaultValidator()
+				validator: validator
+			});
+			this.nameInput = new editor.ui.Input({
+				container: wgt.find('#mtnName'),
+				type: 'string'
 			});
 			
 			this.tranList[NO_TRANS] = jQuery('<li><label>None selected</label></li>');
@@ -355,7 +358,7 @@
 				wgt.invalidate();
 			}).change();
 			
-			nameInput.bind('keyup', function(evt) {
+			this.nameInput.getUI().bind('keyup', function(evt) {
 				wgt.checkStatus();
 			});
 			
@@ -392,9 +395,9 @@
 		
 		getProperties: function() {
 			var typeSel = this.find('#mtnTypeSelect'),
-				nameInput = this.find('#mtnName'),
+				name = this.nameInput.getValue(),
 				props = {
-					name: nameInput.val(),
+					name: name,
 					transforms: this.transforms,
 					type: typeSel.val()
 				};
@@ -478,8 +481,7 @@
 		},
 		
 		setMotion: function(motion) {
-			var typeSel = this.find('#mtnTypeSelect'),
-				nameInput = this.find('#mtnName');
+			var typeSel = this.find('#mtnTypeSelect');
 			
 			if (motion instanceof hemi.motion.Rotator) {
 				typeSel.val('rot').change();
@@ -524,7 +526,9 @@
 					z: motion.accel[2]
 				});
 			}
-			nameInput.val(motion.name).keyup();
+			
+			this.nameInput.setValue(motion.name);
+			this.checkStatus();
 		}
 	});
 
