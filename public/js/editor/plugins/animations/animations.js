@@ -43,8 +43,10 @@
     editor.EventTypes = editor.EventTypes || {};
 	
 	// model events
-    editor.EventTypes.ModelPicked = "animator.ModelPicked";
+    editor.EventTypes.AnimationSet = "animator.AnimationSet";
     editor.EventTypes.AnimationStopped = "animator.AnimationStopped";
+    editor.EventTypes.LoopRemoved = "animator.LoopRemoved";
+    editor.EventTypes.ModelPicked = "animator.ModelPicked";
 	
 	// create animation widget events
     editor.EventTypes.ModelSelected = "crtAnm.ModelSelected";
@@ -81,7 +83,7 @@
 	        this.selectedModel;
 	        this.hilights = new Hashtable();
 	        this.hilightMaterial;
-	        this.animation;
+	        this.animation = null;
 			this.animDirty = false;
 			this.msgHandler = null;
 			this.name = 'No Name';
@@ -135,15 +137,12 @@
 	        if (!this.animation) {
 				this.createAnimation();
 			}
-			
-            var start = hemi.view.getTimeOfFrame(start),
-            	end = hemi.view.getTimeOfFrame(end),
-            	iterations = parseInt(iterations),            
-            	loop = new hemi.animation.Loop();
-				
-			loop.startTime = start;
-			loop.stopTime = end;
+
+            var loop = new hemi.animation.Loop();
+			loop.startTime = hemi.view.getTimeOfFrame(start);
+			loop.stopTime = hemi.view.getTimeOfFrame(end);
 			loop.iterations = iterations;
+			
             this.stopAnimation();
             this.animation.addLoop(loop);
         
@@ -274,6 +273,7 @@
 	        if (this.animation) {
 	            this.stopAnimation();
 	            this.animation.removeLoop(loop);
+	            this.notifyListeners(editor.EventTypes.LoopRemoved, loop);
 	        }
 	    },
 		
@@ -307,11 +307,13 @@
 		},
 		
 		setAnimation: function(animation) {
+			this.setModel(animation.target);
 			this.animation = animation;
 			this.name = animation.name;
 			this.startTime = animation.beginTime;
 			this.endTime = animation.endTime;
 			this.isUpdate = true;
+			this.notifyListeners(editor.EventTypes.AnimationSet, animation);
 		},
 		
 		setEnd: function(endFrame) {
@@ -394,9 +396,9 @@
 				uiFile: 'js/editor/plugins/animations/html/animationsForms.htm',
 		        instructions: 'Click on a model to select it'
 			});
-			
-			this.hiddenItems = new Hashtable();	
-			var wgt = this;	
+		    
+		    this.loops = [];
+		    var wgt = this;
 			
 			hemi.msg.subscribe(hemi.msg.load, function(msg) {
 				if (msg.src instanceof hemi.model.Model) {
@@ -421,12 +423,76 @@
 				startVal = loop.startTime * hemi.view.FPS,
 				endVal = loop.stopTime * hemi.view.FPS,
 				itrVal = loop.iterations,
-				startInput = jQuery('<input class="loopStart blend" type="text" value="' + startVal + '"/>'),
-				endInput = jQuery('<input class="loopEnd blend" type="text" value="' + endVal + '"/>'),
-				itrInput = jQuery('<input type="text" class="blend" value="' + itrVal + '" />'),
-				startLbl = jQuery('<label>From</label>'),
-				endLbl = jQuery('<label>To</label>'),
-				itrLbl = jQuery('<label># Times</label>'),
+				validator = new editor.ui.Validator(null, function(elem) {
+					var val = elem.val(),
+						begins = startInput.getValue(),
+						ends = endInput.getValue(),
+						min = slider.slider('option', 'min'),
+						max = slider.slider('option', 'max'),
+						msg = null;
+						
+					if (val !== '' && !hemi.utils.isNumeric(val)) {
+						msg = 'must be a number';
+					}
+					else if (elem.hasClass('loopStart')) {
+						if (begins > ends && ends >= min) {
+							msg = 'beginning must be less than end';
+						}
+						else if (begins < min) {
+							msg = 'must be greater than or equal to ' + min; 
+						}
+					}
+					else if (elem.hasClass('loopEnd')) {
+						if (begins > ends && begins <= max) {
+							msg = 'end must be greater than beginning';
+						}
+						else if (ends > max) {
+							msg = 'must be less than or equal to ' + max;
+						}
+					}
+					
+					return msg;
+				}),
+				blurFcn = function(ipt, evt) {
+					var begins = startInput.getValue(),
+						ends = endInput.getValue(),
+						itr = itrInput.getValue(),
+						curMin = slider.slider('option', 'min'),
+						curMax = slider.slider('option', 'max');
+					
+					if (begins != null && ends != null && itr != null
+							&& begins <= ends && begins >= curMin
+							&& ends <= curMax) {
+						slider.slider('option', 'values', [begins, ends]);
+						
+		                wgt.notifyListeners(editor.EventTypes.EditAnmLoop, {
+		                    loop: wrapper.data('obj'),
+							start: begins,
+							end: ends,
+							itr: itr
+		                });
+					}
+				},
+				startInput = new editor.ui.Input({
+					inputClass: 'loopStart',
+					onBlur: blurFcn,
+					placeHolder: 'From',
+					type: 'integer',
+					validator: validator
+				}),
+				endInput = new editor.ui.Input({
+					inputClass: 'loopEnd',
+					onBlur: blurFcn,
+					placeHolder: 'To',
+					type: 'integer',
+					validator: validator
+				}),
+				itrInput = new editor.ui.Input({
+					onBlur: blurFcn,
+					placeHolder: 'Repeat',
+					type: 'integer',
+					validator: validator
+				}),
 				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>'),
 				formDiv = jQuery('<div class="loopForms"></div>'),
 				slider = jQuery('<div class="loopSlider"></div>').slider({
@@ -437,51 +503,17 @@
 							var min = ui.values[0],
 								max = ui.values[1];
 								
-							startInput.val(min).data('oldVal', min);	
-							endInput.val(max).data('oldVal', max);
+							startInput.setValue(min);	
+							endInput.setValue(max);
 						},
 						values: [startVal, endVal]
-					}),
-				changeFcn = function(evt) {
-					var elem = jQuery(this),
-						loop = wrapper.data('obj'),
-						val = elem.val(),
-						begins = parseInt(startInput.val()),
-						ends = parseInt(endInput.val()),
-						itr = parseInt(itrInput.val()),
-						oldStart = startInput.data('oldVal'),
-						oldEnd = endInput.data('oldVal'),
-						oldItr = itrInput.data('oldVal'),
-						curMin = slider.slider('option', 'min'),
-						curMax = slider.slider('option', 'max');
-					
-					if (hemi.utils.isNumeric(val) && begins <= ends 
-							&& begins >= curMin && ends <= curMax) {
-						slider.slider('option', 'values', [begins, ends]);
-						startInput.data('oldVal', begins);
-						endInput.data('oldVal', ends);
-						itrInput.data('oldVal', itr);
-						
-		                wgt.notifyListeners(editor.EventTypes.EditAnmLoop, {
-		                    loop: loop,
-							start: begins,
-							end: ends,
-							itr: itr
-		                });
-					}
-					else {
-						itrInput.val(oldItr);
-					}
-				};
-				
+					});
+			
 			this.find('#anmLoopData').show();
-			startInput.bind('change', changeFcn).data('oldVal', startVal);	
-			endInput.bind('change', changeFcn).data('oldVal', endVal);
-			itrInput.bind('change', changeFcn).data('oldVal', itrVal);
 			slider.bind('slidechange', function(evt, ui) {
 				var loop = wrapper.data('obj'),				
 					values = slider.slider('option', 'values'),
-					itr = parseInt(itrInput.val());
+					itr = itrInput.getValue();
 					
 	                wgt.notifyListeners(editor.EventTypes.EditAnmLoop, {
 	                    loop: loop,
@@ -493,157 +525,148 @@
 			
 			removeBtn.bind('click', function(evt) {
 				var loop = wrapper.data('obj');
-				
-				wrapper.remove();
 				wgt.notifyListeners(editor.EventTypes.RemoveAnmLoop, loop);
 			});
 			
-			formDiv.append(startLbl).append(startInput).append(endLbl)
-				.append(endInput).append(itrLbl).append(itrInput);
+			formDiv.append(startInput.getUI()).append(endInput.getUI())
+				.append(itrInput.getUI());
 			wrapper.append(slider).append(formDiv).append(removeBtn)
 				.data('obj', loop);
-				
-			// add validation
-			var checkFcn = function(elem) {
-				var val = elem.val(),
-					begins = parseInt(startInput.val()),
-					ends = parseInt(endInput.val()),
-					min = slider.slider('option', 'min'),
-					max = slider.slider('option', 'max'),
-					msg = null;
-					
-				if (val !== '' && !hemi.utils.isNumeric(val)) {
-					msg = 'must be a number';
-				}
-				else if (elem.hasClass('loopStart')) {
-					if (begins > ends && ends >= min) {
-						msg = 'begin must be less than end';
-					}
-					else if (begins < min) {
-						msg = 'begin must be greater than ' + min; 
-					}	
-				}
-				else if (elem.hasClass('loopEnd')) {
-					if (begins > ends && begins <= max) {
-						msg = 'end must be greater than beginning';
-					}
-					else if (ends > max) {
-						msg = 'end must be lass than ' + max;
-					}					
-				}
-				return msg;
-			};
 			
-			new editor.ui.Validator(startInput, checkFcn);
-			new editor.ui.Validator(endInput, checkFcn);
+			startInput.setValue(startVal);
+			endInput.setValue(endVal);
+			itrInput.setValue(itrVal);
 			
 			this.loopList.append(wrapper);
+			this.loops.push({
+				loop: loop,
+				start: startInput,
+				end: endInput,
+				slider: slider
+			});
+		},
+		
+		removeLoop: function(loop) {
+			for (var i = 0, il = this.loops.length; i < il; ++i) {
+				var obj = this.loops[i];
+				
+				if (obj.loop === loop) {
+					obj.wrapper.remove();
+					this.loops.splice(i, 1);
+					break;
+				}
+			}
 		},
 		
 		finishLayout: function() {
 			this._super();
-			this.slider = this.find('#anmSlider');
 			
+			var wgt = this,
+				inputs = this.find('#anmBeginFrame, #anmEndFrame, #anmName'),
+				validator = new editor.ui.Validator(null, function(elem) {
+					var val = elem.val(),
+						id = elem.attr('id');
+						begins = wgt.beginInput.getValue(),
+						ends = wgt.endInput.getValue(),
+						min = wgt.slider.slider('option', 'min'),
+						max = wgt.slider.slider('option', 'max'),
+						msg = null;
+						
+					if (val !== '' && !hemi.utils.isNumeric(val)) {
+						msg = 'must be a number';
+					}
+					else if (id === 'anmBeginFrame') {
+						if (begins > ends && ends >= min) {
+							msg = 'beginning must be less than end';
+						}
+						else if (begins < min) {
+							msg = 'must be greater than or equal to ' + min; 
+						}
+					}
+					else if (id === 'anmEndFrame') {
+						if (begins > ends && begins <= max) {
+							msg = 'end must be greater than beginning';
+						}
+						else if (ends > max) {
+							msg = 'must be less than or equal to ' + max;
+						}
+					}
+					
+					return msg;
+				}),
+				blurFcn = function(ipt, evt) {
+					var param = ipt.getUI().attr('id'),
+						begins = wgt.beginInput.getValue(),
+						ends = wgt.endInput.getValue(),
+						min = wgt.slider.slider('option', 'min'),
+						max = wgt.slider.slider('option', 'max'),
+						msgType = null,
+						val = null;
+					
+					switch(param) {
+						case 'anmBeginFrame':
+						    msgType = editor.EventTypes.SetAnmBeginFrame;
+						    val = begins;
+							break; 
+						case 'anmEndFrame':
+						    msgType = editor.EventTypes.SetAnmEndFrame;
+						    val = ends;
+							break;
+						case 'anmName':
+						    msgType = editor.EventTypes.SetAnmName;
+							val = wgt.nameInput.getValue();
+							break;
+					}
+	
+					if (val != null && begins <= ends && begins >= min 
+							&& ends <= max) {	
+						wgt.canSave();	
+						wgt.slider.slider('option', {
+							values: [begins, ends]
+						});
+						wgt.find('.loopSlider').slider('option', {
+							min: begins,
+							max: ends
+						});
+						wgt.notifyListeners(msgType, val);
+					}
+				};
+			
+			this.slider = this.find('#anmSlider');
 			this.selector = this.find('#anmModelSelect');
 	        this.addBtn = this.find('#anmLoopAdd');
         	this.saveBtn = this.find('#anmSaveBtn');
 			this.cancelBtn = this.find('#anmCancelBtn');
 			this.anmPreviewBtn = this.find('#anmPreviewBtn');
-			this.beginInput = this.find('#anmBeginFrame');
-			this.endInput = this.find('#anmEndFrame');
 			this.loopList = this.find('#anmLoopList');
-			this.insLabel = this.find('#anmModelVal');
 			
-			var wgt = this,
-				inputs = this.find('#anmBeginFrame, #anmEndFrame, #anmName'),
-				frameInputs = this.find('#anmBeginFrame, #anmEndFrame');   
+			this.beginInput = new editor.ui.Input({
+				container: wgt.find('#anmBeginFrame'),
+				onBlur: blurFcn,
+				validator: validator
+			});
+			this.endInput = new editor.ui.Input({
+				container: wgt.find('#anmEndFrame'),
+				onBlur: blurFcn,
+				validator: validator
+			});
+			this.nameInput = new editor.ui.Input({
+				container: wgt.find('#anmName'),
+				onBlur: blurFcn,
+				type: 'string'
+			});
 			                 
 	        this.find('form').submit(function() {
 	            return false;
 	        });
 			
-	        this.find('#anmModelVal').html(this.config.instructions);
-			
-			// add validation
-			new editor.ui.Validator(frameInputs, function(elem) {
-				var val = elem.val(),
-					id = elem.attr('id');
-					begins = parseInt(wgt.beginInput.val()),
-					ends = parseInt(wgt.endInput.val()),
-					min = wgt.slider.slider('option', 'min'),
-					max = wgt.slider.slider('option', 'max'),
-					msg = null;
-					
-				if (val !== '' && !hemi.utils.isNumeric(val)) {
-					msg = 'must be a number';
-				}
-				else if (id === 'anmBeginFrame') {
-					if (begins > ends && ends >= min) {
-						msg = 'begin must be less than end';
-					}
-					else if (begins < min) {
-						msg = 'begin must be greater than ' + min; 
-					}	
-				}
-				else if (id === 'anmEndFrame') {
-					if (begins > ends && begins <= max) {
-						msg = 'end must be greater than beginning';
-					}
-					else if (ends > max) {
-						msg = 'end must be lass than ' + max;
-					}					
-				}
-				
-				return msg;
-			});
-			
 			this.selector.bind('change', function(evt) {
 				var mdl = hemi.world.getCitizenById(
 					parseInt(jQuery(this).val()));
-				wgt.notifyListeners(editor.EventTypes.ModelSelected, mdl);
+						wgt.notifyListeners(editor.EventTypes.ModelSelected, mdl);
 			});
 	            
-	        inputs.bind('change', function(evt) {
-				var elem = jQuery(this),
-					oldVal = elem.data('oldVal'),
-					txtVal = elem.val(),
-					val = parseInt(txtVal),
-					param = elem.attr('id'),
-					begins = parseInt(wgt.beginInput.val()),
-					ends = parseInt(wgt.endInput.val()),
-					min = wgt.slider.slider('option', 'min'),
-					max = wgt.slider.slider('option', 'max'),
-					msgType = null;
-				
-				switch(param) {
-					case 'anmBeginFrame':
-					    msgType = editor.EventTypes.SetAnmBeginFrame;
-						break; 
-					case 'anmEndFrame':
-					    msgType = editor.EventTypes.SetAnmEndFrame;
-						break;
-					case 'anmName':
-					    msgType = editor.EventTypes.SetAnmName;
-						val = txtVal;
-						break;
-				}
-
-				if (txtVal !== '' && begins <= ends && begins >= min 
-						&& ends <= max){	
-					wgt.canSave();	
-					wgt.slider.slider('option', {
-						values: [begins, ends]
-					});
-					wgt.find('.loopSlider').slider('option', {
-						min: begins,
-						max: ends
-					});
-					wgt.notifyListeners(msgType, val);
-					
-					elem.data('oldVal', val);
-				}
-			})
-			.bind('keyup', function(evt) {				
+	        inputs.bind('keyup', function(evt) {				
 				wgt.canSave();
 			});
 			
@@ -656,44 +679,16 @@
 					var min = ui.values[0],
 						max = ui.values[1];
 						
-					wgt.beginInput.val(min).data('oldVal', min);	
-					wgt.endInput.val(max).data('oldVal', max);
-					
-					wgt.find('.loopSlider').slider('option', {
-						min: min,
-						max: max
-					});
-					wgt.find('.loopStart').each(function() {
-						var elem = jQuery(this),
-							slider = elem.parent().find('.loopSlider'),
-							values = slider.slider('option', 'values'),
-							val = parseInt(elem.val());
-						
-						if (val < min) {
-							elem.val(min);
-						}
-						
-						slider.slider('option', 'values', [elem.val(), values[1]]);
-					});
-					wgt.find('.loopEnd').each(function() {
-						var elem = jQuery(this),
-							slider = elem.parent().find('.loopSlider'),
-							values = slider.slider('option', 'values'),
-							val = parseInt(elem.val());
-						
-						if (val > max) {
-							elem.val(max);
-						}
-						
-						slider.slider('option', 'values', [values[0], elem.val()]);	
-					});					
-					
+					wgt.beginInput.setValue(min);	
+					wgt.endInput.setValue(max);
+					wgt.updateLoopLimits(min, max);
 					wgt.canSave();
 				},
 				change: function(evt, ui) {					
 					var min = ui.values[0],
 						max = ui.values[1];
-						
+
+					wgt.updateLoopLimits(min, max);
 					wgt.notifyListeners(editor.EventTypes.SetAnmBeginFrame, min);
 					wgt.notifyListeners(editor.EventTypes.SetAnmEndFrame, max);
 				}
@@ -707,37 +702,26 @@
 					btn.text(ButtonText.START).data('previewing', false);
 				}
 				else {
-					var start = parseInt(wgt.beginInput.val()), 
-						end = parseInt(wgt.endInput.val());
-					
-					if (start != null && end != null) {
-						wgt.notifyListeners(editor.EventTypes.StartPreview, {
-							start: start,
-							end: end
-						});
-					}
+					wgt.notifyListeners(editor.EventTypes.StartPreview, null);
 					btn.text(ButtonText.STOP).data('previewing', true);
 				}
 	        }).data('previewing', false);
 	        
 	        this.addBtn.bind('click', function(evt) {         
-	            var start = parseInt(wgt.beginInput.val()),
-	            	end = parseInt(wgt.endInput.val());
+	        	var start = wgt.beginInput.getValue(), 
+					end = wgt.endInput.getValue();
 						
 	            wgt.notifyListeners(editor.EventTypes.AddAnmLoop, {
 	                start: start,
-	                end: end,
-					loopStart: start,
-					loopEnd: end,
-					loopItr: -1
+	                end: end
 	            });
 				wgt.invalidate();
 	        });
 	        
 	        this.saveBtn.bind('click', function(evt) {
-	            var start = parseInt(wgt.beginInput.val()),
-	            	end = parseInt(wgt.endInput.val()),
-	            	name = wgt.find('#anmName').val();
+	        	var start = wgt.beginInput.getValue(), 
+					end = wgt.endInput.getValue(),
+	            	name = wgt.nameInput.getValue();
 				
 				wgt.notifyListeners(editor.EventTypes.SaveAnimation, {
 					start: start,
@@ -755,92 +739,99 @@
 		},	
 	    
 	    modelSelected: function(model) { 
-			var max = parseInt(model.getMaxAnimationTime() * hemi.view.FPS);
-			
-			if (max > 0) {
-				this.find('#anmKeyframes, #anmLoops, #anmPreview').show(200);
-				this.slider.slider('option', {
-					min: 0,
-					max: max,
-					values: [0, max]
-				});
-				this.beginInput.val(0).data('oldVal', 0);
-				this.endInput.val(max).data('oldVal', max);
-				this.notifyListeners(editor.EventTypes.SetAnmBeginFrame, 0);
-				this.notifyListeners(editor.EventTypes.SetAnmEndFrame, max);
+	    	this.reset();
+	    	
+	    	if (model) {
+	    		var max = parseInt(model.getMaxAnimationTime() * hemi.view.FPS);
+	    		this.selector.val(model.getId());
+				
+				if (max > 0) {
+					this.find('#anmKeyframes, #anmLoops, #anmPreview').show(200);
+					this.slider.slider('option', {
+						min: 0,
+						max: max,
+						values: [0, max]
+					});
+					this.beginInput.setValue(0);
+					this.endInput.setValue(max);
+					this.notifyListeners(editor.EventTypes.SetAnmBeginFrame, 0);
+					this.notifyListeners(editor.EventTypes.SetAnmEndFrame, max);
+				}
+				
+				this.canSave();
+			} else {
+				this.reset();
 			}
-//			else {
-//				this.insLabel.html('Model has no animations');
-//			}
 	    },
 		
 		reset: function() {
-	        this.insLabel.html(this.config.instructions);
-	        this.find('input[type="text"]').val('');
+	        this.loops = [];
+	        this.beginInput.reset();
+			this.endInput.reset();
+			this.nameInput.reset();
+			this.selector.val(-1);
 	        this.find('#anmKeyframes, #anmLoops, #anmPreview').hide();
 	        this.find('#anmLoopList').find('.loopEditor').remove();
-			
-			this.saveBtn.attr('disabled', 'disabled');
+	        this.canSave();
 		},
 		
-		resize: function(maxHeight) {
-			this._super(maxHeight);
-			var form = this.find('form'),
-				oldHeight = form.outerHeight(true),
-				borderHeight = parseInt(form.css('borderTopWidth')) 
-					+ parseInt(form.css('borderBottomWidth')),
-				marginHeight = parseInt(form.css('marginTop')) 
-					+ parseInt(form.css('marginBottom')),
-				paddingHeight = parseInt(form.css('paddingTop')) 
-					+ parseInt(form.css('paddingBottom')),
-				newHeight = maxHeight - borderHeight - marginHeight 
-					- paddingHeight;
-			
-			if (form) {
-				form.height(newHeight);
-				
-				if (oldHeight > newHeight) {
-					form.addClass('scrolling');
-				}
-				else {
-					form.removeClass('scrolling');
-				}
-			}
-		},	
-		
 		set: function(animation) {
-	        this.find('#anmKeyframes, #anmLoops, #anmPreview').show();   
-	        this.find('#anmModelVal').html(animation.target.name);
+			this.reset();
+			this.selector.val(animation.target.getId());
+	        this.find('#anmKeyframes, #anmLoops, #anmPreview').show();
 			
 			var loopList = animation.loops,
 				min = animation.beginTime * hemi.view.FPS,
-				max = animation.endTime * hemi.view.FPS,
-				wgt = this;
+				max = animation.endTime * hemi.view.FPS;
 			
 			for (var ndx = 0, len = loopList.length; ndx < len; ndx++) {
 				this.addLoopInput(loopList[ndx], min, max);
 			}
 			
-	        this.beginInput.val(animation.beginTime * hemi.view.FPS);
-	        this.endInput.val(animation.endTime * hemi.view.FPS);
-	        this.find('#anmName').val(animation.name);
+	        this.beginInput.setValue(min);
+	        this.endInput.setValue(max);
+	        this.nameInput.setValue(animation.name);
 			
 			this.slider.slider('option', {
-				values: [animation.beginTime * hemi.view.FPS,
-					animation.endTime * hemi.view.FPS]
+				values: [min, max]
 			});
-			this.anmPreviewBtn.removeAttr('disabled');
 			
+			this.anmPreviewBtn.removeAttr('disabled');
 			this.notifyListeners(editor.EventTypes.SetAnimation, animation);
 		},
 		
+		updateLoopLimits: function(min, max) {
+			for (var i = 0, il = this.loops.length; i < il; ++i) {
+				var obj = this.loops[i],
+					starts = obj.start.getValue(),
+					ends = obj.end.getValue();
+				
+				if (starts < min) {
+					starts = min;
+					obj.start.setValue(min);
+				}
+				if (ends > max) {
+					ends = max;
+					obj.end.setValue(max);
+				}
+				
+				obj.slider.slider('option', {
+					min: min,
+					max: max
+				})
+				.slider('option', 'values', [starts, ends]);
+			}
+		},
+		
 		canSave: function() {
-	        var start = this.beginInput.val(),
-            	end = this.endInput.val(),
-            	name = this.find('#anmName').val();
+			var start = this.beginInput.getValue(), 
+				end = this.endInput.getValue(),
+            	name = this.nameInput.getValue();
             
-            if (start !== '' && end !== '') {				
-				if (name !== '') {
+            if (start != null && end != null) {				
+            	this.anmPreviewBtn.removeAttr('disabled');
+            	
+            	if (name != null) {
 	                this.saveBtn.removeAttr('disabled');
 	            } else {
 					this.saveBtn.attr('disabled', 'disabled');
@@ -864,9 +855,7 @@
 				prefix: 'anmLst',
 				instructions: "Add animations above.",
 				title: 'Animations'
-			});
-			
-			this.items = new Hashtable();	
+			});	
 		},
 		
 		bindButtons: function(li, obj) {
@@ -939,9 +928,7 @@
 	        var model = this.model,
 	        	view = this.view,
 				crtWgt = view.sidePanel.createAnmWidget,
-				lstWgt = view.sidePanel.anmListWidget,
-				bhvWgt = view.sidePanel.behaviorWidget,
-	        	that = this;
+				lstWgt = view.sidePanel.anmListWidget;
 	        
 	        view.addListener(editor.events.ToolModeSet, function(value) {
 	            var isDown = value.newMode == editor.ToolConstants.MODE_DOWN;				
@@ -951,20 +938,14 @@
 			
 			// creat animation widget specific		    
 	        crtWgt.addListener(editor.EventTypes.AddAnmLoop, function(obj) {
-				model.setStart(obj.start);
-				model.setEnd(obj.end);
-				
-	            var loop = model.createLoop(obj.loopStart, obj.loopEnd, 
-						obj.loopItr);
-						
+				var loop = model.createLoop(obj.start, obj.end, -1);		
 	            crtWgt.addLoopInput(loop, obj.start, obj.end);      
 	        });	  	
 			crtWgt.addListener(editor.events.Cancel, function () {
 				model.unSelectAll();
 			});   
 	        crtWgt.addListener(editor.EventTypes.EditAnmLoop, function(obj) {				
-	            var loop = model.saveLoop(obj.loop, obj.start, obj.end, 
-					obj.itr);     
+	            model.saveLoop(obj.loop, obj.start, obj.end, obj.itr);     
 	        });	
 			crtWgt.addListener(editor.EventTypes.RemoveAnmLoop, function(value) {
 				model.removeLoop(value);
@@ -1005,8 +986,6 @@
 			
 			// animation list widget specific
 			lstWgt.addListener(editor.EventTypes.EditAnimation, function(animation) {
-				model.setModel(animation.target);
-				crtWgt.set(animation);
 				model.setAnimation(animation);
 			});			
 			lstWgt.addListener(editor.EventTypes.RemoveAnimation, function(animation) {
@@ -1019,11 +998,16 @@
 			});	     	
 	        model.addListener(editor.events.Removed, function(animation) {
 	            lstWgt.remove(animation);
-	        });				
+	        });
+	        model.addListener(editor.EventTypes.AnimationSet, function(animation) {
+	        	crtWgt.set(animation);
+	        });
 	        model.addListener(editor.EventTypes.AnimationStopped, function(value) {
-	            crtWgt.find('#anmStartBtn').removeAttr('disabled');
-	            crtWgt.find('#anmStopBtn').attr('disabled', 'disabled');
-	        });   
+	        	crtWgt.anmPreviewBtn.text(ButtonText.START).data('previewing', false);
+	        });
+	        model.addListener(editor.EventTypes.LoopRemoved, function(loop) {
+	            crtWgt.removeLoop(loop);
+	        });
 	        model.addListener(editor.events.Updated, function(animation) {
 	            lstWgt.update(animation);
 	        });		

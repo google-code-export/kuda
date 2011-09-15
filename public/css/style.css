@@ -1057,8 +1057,6 @@ form input[type=radio] {
     float: left;
     margin-right: 5px;
 }
-form input.blend {
-}
 
 form ol#viewpoints li, form ol#eventsTest li, form ol#viewpointsTest li {
     list-style: decimal;

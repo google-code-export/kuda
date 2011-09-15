@@ -131,12 +131,13 @@ var editor = (function(editor) {
 			};
 		},
 		
-		createInput = function() {
+		createInput = function(opt_name) {
 			var cfg = this.config;
 			
 			return new editor.ui.Input({
 				inputClass: cfg.type,
 				onBlur: cfg.onBlur,
+				placeHolder: opt_name,
 				type: cfg.inputType,
 				validator: cfg.validator
 			});
@@ -229,11 +230,7 @@ var editor = (function(editor) {
 					
 					for (var j = 0; j < jl; j++) {
 						var inputTxt = ipt[j],
-							elem = createInput.call(this);
-						
-						if (!noPlaceHolders) {
-							elem.setName(inputTxt);
-						}
+							elem = createInput.call(this, noPlaceHolders ? null : inputTxt);
 						
 						this.inputs.push({
 							ndx1: i,
@@ -246,11 +243,7 @@ var editor = (function(editor) {
 					this.container.append(div);
 				}
 				else {
-					var elem = createInput.call(this);
-					
-					if (!noPlaceHolders) {
-						elem.setName(ipt);
-					}
+					var elem = createInput.call(this, noPlaceHolders ? null : ipt);
 					
 					this.inputs.push({
 						ndx1: i,

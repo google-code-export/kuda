@@ -145,6 +145,13 @@ var editor = (function(editor) {
 					val = null;
 				}
 				break;
+			case 'integer':
+				val = parseInt(this.container.val());
+				
+				if (isNaN(val)) {
+					val = null;
+				}
+				break;
 			case 'boolean':
 				val = this.container.prop('checked');
 				break;
