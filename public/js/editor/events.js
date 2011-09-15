@@ -31,13 +31,23 @@ var editor = (function(editor) {
 		
 		DoneLoading: 'editor.DoneLoading',
 		
+		Enabled: 'editor.Enabled',
+		
+		ModelAdded: 'editor.ModelAdded',
+		
 		PanelVisible: 'editor.PanelVisible',
+		
+		PluginActive: 'editor.PluginActive',
 		
 		PluginAdded: 'editor.PluginAdded',
 		
 		PluginRemoved: 'editor.PluginRemoved',
 		
 		Removed: 'editor.Removed',
+		
+		ScriptLoaded: 'editor.ScriptLoaded',
+		
+		ScriptLoadStart: 'editor.ScriptLoadStart',
 		
 		SidebarSet: 'editor.SidebarSet',
 		
@@ -50,6 +60,8 @@ var editor = (function(editor) {
 		ToolMouseOut: 'editor.ToolMouseOut',
 		
 		Updated: 'editor.Updated',
+		
+		ViewAdded: 'editor.ViewAdded',
 		
 		WidgetVisible: 'editor.WidgetVisible',
 		

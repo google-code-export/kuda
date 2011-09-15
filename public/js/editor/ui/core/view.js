@@ -2,7 +2,7 @@ var editor = (function(editor) {
 	editor.ui = editor.ui || {};	
 	
 // Notes: Tabpanes own toolbars
-// 		  Toolbars own tools
+// 		  ToolBars own tools
 //  	  Tools are made up of MVC
 //		  Tool views are made up of widgets
 //		  	 tool views maintain widget states  
@@ -58,13 +58,14 @@ var editor = (function(editor) {
 				.css('zIndex', editor.ui.Layer.TOOLBAR);
 		},
 		
-		add: function(tabpane) {
-			this.panes.put(tabpane.title, tabpane);
-			
+		add: function(tabpane, opt_liId) {			
 			var li = jQuery('<li></li>'),
 				ui = tabpane.getUI(),
 				wgt = this;
 			
+			if (opt_liId != null) {
+				li.attr('id', opt_liId);
+			}
 			li.append(ui);
 			ui.find('a').bind('click', function(evt) {
 				if (wgt.visiblePane && wgt.visiblePane !== tabpane) {
@@ -76,10 +77,28 @@ var editor = (function(editor) {
 			});
 			
 			this.list.append(li); 
+			this.panes.put(tabpane.title, {
+				li: li,
+				pane: tabpane
+			});
+			
+			tabpane.addListener(editor.events.Enabled, function(data) {
+				var obj = wgt.panes.get(data.item);
+				
+				if (data.enabled) {
+					obj.li.show();
+				}
+				else {
+					obj.pane.setVisible(false, function() {						
+						obj.li.hide();
+					});
+				}
+			});
 		},
 		
 		get: function(title) {
-			return this.panes.get(title);
+			var obj = this.panes.get(title);
+			return obj != null ? obj.pane : obj;
 		},
 		
 		setVisible: function(visible) {
@@ -98,6 +117,7 @@ var editor = (function(editor) {
 		init: function(title, options) {	
 			this.toolbar = null;
 			this.title = title;
+			this.visible = false;
 			
 			this._super(options);
 		},
@@ -113,25 +133,56 @@ var editor = (function(editor) {
 				.append(this.toolbarContainer);
 		},
 		
+		isVisible: function() {
+			return this.visible;
+		},
+		
+		notify: function(eventType, value) {
+			switch (eventType) {
+				case editor.events.Enabled:
+					this.setEnabled(value.enabled); 
+					break;
+			}
+		},
+		
+		setEnabled: function(enabled) {
+			this.enabled = enabled;
+			this.notifyListeners(editor.events.Enabled, {
+				item: this.title,
+				enabled: enabled
+			});
+		},
+		
 		setToolBar: function(toolbar) {
 			this.toolbar = toolbar;
 			var ui = toolbar.getUI();
 			this.toolbarContainer.append(ui);
+			
+			this.toolbar.addListener(editor.events.Enabled, this);
 		},
 		
-		setVisible: function(visible) {
+		setVisible: function(visible, opt_callback) {
 			if (visible) {
-				this.toolbarContainer.slideDown();
+				this.toolbarContainer.slideDown(function() {
+					if (opt_callback) {
+						opt_callback();
+					}
+				});
 //				this.arrow.show(100);
 				this.toolbar.loadState();
 				this.container.addClass('down');
+				this.visible = true;
 			}
 			else {
-				this.toolbarContainer.slideUp();
+				this.toolbarContainer.slideUp(function() {
+					if (opt_callback) {
+						opt_callback();
+					}
+				});
 //				this.arrow.hide(100);
 				this.toolbar.saveState();
-				this.toolbar.deselect();
 				this.container.removeClass('down');
+				this.visible = false;
 			}
 		}
 	});
@@ -651,8 +702,8 @@ var editor = (function(editor) {
 //                     			   Public Methods  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 		
-	editor.ui.addTabPane = function(tabpane) {
-		tabbar.add(tabpane);
+	editor.ui.addTabPane = function(tabpane, opt_liId) {
+		tabbar.add(tabpane, opt_liId);
 	};
 	
 	editor.ui.getTabBar = function() {
@@ -664,7 +715,7 @@ var editor = (function(editor) {
 		
 		if (!tabpane) {
 			tabpane = new editor.ui.TabPane(title);
-			tabpane.setToolBar(new editor.ui.Toolbar());
+			tabpane.setToolBar(new editor.ui.ToolBar());
 			tabbar.add(tabpane);
 		}
 		

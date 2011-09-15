@@ -98,12 +98,7 @@ var editor = {};
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Main App                                   //
 ////////////////////////////////////////////////////////////////////////////////
-	
-	var	callbacks = [],
-		scripts = new Hashtable(),
-		activePlugins = [],
-		loadedPlugins = [];
-		
+			
 //	test = {
 //		activePlugins: activePlugins,
 //		loadedPlugins: loadedPlugins
@@ -113,50 +108,8 @@ var editor = {};
 			o3djs.webgl.makeClients(function(clientElements) {
 				setupWorldMessages();
 				editor.ui.initializeView(clientElements);
-				loadPlugins();
+				editor.plugins.init();
 			});
-		},
-		
-		loadingComplete = function() {
-			var vals = scripts.values(),
-				complete = true;
-			
-			for (var i = 0, il = vals.length; i < il && complete; i++) {
-				complete &= vals[i];
-			}
-			
-			if (complete) {
-				for (var i = 0, il = callbacks.length; i < il; i++) {
-					var obj = callbacks[i];
-					obj.callback.apply(this, obj.params);
-				}
-				
-				editor.notifyListeners(editor.events.DoneLoading);
-				var mdls = editor.getModels();
-				
-				for (var i = 0, il = mdls.length; i < il; i++) {
-					var mdl = mdls[i];
-					
-					editor.addListener(editor.events.WorldCleaned, mdl);
-					editor.addListener(editor.events.WorldLoaded, mdl);	
-				}
-			}
-		},
-			
-		loadPlugins = function() {		
-			jQuery.get('js/editor/plugins/plugins.json')
-				.success(function(data, status, xhr) {								
-					// data is a json array
-					var plugins = data.plugins,
-						bdy = jQuery('body');
-					
-					for (var i = 0, il = plugins.length; i < il; i++) {
-						editor.loadPlugin(plugins[i]);
-					}
-				})
-				.error(function(xhr, status, err) {
-					// fail gracefully
-				});
 		},
 		
 		setupWorldMessages = function() {			
@@ -177,6 +130,10 @@ var editor = {};
 ////////////////////////////////////////////////////////////////////////////////
 //                             Editor Utilities                               //
 ////////////////////////////////////////////////////////////////////////////////
+	
+	editor.getActivePlugins = function() {
+		return activePlugins;
+	};
 	
 	editor.getActiveTool = function() {
 		return app.toolbar.getActiveTool();
@@ -209,7 +166,8 @@ var editor = {};
 		script.type = 'text/javascript';
 		script.src = url;
 		
-		scripts.put(script, false);
+		editor.notifyListeners(editor.events.ScriptLoadStart, url);
+//		scripts.put(script, false);
 		
 		{
 	        var done = false;
@@ -220,11 +178,12 @@ var editor = {};
 	            		this.readyState == "loaded" || 
 						this.readyState == "complete")) {
 	                done = true;
-                	scripts.put(script, true);
+//                	scripts.put(script, true);
 					if (callback) {
 						callback();
 					}
-					loadingComplete();
+					//loadingComplete();
+					editor.notifyListeners(editor.events.ScriptLoaded, url);
 	
 	                // Handle memory leak in IE
 	                script.onload = script.onreadystatechange = null;
@@ -233,29 +192,6 @@ var editor = {};
 	    }
 		
 	    document.body.appendChild(script);
-	};
-	
-	editor.loadPlugin = function(pluginName) {	
-		if (loadedPlugins.indexOf(pluginName) === -1) {
-			editor.getScript('js/editor/plugins/' + pluginName + '/' + pluginName + '.js');
-			callbacks.push({
-				callback: function(name){
-					editor.tools[name].init();
-					editor.notifyListeners(editor.events.PluginAdded, name);
-					activePlugins.push(name);
-					loadedPlugins.push(name);
-				},
-				params: [pluginName]
-			});
-		}
-		else if (activePlugins.indexOf(pluginName) === -1) {
-			activePlugins.push(pluginName);
-			// now notify that the plugin is active again
-		}
-	};
-	
-	editor.removePlugin = function(name) {
-		activePlugins.splice(activePlugins.indexOf(name), 1);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
