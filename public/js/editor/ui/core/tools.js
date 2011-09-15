@@ -45,26 +45,33 @@ var editor = (function(editor) {
 //                     			   	Tool Bar	  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 		
-	editor.ui.Toolbar = editor.ui.Component.extend({
+	editor.ui.ToolBar = editor.ui.Component.extend({
 		init: function(options) {		
-			this.tools = [];	
-			this.mousedIn = [];			
+			this.tools = [];
+			this.enabled = [];
+			this.mousedIn = [];
+			this.hidden = true;
+			this.currentTool = null;
 			this._super();
 		},
 		
 		add: function(tool) {
 			if (tool instanceof editor.ToolView) {
-				this.tools.push(tool);
+				this.tools.push({
+					tool: tool,
+					enabled: true
+				});
 				this.list.append(createListItem(tool));
 				
 				tool.addListener(editor.events.ToolClicked, this);
 				tool.addListener(editor.events.ToolMouseIn, this);
 				tool.addListener(editor.events.ToolMouseOut, this);
+				tool.addListener(editor.events.Enabled, this);
 			}
 		},
 		
 		deselect: function() {
-			var tool = this.getActiveTool();
+			var tool = this.currentTool;
 			
 			if (tool) {
 				tool.setMode(editor.ToolConstants.MODE_UP);
@@ -80,47 +87,65 @@ var editor = (function(editor) {
 		},
 		
 		getActiveTool: function() {
-			for (var i = 0, il = this.tools.length; i < il; i++) {
-				var tool = this.tools[i];
-				if (tool.mode === editor.ToolConstants.MODE_DOWN) {
-					return tool;
-				}
-			}
+//			for (var i = 0, il = this.tools.length; i < il; i++) {
+//				var tool = this.tools[i].tool;
+//				if (tool.mode === editor.ToolConstants.MODE_DOWN) {
+//					return tool;
+//				}
+//			}
 			
-			return null;
+			return this.currentTool;
 		},
 		
 		loadState: function() {
-			var tool = this.currentTool ? this.currentTool : this.tools[0];
+			var tool = this.currentTool;
+			
+			if (this.currentTool == null) {
+				for (var i = 0, il = this.tools.length; i < il && tool == null; i++) {
+					var t = this.tools[i];
+					
+					if (t.enabled) {
+						tool = t.tool;
+					}
+				}	
+			}
+			
 			tool.setMode(editor.ToolConstants.MODE_DOWN);
 			this.header.text(tool.toolTitle);
+			this.hidden = false;
 		},
 		
 		notify: function(eventType, value) {
 			var tbr = this;
 			
-			if (eventType === editor.events.ToolClicked) {
-				var toolList = this.tools;
-				
-				for (ndx = 0, len = toolList.length; ndx < len; ndx++) {
-					var t = toolList[ndx];
+			switch (eventType) {
+				case editor.events.ToolClicked:
+					var toolList = this.tools;
 					
-					if (t != value) {
-						t.setMode(editor.ToolConstants.MODE_UP);
+					for (ndx = 0, len = toolList.length; ndx < len; ndx++) {
+						var t = toolList[ndx].tool;
+						
+						if (t != value) {
+							t.setMode(editor.ToolConstants.MODE_UP);
+						}
 					}
-				}
-				
-				this.header.text(value.toolTitle);
-			}
-			else if (eventType === editor.events.ToolMouseIn) {
-				this.header.css('opacity', 0);
-				this.mousedIn.push(value);
-			}
-			else if (eventType === editor.events.ToolMouseOut) {
-				remove(value, this.mousedIn);
-				if (this.mousedIn.length === 0) {
-					this.header.css('opacity', 1);
-				}
+					
+					this.currentTool = value;
+					this.header.text(value.toolTitle);
+					break;
+				case editor.events.ToolMouseIn:
+					this.header.css('opacity', 0);
+					this.mousedIn.push(value);
+					break;
+				case editor.events.ToolMouseOut:
+					remove(value, this.mousedIn);
+					if (this.mousedIn.length === 0) {
+						this.header.css('opacity', 1);
+					}
+					break;
+				case editor.events.Enabled:
+					handleEnabled.call(this, value);
+					break;
 			}
  		},
 		
@@ -130,7 +155,8 @@ var editor = (function(editor) {
 		},
 		
 		saveState: function() {
-			this.currentTool = this.getActiveTool();
+			this.deselect();
+			this.hidden = true;
 		},
 		
 		setEnabled: function(enabled) {
@@ -140,20 +166,86 @@ var editor = (function(editor) {
 		}
 	});
 	
-	var remove = function(item, list) {		
-        var found = null;
-        var ndx = list.indexOf(item);
-        
-        if (ndx != -1) {
-            var spliced = list.splice(ndx, 1);
-            
-            if (spliced.length == 1) {
-                found = spliced[0];
-            }
-        }
-        
-        return found;
-	};
+	var checkEnabled = function() {
+			var enabled = false;
+			
+			for (var i = 0, il = this.tools.length; i < il && !enabled; i++) {
+				enabled |= this.tools[i].enabled;	
+			}
+			
+			return enabled;
+		},
+		
+		handleEnabled = function(data) {			
+			var found = false;
+			
+			for (var i = 0, il = this.tools.length; i < il && !found; i++) {
+				var t = this.tools[i];
+				
+				if (t.tool === data.item) {
+					t.enabled = data.enabled; 
+					found = true;
+				}
+			}	
+				
+			if (!data.enabled) {
+				data.item.setMode(editor.ToolConstants.MODE_UP);			
+				
+				if (!checkEnabled.call(this)) {
+					this.notifyListeners(editor.events.Enabled, {
+						item: this,
+						enabled: false
+					});
+				}
+				else if (!this.hidden) {
+					// select the next available tool
+					this.currentTool = nextAvailable.call(this);
+					if (!this.hidden) {
+						this.currentTool.setMode(editor.ToolConstants.MODE_DOWN);
+					}
+					this.header.text(this.currentTool.toolTitle);
+				}
+			}
+			else {
+				if (!this.hidden && this.currentTool == null) {
+					data.item.setMode(editor.ToolConstants.MODE_DOWN);
+				}
+				
+				this.notifyListeners(editor.events.Enabled, {
+					item: this,
+					enabled: true
+				});
+			}
+		},
+		
+		nextAvailable = function() {
+			var found = null;
+			
+			for (var i = 0, il = this.tools.length; i < il && found == null; i++) {
+				var t = this.tools[i];
+				
+				if (t.enabled) {
+					found = t.tool;
+				}
+			}
+			
+			return found;
+		},
+		
+		remove = function(item, list) {		
+	        var found = null;
+	        var ndx = list.indexOf(item);
+	        
+	        if (ndx != -1) {
+	            var spliced = list.splice(ndx, 1);
+	            
+	            if (spliced.length == 1) {
+	                found = spliced[0];
+	            }
+	        }
+	        
+	        return found;
+		};
 	
 	/**
 	 * Constants for setting up a tool.
@@ -179,6 +271,10 @@ var editor = (function(editor) {
 			this._super();
 			this.id = id;
 			models.put(id, this);
+			editor.notifyListeners(editor.events.ModelAdded, {
+				id: id,
+				model: this
+			});
 			editor.addListener(editor.events.WorldCleaned, this);
 			editor.addListener(editor.events.WorldLoaded, this);
 		},
@@ -241,11 +337,15 @@ var editor = (function(editor) {
 			this.visiblePanels = [];
 			
 			if (this.config.elemId) {
-				this.layoutToolbarContainer();
+				this.layoutToolBarContainer();
 			}
 			
 			this.id = this.config.id;
 			views.put(this.id, this);
+			editor.notifyListeners(editor.events.ViewAdded, {
+				id: this.id,
+				view: this
+			});
 		},
 		
 		/**
@@ -258,14 +358,17 @@ var editor = (function(editor) {
 			if (this.enabled != enabled) {
 				this.enabled = enabled;
 				
-				if (this.toolbarContainer) {
-					if (enabled) {
-						this.toolbarContainer.removeAttr('disabled');
-					}
-					else {
-						this.toolbarContainer.attr('disabled', 'disabled');
-					}
+				if (enabled) {
+					this.toolbarContainer.show();
 				}
+				else {
+					this.toolbarContainer.hide();
+				}
+				
+				this.notifyListeners(editor.events.Enabled, {
+					item: this,
+					enabled: enabled
+				});
 			}
 		},
 		
@@ -303,7 +406,7 @@ var editor = (function(editor) {
 		/**
 		 * Performs the layout of the toolbar widget.
 		 */
-		layoutToolbarContainer: function() {
+		layoutToolBarContainer: function() {
 			var view = this,
 				left = 70;
 			

@@ -417,6 +417,42 @@ p {
 }
 
 /******************************************************************************
+ * 							Custom Plugins Tabpane							  *
+ ******************************************************************************/
+
+#plgPane {
+	position: absolute;
+	bottom: 0;
+	background: #222;
+	z-index: 800;
+}
+#plgPane .toolbarContainer {
+	background: none;
+	border: none;
+	box-shadow: none;
+}
+#plgPane .listWidget {
+	width: 185px;
+	margin: 0 0 0 -10px;
+}
+#plgPane .listWidget>li {
+	width: 183px;
+}
+#plgPane .listWidget>li:nth-child(odd) {
+	background: #111;
+}
+#plgPane .listWidget>li:hover {
+	background: #2a2a2a;
+}
+#plgPane .listWidget>li>div {
+	width: auto;
+	padding-left: 10px;
+}
+#plgPane .listWidget>li input[type=checkbox] {
+	float: left;
+}
+
+/******************************************************************************
  * 									Panel									  *
  ******************************************************************************/
 

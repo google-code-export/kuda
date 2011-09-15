@@ -1,3 +1,20 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
 var editor = (function(editor) {
 	
 	// TODO: change to the autosave format like in google docs
@@ -594,7 +611,7 @@ var editor = (function(editor) {
 			this.buttons.slideUp(200);
 		},
 		
-		layoutToolbarContainer: function() {			
+		layoutToolBarContainer: function() {			
 			var ctn = this.toolbarContainer = jQuery('<div id="' 
 				+ this.config.elemId + '"> \
 					<p id="prjMsg"></p> \
@@ -785,13 +802,13 @@ var editor = (function(editor) {
 					var target = jQuery(e.target), 
 						parent = target.parents('.prjSidePanel, #prjPane'), 
 						isTool = target.parents('.toolBtn').size() > 0 ||
-							target.hasClass('toolBtn') ||
-							target.parents('#tabBar h2'),
+							target.hasClass('toolBtn'),
+						isTabPane = target.parents('#tabBar h2'),
 						isDown = target.hasClass('down');
 					
 					if (parent.size() == 0 && target.attr('id') !== 'prjPane') {
 						view.sidePanel.setVisible(false, 
-							isTool ? !isDown : true);
+							isTool ? !isDown : !isTabPane);
 						view.hideButtons();
 						view.saveIpt.val('').blur();
 						jQuery(document).unbind('click.prj');
@@ -910,7 +927,8 @@ var editor = (function(editor) {
 	});
 	
 	jQuery(document).ready(function() {
-		var prjPane = editor.ui.getTabPane('Projects'),
+		var prjPane = new editor.ui.TabPane('Projects'),
+			prjToolBar = new editor.ui.ToolBar(),
 			
 			prjMdl = new ProjectModel(),
 			prjView = new ProjectView(),
@@ -919,13 +937,14 @@ var editor = (function(editor) {
 		prjCtr.setModel(prjMdl);
 		prjCtr.setView(prjView);
 		
-		prjPane.toolbar.add(prjView);
+		prjToolBar.add(prjView);
+		prjPane.setToolBar(prjToolBar);
+		editor.ui.addTabPane(prjPane, 'prjPane');
 		
 		// disable default behavior
 		var ui = prjPane.getUI();
 		
 		ui.find('a').unbind('click');
-		ui.attr('id', 'prjPane');
 		prjPane.setVisible(true);
 		
 		// listen to changes
