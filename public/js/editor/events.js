@@ -37,9 +37,7 @@ var editor = (function(editor) {
 		
 		PanelVisible: 'editor.PanelVisible',
 		
-		PluginActive: 'editor.PluginActive',
-		
-		PluginAdded: 'editor.PluginAdded',
+		PluginLoaded: 'editor.PluginLoaded',
 		
 		PluginRemoved: 'editor.PluginRemoved',
 		

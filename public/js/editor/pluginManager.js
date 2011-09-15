@@ -21,7 +21,9 @@ var editor = (function(editor) {
 	
 	var event = {
 		Checked: 'checked',
-		PluginActive: 'pluginActive'
+		PluginActive: 'pluginActive',
+		PluginAdded: 'pluginAdded',
+		PluginLoaded: 'pluginLoaded'
 	};
 	    
 ////////////////////////////////////////////////////////////////////////////////
@@ -33,10 +35,12 @@ var editor = (function(editor) {
 			this._super('pluginManager');
 			this.activePlugins = [];
 			this.loadedPlugins = [];
+			this.plugins = [];
 			this.callbacks = [];
 			this.scripts = new Hashtable();
 			this.models = new Hashtable();
 			this.views = new Hashtable();
+			this.initComplete = false;
 			
 			editor.addListener(editor.events.ScriptLoadStart, this);
 			editor.addListener(editor.events.ScriptLoaded, this);
@@ -59,16 +63,30 @@ var editor = (function(editor) {
 				}
 				
 				this.currentPlugin = null;
-				editor.notifyListeners(editor.events.DoneLoading);
-				var mdls = editor.getModels();
 				
-				for (var i = 0, il = mdls.length; i < il; i++) {
-					var mdl = mdls[i];
+				if (!this.initComplete) {
+					editor.notifyListeners(editor.events.DoneLoading);
+				
+					var mdls = editor.getModels();
 					
-					editor.addListener(editor.events.WorldCleaned, mdl);
-					editor.addListener(editor.events.WorldLoaded, mdl);	
+					for (var i = 0, il = mdls.length; i < il; i++) {
+						var mdl = mdls[i];
+						
+						editor.addListener(editor.events.WorldCleaned, mdl);
+						editor.addListener(editor.events.WorldLoaded, mdl);	
+					}
 				}
+				
+				this.initComplete = true;
+				this.callbacks = [];
 			}			
+		},
+		
+		addPlugin: function(pluginName) {
+			if (this.plugins.indexOf(pluginName) === -1) {
+				this.plugins.push(pluginName);
+				this.notifyListeners(event.PluginAdded, pluginName);
+			}
 		},
 		
 		loadPlugin: function(pluginName) {
@@ -80,12 +98,16 @@ var editor = (function(editor) {
 					callback: function(name){
 						mdl.currentPlugin = name;
 						editor.tools[name].init();
-						editor.notifyListeners(editor.events.PluginAdded, name);
+						editor.notifyListeners(editor.events.PluginLoaded, name);
 						mdl.activePlugins.push(name);
 						mdl.loadedPlugins.push(name);
+						if (mdl.plugins.indexOf(name) === -1) {
+							mdl.plugins.push(name);
+							mdl.notifyListeners(event.PluginLoaded, name);
+						}
 			
 						mdl.notifyListeners(event.PluginActive, {
-							plugin: pluginName,
+							plugin: name,
 							active: true
 						});
 					},
@@ -265,11 +287,14 @@ var editor = (function(editor) {
 			});
 			
 			// model specific
-			editor.addListener(editor.events.PluginAdded, function(pluginName) {
+			model.addListener(event.PluginLoaded, function(pluginName) {
 				view.add(pluginName);
 			});
 			model.addListener(event.PluginActive, function(data) {
 				view.setActive(data.plugin, data.active);
+			});
+			model.addListener(event.PluginAdded, function(pluginName) {
+				view.add(pluginName);
 			});
 		}
 	});
@@ -300,8 +325,7 @@ var editor = (function(editor) {
 		jQuery.get('js/editor/plugins/plugins.json')
 			.success(function(data, status, xhr) {								
 				// data is a json array
-				var plugins = data.plugins,
-					bdy = jQuery('body');
+				var plugins = data.plugins;
 				
 				for (var i = 0, il = plugins.length; i < il; i++) {
 					plgMdl.loadPlugin(plugins[i]);
@@ -309,6 +333,19 @@ var editor = (function(editor) {
 			})
 			.error(function(xhr, status, err) {
 				// fail gracefully
+			});
+			
+		// retrieve the list of plugins
+		jQuery.get('/plugins')
+			.success(function(data, status, xhr) {
+				var plugins = data.plugins;
+				
+				for (var i = 0, il = plugins.length; i < il; i++) {
+					plgMdl.addPlugin(plugins[i]);
+				}
+			})
+			.error(function(xhr, status, err) {
+				
 			});
 	};
 	
