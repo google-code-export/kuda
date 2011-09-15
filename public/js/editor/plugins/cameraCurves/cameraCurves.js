@@ -43,6 +43,7 @@
 	editor.EventTypes = editor.EventTypes || {};
 	// model events
     editor.EventTypes.CameraUpdated = "camcurve.CameraUpdated";
+    editor.EventTypes.PreviewStopped = "camcurve.PreviewStopped";
 	editor.EventTypes.WaypointAdded = "camcurve.WaypointAdded";
 	editor.EventTypes.WaypointRemoved = "camcurve.WaypointRemoved";
 	editor.EventTypes.WaypointUpdated = "camcurve.WaypointUpdated";
@@ -162,7 +163,7 @@
 		
 		startPreview: function() {
 			if (!this.previewing) {
-				var t = Math.max(this.waypoints.length / 3, 5) * hemi.view.FPS,
+				var t = Math.max(this.waypoints.length / 3, 5),
 					that = this;
 				
 				this.previewing = true;
@@ -184,6 +185,7 @@
 				hemi.world.camera.moveToView(this.camData, 0);
 				this.camData = null;
 				this.previewing = false;
+				this.notifyListeners(editor.EventTypes.PreviewStopped, null);
 			}
 		},
 		
@@ -302,37 +304,39 @@
 				camDataBtn = this.find('#crvCamData'),
 				pntAddBtn = this.find('#crvAddPntBtn'),
 				pntCancelBtn = this.find('#crvCancelPntBtn'),
-				nameIpt = this.find('#crvName'),
 				previewBtn = this.find('#crvPreviewBtn'),
+				validator = editor.ui.createDefaultValidator(),
 				wgt = this;
 			
-			this.nameIpt = nameIpt;
 			this.pntAddBtn = pntAddBtn;
 			this.pntCancelBtn = pntCancelBtn;
+			this.previewBtn = previewBtn;
+			this.saveBtn = saveBtn;
 			this.pntList = this.find('#crvPntList');
 			this.position = new editor.ui.Vector({
 				container: wgt.find('#crvPositionDiv'),
-				paramName: 'position',
-				validator: editor.ui.createDefaultValidator()
+				validator: validator
 			});
 			this.target = new editor.ui.Vector({
 				container: wgt.find('#crvTargetDiv'),
-				paramName: 'target',
-				validator: editor.ui.createDefaultValidator()
+				validator: validator
 			});
-			this.saveBtn = saveBtn;
+			this.nameIpt = new editor.ui.Input({
+				container: wgt.find('#crvName'),
+				type: 'string'
+			});
 			
 			// bind buttons and inputs
 			form.submit(function() {
 				return false;
 			});
 			
-			nameIpt.bind('keyup', function(evt) {		
+			this.nameIpt.getUI().bind('keyup', function(evt) {		
 				wgt.checkSaveButton();
 			});
 			
 			saveBtn.bind('click', function(evt) {
-				var name = nameIpt.val();
+				var name = wgt.nameIpt.getValue();
 				wgt.notifyListeners(editor.EventTypes.SaveCamCurve, name);
 				wgt.reset();
 			});
@@ -410,7 +414,7 @@
 				return this.input.length > 1;
 			};
 			
-			this.addInputsToCheck(nameIpt);
+			this.addInputsToCheck(this.nameIpt.getUI());
 			this.addInputsToCheck(checker);
 		},
 		
@@ -439,7 +443,7 @@
 				this.waypoints[i].ui.remove();
 			}
 			
-			this.nameIpt.val('');
+			this.nameIpt.reset();
 			this.position.reset();
 			this.target.reset();
 			this.waypoints = [];
@@ -466,13 +470,12 @@
 		},
 		
 		set: function(curve) {
-			this.nameIpt.val(curve.name);
+			this.nameIpt.setValue(curve.name);
 			this.checkPreview();
 		},
 		
 		waypointAdded: function(waypoint) {
 			var position = waypoint.pos,
-				target = waypoint.tgt,
 				wrapper = jQuery('<li class="crvBoxEditor"><span>Waypoint at [' + position.join(',') + ']</span></li>'),
 				removeBtn = jQuery('<button class="icon removeBtn">Remove</button>'),
 				editBtn = jQuery('<button class="icon editBtn">Edit</button>'),
@@ -638,8 +641,6 @@
 			
 			var model = this.model,
 				view = this.view,
-				ctr = this,
-				bhvWgt = view.sidePanel.behaviorWidget,
 				crtWgt = view.sidePanel.createCamCurveSBW,
 				lstWgt = view.sidePanel.camCurveListWgt;
 			
@@ -695,6 +696,9 @@
 			});
 			model.addListener(editor.events.Updated, function(crv) {
 				lstWgt.update(crv);
+			});
+			model.addListener(editor.EventTypes.PreviewStopped, function(crv) {
+				crtWgt.previewBtn.data('started', false).text(PREVIEW_TXT);
 			});
 			model.addListener(editor.EventTypes.WaypointAdded, function(wp) {
 				crtWgt.waypointAdded(wp);
