@@ -190,18 +190,25 @@ var editor = (function(editor) {
 			var wgt = this;
 			
 			this.container = jQuery('<div></div>');
-			this.title = jQuery('<span></span>');
+			this.title = jQuery('<label></label>');
 			this.checkbox = jQuery('<input type="checkbox" />');
 						
 			this.container.append(this.checkbox).append(this.title);
 			
-			this.checkbox.bind('click', function() {
+			this.checkbox.bind('change', function() {
 				wgt.notifyListeners(event.Checked, {
 					plugin: wgt.title.text(),
 					checked: wgt.checkbox.prop('checked')
 				});
 			});
-			
+			this.container.bind('click', function(evt) {
+				var isCheckbox = evt.target.tagName === 'INPUT',
+					isLabel = evt.target.tagName === 'LABEL';
+				
+				if (!isCheckbox && !isLabel) {
+					wgt.checkbox.click();
+				}
+			});			
 		},
 		
 		setChecked: function(checked) {
@@ -209,7 +216,10 @@ var editor = (function(editor) {
 		},
 		
 		setText: function(text) {
-			this.title.text(text);
+			var id = 'plg_li_' + text;
+			
+			this.title.text(text).attr('for', id);
+			this.checkbox.attr('id', id);
 		}
 	});
 		
@@ -320,6 +330,21 @@ var editor = (function(editor) {
 		ui.find('a').unbind('click');
 		ui.find('h2').bind('click', function(evt) {
 			plgPane.setVisible(!plgPane.isVisible());
+			
+			jQuery(document).bind('click.plg', function(e) {
+				var target = jQuery(e.target), 
+					parent = target.parents('#plgPane'), 
+					isTool = target.parents('.toolBtn').size() > 0 ||
+						target.hasClass('toolBtn'),
+					isTabPane = target.parents('#tabBar h2').size() > 0,
+					isDown = target.hasClass('down');
+				
+				if (parent.size() == 0 && target.attr('id') !== 'plgPane'
+						&& !isTool && !isTabPane) {
+					plgPane.setVisible(false);
+					jQuery(document).unbind('click.plg');
+				}
+			})
 		});
 		
 		// load plugins
