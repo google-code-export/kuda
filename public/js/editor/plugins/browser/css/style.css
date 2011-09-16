@@ -53,7 +53,7 @@
 	width: 300px;
 	padding: 0;
 	overflow: auto;
-	border-top: none;
+	border-top: none !important;
 }
 .mbrTopPanel .widget {
 	overflow: hidden;
