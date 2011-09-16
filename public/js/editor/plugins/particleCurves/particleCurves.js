@@ -48,7 +48,6 @@
     editor.EventTypes.BoxSelected = "Curves.BoxSelected";
     editor.EventTypes.BoxRemoved = "Curves.BoxRemoved";
     editor.EventTypes.BoxUpdated = "Curves.BoxUpdated";
-    editor.EventTypes.CurveWorldCleaned = "Curves.CurveWorldCleaned";
 	
 	// view specific
 	editor.EventTypes.BoxManipState = "Curves.BoxManipState";
@@ -138,7 +137,6 @@
 			this.boxes.push(box);
 			this.config.boxes = getExtentsList(this.boxes);
 			
-//			this.showBoxWireframes();
 			this.updateSystem('boxes', this.config.boxes);
 			
 			this.notifyListeners(editor.EventTypes.BoxAdded, box);
@@ -213,7 +211,6 @@
 			}
 			
 			this.config.boxes = getExtentsList(this.boxes);
-//			this.showBoxWireframes();
 			
 			this.notifyListeners(editor.EventTypes.CurveSet, {
 				system: this.currentSystem,
@@ -277,7 +274,6 @@
 				boxes: []
 			};
 			this.isUpdate = false;
-			this.changed = false;
 			
 			this.boxes = [];
 			
@@ -288,15 +284,16 @@
 		},
 		
 		save: function(name) {
-			this.stopPreview();
 			var msgType = this.isUpdate ? editor.events.Updated :
 				editor.events.Created;
+			
+			this.stopPreview();
 			
 			if (!this.currentSystem) {
 				this.createSystem();
 			}
 			else if (this.isUpdate) {
-				this.update();
+				this.currentSystem.loadConfig(this.config);
 			}
 			
 			this.currentSystem.name = name;			
@@ -338,7 +335,6 @@
 				
 				this.currentSystem.start();
 				this.previewing = true;
-				this.changed = false;
 			}
 		},
 		
@@ -349,12 +345,6 @@
 			this.previewing = false;
 		},
 		
-		update: function() {
-			if (this.currentSystem) {
-				this.currentSystem.loadConfig(this.config);
-			}
-		},
-		
 		updateBox: function(box, position, dimensions) {
 			var	previewing = this.previewing;
 							
@@ -362,7 +352,6 @@
 			this.stopPreview();
 				
 			this.config.boxes = getExtentsList(this.boxes);
-//			this.showBoxWireframes();
 			this.updateSystem('boxes', this.config.boxes);
 			
 			this.notifyListeners(editor.EventTypes.BoxUpdated, box);
@@ -408,8 +397,6 @@
 			for (var i = 0, il = systems.length; i < il; i++) {
 				this.notifyListeners(editor.events.Removed, systems[i]);
 			}
-			
-			this.notifyListeners(editor.EventTypes.CurveWorldCleaned);
 	    },
 		
 	    worldLoaded: function() {
@@ -461,51 +448,72 @@
 				cancelBtn = this.find('#crvCancelBtn'),
 				sysTypeSel = this.find('#crvSystemTypeSelect'),
 				shpTypeSel = this.find('#crvShapeSelect'),
-				inputs = this.find('input:not(#crvName, .box)'),
 				boxAddBtn = this.find('#crvAddSaveBoxBtn'),
 				boxCancelBtn = this.find('#crvCancelBoxBtn'),
-				nameIpt = this.find('#crvName'),
 				previewBtn = this.find('#crvPreviewBtn'),
-			 	tensionVdr = editor.ui.createDefaultValidator(null, 1),
-			 	numPrtVdr = editor.ui.createDefaultValidator(1),
 				sizeVdr = editor.ui.createDefaultValidator(0.01),
-				isNumVdr = editor.ui.createDefaultValidator(),
-				wgt = this;
+				wgt = this,
+				blurFcn = function(ipt, evt) {
+					var id = ipt.getUI().attr('id'),
+						param = id.replace('crv', '');
+					
+					wgt.notifyListeners(editor.EventTypes.SetParam, {
+						paramName: param.charAt(0).toLowerCase() + param.slice(1),
+						paramValue: ipt.getValue()
+					});
+				};
 			
 			this.boxAddBtn = boxAddBtn;
 			this.boxCancelBtn = boxCancelBtn;
+			this.saveBtn = saveBtn;
+			this.curveAim = this.find('#crvAim');
 			this.boxForms = this.find('#crvBoxForms');
 			this.boxList = this.find('#crvBoxList');
 			this.position = new editor.ui.Vector({
 				container: wgt.find('#crvPositionDiv'),
-				paramName: 'position',
 				validator: editor.ui.createDefaultValidator()
 			});
 			this.dimensions = new editor.ui.Vector({
 				container: wgt.find('#crvDimensionsDiv'),
-				paramName: 'dimensions',
 				inputs: ['h', 'w', 'd'],
 				validator: editor.ui.createDefaultValidator(0.1)
 			});
-			this.saveBtn = saveBtn;
-			
-			// set validators
-			tensionVdr.setElements(inputs.filter('#crvTension'));
-			numPrtVdr.setElements(inputs.filter('#crvParticleCount'));
-			sizeVdr.setElements(inputs.filter('#crvParticleSize, #crvLife'));
-			isNumVdr.setElements(inputs.filter(':not(#crvTension, #crvParticleCount, #crvParticleSize)'));
+			this.numParticles = new editor.ui.Input({
+				container: wgt.find('#crvParticleCount'),
+				onBlur: blurFcn,
+				validator: editor.ui.createDefaultValidator(1)
+			});
+			this.curveLife = new editor.ui.Input({
+				container: wgt.find('#crvLife'),
+				onBlur: blurFcn,
+				validator: sizeVdr
+			});
+			this.particleSize = new editor.ui.Input({
+				container: wgt.find('#crvParticleSize'),
+				onBlur: blurFcn,
+				validator: sizeVdr
+			});
+			this.curveTension = new editor.ui.Input({
+				container: wgt.find('#crvTension'),
+				onBlur: blurFcn,
+				validator: editor.ui.createDefaultValidator(null, 1)
+			});
+			this.curveName = new editor.ui.Input({
+				container: wgt.find('#crvName'),
+				type: 'string'
+			});
 			
 			// bind buttons and inputs
 			form.submit(function() {
 				return false;
 			});
 			
-			nameIpt.bind('keyup', function(evt) {		
+			this.curveName.getUI().bind('keyup', function(evt) {		
 				wgt.checkSaveButton();
 			});
 			
 			saveBtn.bind('click', function(evt) {
-				var name = nameIpt.val();
+				var name = wgt.curveName.getValue();
 				wgt.notifyListeners(editor.EventTypes.Save, name);
 			});
 			
@@ -528,15 +536,10 @@
 			.data('previewing', false)
 			.attr('disabled', 'disabled');
 			
-			inputs.bind('change', function(evt) {
-				var elem = jQuery(this),
-					id = elem.attr('id'),
-					param = id.replace('crv', '');
-					
+			this.curveAim.bind('change', function(evt) {
 				wgt.notifyListeners(editor.EventTypes.SetParam, {
-					paramName: param.charAt(0).toLowerCase() + param.slice(1),
-					paramValue: id === 'crvAim' ? elem.is(':checked') : 
-						parseFloat(elem.val())
+					paramName: 'aim',
+					paramValue: wgt.curveAim.prop('checked')
 				});
 			});			
 			
@@ -594,7 +597,7 @@
 			};			
 			
 			this.setupColorPicker();
-			this.addInputsToCheck(nameIpt);
+			this.addInputsToCheck(this.curveName);
 			this.addInputsToCheck(checker);
 		},
 		
@@ -607,7 +610,7 @@
 			if (this.colorPickers.length <= ndx) {
 				colorPicker = new editor.ui.ColorPicker({
 					inputId: 'crvColorRamp' + ndx,
-					containerClass: 'colorRampAdd',
+					containerClass: 'colorRampAdd long',
 					buttonId: 'crvColorRamp' + ndx + 'Picker'
 				});			
 				
@@ -799,10 +802,9 @@
 			// reset selects
 			this.find('#crvSystemTypeSelect').val(-1);
 			this.find('#crvShapeSelect').val(-1);
-			this.find('input:not(.color, .box)').val('');
 			
 			// reset checkboxes
-			this.find('#crvAim').attr('checked', false);
+			this.curveAim.prop('checked', false);
 						
 			// reset the colorPicker
 			colorRampPicker.reset();
@@ -812,7 +814,12 @@
 			this.boxes.clear();
 			
 			this.position.reset();
-			this.dimensions.reset();		
+			this.dimensions.reset();
+			this.numParticles.reset();
+			this.curveLife.reset();
+			this.particleSize.reset();
+			this.curveTension.reset();
+			this.curveName.reset();
 		},
 		
 		resize: function(maxHeight) {
@@ -843,15 +850,12 @@
 				
 				this.find('#crvSystemTypeSelect').val(type);
 				this.find('#crvShapeSelect').val(curve.ptcShape);
-				this.find('#crvName').val(curve.name);
-				this.find('#crvLife').val(curve.life);
-				this.find('#crvParticleCount').val(curve.particles);
-				this.find('#crvParticleSize').val(curve.size);
-				this.find('#crvTension').val(curve.tension);
-				
-				if (curve.aim) {
-					this.find('#crvAim').attr('checked', true);
-				}
+				this.curveName.setValue(curve.name);
+				this.curveLife.setValue(curve.life);
+				this.numParticles.setValue(curve.particles);
+				this.particleSize.setValue(curve.size);
+				this.curveTension.setValue(curve.tension);
+				this.curveAim.prop('checked', curve.aim);
 								
 				var count = 1,
 					numColors = colors.length;
@@ -987,6 +991,7 @@
 		init: function() {
 			this._super({
 				name: 'adjustBoxWidget',
+				height: editor.ui.Height.MANUAL,
 				uiFile: 'js/editor/plugins/particleCurves/html/curvesBoxPanel.htm'
 			});
 			
@@ -1204,9 +1209,6 @@
 			});
 			model.addListener(editor.events.Updated, function(curve) {
 				lstWgt.update(curve);
-			});
-			model.addListener(editor.EventTypes.CurveWorldCleaned, function() {
-				crtWgt.reset();
 			});
 	    }
 	});	
