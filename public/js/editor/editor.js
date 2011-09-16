@@ -108,6 +108,7 @@ var editor = {};
 			o3djs.webgl.makeClients(function(clientElements) {
 				setupWorldMessages();
 				editor.ui.initializeView(clientElements);
+				editor.projects.init();
 				editor.plugins.init();
 			});
 		},
@@ -118,6 +119,7 @@ var editor = {};
 			});
 			hemi.world.subscribe(hemi.msg.ready, function() {
 				editor.notifyListeners(editor.events.WorldLoaded);
+				editor.projects.loadingDone();
 			});
 		},
 		

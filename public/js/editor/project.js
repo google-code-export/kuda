@@ -16,6 +16,111 @@
  */
 
 var editor = (function(editor) {
+
+////////////////////////////////////////////////////////////////////////////////
+//								Initialization  		                      //
+////////////////////////////////////////////////////////////////////////////////
+	var prjMdl = null;
+	
+	editor.projects = {};
+	
+	editor.projects.init = function() {
+		var prjPane = new editor.ui.TabPane('Projects'),
+			prjToolBar = new editor.ui.ToolBar(),
+			
+			prjView = new ProjectView(),
+			prjCtr = new ProjectController();	
+
+		prjMdl = new ProjectModel();	
+		prjCtr.setModel(prjMdl);
+		prjCtr.setView(prjView);
+		
+		prjToolBar.add(prjView);
+		prjPane.setToolBar(prjToolBar);
+		editor.ui.addTabPane(prjPane, 'prjPane');
+		
+		// disable default behavior
+		var ui = prjPane.getUI();
+		
+		ui.find('a').unbind('click');
+		prjPane.setVisible(true);
+		
+		prjView.sidePanel.addListener(editor.events.PanelVisible, function(data) {
+			// get the list of panels
+			var views = editor.getViews(),
+				panels = [];
+				
+			for (var i = 0, il = views.length; i < il; i++) {
+				var view = views[i];
+				
+				if (view !== prjView) {
+					panels = panels.concat(view.panels);
+				}
+			}
+			
+			if (data.visible && data.updateMeta) {
+				// save the visible state of panels
+				prjView.visiblePanels = [];
+				
+				for (var i = 0, il = panels.length; i < il; i++) {
+					var pnl = panels[i];
+					
+					if (pnl.isVisible()) {
+						prjView.visiblePanels.push(pnl);
+						// now hide them
+						pnl.setVisible(false, false);
+					}
+				}
+			}
+			else if (data.updateMeta) {
+				var visPnls = prjView.visiblePanels;
+				
+				for (var i = 0, il = visPnls.length; i < il; i++) {
+					visPnls[i].setVisible(true, false);
+				}
+			}
+		});
+		
+		// Setup autosave
+		var models = editor.getModels();
+		
+		for (var i = 0, il = models.length; i < il; ++i) {
+			var model = models[i];
+			model.addListener(editor.events.Created, prjMdl);
+			model.addListener(editor.events.Removed, prjMdl);
+			model.addListener(editor.events.Updated, prjMdl);
+		}
+		
+		editor.addListener(editor.events.PluginLoaded, function(name) {
+			var model = editor.getModel(name);
+			
+			if (model) {
+				model.addListener(editor.events.Created, prjMdl);
+				model.addListener(editor.events.Removed, prjMdl);
+				model.addListener(editor.events.Updated, prjMdl);
+			}
+		});
+		
+		var autoId = setInterval(function() {
+			if (prjMdl.dirty && !prjMdl.loading) {
+				prjMdl.save(AUTO_SAVE, true);
+				prjMdl.dirty = false;
+			}
+		}, 5000);
+		
+		jQuery(document).unload(function() {
+			clearInterval(autoId);
+		});
+	};
+	
+	editor.projects.loadingDone = function() {
+		prjMdl.dirty = false;
+		prjMdl.loading = false;
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//								Tool Definition  		                      //
+////////////////////////////////////////////////////////////////////////////////
 	
 	// TODO: change to the autosave format like in google docs
 	// TODO: have this listen to all relevant events implying changed state
@@ -23,23 +128,24 @@ var editor = (function(editor) {
 	//		whenever an event occurs
 	
 	var event = {
-		CheckProjectExists: 'checkProjectExists',
-		Load: 'load',
-		Loaded: 'loaded',
-		Projects: 'projects',
-		ProjectExists: 'projectExsits',
-		Publish: 'publish',
-		Published: 'published',
-		Remove: 'remove',
-		Removed: 'removed',
-		Save: 'save',
-		Saved: 'saved',
-		ServerRunning: 'serverRunning',
-		StartPreview: 'startPreview',
-		StopPreview: 'stopPreview',
-		UpdateProjects: 'updateProjects'
-	}
-	    
+			CheckProjectExists: 'checkProjectExists',
+			Load: 'load',
+			Loaded: 'loaded',
+			Projects: 'projects',
+			ProjectExists: 'projectExsits',
+			Publish: 'publish',
+			Published: 'published',
+			Remove: 'remove',
+			Removed: 'removed',
+			Save: 'save',
+			Saved: 'saved',
+			ServerRunning: 'serverRunning',
+			StartPreview: 'startPreview',
+			StopPreview: 'stopPreview',
+			UpdateProjects: 'updateProjects'
+		},
+		AUTO_SAVE = '_AutoSave_';
+	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,12 +154,13 @@ var editor = (function(editor) {
 		init: function() {
 			this._super('projectLoad');
 			
+			var mdl = this;
+			
 			this.projectCache = [];
 			this.serverRunning = true;
-			this.changed = true;
+			this.dirty = false;
+			this.loading = false;
 			this.current = null;
-			
-			var mdl = this;
 						
 			jQuery.ajax({
 				url: '/projects',
@@ -69,11 +176,11 @@ var editor = (function(editor) {
 		},
 		
 		checkExisting: function(project) {
-			var exists = false;
+			var exists = false,
+				plc = project.toLowerCase();
 			
 			for (var i = 0, il = this.projectCache.length; i < il && !exists; i++) {
-				exists |= this.projectCache[i].toLowerCase() 
-					=== project.toLowerCase();
+				exists = this.projectCache[i].toLowerCase() === plc;
 			}
 			
 			this.notifyListeners(event.ProjectExists, {
@@ -99,6 +206,7 @@ var editor = (function(editor) {
 				data: data,
 				dataType: 'json',
 				success: function(data, status, xhr) {
+					mdl.loading = true;
 					hemi.world.send(hemi.msg.cleanup);
 					dispatchProxy.swap();
 					hemi.octane.createWorld(data);
@@ -120,12 +228,13 @@ var editor = (function(editor) {
 		},
 		
 		notify: function(eventType, value) {
+			this._super(eventType, value);
+			
 			switch (eventType) {
 				case editor.events.Created:
 				case editor.events.Removed:
 				case editor.events.Updated: 
-					this.changed = true;
-					this.save();
+					this.dirty = true;
 					break;
 			}
 		},
@@ -165,7 +274,7 @@ var editor = (function(editor) {
 					mdl.notifyListeners(event.Published, {
 						succeeded: false,
 						message: ''
-					})
+					});
 				}
 			});
 			
@@ -224,7 +333,7 @@ var editor = (function(editor) {
 					mdl.notifyListeners(event.Saved, {
 						project: project,
 						saved: false
-					});					
+					});
 				}
 			});
 		},
@@ -412,10 +521,6 @@ var editor = (function(editor) {
 			this.versionsHash.put(version, li);
 		},
 		
-		bindButtons: function(li) {
-			var wgt = this;
-		},
-		
 		finishLayout: function() {
 			this._super();
 			
@@ -434,17 +539,6 @@ var editor = (function(editor) {
 				.hide();
 			arrow.hide();
 			this.container.append(arrow).append(prjList);
-			
-			this.container.bind('click', function(evt) {
-				var tgt = jQuery(evt.target);
-				
-//				if (tgt.tagName !== 'BUTTON'
-//						&& tgt.parents('.prjListWrapper').size() === 0
-//						&& !tgt.hasClass('prjListWrapper')) {
-//					arrow.toggle(100);
-//					prjList.slideToggle(200);
-//				}
-			});	
 			
 			this.title.bind('click', function() {
 				wgt.notifyListeners(event.Load, wgt.getAttachedObject());
@@ -574,8 +668,6 @@ var editor = (function(editor) {
 				id: 'projectLoad'
 			});
 			
-			this.dontSave = true;
-			
 			// panels
 			this.addPanel(new editor.ui.Panel({
 				classes: ['prjSidePanel'],
@@ -628,12 +720,10 @@ var editor = (function(editor) {
 				saveIpt = this.saveIpt = ctn.find('#prjSaveIpt'),
 				saveBtn = this.saveBtn = ctn.find('#prjSaveBtn'),
 				cancelBtn = this.cancelBtn = ctn.find('#prjCancelBtn').hide(),
-				loadBtn = this.loadBtn = ctn.find('#prjLoadBtn'),
 				previewBtn = this.previewBtn = ctn.find('#prjPreviewBtn'),
-				publishBtn = this.publishBtn = ctn.find('#prjPublishBtn'),
-				buttons = this.buttons = ctn.find('div.buttons').hide(),
-				curPrjCtn = this.curPrjCtn = ctn.find('#prjCur');						
+				publishBtn = this.publishBtn = ctn.find('#prjPublishBtn');						
 			
+			this.buttons = ctn.find('div.buttons').hide();
 			this.msg = ctn.find('#prjMsg').hide();
 			
 			cancelBtn.bind('click', function() {
@@ -681,21 +771,18 @@ var editor = (function(editor) {
 				}
 				else {
 					view.notifyListeners(event.CheckProjectExists, saveIpt.val());
-					view.dontSave = false;
 				}
 			});
 			
 			saveIpt.bind('keydown', function(evt) {
-				var val = saveIpt.val(),
-					code = evt.keyCode ? evt.keyCode : evt.which;
+				var code = evt.keyCode ? evt.keyCode : evt.which;
 				
-				if (view.checkSaveable() && code === 13) {
-					view.dontSave = false;
-				}
-				else if (code == 27) {
+				if (code == 27) {
 					saveIpt.val('').blur();
 					view.sidePanel.setVisible(false);
 				}
+				
+				view.checkSaveable();
 			})
 			.bind('focus', function(evt) {				
 				if (saveIpt.val() === 'Unsaved Project') {
@@ -723,10 +810,7 @@ var editor = (function(editor) {
 			this.cancelBtn.hide().removeClass('overwite');
 			this.saveBtn.text('Save').removeClass('overwrite');
 			this.saveIpt.removeClass('overwrite');
-			
-			if (this.loadedProject == null) {
-				this.saveBtn.attr('disabled', 'disabled');
-			}
+			this.checkSaveable();
 		},
 		
 		showButtons: function() {
@@ -743,8 +827,6 @@ var editor = (function(editor) {
 		},
 		
 		updateExists: function(exists, project) {
-			var view = this;
-			
 			if (exists) {
 				this.msg.empty().html('Already exists.').show();
 				this.saveIpt.addClass('overwrite');
@@ -753,35 +835,31 @@ var editor = (function(editor) {
 			}
 			else {
 				this.msg.hide();
-				
-				if (!this.dontSave) {
-					this.notifyListeners(event.Save, {
-						project: project,
-						replace: false
-					});
-					
-					this.dontSave = true;
-				}
+				this.notifyListeners(event.Save, {
+					project: project,
+					replace: false
+				});
 			}
 		},
 		
 		updateLoaded: function(project, succeeded) {
 			if (succeeded) {
-				this.saveIpt.val(project).show().effect('highlight', {
+				if (project === AUTO_SAVE) {
+					project = 'Restored Project';
+				}
+				
+				this.loadedProject = project;
+				this.reset();
+				this.saveIpt.show().effect('highlight', {
 					color: '#3b5e77'
 				});
-				this.loadedProject = project;
-				this.sidePanel.setVisible(false);
-				this.msg.hide();
-				this.checkSaveable();
 			}
 			else {
-				this.sidePanel.setVisible(false);
 				this.saveIpt.show();
 				this.msg.text('Server Down. Could not load.').show();
 			}
-			
-			this.loadBtn.removeAttr('disabled');
+
+			this.sidePanel.setVisible(false);
 		},
 		
 		updateProjects: function(projects) {
@@ -814,8 +892,6 @@ var editor = (function(editor) {
 						jQuery(document).unbind('click.prj');
 					}
 				});
-				
-				this.loadBtn.attr('disabled', 'disabled');
 			}
 		},
 		
@@ -831,16 +907,16 @@ var editor = (function(editor) {
 		},
 		
 		updateSaved: function(project, succeeded) {
-			if (succeeded) {
+			if (!succeeded) {
+				this.msg.empty().text('Server Down. Could not save.').show();
+			}
+			else if (project !== AUTO_SAVE) {
 				this.loadedProject = project;
 				this.reset();
 				this.hideButtons();
 				this.saveIpt.effect('highlight', {
 					color: '#3b5e77'
 				});
-			}
-			else {
-				this.msg.empty().text('Server Down. Could not save.').show();
 			}
 		},
 		
@@ -870,8 +946,7 @@ var editor = (function(editor) {
 			var model = this.model,
 				view = this.view,
 				lstWgt = view.sidePanel.prjListWidget,
-				prvWgt = view.topPanel.previewWidget,
-				controller = this;
+				prvWgt = view.topPanel.previewWidget;
 			
 			// view specific
 			view.addListener(event.CheckProjectExists, function(project) {
@@ -928,64 +1003,6 @@ var editor = (function(editor) {
 				view.updateServerRunning(isRunning);
 			});
 		}
-	});
-	
-	jQuery(document).ready(function() {
-		var prjPane = new editor.ui.TabPane('Projects'),
-			prjToolBar = new editor.ui.ToolBar(),
-			
-			prjMdl = new ProjectModel(),
-			prjView = new ProjectView(),
-			prjCtr = new ProjectController();	
-				
-		prjCtr.setModel(prjMdl);
-		prjCtr.setView(prjView);
-		
-		prjToolBar.add(prjView);
-		prjPane.setToolBar(prjToolBar);
-		editor.ui.addTabPane(prjPane, 'prjPane');
-		
-		// disable default behavior
-		var ui = prjPane.getUI();
-		
-		ui.find('a').unbind('click');
-		prjPane.setVisible(true);
-		
-		prjView.sidePanel.addListener(editor.events.PanelVisible, function(data) {
-			// get the list of panels
-			var views = editor.getViews(),
-				panels = [];
-				
-			for (var i = 0, il = views.length; i < il; i++) {
-				var view = views[i];
-				
-				if (view !== prjView) {
-					panels = panels.concat(view.panels);
-				}
-			}
-			
-			if (data.visible && data.updateMeta) {
-				// save the visible state of panels
-				prjView.visiblePanels = [];
-				
-				for (var i = 0, il = panels.length; i < il; i++) {
-					var pnl = panels[i];
-					
-					if (pnl.isVisible()) {
-						prjView.visiblePanels.push(pnl);
-						// now hide them
-						pnl.setVisible(false, false);
-					}
-				}
-			}
-			else if (data.updateMeta) {
-				var visPnls = prjView.visiblePanels;
-				
-				for (var i = 0, il = visPnls.length; i < il; i++) {
-					visPnls[i].setVisible(true, false);
-				}
-			}
-		});
 	});
 	
 	return editor;
