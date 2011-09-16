@@ -819,6 +819,10 @@ var editor = (function(editor) {
 			}
 		},
 		
+		updatePublished: function() {
+			
+		},
+		
 		updateRemoved: function(project) {
 			if (this.loadedProject === project) {
 				this.loadedProject = null;
@@ -947,8 +951,7 @@ var editor = (function(editor) {
 		ui.find('a').unbind('click');
 		prjPane.setVisible(true);
 		
-		// listen to changes
-		editor.addListener(editor.events.DoneLoading, function() {			
+		prjView.sidePanel.addListener(editor.events.PanelVisible, function(data) {
 			// get the list of panels
 			var views = editor.getViews(),
 				panels = [];
@@ -961,29 +964,27 @@ var editor = (function(editor) {
 				}
 			}
 			
-			prjView.sidePanel.addListener(editor.events.PanelVisible, function(data) {
-				if (data.visible && data.updateMeta) {
-					// save the visible state of panels
-					prjView.visiblePanels = [];
+			if (data.visible && data.updateMeta) {
+				// save the visible state of panels
+				prjView.visiblePanels = [];
+				
+				for (var i = 0, il = panels.length; i < il; i++) {
+					var pnl = panels[i];
 					
-					for (var i = 0, il = panels.length; i < il; i++) {
-						var pnl = panels[i];
-						
-						if (pnl.isVisible()) {
-							prjView.visiblePanels.push(pnl);
-							// now hide them
-							pnl.setVisible(false, false);
-						}
+					if (pnl.isVisible()) {
+						prjView.visiblePanels.push(pnl);
+						// now hide them
+						pnl.setVisible(false, false);
 					}
 				}
-				else if (data.updateMeta) {
-					var visPnls = prjView.visiblePanels;
-					
-					for (var i = 0, il = visPnls.length; i < il; i++) {
-						visPnls[i].setVisible(true, false);
-					}
+			}
+			else if (data.updateMeta) {
+				var visPnls = prjView.visiblePanels;
+				
+				for (var i = 0, il = visPnls.length; i < il; i++) {
+					visPnls[i].setVisible(true, false);
 				}
-			});
+			}
 		});
 	});
 	

@@ -90,9 +90,7 @@
 		bhvCtr.setView(bhvView);
 		
 		tabpane.toolbar.add(bhvView);
-	};	
 	
-	editor.addListener(editor.events.DoneLoading, function() {	
 		// grab all views
 		var views = editor.getViews(),
 			models = editor.getModels();
@@ -114,13 +112,10 @@
 		shorthand.treeModel.addCitizen(hemi.world.camera);	
 		
 		editor.addListener(editor.events.PluginLoaded, function(name) {
-			var view = editor.getView('editor.tools.' + name);
+			var view = editor.getView(name);
 			injectBehaviorWidget(view);
 		});
-		editor.addListener(editor.events.PluginRemoved, function(name) {
-			
-		});
-	});
+	};	
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  Tool Definition  		                      //

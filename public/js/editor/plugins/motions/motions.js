@@ -34,9 +34,7 @@
 		mtnCtr.setView(mtnView);
 		
 		tabpane.toolbar.add(mtnView);
-	};
-	
-	editor.addListener(editor.events.DoneLoading, function() {
+		
 		var model = editor.getModel('browser');
 		
 		if (model) {
@@ -48,7 +46,7 @@
 				mtnCtr.setBrowserModel(editor.getModel(name));
 			}
 		});
-	});
+	};
 
 ////////////////////////////////////////////////////////////////////////////////
 //								Tool Definition								  //

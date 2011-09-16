@@ -51,7 +51,6 @@ var editor = (function(editor) {
 			this.enabled = [];
 			this.mousedIn = [];
 			this.hidden = true;
-			this.currentTool = null;
 			this._super();
 		},
 		
@@ -71,7 +70,7 @@ var editor = (function(editor) {
 		},
 		
 		deselect: function() {
-			var tool = this.currentTool;
+			var tool = this.getActiveTool();
 			
 			if (tool) {
 				tool.setMode(editor.ToolConstants.MODE_UP);
@@ -87,20 +86,20 @@ var editor = (function(editor) {
 		},
 		
 		getActiveTool: function() {
-//			for (var i = 0, il = this.tools.length; i < il; i++) {
-//				var tool = this.tools[i].tool;
-//				if (tool.mode === editor.ToolConstants.MODE_DOWN) {
-//					return tool;
-//				}
-//			}
+			for (var i = 0, il = this.tools.length; i < il; i++) {
+				var tool = this.tools[i].tool;
+				if (tool.mode === editor.ToolConstants.MODE_DOWN) {
+					return tool;
+				}
+			}
 			
-			return this.currentTool;
+			return null;
 		},
 		
 		loadState: function() {
-			var tool = this.currentTool;
+			var tool = this.getActiveTool();
 			
-			if (this.currentTool == null) {
+			if (tool == null) {
 				for (var i = 0, il = this.tools.length; i < il && tool == null; i++) {
 					var t = this.tools[i];
 					
@@ -130,7 +129,6 @@ var editor = (function(editor) {
 						}
 					}
 					
-					this.currentTool = value;
 					this.header.text(value.toolTitle);
 					break;
 				case editor.events.ToolMouseIn:
@@ -199,15 +197,15 @@ var editor = (function(editor) {
 				}
 				else if (!this.hidden) {
 					// select the next available tool
-					this.currentTool = nextAvailable.call(this);
+					var tool = nextAvailable.call(this);
 					if (!this.hidden) {
-						this.currentTool.setMode(editor.ToolConstants.MODE_DOWN);
+						tool.setMode(editor.ToolConstants.MODE_DOWN);
 					}
-					this.header.text(this.currentTool.toolTitle);
+					this.header.text(tool.toolTitle);
 				}
 			}
 			else {
-				if (!this.hidden && this.currentTool == null) {
+				if (!this.hidden && this.getActiveTool() == null) {
 					data.item.setMode(editor.ToolConstants.MODE_DOWN);
 				}
 				
