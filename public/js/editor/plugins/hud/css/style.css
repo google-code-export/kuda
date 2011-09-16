@@ -38,3 +38,20 @@
 .hudSidePanel li input.color {
 	width: 24px;
 }
+
+/******************************************************************************
+ * 									General									  *
+ ******************************************************************************/
+#hudDpyName {
+	width: 126px;
+	float: left;
+}
+#hudEditDlg>div {
+	float: left;
+	width: 100%;
+}
+#hudTree {
+	float: left;
+	background: none;
+	margin-left: 10px;
+}
