@@ -72,8 +72,10 @@ var editor = (function(editor) {
 					wgt.visiblePane.setVisible(false);
 				}
 				
-				tabpane.setVisible(true);
-				wgt.visiblePane = tabpane;
+				tabpane.setVisible(!tabpane.isVisible());
+				if (tabpane.isVisible()) {
+					wgt.visiblePane = tabpane;
+				}
 			});
 			
 			this.list.append(li); 
