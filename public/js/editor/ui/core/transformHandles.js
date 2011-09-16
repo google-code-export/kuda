@@ -324,7 +324,7 @@ var editor = (function(editor) {
 			if (transform && hemi.utils.isAnimated(transform)) {
 				this.transform = null;
 				
-				if (this.drawState !== module.ui.trans.DrawState.NONE) {
+				if (this.drawState !== editor.ui.trans.DrawState.NONE) {
 					hemi.hud.hudMgr.clearDisplay();
 				}
 			} else {

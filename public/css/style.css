@@ -20,7 +20,7 @@ html, body {
     margin: 0;
     padding: 0;
     border: none;
-    font-family: Helvetica, Arial, sans-serif;
+    font-family: 'Lato', Helvetica, Arial, sans-serif;
     color: #444;
 	background: -moz-linear-gradient(100% 100% 90deg, #fafafa, #eee);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fafafa));
@@ -37,7 +37,7 @@ h1 {
 }
 
 p {
-    font: 9pt / 16pt Helvetica, Verdana, Arial, sans-serif;
+    font: 9pt/16pt 'Lato', Helvetica, Verdana, Arial, sans-serif;
 }
 
 /******************************************************************************
@@ -52,14 +52,14 @@ p {
 	background: #333;
 	color: #fff;
 	height: 100%;
-	font-family: "Myriad Pro", Helvetica, Arial, sans-serif;
+	font-family: 'Lato', Helvetica, Arial, sans-serif;
 	text-shadow: 0 -1px 1px #333;
 	box-shadow: 0 0 10px #333;
 	opacity: 0.95;
 	width: 185px;
 }
 #tabBar>h1 {
-	font-size: 24px;
+	font-size: 22px;
 	line-height: 30px;
 	font-weight: bold;
 	padding: 10px 0;
@@ -74,12 +74,16 @@ p {
 }
 #tabBar>h1 span.editor {	
 	color: #75d0f4;
+	font-weight: 300;
 }
 #tabBar>ul {
-	font-size: 18px;
+	font-size: 16px;
 	line-height: 24px;
-	font-weight: bold; 
+	font-weight: normal; 
 	margin-left: 0;
+}
+#tabBar>ul h2 {
+	font-weight: 300;
 }
 #tabBar>ul>li {
 	float: left;
@@ -102,6 +106,7 @@ p {
 }
 #tabBar>ul>li>div.down h2>a {
 	color: #75d0f4;
+	font-weight: bold;
 }
 #tabBar .toolbarArrow {
 	display: block; 
@@ -158,12 +163,6 @@ p {
 	float: left;
 	top: 45px;
 }
-.toolbar>h1 {
-	font: bold 14px/14px "Myriad Pro", Helvetica, Arial, sans-serif;
-	text-shadow: 0 -1px 0 #666; 
-	border-bottom: 1px solid #666;
-	padding: 5px;
-}
 .toolbar ul li {
 	padding: 5px 2px 5px 0;
 	float: left;
@@ -197,7 +196,9 @@ p {
 }
 .toolTitle {
 	height: 18px;
-	font: bold 14px/22px "Myriad Pro", Helvetica, Arial, sans-serif;
+	font-weight: bold;
+	font-size: 12px;
+	line-height: 22px;
 	color: #ddd;
 }
 .toolHover {
@@ -206,7 +207,9 @@ p {
 	display: none;
 	text-align: left;
 	color: #fff;
-	font: bold 14px/22px "Myriad Pro", Helvetica, Arial, sans-serif;
+	font-weight: bold;
+	font-size: 12px;
+	line-height: 22px;
 	text-indent: 0;
 	white-space: nowrap;
 	top: 5px;
@@ -340,14 +343,15 @@ p {
 	display: none;
 }
 #prjSaveIpt {
-	width: 155px;
-	padding: 2px;
+	width: 160px;
+	padding: 2px 0;
 	background: #333;
 	border: 1px solid #333;
 	border-radius: 3px;
 	margin: 0;
-	color: #ddd;
-	font: bold 14px/16px Myriad Pro, Helvetica, sans-serif;
+	color: #eee;
+	font-size: 12px;
+	line-height: 16px;
 }
 #prjSaveIpt:hover {
 	border-color: #444;
@@ -356,6 +360,7 @@ p {
 	background: #626262;
 	border-color: #222;
 	box-shadow: 0 1px 0 #444;
+	color: #fff;
 }
 #prjMsg a {
 	color: #fff;
@@ -486,7 +491,7 @@ p {
 }
 #plgPane .listWidget>li input[type=checkbox] {
 	float: left;
-	margin-top: 7px;
+	margin-top: 10px;
 }
 
 /******************************************************************************
@@ -551,7 +556,9 @@ p {
 .bottomPanel label {
 	width: auto;
 	padding-right: 10px;
-	font: bold 10pt/26px Helvetica, Arial, sans-serif;
+	font-weight: bold;
+	font-size: 13px;
+	line-height: 23px;
 	color: #fff;
 	margin-right: 0;
 	float: left;
@@ -617,7 +624,9 @@ p {
 	overflow: auto;
 }
 .widget h1 {
-	font: bold 18px/20px "Myriad Pro", Helvetica, Arial, sans-serif; 
+	font-weight: bold;
+	font-size: 16px;
+	line-height: 20px;
 	text-align: left;
 	margin-bottom: 5px;
 }
@@ -627,7 +636,7 @@ p {
 .widget:not(.widgetWithForms):not(.fullSideWidget) h1 {
 	color: #75d0f4;
 }
-.widget:nth-child(n+2) {
+.widget:nth-child(n+2):not(.widgetWithForms) {
 	border-top: 1px solid #000;
 }
 
@@ -810,7 +819,9 @@ form input.prmWgtCitTreeIpt, form input.treeSelectorIpt {
 	color: #fff;
 	clear: right;
 	float: right;
-	font: bold 14px/18px "Myriad Pro", Helvetica, sans-serif;
+	font-weight: bold;
+	font-size: 14px;
+	line-height: 18px;
 	text-transform: uppercase;
 }
 .prjTopPanel .previewWidget button {
@@ -943,24 +954,6 @@ input.error {
 	border: 1px solid red !important;
 }
 
-/**
- * Project name styling
- */
-#currentProject {
-	float: right;
-	font: bold 10pt/30px "Myriad Pro", Helvetica, Arial, sans-serif;
-	color: #535353;
-	text-shadow: 0 1px 1px #fff;
-	margin-top: 5px;
-}
-#currentProject span.label {
-	margin-right: 5px;
-}
-#currentProject span.name {
-	margin-right: 30px;
-	color: #0A6496;
-}
-
 /******************************************************************************
  * 									Forms									  *
  ******************************************************************************/
@@ -1078,7 +1071,8 @@ form input:not([type=radio]), form textarea {
     border: 1px solid #ddd;
 	box-shadow: 0 1px 0 #fff;
     border-radius: 3px;
-    font: 9pt Helvetica, Arial, Verdana, sans-serif;
+	font-size: 12px;
+	font-family: Helvetica;
     outline: none;
     padding: 5px;
     width: 270px;
@@ -1153,7 +1147,7 @@ button {
 	border-radius: 3px;
     color: #333;
     float: left;
-    font: bold 10pt / 11pt helvetica, verdana, arial, sans-serif;
+    font: bold 13px/14px Helvetica, Arial, sans-serif;
     padding: 4px 5px;
     text-shadow: 0 1px 0 #fff;
     margin-bottom: 5px;
@@ -1209,15 +1203,18 @@ form button {
 
 div.jstree, div.jstree.jstree-focused {
 	background: transparent;
-	font: 12px/18px Helvetica, Arial, sans-serif !important;
+	font-size: 12px !important;
+	line-height: 22px !important;
 }
 .jstree a > .jstree-icon {
 	margin-right: 5px !important;
 }
 
-/**
- * Tree selector widget
- */
+
+/******************************************************************************
+ * 							  Tree Selector Widget							  *
+ ******************************************************************************/
+
 .treeSelector {
 	width: 100%;
 }
@@ -1277,18 +1274,17 @@ form input.open, .treeSelectorBtn.open,
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
 }
-/**
- * Trees
- */
 
 .sharedTree {
 	background: none !important;
 }
 
 
-/**
- * Vector component
- */
+
+/******************************************************************************
+ * 								Vector Component							  *
+ ******************************************************************************/
+
 .vectorContainer {
 	float: left;
 }
@@ -1298,143 +1294,8 @@ form input.open, .treeSelectorBtn.open,
 }
 
 /**
- * Dialogs
- */
-#dialogContainer {
-    position: absolute;
-    top: 0;
-    left: 0;
-}
-
-.toolDialogBox {
-    background: #ddd;
-    padding: 10px;
-    border: 2px solid #555;
-    width: 300px;
-    font-size: 9pt;
-}
-
-.toolDialogBox h1 {
-    text-align: left;
-    font: bold 16px / 18px Helvetica, Arial, sans-serif;
-}
-
-.toolDialogBox h2 {
-    text-align: left;
-    font: bold 12px / 14px Helvetica, Arial, sans-serif;
-}
-
-.toolDialogBox p {
-    font-size: 9pt;
-}
-
-.dlgSection:nth-child(n+2) {
-	border-top: 1px solid #2a6275;
-	position: relative;
-	float: left;
-	padding: 10px 0;
-	width: 100%;
-}
-
-/**
- * Save/Open project dialogs
- */
-#saveProjectDlg p, #openProjectDlg p {
-	text-align: center;
-}
-
-/**
- * Selection dialog
- */
-#selectionDlg {
-}
-#selectionDlg>div>ul {
-	list-style: none;
-	float: left;
-	position: relative;
-	margin: 0 0 10px 0;
-	padding: 0;
-}
-#selectionDlg>div>ul>li {
-	float: left;
-	position: relative;
-	width: 100%;
-}
-#selectionDlg>div>ul>li>ul {
-	list-style: none;
-}
-#selectionDlg .selLabel {
-	font-weight: bold;
-}
-#selectionDlg .selValue {
-	
-}
-#selectionMovers {
-	
-}
-#selectionMovers .selMover {
-	margin: auto;
-}
-#selectionDlg ul#selHiddenItems {
-	margin: 0;
-	padding: 0 0 0 20px;
-	float: left;
-	list-style: circle;
-}
-#selHiddenItems li, #selHiddenItems li span {
-	float: left;
-}
-#selHiddenItems li span {
-	display: block;
-	height: 24px;
-}
-#selHiddenItems button {
-	padding: 0 5px;
-}
-
-
-/**
- * Details list component
- */
-.detailsList, .detailsList ul {
-	list-style: none;
-}
-.detailsList {
-	padding: 0 10px;
-	margin: 0;
-}
-.detailsList ul {
-	padding-left: 20px;
-}
-.detailsListItem {
-	
-}
-.subDetailsList {
-	
-}
-.detailsLabel {
-	font-weight: bold;
-	padding-right: 5px;
-}
-.detailsValue {
-	
-}
-
-/**
- * Preview dialog
- */
-#previewDlg {
-	margin: 0;
-	padding: 0;
-}
-#previewDlg iframe {
-	border: none;
-	width: 100%;
-	height: 100%;
-}
-
-/**
  * Scene manager dialogs
+ * TODO: move this out
  */
 #scnName {
 	float: left;
@@ -1536,36 +1397,8 @@ ul.scnEvtList li.button {
 }
 
 /**
- * Shape dialogs
- */
-
-#createShapesDlg label:nth-child(n+2) {
-	width: 50px;
-}
-#createShapesDlg li.multiInput div {
-	float: left;
-	width: 100%;
-}
-
-/**
- * Hud 
- */
-#hudDpyName {
-	width: 126px;
-	float: left;
-}
-#hudEditDlg>div {
-	float: left;
-	width: 100%;
-}
-#hudTree {
-	float: left;
-	background: none;
-	margin-left: 10px;
-}
-
-/**
  * Curves dialog
+ * TODO: move this out
  */
 #crvAddSaveBoxBtn {
 	float: left;
@@ -1578,9 +1411,11 @@ ul.scnEvtList li.button {
 	font-size: 9pt;
 }
 
-/**
- * Color picker overrides
- */
+
+/******************************************************************************
+ * 								  Color Picker								  *
+ ******************************************************************************/
+
 table.jPicker {
 	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
@@ -1594,7 +1429,9 @@ table.jPicker .Move {
 	border-width: 0 0 1px 0;
     color: #fff;    
 	border-radius: 6px 6px 0 0;
-	font: bold 14px/26px Helvetica, Arial, sans-serif;
+	font-weight: bold;
+	font-size: 14px;
+	line-height: 26px;
 	text-align: center;
 	text-shadow: 0 -1px 0 #000;
 }
@@ -1668,9 +1505,11 @@ span.jPicker {
 	height: 25px;
 }
 
-/**
- * Progress indicator styling
- */
+
+/******************************************************************************
+ * 							  Progress Indicator							  *
+ ******************************************************************************/
+
 #progressIndicator {
 	background: -moz-linear-gradient(100% 100% 90deg, #eee, #dcdcdc);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dcdcdc), to(#eee));
@@ -1681,7 +1520,9 @@ span.jPicker {
 }
 #progressIndicator .prgBarText {
 	color: #666;
-	font: 10px/17px Helvetica, Arial, sans-serif;
+	font-weight: bold;
+	font-size: 10px;
+	line-height: 17px;
 	float: left;
 	padding: 2px 5px 2px 0;
 }
@@ -1750,7 +1591,7 @@ span.jPicker {
 
 /* Component containers
 ----------------------------------*/
-.ui-widget { font-family: Helvetica, Arial, sans-serif; }
+.ui-widget { font-family: 'Lato', Helvetica, Arial, sans-serif; }
 .ui-widget .ui-widget { font-size: 1em; }
 .ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {  }
 .ui-widget-content { 
@@ -1764,7 +1605,9 @@ span.jPicker {
 	background: #333; 
 	color: #fff;
 	text-shadow: 0 -1px 0 #000; 
-	font: bold 14px/26px Helvetica, Arial, sans-serif; 
+	font-weight: bold;
+	font-size: 14px
+	line-height: 26px; 
 	border-bottom: 1px solid #111;
 }
 .ui-widget-header a { color: #444444; }
