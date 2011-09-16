@@ -803,7 +803,7 @@ var editor = (function(editor) {
 						parent = target.parents('.prjSidePanel, #prjPane'), 
 						isTool = target.parents('.toolBtn').size() > 0 ||
 							target.hasClass('toolBtn'),
-						isTabPane = target.parents('#tabBar h2'),
+						isTabPane = target.parents('#tabBar h2').size() > 0,
 						isDown = target.hasClass('down');
 					
 					if (parent.size() == 0 && target.attr('id') !== 'prjPane') {

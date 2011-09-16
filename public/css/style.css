@@ -436,7 +436,7 @@ p {
 #plgPane h2 a {
 	text-indent: -5000px;
 	text-align: center;
-	left: 65px;
+	left: 70px;
 	position: relative;
 	float: left;
 	background: url(../images/pluginMinMax.png) no-repeat 0 0;
@@ -479,9 +479,14 @@ p {
 #plgPane .listWidget>li>div {
 	width: auto;
 	padding-left: 10px;
+	width: 175px;
+}
+#plgPane .listWidget>li label {
+	margin-left: 5px;
 }
 #plgPane .listWidget>li input[type=checkbox] {
 	float: left;
+	margin-top: 7px;
 }
 
 /******************************************************************************
