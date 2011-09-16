@@ -268,7 +268,7 @@ app.post('/publish', function(req, res) {
 		content = content.substr(start);
 		fs.writeFileSync(filePath,
 			content.replace(/%PROJECT%/g, 'projects/' + name)
-				.replace(/%LOAD%/g, '..').replace(/%SCRIPT%/g, '../../js'));
+				.replace(/%LOAD%/g, '..').replace(/%SCRIPT%/g, '../js'));
 		
 		// Create the published package
 		var toDir = projectsPath + '/' + name;
