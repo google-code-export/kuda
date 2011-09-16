@@ -63,18 +63,18 @@ var editor = (function(editor) {
 				}
 				
 				this.currentPlugin = null;
-				
-				if (!this.initComplete) {
-					editor.notifyListeners(editor.events.DoneLoading);
-				
-					var mdls = editor.getModels();
+								
+				var mdls = editor.getModels();
 					
-					for (var i = 0, il = mdls.length; i < il; i++) {
-						var mdl = mdls[i];
-						
+				for (var i = 0, il = mdls.length; i < il; i++) {
+					var mdl = mdls[i];
+					
+					if (!mdl.hasWorldListeners) {
 						editor.addListener(editor.events.WorldCleaned, mdl);
-						editor.addListener(editor.events.WorldLoaded, mdl);	
-					}
+						editor.addListener(editor.events.WorldLoaded, mdl);
+					}	
+					
+					mdl.hasWorldListeners = true;
 				}
 				
 				this.initComplete = true;
@@ -222,7 +222,7 @@ var editor = (function(editor) {
 			this._super({
 				id: 'pluginManager',
 				elemId: 'plgWrapper',
-				toolName: 'Plugins',
+				toolName: 'Manage Plugins',
 				toolTip: ''
 			});
 			
@@ -317,7 +317,8 @@ var editor = (function(editor) {
 		// disable default behavior
 		var ui = plgPane.getUI();
 		
-		ui.find('a').unbind('click').bind('click', function(evt) {
+		ui.find('a').unbind('click');
+		ui.find('h2').bind('click', function(evt) {
 			plgPane.setVisible(!plgPane.isVisible());
 		});
 		

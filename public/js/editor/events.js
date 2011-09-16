@@ -29,8 +29,6 @@ var editor = (function(editor) {
 		
 		Created: 'editor.Created',
 		
-		DoneLoading: 'editor.DoneLoading',
-		
 		Enabled: 'editor.Enabled',
 		
 		ModelAdded: 'editor.ModelAdded',
