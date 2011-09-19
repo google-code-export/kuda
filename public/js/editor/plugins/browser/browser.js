@@ -56,6 +56,7 @@
 	editor.EventTypes.AddUserCreatedShape = "browser.AddUserCreatedShape";
 	editor.EventTypes.PickableSet = "browser.PickableSet";
 	editor.EventTypes.RemoveUserCreatedShape = "browser.RemoveUserCreatedShape";
+	editor.EventTypes.ServerRunning = 'browser.ServerRunning';
 	editor.EventTypes.ShapeSelected = "browser.ShapeSelected";
 	editor.EventTypes.TransformDeselected = "browser.TransformDeselected";
 	editor.EventTypes.TransformHidden = "browser.TransformHidden";
@@ -188,23 +189,39 @@
 			this.shapHighlightMat = null;
 	        this.tranHighlightMat = null;
 			this.curHandle = new editor.ui.TransHandles();
+			this.models = [];
 	        
 	        this.initSelectorUI();
-			var that = this;
+			var mdl = this;
 			
 			hemi.msg.subscribe(hemi.msg.load,
 				function(msg) {
 					if (msg.src instanceof hemi.model.Model) {
-						that.processModel(msg.src);
-						that.addModel(msg.src);
+						mdl.processModel(msg.src);
+						mdl.addModel(msg.src);
 					}
 				});
 			hemi.msg.subscribe(hemi.msg.unload,
 				function(msg) {
 					if (msg.src instanceof hemi.model.Model) {
-						that.removeModel(msg.src);
+						mdl.removeModel(msg.src);
 					}
 				});
+				
+			jQuery.ajax({
+				url: '/models',
+				dataType: 'json',
+				success: function(data, status, xhr) {	
+					mdl.models = data.models;
+					mdl.notifyListeners(editor.EventTypes.ServerRunning, 
+						mdl.models);
+				},					
+				error: function(xhr, status, err) {
+					mdl.serverDown = true;
+					mdl.notifyListeners(editor.EventTypes.ServerRunning,
+						null);
+				}
+			});
 		},
 		
 		addModel: function(model) {
@@ -308,13 +325,13 @@
 		},
 	    
 	    hideSelected: function() {
-			var that = this;
+			var mdl = this;
 			
 			this.selected.each(function(key, value) {
 				var owner = hemi.world.getCitizenById(key);
 				
 				for (var ndx = 0, len = value.length; ndx < len; ndx++) {
-					that.hideTransform(value[ndx], owner);
+					mdl.hideTransform(value[ndx], owner);
 				}
 			});
 	    },
@@ -568,13 +585,13 @@
 		},
 	    
 	    showSelected: function() {
-			var that = this;
+			var mdl = this;
 			
 			this.selected.each(function(key, value) {
 				var owner = hemi.world.getCitizenById(key);
 				
 				for (var ndx = 0, len = value.length; ndx < len; ndx++) {
-					that.showTransform(value[ndx], owner);
+					mdl.showTransform(value[ndx], owner);
 				}
 			});
 	    },
@@ -825,7 +842,7 @@
 				
 				switch(type) {
 					case 'transform':
-						// Deselect any non-transforms that may be selected
+						// Deselect any non-transformsmdlt may be selected
 						for (var i = 0, il = selected.length; i < il; i++) {
 							var sel = selected[i],
 								selData = jQuery(sel).data('jstree');
@@ -1113,8 +1130,7 @@
 	var LoaderWidget = editor.ui.Widget.extend({
 		init: function() {
 			this._super({
-				name: 'modelLoader',
-				uiFile: 'js/editor/plugins/browser/html/modelLoading.htm',
+				name: 'loaderWidget',
 				height: editor.ui.Height.MANUAL
 			});
 		},
@@ -1127,7 +1143,7 @@
 				wgt = this;				
 			
 			btn.file().choose(function(evt, input) {
-				msg.text('Uploading Model...').show(200);
+				msg.text('Uploading Model...').slideDown(200);
 				
 				// assuming no multi select file
 				var file = input.files[0],
@@ -1152,7 +1168,7 @@
 								prj = jQuery('<option value="' + data.url + '">' + data.name + '</option>');
 								
 							sel.append(prj);
-							msg.text('').hide(200);
+							msg.text('').slideUp(200);
 							populateUnloadPanel.call(wgt);
 						});
 					},
@@ -1161,14 +1177,6 @@
 					}
 				});
 			});	
-			
-			testServer.call(this, function() {
-				pnl.show();
-				wgt.invalidate();
-			}, function() {
-				pnl.hide();
-				wgt.invalidate();
-			});
 		},
 		
 		createLoadPanel: function() {				
@@ -1179,32 +1187,18 @@
 				msg = this.msgPanel,
 				wgt = this;	
 		
-			btn.bind('click', function() {
-				msg.text('Loading Model...').show(200);
-				var val = ipt.is(':visible') ? ipt.val() : sel.val();
-				loadModel(val, function() {					
-					msg.text('').hide(200);
-					populateUnloadPanel.call(wgt);
-				});
+			sel.bind('change', function() {
+				if (sel.val() !== '-1') {
+					msg.text('Loading Model...').slideDown(200);
+					var val = ipt.is(':visible') ? ipt.val() : sel.val();
+					loadModel(val, function(){
+						msg.text('').hide(200);
+						populateUnloadPanel.call(wgt);
+					});
+					
+					sel.val(-1);
+				}
 			});	
-			
-			testServer.call(this, function(data) {
-					var models = data.models;
-					
-					ipt.hide();
-					sel.empty().show();
-					for (var i = 0, il = models.length; i < il; i++) {
-						var mdl = models[i];
-						var prj = jQuery('<option value="' + mdl.url + '">' + mdl.name + '</option>');
-						sel.append(prj);
-					}
-					
-					msg.hide(200);
-				},
-				function() {						
-					sel.hide();
-					ipt.show();
-				});
 		},
 		
 		createUnloadPanel: function() {			
@@ -1214,18 +1208,19 @@
 				msg = this.msgPanel,
 				wgt = this;
 		
-			btn.bind('click', function() {				
+			sel.bind('change', function() {	
 				var id = parseInt(sel.val());
+				if (id !== -1) {
 					model = hemi.world.getCitizenById(id);
-				
-				var msgHandler = model.subscribe(hemi.msg.unload,
-					function(m) {
-						msg.text('').hide(200);
+					
+					var msgHandler = model.subscribe(hemi.msg.unload, function(m){
+						msg.text('').slideUp(200);
 						model.unsubscribe(msgHandler, hemi.msg.unload);
 						populateUnloadPanel.call(wgt);
 					});
 					
-				model.cleanup();
+					model.cleanup();
+				}
 			});	
 			
 			populateUnloadPanel.call(this);
@@ -1233,38 +1228,58 @@
 		
 		finishLayout: function() {
 			this._super();
+			this.container.append('<p id="mbrMsg"></p> \
+				<form id="mbrLoadPnl"> \
+					<input type="text" id="loadMdlSel" /> \
+					<select id="loadMdlIpt"></select> \
+				</form> \
+				<form id="mbrImportPnl"> \
+					<button id="importMdlBtn">Import</button> \
+				</form> \
+				<form id="mbrUnloadPnl"> \
+					<select id="unloadMdlSel"></select> \
+				</form>');
 			
-			this.msgPanel = this.find('#mbrMsg');
+			this.msgPanel = this.find('#mbrMsg').hide();
+			this.container.find('select').sb();
 			this.createImportPanel();
 			this.createLoadPanel();
 			this.createUnloadPanel();
+		},
+		
+		updateServerRunning: function(models) {
+			var importPnl = this.find('#mbrImportPnl'),
+				loadPnl = this.find('#mbrLoadPnl'),
+				sel = loadPnl.find('select'),
+				ipt = loadPnl.find('input');
+				
+			if (models == null) {
+				importPnl.hide();
+				sel.hide();
+				ipt.show();
+				
+				this.invalidate();
+			}
+			else {									
+				importPnl.show();	
+			
+				ipt.hide();
+				sel.empty().show() 
+					.append('<option value="-1">Load a Model</option>');
+					
+				for (var i = 0, il = models.length; i < il; i++) {
+					var mdl = models[i];
+					var prj = jQuery('<option value="' + mdl.url + '">' + mdl.name + '</option>');
+					sel.append(prj);
+				}
+				sel.sb('refresh');
+				
+				this.invalidate();
+			}
 		}
 	});
 	
-	var testServer = function(success, error) {
-			var msg = this.msgPanel;
-						
-			jQuery.ajax({
-				url: '/models',
-				dataType: 'json',
-				success: function(data, status, xhr) {	
-					msg.text('').removeClass('errMsg').hide();
-					success(data);
-				},					
-				error: function(xhr, status, err) {
-					if (xhr.status !== 400) {
-						msg.text('Server is not running').addClass('errMsg')
-							.show();
-						error(xhr, status, err);
-					}
-					else {
-						msg.text(xhr.responseText).addClass('errMsg').show();
-					}
-				}
-			});
-		},
-	
-		loadModel = function(url, cb) {			
+	var loadModel = function(url, cb) {			
 			// do the model load
 			var model = new hemi.model.Model();
 			
@@ -1286,17 +1301,19 @@
 			
 			if (models.length === 0) {
 				btn.attr('disabled', 'disabled');
-				var prj = jQuery('<option value="">No models loaded</option>');
-				sel.append(prj);
+				sel.append('<option value="-1">No Models to Unload</option>');
 			} else {
 				btn.removeAttr('disabled');
 				
+				sel.append('<option value="-1">Unload a Model</option>');
 				for (var i = 0, il = models.length; i < il; i++) {
 					var mdl = models[i];
 					var prj = jQuery('<option value="' + mdl.getId() + '">' + mdl.name + '</option>');
 					sel.append(prj);
 				}
 			}
+			
+			sel.sb('refresh');
 		};
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -1386,7 +1403,8 @@
 					wgt.notifyListeners(editor.EventTypes.SetTransOpacity, 
 						ui.value/100);
 				}
-			});
+			})
+			.find('.ui-slider-handle').append('<span></span>');
 			
 			this.container.append(label).append(this.slider)
 				.addClass('opacity');
@@ -1598,7 +1616,7 @@
 				return false;
 			});
 			
-			this.form.append('<label>Details</label>').append(this.btn);
+			this.form.append(this.btn);
 			this.container.append(this.form);
 			
 			var popup = editor.ui.createTooltip('mbrPopup'),
@@ -1655,13 +1673,12 @@
 			this._super();			
 			this.visBtn = jQuery('<button>Hide</button>');
 			
-			var label = jQuery('<label>Visibility</label>'),
-				form = jQuery('<form></form>').submit(function() {
+			var form = jQuery('<form></form>').submit(function() {
 					return false;
 				}),
 				wgt = this;
 			
-			form.append(label).append(this.visBtn);
+			form.append(this.visBtn);
 			this.container.append(form);
 			
 			this.visBtn.bind('click', function() {
@@ -1733,13 +1750,13 @@
 			
 			var model = this.model,
 				view = this.view,
+				ldrWgt = view.topPanel.loaderWidget,
 				mbrWgt = view.sidePanel.modelTreeWidget,
 				hidWgt = view.sidePanel.hiddenItemsWidget,
 				opaWgt = view.bottomPanel.opacityWidget,
 				adjWgt = view.bottomPanel.adjustWidget,
 				visWgt = view.bottomPanel.visibilityWidget,
-				detWgt = view.bottomPanel.detailsWidget;
-			
+				detWgt = view.bottomPanel.detailsWidget;			
 			
 			// for when the tool gets selected/deselected	
 			view.addListener(editor.events.ToolModeSet, function(value) {
@@ -1827,7 +1844,10 @@
 			model.addListener(editor.EventTypes.RemoveUserCreatedShape, function(shape) {
 				mbrWgt.removeShape(shape);
 				hidWgt.removeOwner(shape);
-			});		
+			});	
+			model.addListener(editor.EventTypes.ServerRunning, function(models) {
+				ldrWgt.updateServerRunning(models);
+			});
 			model.addListener(editor.EventTypes.UpdateUserCreatedShape, function(shape) {
 				mbrWgt.updateShape(shape);
 			});

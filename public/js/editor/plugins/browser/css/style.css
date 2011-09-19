@@ -90,12 +90,12 @@
 	border-right: none;
 	border-left: 1px dotted #aaa;
 }
-.mbrTopPanel form:first-child {
-	padding-left: none;
+#mbrLoadPnl {
+	padding-left: 0;
 }
 .mbrTopPanel form:last-child {
 	border: none;
-	padding-right: none;
+	padding-right: 0;
 }
 .mbrTopPanel form input[type=text],
 .mbrTopPanel form select {
@@ -150,7 +150,7 @@ div#mbrBrowserTree div#mbrTree {
  ******************************************************************************/
 
 #mbrTransparencySlider {
-	width: 250px;
+	width: 150px;
 	height: 10px;
 	margin-top: 8px;
 	margin-right: 10px;
@@ -171,6 +171,17 @@ div#mbrBrowserTree div#mbrTree {
 	background: -moz-linear-gradient(100% 100% 90deg, #555, #ccc);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ccc), to(#555));
 	border: none;
+}
+#mbrTransparencySlider .ui-slider-handle span {
+	margin-left: 7px;
+	margin-top: 7px;
+	width: 6px;
+	height: 6px;
+	border-radius: 6px;
+	background: #444;
+	box-shadow: 0 1px 2px #eee,
+		inset 0 1px 0 #222;
+	float: left;
 }
 #mbrTransparencySlider .ui-slider-range {
 	border-radius: 10px;

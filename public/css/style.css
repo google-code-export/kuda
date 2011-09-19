@@ -576,15 +576,26 @@ p {
 
 .topAligned:not(.noSpecialButtons) button, 
 .bottomAligned button {
-	float: left;
-	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
+	/*background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
 	color: #fff;
     text-shadow: 0 -1px 0 #034d75;
     border: 1px solid #212121;
 	box-shadow: 0 1px 0 #444,
-		inset 0 0 1px #72bbe0;
+		inset 0 0 1px #72bbe0;*/
+			
+	float: left;
+    background: #555;
+	background: -moz-linear-gradient(100% 100% 90deg, #555, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#555));
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    color: #eee;
+    text-shadow: 0 -1px 0 #000;
 	margin-bottom: 0;
+	-webkit-transition: color 0.25s ease-in-out;
+	-moz-transition: color 0.25s ease-in-out;
+	-o-transition: color 0.25s ease-in-out;
 }
 .topAligned:not(.noSpecialButtons) button[disabled], 
 .bottomAligned button[disabled] {
@@ -598,8 +609,13 @@ p {
 } 
 .topAligned button.down,
 .bottomAligned button.down {
-	background: -moz-linear-gradient(100% 100% 90deg, #489ec9, #63b7dd);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#63b7dd), to(#489ec9));
+	background: #222;
+	background: -moz-linear-gradient(100% 100% 90deg, #222, #2a2a2a);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a2a2a), to(#222));
+	box-shadow: inset 0 2px 3px #111,
+		0 1px 0 #444;
+	border-color: #0e0e0e;
+	color: #75d0f4;
 } 
 .topAligned:not(.noSpecialButtons) button:active,
 .bottomAligned button:active {
@@ -1281,6 +1297,223 @@ form input.open, .treeSelectorBtn.open,
 }
 
 
+/******************************************************************************
+ * 							  	 Selector Widget							  *
+ ******************************************************************************/
+
+/* applied to original <select> to hide */
+.has_sb {
+	position: absolute;
+	left: -999999em;
+	text-indent: -999999em;
+}
+
+/* always visible styles */
+.selectbox {
+	display: block;
+	*display: inline;
+	font-family: Helvetica, arial, sans-serif;
+	font-size: 12px;
+	margin: 1px;
+	position: relative;
+	vertical-align: middle;
+	float: left;
+	zoom: 1;
+}
+.selectbox .display {
+	background: #444;
+	border: 1px solid #222;
+	border-radius: 3px;
+	box-shadow: 0 1px 0 #444;
+	color: #fff;
+	cursor: default;
+	display: block;
+	font-weight: normal;
+	height: 22px;
+	line-height: 22px;
+	overflow: hidden;
+	outline: none;
+	padding: 0 24px 0 3px;
+	position: relative;
+	text-decoration: none;
+	overflow: hidden;
+}
+.selectbox.disabled .display {
+	color: #999;
+}
+.selectbox.focused .display .text {
+	display: block;
+	*display: inline;
+	zoom: 1;
+}
+.selectbox .display.active {
+	border-radius: 3px 3px 0 0;
+}
+.selectbox .display .arrow_btn {
+	background: #444;
+	background: -moz-linear-gradient(100% 100% 90deg, #444, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#444), to(#444));
+	border-left: 1px solid #222;
+	border-radius: 0 0 3px 3px;
+    display: block;
+    height: 22px;
+    line-height: 22px;
+    padding: 1px;
+    position: absolute;
+    right: 0;
+    text-align: center;
+    top: 0;
+    width: 18px;
+	box-shadow: inset 0 1px 1px #888; 
+}
+.selectbox .display .arrow_btn .arrow {
+	background:  url(../images/listOptionsSprite.png) -32px -7px no-repeat;
+    display: block;
+	*display: inline;
+    height: 22px;
+    left: 6px;
+    position: absolute;
+    top: 9px;
+    width: 7px;
+    zoom: 1;
+}
+.selectbox .display.active .arrow_btn {
+	border-radius: 0 0 3px 0;
+}
+.selectbox .display.hover .arrow_btn {
+	background-position:  -32px 0;
+}
+.selectbox .value {
+	display: none;
+}
+
+/* dropdown styles */
+.selectbox.items {
+	background: #5e5e5e;
+	border: 1px solid #444;
+	border-width: 0 1px 1px;
+	border-radius: 0 0 3px 3px;
+	display: block;
+	font-family: Helvetica;
+	font-size: 12px;
+	list-style-type: none;
+	margin: 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding: 0 0 1px 0;
+	z-index: 99999;
+	box-shadow: 0 3px 5px #222;
+}
+.selectbox.items.above {}
+.selectbox.items li {
+	display: block;
+	margin: 0;
+	padding: 0;
+	/*white-space: nowrap; maybe necessary if using fixedWidth:  false */
+}
+.selectbox.items li.first {
+	margin-top: 0;
+}
+.selectbox.items li>.item {
+	color: #fff;
+	cursor: default;
+	display: block;
+	padding: 4px 6px;
+	text-decoration: none;
+}
+.selectbox.items li>.item>.text {
+	display: inline-block;
+	*display: inline;
+	zoom: 1;
+}
+.selectbox.items li.selected>.item {
+	border-bottom: 1px dotted #222;
+}
+.selectbox.items li.disabled>.item {
+	color: #ccc;
+}
+.selectbox.items li.hover>.item {
+	background-color: #666;
+}
+.selectbox.items .value {
+	display: none;
+}
+
+/* optgroup styles */
+.selectbox.items .optgroup .items {
+	border: none;
+	margin: 0;
+	padding: 0;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+}
+.selectbox.items .optgroup>.label {
+	cursor: default;
+	font-weight: bold;
+	line-height: 1em;
+}
+.selectbox.items .optgroup .items li>.item {
+	padding-left: 1em;
+}
+
+/* easy rounding styles */
+.selectbox .round_sb.display {
+	padding: 2px 26px 2px 5px;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+  -webkit-border-radius: 5px;
+}
+.selectbox .round_sb.display .arrow_btn {
+	right: 2px;
+	top: 2px;
+	border-radius: 3px;
+	-moz-border-radius: 3px;
+	-webkit-border-radius: 3px;
+}
+.selectbox.round_sb.items {
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+}
+.selectbox.round_sb.items>li>a {padding: 4px 6px;}
+.selectbox.round_sb.items>li.first>.item {
+	-moz-border-radius-topleft: 5px;
+	-moz-border-radius-topright: 5px;
+	-webkit-border-top-left-radius: 5px;
+	-webkit-border-top-right-radius: 5px;
+}
+.selectbox.round_sb.items>li.last>.item {
+	-moz-border-radius-bottomleft: 5px;
+	-moz-border-radius-bottomright: 5px;
+	-webkit-border-bottom-left-radius: 5px;
+	-webkit-border-bottom-right-radius: 5px;
+}
+/* for optgroups */
+.selectbox.round_sb.items>li>.label {
+	line-height: 2.08em;
+	padding: 4px 6px;}
+.selectbox.round_sb.items>li>.items li>.item {
+	padding: 4px 6px 4px 12px;
+}
+
+/* fixed width example styles */
+.selectbox .display.fixed_width {
+	width: 73px;
+	padding: 0 24px 0 3px;
+}
+
+.selectbox.fixed_width.items {
+	width: 100px; /* width of display text plus the padding (60 + 27) = 87 */
+}
+
+.selectbox .display.fixed_width2 {
+	width: 60px;
+	padding: 0 24px 0 3px;
+}
+
+.selectbox.fixed_width2.items {
+	width: 300px; /* width of display text plus the padding (60 + 27) = 87 */
+}
 
 /******************************************************************************
  * 								Vector Component							  *

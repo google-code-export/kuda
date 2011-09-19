@@ -733,26 +733,15 @@ var editor = (function(editor) {
 			});
 						
 			previewBtn.bind('click', function(evt) {
+				view.isPreview = true;
 				view.notifyListeners(event.StartPreview);
 				
 				// proceed to hide all panels
 				var views = editor.getViews();
-				view.visiblePanels = [];
 				
-				for (var i = 0, il = views.length; i < il; i++) {
-					var pnls = views[i].panels;
-					
-					for (var j = 0, jl = pnls.length; j < jl; j++) {
-						var pnl = pnls[j];
-						
-						if (pnl.isVisible()) {
-							view.visiblePanels.push(pnl);
-							pnl.setVisible(false, false);
-						}
-					}
-				}
 				// hide the main panel
 				editor.ui.getTabBar().setVisible(false);
+				view.sidePanel.setVisible(false, false);
 				
 				// show the preview panel
 				view.topPanel.setVisible(true);
@@ -818,11 +807,18 @@ var editor = (function(editor) {
 		},
 		
 		stopPreview: function() {
-			for (var i = 0, il = this.visiblePanels.length; i < il; i++) {
-				this.visiblePanels[i].setVisible(true, false);
-			}
+			var view = this;
+			
+			// essentially queueing this
+			setTimeout(function() {
+				view.isPreview = false
+			}, 0);
+//			for (var i = 0, il = this.visiblePanels.length; i < il; i++) {
+//				this.visiblePanels[i].setVisible(true, false);
+//			}
 			
 			editor.ui.getTabBar().setVisible(true);
+			this.sidePanel.setVisible(true, false);
 			this.topPanel.setVisible(false);
 		},
 		
@@ -884,7 +880,8 @@ var editor = (function(editor) {
 						isTabPane = target.parents('#tabBar h2').size() > 0,
 						isDown = target.hasClass('down');
 					
-					if (parent.size() == 0 && target.attr('id') !== 'prjPane') {
+					if (parent.size() == 0 && target.attr('id') !== 'prjPane' 
+							&& !view.isPreview) {
 						view.sidePanel.setVisible(false, 
 							isTool ? !isDown : !isTabPane);
 						view.hideButtons();
