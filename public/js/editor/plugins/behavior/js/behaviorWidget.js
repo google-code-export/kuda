@@ -290,8 +290,8 @@ var editor = (function(editor) {
 		finishLayout: function() {			
 			var form = jQuery('<form class="noSteps" action="" method="post"></form>'), 
 				triggerFieldset = jQuery('<fieldset><legend>Select a Trigger</legend><ol></ol></fieldset>'), 
-				actionFieldset = jQuery('<fieldset><legend>Select an Action</legend><ol></ol></fieldset>'), 
-				paramsFieldset = jQuery('<fieldset id="behaviorAxnParams"><legend>Set Action Parameters</legend><ol><li></li></ol></fieldset>'), 
+				actionFieldset = jQuery('<fieldset><legend>Select an Action</legend><ol id="behaviorAxnSelect"></ol><ol id="behaviorAxnParams"><li></li></ol></fieldset>'),
+				paramsList = actionFieldset.find('#behaviorAxnParams').hide(), 
 				saveFieldset = jQuery('<fieldset><legend>Save Behavior</legend><ol>' +
 					'<li>' +
 					'    <input type="text" class="nameField" autocomplete="off" placeholder="Name"/>' +
@@ -303,7 +303,6 @@ var editor = (function(editor) {
 				nameIpt = saveFieldset.find('.nameField'), 
 				saveBtn = saveFieldset.find('.saveBtn'), 
 				cancelBtn = saveFieldset.find('.cancelBtn'),
-				paramsIns = jQuery('<p>Select an action first</p>'),
 				wgt = this, 
 				selFcn = function(data, selector){
 					var elem = data.rslt.obj, 
@@ -329,13 +328,14 @@ var editor = (function(editor) {
 									method = path[path.length-1],
 									args = editor.utils.getFunctionParams(handler[method]);
 								if (args.length > 0) {
-									wgt.prmFieldset.show(200);
+									wgt.prmList.show(200);
+									wgt.axnChooser.getUI().addClass('hasValue');
 								}
 								else {
-									wgt.prmFieldset.hide();
+									wgt.prmList.hide();
+									wgt.axnChooser.getUI().removeClass('hasValue');
 								}
 								wgt.prms.populateArgList(handler, method, args);
-								wgt.prmInstructions.hide();
 								wgt.invalidate();
 								data.handler = handler;
 								data.method = method;
@@ -355,12 +355,11 @@ var editor = (function(editor) {
 			
 			this.trgFieldset = triggerFieldset;
 			this.axnFieldset = actionFieldset;
-			this.prmFieldset = paramsFieldset;
 			this.savFieldset = saveFieldset;
+			this.prmList = paramsList;
 			this.saveBtn = saveBtn;
 			this.cancelBtn = cancelBtn;
 			this.nameIpt = nameIpt;
-			this.prmInstructions = paramsIns;
 			
 			this.axnTree = shorthand.createActionsTree();
 			this.trgTree = shorthand.createTriggersTree();
@@ -369,8 +368,7 @@ var editor = (function(editor) {
 					prefix: 'bhvEdt'
 				});
 			
-			paramsFieldset.find('li').append(this.prms.getUI());
-			paramsFieldset.find('legend').after(paramsIns);
+			paramsList.find('li').append(this.prms.getUI());
 				
 			this.trgChooser = new BhvTreeSelector({
 				tree: this.trgTree,
@@ -385,7 +383,7 @@ var editor = (function(editor) {
 			var li = jQuery('<li></li>');
 			
 			li.append(this.axnChooser.getUI());
-			actionFieldset.find('ol').append(li);
+			actionFieldset.find('#behaviorAxnSelect').append(li);
 			
 			li = jQuery('<li></li>');
 			
@@ -421,8 +419,7 @@ var editor = (function(editor) {
 			
 			form.submit(function() { return false; });
 			
-			form.append(triggerFieldset).append(actionFieldset)
-				.append(paramsFieldset).append(saveFieldset);
+			form.append(triggerFieldset).append(actionFieldset).append(saveFieldset);
 			this.container.append('<h1>Create Behavior</h1>').append(form);
 			
 			// save checking
@@ -443,8 +440,8 @@ var editor = (function(editor) {
 		reset: function() {
 			this.trgChooser.reset();
 			this.axnChooser.reset();
+			this.axnChooser.getUI().removeClass('hasValue');
 			this.prms.reset();
-			this.prmInstructions.show();
 			this.nameIpt.val('');
 			
 			reset(this.trgTree.getUI());

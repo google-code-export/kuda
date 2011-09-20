@@ -193,6 +193,8 @@ var editor = (function(editor) {
 //                     			   	  Panel		  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
+	var panels = [];
+	
 	var setVisible = function(visible) {
 			var ctn = this.container,
 				origOpacity = this.origOpacity,
@@ -263,6 +265,8 @@ var editor = (function(editor) {
 				'bottomPanel' : 'sidePanel';
 
 			this._super(newOpts);
+			
+			panels.push(this);
 		},
 		
 		addViewMeta: function(view) {
@@ -683,6 +687,30 @@ var editor = (function(editor) {
 	var tabbar = new TabBar(),
 		commonWidgets = new Hashtable(),
 		grid = null;
+		
+	var resize = function() {		
+		var bdy = jQuery('body'),
+			win = jQuery(window),
+			vwr = jQuery('.mainView'),
+		
+			windowWidth = window.innerWidth ? window.innerWidth 
+				: document.documentElement.offsetWidth,
+			windowHeight = win.height();
+			
+		if (windowWidth <= 1024) {
+			bdy.addClass('ten24');
+		}
+		else {
+			bdy.removeClass('ten24');
+		}
+		
+		vwr.width(windowWidth);
+		vwr.height(windowHeight);
+		
+		for (var i = 0, il = panels.length; i < il; i++) {
+			panels[i].resize();
+		}
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                      	Convenient Widget Methods     	                  //
@@ -744,6 +772,12 @@ var editor = (function(editor) {
 		vd.eye = [0, 10, 40];
 		vd.target = [0, 0, 0];
         hemi.world.camera.moveToView(vd, 0);
+		
+		// add resizing functionality
+		jQuery(window).resize(resize);
+		
+		// do an initial resize
+		resize();
 	};
 	
 	return editor;

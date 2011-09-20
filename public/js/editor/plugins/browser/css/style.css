@@ -70,9 +70,9 @@
 
 .mbrTopPanel p {	
     text-align: center;
-	height: 25px;
+	height: 2.083em;
 	background: #555;
-	font: bold 12px/25px Helvetica, Arial, sans-serif;
+	line-height: 208.3%;
 	color: #fff;
 	border-radius: 6px;
 	margin-bottom: 10px;
@@ -83,7 +83,7 @@
 }
 .mbrTopPanel form {
 	border-top: none;
-	padding: 0 10px;
+	padding: 0 0.833em;
 	margin: 0;
 }
 .mbrBottomPanel .widget:nth-child(n+2) form {
@@ -117,7 +117,10 @@
 .mbrTopPanel label {
 	width: auto;
 	padding-right: 10px;
-	font: bold 10pt/26px Helvetica, Arial, sans-serif;
+	font-size: 108.3%;
+	font-weight: bold;
+	font-family: Helvetica;
+	line-height: 208.3%;
 	float: left;
 	color: #fff;
 	margin-right: 0;
