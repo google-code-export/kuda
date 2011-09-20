@@ -25,6 +25,8 @@ html, body {
 	background: -moz-linear-gradient(100% 100% 90deg, #fafafa, #eee);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fafafa));
     overflow: hidden;
+	font-size: 12px;
+	line-height: 12px;
 }
 
 h1, form, fieldset, legend, ol, li {
@@ -36,8 +38,12 @@ h1 {
     text-align: center;
 }
 
-p {
-    font: 9pt/16pt 'Lato', Helvetica, Verdana, Arial, sans-serif;
+/******************************************************************************
+ * 								   Sub-1024									  *
+ ******************************************************************************/
+
+body.ten24 {
+	font-size: 10px;
 }
 
 /******************************************************************************
@@ -56,14 +62,14 @@ p {
 	text-shadow: 0 -1px 1px #333;
 	box-shadow: 0 0 10px #333;
 	opacity: 0.95;
-	width: 186px;
+	width: 15.417em;
 }
 #tabBar>h1 {
-	font-size: 22px;
-	line-height: 30px;
+	font-size: 182%;
+	line-height: 250%;
 	font-weight: bold;
-	padding: 10px 0;
-	margin: 30px 10px 10px 10px;
+	padding: 0.455em 0;
+	margin: 1.364em 0.455em 0.455em; /** 30px 10px 10px **/
 	border-bottom: 1px dotted #666;
 	text-transform: uppercase;
 	float: left;
@@ -77,22 +83,22 @@ p {
 	font-weight: 300;
 }
 #tabBar>ul {
-	font-size: 16px;
-	line-height: 24px;
 	font-weight: normal; 
 	margin-left: 0;
 }
 #tabBar>ul h2 {
 	font-weight: 300;
+	font-size: 133.3%;
+	line-height: 200%;
 }
 #tabBar>ul>li {
 	float: left;
-	padding: 5px 0;
+	padding: 0.417em 0;
 	width: 100%;
 	clear: left;
 }
 #tabBar>ul>li>div {
-	padding-left: 10px;
+	padding-left: 0.833em;
 	position: relative;
 }
 #tabBar h2>a {
@@ -107,20 +113,6 @@ p {
 #tabBar>ul>li>div.down h2>a {
 	color: #75d0f4;
 	font-weight: bold;
-}
-#tabBar .toolbarArrow {
-	display: block; 
-	position: absolute;
-	top: 25px; 
-	left: 35px; 
-	width: 13px;
-	height: 13px;
-	background: #585858;
-	box-shadow: inset 2px 2px 2px #222;
-	transform: rotate(45deg);
-	-moz-transform: rotate(45deg);
-	-webkit-transform: rotate(45deg);
-	z-index: 1;
 }
 
 /******************************************************************************
@@ -153,25 +145,23 @@ p {
 	background: url(/images/patternGray.gif) repeat;
 	box-shadow: inset 0 2px 8px #222,
 		0 1px 0 #444;
-	margin: 5px -10px 10px;
-	padding: 5px 10px;
-	width: 165px;
+	margin: 0.417em -1em 0.833em;
+	padding: 0.417em 0.833em;
+	width: 13.75em;
 	border: 1px solid #2a2a2a;
 	border-width: 1px 0;
 }
 .toolbar {
 	float: left;
-	top: 45px;
+	top: 3.75em;
+}
+.toolbar ul {
+	float: left;
+	padding-top: 0.417em;
 }
 .toolbar ul li {
-	padding: 5px 2px 5px 0;
+	padding: 0 0.167em 0.417em 0;
 	float: left;
-}
-.toolbar ul li:nth-child(4n) {
-	clear: left;
-}
-.toolbar ul li:nth-child(n+4) {
-	padding-top: 0;
 }
 
 /**
@@ -181,46 +171,47 @@ p {
     color: #fff;
     text-indent: -5000px;
 	text-align: left;
-	width: 48px;
-	height: 48px;
+	width: 4em;
+	height: 4em;
 	-webkit-transition: background-color 0.25s ease-in-out;
 	-moz-transition: background-color 0.25s ease-in-out;
 	-o-transition: background-color 0.25s ease-in-out;
 	z-index: 10;
 	border: 1px solid #222;
-	border-radius: 8px;
+	border-radius: 0.667em;
 	background: #444;
 	box-shadow: inset 0 0 9px #333333, 
 		0 1px 0 #5f8eaf;
-	margin-right: 3px;
+	margin-right: 0.167em;
 }
 .toolTitle {
 	height: 18px;
+	font-size: 100%;
 	font-weight: bold;
-	font-size: 12px;
-	line-height: 22px;
+	line-height: 183%;
 	color: #ddd;
 }
 .toolHover {
-	height: 18px;
+	height: 1.5em;
 	position: absolute;
 	display: none;
 	text-align: left;
 	color: #fff;
 	font-weight: bold;
-	font-size: 12px;
-	line-height: 22px;
+	font-size: 100%;
+	line-height: 183%;
 	text-indent: 0;
 	white-space: nowrap;
-	top: 5px;
-	left: 10px;
+	top: 0.417em;
+	left: 0.833em;
 }
 .toolBtn:after {
 	content: '';
     background: url(../images/toolbarSprite.png) no-repeat 0 0;
+	background-size: 1200%;
 	display: block;
-	width: 44px;
-	height: 44px;
+	width: 3.667em;
+	height: 3.667em;
 	float: left;
 }
 .toolBtn:hover {
@@ -235,87 +226,87 @@ p {
 }
 
 #modelBrowserBtn:hover:after, #modelBrowserBtn.down:after {
-    background-position: 0 -48px;
+    background-position: 0 -4em;
 }
 
 #animationsBtn:after {
-	background-position: -48px 0;
+	background-position: -4em 0;
 }
 
 #animationsBtn:hover:after, #animationsBtn.down:after {
-    background-position: -48px -48px;
+    background-position: -4em -4em;
 }
 
 #viewpointsBtn:after {
-	background-position: -96px 0;
+	background-position: -8em 0;
 }
 
 #viewpointsBtn:hover:after, #viewpointsBtn.down:after {
-    background-position: -96px -48px;
+    background-position: -8em -4emx;
 }
 
 #behaviorBtn:after {
-	background-position: -192px 0;
+	background-position: -16em 0;
 }
 
 #behaviorBtn:hover:after, #behaviorBtn.down:after {
-    background-position: -192px -48px;
+    background-position: -16em -4em;
 }
 
 #scenesBtn:after {
-	background-position: -240px 0;
+	background-position: -20em 0;
 }
 
 #scenesBtn:hover:after, #scenesBtn.down:after {
-    background-position: -240px -48px;
+    background-position: -20em -4em;
 }
 
 #particleEffectsBtn:after {
-	background-position: -288px 0;
+	background-position: -24em 0;
 }
 
 #particleEffectsBtn:hover:after, #particleEffectsBtn.down:after {
-	background-position: -288px -48px;
+	background-position: -24em -4em;
 }
 
 #shapesBtn:after {
-	background-position: -336px 0;
+	background-position: -28em 0;
 }
 
 #shapesBtn:hover:after, #shapesBtn.down:after {
-	background-position: -336px -48px;
+	background-position: -28em -4em;
 }
 
 #hudBtn:after {
-	background-position: -384px 0;
+	background-position: -32em 0;
 }
 
 #hudBtn:hover:after, #hudBtn.down:after {
-	background-position: -384px -48px;
+	background-position: -32em -4em;
 }
 
 #fogBtn:after {
-	background-position: -432px 0;
+	background-position: -36em 0;
 }
 
 #fogBtn:hover:after, #fogBtn.down:after {
-	background-position: -432px -48px;
+	background-position: -36em -4em;
 }
 
 #motionsBtn:after {
-	background-position: -144px 0;
+	background-position: -12em 0;
 }
 
 #motionsBtn:hover:after, #motionsBtn.down:after  {
-	background-position: -144px -48px;
+	background-position: -12em -4em;
 }
 
 #manipsBtn:after {
-	background-position: -480px 0;
+	background-position: -40em 0;
 }
 
 #manipsBtn:hover:after, #manipsBtn.down:after {
-	background-position: -480px -48px;
+	background-position: -40em -4em;
 }
 
 .toolBtn.down {
@@ -329,12 +320,12 @@ p {
 #prjPane .toolbarContainer {
 	border-top: none;
 	border-bottom: 1px dotted #666;
-	margin-bottom: 10px;
+	margin-bottom: 0.833em;
 	background: none;
 	box-shadow: none;
 	margin: 0;
 	width: auto;
-	padding: 0 0 20px;
+	padding: 0 0 1.667em;
 }
 #prjPane .toolbarArrow {
 	display: none !important;
@@ -343,15 +334,15 @@ p {
 	display: none;
 }
 #prjSaveIpt {
-	width: 160px;
-	padding: 2px 0;
+	width: 13.333em;
+	padding: 0.167em 0;
 	background: #333;
 	border: 1px solid #333;
-	border-radius: 3px;
+	border-radius: 0.25em;
 	margin: 0;
 	color: #eee;
-	font-size: 12px;
-	line-height: 16px;
+	font-size: 100%;
+	line-height: 133.3%;
 }
 #prjSaveIpt:hover {
 	border-color: #444;
@@ -366,7 +357,7 @@ p {
 	color: #fff;
 }
 #prjPane .buttons {
-	margin-top: 3px;
+	margin-top: 0.25em;
 }
 #prjPane button {
     background: #555;
@@ -375,14 +366,14 @@ p {
     border: 1px solid #222;
 	box-shadow: inset 0 0 1px #aaa;
     color: #eee;
-    padding: 4px 3px;
+    padding: 0.333em 0.25em;
     text-shadow: 0 -1px 0 #000;
-	margin-right: 2px;
-	margin-bottom: 2px;
+	margin-right: 0.167em;
+	margin-bottom: 0.167en;
 	-webkit-transition: color 0.25s ease-in-out;
 	-moz-transition: color 0.25s ease-in-out;
 	-o-transition: color 0.25s ease-in-out;
-	width: 80px;
+	width: 6.154em;
 }
 #prjPane #prjSaveBtn {
 	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
@@ -391,10 +382,10 @@ p {
     border: 1px solid #212121;
 	box-shadow: 0 1px 0 #444,
 		inset 0 0 1px #72bbe0;
-	width: 162px;
+	width: 12.462em;
 }
 #prjPane #prjSaveBtn.overwrite {
-	width: 100px;
+	width: 7.692em;
 }
 #prjPane #prjCancelBtn {
 	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
@@ -406,7 +397,7 @@ p {
 	width: 0;
 }
 #prjPane #prjCancelBtn.overwrite {
-	width: 60px;
+	width: 4.615em;
 }
 #prjPane button:nth-child(3) {
 	clear: left;
@@ -435,31 +426,32 @@ p {
 #plgPane h2 {
 	float: left;
 	position: relative;
-	width: 175px;
+	width: 10.938em;
 	cursor: pointer;
 }
 #plgPane h2 a {
 	text-indent: -5000px;
 	text-align: center;
-	left: 70px;
+	left: 4.375em;
 	position: relative;
 	float: left;
 	background: url(../images/pluginMinMax.png) no-repeat 0 0;
-	height: 14px;
-	width: 21px;
+	background-size: 100%;
+	height: 0.875em;
+	width: 1.313em;
 }
 #plgPane h2:hover a {
-	background-position: 0 -14px;
+	background-position: 0 -0.875em;
 }
 #plgPane div.down h2 a {
-	background-position: 0 -28px;
+	background-position: 0 -1.75em;
 }
 #plgPane div.down h2:hover a {
-	background-position: 0 -42px;
+	background-position: 0 -2.625em;
 }
 #plgPane h3 {
 	color: #75d0f4;
-	margin-bottom: 10px;
+	margin-bottom: 0.833em;
 }
 #plgPane .toolbarContainer {
 	background: none;
@@ -469,11 +461,11 @@ p {
 	padding-bottom: 0;
 }
 #plgPane .listWidget {
-	width: 185px;
-	margin: 0 0 0 -10px;
+	width: 15.417em;
+	margin: 0 0 0 -1.333em;
 }
 #plgPane .listWidget>li {
-	width: 183px;
+	width: 15.25em;
 }
 #plgPane .listWidget>li:nth-child(odd) {
 	background: #111;
@@ -483,15 +475,15 @@ p {
 }
 #plgPane .listWidget>li>div {
 	width: auto;
-	padding-left: 10px;
-	width: 175px;
+	padding-left: 0.833em;
+	width: 14.583em;
 }
 #plgPane .listWidget>li label {
-	margin-left: 5px;
+	margin-left: 0.417em;
 }
 #plgPane .listWidget>li input[type=checkbox] {
 	float: left;
-	margin-top: 10px;
+	margin-top: 0.833em;
 }
 
 /******************************************************************************
@@ -509,7 +501,7 @@ p {
 	position: absolute;
 	right: 0;
 	top: 0;
-	max-width: 300px;
+	max-width: 25em;
 	height: 100%;
 }
 .topAligned, .bottomAligned {	
@@ -519,12 +511,12 @@ p {
 .bottomAligned {
 	position: absolute;
 	bottom: 0;
-	border-radius: 6px 6px 0 0;
+	border-radius: 0.5em 0.5em 0 0;
 }
 .topAligned {
 	position: absolute;
 	top: 0;
-	border-radius: 0 0 6px 6px;
+	border-radius: 0 0 0.5em 0.5em;
 }
 
 /******************************************************************************
@@ -543,22 +535,22 @@ p {
 	float: left;
 }
 .bottomPanel .widget:first-child {
-	padding-left: 10px;
+	padding-left: 0.833em;
 }
 .bottomPanel .widget:last-child {
-	padding-right: 10px;
+	padding-right: 0.833em;
 }
 .bottomPanel form {
 	border-top: none;
-	padding: 0 10px;
+	padding: 0 0.833em;
 	margin: 0;
 }
 .bottomPanel label {
 	width: auto;
 	padding-right: 10px;
 	font-weight: bold;
-	font-size: 13px;
-	line-height: 23px;
+	font-size: 108.3%;
+	line-height: 183%;
 	color: #fff;
 	margin-right: 0;
 	float: left;
@@ -631,7 +623,7 @@ p {
 
 .widget {
 	background: #333;
-	padding: 10px;
+	padding: 0.833em;
 	text-align: left;
 	overflow: hidden;
 }
@@ -641,10 +633,10 @@ p {
 }
 .widget h1 {
 	font-weight: bold;
-	font-size: 16px;
-	line-height: 20px;
+	font-size: 133.3%;
+	line-height: 166.7%;
 	text-align: left;
-	margin-bottom: 5px;
+	margin-bottom: 0.417em;
 }
 .widget:not(.widgetWithForms):not(.fullSideWidget) {
 	color: #eee;
@@ -665,7 +657,7 @@ p {
 	padding: 0;
 	margin: 0 -10px;
 	float: left;
-	width: 300px;
+	width: 25em;
 	overflow: auto;
 }
 ol.listWidget {
@@ -676,23 +668,22 @@ ol.listWidget {
 	width: 100%;
 	clear: both;
 	float: left;
-	padding: 5px 0 0;
-	line-height: 30px;
+	padding: 0.417em 0 0;
+	line-height: 250%;
 	position: relative;
-	font-size: 12px;
 }
 ol.listWidget li {
 	display: list-item;
-	width: 290px;
-	padding: 5px 0 0 10px;
+	width: 24.167em;
+	padding: 0.417em 0 0 0.833em;
 }
 ol.listWidget li>div {
 	float: right;
-	width: 270px;
+	width: 22.5em;
 }
 ul.listWidget li>div {
 	float: left;
-	width: 300px;
+	width: 25em;
 }
 .listWidget>li:nth-child(odd) {
 	background: #e4e4e4;
@@ -702,7 +693,7 @@ ul.listWidget li>div {
 } 
 .listWidget li span {
 	float: left;
-	margin: 0 10px;
+	margin: 0 0.833em;
 }
 ol.listWidget li span {
 	margin: 0;
@@ -710,7 +701,7 @@ ol.listWidget li span {
 .listWidget .msgEdtListItm {
 	float: left;
 	width: 100%;
-	padding: 5px 0;
+	padding: 0.417em 0;
 }
 .listWidget li:hover {
 	background: #fff;
@@ -727,7 +718,7 @@ ol.listWidget li span {
 }
 .listWidget .buttonContainer {
 	float: right;
-	padding: 0 10px 5px 0;
+	padding: 0 0.833em 0.417em 0;
 }
 
 /**
@@ -837,8 +828,8 @@ form input.prmWgtCitTreeIpt, form input.treeSelectorIpt {
 	clear: right;
 	float: right;
 	font-weight: bold;
-	font-size: 14px;
-	line-height: 18px;
+	font-size: 116.7%;
+	line-height: 150%;
 	text-transform: uppercase;
 }
 .prjTopPanel .previewWidget button {
@@ -976,8 +967,8 @@ input.error {
  ******************************************************************************/
 
 form {
-    padding: 10px 0;
-	margin-top: 10px;
+    padding: 0.833em 0;
+	margin-top: 0.833em;
 	float: left;
 	position: relative;
 	border-top: 1px dotted #aaa;
@@ -990,7 +981,7 @@ form.withSteps > fieldset > legend:before {
     counter-increment: fieldsets;
 }
 form fieldset {
-    margin-bottom: 10px;
+    margin-bottom: 0.833em;
 	width: 100%;
 	border-bottom: 1px dotted #aaa;
 }
@@ -999,22 +990,22 @@ form fieldset:last-of-type {
 	border: none;
 }
 form legend {
-    font-size: 14px;
+    font-size: 116.7%;
     font-weight: bold;
-    padding-bottom: 10px;
+    padding-bottom: 0.714em;
     text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
 	color: #555;
 }
 form fieldset fieldset legend {
     color: #111111;
-    font-size: 13px;
+    font-size: 108.3%;
     font-weight: normal;
     padding-bottom: 0;
 }
 form ol > li {
-    line-height: 30px;
+    line-height: 250%;
     list-style: none;
-    padding: 5px 0;
+    padding: 0.417em 0;
     margin-bottom: 2px;
     overflow: hidden;
 	position: relative;
@@ -1023,15 +1014,14 @@ form ol > li {
 	float: left;
 }
 .widgetForm li > div.ui-slider {
-	width: 245px;
+	width: 20.417em;
 }
 form ol > li > div:not(.ui-slider, .buttons) {
 	float: left;
 }
 form ol > li.hilighted {
     background: #ddefef;
-    background:
-    rgba(140, 223, 239, 0.2);
+    background: rgba(140, 223, 239, 0.2);
 }
 form ol ol li {
     background: none;
@@ -1053,11 +1043,11 @@ form div.buttons.standalone {
 	float: left;
 }
 form div.buttons button {
-    margin-right: 2px;
-	margin-top: 5px;
+    margin-right: 0.167em;
+	margin-top: 0.417em;
 }
 form div.buttons button:nth-child(n+1) {
-	margin-left: 2px;
+	margin-left: 0.167em;
 }
 form div.long {
 	float: left;
@@ -1069,16 +1059,15 @@ form div.column {
 form label {
     float: left;
 	width: 100%;
-    font-size: 9pt;
 	text-align: left;
-	margin-right: 10px;
+	margin-right: 0.833em;
 	color: #555;
 }
 form label.short {
-	width: 70px;
+	width: 5.833em;
 }
 form fieldset fieldset label.longLabel {
-    width: 110px;
+    width: 9.167em;
 }
 form fieldset fieldset label:hover {
     cursor: pointer;
@@ -1088,31 +1077,30 @@ form input:not([type=radio]), form textarea {
     border: 1px solid #ddd;
 	box-shadow: 0 1px 0 #fff;
     border-radius: 3px;
-	font-size: 12px;
 	font-family: Helvetica;
+	font-size: 100%;
     outline: none;
-    padding: 5px;
-    width: 270px;
+    padding: 0.417em;
+    width: 22.5em;
     color: #555;
 	margin: 0;
 }
 form input[type=checkbox] {
 	width: auto;
-	height: 30px;
 }
 form.scrolling input:not([type=radio]), form.scrolling textarea {
 	width: 170px;
 }
 form input.short, form.scrolling input.short {
-	width: 40px;
+	width: 3.333em;
 	float: left;
 }
 form input.vector, form input.color, form input.quat {
-	width: 53px;
+	width: 4.417em;
 	margin-right: 2px;
 }
 form input.color {
-	width: 29px;
+	width: 2.417em;
 }
 form span.jPicker {
 	margin: 4px 5px 0 0;
@@ -1164,10 +1152,13 @@ button {
 	border-radius: 3px;
     color: #333;
     float: left;
-    font: bold 13px/14px Helvetica, Arial, sans-serif;
-    padding: 4px 5px;
+	font-size: 108.3%;
+	font-weight: bold;
+	font-family: Helvetica;
+	line-height: 116.7%;
+    padding: 0.308em 0.385em;
     text-shadow: 0 1px 0 #fff;
-    margin-bottom: 5px;
+    margin-bottom: 0.385em;
     cursor: pointer;
 }
 
@@ -1240,12 +1231,12 @@ div.jstree, div.jstree.jstree-focused {
 	border: 1px solid #ddd;
 	overflow: auto;
 	border-top-width: 0;
-	padding: 5px 10px;
+	padding: 0.417em 0.833em;
 	border-radius: 0 0 3px 3px;
 	z-index: 800;
 }
 .treeSelector input.treeSelectorIpt {
-	width: 213px;
+	width: 17.75em;
 	float: left;
 	border-radius: 3px 0 0 3px;
 }
@@ -1262,8 +1253,8 @@ div.jstree, div.jstree.jstree-focused {
 	padding: 0;
 	overflow: hidden;
 	text-indent: -500px;
-	width: 25px;
-	height: 25px;
+	width: 1.923em;
+	height: 1.923em;
 	border-bottom-left-radius: 0;
 	border-top-left-radius: 0;
 	border-left-width: 0;
@@ -1272,19 +1263,20 @@ div.jstree, div.jstree.jstree-focused {
 .treeSelectorBtn::-moz-focus-inner { 
 	border: 0; 
 	padding: 0; 
-	margin:0; 
+	margin: 0; 
 }
 .treeSelectorBtn:after {
-	background: url(../images/listOptionsSprite.png) -32px -7px no-repeat;
-	height: 7px;
-	width: 8px;
+	background: url(../images/listOptionsSprite.png) -2.462em -0.538em no-repeat;
+	background-size: 500%;
+	height: 0.538em;
+	width: 0.615em;
 	float: left;
-	margin: 5px 0 0 8px;
+	margin: 0.385em 0 0 0.615em;
 	padding: 0;
 	content: "";
 }
 .treeSelectorBtn.open:after {
-	background-position: -32px 0px;
+	background-position: -2.462em 0;
 }
 form input.open, .treeSelectorBtn.open, 
 .treeSelector input.treeSelectorIpt.open {
@@ -1313,7 +1305,6 @@ form input.open, .treeSelectorBtn.open,
 	display: block;
 	*display: inline;
 	font-family: Helvetica, arial, sans-serif;
-	font-size: 12px;
 	margin: 1px;
 	position: relative;
 	vertical-align: middle;
@@ -1329,11 +1320,11 @@ form input.open, .treeSelectorBtn.open,
 	cursor: default;
 	display: block;
 	font-weight: normal;
-	height: 22px;
-	line-height: 22px;
+	height: 2.083em;
+    line-height: 208.3%;
 	overflow: hidden;
 	outline: none;
-	padding: 0 24px 0 3px;
+	padding: 0 2em 0 0.25em;
 	position: relative;
 	text-decoration: none;
 	overflow: hidden;
@@ -1354,34 +1345,37 @@ form input.open, .treeSelectorBtn.open,
 	background: -moz-linear-gradient(100% 100% 90deg, #444, #666);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#444), to(#444));
 	border-left: 1px solid #222;
-	border-radius: 0 0 3px 3px;
+	border-radius: 0 3px 3px 0;
     display: block;
-    height: 22px;
-    line-height: 22px;
+    height: 1.94em;
+    line-height: 208.3%;
     padding: 1px;
     position: absolute;
     right: 0;
     text-align: center;
     top: 0;
-    width: 18px;
+    width: 2.083em;
 	box-shadow: inset 0 1px 1px #888; 
 }
 .selectbox .display .arrow_btn .arrow {
-	background:  url(../images/listOptionsSprite.png) -32px -7px no-repeat;
+	background: url(../images/listOptionsSprite.png) -2.462em -0.538em no-repeat;
+	background-size: 500%;
+	height: 0.538em;
+	width: 0.615em;
+	float: left;
     display: block;
 	*display: inline;
-    height: 22px;
-    left: 6px;
+    left: 0.615em;
     position: absolute;
-    top: 9px;
-    width: 7px;
+    top: 0.75em;
     zoom: 1;
+	padding: 0;
 }
 .selectbox .display.active .arrow_btn {
-	border-radius: 0 0 3px 0;
+	border-radius: 0 3px 0 0;
 }
 .selectbox .display.hover .arrow_btn {
-	background-position:  -32px 0;
+	background-position:  -2.667em 0;
 }
 .selectbox .value {
 	display: none;
@@ -1395,7 +1389,6 @@ form input.open, .treeSelectorBtn.open,
 	border-radius: 0 0 3px 3px;
 	display: block;
 	font-family: Helvetica;
-	font-size: 12px;
 	list-style-type: none;
 	margin: 0;
 	overflow-x: hidden;
@@ -1418,7 +1411,7 @@ form input.open, .treeSelectorBtn.open,
 	color: #fff;
 	cursor: default;
 	display: block;
-	padding: 4px 6px;
+	padding: 0.333em 0.5em;
 	text-decoration: none;
 }
 .selectbox.items li>.item>.text {
@@ -1642,7 +1635,6 @@ ul.scnEvtList li.button {
 	float: left;
 	color: #555;
 	width: 195px;
-	font-size: 9pt;
 }
 
 
@@ -1664,8 +1656,8 @@ table.jPicker .Move {
     color: #fff;    
 	border-radius: 6px 6px 0 0;
 	font-weight: bold;
-	font-size: 14px;
-	line-height: 26px;
+	font-size: 116.7%;
+	line-height: 216.7%;
 	text-align: center;
 	text-shadow: 0 -1px 0 #000;
 }
@@ -1755,8 +1747,8 @@ span.jPicker {
 #progressIndicator .prgBarText {
 	color: #666;
 	font-weight: bold;
-	font-size: 10px;
-	line-height: 17px;
+	font-size: 83.3%;
+	line-height: 141.7%;
 	float: left;
 	padding: 2px 5px 2px 0;
 }
@@ -1840,8 +1832,8 @@ span.jPicker {
 	color: #fff;
 	text-shadow: 0 -1px 0 #000; 
 	font-weight: bold;
-	font-size: 14px
-	line-height: 26px; 
+	font-size: 116.7%
+	line-height: 216.7%; 
 	border-bottom: 1px solid #111;
 }
 .ui-widget-header a { color: #444444; }
@@ -2095,7 +2087,6 @@ span.jPicker {
 	cursor: default; 
 	overflow-y: auto; 
 	max-height: 200px;
-	font-size: 9pt;
 }
 .ui-autocomplete-desc {
 	font-size: 8pt;
