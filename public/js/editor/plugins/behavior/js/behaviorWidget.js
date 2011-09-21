@@ -520,34 +520,6 @@ var editor = (function(editor) {
 			}
 		},
 		
-		setCurrentView: function(view) {
-			if (this.currentView && view != this.currentView) {
-				// save the data
-				var meta = this.getViewMeta(this.currentView);
-				
-				meta.state = {
-					actor: this.actor,
-					type: this.type,
-					data: {
-						trigger: this.trgChooser.getSelection(),
-						action: this.axnChooser.getSelection(),
-						args: this.prms.getArguments(),
-						name: this.nameIpt.val()
-					}
-				};
-				
-				// load up the new data if it exists
-				meta = this.getViewMeta(view);
-				
-				if (meta && meta.state && meta.widgetShouldBeVisible) {
-					this.setActor(meta.state.actor, meta.state.type, 
-						meta.state.data);
-				}
-			}
-			
-			this._super(view);
-		},
-		
 		setTarget: function(msgTarget, spec) {
 			setByMsgTarget.call(this, msgTarget, spec);
 		},

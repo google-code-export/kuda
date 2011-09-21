@@ -912,8 +912,8 @@
 			this.colorPickers.push(colorRampPicker);
 		},
 		
-		setVisible: function(visible, opt_updateMeta) {
-			this._super(visible, opt_updateMeta);
+		setVisible: function(visible) {
+			this._super(visible);
 			
 			if (visible) {
 				this.showBoxWireframes();

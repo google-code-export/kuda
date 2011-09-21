@@ -735,8 +735,8 @@
 			this.container.prepend(this.buttons);
 		},
 		
-		setVisible: function(visible, opt_updateMeta) {
-			this._super(visible, opt_updateMeta);
+		setVisible: function(visible) {
+			this._super(visible);
 			
 			for (var i = 0, il = this.widgets.length; i < il; i++) {
 				sizeAndPosition.call(this.widgets[i]);

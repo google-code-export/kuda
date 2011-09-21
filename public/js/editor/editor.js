@@ -138,7 +138,17 @@ var editor = {};
 	};
 	
 	editor.getActiveTool = function() {
-		return app.toolbar.getActiveTool();
+		var views = editor.getViews();
+			
+		for (var i = 0, il = views.length; i < il; i++) {
+			var view = views[i];
+			
+			if (view.mode === editor.ToolConstants.MODE_DOWN) {
+				return view;
+			}
+		}
+		
+		return null;
 	};
 	
 	editor.getCss = function(url, media) {

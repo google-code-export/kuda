@@ -48,7 +48,7 @@ var editor = (function(editor) {
 	editor.ui.ToolBar = editor.ui.Component.extend({
 		init: function(options) {		
 			this.tools = [];
-			this.enabled = [];
+			this.savedTool = null;
 			this.mousedIn = [];
 			this.hidden = true;
 			this._super();
@@ -66,14 +66,6 @@ var editor = (function(editor) {
 				tool.addListener(editor.events.ToolMouseIn, this);
 				tool.addListener(editor.events.ToolMouseOut, this);
 				tool.addListener(editor.events.Enabled, this);
-			}
-		},
-		
-		deselect: function() {
-			var tool = this.getActiveTool();
-			
-			if (tool) {
-				tool.setMode(editor.ToolConstants.MODE_UP);
 			}
 		},
 		
@@ -97,17 +89,10 @@ var editor = (function(editor) {
 		},
 		
 		loadState: function() {
-			var tool = this.savedTool == null ? this.getActiveTool() : 
-				this.savedTool;
+			var tool = this.savedTool;
 			
 			if (tool == null) {
-				for (var i = 0, il = this.tools.length; i < il && tool == null; i++) {
-					var t = this.tools[i];
-					
-					if (t.enabled) {
-						tool = t.tool;
-					}
-				}	
+				tool = this.tools[0].tool;
 			}
 			
 			tool.setMode(editor.ToolConstants.MODE_DOWN);
@@ -116,8 +101,6 @@ var editor = (function(editor) {
 		},
 		
 		notify: function(eventType, value) {
-			var tbr = this;
-			
 			switch (eventType) {
 				case editor.events.ToolClicked:
 					var toolList = this.tools;
@@ -155,7 +138,11 @@ var editor = (function(editor) {
 		
 		saveState: function() {
 			this.savedTool = this.getActiveTool();
-			this.deselect();
+			
+			if (this.savedTool) {
+				this.savedTool.setMode(editor.ToolConstants.MODE_UP);
+			}
+			
 			this.hidden = true;
 		},
 		
@@ -388,6 +375,26 @@ var editor = (function(editor) {
 				this.toolbarContainer.addClass(this.mode);
 			}
 			
+			switch (mode) {
+				case editor.ToolConstants.MODE_DOWN:
+					for (var i = 0, il = this.visiblePanels.length; i < il; i++) {
+						this.visiblePanels[i].setVisible(true);
+					}
+					
+					this.visiblePanels = [];
+					break;
+				case editor.ToolConstants.MODE_UP:
+					for (var i = 0, il = this.panels.length; i < il; i++) {
+						var pnl = this.panels[i];
+						
+						if (pnl.isVisible()) {
+							this.visiblePanels.push(pnl);
+							pnl.setVisible(false);
+						}
+					}
+					break;
+			}
+			
 			this.notifyListeners(editor.events.ToolModeSet, {
 				oldMode: oldMode,
 				newMode: mode
@@ -443,10 +450,8 @@ var editor = (function(editor) {
 				this[panel.getName()] = panel;
 				this.panels.push(panel);
 				
-				panel.currentView = this;
-				var meta = panel.addViewMeta(this);
 				if (panel.config.startsVisible) {
-					meta.panelShouldBeVisible = true;
+					this.visiblePanels.push(panel);
 				}
 			}
 		},
@@ -458,15 +463,6 @@ var editor = (function(editor) {
 	            this.panels.splice(ndx, 1);
 				delete this[panel.getName()];
 	        }
-		},
-		
-		setSidebar: function(sidebar) {
-			this.sidebar = sidebar;
-			this.notifyListeners(editor.events.SidebarSet, sidebar);
-		},
-		
-		getSidebar: function() {
-			return this.sidebar || null;
 		}
 	});
     
@@ -527,61 +523,7 @@ var editor = (function(editor) {
 		 * communication.
 		 */
 		bindEvents: function() {
-			var view = this.view,
-				pnls = view.panels,
-				visFcn = function(val) {
-					if (val.updateMeta) {
-						var meta = val.panel.getViewMeta(view);
-						if (meta.viewIsVisible) {
-							meta.panelShouldBeVisible = val.visible &&
-								meta.panelShouldBeVisible;
-						}
-					}
-				};
-						
-			var handleWidgets = function(visible) {	
-				for (var i = 0, il = pnls.length; i < il; i++) {
-					var pnl = pnls[i],
-						meta = pnl.getViewMeta(view);
-								
-					// if the tool is no longer selected
-					if (!visible) {							
-						if (pnl.isVisible() && meta.viewIsVisible) {
-							meta.panelShouldBeVisible = true;
-							pnl.setVisible(false, false);
-						}
-						meta.viewIsVisible = false;
-					}					
-					// restore the previous visible panel state
-					else {						
-						meta.viewIsVisible = true;
-						pnl.setCurrentView(view);
-						pnl.setVisible(meta.panelShouldBeVisible, false);
-					}
-				}			
-			};
-					
-			for (var ndx = 0, len = pnls.length; ndx < len; ndx++) {
-				var pnl = pnls[ndx];
-				pnl.addListener(editor.events.PanelVisible, visFcn);
-			}
-        
-	        view.addListener(editor.events.ToolModeSet, function(value) {
-	            var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
-				
-				if (view.actionBar) {
-					view.actionBar.setVisible(isDown);
-				}
-				
-				handleWidgets(isDown);
-	        });
 			
-			view.addListener(editor.events.SidebarSet, function(sidebar) {			
-				sidebar.addListener(editor.EventTypes.Sidebar.Minimized, function(val) {
-	            	var isDown = view.mode === editor.ToolConstants.MODE_DOWN;
-					handleWidgets(!val && isDown);
-				});
-			});
 		}
 	});
 	
