@@ -671,7 +671,7 @@ ul.listWidget li>div {
 .listWidget>li:nth-child(odd) {
 	background: #e4e4e4;
 } 
-.widget:not(.widgetWithForms) .listWidget>li:nth-child(odd) {
+.widget:not(.widgetWithForms):not(.fullSideWidget) .listWidget>li:nth-child(odd) {
 	background: #444;
 } 
 .listWidget li span {
@@ -689,7 +689,7 @@ ol.listWidget li span {
 .listWidget li:hover {
 	background: #fff;
 }
-.widget:not(.widgetWithForms) .listWidget li:hover {
+.widget:not(.widgetWithForms):not(.fullSideWidget) .listWidget li:hover {
 	background: #555;
 }
 .listWidget li>div>span {
