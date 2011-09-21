@@ -46,38 +46,10 @@ var editor = (function(editor) {
 		prjPane.setVisible(true);
 		
 		prjView.sidePanel.addListener(editor.events.PanelVisible, function(data) {
-			// get the list of panels
-			var views = editor.getViews(),
-				panels = [];
-				
-			for (var i = 0, il = views.length; i < il; i++) {
-				var view = views[i];
-				
-				if (view !== prjView) {
-					panels = panels.concat(view.panels);
-				}
-			}
+			var pane = editor.ui.getTabBar().visiblePane;
 			
-			if (data.visible && data.updateMeta) {
-				// save the visible state of panels
-				prjView.visiblePanels = [];
-				
-				for (var i = 0, il = panels.length; i < il; i++) {
-					var pnl = panels[i];
-					
-					if (pnl.isVisible()) {
-						prjView.visiblePanels.push(pnl);
-						// now hide them
-						pnl.setVisible(false, false);
-					}
-				}
-			}
-			else if (data.updateMeta) {
-				var visPnls = prjView.visiblePanels;
-				
-				for (var i = 0, il = visPnls.length; i < il; i++) {
-					visPnls[i].setVisible(true, false);
-				}
+			if (pane && !prjView.isPreview) {
+				pane.setVisible(!data.visible);
 			}
 		});
 		
@@ -683,6 +655,13 @@ var editor = (function(editor) {
 			this.topPanel.addWidget(new PreviewWidget());
 		},
 		
+		cancel: function() {
+			this.buttons.slideUp(200);
+			this.sidePanel.setVisible(false);
+			this.saveIpt.val('').blur();
+			jQuery(document).unbind('click.prj');
+		},
+		
 		checkSaveable: function() {
 			var name = this.saveIpt.val(),
 				saveable = name !== 'Unsaved Project' && name !== '';
@@ -697,10 +676,6 @@ var editor = (function(editor) {
 			}
 			
 			return saveable;
-		},
-		
-		hideButtons: function() {
-			this.buttons.slideUp(200);
 		},
 		
 		layoutToolBarContainer: function() {			
@@ -727,11 +702,9 @@ var editor = (function(editor) {
 			this.msg = ctn.find('#prjMsg').hide();
 			
 			cancelBtn.bind('click', function() {
-				view.reset();
-				view.hideButtons();
-				view.sidePanel.setVisible(false);
+				view.cancel();
 			});
-						
+			
 			previewBtn.bind('click', function(evt) {
 				view.isPreview = true;
 				view.notifyListeners(event.StartPreview);
@@ -767,8 +740,7 @@ var editor = (function(editor) {
 				var code = evt.keyCode ? evt.keyCode : evt.which;
 				
 				if (code == 27) {
-					saveIpt.val('').blur();
-					view.sidePanel.setVisible(false);
+					view.cancel();
 				}
 				
 				view.checkSaveable();
@@ -874,19 +846,11 @@ var editor = (function(editor) {
 				
 				jQuery(document).bind('click.prj', function(e) {
 					var target = jQuery(e.target), 
-						parent = target.parents('.prjSidePanel, #prjPane'), 
-						isTool = target.parents('.toolBtn').size() > 0 ||
-							target.hasClass('toolBtn'),
-						isTabPane = target.parents('#tabBar h2').size() > 0,
-						isDown = target.hasClass('down');
+						parent = target.parents('.prjSidePanel, #prjPane');
 					
 					if (parent.size() == 0 && target.attr('id') !== 'prjPane' 
 							&& !view.isPreview) {
-						view.sidePanel.setVisible(false, 
-							isTool ? !isDown : !isTabPane);
-						view.hideButtons();
-						view.saveIpt.val('').blur();
-						jQuery(document).unbind('click.prj');
+						view.cancel();
 					}
 				});
 			}
@@ -909,8 +873,7 @@ var editor = (function(editor) {
 			}
 			else if (project !== AUTO_SAVE) {
 				this.loadedProject = project;
-				this.reset();
-				this.hideButtons();
+				this.cancel();
 				this.saveIpt.effect('highlight', {
 					color: '#3b5e77'
 				});

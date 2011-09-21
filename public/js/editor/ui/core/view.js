@@ -29,7 +29,7 @@ var editor = (function(editor) {
 		HALF: 1,
 		THIRD: 2,
 		MANUAL: 3
-	}
+	};
 	
 	var EXTENT = 50,		// Grid will reach 50 meters in each direction
 		FIDELITY = 1,		// Grid squares = 1 square meter
@@ -73,8 +73,11 @@ var editor = (function(editor) {
 				}
 				
 				tabpane.setVisible(!tabpane.isVisible());
+				
 				if (tabpane.isVisible()) {
 					wgt.visiblePane = tabpane;
+				} else {
+					wgt.visiblePane = null;
 				}
 			});
 			
@@ -148,7 +151,6 @@ var editor = (function(editor) {
 		},
 		
 		setEnabled: function(enabled) {
-			this.enabled = enabled;
 			this.notifyListeners(editor.events.Enabled, {
 				item: this.title,
 				enabled: enabled
@@ -255,7 +257,6 @@ var editor = (function(editor) {
 	editor.ui.Panel = editor.ui.Component.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, editor.ui.PanelDefaults, options);
-			this.viewMeta = new Hashtable();
 			this.origOpacity = null;
 			this.widgets = [];
 			this.visible = true;
@@ -267,17 +268,6 @@ var editor = (function(editor) {
 			this._super(newOpts);
 			
 			panels.push(this);
-		},
-		
-		addViewMeta: function(view) {
-			var meta = {
-				viewIsVisible: false,
-				panelShouldBeVisible: false
-			};
-			
-			this.viewMeta.put(view, meta);
-			
-			return meta;
 		},
 		
 		addWidget: function(widget) {
@@ -310,7 +300,7 @@ var editor = (function(editor) {
 				this.config.location === editor.ui.Location.TOP ? 'topAligned' : 
 				'bottomAligned');
 			
-			this.setVisible(false, false);
+			this.setVisible(false);
 		},
 		
 		getName: function() {
@@ -319,10 +309,6 @@ var editor = (function(editor) {
 		
 		getPreferredHeight: function() {
 			return this.preferredHeight;
-		},
-		
-		getViewMeta: function(view) {
-			return this.viewMeta.get(view);
 		},
 		
 		isVisible: function() {
@@ -353,28 +339,18 @@ var editor = (function(editor) {
 			}			
 		},
 		
-		setCurrentView: function(view) {
-			this.currentView = view;
-		},
-		
-		setViewMeta: function(view, meta) {
-			this.viewMeta.put(view, meta);
-		},
-		
-		setVisible: function(visible, opt_updateMeta) {
+		setVisible: function(visible) {
 			if (this.origOpacity == null) {				
 				this.origOpacity = this.container.css('opacity');
 			}
 			setVisible.call(this, visible);
 					
 			var pnl = this;
-			opt_updateMeta = opt_updateMeta == null ? true : opt_updateMeta;
 			
 			this.resize();
 			this.notifyListeners(editor.events.PanelVisible, {
 				panel: pnl,
-				visible: visible,
-				updateMeta: opt_updateMeta
+				visible: visible
 			});
 			this.visible = visible;
 			
@@ -396,8 +372,6 @@ var editor = (function(editor) {
 	
 	editor.ui.Widget = editor.ui.Component.extend({
 		init: function(options) {
-			this.viewMeta = new Hashtable();
-			
 			var newOpts = jQuery.extend({}, editor.ui.WidgetDefaults, options);
 			this._super(newOpts);
 		},
@@ -436,15 +410,13 @@ var editor = (function(editor) {
 			this.sizeAndPosition();
 		},
 		
-		setVisible: function(visible, opt_updateMeta) {
+		setVisible: function(visible) {
 			this._super(visible);
 			var wgt = this;
-			opt_updateMeta = opt_updateMeta == null ? true : opt_updateMeta;
 			
 			this.notifyListeners(editor.events.WidgetVisible, {
 				widget: wgt,
-				visible: visible,
-				updateMeta: opt_updateMeta
+				visible: visible
 			});
 		},
 		
