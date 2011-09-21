@@ -286,6 +286,10 @@ div#mbrBrowserTree div#mbrTree {
  * 								    Hidden Items							  *
  ******************************************************************************/
 
+#mbrHiddenTransforms .listWidget {
+	margin: 0;
+	color: #555;
+}
 #mbrHiddenTransforms .listWidget > li:nth-child(2n+1) {
  	background: #ddd;
 }

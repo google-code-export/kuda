@@ -472,7 +472,6 @@ var editor = (function(editor) {
 			
 			// check scrollHeight
 			if (container[0].scrollHeight > container.height() + padding) {
-				console.log(wgt.config.name + ' ' + container[0].scrollHeight + ' vs ' + (container.height() + padding));
 				container.addClass('hasScrollBar');
 			}
 			else {

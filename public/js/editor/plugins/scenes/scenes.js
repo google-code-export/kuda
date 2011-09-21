@@ -150,8 +150,8 @@
 	
 	var ADD_TXT = "Add Scene",
 		SAVE_TXT = "Save Scene",
-		ADD_WIDTH = 180,
-		SAVE_WIDTH = 170;
+		ADD_WIDTH = '15em',
+		SAVE_WIDTH = '14.167em';
 	
 	var ListWidget = editor.ui.ListWidget.extend({
 		init: function() {
@@ -183,7 +183,7 @@
 			li.editBtn.bind('click', function(evt) {
 				var scn = li.getAttachedObject();
 				
-				wgt.nameInput.val(scn.name).width(SAVE_WIDTH);
+				wgt.nameInput.val(scn.name).addClass('save');
 				wgt.notifyListeners(editor.EventTypes.Scenes.EditScene, scn);
 				wgt.addBtn.text(SAVE_TXT).data('isEditing', true)
 					.data('scene', scn).removeAttr('disabled');
@@ -196,7 +196,7 @@
 				if (wgt.addBtn.data('scene') === scn) {
 					wgt.addBtn.text(ADD_TXT).data('isEditing', false)
 						.data('scene', null);
-					wgt.nameInput.val('').width(ADD_WIDTH);
+					wgt.nameInput.val('').removeClass('save');
 				}
 			});
 		},
@@ -266,7 +266,7 @@
 					} : name;
 					
 				wgt.notifyListeners(msgType, data);
-				wgt.nameInput.val('').width(ADD_WIDTH);
+				wgt.nameInput.val('').removeClass('save');
 				btn.attr('disabled', 'disabled').text(ADD_TXT)
 					.data('isEditing', false).data('scene', null);
 			})
@@ -284,8 +284,7 @@
 				} else {
 					wgt.addBtn.attr('disabled', 'disabled');
 				}
-			})
-			.width(ADD_WIDTH);
+			});
 			
 			return this.form;
 		}
@@ -367,4 +366,9 @@
 	    }
 	});
     
+////////////////////////////////////////////////////////////////////////////////
+//                     			  	Extra Scripts  		                      //
+////////////////////////////////////////////////////////////////////////////////
+
+	editor.getCss('js/editor/plugins/scenes/css/style.css');
 })();

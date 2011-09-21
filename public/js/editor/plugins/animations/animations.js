@@ -668,7 +668,7 @@
 			})
 			.addClass('fixedWidth').sb({
 				fixedWidth: true
-			});;
+			});
 	            
 	        inputs.bind('keyup', function(evt) {				
 				wgt.canSave();
