@@ -460,10 +460,16 @@
 				} else {
 					wgt.reset();
 				}
+			})
+			.addClass('fixedWidth').sb({
+				fixedWidth: true
 			});
 			
 			this.stateSelect.bind('change', function(evt) {
 				wgt.canSave();
+			})
+			.addClass('fixedWidth').sb({
+				fixedWidth: true
 			});
 			
 			this.name.getUI().bind('keyup', function(evt) {
@@ -656,6 +662,9 @@
 				} else {
 					wgt.reset();
 				}
+			})
+			.addClass('fixedWidth').sb({
+				fixedWidth: true
 			});
 			
 			hemi.utils.get('js/editor/plugins/particleEffects/templates/particleFx.json', function(data, status) {

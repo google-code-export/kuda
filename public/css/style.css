@@ -573,36 +573,7 @@ body.ten24 {
 
 .topAligned:not(.noSpecialButtons) button, 
 .bottomAligned button {
-	/*background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
-	color: #fff;
-    text-shadow: 0 -1px 0 #034d75;
-    border: 1px solid #212121;
-	box-shadow: 0 1px 0 #444,
-		inset 0 0 1px #72bbe0;*/
-			
-	float: left;
-    background: #555;
-	background: -moz-linear-gradient(100% 100% 90deg, #555, #666);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#555));
-    border: 1px solid #222;
-	box-shadow: inset 0 0 1px #aaa;
-    color: #eee;
-    text-shadow: 0 -1px 0 #000;
 	margin-bottom: 0;
-	-webkit-transition: color 0.25s ease-in-out;
-	-moz-transition: color 0.25s ease-in-out;
-	-o-transition: color 0.25s ease-in-out;
-}
-.topAligned:not(.noSpecialButtons) button[disabled], 
-.bottomAligned button[disabled] {
-	background: -moz-linear-gradient(100% 100% 90deg, #888, #aaa);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#888));
-	text-shadow: 0 -1px 0 #888;
-	color: #ddd;
-	border: 1px solid #333;
-	box-shadow: 0 1px 0 #444,
-		inset 0 1px 2px #aaa;
 } 
 .topAligned button.down,
 .bottomAligned button.down {
@@ -654,6 +625,7 @@ body.ten24 {
 }
 .widget p {
 	padding-bottom: 0.833em;
+	line-height: 150%;
 }
 
 /******************************************************************************
@@ -699,7 +671,7 @@ ul.listWidget li>div {
 .listWidget>li:nth-child(odd) {
 	background: #e4e4e4;
 } 
-.widget:nth-child(n+2) .listWidget>li:nth-child(odd) {
+.widget:not(.widgetWithForms) .listWidget>li:nth-child(odd) {
 	background: #444;
 } 
 .listWidget li span {
@@ -717,7 +689,7 @@ ol.listWidget li span {
 .listWidget li:hover {
 	background: #fff;
 }
-.widget:nth-child(n+2) .listWidget li:hover {
+.widget:not(.widgetWithForms) .listWidget li:hover {
 	background: #555;
 }
 .listWidget li>div>span {
@@ -735,7 +707,7 @@ ol.listWidget li span {
 /**
  * List widget buttons
  */
-.listWidget button {
+.listWidget li>div>.buttonContainer button {
 	text-indent: -5000px;
 	height: 24px;
 	width: 24px;
@@ -1096,6 +1068,13 @@ form input:not([type=radio]), form textarea {
     color: #555;
 	margin: 0;
 }
+.widget:not(.widgetWithForms) input:not([type=radio]), form textarea {
+	background: #555;
+	border-color: #222;
+	box-shadow: 0 1px 0 #444;
+	color: #fff;
+	height: 1.28em;
+}
 form input[type=checkbox] {
 	width: auto;
 }
@@ -1181,21 +1160,38 @@ button {
     text-shadow: 0 1px 0 #fff;
     margin-bottom: 0.385em;
     cursor: pointer;
+	-webkit-transition: color 0.25s ease-in-out;
+	-moz-transition: color 0.25s ease-in-out;
+	-o-transition: color 0.25s ease-in-out;
 }
-
+.widget:not(.widgetWithForms) button {
+    background: #555;
+	background: -moz-linear-gradient(100% 100% 90deg, #555, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#555));
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    color: #eee;
+    text-shadow: 0 -1px 0 #000;
+}
+.widget:not(.widgetWithForms) button[disabled] {
+    background: #444;
+	background: -moz-linear-gradient(100% 100% 90deg, #444, #555);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555), to(#444));
+	color: #888;
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    text-shadow: 0 -1px 0 #000;
+} 
 form button:first-child {
     margin-left: 0;
 }
-
 form button:not(.inlineBtn, .treeSelectorBtn) {	
 	margin-top: 5px;
 }
-
 form button:not([disabled], .icon):hover {
     background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eaeaea);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dadada), to(#eaeaea));
 }
-
 form button[disabled] {
 	background: -moz-linear-gradient(100% 100% 90deg, #eee, #fafafa);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eee));
@@ -1204,7 +1200,6 @@ form button[disabled] {
 	border-color: #ccc;
 	cursor: url(../images/cursor_unavailable.gif), auto;
 }
-
 form button.icon {
 	background: url(../images/listOptionsSprite.png) no-repeat;
 	text-indent: -5000px;

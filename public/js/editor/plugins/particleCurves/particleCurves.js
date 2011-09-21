@@ -541,13 +541,16 @@
 					paramName: 'aim',
 					paramValue: wgt.curveAim.prop('checked')
 				});
-			});			
+			});
 			
 			sysTypeSel.bind('change', function(evt) {
 				wgt.notifyListeners(editor.EventTypes.SetParam, {
 					paramName: 'trail',
 					paramValue: jQuery(this).val() == 'trail'
 				});
+			})
+			.addClass('fixedWidth').sb({
+				fixedWidth: true
 			});
 			
 			shpTypeSel.bind('change', function(evt) {
@@ -555,6 +558,9 @@
 					paramName: 'particleShape',
 					paramValue: jQuery(this).val()
 				});
+			})
+			.addClass('fixedWidth').sb({
+				fixedWidth: true
 			});
 			
 			boxAddBtn.bind('click', function(evt) {

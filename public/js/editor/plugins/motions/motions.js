@@ -354,7 +354,11 @@
 				
 				wgt.checkStatus();
 				wgt.invalidate();
-			}).change();
+			})
+			.change()
+			.addClass('fixedWidth').sb({
+				fixedWidth: true
+			});
 			
 			this.nameInput.getUI().bind('keyup', function(evt) {
 				wgt.checkStatus();
