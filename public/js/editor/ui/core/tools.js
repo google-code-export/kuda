@@ -97,7 +97,8 @@ var editor = (function(editor) {
 		},
 		
 		loadState: function() {
-			var tool = this.getActiveTool();
+			var tool = this.savedTool == null ? this.getActiveTool() : 
+				this.savedTool;
 			
 			if (tool == null) {
 				for (var i = 0, il = this.tools.length; i < il && tool == null; i++) {
@@ -153,6 +154,7 @@ var editor = (function(editor) {
 		},
 		
 		saveState: function() {
+			this.savedTool = this.getActiveTool();
 			this.deselect();
 			this.hidden = true;
 		},

@@ -575,6 +575,23 @@
 					}
 				]
 			});
+			
+			// modifications
+			var ftr = this.container.find('.dataTables_filter'),
+				lth = this.container.find('.dataTables_length'),
+				fLbl = ftr.find('label'),
+				ipt = fLbl.find('input'),
+				lLbl = lth.find('label'),
+				sel = lth.find('select');
+				
+			ipt.remove();
+			ftr.append(ipt);
+			
+			sel.remove();
+			lth.append('<span>Show</span>').append(sel)
+				.append('<span>entries</span>');
+			sel.sb();
+			lLbl.hide();
 		},
 		
 		remove: function(msgTarget) {

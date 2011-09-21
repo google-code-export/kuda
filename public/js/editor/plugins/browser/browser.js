@@ -1623,21 +1623,29 @@
 				wgt = this;
 			
 			this.btn.bind('click', function(evt) {
-				var btn = jQuery(this);
-				popup.show(btn, wgt.buildPopup(), null, {
-					top: 5,
-					left: 0
-				});
+				var btn = jQuery(this).toggleClass('down');
 				
-				jQuery(document).bind('click.mbr', function(e) {
-					var target = jQuery(e.target),
-						parent = target.parents('.tooltip, #mbrDetailsBtn');
-					
-					if (parent.size() == 0 && target.attr('id') != 'mbrDetailsBtn') {
-						popup.hide(0);
-						jQuery(document).unbind('click.mbr');
-					}
-				});
+				if (btn.hasClass('down')) {
+					popup.show(btn, wgt.buildPopup(), null, {
+						top: 5,
+						left: 0
+					});
+				
+					jQuery(document).bind('click.mbr', function(e) {
+						var target = jQuery(e.target),
+							parent = target.parents('.tooltip, #mbrDetailsBtn');
+						
+						if (parent.size() == 0 && target.attr('id') != 'mbrDetailsBtn') {
+							popup.hide(0);
+							jQuery(document).unbind('click.mbr');
+							btn.removeClass('down');
+						}
+					});
+				}
+				else {
+					popup.hide(0);
+					jQuery(document).unbind('click.mbr');
+				}
 			});
 		},
 		

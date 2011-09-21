@@ -73,19 +73,41 @@
 .dataTables_length, .dataTables_info {
 	float: left;
 }
+.dataTables_length>span {
+	float: left;
+	line-height: 2em;
+	margin-right: 0.417em;
+}
+.dataTables_length>span:last-child {
+	margin-left: 0.417em;
+}
 .dataTables_info, .dataTables_paginate {
 	clear: both;
 	margin-bottom: 0.417em;
 }
 .dataTables_filter input {
-    background: #ffffff;
-    border: 1px solid #323232;
-	box-shadow: 0 1px 0 #434343;
+    background: #555;
+    border: 1px solid #222;
+	box-shadow: 0 1px 0 #444;
     border-radius: 3px;
     outline: none;
-    padding: 0.167em 0.417em;
-    color: #555;
+    padding: 0.167em 0.417em 0.167em 2em;
+    color: #fff;
 	margin: 0;
+	float: right;
+	height: 1.667em;
+	line-height: 1.667em;
+}
+.dataTables_filter label {
+	display: block;
+	text-indent: -9999px;
+	background: url(/images/search.png) no-repeat;
+	height: 1.333em;
+	width: 1.333em;
+	left: 1.667em;
+	top: 0.333em;
+	position: relative;
+	float: left;
 }
 .dataTables_wrapper button {
 	text-indent: -5000px;

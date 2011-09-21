@@ -75,7 +75,8 @@
 	line-height: 208.3%;
 	color: #fff;
 	border-radius: 6px;
-	margin-bottom: 10px;
+	margin-bottom: 0.833em;
+	padding-bottom: 0;
 }
 .mbrTopPanel form,
 .mbrBottomPanel form {
@@ -99,9 +100,9 @@
 }
 .mbrTopPanel form input[type=text],
 .mbrTopPanel form select {
-	width: 165px;
+	width: 13.75em;
 	float: left;
-	margin-right: 5px;
+	margin-right: 0.417em;
 }
 .mbrTopPanel form input[type=text] {
 	background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eee);
@@ -116,7 +117,7 @@
 .mbrTopPanel form span,
 .mbrTopPanel label {
 	width: auto;
-	padding-right: 10px;
+	padding-right: 0.769em;
 	font-size: 108.3%;
 	font-weight: bold;
 	font-family: Helvetica;
@@ -134,15 +135,15 @@
  ******************************************************************************/
 
 #mbrTreeWrapper {
-	width: 300px;
+	width: 25em;
 }
 div#mbrBrowserTree div#mbrTree {
-	margin: 10px 0;
+	margin: 0.833em 0;
 	background: url(../images/treeBack.png) transparent repeat;
 }
 #mbrDetails {
-	width: 300px;
-	padding: 10px 10px 0 10px;
+	width: 25em;
+	padding: 0.833em 0.833em 0;
 	border-bottom: 1px solid #ddd;
 	overflow: hidden;
 	background: #d5e0e4;
@@ -203,6 +204,7 @@ div#mbrBrowserTree div#mbrTree {
 	color: #fff;
 	background: #333;
 	border: 1px solid #666;
+	opacity: 0.85;
 }
 /* creates triangle */
 .mbrPopup .arrow {
@@ -211,18 +213,13 @@ div#mbrBrowserTree div#mbrTree {
 }
 .mbrPopup .outer {
 	border-color: #666 transparent;
+	display: none;
 }
 .mbrPopup .innerArrow {
 	border-top-color: #333;
 	left: 10px;
-}
-/* creates the larger triangle */
-.mbrPopup .arrow.top {
-	border-bottom-color: #666;
-}
-/* creates the smaller  triangle */
-.mbrPopup .innerArrow.top {
-	border-bottom-color: #333;
+	margin-top: -11px;
+	opacity: 0.85;
 }
 .mbrPopup .listWidget > li:nth-child(2n+1) {
 	background: #222;
@@ -231,9 +228,12 @@ div#mbrBrowserTree div#mbrTree {
 	min-width: 200px;	
 }
 .mbrPopup .details h2 {
-	font: bold 14px/24px Helvetica, Arial, sans-serif;
+	font-family: Helvetica;
+	font-weight: bold;
+	font-size: 116.7%;
+	line-height: 200%;
 	color: #75d0f4; 
-	margin-bottom: 5px;
+	margin-bottom: 0.357em;
 	border-bottom: 1px dotted #aaa;
 	text-transform: capitalize;
 }
@@ -246,14 +246,12 @@ div#mbrBrowserTree div#mbrTree {
 }
 .mbrPopup dt {
 	font-weight: bold;
-	font-size: 12px;
 	padding: 5px 0;
 }
 .mbrPopup dt:after {
 	content: ':';
 }
 .mbrPopup dd {
-	font-size: 12px;
 }
 .mbrPopup dd ul {
 	margin-left: 10px;
@@ -268,6 +266,20 @@ div#mbrBrowserTree div#mbrTree {
 }
 .mbrPopup dd ul li span:after {
 	content: ':'
+}
+.mbrPopup button.back {			
+	float: left;
+    background: #555;
+	background: -moz-linear-gradient(100% 100% 90deg, #555, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#555));
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    color: #eee;
+    text-shadow: 0 -1px 0 #000;
+	margin-bottom: 0;
+	-webkit-transition: color 0.25s ease-in-out;
+	-moz-transition: color 0.25s ease-in-out;
+	-o-transition: color 0.25s ease-in-out;
 }
 
 /******************************************************************************

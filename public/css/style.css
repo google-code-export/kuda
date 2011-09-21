@@ -106,6 +106,12 @@ body.ten24 {
 	display: block;
 	color: #fff;
 	outline: none;
+	-webkit-transition: color 0.15s ease-in-out,
+		font-weight 0.25s ease-in-out;
+	-moz-transition: color 0.15s ease-in-out,
+		font-weight 0.25s ease-in-out;
+	-o-transition: color 0.15s ease-in-out,
+		font-weight 0.25s ease-in-out;
 }
 #tabBar h2>a:hover {
 	color: #75d0f4;
@@ -462,7 +468,6 @@ body.ten24 {
 }
 #plgPane .listWidget {
 	width: 15.417em;
-	margin: 0 0 0 -1.333em;
 }
 #plgPane .listWidget>li {
 	width: 15.25em;
@@ -483,7 +488,7 @@ body.ten24 {
 }
 #plgPane .listWidget>li input[type=checkbox] {
 	float: left;
-	margin-top: 0.833em;
+	margin: 0.833em 0.417em 0 0;
 }
 
 /******************************************************************************
@@ -647,6 +652,9 @@ body.ten24 {
 .widget:nth-child(n+2):not(.widgetWithForms) {
 	border-top: 1px solid #000;
 }
+.widget p {
+	padding-bottom: 0.833em;
+}
 
 /******************************************************************************
  * 								  List Widget								  *
@@ -671,6 +679,9 @@ ol.listWidget {
 	padding: 0.417em 0 0;
 	line-height: 250%;
 	position: relative;
+	-webkit-transition: background 0.15s ease-in-out;
+	-moz-transition: background 0.15s ease-in-out;
+	-o-transition: background 0.15s ease-in-out;
 }
 ol.listWidget li {
 	display: list-item;
@@ -1201,9 +1212,6 @@ form button.removeBtn {
 form button.removeBtn:hover {
 	background-position: -16px -32px;
 }
-form button {
-	height: 25px;
-}
 
 /******************************************************************************
  * 									Trees									  *
@@ -1312,7 +1320,7 @@ form input.open, .treeSelectorBtn.open,
 	zoom: 1;
 }
 .selectbox .display {
-	background: #444;
+	background: #555;
 	border: 1px solid #222;
 	border-radius: 3px;
 	box-shadow: 0 1px 0 #444;
@@ -1320,11 +1328,11 @@ form input.open, .treeSelectorBtn.open,
 	cursor: default;
 	display: block;
 	font-weight: normal;
-	height: 2.083em;
+	height: 1.917em;
     line-height: 208.3%;
 	overflow: hidden;
 	outline: none;
-	padding: 0 2em 0 0.25em;
+	padding: 0 2em 0 0.417em;
 	position: relative;
 	text-decoration: none;
 	overflow: hidden;
@@ -1347,14 +1355,14 @@ form input.open, .treeSelectorBtn.open,
 	border-left: 1px solid #222;
 	border-radius: 0 3px 3px 0;
     display: block;
-    height: 1.94em;
+    height: 1.8em;
     line-height: 208.3%;
     padding: 1px;
     position: absolute;
     right: 0;
     text-align: center;
     top: 0;
-    width: 2.083em;
+    width: 1.8em;
 	box-shadow: inset 0 1px 1px #888; 
 }
 .selectbox .display .arrow_btn .arrow {
@@ -1367,7 +1375,7 @@ form input.open, .treeSelectorBtn.open,
 	*display: inline;
     left: 0.615em;
     position: absolute;
-    top: 0.75em;
+    top: 0.67em;
     zoom: 1;
 	padding: 0;
 }
@@ -1383,7 +1391,7 @@ form input.open, .treeSelectorBtn.open,
 
 /* dropdown styles */
 .selectbox.items {
-	background: #5e5e5e;
+	background: #6e6e6e;
 	border: 1px solid #444;
 	border-width: 0 1px 1px;
 	border-radius: 0 0 3px 3px;
