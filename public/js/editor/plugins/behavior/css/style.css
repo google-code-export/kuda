@@ -57,7 +57,7 @@
 .dataTables_wrapper table th:not(.editHead) {
 	width: 16.667em;
 	padding: 0.417em 0.833em;
-	text-shadow: 0 1px 0 #222;
+	text-shadow: 0 -1px 0 #222;
 	border-right: 1px solid #333;
 }
 .dataTables_wrapper table td.editHead {

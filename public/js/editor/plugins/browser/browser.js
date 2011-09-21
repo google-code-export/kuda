@@ -1241,7 +1241,9 @@
 				</form>');
 			
 			this.msgPanel = this.find('#mbrMsg').hide();
-			this.container.find('select').sb();
+			this.container.find('select').sb({
+				ddCtx: '.topBottomSelect'
+			});
 			this.createImportPanel();
 			this.createLoadPanel();
 			this.createUnloadPanel();

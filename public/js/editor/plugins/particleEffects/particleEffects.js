@@ -723,9 +723,7 @@
 	    		id: 'particleEffects'
 	        });
 
-			this.addPanel(new editor.ui.Panel({
-				classes: ['effectSidePanel']
-			}));
+			this.addPanel(new editor.ui.Panel());
 			
 			this.sidePanel.addWidget(new CreateWidget());
 			this.sidePanel.addWidget(new ListWidget());

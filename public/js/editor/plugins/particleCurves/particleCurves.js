@@ -1054,9 +1054,7 @@
 		        id: 'particleCurves'
 		    });
 			
-			this.addPanel(new editor.ui.Panel({
-				classes: ['effectSidePanel']
-			}));
+			this.addPanel(new editor.ui.Panel());
 			this.addPanel(new editor.ui.Panel({
 				location: editor.ui.Location.BOTTOM,
 				classes: ['bottomPanel'],

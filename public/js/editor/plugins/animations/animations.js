@@ -663,8 +663,12 @@
 			this.selector.bind('change', function(evt) {
 				var mdl = hemi.world.getCitizenById(
 					parseInt(jQuery(this).val()));
-						wgt.notifyListeners(editor.EventTypes.ModelSelected, mdl);
-			});
+				wgt.notifyListeners(editor.EventTypes.ModelSelected, mdl);
+				wgt.invalidate();
+			})
+			.addClass('fixedWidth').sb({
+				fixedWidth: true
+			});;
 	            
 	        inputs.bind('keyup', function(evt) {				
 				wgt.canSave();
@@ -735,6 +739,7 @@
 				wgt.reset();
 				wgt.notifyListeners(editor.events.Cancel, null);
 				wgt.find('input.error').removeClass('error');
+				wgt.invalidate();
 			});
 		},	
 	    

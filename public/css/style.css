@@ -1140,16 +1140,26 @@ form input[type=radio] {
     float: left;
     margin-right: 5px;
 }
-
-form ol#viewpoints li, form ol#eventsTest li, form ol#viewpointsTest li {
-    list-style: decimal;
-    overflow: inherit;
-    margin-left: 30px;
+.hasScrollBar form input:not([type=checkBox]),
+.hasScrollBar form textarea {
+    width: 21.667em;
 }
-
-form input#viewpointName {
-    width: 151px;
-    float: left;
+.hasScrollBar li.ranged input {
+	width: 10.25em;
+	float: left;
+	margin-right: 2px;
+}
+.hasScrollBar li.ranged div:last-child input {
+	margin-right: 0;
+}
+.hasScrollBar li input.vector {
+	width: 4.167em;
+}
+.hasScrollBar li input.color {
+	width: 2em;
+}
+.hasScrollBar li input.quat {
+	width: 2.167em;
 }
 
 /**
@@ -1274,10 +1284,10 @@ div.jstree, div.jstree.jstree-focused {
 	margin: 0; 
 }
 .treeSelectorBtn:after {
-	background: url(../images/listOptionsSprite.png) -2.462em -0.538em no-repeat;
-	background-size: 500%;
-	height: 0.538em;
-	width: 0.615em;
+	background: url(../images/listOptionsSprite.png) -2.462em -0.615em no-repeat;
+	background-size: 455%;
+	height: 0.615em;
+	width: 0.692em;
 	float: left;
 	margin: 0.385em 0 0 0.615em;
 	padding: 0;
@@ -1301,6 +1311,10 @@ form input.open, .treeSelectorBtn.open,
  * 							  	 Selector Widget							  *
  ******************************************************************************/
 
+.topBottomSelect {
+	position: absolute;
+}
+
 /* applied to original <select> to hide */
 .has_sb {
 	position: absolute;
@@ -1311,7 +1325,6 @@ form input.open, .treeSelectorBtn.open,
 /* always visible styles */
 .selectbox {
 	display: block;
-	*display: inline;
 	font-family: Helvetica, arial, sans-serif;
 	margin: 1px;
 	position: relative;
@@ -1320,11 +1333,11 @@ form input.open, .treeSelectorBtn.open,
 	zoom: 1;
 }
 .selectbox .display {
-	background: #555;
-	border: 1px solid #222;
+	background: #fff;
+	border: 1px solid #ddd;
 	border-radius: 3px;
-	box-shadow: 0 1px 0 #444;
-	color: #fff;
+	box-shadow: 0 1px 0 #fff;
+	color: #555;
 	cursor: default;
 	display: block;
 	font-weight: normal;
@@ -1336,6 +1349,13 @@ form input.open, .treeSelectorBtn.open,
 	position: relative;
 	text-decoration: none;
 	overflow: hidden;
+}
+.topAligned .selectbox .display,
+.bottomAligned .selectbox .display {
+	background-color: #555;
+	border-color: #222;
+	box-shadow: 0 1px 0 #444;	
+	color: #fff;
 }
 .selectbox.disabled .display {
 	color: #999;
@@ -1349,10 +1369,10 @@ form input.open, .treeSelectorBtn.open,
 	border-radius: 3px 3px 0 0;
 }
 .selectbox .display .arrow_btn {
-	background: #444;
-	background: -moz-linear-gradient(100% 100% 90deg, #444, #666);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#444), to(#444));
-	border-left: 1px solid #222;
+	background: #eee;
+	background: -moz-linear-gradient(100% 100% 90deg, #eee, #ddd);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#eee));
+	border-left: 1px solid #ddd;
 	border-radius: 0 3px 3px 0;
     display: block;
     height: 1.8em;
@@ -1363,27 +1383,38 @@ form input.open, .treeSelectorBtn.open,
     text-align: center;
     top: 0;
     width: 1.8em;
+	box-shadow: inset 0 1px 1px #fff; 
+}
+.topAligned .selectbox .display .arrow_btn,
+.bottomAligned .selectbox .display .arrow_btn {
+	background: #444;
+	background: -moz-linear-gradient(100% 100% 90deg, #444, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#444), to(#444));
+	border-left: 1px solid #222;
 	box-shadow: inset 0 1px 1px #888; 
 }
 .selectbox .display .arrow_btn .arrow {
-	background: url(../images/listOptionsSprite.png) -2.462em -0.538em no-repeat;
-	background-size: 500%;
-	height: 0.538em;
-	width: 0.615em;
+	background: url(../images/listOptionsSprite.png) -2.667em -0.667em no-repeat;
+	background-size: 420%;
+	height: 0.667em;
+	width: 0.833em;
 	float: left;
     display: block;
 	*display: inline;
-    left: 0.615em;
+    left: 0.538em;
     position: absolute;
     top: 0.67em;
     zoom: 1;
 	padding: 0;
+	font-size: 100%;
 }
 .selectbox .display.active .arrow_btn {
 	border-radius: 0 3px 0 0;
 }
+.selectbox .display.active .arrow_btn .arrow {	
+	background-position: -2.667em 0;
+}
 .selectbox .display.hover .arrow_btn {
-	background-position:  -2.667em 0;
 }
 .selectbox .value {
 	display: none;
@@ -1391,8 +1422,8 @@ form input.open, .treeSelectorBtn.open,
 
 /* dropdown styles */
 .selectbox.items {
-	background: #6e6e6e;
-	border: 1px solid #444;
+	background: #fff;
+	border: 1px solid #ddd;
 	border-width: 0 1px 1px;
 	border-radius: 0 0 3px 3px;
 	display: block;
@@ -1403,6 +1434,11 @@ form input.open, .treeSelectorBtn.open,
 	overflow-y: auto;
 	padding: 0 0 1px 0;
 	z-index: 99999;
+	box-shadow: 0 3px 5px #aaa;
+}
+.topBottomSelect .selectbox.items {
+	background-color: #6e6e6e;
+	border-color: #444;	
 	box-shadow: 0 3px 5px #222;
 }
 .selectbox.items.above {}
@@ -1416,11 +1452,14 @@ form input.open, .treeSelectorBtn.open,
 	margin-top: 0;
 }
 .selectbox.items li>.item {
-	color: #fff;
+	color: #555;
 	cursor: default;
 	display: block;
 	padding: 0.333em 0.5em;
 	text-decoration: none;
+}
+.topBottomSelect .selectbox.items li>.item {
+	color: #fff;
 }
 .selectbox.items li>.item>.text {
 	display: inline-block;
@@ -1428,12 +1467,18 @@ form input.open, .treeSelectorBtn.open,
 	zoom: 1;
 }
 .selectbox.items li.selected>.item {
-	border-bottom: 1px dotted #222;
+	border-bottom: 1px dotted #ddd;
 }
+.topBottomSelect .selectbox.items li.selected>.item {
+	border-bottom: 1px dotted #222;
+} 
 .selectbox.items li.disabled>.item {
 	color: #ccc;
 }
 .selectbox.items li.hover>.item {
+	background-color: #ccc;
+}
+.topBottomSelect .selectbox.items li.hover>.item {
 	background-color: #666;
 }
 .selectbox.items .value {
@@ -1457,38 +1502,6 @@ form input.open, .treeSelectorBtn.open,
 	padding-left: 1em;
 }
 
-/* easy rounding styles */
-.selectbox .round_sb.display {
-	padding: 2px 26px 2px 5px;
-	border-radius: 5px;
-	-moz-border-radius: 5px;
-  -webkit-border-radius: 5px;
-}
-.selectbox .round_sb.display .arrow_btn {
-	right: 2px;
-	top: 2px;
-	border-radius: 3px;
-	-moz-border-radius: 3px;
-	-webkit-border-radius: 3px;
-}
-.selectbox.round_sb.items {
-	border-radius: 5px;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;
-}
-.selectbox.round_sb.items>li>a {padding: 4px 6px;}
-.selectbox.round_sb.items>li.first>.item {
-	-moz-border-radius-topleft: 5px;
-	-moz-border-radius-topright: 5px;
-	-webkit-border-top-left-radius: 5px;
-	-webkit-border-top-right-radius: 5px;
-}
-.selectbox.round_sb.items>li.last>.item {
-	-moz-border-radius-bottomleft: 5px;
-	-moz-border-radius-bottomright: 5px;
-	-webkit-border-bottom-left-radius: 5px;
-	-webkit-border-bottom-right-radius: 5px;
-}
 /* for optgroups */
 .selectbox.round_sb.items>li>.label {
 	line-height: 2.08em;
@@ -1498,22 +1511,18 @@ form input.open, .treeSelectorBtn.open,
 }
 
 /* fixed width example styles */
-.selectbox .display.fixed_width {
-	width: 73px;
-	padding: 0 24px 0 3px;
+.selectbox .display.fixedWidth {
+	width: 20.917em;
+	padding: 0 2em 0 0.417em;
 }
-
-.selectbox.fixed_width.items {
-	width: 100px; /* width of display text plus the padding (60 + 27) = 87 */
+.selectbox.fixedWidth.items {
+	width: 23.333em; /* width of display text plus the padding */
 }
-
-.selectbox .display.fixed_width2 {
-	width: 60px;
-	padding: 0 24px 0 3px;
+.hasScrollBar .selectbox .display.fixedWidth {
+	width: 20.083em;
 }
-
-.selectbox.fixed_width2.items {
-	width: 300px; /* width of display text plus the padding (60 + 27) = 87 */
+.hasScrollBar .selectbox.fixedWidth.items {
+	width: 22.5em; /* width of display text plus the padding */
 }
 
 /******************************************************************************

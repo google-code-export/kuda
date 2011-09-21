@@ -590,7 +590,9 @@
 			sel.remove();
 			lth.append('<span>Show</span>').append(sel)
 				.append('<span>entries</span>');
-			sel.sb();
+			sel.sb({
+				ddCtx: '.topBottomSelect'
+			});
 			lLbl.hide();
 		},
 		

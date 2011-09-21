@@ -428,6 +428,7 @@ var editor = (function(editor) {
 		},
 		
 		invalidate: function() {
+			this.sizeAndPosition();
 			this.notifyListeners(editor.events.WidgetResized);
 		},
 		
@@ -453,8 +454,7 @@ var editor = (function(editor) {
 				padding = parseInt(container.css('paddingBottom')) +
 					parseInt(container.css('paddingTop')),
 				win = jQuery(window),
-				winHeight = win.height(),
-				wgtHeight = 0;
+				winHeight = win.height();
 			
 			switch(this.config.height) {
 				case editor.ui.Height.FULL:
@@ -468,6 +468,15 @@ var editor = (function(editor) {
 					break;
 				case editor.ui.Height.MANUAL:
 					break;
+			}
+			
+			// check scrollHeight
+			if (container[0].scrollHeight > container.height() + padding) {
+				console.log(wgt.config.name + ' ' + container[0].scrollHeight + ' vs ' + (container.height() + padding));
+				container.addClass('hasScrollBar');
+			}
+			else {
+				container.removeClass('hasScrollBar');
 			}
 		}
 	});
@@ -778,6 +787,9 @@ var editor = (function(editor) {
 		
 		// do an initial resize
 		resize();
+		
+		// add an empty panel for select boxes
+		bdy.append('<div class="topBottomSelect"></div>');
 	};
 	
 	return editor;

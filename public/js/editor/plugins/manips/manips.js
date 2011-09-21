@@ -431,6 +431,7 @@
 			cancelBtn.bind('click', function(evt) {
 				wgt.reset();
 				wgt.notifyListeners(editor.EventTypes.SetManip, null);
+				wgt.invalidate();
 			});
 			
 			prevBtn.bind('click', function(evt) {
