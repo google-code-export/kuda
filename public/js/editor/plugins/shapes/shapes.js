@@ -270,8 +270,11 @@
 				}
 				
 				wgt.inputsToCheck = inputs;
+				wgt.invalidate();
 				saveBtn.attr('disabled', 'disabled');
 				previewBtn.attr('disabled', 'disabled');
+			}).addClass('fixedWidth').sb({
+				fixedWidth: true
 			});
 			
 			this.shapeName.getUI().bind('keyup', function(evt) {
@@ -288,6 +291,7 @@
 				wgt.reset();
 				wgt.notifyListeners(editor.events.Cancel, null);
 				wgt.find('input.error').removeClass('error');
+				wgt.invalidate();
 			});
 			
 			previewBtn.bind('click', function(evt) {

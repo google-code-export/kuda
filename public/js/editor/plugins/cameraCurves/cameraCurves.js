@@ -344,6 +344,7 @@
 			cancelBtn.bind('click', function(evt) {
 				wgt.notifyListeners(editor.events.Cancel);
 				wgt.reset();
+				wgt.invalidate();
 			});
 			
 			previewBtn.bind('click', function(evt) {
@@ -399,6 +400,7 @@
 					wgt.target.reset();
 					pntAddBtn.data('waypoint', null).text(ADD_TXT);
 					pntCancelBtn.hide();
+					wgt.invalidate();
 				}
 			}).data('waypoint', null);
 			

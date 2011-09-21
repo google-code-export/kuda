@@ -20,27 +20,6 @@
  * 									 Forms									  *
  ******************************************************************************/
 
-.effectSidePanel form input:not([type=checkBox]),
-.effectSidePanel form textarea {
-    width: 260px;
-}
-.effectSidePanel li.ranged input {
-	width: 123px;
-	float: left;
-	margin-right: 2px;
-}
-.effectSidePanel li.ranged div:last-child input {
-	margin-right: 0;
-}
-.effectSidePanel li input.vector {
-	width: 50px;
-}
-.effectSidePanel li input.color {
-	width: 24px;
-}
-.effectSidePanel li input.quat {
-	width: 32px;
-}
 #pteColorRampWrapper {
 	float: right;
 	width: 192px;
