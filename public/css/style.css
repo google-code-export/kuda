@@ -603,7 +603,7 @@ body.ten24 {
 	text-align: left;
 	overflow: hidden;
 }
-.widgetWithForms, .fullSideWidget {
+.widgetWithForms {
 	background: #eee;
 	overflow: auto;
 }
@@ -614,10 +614,10 @@ body.ten24 {
 	text-align: left;
 	margin-bottom: 0.417em;
 }
-.widget:not(.widgetWithForms):not(.fullSideWidget) {
+.widget:not(.widgetWithForms) {
 	color: #eee;
 }
-.widget:not(.widgetWithForms):not(.fullSideWidget) h1 {
+.widget:not(.widgetWithForms) h1 {
 	color: #75d0f4;
 }
 .widget:nth-child(n+2):not(.widgetWithForms) {
@@ -671,7 +671,7 @@ ul.listWidget li>div {
 .listWidget>li:nth-child(odd) {
 	background: #e4e4e4;
 } 
-.widget:not(.widgetWithForms):not(.fullSideWidget) .listWidget>li:nth-child(odd) {
+.widget:not(.widgetWithForms) .listWidget>li:nth-child(odd) {
 	background: #444;
 } 
 .listWidget li span {
@@ -689,7 +689,7 @@ ol.listWidget li span {
 .listWidget li:hover {
 	background: #fff;
 }
-.widget:not(.widgetWithForms):not(.fullSideWidget) .listWidget li:hover {
+.widget:not(.widgetWithForms) .listWidget li:hover {
 	background: #555;
 }
 .listWidget li>div>span {
