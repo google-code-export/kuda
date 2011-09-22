@@ -1068,7 +1068,8 @@ form input:not([type=radio]), form textarea {
     color: #555;
 	margin: 0;
 }
-.widget:not(.widgetWithForms) input:not([type=radio]), form textarea {
+.widget:not(.widgetWithForms) form input:not([type=radio]), 
+.widget:not(.widgetWithForms) form textarea {
 	background: #555;
 	border-color: #222;
 	box-shadow: 0 1px 0 #444;

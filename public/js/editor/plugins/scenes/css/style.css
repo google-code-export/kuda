@@ -20,10 +20,10 @@
  * 									Forms									  *
  ******************************************************************************/
 
-form input[type=text] {
+#scnName {
 	width: 15em;
 }
-form input.save {
+#scnName.save {
 	width: 14.167em;
 }
 
