@@ -316,7 +316,9 @@
 			this.fov.setValue(viewpoint.fov);
 			this.nearPlane.setValue(viewpoint.np);
 			this.farPlane.setValue(viewpoint.fp);
-			this.name.setValue(viewpoint.name);
+			if (viewpoint.name) {
+				this.name.setValue(viewpoint.name);
+			}
 			this.previewBtn.removeAttr('disabled');
 		}
 	});
