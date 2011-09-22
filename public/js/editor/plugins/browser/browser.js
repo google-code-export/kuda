@@ -54,6 +54,7 @@
 	
 	// browser model events
 	editor.EventTypes.AddUserCreatedShape = "browser.AddUserCreatedShape";
+	editor.EventTypes.ModelUnloaded = "browser.ModelUnloaded";
 	editor.EventTypes.PickableSet = "browser.PickableSet";
 	editor.EventTypes.RemoveUserCreatedShape = "browser.RemoveUserCreatedShape";
 	editor.EventTypes.ServerRunning = 'browser.ServerRunning';
@@ -69,13 +70,16 @@
     editor.EventTypes.ManipState = "browser.ManipState";
     editor.EventTypes.SetTransOpacity = "browser.SetTransOpacity";
 	
-	// hidden items sidebar widget events
+	// hidden items widget events
 	editor.EventTypes.SetPickable = "browser.SetPickable";
     editor.EventTypes.ShowHiddenItem = "browser.ShowHiddenItem";
 	
-	// model tree sidebar widget events
+	// model tree widget events
 	editor.EventTypes.DeselectTreeItem = "browser.DeselectTreeItem";
 	editor.EventTypes.SelectTreeItem = "browser.SelectTreeItem";
+	
+	// loader widget events
+	editor.EventTypes.UnloadModel = "browser.UnloadModel";
 	
 	// TODO: We need a better way of testing for our highlight shapes than
 	// searching for this prefix.
@@ -201,12 +205,12 @@
 						mdl.addModel(msg.src);
 					}
 				});
-			hemi.msg.subscribe(hemi.msg.unload,
-				function(msg) {
-					if (msg.src instanceof hemi.model.Model) {
-						mdl.removeModel(msg.src);
-					}
-				});
+//			hemi.msg.subscribe(hemi.msg.unload,
+//				function(msg) {
+//					if (msg.src instanceof hemi.model.Model) {
+//						mdl.removeModel(msg.src);
+//					}
+//				});
 				
 			jQuery.ajax({
 				url: '/models',
@@ -278,6 +282,7 @@
 				if (ndx !== -1) {
 					transforms.splice(ndx, 1);
 					this.currentShape = null;
+					this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
 					this.curHandle.setTransform(null);
 					this.notifyListeners(editor.EventTypes.ShapeSelected, null);
 					this.unhighlightTransform(transform);
@@ -656,6 +661,22 @@
 				this.unhighlightShape(filtered[ndx], transform);
 			}
 	    },
+		
+		unload: function(modelId) {
+			var model = hemi.world.getCitizenById(modelId),
+				that = this;
+			
+			var msgHandler = model.subscribe(hemi.msg.unload, function(m) {
+				model.unsubscribe(msgHandler, hemi.msg.unload);
+//				that.notifyListeners(editor.EventTypes.ModelUnloaded, model);
+			});
+			
+			// before cleanup, clear out handles, etc.
+			this.removeModel(model);
+//			this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
+//			this.curHandle.setTransform(null);
+			model.cleanup();
+		},
 		
 		updateShape: function(shape) {
 			this.notifyListeners(editor.EventTypes.UpdateUserCreatedShape, shape);
@@ -1211,15 +1232,16 @@
 			sel.bind('change', function() {	
 				var id = parseInt(sel.val());
 				if (id !== -1) {
-					model = hemi.world.getCitizenById(id);
-					
-					var msgHandler = model.subscribe(hemi.msg.unload, function(m){
-						msg.text('').slideUp(200);
-						model.unsubscribe(msgHandler, hemi.msg.unload);
-						populateUnloadPanel.call(wgt);
-					});
-					
-					model.cleanup();
+//					model = hemi.world.getCitizenById(id);
+//					
+//					var msgHandler = model.subscribe(hemi.msg.unload, function(m){
+//						msg.text('').slideUp(200);
+//						model.unsubscribe(msgHandler, hemi.msg.unload);
+//						populateUnloadPanel.call(wgt);
+//					});
+//					
+//					model.cleanup();
+					wgt.notifyListeners(editor.EventTypes.UnloadModel, id);
 				}
 			});	
 			
@@ -1247,6 +1269,11 @@
 			this.createImportPanel();
 			this.createLoadPanel();
 			this.createUnloadPanel();
+		},
+		
+		updateModelRemoved: function(model) {
+			this.msgPanel.text('').slideUp(200);
+			populateUnloadPanel.call(this)
 		},
 		
 		updateServerRunning: function(models) {
@@ -1377,6 +1404,12 @@
 				wgt.transBtn.removeClass('down');
 				notify(jQuery(this), editor.ui.trans.DrawState.SCALE);
 			});
+		},
+		
+		reset: function() {
+			this.scaleBtn.removeClass('down');
+			this.rotateBtn.removeClass('down');
+			this.transBtn.removeClass('down');
 		}
 	});
 	
@@ -1410,6 +1443,10 @@
 			
 			this.container.append(label).append(this.slider)
 				.addClass('opacity');
+		},
+		
+		reset: function() {
+			this.slider.slider('value', 100);
 		}
 	});
 	
@@ -1651,6 +1688,12 @@
 			});
 		},
 		
+		reset: function() {
+			if (this.btn.hasClass('down')) {
+				this.btn.click();
+			}
+		},
+		
 		set: function(obj, type) {
 			if (obj) {
 				this.container.show();
@@ -1698,9 +1741,14 @@
 			});
 		},
 		
+		reset: function() {
+			this.set(null);
+		},
+		
 		set: function(transform) {
 			this.transform = transform;			
-			this.visBtn.text(this.transform.visible ? 'Hide' : 'Show');
+			this.visBtn.text(this.transform == null || 
+				this.transform.visible ? 'Hide' : 'Show');
 		}
 	});
 	
@@ -1796,6 +1844,11 @@
                 model.showTransform(transform);
 			});
 			
+			// loader widget specific
+			ldrWgt.addListener(editor.EventTypes.UnloadModel, function(id) {
+				model.unload(id);
+			});
+			
 			// mdl browser widget specific
 			mbrWgt.addListener(editor.EventTypes.SelectTreeItem, function(value) {
 				if (value.type === 'transform') {
@@ -1840,7 +1893,13 @@
 	        model.addListener(editor.events.Removed, function(model) {
 	            mbrWgt.removeModel(model);
 				hidWgt.removeOwner(model);
+				ldrWgt.updateModelRemoved(model);
+				adjWgt.reset();
+				detWgt.reset();
+				opaWgt.reset();
+				view.bottomPanel.setVisible(false);
 	        });	
+			
 			model.addListener(editor.EventTypes.AddUserCreatedShape, function(shape) {
 				var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
 				
@@ -1850,6 +1909,8 @@
 					hidWgt.addHiddenItem(shape.transform, shape);
 					hidWgt.setVisible(isDown);
 				}
+			});	
+			model.addListener(editor.EventTypes.ModelUnloaded, function(model) {
 			});		
 			model.addListener(editor.EventTypes.RemoveUserCreatedShape, function(shape) {
 				mbrWgt.removeShape(shape);

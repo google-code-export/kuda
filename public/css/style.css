@@ -575,8 +575,8 @@ body.ten24 {
 .bottomAligned button {
 	margin-bottom: 0;
 } 
-.topAligned button.down,
-.bottomAligned button.down {
+.topAligned .widget button.down,
+.bottomAligned .widget button.down {
 	background: #222;
 	background: -moz-linear-gradient(100% 100% 90deg, #222, #2a2a2a);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a2a2a), to(#222));
