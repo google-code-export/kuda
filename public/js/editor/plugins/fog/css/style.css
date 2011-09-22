@@ -21,7 +21,7 @@
 
 form .onOff {
 	display: block;
-	margin: 0.417em 0 0.417em 10em;
+	margin: 0.417em 0 0.417em 6.667em;
 	background: #ddd;
 	border-radius: 2.083em;
 	border: 1px solid #ccc;
@@ -43,20 +43,6 @@ form .onOff>span {
 	display: block;
 	position: absolute;
 }
-form .onOff:before {
-	content: "off";
-	margin-left: -1.667em;
-	line-height: 208.3%;
-	color: #555;
- 	position: absolute;
-} 
-form .onOff:after {
-	content: "on";
-	margin-left: 5.417em;
-	line-height: 2.083em;
-	color: #555;
-	position: absolute;
-} 
 .check { 
 	display: block;
 	width: 1.833em;
@@ -105,6 +91,6 @@ form .onOff:after {
 .onOff label.info {
 	position: absolute;
 	top: 0;
-	margin-left: -10em;
+	margin-left: -6.667em;
 	line-height: 208.3%;
 }
