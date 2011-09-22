@@ -452,21 +452,6 @@ var editor = (function(editor) {
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                      	  Widget Private Methods     	                  //
-////////////////////////////////////////////////////////////////////////////////  
-	
-	var sizeAndPosition = function() {
-			var container = this.container,
-				padding = parseInt(container.css('paddingBottom')) +
-					parseInt(container.css('paddingTop')),
-				win = jQuery(window),
-				winHeight = win.height(),
-				wgtHeight = winHeight - padding;
-			
-			container.height(wgtHeight);
-		};
-	
-////////////////////////////////////////////////////////////////////////////////
 //                              Loading Widget                                //
 ////////////////////////////////////////////////////////////////////////////////
 	
@@ -530,12 +515,12 @@ var editor = (function(editor) {
 				listId: 'projectList',
 				prefix: 'prjLst',
 				title: 'Projects',
-				instructions: ''
+				instructions: '',
+				height: editor.ui.Height.FULL
 			});
 			
 			this.items = new Hashtable();	
-			this.container.addClass('fullSideWidget');	
-			sizeAndPosition.call(this);	
+			this.container.addClass('widgetWithForms');
 		},
 			    
 	    add: function(project) {			
@@ -714,7 +699,7 @@ var editor = (function(editor) {
 				
 				// hide the main panel
 				editor.ui.getTabBar().setVisible(false);
-				view.sidePanel.setVisible(false, false);
+				view.sidePanel.setVisible(false);
 				
 				// show the preview panel
 				view.topPanel.setVisible(true);
@@ -783,14 +768,11 @@ var editor = (function(editor) {
 			
 			// essentially queueing this
 			setTimeout(function() {
-				view.isPreview = false
+				view.isPreview = false;
 			}, 0);
-//			for (var i = 0, il = this.visiblePanels.length; i < il; i++) {
-//				this.visiblePanels[i].setVisible(true, false);
-//			}
 			
 			editor.ui.getTabBar().setVisible(true);
-			this.sidePanel.setVisible(true, false);
+			this.sidePanel.setVisible(true);
 			this.topPanel.setVisible(false);
 		},
 		
