@@ -706,21 +706,47 @@ ol.listWidget li span {
 /**
  * List widget buttons
  */
-.listWidget li>div>.buttonContainer button {
+.listWidget li>div>.buttonContainer button,
+.listWidget li>div>.buttonContainer a {
 	text-indent: -5000px;
-	height: 24px;
-	width: 24px;
+	height: 16px;
+	width: 16px;
 	border: 1px solid transparent;
 	box-shadow: none;
 	padding: 3px;
 	background: none;
+	display: block;
+	float: left;
+	outline: none;
+}
+.listWidget li>div>.buttonContainer button {
+	/**
+	 * The box model breaks down for buttons in all browsers
+	 */
+	-moz-box-sizing: content-box;
+	-webkit-box-sizing: content-box;
+}
+.listWidget a {
+    -moz-transition: color 0.25s ease-in-out 0s;
+    border: 1px solid #aaa;
+    border-radius: 3px 3px 3px 3px;
+    color: #333333;
+    cursor: pointer;
+    float: left;
+    font-family: Helvetica;
+    font-size: 108.3%;
+    font-weight: bold;
+    line-height: 116.7%;
+    margin-bottom: 0.385em;
+    padding: 0.308em 0.385em;
 }
 .listWidget button.uiMenuShown {	
 	background: -moz-linear-gradient(100% 100% 90deg, #111, #222);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#222), to(#111));
 	border: 1px solid #000;
 }
-.listWidget button:before {
+.listWidget button:before,
+.listWidget a:before {
 	background: url(../images/listOptionsSprite.png) no-repeat;
 	height: 16px;
 	width: 16px;
@@ -729,10 +755,17 @@ ol.listWidget li span {
 	content: "";
 	float: left;
 }
-.listWidget button:not(.uiMenuShown):hover {
+.listWidget button:not(.uiMenuShown):hover,
+.listWidget li>div>.buttonContainer a:hover {
 	background: -moz-linear-gradient(19% 75% 90deg, #888, #999); 
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#999), to(#888));
 	border-color: #666;
+}
+.listWidget a.publish:before {
+	background-position: 0 -112px;
+}
+.listWidget a.publish:hover:before {
+	background-position: -16px -112px;
 }
 .listWidget button.editBtn:before {
 	background-position: 0 0;

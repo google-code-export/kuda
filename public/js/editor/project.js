@@ -147,16 +147,9 @@ var editor = (function(editor) {
 			});
 		},
 		
-		checkExisting: function(project) {
-			var exists = false,
-				plc = project.toLowerCase();
-			
-			for (var i = 0, il = this.projectCache.length; i < il && !exists; i++) {
-				exists = this.projectCache[i].toLowerCase() === plc;
-			}
-			
+		checkExisting: function(project) {			
 			this.notifyListeners(event.ProjectExists, {
-				exists: exists,
+				exists: findProject.call(this, project) !== -1,
 				project: project
 			});
 		},
@@ -238,14 +231,17 @@ var editor = (function(editor) {
 				dataType: 'json',
 				type: 'post',
 				success: function(data, status, xhr) {
+					var ndx = findProject.call(mdl, project);
+					mdl.projectCache[ndx].published = true;
 					mdl.notifyListeners(event.Published, {
-						succeeded: true
+						name: project,
+						published: true
 					});
 				},
 				error: function(xhr, status, err) {
 					mdl.notifyListeners(event.Published, {
-						succeeded: false,
-						message: ''
+						name: project,
+						published: false
 					});
 				}
 			});
@@ -266,7 +262,7 @@ var editor = (function(editor) {
 				success: function(data, status, xhr) {
 					mdl.notifyListeners(event.Removed, data.name);
 					
-					var ndx = mdl.projectCache.indexOf(project);
+					var ndx = findProject.call(mdl, project);
 					
 					if (ndx !== -1) {
 						mdl.projectCache.splice(ndx, 1);
@@ -298,7 +294,10 @@ var editor = (function(editor) {
 						project: project,
 						saved: true
 					});
-					mdl.projectCache.push(project);
+					mdl.projectCache.push({
+						name: project,
+						published: false
+					});
 				},
 				error: function(xhr, status, err) {
 					mdl.serverRunning = false;
@@ -451,6 +450,19 @@ var editor = (function(editor) {
 		}
 	});
 	
+	var findProject = function(project) {
+		var ndx = -1,
+			plc = project.toLowerCase();
+		
+		for (var i = 0, il = this.projectCache.length; i < il && ndx === -1; i++) {
+			if (this.projectCache[i].name.toLowerCase() === plc) {
+				ndx = i;
+			}
+		}
+		
+		return ndx;
+	};
+	
 ////////////////////////////////////////////////////////////////////////////////
 //                              Loading Widget                                //
 ////////////////////////////////////////////////////////////////////////////////
@@ -492,10 +504,15 @@ var editor = (function(editor) {
 				prefix: 'prjLst'
 			});
 			
+			// publish link
+			this.publishLink = jQuery('<a class="publish" href="" target="_blank">View Published</a>');
+			
 			prjList.append(loadHeader).append(this.list.getUI())
 				.hide();
 			arrow.hide();
 			this.container.append(arrow).append(prjList);
+			
+			this.removeBtn.before(this.publishLink.hide());
 			
 			this.title.bind('click', function() {
 				wgt.notifyListeners(event.Load, wgt.getAttachedObject());
@@ -515,7 +532,7 @@ var editor = (function(editor) {
 				listId: 'projectList',
 				prefix: 'prjLst',
 				title: 'Projects',
-				instructions: '',
+				instructions: "Click on a project to load it. Click the 'x' to delete.",
 				height: editor.ui.Height.FULL
 			});
 			
@@ -524,18 +541,18 @@ var editor = (function(editor) {
 		},
 			    
 	    add: function(project) {			
-			var li = this.items.get(project);
+			var li = this.items.get(project.name);
 			
 			if (!li) {
 				li = this.createListItem();
 					
-				li.setText(project);
-				li.attachObject(project);
+				li.setText(project.name);
+				li.attachObject(project.name);
 				
 				this.bindButtons(li, project);
 				
 				this.list.add(li);
-				this.items.put(project, li);
+				this.items.put(project.name, li);
 			}
 			
 			return li;
@@ -544,9 +561,13 @@ var editor = (function(editor) {
 		bindButtons: function(li, project) {
 			var wgt = this;
 			
+			if (project.published) {
+				li.publishLink.attr('href', '/projects/' + project.name 
+					+ '.html').show();
+			}
 			li.removeBtn.bind('click', function(evt) {
 				wgt.notifyListeners(event.Remove, 
-					project);
+					project.name);
 			});
 		},
 		
@@ -566,19 +587,35 @@ var editor = (function(editor) {
 			return this.buttonDiv.outerHeight(true);
 		},
 	    
-	    remove: function(project) {
-			var li = this.items.get(project),
+	    remove: function(projectName) {
+			var li = this.items.get(projectName),
 				retVal = false;
 			
 			if (li) {
 				li.removeObject();
 				this.list.remove(li);
-				this.items.remove(project);
+				this.items.remove(projectName);
 				retVal = true;
 			}
 			
 			return retVal;
-	    }
+	    },
+		
+		update: function(project) {
+			var li = this.items.get(project.name),
+				retVal = false;
+			
+			if (li) {
+				if (project.published) {
+					li.publishLink.attr('href', '/projects/' + project.name 
+						+ '.html').show();
+				}
+				li.attachObject(project);
+				retVal = true;
+			}
+			
+			return retVal;
+		}
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -838,8 +875,11 @@ var editor = (function(editor) {
 			}
 		},
 		
-		updatePublished: function() {
-			
+		updatePublished: function(data) {
+			var lstWgt = this.sidePanel.prjListWidget,
+				view = this;
+				
+			lstWgt.update(data);
 		},
 		
 		updateRemoved: function(project) {
@@ -931,7 +971,7 @@ var editor = (function(editor) {
 				view.updateProjects(projects);
 			});
 			model.addListener(event.Published, function(data) {
-				view.updatePublished();
+				view.updatePublished(data);
 			});
 			model.addListener(event.Removed, function(project) {
 				view.updateRemoved(project);
@@ -939,7 +979,10 @@ var editor = (function(editor) {
 			});
 			model.addListener(event.Saved, function(data) {
 				view.updateSaved(data.project, data.saved);
-				lstWgt.add(data.project);
+				lstWgt.add({
+					name: data.project,
+					published: false
+				});
 			});
 			model.addListener(event.ServerRunning, function(isRunning) {
 				view.updateServerRunning(isRunning);
