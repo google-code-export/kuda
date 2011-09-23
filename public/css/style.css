@@ -500,7 +500,6 @@ body.ten24 {
 	color: #333;
 	box-shadow: 0 0 10px #666;
 	opacity: 0.85;
-	overflow: hidden;
 }
 .rightAligned {
 	position: absolute;
@@ -508,6 +507,9 @@ body.ten24 {
 	top: 0;
 	max-width: 25em;
 	height: 100%;
+}
+.rightAligned .widget:nth-child(n+2):not(.widgetWithForms) {
+	border-top: 1px solid #000;
 }
 .topAligned, .bottomAligned {	
 	background: -moz-linear-gradient(100% 100% 90deg, #333, #383838);
@@ -619,9 +621,6 @@ body.ten24 {
 }
 .widget:not(.widgetWithForms) h1 {
 	color: #75d0f4;
-}
-.widget:nth-child(n+2):not(.widgetWithForms) {
-	border-top: 1px solid #000;
 }
 .widget p {
 	padding-bottom: 0.833em;
