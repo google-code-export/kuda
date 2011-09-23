@@ -103,6 +103,7 @@ var editor = (function(editor) {
 			CheckProjectExists: 'checkProjectExists',
 			Load: 'load',
 			Loaded: 'loaded',
+			NewProject: 'newProject',
 			Projects: 'projects',
 			ProjectExists: 'projectExsits',
 			Publish: 'publish',
@@ -190,6 +191,19 @@ var editor = (function(editor) {
 					});
 				}
 			});
+		},
+		
+		newProject: function() {
+			hemi.world.cleanup();
+			hemi.world.camera.enableControl();
+			hemi.world.ready();
+		
+			var vd = hemi.view.createViewData(hemi.world.camera);
+			vd.eye = [0, 10, 40];
+			vd.target = [0, 0, 0];
+	        hemi.world.camera.moveToView(vd, 0);
+			
+			this.notifyListeners(event.NewProject);			
 		},
 		
 		notify: function(eventType, value) {
@@ -710,6 +724,7 @@ var editor = (function(editor) {
 						<button id="prjCancelBtn">Cancel</button> \
 						<button id="prjPreviewBtn">Preview</button> \
 						<button id="prjPublishBtn">Publish</button> \
+						<button id="prjNewBtn">New Project</button> \
 					</div> \
 				</div>');			
 				
@@ -717,6 +732,7 @@ var editor = (function(editor) {
 				saveIpt = this.saveIpt = ctn.find('#prjSaveIpt'),
 				saveBtn = this.saveBtn = ctn.find('#prjSaveBtn'),
 				cancelBtn = this.cancelBtn = ctn.find('#prjCancelBtn').hide(),
+				newBtn = this.newBtn = ctn.find('#prjNewBtn'),
 				previewBtn = this.previewBtn = ctn.find('#prjPreviewBtn'),
 				publishBtn = this.publishBtn = ctn.find('#prjPublishBtn');						
 			
@@ -725,6 +741,10 @@ var editor = (function(editor) {
 			
 			cancelBtn.bind('click', function() {
 				view.cancel();
+			});
+			
+			newBtn.bind('click', function() {
+				view.notifyListeners(event.NewProject);
 			});
 			
 			previewBtn.bind('click', function(evt) {
@@ -847,6 +867,14 @@ var editor = (function(editor) {
 			}
 
 			this.sidePanel.setVisible(false);
+			this.buttons.slideUp(200);
+		},
+		
+		updateNewProject: function() {
+			this.loadedProject = null;
+			this.reset();
+			this.sidePanel.setVisible(false);
+			this.buttons.slideUp(200);
 		},
 		
 		updateProjects: function(projects) {
@@ -934,6 +962,9 @@ var editor = (function(editor) {
 			view.addListener(event.CheckProjectExists, function(project) {
 				model.checkExisting(project);
 			});
+			view.addListener(event.NewProject, function() {
+				model.newProject();
+			});
 			view.addListener(event.Publish, function(project) {
 				model.publish(project);
 			});
@@ -962,7 +993,10 @@ var editor = (function(editor) {
 			// model specific		
 			model.addListener(event.Loaded, function(data) {
 				view.updateLoaded(data.project, data.succeeded);
-			});			
+			});		
+			model.addListener(event.NewProject, function() {
+				view.updateNewProject();
+			});
 			model.addListener(event.ProjectExists, function(data) {
 				view.updateExists(data.exists, data.project);
 			});		
