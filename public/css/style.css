@@ -388,6 +388,10 @@ body.ten24 {
 #prjPane #prjCancelBtn.overwrite {
 	width: 4.615em;
 }
+#prjPane #prjNewBtn {
+	width: 12.462em;
+	clear: left;
+}
 #prjPane button:nth-child(3) {
 	clear: left;
 }
