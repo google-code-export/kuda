@@ -677,8 +677,8 @@
 					for (var i = 0, il = wgt.templates.length; i < il; ++i) {
 						var tpl = wgt.templates[i],
 							option = jQuery('<option value="' + i + '">' + tpl.name + '</option>');
-						
-						wgt.tplSelect.append(option);				
+							
+						wgt.tplSelect.append(option).sb('refresh');				
 					}
 				}
 			});
