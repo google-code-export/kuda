@@ -148,7 +148,7 @@ body.ten24 {
 	float: left;
 	position: relative;
 	color: #fff; 
-	background: url(/images/patternGray.gif) repeat;
+	background: url(/images/patternLinen.png) repeat;
 	box-shadow: inset 0 2px 8px #222,
 		0 1px 0 #444;
 	margin: 0.417em -1em 0.833em;
@@ -214,7 +214,7 @@ body.ten24 {
 .toolBtn:after {
 	content: '';
     background: url(../images/toolbarSprite.png) no-repeat 0 0;
-	background-size: 1200%;
+	background-size: 1313%;
 	display: block;
 	width: 3.667em;
 	height: 3.667em;
@@ -226,95 +226,78 @@ body.ten24 {
 .toolBtn:last-child {
     margin-bottom: 0;
 }
-
-#modelBrowserBtn:after {
+#browserBtn:after {
 	background-position: 0 0;
 }
-
-#modelBrowserBtn:hover:after, #modelBrowserBtn.down:after {
+#browserBtn:hover:after, #browserBtn.down:after {
     background-position: 0 -4em;
 }
-
 #animationsBtn:after {
 	background-position: -4em 0;
 }
-
 #animationsBtn:hover:after, #animationsBtn.down:after {
     background-position: -4em -4em;
 }
-
 #viewpointsBtn:after {
 	background-position: -8em 0;
 }
-
 #viewpointsBtn:hover:after, #viewpointsBtn.down:after {
     background-position: -8em -4emx;
 }
-
 #behaviorBtn:after {
 	background-position: -16em 0;
 }
-
 #behaviorBtn:hover:after, #behaviorBtn.down:after {
     background-position: -16em -4em;
 }
-
 #scenesBtn:after {
 	background-position: -20em 0;
 }
-
 #scenesBtn:hover:after, #scenesBtn.down:after {
     background-position: -20em -4em;
 }
-
 #particleEffectsBtn:after {
 	background-position: -24em 0;
 }
-
 #particleEffectsBtn:hover:after, #particleEffectsBtn.down:after {
 	background-position: -24em -4em;
 }
-
 #shapesBtn:after {
 	background-position: -28em 0;
 }
-
 #shapesBtn:hover:after, #shapesBtn.down:after {
 	background-position: -28em -4em;
 }
-
 #hudBtn:after {
 	background-position: -32em 0;
 }
-
 #hudBtn:hover:after, #hudBtn.down:after {
 	background-position: -32em -4em;
 }
-
 #fogBtn:after {
 	background-position: -36em 0;
 }
-
 #fogBtn:hover:after, #fogBtn.down:after {
 	background-position: -36em -4em;
 }
-
 #motionsBtn:after {
 	background-position: -12em 0;
 }
-
 #motionsBtn:hover:after, #motionsBtn.down:after  {
 	background-position: -12em -4em;
 }
-
 #manipsBtn:after {
 	background-position: -40em 0;
 }
-
 #manipsBtn:hover:after, #manipsBtn.down:after {
 	background-position: -40em -4em;
 }
-
+#timersBtn:after {
+	background-position: -44em 0;
+}
+#timersBtn:hover:after, #timersBtn.down:after {
+	background-position: -44em -4em;
+}
 .toolBtn.down {
 	background: #75d0f4;   
 }
