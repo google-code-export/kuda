@@ -70,7 +70,14 @@ app.get('/projects', function(req, res) {
 				
 				if (file.match('.json')) {
 					file = file.split('.')[0];
-					data.projects.push(file);	
+					
+					var published = projectsPath + '/' + file + '.html',
+						pData = {
+							name: file,
+							published: path.existsSync(published)
+						};
+					
+					data.projects.push(pData);	
 				}
 			}
 		}
