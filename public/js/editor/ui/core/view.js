@@ -36,27 +36,293 @@ var editor = (function(editor) {
 
 		FARPLANE = 10000,
 		NEARPLANE = 0.5;
+
+
+////////////////////////////////////////////////////////////////////////////////
+//									Panel		  		                      //
+////////////////////////////////////////////////////////////////////////////////
+
+	var panels = [],
 	
+		addOpacityAnim = function(visible, animData) {
+			var ctn = this.container,
+				btn = this.minMaxBtn,
+				origOpacity = this.origOpacity,
+				opacityStart = visible ? 0 : origOpacity,
+				opacityEnd = visible ? origOpacity : 0;
+			
+			animData.opacity = opacityEnd;
+			ctn.css('opacity', opacityStart);
+			
+			if (visible) {
+				ctn.show();
+				btn.show();
+			}
+		},
+		
+		addSlideAnim = function(destination, animData) {
+			var ctn = this.container,
+				location;
+			
+			switch(this.config.location) {
+				case editor.ui.Location.TOP:
+					location = 'top';
+					break;
+				case editor.ui.Location.BOTTOM:
+					location = 'bottom';
+					break;
+				case editor.ui.Location.RIGHT:
+					location = 'right';
+					break;
+				default:
+					location = 'left';
+					break;
+			}
+			
+			var start = parseInt(ctn.css(location)),
+				animAmt = '+=' + (destination - start);
+			
+			animData[location] = animAmt;
+		},
+		
+		setVisible = function(visible, opt_skipAnim) {
+			var ctn = this.container,
+				btn = this.minMaxBtn,
+				animData = {},
+				dest = visible ? 0 : -20,
+				location;
+			
+			switch(this.config.location) {
+				case editor.ui.Location.TOP:
+					location = 'top';
+					break;
+				case editor.ui.Location.BOTTOM:
+					location = 'bottom';
+					break;
+				case editor.ui.Location.RIGHT:
+					location = 'right';
+					break;
+				default:
+					location = 'left';
+					break;
+			}
+			
+			if (visible) {
+				btn.data('min', true).text('>');
+			} else {
+				// Check if it is already hidden
+				var pos = parseInt(ctn.css(location));
+				opt_skipAnim = opt_skipAnim || pos < dest;
+			}
+			
+			if (opt_skipAnim) {
+				if (visible) {
+					ctn.css(location, dest).css('opacity', this.origOpacity).show();
+					btn.css(location, dest).show();
+				}
+				else {
+					ctn.css(location, dest).css('opacity', 0).hide();
+					btn.css(location, dest).hide();
+				}
+			} else {
+				addOpacityAnim.call(this, visible, animData);
+				addSlideAnim.call(this, dest, animData);
+				
+				ctn.animate(animData, function() {
+					if (!visible) {
+						ctn.hide();
+					}
+				});
+			}
+		},
+	
+	PanelBase = editor.ui.Component.extend({
+		init: function(options) {
+			var newOpts = jQuery.extend({
+				location: editor.ui.Location.RIGHT,
+				classes: [],
+				startsVisible: true
+			}, options);
+			this.origOpacity = null;
+			this.visible = true;
+			
+			this.name = newOpts.location === editor.ui.Location.TOP ?
+				'topPanel' : newOpts.location === editor.ui.Location.BOTTOM ?
+				'bottomPanel' : 'sidePanel';
+
+			this._super(newOpts);
+			panels.push(this);
+		},
+		
+		finishLayout: function() {
+			var minMaxBtn = this.minMaxBtn = jQuery('<button style="position:absolute;"></button>'),
+				ctn = this.container = jQuery('<div></div>'),
+				pnl = this;
+			
+			ctn.append(minMaxBtn);
+			jQuery('body').append(ctn);
+			
+			minMaxBtn.bind('click', function(evt) {
+				var min = minMaxBtn.data('min');
+				
+				if (min) {
+					pnl.minimize();
+				} else {
+					pnl.maximize();
+				}
+				
+				minMaxBtn.data('min', !min);
+			}).data('min', true).text('>');
+			
+			// add any specified classes
+			for (var i = 0, il = this.config.classes.length; i < il; i++) {
+				ctn.addClass(this.config.classes[i]);
+			}
+			
+			// put this on the tool layer and align it correctly
+			ctn.css({
+				zIndex: editor.ui.Layer.TOOL
+			});
+			
+			switch(this.config.location) {
+				case editor.ui.Location.RIGHT:
+					ctn.addClass('rightAligned');
+					break;
+				case editor.ui.Location.TOP:
+					ctn.addClass('topAligned');
+					break;
+				case editor.ui.Location.BOTTOM:
+					ctn.addClass('bottomAligned');
+					break;
+			}
+			
+			
+			this.origOpacity = ctn.css('opacity');
+		},
+		
+		getName: function() {
+			return this.name;
+		},
+		
+		getPreferredHeight: function() {
+			return this.preferredHeight;
+		},
+		
+		isVisible: function() {
+			return this.visible;
+		},
+		
+		maximize: function() {
+			var animData = {},
+				minMaxBtn = this.minMaxBtn;
+			
+			addSlideAnim.call(this, 0, animData);
+			this.container.animate(animData, function() {
+				minMaxBtn.text('>');
+			});
+		},
+		
+		minimize: function() {
+			var animData = {},
+				minMaxBtn = this.minMaxBtn,
+				dest;
+			
+			switch(this.config.location) {
+				case editor.ui.Location.TOP:
+				case editor.ui.Location.BOTTOM:
+					dest = this.container.height();
+					break;
+				case editor.ui.Location.RIGHT:
+				default:
+					dest = this.container.width();
+					break;
+			}
+			
+			addSlideAnim.call(this, -1 * dest, animData);
+			this.container.animate(animData, function() {
+				minMaxBtn.text('<');
+			});
+		},
+		
+		resize: function() {
+			var ctnHeight = this.container.outerHeight(),
+				ctnWidth = this.container.outerWidth(),
+				btnHeight= this.minMaxBtn.outerHeight(),
+				btnWidth = this.minMaxBtn.outerWidth(),
+				windowWidth = window.innerWidth ? window.innerWidth 
+					: document.documentElement.offsetWidth,
+				midWidth = (windowWidth - ctnWidth)/2;
+			
+			switch(this.config.location) {
+				case editor.ui.Location.RIGHT:
+					this.minMaxBtn.css({
+						top: (ctnHeight - btnHeight)/2,
+						right: ctnWidth
+					});
+					break;
+				case editor.ui.Location.TOP:
+					this.container.css({
+						left: midWidth
+					});
+					this.minMaxBtn.css({
+						left: (ctnWidth - btnWidth)/2,
+						top: ctnHeight
+					});
+					break;
+				case editor.ui.Location.BOTTOM:
+					this.container.css({
+						left: midWidth
+					});
+					this.minMaxBtn.css({
+						left: (ctnWidth - btnWidth)/2,
+						bottom: ctnHeight
+					});
+					break;
+				default:
+					this.minMaxBtn.css({
+						top: (ctnHeight - btnHeight)/2,
+						left: ctnWidth
+					});
+					break;
+			}			
+		},
+		
+		setVisible: function(visible, opt_skipAnim) {
+			if (visible !== this.visible) {
+				setVisible.call(this, visible, opt_skipAnim);
+				
+				var pnl = this;
+				this.resize();
+				this.visible = visible;
+				this.notifyListeners(editor.events.PanelVisible, {
+					panel: pnl,
+					visible: visible
+				});
+			}
+		}
+	});
+
 ////////////////////////////////////////////////////////////////////////////////
 //                     			   	  Tab Bar	  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var TabBar = editor.ui.Component.extend({
+	var TabBar = PanelBase.extend({
 		init: function() {
 			this.panes = new Hashtable();
 			this.visiblePane = null;
 			
-			this._super();
+			this._super({
+				location: 3		// LEFT
+			});
 		},
 		
 		finishLayout: function() {
-			this.container = jQuery('<div id="tabBar"></div>');
-			this.list = jQuery('<ul></ul>');
+			this._super();
+
 			var title = jQuery('<h1><span>World</span><span class="editor">Editor</span></h1>');
-			
-			this.container.append(title).append(this.list)
-				.css('zIndex', editor.ui.Layer.TOOLBAR);
-			this.origOpacity = this.container.css('opacity');
+			this.list = jQuery('<ul></ul>');
+			this.container.attr('id', 'tabBar').append(title).append(this.list);
+			this.resize();
 		},
 		
 		add: function(tabpane, opt_liId) {			
@@ -105,10 +371,6 @@ var editor = (function(editor) {
 		get: function(title) {
 			var obj = this.panes.get(title);
 			return obj != null ? obj.pane : obj;
-		},
-		
-		setVisible: function(visible) {
-			setVisible.call(this, visible);
 		}
 	});
 	
@@ -193,124 +455,24 @@ var editor = (function(editor) {
 //                     			   	  Panel		  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var panels = [];
-	
-	var addOpacityAnim = function(visible, animData) {
-			var ctn = this.container,
-				btn = this.minMaxBtn,
-				origOpacity = this.origOpacity,
-				opacityStart = visible ? 0 : origOpacity,
-				opacityEnd = visible ? origOpacity : 0;
-			
-			animData.opacity = opacityEnd;
-			ctn.css('opacity', opacityStart);
-			
-			if (visible) {
-				ctn.show();
-				if (btn) {
-					btn.show();
-				}
-			}
-		},
-		
-		addSlideAnim = function(destination, animData) {
-			var ctn = this.container,
-				location;
-			
-			switch(this.config.location) {
-				case editor.ui.Location.TOP:
-					location = 'top';
-					break;
-				case editor.ui.Location.BOTTOM:
-					location = 'bottom';
-					break;
-				case editor.ui.Location.RIGHT:
-					location = 'right';
-					break;
-				default:
-					location = 'left';
-					break;
-			}
-			
-			var start = parseInt(ctn.css(location)),
-				animAmt = '+=' + (destination - start);
-			
-			animData[location] = animAmt;
-		},
-		
-		setVisible = function(visible, opt_skipAnim) {
-			var ctn = this.container,
-				btn = this.minMaxBtn,
-				animData = {},
-				dest = visible ? 0 : -20,
-				location;
-			
-			switch(this.config.location) {
-				case editor.ui.Location.TOP:
-					location = 'top';
-					break;
-				case editor.ui.Location.BOTTOM:
-					location = 'bottom';
-					break;
-				case editor.ui.Location.RIGHT:
-					location = 'right';
-					break;
-				default:
-					location = 'left';
-					break;
-			}
-			
-			if (visible) {
-				if (btn) {
-					btn.data('min', true).text('>');
-				}
-			} else {
-				// Check if it is already hidden
-				var pos = parseInt(ctn.css(location));
-				opt_skipAnim = opt_skipAnim || pos < dest;
-			}
-			
-			if (opt_skipAnim) {
-				if (visible) {
-					ctn.css(location, dest).css('opacity', this.origOpacity).show();
-					btn.css(location, dest).show();
-				}
-				else {
-					ctn.css(location, dest).css('opacity', 0).hide();
-					btn.css(location, dest).hide();
-				}
-			} else {
-				addOpacityAnim.call(this, visible, animData);
-				addSlideAnim.call(this, dest, animData);
-				
-				ctn.animate(animData, function() {
-					if (!visible) {
-						ctn.hide();
-					}
-				});
-			}
-		};
-	
-	editor.ui.PanelDefaults = {
-		location: editor.ui.Location.RIGHT,
-		classes: [],
-		startsVisible: true
-	};
-	
-	editor.ui.Panel = editor.ui.Component.extend({
+	editor.ui.Panel = PanelBase.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, editor.ui.PanelDefaults, options);
-			this.origOpacity = null;
 			this.widgets = [];
-			this.visible = true;
+			options = options || {};
 			
-			this.name = newOpts.location === editor.ui.Location.TOP ?
-				'topPanel' : newOpts.location === editor.ui.Location.BOTTOM ?
-				'bottomPanel' : 'sidePanel';
+			if (options.classes) {
+				options.classes.unshift('panel');
+			} else {
+				options.classes = ['panel'];
+			}
+			
+			this._super(options);
+		},
+		
+		finishLayout: function() {
+			this._super();
 
-			this._super(newOpts);
-			
-			panels.push(this);
+			this.setVisible(false, true);
 		},
 		
 		addWidget: function(widget) {
@@ -325,145 +487,9 @@ var editor = (function(editor) {
 			});
 		},
 		
-		finishLayout: function() {
-			var minMaxBtn = this.minMaxBtn = jQuery('<button style="position:absolute;"></button>'),
-				pnl = this;
-			
-			this.container = jQuery('<div class="panel"></div>');
-			this.container.append(minMaxBtn);
-			jQuery('body').append(this.container);
-			
-			minMaxBtn.bind('click', function(evt) {
-				var min = minMaxBtn.data('min');
-				
-				if (min) {
-					pnl.minimize();
-				} else {
-					pnl.maximize();
-				}
-				
-				minMaxBtn.data('min', !min);
-			}).data('min', true).text('>');
-			
-			// add any specified classes
-			for (var i = 0, il = this.config.classes.length; i < il; i++) {
-				this.container.addClass(this.config.classes[i]);
-			}
-			
-			// put this on the widget layer and align it correctly
-			this.container.css({
-				zIndex: editor.ui.Layer.TOOL
-			});
-			
-			switch(this.config.location) {
-				case editor.ui.Location.RIGHT:
-					this.container.addClass('rightAligned');
-					break;
-				case editor.ui.Location.TOP:
-					this.container.addClass('topAligned');
-					break;
-				case editor.ui.Location.BOTTOM:
-					this.container.addClass('bottomAligned');
-					break;
-			}
-			
-			
-			this.origOpacity = this.container.css('opacity');
-			this.setVisible(false, true);
-		},
-		
-		getName: function() {
-			return this.name;
-		},
-		
-		getPreferredHeight: function() {
-			return this.preferredHeight;
-		},
-		
-		isVisible: function() {
-			return this.visible;
-		},
-		
-		maximize: function() {
-			var animData = {},
-				minMaxBtn = this.minMaxBtn;
-			
-			addSlideAnim.call(this, 0, animData);
-			this.container.animate(animData, function() {
-				minMaxBtn.text('>');
-			});
-		},
-		
-		minimize: function() {
-			var animData = {},
-				minMaxBtn = this.minMaxBtn,
-				dest;
-			
-			switch(this.config.location) {
-				case editor.ui.Location.TOP:
-				case editor.ui.Location.BOTTOM:
-					dest = this.container.height();
-					break;
-				case editor.ui.Location.RIGHT:
-				default:
-					dest = this.container.width();
-					break;
-			}
-			
-			addSlideAnim.call(this, -1 * dest, animData);
-			this.container.animate(animData, function() {
-				minMaxBtn.text('<');
-			});
-		},
-		
-		resize: function() {
-			var ctnHeight = this.container.outerHeight(),
-				ctnWidth = this.container.outerWidth(),
-				btnHeight= this.minMaxBtn.outerHeight(),
-				btnWidth = this.minMaxBtn.outerWidth(),
-				windowWidth = window.innerWidth ? window.innerWidth 
-					: document.documentElement.offsetWidth,
-				midWidth = (windowWidth - ctnWidth)/2;
-			
-			switch(this.config.location) {
-				case editor.ui.Location.RIGHT:
-					this.minMaxBtn.css({
-						top: (ctnHeight - btnHeight)/2,
-						right: ctnWidth
-					});
-					break;
-				case editor.ui.Location.TOP:
-					this.container.css({
-						left: midWidth
-					});
-					this.minMaxBtn.css({
-						left: (ctnWidth - btnWidth)/2,
-						top: ctnHeight
-					});
-					break;
-				case editor.ui.Location.BOTTOM:
-					this.container.css({
-						left: midWidth
-					});
-					this.minMaxBtn.css({
-						left: (ctnWidth - btnWidth)/2,
-						bottom: ctnHeight
-					});
-					break;
-			}			
-		},
-		
 		setVisible: function(visible, opt_skipAnim) {
 			if (visible !== this.visible) {
-				setVisible.call(this, visible, opt_skipAnim);
-				
-				var pnl = this;
-				this.resize();
-				this.notifyListeners(editor.events.PanelVisible, {
-					panel: pnl,
-					visible: visible
-				});
-				this.visible = visible;
+				this._super(visible, opt_skipAnim);
 				
 				for (var i = 0, il = this.widgets.length; i < il; i++) {
 					this.widgets[i].sizeAndPosition();	
@@ -775,9 +801,7 @@ var editor = (function(editor) {
 //                     			  Private Vars  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var tabbar = new TabBar(),
-		commonWidgets = new Hashtable(),
-		grid = null;
+	var tabbar;
 		
 	var resize = function() {		
 		var bdy = jQuery('body'),
@@ -832,10 +856,10 @@ var editor = (function(editor) {
 		
 		// create and size the webgl client			
 		hemi.core.init(clientElements[0]);
-		// create the tabbar
-		bdy.append(tabbar.getUI());
 		// create the grid plane
 		grid = new editor.ui.GridPlane(EXTENT, FIDELITY);
+		// create the plugin panel
+		tabbar = new TabBar();
 			
 		var cam = hemi.world.camera;
 		cam.enableControl();
