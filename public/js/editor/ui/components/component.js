@@ -35,7 +35,10 @@ var editor = (function(module) {
 			
 	        this.config = jQuery.extend({}, module.ui.ComponentDefaults, options);
 			this.container = null;
-			this.visible = false;
+			
+			if (this.visible === undefined) {
+				this.visible = false;
+			}
 			
 			if (this.config.immediateLayout) {
 				this.layout();

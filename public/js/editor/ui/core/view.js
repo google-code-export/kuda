@@ -56,6 +56,7 @@ var editor = (function(editor) {
 			
 			this.container.append(title).append(this.list)
 				.css('zIndex', editor.ui.Layer.TOOLBAR);
+			this.origOpacity = this.container.css('opacity');
 		},
 		
 		add: function(tabpane, opt_liId) {			
@@ -107,9 +108,6 @@ var editor = (function(editor) {
 		},
 		
 		setVisible: function(visible) {
-			if (this.origOpacity == null) {
-				this.origOpacity = this.container.css('opacity');
-			}
 			setVisible.call(this, visible);
 		}
 	});
@@ -197,50 +195,95 @@ var editor = (function(editor) {
 	
 	var panels = [];
 	
-	var setVisible = function(visible) {
+	var addOpacityAnim = function(visible, animData) {
 			var ctn = this.container,
+				btn = this.minMaxBtn,
 				origOpacity = this.origOpacity,
-				opacity = visible ? origOpacity : 0,
 				opacityStart = visible ? 0 : origOpacity,
-				location = 'top',
-				startLoc = visible ? -20 : 0,
-				animAmt = visible ? '+=20' : '-=20',
-				animData = {
-					opacity: opacity
-				};
+				opacityEnd = visible ? origOpacity : 0;
 			
-			// TODO: there's a better way to do this
-			if (!this.visible && !visible) {
-				ctn.css('opacity', 0).hide();
+			animData.opacity = opacityEnd;
+			ctn.css('opacity', opacityStart);
+			
+			if (visible) {
+				ctn.show();
+				if (btn) {
+					btn.show();
+				}
 			}
-			else if (this.visible && visible) {
-				ctn.css('opacity', origOpacity);
+		},
+		
+		addSlideAnim = function(destination, animData) {
+			var ctn = this.container,
+				location;
+			
+			switch(this.config.location) {
+				case editor.ui.Location.TOP:
+					location = 'top';
+					break;
+				case editor.ui.Location.BOTTOM:
+					location = 'bottom';
+					break;
+				case editor.ui.Location.RIGHT:
+					location = 'right';
+					break;
+				default:
+					location = 'left';
+					break;
 			}
-			else {				
-				ctn.css('opacity', opacityStart);
-				
+			
+			var start = parseInt(ctn.css(location)),
+				animAmt = '+=' + (destination - start);
+			
+			animData[location] = animAmt;
+		},
+		
+		setVisible = function(visible, opt_skipAnim) {
+			var ctn = this.container,
+				btn = this.minMaxBtn,
+				animData = {},
+				dest = visible ? 0 : -20,
+				location;
+			
+			switch(this.config.location) {
+				case editor.ui.Location.TOP:
+					location = 'top';
+					break;
+				case editor.ui.Location.BOTTOM:
+					location = 'bottom';
+					break;
+				case editor.ui.Location.RIGHT:
+					location = 'right';
+					break;
+				default:
+					location = 'left';
+					break;
+			}
+			
+			if (visible) {
+				if (btn) {
+					btn.data('min', true).text('>');
+				}
+			} else {
+				// Check if it is already hidden
+				var pos = parseInt(ctn.css(location));
+				opt_skipAnim = opt_skipAnim || pos < dest;
+			}
+			
+			if (opt_skipAnim) {
 				if (visible) {
-					ctn.show();
+					ctn.css(location, dest).css('opacity', this.origOpacity).show();
+					btn.css(location, dest).show();
 				}
-			
-				switch(this.config.location) {
-					case editor.ui.Location.TOP:
-						animData.top = animAmt;			
-						break;
-					case editor.ui.Location.BOTTOM:
-						animData.bottom = animAmt;
-						location = 'bottom';				
-						break;
-					case editor.ui.Location.RIGHT:
-						animData.right = animAmt;
-						location = 'right';
-						break;
-					default: 
-						animData.left = animAmt;
-						location = 'left';
+				else {
+					ctn.css(location, dest).css('opacity', 0).hide();
+					btn.css(location, dest).hide();
 				}
-			
-				ctn.css(location, startLoc).animate(animData, function() {
+			} else {
+				addOpacityAnim.call(this, visible, animData);
+				addSlideAnim.call(this, dest, animData);
+				
+				ctn.animate(animData, function() {
 					if (!visible) {
 						ctn.hide();
 					}
@@ -283,24 +326,50 @@ var editor = (function(editor) {
 		},
 		
 		finishLayout: function() {
-			var wgt = this;
+			var minMaxBtn = this.minMaxBtn = jQuery('<button style="position:absolute;"></button>'),
+				pnl = this;
 			
 			this.container = jQuery('<div class="panel"></div>');
-//			this.container.data('appended', false);		
+			this.container.append(minMaxBtn);
 			jQuery('body').append(this.container);
 			
-			// put this on the widget layer and align it correctly
+			minMaxBtn.bind('click', function(evt) {
+				var min = minMaxBtn.data('min');
+				
+				if (min) {
+					pnl.minimize();
+				} else {
+					pnl.maximize();
+				}
+				
+				minMaxBtn.data('min', !min);
+			}).data('min', true).text('>');
+			
+			// add any specified classes
 			for (var i = 0, il = this.config.classes.length; i < il; i++) {
 				this.container.addClass(this.config.classes[i]);
 			}
+			
+			// put this on the widget layer and align it correctly
 			this.container.css({
 				zIndex: editor.ui.Layer.TOOL
-			})
-			.addClass(this.config.location === editor.ui.Location.RIGHT ? 'rightAligned' :
-				this.config.location === editor.ui.Location.TOP ? 'topAligned' : 
-				'bottomAligned');
+			});
 			
-			this.setVisible(false);
+			switch(this.config.location) {
+				case editor.ui.Location.RIGHT:
+					this.container.addClass('rightAligned');
+					break;
+				case editor.ui.Location.TOP:
+					this.container.addClass('topAligned');
+					break;
+				case editor.ui.Location.BOTTOM:
+					this.container.addClass('bottomAligned');
+					break;
+			}
+			
+			
+			this.origOpacity = this.container.css('opacity');
+			this.setVisible(false, true);
 		},
 		
 		getName: function() {
@@ -316,46 +385,89 @@ var editor = (function(editor) {
 		},
 		
 		maximize: function() {
+			var animData = {},
+				minMaxBtn = this.minMaxBtn;
 			
+			addSlideAnim.call(this, 0, animData);
+			this.container.animate(animData, function() {
+				minMaxBtn.text('>');
+			});
 		},
 		
 		minimize: function() {
+			var animData = {},
+				minMaxBtn = this.minMaxBtn,
+				dest;
 			
-		},
-		
-		resize: function() {			
 			switch(this.config.location) {
 				case editor.ui.Location.TOP:
 				case editor.ui.Location.BOTTOM:
-					var width = this.container.outerWidth(),
-						windowWidth = window.innerWidth ? window.innerWidth 
-							: document.documentElement.offsetWidth;
-					
-					this.container.css({
-						left: (windowWidth - width)/2
+					dest = this.container.height();
+					break;
+				case editor.ui.Location.RIGHT:
+				default:
+					dest = this.container.width();
+					break;
+			}
+			
+			addSlideAnim.call(this, -1 * dest, animData);
+			this.container.animate(animData, function() {
+				minMaxBtn.text('<');
+			});
+		},
+		
+		resize: function() {
+			var ctnHeight = this.container.outerHeight(),
+				ctnWidth = this.container.outerWidth(),
+				btnHeight= this.minMaxBtn.outerHeight(),
+				btnWidth = this.minMaxBtn.outerWidth(),
+				windowWidth = window.innerWidth ? window.innerWidth 
+					: document.documentElement.offsetWidth,
+				midWidth = (windowWidth - ctnWidth)/2;
+			
+			switch(this.config.location) {
+				case editor.ui.Location.RIGHT:
+					this.minMaxBtn.css({
+						top: (ctnHeight - btnHeight)/2,
+						right: ctnWidth
 					});
-					
+					break;
+				case editor.ui.Location.TOP:
+					this.container.css({
+						left: midWidth
+					});
+					this.minMaxBtn.css({
+						left: (ctnWidth - btnWidth)/2,
+						top: ctnHeight
+					});
+					break;
+				case editor.ui.Location.BOTTOM:
+					this.container.css({
+						left: midWidth
+					});
+					this.minMaxBtn.css({
+						left: (ctnWidth - btnWidth)/2,
+						bottom: ctnHeight
+					});
 					break;
 			}			
 		},
 		
-		setVisible: function(visible) {
-			if (this.origOpacity == null) {				
-				this.origOpacity = this.container.css('opacity');
-			}
-			setVisible.call(this, visible);
-					
-			var pnl = this;
-			
-			this.resize();
-			this.notifyListeners(editor.events.PanelVisible, {
-				panel: pnl,
-				visible: visible
-			});
-			this.visible = visible;
-			
-			for (var i = 0, il = this.widgets.length; i < il; i++) {
-				this.widgets[i].sizeAndPosition();	
+		setVisible: function(visible, opt_skipAnim) {
+			if (visible !== this.visible) {
+				setVisible.call(this, visible, opt_skipAnim);
+				
+				var pnl = this;
+				this.resize();
+				this.notifyListeners(editor.events.PanelVisible, {
+					panel: pnl,
+					visible: visible
+				});
+				this.visible = visible;
+				
+				for (var i = 0, il = this.widgets.length; i < il; i++) {
+					this.widgets[i].sizeAndPosition();	
+				}
 			}
 		}
 	});
@@ -421,8 +533,7 @@ var editor = (function(editor) {
 		},
 		
 		sizeAndPosition: function() {
-			var wgt = this,
-				container = this.container,
+			var container = this.container,
 				padding = parseInt(container.css('paddingBottom')) +
 					parseInt(container.css('paddingTop')),
 				win = jQuery(window),
@@ -690,22 +801,6 @@ var editor = (function(editor) {
 		for (var i = 0, il = panels.length; i < il; i++) {
 			panels[i].resize();
 		}
-	};
-	
-////////////////////////////////////////////////////////////////////////////////
-//                      	Convenient Widget Methods     	                  //
-////////////////////////////////////////////////////////////////////////////////  
-	
-	editor.ui.sizeAndPosition = function(height) {
-		var wgt = this,
-			container = this.container,
-			padding = parseInt(container.css('paddingBottom')) +
-				parseInt(container.css('paddingTop')),
-			win = jQuery(window),
-			winHeight = win.height(),
-			wgtHeight = winHeight/2 - padding;
-		
-		container.height(wgtHeight)
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
