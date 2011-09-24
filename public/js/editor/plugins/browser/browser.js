@@ -754,14 +754,6 @@
 			
 			this.buttons = jQuery('<div class="panelButtons"></div>');
 			this.container.prepend(this.buttons);
-		},
-		
-		setVisible: function(visible) {
-			this._super(visible);
-			
-			for (var i = 0, il = this.widgets.length; i < il; i++) {
-				sizeAndPosition.call(this.widgets[i]);
-			}
 		}
 	});
 	
@@ -769,7 +761,7 @@
 //                      	  Widget Private Methods     	                  //
 ////////////////////////////////////////////////////////////////////////////////  
 	
-	var sizeAndPosition = function() {
+	var brSizeAndPosition = function() {
 			var container = this.container,
 				btnPnlHeight = jQuery('.mbrSidePanel .panelButtons').outerHeight(),
 				padding = parseInt(container.css('paddingBottom')) +
@@ -779,15 +771,6 @@
 				wgtHeight = winHeight - padding - btnPnlHeight;
 			
 			container.height(wgtHeight);
-		},
-		
-		subResize = function() {
-			var details = this.detailsList,
-				treePane = this.treeParent,
-				height = this.container.outerHeight(),
-				detHeight = details.outerHeight();
-				
-			treePane.height(height - detHeight);
 		};
 	
 	
@@ -971,10 +954,6 @@
 			this.container.append(this.detailsList).append(this.treeParent);
 		},
 		
-		layoutDone: function() {			
-			sizeAndPosition.call(this);
-		},
-		
 		removeModel: function(model) {
 			var node = jQuery('#node_' + getNodeId(model));
 			this.tree.jstree('delete_node', node);
@@ -995,6 +974,10 @@
 			}
 			
 			this.tree.jstree('select_node', elem, false);
+		},
+		
+		sizeAndPosition: function() {
+			brSizeAndPosition.call(this);
 		},
 		
 		updateShape: function(shape) {
@@ -1061,10 +1044,6 @@
 			});
 			
 			this.container.append(this.list.getUI());
-		},
-		
-		layoutDone: function() {			
-			sizeAndPosition.call(this);
 		},
 		
 	    addHiddenItem: function(transform, owner) {
@@ -1141,6 +1120,10 @@
 			for (var ndx = 0, len = listItems.length; ndx < len; ndx++) {
 				listItems[ndx].showBtn.click();
 			}
+		},
+		
+		sizeAndPosition: function() {
+			brSizeAndPosition.call(this);
 		}
 	});
 	
@@ -1210,10 +1193,14 @@
 		
 			sel.bind('change', function() {
 				if (sel.val() !== '-1') {
-					msg.text('Loading Model...').slideDown(200);
+					msg.text('Loading Model...').slideDown(200, function() {
+						wgt.invalidate();
+					});
 					var val = ipt.is(':visible') ? ipt.val() : sel.val();
 					loadModel(val, function(){
-						msg.text('').hide(200);
+						msg.text('').hide(200, function() {
+							wgt.invalidate();
+						});
 						populateUnloadPanel.call(wgt);
 					});
 					
