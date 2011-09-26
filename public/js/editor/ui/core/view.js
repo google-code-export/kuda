@@ -110,7 +110,7 @@ var editor = (function(editor) {
 					.bind('mouseleave', hideMinMaxBtn);
 				}
 				
-				btn.data('min', true).text('>').hide();
+				btn.data('min', true).text('Min').hide();
 			} else {
 				// Check if it is already hidden
 				var pos = parseInt(ctn.css(location));
@@ -192,7 +192,7 @@ var editor = (function(editor) {
 				}
 				
 				minMaxBtn.data('min', !min);
-			}).data('min', true).text('>').hide();
+			}).data('min', true).text('Min').hide();
 			
 			// add any specified classes
 			for (var i = 0, il = this.config.classes.length; i < il; i++) {
@@ -243,7 +243,7 @@ var editor = (function(editor) {
 			this.container.bind('mouseleave', hideMinMaxBtn)
 			.bind('mouseenter', showMinMaxBtn)
 			.animate(animData, function() {
-				minMaxBtn.text('>');
+				minMaxBtn.text('Min');
 			});
 		},
 		
@@ -267,7 +267,7 @@ var editor = (function(editor) {
 			this.container.unbind('mouseleave', hideMinMaxBtn)
 			.unbind('mouseenter', showMinMaxBtn)
 			.animate(animData, function() {
-				minMaxBtn.text('<');
+				minMaxBtn.text('Max');
 			});
 		},
 		
