@@ -43,20 +43,16 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 
 	var panels = [],
-	
-		addOpacityAnim = function(visible, animData) {
-			var ctn = this.container,
-				btn = this.minMaxBtn,
-				origOpacity = this.origOpacity,
-				opacityStart = visible ? 0 : origOpacity,
+		
+		addOpacityAnim = function(visible, origOpacity, target, animData) {
+			var opacityStart = visible ? 0 : origOpacity,
 				opacityEnd = visible ? origOpacity : 0;
 			
 			animData.opacity = opacityEnd;
-			ctn.css('opacity', opacityStart);
+			target.css('opacity', opacityStart);
 			
 			if (visible) {
-				ctn.show();
-				btn.show();
+				target.show();
 			}
 		},
 		
@@ -108,7 +104,13 @@ var editor = (function(editor) {
 			}
 			
 			if (visible) {
-				btn.data('min', true).text('>');
+				if (!btn.data('min')) {
+					// The container was minimized, we need to rebind handlers
+					ctn.bind('mouseenter', showMinMaxBtn)
+					.bind('mouseleave', hideMinMaxBtn);
+				}
+				
+				btn.data('min', true).text('>').hide();
 			} else {
 				// Check if it is already hidden
 				var pos = parseInt(ctn.css(location));
@@ -118,14 +120,14 @@ var editor = (function(editor) {
 			if (opt_skipAnim) {
 				if (visible) {
 					ctn.css(location, dest).css('opacity', this.origOpacity).show();
-					btn.css(location, dest).show();
+					btn.css(location, dest);
 				}
 				else {
 					ctn.css(location, dest).css('opacity', 0).hide();
-					btn.css(location, dest).hide();
+					btn.css(location, dest);
 				}
 			} else {
-				addOpacityAnim.call(this, visible, animData);
+				addOpacityAnim(visible, this.origOpacity, ctn, animData, ctn);
 				addSlideAnim.call(this, dest, animData);
 				
 				ctn.animate(animData, function() {
@@ -135,6 +137,24 @@ var editor = (function(editor) {
 				});
 			}
 		},
+	
+	hideMinMaxBtn = function(evt) {
+		var btn = jQuery(this).find('button.minMax'),
+			animData = {};
+		
+		addOpacityAnim(false, btn.data('origOpacity'), btn, animData);
+		btn.animate(animData, function() {
+			btn.hide();
+		});
+	},
+	
+	showMinMaxBtn = function(evt) {
+		var btn = jQuery(this).find('button.minMax'),
+			animData = {};
+		
+		addOpacityAnim(true, btn.data('origOpacity'), btn, animData);
+		btn.animate(animData);
+	},
 	
 	PanelBase = editor.ui.Component.extend({
 		init: function(options) {
@@ -155,7 +175,7 @@ var editor = (function(editor) {
 		},
 		
 		finishLayout: function() {
-			var minMaxBtn = this.minMaxBtn = jQuery('<button style="position:absolute;"></button>'),
+			var minMaxBtn = this.minMaxBtn = jQuery('<button class="minMax" style="position:absolute;"></button>'),
 				ctn = this.container = jQuery('<div></div>'),
 				pnl = this;
 			
@@ -172,7 +192,7 @@ var editor = (function(editor) {
 				}
 				
 				minMaxBtn.data('min', !min);
-			}).data('min', true).text('>');
+			}).data('min', true).text('>').hide();
 			
 			// add any specified classes
 			for (var i = 0, il = this.config.classes.length; i < il; i++) {
@@ -182,7 +202,9 @@ var editor = (function(editor) {
 			// put this on the tool layer and align it correctly
 			ctn.css({
 				zIndex: editor.ui.Layer.TOOL
-			});
+			})
+			.bind('mouseenter', showMinMaxBtn)
+			.bind('mouseleave', hideMinMaxBtn);
 			
 			switch(this.config.location) {
 				case editor.ui.Location.RIGHT:
@@ -198,6 +220,7 @@ var editor = (function(editor) {
 			
 			
 			this.origOpacity = ctn.css('opacity');
+			minMaxBtn.data('origOpacity', this.origOpacity);
 		},
 		
 		getName: function() {
@@ -217,7 +240,9 @@ var editor = (function(editor) {
 				minMaxBtn = this.minMaxBtn;
 			
 			addSlideAnim.call(this, 0, animData);
-			this.container.animate(animData, function() {
+			this.container.bind('mouseleave', hideMinMaxBtn)
+			.bind('mouseenter', showMinMaxBtn)
+			.animate(animData, function() {
 				minMaxBtn.text('>');
 			});
 		},
@@ -239,7 +264,9 @@ var editor = (function(editor) {
 			}
 			
 			addSlideAnim.call(this, -1 * dest, animData);
-			this.container.animate(animData, function() {
+			this.container.unbind('mouseleave', hideMinMaxBtn)
+			.unbind('mouseenter', showMinMaxBtn)
+			.animate(animData, function() {
 				minMaxBtn.text('<');
 			});
 		},
