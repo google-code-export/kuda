@@ -852,6 +852,15 @@ var editor = (function(editor) {
 		for (var i = 0, il = panels.length; i < il; i++) {
 			panels[i].resize();
 		}
+		
+		// Unfortunately we also have to do this fairly O3D-specific resizing
+		var cans = vwr.find('canvas'),
+			displayInfo = hemi.core.client.gl.displayInfo;
+		
+		cans.attr('width', windowWidth);
+		cans.attr('height', windowHeight);
+		displayInfo.width = windowWidth;
+		displayInfo.height = windowHeight;
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
