@@ -218,7 +218,7 @@
 		notify: function(eventType, data) {
 			if (eventType === editor.events.WorldCleaned 
 					|| eventType === editor.events.WorldLoaded) {
-				this._super();
+				this._super(eventType, data);
 				return;
 			}
 			var args = data.args || [],

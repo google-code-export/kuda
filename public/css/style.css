@@ -590,11 +590,10 @@ body.ten24 {
 	background: #333;
 	padding: 0.833em;
 	text-align: left;
-	overflow: hidden;
+	overflow: auto;
 }
 .widgetWithForms {
 	background: #eee;
-	overflow: auto;
 }
 .widget h1 {
 	font-weight: bold;
@@ -614,6 +613,10 @@ body.ten24 {
 	line-height: 150%;
 }
 
+/**
+ * TODO: add scrolling class similar to widgetWithForms for list widgets
+ */
+
 /******************************************************************************
  * 								  List Widget								  *
  ******************************************************************************/
@@ -624,7 +627,6 @@ body.ten24 {
 	margin: 0 -10px;
 	float: left;
 	width: 25em;
-	overflow: auto;
 }
 ol.listWidget {
 	list-style: decimal inside none;
