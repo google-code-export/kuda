@@ -192,7 +192,6 @@ var editor = (function(editor) {
 			this.nameIpt.val(msgTarget.name);
 			this.msgTarget = msgTarget;
 			this.checkSaveButton();
-			this.prmInstructions.hide();
 		},
 		
 		setBySavedData = function(data, actor) {			
@@ -328,15 +327,17 @@ var editor = (function(editor) {
 									method = path[path.length-1],
 									args = editor.utils.getFunctionParams(handler[method]);
 								if (args.length > 0) {
-									wgt.prmList.show(200);
+									wgt.prmList.show(200, function() {
+										wgt.invalidate();
+									});
 									wgt.axnChooser.getUI().addClass('hasValue');
 								}
 								else {
 									wgt.prmList.hide();
 									wgt.axnChooser.getUI().removeClass('hasValue');
+									wgt.invalidate();
 								}
 								wgt.prms.populateArgList(handler, method, args);
-								wgt.invalidate();
 								data.handler = handler;
 								data.method = method;
 							}
