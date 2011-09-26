@@ -237,19 +237,22 @@ var editor = (function(editor) {
 		
 		maximize: function() {
 			var animData = {},
-				minMaxBtn = this.minMaxBtn;
+				minMaxBtn = this.minMaxBtn,
+				that = this;
 			
 			addSlideAnim.call(this, 0, animData);
 			this.container.bind('mouseleave', hideMinMaxBtn)
 			.bind('mouseenter', showMinMaxBtn)
 			.animate(animData, function() {
 				minMaxBtn.text('Min');
+				that.container.removeClass('minimized');
 			});
 		},
 		
 		minimize: function() {
 			var animData = {},
 				minMaxBtn = this.minMaxBtn,
+				that = this,
 				dest;
 			
 			switch(this.config.location) {
@@ -268,6 +271,7 @@ var editor = (function(editor) {
 			.unbind('mouseenter', showMinMaxBtn)
 			.animate(animData, function() {
 				minMaxBtn.text('Max');
+				that.container.addClass('minimized');
 			});
 		},
 		

@@ -428,8 +428,8 @@ body.ten24 {
 	left: 4.375em;
 	position: relative;
 	float: left;
-	background: url(../images/pluginMinMax.png) no-repeat 0 0;
-	background-size: 100%;
+	background: url(../images/minMax.png) no-repeat 0 0;
+	background-size: 166%;
 	height: 0.875em;
 	width: 1.313em;
 }
@@ -576,10 +576,108 @@ body.ten24 {
 } 
 .topAligned:not(.noSpecialButtons) button:active,
 .bottomAligned button:active {
-	-webkit-transform: translate(0, 2px);
-	-moz-transform: translate(0, 2px);
-	-o-transform: translate(0, 2px);
-	transform: translate(0, 2px);
+}
+
+/******************************************************************************
+ * 								Min/Max Buttons								  *
+ ******************************************************************************/
+
+.minMax {
+	text-indent: -99999em;
+	border: none;
+	background: #333;
+	height: 24px;
+	width: 24px;
+	border: none;
+	z-index: 800;
+}
+.minMax:after {
+	content: '';
+	background: url(../images/minMax.png) no-repeat -21px 0;
+	display: block;
+	position: absolute;
+}
+#tabBar .minMax {
+	height: 100px;
+	border-radius: 0 30px 30px 0;
+}
+.rightAligned .minMax {
+	height: 100px;
+	border-radius: 30px 0 0 30px;
+}
+#tabBar .minMax:after,
+.rightAligned .minMax:after {
+	width: 14px;
+	height: 21px;
+	top: -4px;
+}
+#tabBar .minMax:after {
+	left: -4px;
+}
+.rightAligned .minMax:after {
+	left: 0;
+}
+#tabBar .minMax:after,
+.rightAligned.minimized .minMax:after {
+	background-position: -21px -42px;
+}
+#tabBar .minMax:hover:after,
+.rightAligned.minimized .minMax:hover:after {
+	background-position: -21px -63px;
+}
+#tabBar.minimized .minMax:after,
+.rightAligned .minMax:after {
+	background-position: -21px 0;
+}
+#tabBar.minimized .minMax:hover:after,
+.rightAligned .minMax:hover:after {
+	background-position: -21px -21px;
+}
+.topAligned .minMax {
+	border-radius:  0 0 30px 30px;
+	width: 100px;
+}
+.bottomAligned .minMax {
+	border-radius: 30px 30px 0 0;
+	width: 100px;
+}
+.topAligned .minMax:after,
+.bottomAligned .minMax:after,
+.bottomAligned.minimized .minMax:after {
+	width: 21px;
+	height: 14px;
+	background-position: 0 0;
+	top: -1px;
+	left: 32px;
+}
+.bottomAligned .minMax:after,
+.topAligned.minimized .minMax:after {
+	background-position: 0 -28px;
+	top: 1px;
+} 
+.topAligned .minMax:hover:after,
+.bottomAligned.minimized .minMax:hover:after {
+	background-position: 0 -14px;
+}
+.bottomAligned .minMax:hover:after,
+.topAligned.minimized .minMax:hover:after {
+	background-position: 0 -42px;
+}
+
+/**
+ * active
+ */
+.minMax:active {	
+	-webkit-transform: none;
+	-moz-transform: none;
+	-o-transform: none;
+	transform: none;
+}
+/**
+ * box shadows turned off
+ */
+.minimized {
+	box-shadow: none;
 }
 
 /******************************************************************************
@@ -1185,6 +1283,12 @@ button {
 	-webkit-transition: color 0.25s ease-in-out;
 	-moz-transition: color 0.25s ease-in-out;
 	-o-transition: color 0.25s ease-in-out;
+}
+button:active {
+	-webkit-transform: translate(0, 2px);
+	-moz-transform: translate(0, 2px);
+	-o-transform: translate(0, 2px);
+	transform: translate(0, 2px);
 }
 .widget:not(.widgetWithForms) button {
     background: #555;
