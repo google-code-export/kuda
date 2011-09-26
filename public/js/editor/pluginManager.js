@@ -348,29 +348,29 @@ var editor = (function(editor) {
 		});
 		
 		// load plugins
-		jQuery.get('js/editor/plugins/plugins.json')
-			.success(function(data, status, xhr) {								
+		jQuery.get('js/editor/plugins/plugins.json', [], 
+			function(data, status, xhr) {								
 				// data is a json array
 				var plugins = data.plugins;
 				
 				for (var i = 0, il = plugins.length; i < il; i++) {
 					plgMdl.loadPlugin(plugins[i]);
 				}
-			})
-			.error(function(xhr, status, err) {
+			}, 
+			function(xhr, status, err) {
 				// fail gracefully
 			});
 			
 		// retrieve the list of plugins
-		jQuery.get('/plugins')
-			.success(function(data, status, xhr) {
+		jQuery.get('/plugins', [], 
+			function(data, status, xhr) {
 				var plugins = data.plugins;
 				
 				for (var i = 0, il = plugins.length; i < il; i++) {
 					plgMdl.addPlugin(plugins[i]);
 				}
-			})
-			.error(function(xhr, status, err) {
+			},
+			function(xhr, status, err) {
 				
 			});
 	};
