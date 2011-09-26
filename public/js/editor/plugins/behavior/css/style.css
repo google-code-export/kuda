@@ -109,7 +109,8 @@
 	position: relative;
 	float: left;
 }
-.dataTables_wrapper button {
+.widget .dataTables_wrapper button,
+.widget .dataTables_wrapper button[disabled] {
 	text-indent: -5000px;
 	height: 24px;
 	width: 24px;
@@ -117,6 +118,7 @@
 	box-shadow: none;
 	padding: 3px;
 	background: none;
+	border: none;
 }
 .dataTables_wrapper button.uiMenuShown {	
 	background: -moz-linear-gradient(100% 100% 90deg, #111, #222);
