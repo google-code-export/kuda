@@ -555,18 +555,18 @@ var editor = (function(editor) {
 		},
 			    
 	    add: function(project) {			
-			var li = this.items.get(project.name);
+			var li = this.items.get(project);
 			
 			if (!li) {
 				li = this.createListItem();
 					
-				li.setText(project.name);
-				li.attachObject(project.name);
+				li.setText(project);
+				li.attachObject(project);
 				
 				this.bindButtons(li, project);
 				
 				this.list.add(li);
-				this.items.put(project.name, li);
+				this.items.put(project, li);
 			}
 			
 			return li;
@@ -576,12 +576,12 @@ var editor = (function(editor) {
 			var wgt = this;
 			
 			if (project.published) {
-				li.publishLink.attr('href', '/projects/' + project.name 
+				li.publishLink.attr('href', '/projects/' + project 
 					+ '.html').show();
 			}
 			li.removeBtn.bind('click', function(evt) {
 				wgt.notifyListeners(event.Remove, 
-					project.name);
+					project);
 			});
 		},
 		
@@ -616,12 +616,12 @@ var editor = (function(editor) {
 	    },
 		
 		update: function(project) {
-			var li = this.items.get(project.name),
+			var li = this.items.get(project),
 				retVal = false;
 			
 			if (li) {
 				if (project.published) {
-					li.publishLink.attr('href', '/projects/' + project.name 
+					li.publishLink.attr('href', '/projects/' + project 
 						+ '.html').show();
 				}
 				li.attachObject(project);
