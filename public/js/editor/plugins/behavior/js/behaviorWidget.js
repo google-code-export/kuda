@@ -114,26 +114,36 @@ var editor = (function(editor) {
 			return methods;
 		},
 		
-		getCitType = function(source) {
-			var cit = hemi.utils.isNumeric(source) ? 
-					hemi.world.getCitizenById(source) : source;
-					
-			return cit.getCitizenType().split('.').pop();
-		},
-		
 		getTriggerName = function(data) {
 			var source = data.source,
+				msgType,
 				nameArr;
 			
-			if (source === editor.treeData.MSG_WILDCARD) {
-				nameArr = ['[any source]', data.type];
+			if (data.type === editor.treeData.MSG_WILDCARD) {
+				msgType = '[any trigger]';
 			} else {
-				var citType = getCitType(source),
-					isId = hemi.utils.isNumeric(source),
-					name = isId ? hemi.world.getCitizenById(source).name :
-						source.name;
+				msgType = data.type;
+			}
+			
+			if (source === editor.treeData.MSG_WILDCARD) {
+				nameArr = ['[any source]', msgType.split('.').pop()];
+			} else if (hemi.utils.isNumeric(source)) {
+				var cit = hemi.world.getCitizenById(source),
+					citType = cit.getCitizenType().split('.').pop();
 				
-				nameArr = [citType, name, data.type];
+				nameArr = [citType, cit.name, msgType.split('.').pop()];
+			} else {
+				var trigType = source.getCitizenType().split('.').pop(),
+					citName = source.citizen.name,
+					argName;
+				
+				if (source.camMove) {
+					argName = hemi.world.getCitizenById(msgType).name;
+				} else {
+					argName = msgType;
+				}
+				
+				nameArr = [trigType, citName, argName];
 			}
 				
 			return nameArr;
@@ -142,7 +152,7 @@ var editor = (function(editor) {
 		openNode = function(tree, citizen, prefix) {
 			var nodeName = editor.treeData.getNodeName(citizen, {
 					prefix: prefix,
-					id: citizen.getId()
+					id: citizen.getId ? citizen.getId() : null
 				}),
 				node = jQuery('#' + nodeName),
 				path = tree.jstree('get_path', node, true);
@@ -725,7 +735,9 @@ var editor = (function(editor) {
 	shorthand.expandBehaviorData = expandTargetData;
 	
 	shorthand.getActionName = function(data) {
-		return [data.handler.getCitizenType().split('.').pop(), data.method];
+		var handler = data.handler;
+		
+		return [handler.getCitizenType().split('.').pop(), handler.name, data.method];
 	};
 	
 	shorthand.getBehaviorListItem = function(actor) {
