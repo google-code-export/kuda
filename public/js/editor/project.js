@@ -555,15 +555,15 @@ var editor = (function(editor) {
 		},
 			    
 	    add: function(project) {			
-			var li = this.items.get(project);
+			var li = this.items.get(project.name);
 			
 			if (!li) {
 				li = this.createListItem();
 					
-				li.setText(project);
-				li.attachObject(project);
+				li.setText(project.name);
+				li.attachObject(project.name);
 				
-				this.bindButtons(li, project);
+				this.bindButtons(li, project.name);
 				
 				this.list.add(li);
 				this.items.put(project, li);
@@ -576,12 +576,12 @@ var editor = (function(editor) {
 			var wgt = this;
 			
 			if (project.published) {
-				li.publishLink.attr('href', '/projects/' + project 
+				li.publishLink.attr('href', '/projects/' + project.name 
 					+ '.html').show();
 			}
 			li.removeBtn.bind('click', function(evt) {
 				wgt.notifyListeners(event.Remove, 
-					project);
+					project.name);
 			});
 		},
 		
@@ -616,12 +616,12 @@ var editor = (function(editor) {
 	    },
 		
 		update: function(project) {
-			var li = this.items.get(project),
+			var li = this.items.get(project.name),
 				retVal = false;
 			
 			if (li) {
 				if (project.published) {
-					li.publishLink.attr('href', '/projects/' + project 
+					li.publishLink.attr('href', '/projects/' + project.name 
 						+ '.html').show();
 				}
 				li.attachObject(project);
