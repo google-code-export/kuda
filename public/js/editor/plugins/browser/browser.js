@@ -1141,13 +1141,18 @@
 		
 		createImportPanel: function() {			
 			var msg = this.msgPanel,
-				pnl = this.find('#mbrImportPnl'),						
-				lbl = pnl.find('label'),	
+				pnl = this.find('#mbrImportPnl'),
 				btn = pnl.find('button'),
 				wgt = this;				
 			
-			btn.file().choose(function(evt, input) {
-				msg.text('Uploading Model...').slideDown(200);
+			btn.bind('click', function(evt) {
+				fileInput.click();
+			})
+			.file()
+			.choose(function(evt, input) {
+				msg.text('Uploading Model...').slideDown(200, function() {
+					wgt.invalidate();
+				});
 				
 				// assuming no multi select file
 				var file = input.files[0],
@@ -1172,15 +1177,25 @@
 								prj = jQuery('<option value="' + data.url + '">' + data.name + '</option>');
 								
 							sel.append(prj);
-							msg.text('').slideUp(200);
+							msg.text('').slideUp(200, function() {
+								wgt.invalidate();
+							});
 							populateUnloadPanel.call(wgt);
 						});
 					},
 					error: function(xhr, status, err) {
 						msg.text(xhr.responseText).addClass('errMsg').show();
+						wgt.invalidate();
 					}
 				});
-			});	
+			});
+			
+			// We need to hide the file div because it interferes with the mouse
+			// events for the minMax button.
+			var fileInput = jQuery(':input[type="file"]'),
+				fileDiv = fileInput.parent().parent();
+			
+			fileDiv.hide();
 		},
 		
 		createLoadPanel: function() {				
