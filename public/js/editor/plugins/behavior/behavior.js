@@ -104,7 +104,7 @@
 		for (var i = 0, il = models.length; i < il; i++) {
 			var mdl = models[i];
 			
-			if (!(mdl instanceof BehaviorModel)) {
+			if (mdl !== bhvMdl) {
 				shorthand.treeModel.listenTo(mdl);
 			}
 		}
@@ -115,7 +115,9 @@
 			var model = editor.getModel(name),
 				view = editor.getView(name);
 			
-			shorthand.treeModel.listenTo(model);
+			if (model !== bhvMdl) {
+				shorthand.treeModel.listenTo(model);
+			}
 			injectBehaviorWidget(view);
 		});
 	};	
@@ -500,62 +502,9 @@
 					</td>'
 				]),
 				tr = jQuery(this.table.fnGetNodes(row)),
-				td = tr.find('td.editHead'),			
-				msgs = getChainMessages(data.handler, data.method),
-				wgt = this;
+				td = tr.find('td.editHead');
 				
-			tr.data('behavior', msgTarget);
-			this.behaviors.put(msgTarget.dispatchId, tr[0]);
-			
-			td.find('.editBtn').bind('click', function(evt) {
-				var bhv = tr.data('behavior');					
-				wgt.notifyListeners(editor.EventTypes.SelectTarget, bhv);
-			});
-			
-			if (msgs.length > 0) {
-				td.find('.chainBtn').data('chainMsgs', msgs)
-				.bind('click', function(evt) {
-					var tr = jQuery(this).parents('tr'),
-						target = tr.data('behavior'),
-						handler = target.handler,
-						messages = jQuery(this).data('chainMsgs');
-					
-					if (handler instanceof hemi.handlers.ValueCheck) {
-						target = handler;
-						handler = target.handler;
-					}
-					
-					// special case
-					if (target.func === 'moveToView') {
-						handler = editor.treeData.createCamMoveCitizen(hemi.world.camera);
-						messages = [parseInt(target.args[0].replace(
-							hemi.dispatch.ID_ARG, ''))];
-					}
-					wgt.notifyListeners(editor.EventTypes.SelectTrigger, {
-						source: handler,
-						messages: messages
-					});
-				});
-			} else {
-				td.find('.chainBtn').attr('disabled', 'disabled');
-			}
-			
-			td.find('.cloneBtn').bind('click', function(evt) {
-				var tr = jQuery(this).parents('tr'),
-					target = tr.data('behavior');
-				
-				wgt.notifyListeners(editor.EventTypes.CloneTarget, {
-					target: target,
-					name: 'Copy of ' + target.name
-				});
-				
-			});
-			td.find('.removeBtn').bind('click', function(evt) {
-				var tr = jQuery(this).parents('tr'),
-					target = tr.data('behavior');
-					
-				wgt.notifyListeners(editor.EventTypes.RemoveTarget, target);
-			});
+			bindButtons.call(this, tr, td, data, msgTarget);
 			
 			this.invalidate();
 		},
@@ -608,17 +557,86 @@
 		
 		update: function(msgTarget, spec) {
 			var data = editor.tools.behavior.expandBehaviorData(msgTarget, spec),
-				row = this.behaviors.get(msgTarget.dispatchId); 
-				
-			this.table.fnUpdate([
-				editor.tools.behavior.getTriggerName(data).join('.'),
-				editor.tools.behavior.getActionName(data).join('.'),
-				msgTarget.name
-			], row);
+				row = jQuery(this.behaviors.get(msgTarget.dispatchId)),
+				td = row.find('td.editHead');
 			
+			td.find('button').unbind('click');
+			td.empty();
+			
+			this.table.fnUpdate([
+					editor.tools.behavior.getTriggerName(data).join('.'),
+					editor.tools.behavior.getActionName(data).join('.'),
+					msgTarget.name,
+					'<td> \
+					<button class="editBtn">Edit</button>\
+					<button class="chainBtn">Chain</button>\
+					<button class="cloneBtn">Clone</button>\
+					<button class="removeBtn">Remove</button>\
+					</td>'
+				], row[0]);
+			
+			bindButtons.call(this, row, td, data, msgTarget);
 			this.invalidate();
 		}
 	});
+	
+	var bindButtons = function(tr, td, data, msgTarget) {			
+		var	msgs = getChainMessages(data.handler, data.method),
+			wgt = this;
+			
+		tr.data('behavior', msgTarget);
+		this.behaviors.put(msgTarget.dispatchId, tr[0]);
+		
+		td.find('.editBtn').bind('click', function(evt) {
+			var bhv = tr.data('behavior');					
+			wgt.notifyListeners(editor.EventTypes.SelectTarget, bhv);
+		});
+		
+		if (msgs.length > 0) {
+			td.find('.chainBtn').data('chainMsgs', msgs)
+			.bind('click', function(evt) {
+				var tr = jQuery(this).parents('tr'),
+					target = tr.data('behavior'),
+					handler = target.handler,
+					messages = jQuery(this).data('chainMsgs');
+				
+				if (handler instanceof hemi.handlers.ValueCheck) {
+					target = handler;
+					handler = target.handler;
+				}
+				
+				// special case
+				if (target.func === 'moveToView') {
+					handler = editor.treeData.createCamMoveCitizen(hemi.world.camera);
+					messages = [parseInt(target.args[0].replace(
+						hemi.dispatch.ID_ARG, ''))];
+				}
+				wgt.notifyListeners(editor.EventTypes.SelectTrigger, {
+					source: handler,
+					messages: messages
+				});
+			});
+		} else {
+			td.find('.chainBtn').attr('disabled', 'disabled');
+		}
+		
+		td.find('.cloneBtn').bind('click', function(evt) {
+			var tr = jQuery(this).parents('tr'),
+				target = tr.data('behavior');
+			
+			wgt.notifyListeners(editor.EventTypes.CloneTarget, {
+				target: target,
+				name: 'Copy of ' + target.name
+			});
+			
+		});
+		td.find('.removeBtn').bind('click', function(evt) {
+			var tr = jQuery(this).parents('tr'),
+				target = tr.data('behavior');
+				
+			wgt.notifyListeners(editor.EventTypes.RemoveTarget, target);
+		});
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
@@ -704,7 +722,7 @@
 			model.addListener(editor.events.Created, function(data) {
 				var target = data.target,
 					spec = model.dispatchProxy.getTargetSpec(target),
-					li = editor.tools.behavior.getBehaviorListItem(data.actor);
+					li = shorthand.getBehaviorListItem(data.actor);
 				
 				tblWgt.add(target, spec);
 					
@@ -717,7 +735,7 @@
 			model.addListener(editor.events.Removed, function(target) {
 				tblWgt.remove(target);
 				
-				var li = editor.tools.behavior.getBehaviorListItem(target.actor);
+				var li = shorthand.getBehaviorListItem(target.actor);
 				
 				if (li) {
 					li.remove(target);
@@ -726,7 +744,7 @@
 			model.addListener(editor.events.Updated, function(data) {
 				var target = data.target,
 					spec = model.dispatchProxy.getTargetSpec(target),
-					li = editor.ui.getBehaviorListItem(data.actor);
+					li = shorthand.getBehaviorListItem(data.actor);
 				
 				tblWgt.update(target, spec);
 				
