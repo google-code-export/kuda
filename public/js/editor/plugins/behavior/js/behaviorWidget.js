@@ -532,6 +532,7 @@ var editor = (function(editor) {
 		},
 		
 		setTarget: function(msgTarget, spec) {
+			this.reset();
 			setByMsgTarget.call(this, msgTarget, spec);
 		},
 		
