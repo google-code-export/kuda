@@ -536,7 +536,6 @@
 				lLbl = lth.find('label'),
 				sel = lth.find('select');
 				
-			ipt.remove();
 			ftr.append(ipt);
 			
 			sel.remove();
