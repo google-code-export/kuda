@@ -214,7 +214,7 @@ body.ten24 {
 .toolBtn:after {
 	content: '';
     background: url(../images/toolbarSprite.png) no-repeat 0 0;
-	background-size: 1313%;
+	background-size: 1527%;
 	display: block;
 	width: 3.667em;
 	height: 3.667em;
@@ -297,6 +297,18 @@ body.ten24 {
 }
 #timersBtn:hover:after, #timersBtn.down:after {
 	background-position: -44em -4em;
+}
+#particleCurvesBtn:after {
+	background-position: -48em 0;
+}
+#particleCurvesBtn:hover:after, #particleCurvesBtn.down:after {
+	background-position: -48em -4em;
+}
+#camCurvesBtn:after {
+	background-position: -52em 0;
+}
+#camCurvesBtn:hover:after, #camCurvesBtn.down:after {
+	background-position: -52em -4em;
 }
 .toolBtn.down {
 	background: #75d0f4;   
