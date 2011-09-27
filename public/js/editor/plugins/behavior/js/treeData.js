@@ -406,11 +406,13 @@ var editor = (function(editor) {
 	
 	editor.treeData.createCamMoveJson = function(cmCit, prefix) {
 		var camera = cmCit.citizen,
-			viewpoints = hemi.world.getViewpoints();
+			viewpoints = hemi.world.getViewpoints(),
+			nodes = [];
 		
 		for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
-			var node = editor.treeData.createViewpointJson(cmCit, viewpoints[ndx]);
-			viewpoints.push(node);
+			var node = editor.treeData.createViewpointJson(cmCit,
+					viewpoints[ndx], prefix);
+			nodes.push(node);
 		}
 		
 		var name = getNodeName(cmCit, {
@@ -425,7 +427,7 @@ var editor = (function(editor) {
 				id: name,
 				rel: 'citizen'
 			},
-			children: viewpoints,
+			children: nodes,
 			state: 'closed',
 			metadata: {
 				type: 'citizen',
