@@ -53,6 +53,7 @@ body.ten24 {
 #tabBar {
 	position: relative;
 	float: left;
+	left: 0;
 	background: -moz-linear-gradient(100% 100% 180deg, #333, #383838);
 	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#383838), to(#333));
 	background: #333;
