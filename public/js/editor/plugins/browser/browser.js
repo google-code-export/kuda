@@ -205,12 +205,6 @@
 						mdl.addModel(msg.src);
 					}
 				});
-//			hemi.msg.subscribe(hemi.msg.unload,
-//				function(msg) {
-//					if (msg.src instanceof hemi.model.Model) {
-//						mdl.removeModel(msg.src);
-//					}
-//				});
 				
 			jQuery.ajax({
 				url: '/models',
@@ -477,13 +471,16 @@
 	        }
 	    },
 		
-		removeModel: function(model) {
-			var id = model.getId(),
-				transforms = this.selected.get(id);
+		removeModel: function(modelId) {
+			var model = hemi.world.getCitizenById(modelId),
+				id = model.getId(),
+				transforms = this.selected.get(id),
+				that = this;
 			
 			while (transforms && transforms.length > 0) {
 				this.deselectTransform(transforms[0], model);
 			}
+			model.cleanup();
 			
 			this.notifyListeners(editor.events.Removed, model);
 		},
@@ -663,19 +660,6 @@
 	    },
 		
 		unload: function(modelId) {
-			var model = hemi.world.getCitizenById(modelId),
-				that = this;
-			
-			var msgHandler = model.subscribe(hemi.msg.unload, function(m) {
-				model.unsubscribe(msgHandler, hemi.msg.unload);
-//				that.notifyListeners(editor.EventTypes.ModelUnloaded, model);
-			});
-			
-			// before cleanup, clear out handles, etc.
-			this.removeModel(model);
-//			this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
-//			this.curHandle.setTransform(null);
-			model.cleanup();
 		},
 		
 		updateShape: function(shape) {
@@ -1215,11 +1199,11 @@
 					loadModel(val, function(){
 						msg.text('').hide(200, function() {
 							wgt.invalidate();
+					
+							sel.val(-1).sb('refresh');
 						});
 						populateUnloadPanel.call(wgt);
 					});
-					
-					sel.val(-1);
 				}
 			});	
 		},
@@ -1234,15 +1218,6 @@
 			sel.bind('change', function() {	
 				var id = parseInt(sel.val());
 				if (id !== -1) {
-//					model = hemi.world.getCitizenById(id);
-//					
-//					var msgHandler = model.subscribe(hemi.msg.unload, function(m){
-//						msg.text('').slideUp(200);
-//						model.unsubscribe(msgHandler, hemi.msg.unload);
-//						populateUnloadPanel.call(wgt);
-//					});
-//					
-//					model.cleanup();
 					wgt.notifyListeners(editor.EventTypes.UnloadModel, id);
 				}
 			});	
@@ -1275,7 +1250,7 @@
 		
 		updateModelRemoved: function(model) {
 			this.msgPanel.text('').slideUp(200);
-			populateUnloadPanel.call(this)
+			populateUnloadPanel.call(this);
 		},
 		
 		updateServerRunning: function(models) {
@@ -1848,7 +1823,7 @@
 			
 			// loader widget specific
 			ldrWgt.addListener(editor.EventTypes.UnloadModel, function(id) {
-				model.unload(id);
+				model.removeModel(id);
 			});
 			
 			// mdl browser widget specific

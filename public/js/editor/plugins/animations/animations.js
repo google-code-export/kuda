@@ -406,13 +406,20 @@
 						id = mdl.getId();
 					wgt.selector.append('<option id="anmMdlSel_' + id + '" value="' + id + '">'
 						+ mdl.name + '</option>');
+					wgt.selector.sb('refresh');
 				}
 			});
 			
 			hemi.msg.subscribe(hemi.msg.unload, function(msg) {
 				if (msg.src instanceof hemi.model.Model) {
-					var id = 'anmMdlSel_' + msg.src.getId();						
-					wgt.find('#' + id).remove();
+					var id = msg.src.getId(),
+						elemId = 'anmMdlSel_' + id;
+					if (parseInt(wgt.selector.val()) === id) {
+						wgt.reset();
+					}
+					
+					wgt.find('#' + elemId).remove();
+					wgt.selector.sb('refresh');
 				}
 			});
 		},
@@ -764,9 +771,7 @@
 				}
 				
 				this.canSave();
-			} else {
-				this.reset();
-			}
+			} 
 	    },
 		
 		reset: function() {

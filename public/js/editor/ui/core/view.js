@@ -220,7 +220,7 @@ var editor = (function(editor) {
 			
 			
 			this.origOpacity = ctn.css('opacity');
-			minMaxBtn.data('origOpacity', this.origOpacity);
+			minMaxBtn.data('origOpacity', 1);
 		},
 		
 		getName: function() {
