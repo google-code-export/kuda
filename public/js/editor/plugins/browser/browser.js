@@ -79,6 +79,7 @@
 	editor.EventTypes.SelectTreeItem = "browser.SelectTreeItem";
 	
 	// loader widget events
+	editor.EventTypes.LoadModel = "browser.LoadModel";
 	editor.EventTypes.UnloadModel = "browser.UnloadModel";
 	
 	// TODO: We need a better way of testing for our highlight shapes than
@@ -201,8 +202,8 @@
 			hemi.msg.subscribe(hemi.msg.load,
 				function(msg) {
 					if (msg.src instanceof hemi.model.Model) {
-						mdl.processModel(msg.src);
-						mdl.addModel(msg.src);
+						mdl.processModel(msg.src);			
+						mdl.notifyListeners(editor.events.Created, msg.src);
 					}
 				});
 				
@@ -222,8 +223,9 @@
 			});
 		},
 		
-		addModel: function(model) {
-			this.notifyListeners(editor.events.Created, model);
+		addModel: function(url) {
+			var model = new hemi.model.Model();				
+			model.setFileName(url);
 		},
 		
 		addShape: function(shape) {
@@ -1196,14 +1198,8 @@
 						wgt.invalidate();
 					});
 					var val = ipt.is(':visible') ? ipt.val() : sel.val();
-					loadModel(val, function(){
-						msg.text('').hide(200, function() {
-							wgt.invalidate();
 					
-							sel.val(-1).sb('refresh');
-						});
-						populateUnloadPanel.call(wgt);
-					});
+					wgt.notifyListeners(editor.EventTypes.LoadModel, val);
 				}
 			});	
 		},
@@ -1248,6 +1244,18 @@
 			this.createUnloadPanel();
 		},
 		
+		updateModelLoaded: function(model) {
+			var wgt = this,
+				sel = this.find('#mbrLoadPnl select');
+			
+			this.msgPanel.text('').hide(200, function() {
+				wgt.invalidate();		
+				sel.val(-1).sb('refresh');
+			});
+			
+			populateUnloadPanel.call(wgt);
+		},
+		
 		updateModelRemoved: function(model) {
 			this.msgPanel.text('').slideUp(200);
 			populateUnloadPanel.call(this);
@@ -1285,20 +1293,7 @@
 		}
 	});
 	
-	var loadModel = function(url, cb) {			
-			// do the model load
-			var model = new hemi.model.Model();
-			
-			var msgHandler = model.subscribe(hemi.msg.load,
-				function(msg) {
-					cb();
-					model.unsubscribe(msgHandler, hemi.msg.load);
-				});
-				
-			model.setFileName(url);
-		},
-		
-		populateUnloadPanel = function() {			
+	var populateUnloadPanel = function() {			
 			var models = hemi.world.getModels(),
 				sel = this.find('#mbrUnloadPnl select'),
 				btn = this.find('#mbrUnloadPnl button');
@@ -1822,6 +1817,9 @@
 			});
 			
 			// loader widget specific
+			ldrWgt.addListener(editor.EventTypes.LoadModel, function(url) {
+				model.addModel(url);
+			});
 			ldrWgt.addListener(editor.EventTypes.UnloadModel, function(id) {
 				model.removeModel(id);
 			});
@@ -1865,6 +1863,7 @@
 						
 			// mbr model specific
 			model.addListener(editor.events.Created, function(model) {
+				ldrWgt.updateModelLoaded(model);
 				mbrWgt.addModel(model);
 			});			
 	        model.addListener(editor.events.Removed, function(model) {
