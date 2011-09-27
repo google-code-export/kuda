@@ -24,11 +24,12 @@ html, body {
     color: #444;
 	background: -moz-linear-gradient(100% 100% 90deg, #fafafa, #eee);
 	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fafafa));
-    overflow: hidden;
 	font-size: 12px;
 	line-height: 12px;
 }
-
+body {
+	overflow: hidden;
+}
 h1, form, fieldset, legend, ol, li {
     margin: 0;
     padding: 0;
@@ -44,6 +45,9 @@ h1 {
 
 body.ten24 {
 	font-size: 10px;
+	min-height: 768px;
+	min-width: 1024px;
+	overflow: auto;
 }
 
 /******************************************************************************

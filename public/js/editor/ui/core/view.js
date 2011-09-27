@@ -845,9 +845,17 @@ var editor = (function(editor) {
 			
 		if (windowWidth <= 1024) {
 			bdy.addClass('ten24');
+			windowWidth = 1024;
 		}
 		else {
 			bdy.removeClass('ten24');
+		}
+		
+		if (windowHeight <= 728) {
+			windowHeight = 728;
+			if (!bdy.hasClass('ten24')) {
+				bdy.addClass('ten24');
+			}
 		}
 		
 		vwr.width(windowWidth);
