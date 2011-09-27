@@ -112,7 +112,10 @@
 		shorthand.treeModel.addCitizen(hemi.world.camera);	
 		
 		editor.addListener(editor.events.PluginLoaded, function(name) {
-			var view = editor.getView(name);
+			var model = editor.getModel(name),
+				view = editor.getView(name);
+			
+			shorthand.treeModel.listenTo(model);
 			injectBehaviorWidget(view);
 		});
 	};	
