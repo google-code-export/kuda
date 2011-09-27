@@ -1,0 +1,2322 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: none;
+    font-family: 'Lato', Helvetica, Arial, sans-serif;
+    color: #444;
+	background: -moz-linear-gradient(100% 100% 90deg, #fafafa, #eee);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#fafafa));
+    overflow: hidden;
+	font-size: 12px;
+	line-height: 12px;
+}
+
+h1, form, fieldset, legend, ol, li {
+    margin: 0;
+    padding: 0;
+}
+
+h1 {
+    text-align: center;
+}
+
+/******************************************************************************
+ * 								   Sub-1024									  *
+ ******************************************************************************/
+
+body.ten24 {
+	font-size: 10px;
+}
+
+/******************************************************************************
+ * 									TabBar									  *
+ ******************************************************************************/
+
+#tabBar {
+	position: relative;
+	float: left;
+	background: -moz-linear-gradient(100% 100% 180deg, #333, #383838);
+	background: -webkit-gradient(linear, 0% 0%, 1000% 0%, from(#383838), to(#333));
+	background: #333;
+	color: #fff;
+	height: 100%;
+	font-family: 'Lato', Helvetica, Arial, sans-serif;
+	text-shadow: 0 -1px 1px #333;
+	box-shadow: 0 0 10px #333;
+	opacity: 0.95;
+	width: 15.417em;
+}
+#tabBar>h1 {
+	font-size: 182%;
+	line-height: 250%;
+	font-weight: bold;
+	padding: 0.455em 0;
+	margin: 1.364em 0.455em 0.455em; /** 30px 10px 10px **/
+	border-bottom: 1px dotted #666;
+	text-transform: uppercase;
+	float: left;
+}
+#tabBar>h1 span {
+	display: block;
+	float: left;
+}
+#tabBar>h1 span.editor {	
+	color: #75d0f4;
+	font-weight: 300;
+}
+#tabBar>ul {
+	font-weight: normal; 
+	margin-left: 0;
+}
+#tabBar>ul h2 {
+	font-weight: 300;
+	font-size: 133.3%;
+	line-height: 200%;
+}
+#tabBar>ul>li {
+	float: left;
+	padding: 0.417em 0;
+	width: 100%;
+	clear: left;
+}
+#tabBar>ul>li>div {
+	padding-left: 0.833em;
+	position: relative;
+}
+#tabBar h2>a {
+	text-decoration: none;
+	display: block;
+	color: #fff;
+	outline: none;
+	-webkit-transition: color 0.15s ease-in-out,
+		font-weight 0.25s ease-in-out;
+	-moz-transition: color 0.15s ease-in-out,
+		font-weight 0.25s ease-in-out;
+	-o-transition: color 0.15s ease-in-out,
+		font-weight 0.25s ease-in-out;
+}
+#tabBar h2>a:hover {
+	color: #75d0f4;
+}
+#tabBar>ul>li>div.down h2>a {
+	color: #75d0f4;
+	font-weight: bold;
+}
+
+/******************************************************************************
+ * 								   3d Panel								  	  *
+ ******************************************************************************/
+#o3d {
+    position: absolute;
+	width: 100%;
+	top: 0;
+	left: 0;
+}
+
+.mainView {
+    margin: 0;
+	width: 100%;
+}
+.hiddenView {
+    height: 0;
+    margin: 0;
+	display: none;
+}
+
+/******************************************************************************
+ * 									ToolBar									  *
+ ******************************************************************************/
+.toolbarContainer {
+	float: left;
+	position: relative;
+	color: #fff; 
+	background: url(../images/patternLinen.png) repeat;
+	box-shadow: inset 0 2px 8px #222,
+		0 1px 0 #444;
+	margin: 0.417em -1em 0.833em;
+	padding: 0.417em 0.833em;
+	width: 13.75em;
+	border: 1px solid #2a2a2a;
+	border-width: 1px 0;
+}
+.toolbar {
+	float: left;
+	top: 3.75em;
+}
+.toolbar ul {
+	float: left;
+	padding-top: 0.417em;
+}
+.toolbar ul li {
+	padding: 0 0.167em 0.417em 0;
+	float: left;
+}
+
+/**
+ * Toolbar buttons
+ */
+.toolBtn {
+    color: #fff;
+    text-indent: -5000px;
+	text-align: left;
+	width: 4em;
+	height: 4em;
+	-webkit-transition: background-color 0.25s ease-in-out;
+	-moz-transition: background-color 0.25s ease-in-out;
+	-o-transition: background-color 0.25s ease-in-out;
+	z-index: 10;
+	border: 1px solid #222;
+	border-radius: 0.667em;
+	background: #444;
+	box-shadow: inset 0 0 9px #333333, 
+		0 1px 0 #5f8eaf;
+	margin-right: 0.167em;
+}
+.toolTitle {
+	height: 18px;
+	font-size: 100%;
+	font-weight: bold;
+	line-height: 183%;
+	color: #ddd;
+}
+.toolHover {
+	height: 1.5em;
+	position: absolute;
+	display: none;
+	text-align: left;
+	color: #fff;
+	font-weight: bold;
+	font-size: 100%;
+	line-height: 183%;
+	text-indent: 0;
+	white-space: nowrap;
+	top: 0.417em;
+	left: 0.833em;
+}
+.toolBtn:after {
+	content: '';
+    background: url(../images/toolbarSprite.png) no-repeat 0 0;
+	background-size: 1527%;
+	display: block;
+	width: 3.667em;
+	height: 3.667em;
+	float: left;
+}
+.toolBtn:hover {
+	background-color: #666;
+}
+.toolBtn:last-child {
+    margin-bottom: 0;
+}
+#browserBtn:after {
+	background-position: 0 0;
+}
+#browserBtn:hover:after, #browserBtn.down:after {
+    background-position: 0 -4em;
+}
+#animationsBtn:after {
+	background-position: -4em 0;
+}
+#animationsBtn:hover:after, #animationsBtn.down:after {
+    background-position: -4em -4em;
+}
+#viewpointsBtn:after {
+	background-position: -8em 0;
+}
+#viewpointsBtn:hover:after, #viewpointsBtn.down:after {
+    background-position: -8em -4emx;
+}
+#behaviorBtn:after {
+	background-position: -16em 0;
+}
+#behaviorBtn:hover:after, #behaviorBtn.down:after {
+    background-position: -16em -4em;
+}
+#scenesBtn:after {
+	background-position: -20em 0;
+}
+#scenesBtn:hover:after, #scenesBtn.down:after {
+    background-position: -20em -4em;
+}
+#particleEffectsBtn:after {
+	background-position: -24em 0;
+}
+#particleEffectsBtn:hover:after, #particleEffectsBtn.down:after {
+	background-position: -24em -4em;
+}
+#shapesBtn:after {
+	background-position: -28em 0;
+}
+#shapesBtn:hover:after, #shapesBtn.down:after {
+	background-position: -28em -4em;
+}
+#hudBtn:after {
+	background-position: -32em 0;
+}
+#hudBtn:hover:after, #hudBtn.down:after {
+	background-position: -32em -4em;
+}
+#fogBtn:after {
+	background-position: -36em 0;
+}
+#fogBtn:hover:after, #fogBtn.down:after {
+	background-position: -36em -4em;
+}
+#motionsBtn:after {
+	background-position: -12em 0;
+}
+#motionsBtn:hover:after, #motionsBtn.down:after  {
+	background-position: -12em -4em;
+}
+#manipsBtn:after {
+	background-position: -40em 0;
+}
+#manipsBtn:hover:after, #manipsBtn.down:after {
+	background-position: -40em -4em;
+}
+#timersBtn:after {
+	background-position: -44em 0;
+}
+#timersBtn:hover:after, #timersBtn.down:after {
+	background-position: -44em -4em;
+}
+#particleCurvesBtn:after {
+	background-position: -48em 0;
+}
+#particleCurvesBtn:hover:after, #particleCurvesBtn.down:after {
+	background-position: -48em -4em;
+}
+#camCurvesBtn:after {
+	background-position: -52em 0;
+}
+#camCurvesBtn:hover:after, #camCurvesBtn.down:after {
+	background-position: -52em -4em;
+}
+.toolBtn.down {
+	background: #75d0f4;   
+}
+
+/******************************************************************************
+ * 							Custom Project Tabpane							  *
+ ******************************************************************************/
+
+#prjPane .toolbarContainer {
+	border-top: none;
+	border-bottom: 1px dotted #666;
+	margin-bottom: 0.833em;
+	background: none;
+	box-shadow: none;
+	margin: 0;
+	width: auto;
+	padding: 0 0 1.667em;
+}
+#prjPane .toolbarArrow {
+	display: none !important;
+}
+#prjPane h2, #prjPane h3 {
+	display: none;
+}
+#prjSaveIpt {
+	width: 13.333em;
+	padding: 0.167em 0;
+	background: #333;
+	border: 1px solid #333;
+	border-radius: 0.25em;
+	margin: 0;
+	color: #eee;
+	font-size: 100%;
+	line-height: 133.3%;
+}
+#prjSaveIpt:hover {
+	border-color: #444;
+}
+#prjSaveIpt:focus, #prjSaveIpt.overwrite {
+	background: #626262;
+	border-color: #222;
+	box-shadow: 0 1px 0 #444;
+	color: #fff;
+}
+#prjMsg a {
+	color: #fff;
+}
+#prjPane .buttons {
+	margin-top: 0.25em;
+}
+#prjPane button {
+    background: #555;
+	background: -moz-linear-gradient(100% 100% 90deg, #555, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#555));
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    color: #eee;
+    padding: 0.333em 0.25em;
+    text-shadow: 0 -1px 0 #000;
+	margin-right: 0.167em;
+	margin-bottom: 0.167en;
+	-webkit-transition: color 0.25s ease-in-out;
+	-moz-transition: color 0.25s ease-in-out;
+	-o-transition: color 0.25s ease-in-out;
+	width: 6.154em;
+}
+#prjPane #prjSaveBtn {
+	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
+    text-shadow: 0 -1px 0 #034d75;
+    border: 1px solid #212121;
+	box-shadow: 0 1px 0 #444,
+		inset 0 0 1px #72bbe0;
+	width: 12.462em;
+}
+#prjPane #prjSaveBtn.overwrite {
+	width: 7.692em;
+}
+#prjPane #prjCancelBtn {
+	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a86b7), to(#0a6496));
+    text-shadow: 0 -1px 0 #034d75;
+    border: 1px solid #212121;
+	box-shadow: 0 1px 0 #444,
+		inset 0 0 1px #72bbe0;
+	width: 0;
+}
+#prjPane #prjCancelBtn.overwrite {
+	width: 4.615em;
+}
+#prjPane #prjNewBtn {
+	width: 12.462em;
+	clear: left;
+}
+#prjPane button:nth-child(3) {
+	clear: left;
+}
+#prjPane button[disabled], #prjPane #prjSaveBtn[disabled] {
+    background: #444;
+	background: -moz-linear-gradient(100% 100% 90deg, #444, #555);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555), to(#444));
+	color: #888;
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    text-shadow: 0 -1px 0 #000;
+}
+
+/******************************************************************************
+ * 							Custom Plugins Tabpane							  *
+ ******************************************************************************/
+
+#plgPane {
+	position: absolute;
+	bottom: 0;
+	background: #222;
+	z-index: 800;
+	margin-bottom: 0;
+}
+#plgPane h2 {
+	float: left;
+	position: relative;
+	width: 10.938em;
+	cursor: pointer;
+}
+#plgPane h2 a {
+	text-indent: -5000px;
+	text-align: center;
+	left: 4.375em;
+	position: relative;
+	float: left;
+	background: url(../images/minMax.png) no-repeat 0 0;
+	background-size: 166%;
+	height: 0.875em;
+	width: 1.313em;
+}
+#plgPane h2:hover a {
+	background-position: 0 -0.875em;
+}
+#plgPane div.down h2 a {
+	background-position: 0 -1.75em;
+}
+#plgPane div.down h2:hover a {
+	background-position: 0 -2.625em;
+}
+#plgPane h3 {
+	color: #75d0f4;
+	margin-bottom: 0.833em;
+}
+#plgPane .toolbarContainer {
+	background: none;
+	border: none;
+	box-shadow: none;
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+#plgPane .listWidget {
+	width: 15.417em;
+}
+#plgPane .listWidget>li {
+	width: 15.25em;
+}
+#plgPane .listWidget>li:nth-child(odd) {
+	background: #111;
+}
+#plgPane .listWidget>li:hover {
+	background: #2a2a2a;
+}
+#plgPane .listWidget>li>div {
+	width: auto;
+	padding-left: 0.833em;
+	width: 14.583em;
+}
+#plgPane .listWidget>li label {
+	margin-left: 0.417em;
+}
+#plgPane .listWidget>li input[type=checkbox] {
+	float: left;
+	margin: 0.833em 0.417em 0 0;
+}
+
+/******************************************************************************
+ * 									Panel									  *
+ ******************************************************************************/
+
+.panel {
+	background: #eee;
+	color: #333;
+	box-shadow: 0 0 10px #666;
+	opacity: 0.85;
+}
+.rightAligned {
+	position: absolute;
+	right: 0;
+	top: 0;
+	max-width: 25em;
+	height: 100%;
+}
+.rightAligned .widget:nth-child(n+2):not(.widgetWithForms) {
+	border-top: 1px solid #000;
+}
+.topAligned, .bottomAligned {	
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #383838);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#383838), to(#333));
+}
+.bottomAligned {
+	position: absolute;
+	bottom: 0;
+	border-radius: 0.5em 0.5em 0 0;
+}
+.topAligned {
+	position: absolute;
+	top: 0;
+	border-radius: 0 0 0.5em 0.5em;
+}
+
+/******************************************************************************
+ * 								Bottom Panel								  *
+ ******************************************************************************/
+ 
+.bottomPanel {	
+	transition: width 0.3s ease-in-out, left 0.2;
+	-moz-transition: width 0.3s ease-in-out, left 0.2;
+	-webkit-transition: width 0.3s ease-in-out, left 0.2;
+	-o-transition: width 0.3s ease-in-out, left 0.2;
+}
+.bottomPanel .widget {
+	overflow: hidden;
+	background: none;
+	float: left;
+}
+.bottomPanel .widget:first-child {
+	padding-left: 0.833em;
+}
+.bottomPanel .widget:last-child {
+	padding-right: 0.833em;
+}
+.bottomPanel form {
+	border-top: none;
+	padding: 0 0.833em;
+	margin: 0;
+}
+.bottomPanel label {
+	width: auto;
+	padding-right: 10px;
+	font-weight: bold;
+	font-size: 108.3%;
+	line-height: 183%;
+	color: #fff;
+	margin-right: 0;
+	float: left;
+}
+.bottomPanel label:after {
+	content: ':';
+}
+.bottomPanel button:not(:last-child) {
+	margin-right: 5px;
+}
+
+/******************************************************************************
+ * 								 Panel Buttons 								  *
+ ******************************************************************************/
+
+.topAligned:not(.noSpecialButtons) button, 
+.bottomAligned button {
+	margin-bottom: 0;
+} 
+.topAligned .widget button.down,
+.bottomAligned .widget button.down {
+	background: #222;
+	background: -moz-linear-gradient(100% 100% 90deg, #222, #2a2a2a);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#2a2a2a), to(#222));
+	box-shadow: inset 0 2px 3px #111,
+		0 1px 0 #444;
+	border-color: #0e0e0e;
+	color: #75d0f4;
+} 
+.topAligned:not(.noSpecialButtons) button:active,
+.bottomAligned button:active {
+}
+
+/******************************************************************************
+ * 								Min/Max Buttons								  *
+ ******************************************************************************/
+
+.minMax {
+	text-indent: -99999em;
+	border: none;
+	background: #333;
+	height: 24px;
+	width: 24px;
+	border: none;
+	z-index: 800;
+	padding: 0;
+	-moz-box-sizing: content-box;
+	-webkit-box-sizing: content-box;
+}
+.minMax:before {
+	content: '';
+	background: url(../images/minMax.png) no-repeat -21px 0;
+	display: block;
+	position: absolute;
+}
+#tabBar .minMax {
+	height: 100px;
+	border-radius: 0 30px 30px 0;
+}
+.rightAligned .minMax {
+	height: 100px;
+	border-radius: 30px 0 0 30px;
+}
+#tabBar .minMax:before,
+.rightAligned .minMax:before {
+	width: 14px;
+	height: 21px;
+	margin: -4px 0 0 4px;	
+}
+#tabBar .minMax:before {
+	left: -4px;
+}
+.rightAligned .minMax:before {
+	left: 0;
+}
+#tabBar .minMax:before,
+.rightAligned.minimized .minMax:before {
+	background-position: -21px -42px;
+}
+#tabBar .minMax:hover:before,
+.rightAligned.minimized .minMax:hover:before {
+	background-position: -21px -63px;
+}
+#tabBar.minimized .minMax:before,
+.rightAligned .minMax:before {
+	background-position: -21px 0;
+}
+#tabBar.minimized .minMax:hover:before,
+.rightAligned .minMax:hover:before {
+	background-position: -21px -21px;
+}
+.topAligned .minMax {
+	border-radius:  0 0 30px 30px;
+	width: 100px;
+}
+.bottomAligned .minMax {
+	border-radius: 30px 30px 0 0;
+	width: 100px;
+}
+.topAligned .minMax:before,
+.bottomAligned .minMax:before,
+.bottomAligned.minimized .minMax:before {
+	width: 21px;
+	height: 14px;
+	background-position: 0 0;
+	left: 38px;
+}
+.bottomAligned .minMax:before,
+.topAligned.minimized .minMax:before {
+	background-position: 0 -28px;
+} 
+.topAligned .minMax:hover:before,
+.bottomAligned.minimized .minMax:hover:before {
+	background-position: 0 -14px;
+}
+.bottomAligned .minMax:hover:before,
+.topAligned.minimized .minMax:hover:before {
+	background-position: 0 -42px;
+}
+
+/**
+ * active
+ */
+.minMax:active {	
+	-webkit-transform: none;
+	-moz-transform: none;
+	-o-transform: none;
+	transform: none;
+}
+/**
+ * box shadows turned off
+ */
+.minimized {
+	box-shadow: none;
+}
+
+/******************************************************************************
+ * 									Widget									  *
+ ******************************************************************************/
+
+.widget {
+	background: #333;
+	padding: 0.833em;
+	text-align: left;
+	overflow: auto;
+}
+.widgetWithForms {
+	background: #eee;
+}
+.widget h1 {
+	font-weight: bold;
+	font-size: 133.3%;
+	line-height: 166.7%;
+	text-align: left;
+	margin-bottom: 0.417em;
+}
+.widget:not(.widgetWithForms) {
+	color: #eee;
+}
+.widget:not(.widgetWithForms) h1 {
+	color: #75d0f4;
+}
+.widget p {
+	padding-bottom: 0.833em;
+	line-height: 150%;
+}
+
+/**
+ * TODO: add scrolling class similar to widgetWithForms for list widgets
+ */
+
+/******************************************************************************
+ * 								  List Widget								  *
+ ******************************************************************************/
+
+.listWidget {
+	list-style: none;
+	padding: 0;
+	margin: 0 -10px;
+	float: left;
+	width: 25em;
+}
+ol.listWidget {
+	list-style: decimal inside none;
+}
+.listWidget li {
+	display: block;
+	width: 100%;
+	clear: both;
+	float: left;
+	padding: 0.417em 0 0;
+	line-height: 250%;
+	position: relative;
+	-webkit-transition: background 0.15s ease-in-out;
+	-moz-transition: background 0.15s ease-in-out;
+	-o-transition: background 0.15s ease-in-out;
+}
+ol.listWidget li {
+	display: list-item;
+	width: 24.167em;
+	padding: 0.417em 0 0 0.833em;
+}
+ol.listWidget li>div {
+	float: right;
+	width: 22.5em;
+}
+ul.listWidget li>div {
+	float: left;
+	width: 25em;
+}
+.listWidget>li:nth-child(odd) {
+	background: #e4e4e4;
+} 
+.widget:not(.widgetWithForms) .listWidget>li:nth-child(odd) {
+	background: #444;
+} 
+.listWidget li span {
+	float: left;
+	margin: 0 0.833em;
+}
+ol.listWidget li span {
+	margin: 0;
+}
+.listWidget .msgEdtListItm {
+	float: left;
+	width: 100%;
+	padding: 0.417em 0;
+}
+.listWidget li:hover {
+	background: #fff;
+}
+.widget:not(.widgetWithForms) .listWidget li:hover {
+	background: #555;
+}
+.listWidget li>div>span {
+	font-weight: bold;
+	cursor: pointer;
+}
+.listWidget li:hover>div>span {
+	text-decoration: underline;
+}
+.listWidget .buttonContainer {
+	float: right;
+	padding: 0 0.833em 0.417em 0;
+}
+
+/**
+ * List widget buttons
+ */
+.listWidget li>div>.buttonContainer button,
+.listWidget li>div>.buttonContainer a {
+	text-indent: -5000px;
+	height: 16px;
+	width: 16px;
+	border: 1px solid transparent;
+	box-shadow: none;
+	padding: 3px;
+	background: none;
+	display: block;
+	float: left;
+	outline: none;
+}
+.listWidget li>div>.buttonContainer button {
+	/**
+	 * The box model breaks down for buttons in all browsers
+	 */
+	-moz-box-sizing: content-box;
+	-webkit-box-sizing: content-box;
+}
+.listWidget a {
+    -moz-transition: color 0.25s ease-in-out 0s;
+    border: 1px solid #aaa;
+    border-radius: 3px 3px 3px 3px;
+    color: #333333;
+    cursor: pointer;
+    float: left;
+    font-family: Helvetica;
+    font-size: 108.3%;
+    font-weight: bold;
+    line-height: 116.7%;
+    margin-bottom: 0.385em;
+    padding: 0.308em 0.385em;
+}
+.listWidget button.uiMenuShown {	
+	background: -moz-linear-gradient(100% 100% 90deg, #111, #222);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#222), to(#111));
+	border: 1px solid #000;
+}
+.listWidget button:before,
+.listWidget a:before {
+	background: url(../images/listOptionsSprite.png) no-repeat;
+	height: 16px;
+	width: 16px;
+	border: none;
+	padding: 0;
+	content: "";
+	float: left;
+}
+.listWidget button:not(.uiMenuShown):hover,
+.listWidget li>div>.buttonContainer a:hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #888, #999); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#999), to(#888));
+	border-color: #666;
+}
+.listWidget a.publish:before {
+	background-position: 0 -112px;
+}
+.listWidget a.publish:hover:before {
+	background-position: -16px -112px;
+}
+.listWidget button.editBtn:before {
+	background-position: 0 0;
+}
+.listWidget button.editBtn:hover:before {
+	background-position: -16px 0;
+}
+.listWidget button.behaviorBtn:before {
+	background-position: 0 -16px;
+}
+.listWidget button.behaviorBtn:hover:before {
+	background-position: -16px -16px;
+}
+.listWidget button.removeBtn:before {
+	background-position: 0 -32px;
+}
+.listWidget button.removeBtn:hover:before {
+	background-position: -16px -32px;
+}
+.listWidget button.cloneBtn:before {
+	background-position: 0 -64px;
+}
+.listWidget button.cloneBtn:hover:before {
+	background-position: -16px -64px;
+}
+.listWidget button.chainBtn:before {
+	background-position: 0 -48px;
+}
+.listWidget button.chainBtn:hover:before {
+	background-position: -16px -48px;
+}
+.listWidget button.chainBtn[disabled]:before {
+	background-position: 0 -80px;
+}
+.listWidget button.addBtn {
+	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#eee));
+	border-color: #eee;
+	padding: 3px 6px;
+	width: 30px;
+}
+.listWidget button.addBtn:before {
+	background-position: 0 -96px;
+}
+.listWidget button.addBtn:hover:before {
+	background-position: -16px -96px;
+}
+
+form input.prmWgtCitTreeIpt, form input.treeSelectorIpt {
+	border-bottom-right-radius: 0;
+	border-top-right-radius: 0;
+}
+
+/******************************************************************************
+ * 							  Custom Preview Panel							  *
+ ******************************************************************************/
+
+.prjTopPanel .previewWidget div {
+	float: left;
+	margin-right: 10px;
+	padding-right: 10px;
+	border-right: 1px dotted #666;
+}
+.prjTopPanel .widget.previewWidget h1 {
+	text-transform: uppercase;
+	color: #fff;
+	float: right;
+}
+.prjTopPanel .previewWidget h1 span {
+	color: #75d0f4;
+	font-weight: 300;
+}
+.prjTopPanel .previewWidget h2 {
+	color: #fff;
+	clear: right;
+	float: right;
+	font-weight: bold;
+	font-size: 116.7%;
+	line-height: 150%;
+	text-transform: uppercase;
+}
+.prjTopPanel .previewWidget button {
+	float: left;
+	margin-top: 5px;
+}
+
+/******************************************************************************
+ * 									Tooltip									  *
+ ******************************************************************************/
+
+.tooltip {
+	position: absolute;
+	display: block;
+	z-index: 1000;
+}
+.tooltip .content {	
+	position: relative;
+	padding: 10px;
+	margin: 10px 0;
+	color: #fff;
+	background: #000; /* default background for browsers without gradient support */
+	border: 1px solid #fff;
+	overflow: hidden;
+	
+	/* css3 */
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	border-radius: 5px;
+	/* NOTE: webkit gradient implementation is not as per spec */
+	background: -webkit-gradient(linear, left top, left bottom, from(#444), to(#000));
+	background: -moz-linear-gradient(top, #444, #000);
+	background: -o-linear-gradient(top, #444, #000);
+}
+/* creates triangle */
+.tooltip .arrow {
+	display: block; /* reduce the damage in FF3.0 */
+	position: absolute;
+	margin-top: -10px; /* value = - border-top-width - border-bottom-width */
+	left: 40px; /* controls horizontal position */
+	width: 0;
+	height: 0;
+	border-width: 10px 10px 0; /* vary these values to change the angle of the vertex */
+	border-style: solid;
+	border-color: #fff transparent;
+}
+.tooltip .outer {
+	border-color: #fff transparent;
+	margin-top: 0;
+	margin-bottom: 1px;
+	bottom: 0;
+}
+.tooltip .innerArrow {
+	display: block; /* reduce the damage in FF3.0 */
+	position: absolute;
+	left: 40px; /* value = (:before left) + (:before border-left) - (:after border-left) */
+	width: 0;
+	height: 0;
+	border: 10px solid transparent;
+	border-top-color: #000;
+	margin-top: -12px;
+}
+/* creates the larger triangle */
+.tooltip .arrow.top {
+	top: -8px; /* value = - border-top-width - border-bottom-width */
+	right: 40px; /* controls horizontal position */
+	bottom: auto;
+	left: auto;
+	border: 10px solid transparent;
+	border-bottom-color: #fff;
+}
+/* creates the smaller  triangle */
+.tooltip .innerArrow.top {
+	top: 4px; /* value = - border-top-width - border-bottom-width */
+	right: 47px; /* value = (:before right) + (:before border-right) - (:after border-right) */
+	bottom: auto;
+	left: auto;
+	border: 10px solid transparent;
+	border-bottom-color: #000;
+}
+/**
+ * Tree tooltip styling
+ */
+.tree.tooltip .innerArrow {
+	left: 40px !important;
+}
+.tree.tooltip .arrow {
+	left: 40px !important;
+}
+.tree.tooltip .innerArrow.top {
+	left: 47px !important;
+}
+.tree.tooltip .arrow.top {
+	left: 40px !important;
+}
+
+/**
+ * Error styling
+ */
+.errorWrapper .content {	
+	color: #000;
+	background: #f7a0a0;
+	border: 1px solid red;
+	
+	background: -webkit-gradient(linear, left top, left bottom, from(#f7a0a0), to(#fbb9b9));
+	background: -moz-linear-gradient(top, #f7a0a0, #fbb9b9);
+	background: -o-linear-gradient(top, #f7a0a0, #fbb9b9);
+}
+/* creates triangle */
+.errorWrapper .arrow {
+	border-color: #fbb9b9 transparent;
+	left: 10px;
+}
+.errorWrapper .outer {
+	border-color: red transparent;
+}
+.errorWrapper .innerArrow {
+	border-top-color: #fbb9b9;
+	left: 10px;
+}
+/* creates the larger triangle */
+.errorWrapper .arrow.top {
+	border-bottom-color: red;
+}
+/* creates the smaller  triangle */
+.errorWrapper .innerArrow.top {
+	border-bottom-color: #f7a0a0;
+}
+input.error {
+	border: 1px solid red !important;
+}
+
+/******************************************************************************
+ * 									Forms									  *
+ ******************************************************************************/
+
+form {
+    padding: 0.833em 0;
+	margin-top: 0.833em;
+	float: left;
+	position: relative;
+	border-top: 1px dotted #aaa;
+}
+form.withSteps {
+    counter-reset: fieldsets;
+}
+form.withSteps > fieldset > legend:before {
+    content: "Step " counter(fieldsets, decimal) ": ";
+    counter-increment: fieldsets;
+}
+form fieldset {
+    margin-bottom: 0.833em;
+	width: 100%;
+	border-bottom: 1px dotted #aaa;
+}
+form fieldset:last-of-type {
+    margin-bottom: 0;
+	border: none;
+}
+form legend {
+    font-size: 116.7%;
+    font-weight: bold;
+    padding-bottom: 0.714em;
+    text-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
+	color: #555;
+}
+form fieldset fieldset legend {
+    color: #111111;
+    font-size: 108.3%;
+    font-weight: normal;
+    padding-bottom: 0;
+}
+form ol > li {
+    line-height: 250%;
+    list-style: none;
+    padding: 0.417em 0;
+    margin-bottom: 2px;
+    overflow: hidden;
+	position: relative;
+}
+.widgetForm ol > li div:not(.buttons) {
+	float: left;
+}
+.widgetForm li > div.ui-slider {
+	width: 20.417em;
+}
+form ol > li > div:not(.ui-slider, .buttons) {
+	float: left;
+}
+form ol > li.hilighted {
+    background: #ddefef;
+    background: rgba(140, 223, 239, 0.2);
+}
+form ol ol li {
+    background: none;
+    border: none;
+    float: left;
+    width: 346px;
+    padding: 5px 0;
+}
+form ol ol li.buttons > button {
+    float: right;
+}
+form div.buttons {
+    float: right;
+    padding: 0;
+	width: auto;
+	clear: both;
+}
+form div.buttons.standalone {
+	float: left;
+}
+form div.buttons button {
+    margin-right: 0.167em;
+	margin-top: 0.417em;
+}
+form div.buttons button:nth-child(n+1) {
+	margin-left: 0.167em;
+}
+form div.long {
+	float: left;
+	width: 100%;
+}
+form div.column {
+	width: 30%;
+}
+form label {
+    float: left;
+	width: 100%;
+	text-align: left;
+	margin-right: 0.833em;
+	color: #555;
+}
+form label.short {
+	width: 5.833em;
+}
+form fieldset fieldset label.longLabel {
+    width: 9.167em;
+}
+form fieldset fieldset label:hover {
+    cursor: pointer;
+}
+form input:not([type=radio]), form textarea {
+    background: #ffffff;
+    border: 1px solid #ddd;
+	box-shadow: 0 1px 0 #fff;
+    border-radius: 3px;
+	font-family: Helvetica;
+	font-size: 100%;
+    outline: none;
+    padding: 0.417em;
+    width: 22.5em;
+    color: #555;
+	margin: 0;
+}
+.widget:not(.widgetWithForms) form input:not([type=radio]), 
+.widget:not(.widgetWithForms) form textarea {
+	background: #555;
+	border-color: #222;
+	box-shadow: 0 1px 0 #444;
+	color: #fff;
+	height: 1.28em;
+}
+form input[type=checkbox] {
+	width: auto;
+}
+form.scrolling input:not([type=radio]), form.scrolling textarea {
+	width: 170px;
+}
+form input.short, form.scrolling input.short {
+	width: 3.333em;
+	float: left;
+}
+form input.vector, form input.color, form input.quat {
+	width: 4.417em;
+	margin-right: 2px;
+}
+form input.color {
+	width: 2.417em;
+}
+form span.jPicker {
+	margin: 4px 5px 0 0;
+}
+form input.vector:last-child, form input.color:last-child,
+form input.quat:last-child {
+	margin-right: 0;
+}
+form.scrolling input.vector, form.scrolling input.color,
+form.scrolling input.quat {
+	width: 24px;
+}
+form input:-moz-placeholder {
+	color: #aaa;
+}
+form input::-webkit-input-placeholder {
+	color: #bbb;
+}
+form input.name {
+	float: left;
+}
+form input:not([type=submit]):focus, form textarea:focus {
+    background: #ffeeaa;
+}
+form input[type=radio] {
+    float: left;
+    margin-right: 5px;
+}
+.hasScrollBar form input:not([type=checkBox]),
+.hasScrollBar form textarea {
+    width: 21.667em;
+}
+.hasScrollBar li.ranged input {
+	width: 10.25em;
+	float: left;
+	margin-right: 2px;
+}
+.hasScrollBar li.ranged div:last-child input {
+	margin-right: 0;
+}
+.hasScrollBar li input.vector {
+	width: 4.167em;
+}
+.hasScrollBar li input.color {
+	width: 2em;
+}
+.hasScrollBar li input.quat {
+	width: 2.167em;
+}
+
+/**
+ * Form and Dialog Buttons
+ */
+button {
+    background: #eee;
+	background: -moz-linear-gradient(100% 100% 90deg, #ddd, #eee);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#ddd));
+    border: 1px solid #aaa;
+	border-radius: 3px;
+    color: #333;
+    float: left;
+	font-size: 108.3%;
+	font-weight: bold;
+	font-family: Helvetica;
+	line-height: 116.7%;
+    padding: 0.308em 0.385em;
+    text-shadow: 0 1px 0 #fff;
+    margin-bottom: 0.385em;
+    cursor: pointer;
+	-webkit-transition: color 0.25s ease-in-out;
+	-moz-transition: color 0.25s ease-in-out;
+	-o-transition: color 0.25s ease-in-out;
+}
+button:active {
+	-webkit-transform: translate(0, 2px);
+	-moz-transform: translate(0, 2px);
+	-o-transform: translate(0, 2px);
+	transform: translate(0, 2px);
+}
+.widget:not(.widgetWithForms) button {
+    background: #555;
+	background: -moz-linear-gradient(100% 100% 90deg, #555, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#555));
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    color: #eee;
+    text-shadow: 0 -1px 0 #000;
+}
+.widget:not(.widgetWithForms) button[disabled] {
+    background: #444;
+	background: -moz-linear-gradient(100% 100% 90deg, #444, #555);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#555), to(#444));
+	color: #888;
+    border: 1px solid #222;
+	box-shadow: inset 0 0 1px #aaa;
+    text-shadow: 0 -1px 0 #000;
+} 
+form button:first-child {
+    margin-left: 0;
+}
+form button:not(.inlineBtn, .treeSelectorBtn) {	
+	margin-top: 5px;
+}
+form button:not([disabled], .icon):hover {
+    background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eaeaea);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dadada), to(#eaeaea));
+}
+form button[disabled] {
+	background: -moz-linear-gradient(100% 100% 90deg, #eee, #fafafa);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fafafa), to(#eee));
+	color: #aaa;
+	text-shadow: 0 1px 0 #fff;
+	border-color: #ccc;
+	cursor: url(../images/cursor_unavailable.gif), auto;
+}
+form button.icon {
+	background: url(../images/listOptionsSprite.png) no-repeat;
+	text-indent: -5000px;
+	height: 16px;
+	width: 16px;
+	border: none;
+	box-shadow: none;
+	-moz-box-shadow: none;
+	margin: 5px;
+	padding: 0;
+}
+form button.removeBtn {
+	background-position: 0 -32px;
+}
+form button.removeBtn:hover {
+	background-position: -16px -32px;
+}
+
+/******************************************************************************
+ * 									Trees									  *
+ ******************************************************************************/
+
+div.jstree, div.jstree.jstree-focused {
+	background: transparent;
+	font-size: 12px !important;
+	line-height: 22px !important;
+}
+.jstree a > .jstree-icon {
+	margin-right: 5px !important;
+}
+
+
+/******************************************************************************
+ * 							  Tree Selector Widget							  *
+ ******************************************************************************/
+
+.treeSelector {
+	width: 100%;
+}
+.treeSelectorPnl {
+	background: #fff;
+	border: 1px solid #ddd;
+	overflow: auto;
+	border-top-width: 0;
+	padding: 0.417em 0.833em;
+	border-radius: 0 0 3px 3px;
+	z-index: 800;
+}
+.treeSelector input.treeSelectorIpt {
+	width: 17.75em;
+	float: left;
+	border-radius: 3px 0 0 3px;
+}
+.treeSelectorBtn:hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #eee, #fff); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#fff), to(#eee));
+}
+.treeSelectorBtn.selected:before {
+	transform: none;
+	-moz-transform: none;
+	-webkit-transform: none;
+}
+.treeSelectorBtn {
+	padding: 0;
+	overflow: hidden;
+	text-indent: -500px;
+	width: 1.923em;
+	height: 1.923em;
+	border-bottom-left-radius: 0;
+	border-top-left-radius: 0;
+	border-left-width: 0;
+	border-color: #ddd;
+}
+.treeSelectorBtn::-moz-focus-inner { 
+	border: 0; 
+	padding: 0; 
+	margin: 0; 
+}
+.treeSelectorBtn:after {
+	background: url(../images/listOptionsSprite.png) -2.462em -0.615em no-repeat;
+	background-size: 455%;
+	height: 0.615em;
+	width: 0.692em;
+	float: left;
+	margin: 0.385em 0 0 0.615em;
+	padding: 0;
+	content: "";
+}
+.treeSelectorBtn.open:after {
+	background-position: -2.462em 0;
+}
+form input.open, .treeSelectorBtn.open, 
+.treeSelector input.treeSelectorIpt.open {
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.sharedTree {
+	background: none !important;
+}
+
+
+/******************************************************************************
+ * 							  	 Selector Widget							  *
+ ******************************************************************************/
+
+.topBottomSelect {
+	position: absolute;
+}
+
+/* applied to original <select> to hide */
+.has_sb {
+	position: absolute;
+	left: -999999em;
+	text-indent: -999999em;
+}
+
+/* always visible styles */
+.selectbox {
+	display: block;
+	font-family: Helvetica, arial, sans-serif;
+	margin: 1px;
+	position: relative;
+	vertical-align: middle;
+	float: left;
+	zoom: 1;
+}
+.selectbox .display {
+	background: #fff;
+	border: 1px solid #ddd;
+	border-radius: 3px;
+	box-shadow: 0 1px 0 #fff;
+	color: #555;
+	cursor: default;
+	display: block;
+	font-weight: normal;
+	height: 1.917em;
+    line-height: 208.3%;
+	overflow: hidden;
+	outline: none;
+	padding: 0 2em 0 0.417em;
+	position: relative;
+	text-decoration: none;
+	overflow: hidden;
+}
+.topAligned .selectbox .display,
+.bottomAligned .selectbox .display {
+	background-color: #555;
+	border-color: #222;
+	box-shadow: 0 1px 0 #444;	
+	color: #fff;
+}
+.selectbox.disabled .display {
+	color: #999;
+}
+.selectbox.focused .display .text {
+	display: block;
+	*display: inline;
+	zoom: 1;
+}
+.selectbox .display.active {
+	border-radius: 3px 3px 0 0;
+}
+.selectbox .display .arrow_btn {
+	background: #eee;
+	background: -moz-linear-gradient(100% 100% 90deg, #eee, #ddd);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#ddd), to(#eee));
+	border-left: 1px solid #ddd;
+	border-radius: 0 3px 3px 0;
+    display: block;
+    height: 1.8em;
+    line-height: 208.3%;
+    padding: 1px;
+    position: absolute;
+    right: 0;
+    text-align: center;
+    top: 0;
+    width: 1.8em;
+	box-shadow: inset 0 1px 1px #fff; 
+}
+.topAligned .selectbox .display .arrow_btn,
+.bottomAligned .selectbox .display .arrow_btn {
+	background: #444;
+	background: -moz-linear-gradient(100% 100% 90deg, #444, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#444), to(#444));
+	border-left: 1px solid #222;
+	box-shadow: inset 0 1px 1px #888; 
+}
+.selectbox .display .arrow_btn .arrow {
+	background: url(../images/listOptionsSprite.png) -2.667em -0.667em no-repeat;
+	background-size: 420%;
+	height: 0.667em;
+	width: 0.833em;
+	float: left;
+    display: block;
+	*display: inline;
+    left: 0.538em;
+    position: absolute;
+    top: 0.67em;
+    zoom: 1;
+	padding: 0;
+	font-size: 100%;
+}
+.selectbox .display.active .arrow_btn {
+	border-radius: 0 3px 0 0;
+}
+.selectbox .display.active .arrow_btn .arrow {	
+	background-position: -2.667em 0;
+}
+.selectbox .display.hover .arrow_btn {
+}
+.selectbox .value {
+	display: none;
+}
+
+/* dropdown styles */
+.selectbox.items {
+	background: #fff;
+	border: 1px solid #ddd;
+	border-width: 0 1px 1px;
+	border-radius: 0 0 3px 3px;
+	display: block;
+	font-family: Helvetica;
+	list-style-type: none;
+	margin: 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding: 0 0 1px 0;
+	z-index: 99999;
+	box-shadow: 0 3px 5px #aaa;
+}
+.topBottomSelect .selectbox.items {
+	background-color: #6e6e6e;
+	border-color: #444;	
+	box-shadow: 0 3px 5px #222;
+}
+.selectbox.items.above {}
+.selectbox.items li {
+	display: block;
+	margin: 0;
+	padding: 0;
+	/*white-space: nowrap; maybe necessary if using fixedWidth:  false */
+}
+.selectbox.items li.first {
+	margin-top: 0;
+}
+.selectbox.items li>.item {
+	color: #555;
+	cursor: default;
+	display: block;
+	padding: 0.333em 0.5em;
+	text-decoration: none;
+}
+.topBottomSelect .selectbox.items li>.item {
+	color: #fff;
+}
+.selectbox.items li>.item>.text {
+	display: inline-block;
+	*display: inline;
+	zoom: 1;
+}
+.selectbox.items li.selected>.item {
+	border-bottom: 1px dotted #ddd;
+}
+.topBottomSelect .selectbox.items li.selected>.item {
+	border-bottom: 1px dotted #222;
+} 
+.selectbox.items li.disabled>.item {
+	color: #ccc;
+}
+.selectbox.items li.hover>.item {
+	background-color: #ccc;
+}
+.topBottomSelect .selectbox.items li.hover>.item {
+	background-color: #666;
+}
+.selectbox.items .value {
+	display: none;
+}
+
+/* optgroup styles */
+.selectbox.items .optgroup .items {
+	border: none;
+	margin: 0;
+	padding: 0;
+	-moz-box-shadow: none;
+	-webkit-box-shadow: none;
+}
+.selectbox.items .optgroup>.label {
+	cursor: default;
+	font-weight: bold;
+	line-height: 1em;
+}
+.selectbox.items .optgroup .items li>.item {
+	padding-left: 1em;
+}
+
+/* for optgroups */
+.selectbox.round_sb.items>li>.label {
+	line-height: 2.08em;
+	padding: 4px 6px;}
+.selectbox.round_sb.items>li>.items li>.item {
+	padding: 4px 6px 4px 12px;
+}
+
+/* fixed width example styles */
+.selectbox .display.fixedWidth {
+	width: 20.917em;
+	padding: 0 2em 0 0.417em;
+}
+.selectbox.fixedWidth.items {
+	width: 23.333em; /* width of display text plus the padding */
+}
+.hasScrollBar .selectbox .display.fixedWidth {
+	width: 20.083em;
+}
+.hasScrollBar .selectbox.fixedWidth.items {
+	width: 22.5em; /* width of display text plus the padding */
+}
+
+/******************************************************************************
+ * 								Vector Component							  *
+ ******************************************************************************/
+
+.vectorContainer {
+	float: left;
+}
+.vectorVec {
+	float: left;
+	clear: left;
+}
+
+/**
+ * Scene manager dialogs
+ * TODO: move this out
+ */
+#scnName {
+	float: left;
+}
+.scnEvtListWrapper {
+	float: left;
+	width: 259px;
+	margin: 0 0 0 -30px;
+	padding: 20px 10px 15px 30px;
+	background: #fffdf2;
+	box-shadow: 0 0 3px #ddd;
+	-moz-box-shadow: 0 0 3px #ddd;  
+}
+.scnEvtListArrow {
+	display: block; 
+	position: absolute;
+	top: 35px; 
+	left: 35px; 
+	width: 13px;
+	height: 13px;
+	background: #fffdf2;
+	box-shadow: -1px -1px 2px #ddd;
+	-moz-box-shadow: -1px -1px 2px #ddd;  
+	transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+.scnEvtListWrapper h2 {
+	float: left;
+	width: 100%;
+}
+.scnEvtList {
+	float: left;
+	padding: 0 0 0 20px;
+}
+ul.scnEvtList li {
+	padding: 0;
+	list-style: circle inside;
+	width: 240px;
+}
+ul.scnEvtList li:hover {
+	background: none;
+}
+ul.scnEvtList li > div {	
+	width: 220px;
+}
+ul.scnEvtList li > div.add {
+	width: 240px;
+}
+ul.scnEvtList li .buttonContainer {
+	padding-right: 0;
+}
+ul.scnEvtList li.button {
+	list-style: none;
+}
+#scnEvtTargetParams {
+	padding: 0;
+}
+#scnEvtTargetParams input[type=text] {
+	width: 128px;
+	float: left;
+}
+#scnEvtTargetParams li {
+	list-style: none;
+	float: left;
+}
+#scnEvtTargetParams label {
+	width: 80px;
+}
+.scnEvtCitTreeBtn {
+	padding: 8px 11px;
+	overflow: hidden;
+	text-indent: 30px;
+	width: 30px;
+	height: 27px;
+}
+.scnEvtCitTreeBtn:before {
+	background: url(../images/listOptionsSprite.png) -32px 0 no-repeat;
+	height: 7px;
+	width: 8px;
+	float: left;
+	margin-left: 6px;
+	transform: rotate(180deg);
+	-moz-transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
+	content: "";
+}
+.scnEvtCitTreeBtn.selected:before {
+	transform: none;
+	-moz-transform: none;
+	-webkit-transform: none;
+}
+#scnEvtCitizensTree {
+	background: #fff;
+	border: 1px solid #ccc;
+	overflow: auto;
+	height: 100px;
+	width: 171px;
+}
+
+/**
+ * Curves dialog
+ * TODO: move this out
+ */
+#crvAddSaveBoxBtn {
+	float: left;
+	margin: 5px 0 5px 125px;
+}
+.crvBoxEditor span {
+	float: left;
+	color: #555;
+	width: 195px;
+}
+
+
+/******************************************************************************
+ * 								  Color Picker								  *
+ ******************************************************************************/
+
+table.jPicker {
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
+	color: #fff;
+	border-radius: 6px;
+	border: none !important;
+}
+table.jPicker .Move {
+	background: #333;
+	border: 1px solid #111;
+	border-width: 0 0 1px 0;
+    color: #fff;    
+	border-radius: 6px 6px 0 0;
+	font-weight: bold;
+	font-size: 116.7%;
+	line-height: 216.7%;
+	text-align: center;
+	text-shadow: 0 -1px 0 #000;
+}
+table.jPicker tr td {
+	vertical-align: top;
+	padding: 5px 3px;
+}
+table.jPicker .Title {
+	display: none;
+}
+table.jPicker div.Map, table.jPicker div.Bar {
+	border: 1px solid #000;
+	margin-top: 9px;
+}
+table.jPicker div.Bar {
+}
+table.jPicker .Preview div {
+	border: none;
+}
+table.jPicker .Button {
+	width: 111px;
+}
+table.jPicker .Button input {    
+	background: -moz-linear-gradient(100% 100% 90deg, #777, #aaa);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#aaa), to(#777));
+    border: 1px solid #000;
+    border-radius: 2px;
+    color: #fff;
+    font-weight: bold;
+    height: 20px;
+    text-shadow: 0 -1px 0 #555;
+}
+table.jPicker .Button input:hover {    
+	background: -moz-linear-gradient(100% 100% 90deg, #999, #bbb);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#bbb), to(#999));
+}
+table.jPicker .Button .Ok {
+	margin-top: 9px;
+}
+table.jPicker hr {
+	height: 1px;
+	border: none;
+	background: #ccc;
+	margin: 10px 0;
+}
+table.jPicker .Grid {
+	width: 109px;
+}
+table.jPicker .Grid span.QuickColor {
+	border: 1px solid #000;
+	border-width: 1px 0 1px 1px;
+}
+table.jPicker .Grid span.QuickColor:nth-child(n+7) {
+	border-top-width: 0;
+}
+table.jPicker .Grid span.QuickColor:nth-child(6n) {
+	border-right-width: 1px;
+}
+table.jPicker .Text input {
+	border: 1px solid #444;
+	border-radius: 3px;
+}
+table.jPicker tr.Hex td.Text {
+	padding-bottom: 10px;
+}
+span.jPicker {
+    display: block;
+    float: left;
+    margin: 4px 6px 0;
+    width: 25px;
+	height: 25px;
+}
+
+
+/******************************************************************************
+ * 							  Progress Indicator							  *
+ ******************************************************************************/
+
+#progressIndicator {
+	background: -moz-linear-gradient(100% 100% 90deg, #eee, #dcdcdc);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dcdcdc), to(#eee));
+	height: 30px;
+	padding: 5px 5px;
+	position: absolute;
+	border-radius: 3px 3px 0 0;
+}
+#progressIndicator .prgBarText {
+	color: #666;
+	font-weight: bold;
+	font-size: 83.3%;
+	line-height: 141.7%;
+	float: left;
+	padding: 2px 5px 2px 0;
+}
+#progressIndicator .prgBarContainer {
+	float: left;
+	width: 300px;
+	height: 18px;
+	border: 1px solid #aaa;
+	border-radius: 3px;
+}
+#progressIndicator .prgBarIndicator {
+	height: 100%;
+	width: 0;
+	padding: 0;
+	margin: 0;
+	background: -moz-linear-gradient(100% 100% 90deg, #88b2cb, #a0d2ef);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#a0d2ef), to(#88b2cb));
+}
+
+/*
+* jQuery UI CSS Framework
+* Copyright (c) 2010 AUTHORS.txt (http://jqueryui.com/about)
+* Dual licensed under the MIT (MIT-LICENSE.txt) and GPL (GPL-LICENSE.txt) licenses.
+*/
+
+/* Layout helpers
+----------------------------------*/
+.ui-helper-hidden { display: none; }
+.ui-helper-hidden-accessible { position: absolute; left: -99999999px; }
+.ui-helper-reset { margin: 0; padding: 0; border: 0; outline: 0; line-height: 1.3; text-decoration: none; font-size: 100%; list-style: none; }
+.ui-helper-clearfix:after { content: "."; display: block; height: 0; clear: both; visibility: hidden; }
+.ui-helper-clearfix { display: inline-block; }
+/* required comment for clearfix to work in Opera \*/
+* html .ui-helper-clearfix { height:1%; }
+.ui-helper-clearfix { display:block; }
+/* end clearfix */
+.ui-helper-zfix { width: 100%; height: 100%; top: 0; left: 0; position: absolute; opacity: 0; filter:Alpha(Opacity=0); }
+
+
+/* Interaction Cues
+----------------------------------*/
+.ui-state-disabled { cursor: default !important; }
+
+
+/* Icons
+----------------------------------*/
+
+/* states and images */
+.ui-icon { display: block; text-indent: -99999px; overflow: hidden; background-repeat: no-repeat; }
+
+
+/* Misc visuals
+----------------------------------*/
+
+/* Overlays */
+.ui-widget-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+
+/*
+* jQuery UI CSS Framework
+* Copyright (c) 2010 AUTHORS.txt (http://jqueryui.com/about)
+* Dual licensed under the MIT (MIT-LICENSE.txt) and GPL (GPL-LICENSE.txt) licenses.
+* To view and modify this theme, visit http://jqueryui.com/themeroller/?ffDefault=Helvetica,%20Arial,%20sans-serif&fwDefault=bold&fsDefault=1.1em&cornerRadius=2px&bgColorHeader=dddddd&bgTextureHeader=03_highlight_soft.png&bgImgOpacityHeader=50&borderColorHeader=dddddd&fcHeader=444444&iconColorHeader=0073ea&bgColorContent=ffffff&bgTextureContent=01_flat.png&bgImgOpacityContent=75&borderColorContent=dddddd&fcContent=444444&iconColorContent=ff0084&bgColorDefault=f6f6f6&bgTextureDefault=03_highlight_soft.png&bgImgOpacityDefault=100&borderColorDefault=dddddd&fcDefault=0073ea&iconColorDefault=666666&bgColorHover=0073ea&bgTextureHover=03_highlight_soft.png&bgImgOpacityHover=25&borderColorHover=0073ea&fcHover=ffffff&iconColorHover=ffffff&bgColorActive=ffffff&bgTextureActive=02_glass.png&bgImgOpacityActive=65&borderColorActive=dddddd&fcActive=ff0084&iconColorActive=454545&bgColorHighlight=ffffff&bgTextureHighlight=01_flat.png&bgImgOpacityHighlight=55&borderColorHighlight=cccccc&fcHighlight=444444&iconColorHighlight=0073ea&bgColorError=ffffff&bgTextureError=01_flat.png&bgImgOpacityError=55&borderColorError=ff0084&fcError=222222&iconColorError=ff0084&bgColorOverlay=eeeeee&bgTextureOverlay=01_flat.png&bgImgOpacityOverlay=0&opacityOverlay=80&bgColorShadow=aaaaaa&bgTextureShadow=01_flat.png&bgImgOpacityShadow=0&opacityShadow=60&thicknessShadow=4px&offsetTopShadow=-4px&offsetLeftShadow=-4px&cornerRadiusShadow=0px
+*/
+
+
+/* Component containers
+----------------------------------*/
+.ui-widget { font-family: 'Lato', Helvetica, Arial, sans-serif; }
+.ui-widget .ui-widget { font-size: 1em; }
+.ui-widget input, .ui-widget select, .ui-widget textarea, .ui-widget button {  }
+.ui-widget-content { 
+	background: -moz-linear-gradient(100% 100% 90deg, #333, #666);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#666), to(#333));
+	border-radius: 6px;
+	color: #fff; 
+}
+.ui-widget-content a { color: #444444; }
+.ui-widget-header { 
+	background: #333; 
+	color: #fff;
+	text-shadow: 0 -1px 0 #000; 
+	font-weight: bold;
+	font-size: 116.7%
+	line-height: 216.7%; 
+	border-bottom: 1px solid #111;
+}
+.ui-widget-header a { color: #444444; }
+
+/* Interaction states
+----------------------------------*/
+.ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default { border: 1px solid #dddddd; background: #f6f6f6 url(../images/ui-bg_highlight-soft_100_f6f6f6_1x100.png) 50% 50% repeat-x; font-weight: bold; color: #0073ea; }
+.ui-state-default a, .ui-state-default a:link, .ui-state-default a:visited { color: #0073ea; text-decoration: none; }
+.ui-state-hover, .ui-widget-content .ui-state-hover, .ui-widget-header .ui-state-hover, .ui-state-focus, .ui-widget-content .ui-state-focus, .ui-widget-header .ui-state-focus { border: 1px solid #0073ea; background: #88b2cb; font-weight: bold; color: #ffffff; }
+.ui-state-hover a, .ui-state-hover a:hover { color: #ffffff; text-decoration: none; }
+.ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active { border: 1px solid #dddddd; background: #ffffff url(../images/ui-bg_glass_65_ffffff_1x400.png) 50% 50% repeat-x; font-weight: bold; color: #ff0084; }
+.ui-state-active a, .ui-state-active a:link, .ui-state-active a:visited { color: #ff0084; text-decoration: none; }
+.ui-widget :active { outline: none; }
+
+/* Interaction Cues
+----------------------------------*/
+.ui-state-highlight, .ui-widget-content .ui-state-highlight, .ui-widget-header .ui-state-highlight  {border: 1px solid #cccccc; background: #ffffff url(../images/ui-bg_flat_55_ffffff_40x100.png) 50% 50% repeat-x; color: #444444; }
+.ui-state-highlight a, .ui-widget-content .ui-state-highlight a,.ui-widget-header .ui-state-highlight a { color: #444444; }
+.ui-state-error, .ui-widget-content .ui-state-error, .ui-widget-header .ui-state-error {border: 1px solid #ff0084; background: #ffffff url(../images/ui-bg_flat_55_ffffff_40x100.png) 50% 50% repeat-x; color: #222222; }
+.ui-state-error a, .ui-widget-content .ui-state-error a, .ui-widget-header .ui-state-error a { color: #222222; }
+.ui-state-error-text, .ui-widget-content .ui-state-error-text, .ui-widget-header .ui-state-error-text { color: #222222; }
+.ui-priority-primary, .ui-widget-content .ui-priority-primary, .ui-widget-header .ui-priority-primary { font-weight: bold; }
+.ui-priority-secondary, .ui-widget-content .ui-priority-secondary,  .ui-widget-header .ui-priority-secondary { opacity: .7; filter:Alpha(Opacity=70); font-weight: normal; }
+.ui-state-disabled, .ui-widget-content .ui-state-disabled, .ui-widget-header .ui-state-disabled { opacity: .35; filter:Alpha(Opacity=35); background-image: none; }
+
+/* Icons
+----------------------------------*/
+
+/* states and images */
+.ui-icon { width: 16px; height: 16px; background-image: url(../images/ui-icons_ff0084_256x240.png); }
+.ui-widget-content .ui-icon {background-image: url(../images/ui-icons_ff0084_256x240.png); }
+.ui-widget-header .ui-icon {background-image: url(../images/ui-icons_0073ea_256x240.png); }
+.ui-state-default .ui-icon { background-image: url(../images/ui-icons_666666_256x240.png); }
+.ui-state-hover .ui-icon, .ui-state-focus .ui-icon {background-image: url(../images/ui-icons_ffffff_256x240.png); }
+.ui-state-active .ui-icon {background-image: url(../images/ui-icons_454545_256x240.png); }
+.ui-state-highlight .ui-icon {background-image: url(../images/ui-icons_0073ea_256x240.png); }
+.ui-state-error .ui-icon, .ui-state-error-text .ui-icon {background-image: url(../images/ui-icons_ff0084_256x240.png); }
+
+/* positioning */
+.ui-icon-carat-1-n { background-position: 0 0; }
+.ui-icon-carat-1-ne { background-position: -16px 0; }
+.ui-icon-carat-1-e { background-position: -32px 0; }
+.ui-icon-carat-1-se { background-position: -48px 0; }
+.ui-icon-carat-1-s { background-position: -64px 0; }
+.ui-icon-carat-1-sw { background-position: -80px 0; }
+.ui-icon-carat-1-w { background-position: -96px 0; }
+.ui-icon-carat-1-nw { background-position: -112px 0; }
+.ui-icon-carat-2-n-s { background-position: -128px 0; }
+.ui-icon-carat-2-e-w { background-position: -144px 0; }
+.ui-icon-triangle-1-n { background-position: 0 -16px; }
+.ui-icon-triangle-1-ne { background-position: -16px -16px; }
+.ui-icon-triangle-1-e { background-position: -32px -16px; }
+.ui-icon-triangle-1-se { background-position: -48px -16px; }
+.ui-icon-triangle-1-s { background-position: -64px -16px; }
+.ui-icon-triangle-1-sw { background-position: -80px -16px; }
+.ui-icon-triangle-1-w { background-position: -96px -16px; }
+.ui-icon-triangle-1-nw { background-position: -112px -16px; }
+.ui-icon-triangle-2-n-s { background-position: -128px -16px; }
+.ui-icon-triangle-2-e-w { background-position: -144px -16px; }
+.ui-icon-arrow-1-n { background-position: 0 -32px; }
+.ui-icon-arrow-1-ne { background-position: -16px -32px; }
+.ui-icon-arrow-1-e { background-position: -32px -32px; }
+.ui-icon-arrow-1-se { background-position: -48px -32px; }
+.ui-icon-arrow-1-s { background-position: -64px -32px; }
+.ui-icon-arrow-1-sw { background-position: -80px -32px; }
+.ui-icon-arrow-1-w { background-position: -96px -32px; }
+.ui-icon-arrow-1-nw { background-position: -112px -32px; }
+.ui-icon-arrow-2-n-s { background-position: -128px -32px; }
+.ui-icon-arrow-2-ne-sw { background-position: -144px -32px; }
+.ui-icon-arrow-2-e-w { background-position: -160px -32px; }
+.ui-icon-arrow-2-se-nw { background-position: -176px -32px; }
+.ui-icon-arrowstop-1-n { background-position: -192px -32px; }
+.ui-icon-arrowstop-1-e { background-position: -208px -32px; }
+.ui-icon-arrowstop-1-s { background-position: -224px -32px; }
+.ui-icon-arrowstop-1-w { background-position: -240px -32px; }
+.ui-icon-arrowthick-1-n { background-position: 0 -48px; }
+.ui-icon-arrowthick-1-ne { background-position: -16px -48px; }
+.ui-icon-arrowthick-1-e { background-position: -32px -48px; }
+.ui-icon-arrowthick-1-se { background-position: -48px -48px; }
+.ui-icon-arrowthick-1-s { background-position: -64px -48px; }
+.ui-icon-arrowthick-1-sw { background-position: -80px -48px; }
+.ui-icon-arrowthick-1-w { background-position: -96px -48px; }
+.ui-icon-arrowthick-1-nw { background-position: -112px -48px; }
+.ui-icon-arrowthick-2-n-s { background-position: -128px -48px; }
+.ui-icon-arrowthick-2-ne-sw { background-position: -144px -48px; }
+.ui-icon-arrowthick-2-e-w { background-position: -160px -48px; }
+.ui-icon-arrowthick-2-se-nw { background-position: -176px -48px; }
+.ui-icon-arrowthickstop-1-n { background-position: -192px -48px; }
+.ui-icon-arrowthickstop-1-e { background-position: -208px -48px; }
+.ui-icon-arrowthickstop-1-s { background-position: -224px -48px; }
+.ui-icon-arrowthickstop-1-w { background-position: -240px -48px; }
+.ui-icon-arrowreturnthick-1-w { background-position: 0 -64px; }
+.ui-icon-arrowreturnthick-1-n { background-position: -16px -64px; }
+.ui-icon-arrowreturnthick-1-e { background-position: -32px -64px; }
+.ui-icon-arrowreturnthick-1-s { background-position: -48px -64px; }
+.ui-icon-arrowreturn-1-w { background-position: -64px -64px; }
+.ui-icon-arrowreturn-1-n { background-position: -80px -64px; }
+.ui-icon-arrowreturn-1-e { background-position: -96px -64px; }
+.ui-icon-arrowreturn-1-s { background-position: -112px -64px; }
+.ui-icon-arrowrefresh-1-w { background-position: -128px -64px; }
+.ui-icon-arrowrefresh-1-n { background-position: -144px -64px; }
+.ui-icon-arrowrefresh-1-e { background-position: -160px -64px; }
+.ui-icon-arrowrefresh-1-s { background-position: -176px -64px; }
+.ui-icon-arrow-4 { background-position: 0 -80px; }
+.ui-icon-arrow-4-diag { background-position: -16px -80px; }
+.ui-icon-extlink { background-position: -32px -80px; }
+.ui-icon-newwin { background-position: -48px -80px; }
+.ui-icon-refresh { background-position: -64px -80px; }
+.ui-icon-shuffle { background-position: -80px -80px; }
+.ui-icon-transfer-e-w { background-position: -96px -80px; }
+.ui-icon-transferthick-e-w { background-position: -112px -80px; }
+.ui-icon-folder-collapsed { background-position: 0 -96px; }
+.ui-icon-folder-open { background-position: -16px -96px; }
+.ui-icon-document { background-position: -32px -96px; }
+.ui-icon-document-b { background-position: -48px -96px; }
+.ui-icon-note { background-position: -64px -96px; }
+.ui-icon-mail-closed { background-position: -80px -96px; }
+.ui-icon-mail-open { background-position: -96px -96px; }
+.ui-icon-suitcase { background-position: -112px -96px; }
+.ui-icon-comment { background-position: -128px -96px; }
+.ui-icon-person { background-position: -144px -96px; }
+.ui-icon-print { background-position: -160px -96px; }
+.ui-icon-trash { background-position: -176px -96px; }
+.ui-icon-locked { background-position: -192px -96px; }
+.ui-icon-unlocked { background-position: -208px -96px; }
+.ui-icon-bookmark { background-position: -224px -96px; }
+.ui-icon-tag { background-position: -240px -96px; }
+.ui-icon-home { background-position: 0 -112px; }
+.ui-icon-flag { background-position: -16px -112px; }
+.ui-icon-calendar { background-position: -32px -112px; }
+.ui-icon-cart { background-position: -48px -112px; }
+.ui-icon-pencil { background-position: -64px -112px; }
+.ui-icon-clock { background-position: -80px -112px; }
+.ui-icon-disk { background-position: -96px -112px; }
+.ui-icon-calculator { background-position: -112px -112px; }
+.ui-icon-zoomin { background-position: -128px -112px; }
+.ui-icon-zoomout { background-position: -144px -112px; }
+.ui-icon-search { background-position: -160px -112px; }
+.ui-icon-wrench { background-position: -176px -112px; }
+.ui-icon-gear { background-position: -192px -112px; }
+.ui-icon-heart { background-position: -208px -112px; }
+.ui-icon-star { background-position: -224px -112px; }
+.ui-icon-link { background-position: -240px -112px; }
+.ui-icon-cancel { background-position: 0 -128px; }
+.ui-icon-plus { background-position: -16px -128px; }
+.ui-icon-plusthick { background-position: -32px -128px; }
+.ui-icon-minus { background-position: -48px -128px; }
+.ui-icon-minusthick { background-position: -64px -128px; }
+.ui-icon-close { background-position: -80px -128px; }
+.ui-icon-closethick { background-position: -96px -128px; }
+.ui-icon-key { background-position: -112px -128px; }
+.ui-icon-lightbulb { background-position: -128px -128px; }
+.ui-icon-scissors { background-position: -144px -128px; }
+.ui-icon-clipboard { background-position: -160px -128px; }
+.ui-icon-copy { background-position: -176px -128px; }
+.ui-icon-contact { background-position: -192px -128px; }
+.ui-icon-image { background-position: -208px -128px; }
+.ui-icon-video { background-position: -224px -128px; }
+.ui-icon-script { background-position: -240px -128px; }
+.ui-icon-alert { background-position: 0 -144px; }
+.ui-icon-info { background-position: -16px -144px; }
+.ui-icon-notice { background-position: -32px -144px; }
+.ui-icon-help { background-position: -48px -144px; }
+.ui-icon-check { background-position: -64px -144px; }
+.ui-icon-bullet { background-position: -80px -144px; }
+.ui-icon-radio-off { background-position: -96px -144px; }
+.ui-icon-radio-on { background-position: -112px -144px; }
+.ui-icon-pin-w { background-position: -128px -144px; }
+.ui-icon-pin-s { background-position: -144px -144px; }
+.ui-icon-play { background-position: 0 -160px; }
+.ui-icon-pause { background-position: -16px -160px; }
+.ui-icon-seek-next { background-position: -32px -160px; }
+.ui-icon-seek-prev { background-position: -48px -160px; }
+.ui-icon-seek-end { background-position: -64px -160px; }
+.ui-icon-seek-start { background-position: -80px -160px; }
+/* ui-icon-seek-first is deprecated, use ui-icon-seek-start instead */
+.ui-icon-seek-first { background-position: -80px -160px; }
+.ui-icon-stop { background-position: -96px -160px; }
+.ui-icon-eject { background-position: -112px -160px; }
+.ui-icon-volume-off { background-position: -128px -160px; }
+.ui-icon-volume-on { background-position: -144px -160px; }
+.ui-icon-power { background-position: 0 -176px; }
+.ui-icon-signal-diag { background-position: -16px -176px; }
+.ui-icon-signal { background-position: -32px -176px; }
+.ui-icon-battery-0 { background-position: -48px -176px; }
+.ui-icon-battery-1 { background-position: -64px -176px; }
+.ui-icon-battery-2 { background-position: -80px -176px; }
+.ui-icon-battery-3 { background-position: -96px -176px; }
+.ui-icon-circle-plus { background-position: 0 -192px; }
+.ui-icon-circle-minus { background-position: -16px -192px; }
+.ui-icon-circle-close { background-position: -32px -192px; }
+.ui-icon-circle-triangle-e { background-position: -48px -192px; }
+.ui-icon-circle-triangle-s { background-position: -64px -192px; }
+.ui-icon-circle-triangle-w { background-position: -80px -192px; }
+.ui-icon-circle-triangle-n { background-position: -96px -192px; }
+.ui-icon-circle-arrow-e { background-position: -112px -192px; }
+.ui-icon-circle-arrow-s { background-position: -128px -192px; }
+.ui-icon-circle-arrow-w { background-position: -144px -192px; }
+.ui-icon-circle-arrow-n { background-position: -160px -192px; }
+.ui-icon-circle-zoomin { background-position: -176px -192px; }
+.ui-icon-circle-zoomout { background-position: -192px -192px; }
+.ui-icon-circle-check { background-position: -208px -192px; }
+.ui-icon-circlesmall-plus { background-position: 0 -208px; }
+.ui-icon-circlesmall-minus { background-position: -16px -208px; }
+.ui-icon-circlesmall-close { background-position: -32px -208px; }
+.ui-icon-squaresmall-plus { background-position: -48px -208px; }
+.ui-icon-squaresmall-minus { background-position: -64px -208px; }
+.ui-icon-squaresmall-close { background-position: -80px -208px; }
+.ui-icon-grip-dotted-vertical { background-position: 0 -224px; }
+.ui-icon-grip-dotted-horizontal { background-position: -16px -224px; }
+.ui-icon-grip-solid-vertical { background-position: -32px -224px; }
+.ui-icon-grip-solid-horizontal { background-position: -48px -224px; }
+.ui-icon-gripsmall-diagonal-se { background-position: -64px -224px; }
+.ui-icon-grip-diagonal-se { background-position: -80px -224px; }
+
+
+/* Misc visuals
+----------------------------------*/
+
+/* jQuery UI Resizable @VERSION
+ *
+ * Copyright 2010, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Resizable#theming
+ */
+.ui-resizable { position: relative;}
+.ui-resizable-handle { position: absolute;font-size: 0.1px;z-index: 99999; display: block;}
+.ui-resizable-disabled .ui-resizable-handle, .ui-resizable-autohide .ui-resizable-handle { display: none; }
+.ui-resizable-n { cursor: n-resize; height: 7px; width: 100%; top: -5px; left: 0; }
+.ui-resizable-s { cursor: s-resize; height: 7px; width: 100%; bottom: -5px; left: 0; }
+.ui-resizable-e { cursor: e-resize; width: 7px; right: -5px; top: 0; height: 100%; }
+.ui-resizable-w { cursor: w-resize; width: 7px; left: -5px; top: 0; height: 100%; }
+.ui-resizable-se { cursor: se-resize; width: 12px; height: 12px; right: 1px; bottom: 1px; }
+.ui-resizable-sw { cursor: sw-resize; width: 9px; height: 9px; left: -5px; bottom: -5px; }
+.ui-resizable-nw { cursor: nw-resize; width: 9px; height: 9px; left: -5px; top: -5px; }
+.ui-resizable-ne { cursor: ne-resize; width: 9px; height: 9px; right: -5px; top: -5px;}
+
+/*
+ * jQuery UI Autocomplete @VERSION
+ *
+ * Copyright 2010, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Autocomplete#theming
+ */
+.ui-autocomplete { 
+    position: absolute; 
+	cursor: default; 
+	overflow-y: auto; 
+	max-height: 200px;
+}
+.ui-autocomplete-desc {
+	font-size: 8pt;
+}   
+
+/* workarounds */
+* html .ui-autocomplete { width:1px; height: 200px;} /* without this, the menu expands to 100% in IE6 */
+
+/*
+ * jQuery UI Menu @VERSION
+ *
+ * Copyright 2010, AUTHORS.txt (http://jqueryui.com/about)
+ * Dual licensed under the MIT or GPL Version 2 licenses.
+ * http://jquery.org/license
+ *
+ * http://docs.jquery.com/UI/Menu#theming
+ */
+.ui-menu {
+    list-style:none;
+    padding: 2px;
+    margin: 0;
+    display:block;
+    float: left;
+}
+.ui-menu .ui-menu {
+    margin-top: -3px;
+}
+.ui-menu .ui-menu-item {
+    margin:0;
+    padding: 0;
+    zoom: 1;
+    float: left;
+    clear: left;
+    width: 100%;
+}
+.ui-menu .ui-menu-item a {
+    text-decoration:none;
+    display:block;
+    padding:.2em .4em;
+    line-height:1.5;
+    zoom:1;
+}
+.ui-menu .ui-menu-item a.ui-state-hover,
+.ui-menu .ui-menu-item a.ui-state-active {
+    font-weight: normal;
+    margin: -1px;
+}
+
+/* Overlays */
+.ui-widget-overlay { background: #eeeeee url(../images/ui-bg_flat_0_eeeeee_40x100.png) 50% 50% repeat-x; opacity: .80;filter:Alpha(Opacity=80); }
+.ui-widget-shadow { margin: -4px 0 0 -4px; padding: 4px; background: #aaaaaa url(../images/ui-bg_flat_0_aaaaaa_40x100.png) 50% 50% repeat-x; opacity: .60;filter:Alpha(Opacity=60); -moz-border-radius: 0px; -webkit-border-radius: 0px; border-radius: 0px; }/* Dialog
+----------------------------------*/
+.ui-dialog { position: absolute; width: 300px; overflow: hidden; }
+.ui-dialog .ui-dialog-titlebar { padding: 0 5px; position: relative; border-radius: 6px 6px 0 0; }
+.ui-dialog .ui-dialog-title { float: left; margin: 0; } 
+.ui-dialog .ui-dialog-titlebar-close { position: absolute; right: .3em; top: 50%; width: 19px; margin: -10px 0 0 0; padding: 1px; height: 18px; }
+.ui-dialog .ui-dialog-titlebar-close span { display: block; margin: 1px; }
+.ui-dialog .ui-dialog-titlebar-close:hover, .ui-dialog .ui-dialog-titlebar-close:focus { padding: 0; }
+.ui-dialog .ui-dialog-content { border: 0; padding: .5em 1em; background: none; overflow: auto; zoom: 1; }
+.ui-dialog .ui-dialog-buttonpane { text-align: left; background-image: none; margin: 0; padding: 5px; border: none; }
+.ui-dialog .ui-dialog-buttonpane button { float: right; margin: .5em .4em .5em 0; cursor: pointer; padding: .2em .6em .3em .6em; line-height: 1.4em; width:auto; overflow:visible; }
+.ui-dialog .ui-resizable-se { width: 14px; height: 14px; right: 3px; bottom: 3px; }
+.ui-draggable .ui-dialog-titlebar { cursor: move; }
+
+/**
+ * jQuery UI slider
+ */
+.ui-slider { position: relative; text-align: left; background: #eee; border: 1px solid #ccc; }
+.ui-slider .ui-slider-handle { position: absolute; z-index: 2; width: 1.2em; height: 1.2em; cursor: default; }
+.ui-slider .ui-slider-range { position: absolute; z-index: 1; font-size: .7em; display: block; border: 0; background-position: 0 0; }
+
+.ui-slider-horizontal { height: .8em; margin: 5px; border-radius: 3px; -moz-border-radius: 3px; }
+.ui-slider-horizontal .ui-slider-handle { top: -.3em; margin-left: -.6em; }
+.ui-slider-horizontal .ui-slider-range { top: 0; height: 100%; }
+.ui-slider-horizontal .ui-slider-range-min { left: 0; }
+.ui-slider-horizontal .ui-slider-range-max { right: 0; }
+
+.ui-slider-vertical { width: .8em; height: 100px; }
+.ui-slider-vertical .ui-slider-handle { left: -.3em; margin-left: 0; margin-bottom: -.6em; }
+.ui-slider-vertical .ui-slider-range { left: 0; width: 100%; }
+.ui-slider-vertical .ui-slider-range-min { bottom: 0; }
+.ui-slider-vertical .ui-slider-range-max { top: 0; }
