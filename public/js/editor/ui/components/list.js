@@ -212,6 +212,10 @@ var editor = (function(editor) {
 			this.container.append(this.title).append(btnDiv);
 		},
 		
+		getText: function() {
+			return this.title.text();
+		},
+		
 		setText: function(text) {
 			this.title.text(text);
 		}

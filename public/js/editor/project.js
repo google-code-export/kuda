@@ -529,7 +529,7 @@ var editor = (function(editor) {
 			this.removeBtn.before(this.publishLink.hide());
 			
 			this.title.bind('click', function() {
-				wgt.notifyListeners(event.Load, wgt.getAttachedObject());
+				wgt.notifyListeners(event.Load, wgt.getText());
 			});
 		},
 		
@@ -559,14 +559,11 @@ var editor = (function(editor) {
 			
 			if (!li) {
 				li = this.createListItem();
-					
 				li.setText(project.name);
-				li.attachObject(project.name);
 				
-				this.bindButtons(li, project.name);
-				
+				this.bindButtons(li, project);
 				this.list.add(li);
-				this.items.put(project, li);
+				this.items.put(project.name, li);
 			}
 			
 			return li;
@@ -580,8 +577,7 @@ var editor = (function(editor) {
 					+ '.html').show();
 			}
 			li.removeBtn.bind('click', function(evt) {
-				wgt.notifyListeners(event.Remove, 
-					project.name);
+				wgt.notifyListeners(event.Remove, project.name);
 			});
 		},
 		
@@ -606,7 +602,6 @@ var editor = (function(editor) {
 				retVal = false;
 			
 			if (li) {
-				li.removeObject();
 				this.list.remove(li);
 				this.items.remove(projectName);
 				retVal = true;
@@ -624,7 +619,6 @@ var editor = (function(editor) {
 					li.publishLink.attr('href', '/projects/' + project.name 
 						+ '.html').show();
 				}
-				li.attachObject(project);
 				retVal = true;
 			}
 			
