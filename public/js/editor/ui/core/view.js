@@ -865,6 +865,8 @@ var editor = (function(editor) {
 		cans.attr('height', windowHeight);
 		displayInfo.width = windowWidth;
 		displayInfo.height = windowHeight;
+		// For some reason, textBaseline gets reset when the canvas is resized
+		hemi.hud.hudMgr.canvas.textBaseline = 'top';
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
