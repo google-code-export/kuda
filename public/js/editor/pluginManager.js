@@ -144,16 +144,16 @@
 								
 				var mdls = editor.getModels();
 					
-				for (var i = 0, il = mdls.length; i < il; i++) {
-					var mdl = mdls[i];
-					
-					if (!mdl.hasWorldListeners) {
-						editor.addListener(editor.events.WorldCleaned, mdl);
-						editor.addListener(editor.events.WorldLoaded, mdl);
-					}	
-					
-					mdl.hasWorldListeners = true;
-				}
+//				for (var i = 0, il = mdls.length; i < il; i++) {
+//					var mdl = mdls[i];
+//					
+//					if (!mdl.hasWorldListeners) {
+//						editor.addListener(editor.events.WorldCleaned, mdl);
+//						editor.addListener(editor.events.WorldLoaded, mdl);
+//					}	
+//					
+//					mdl.hasWorldListeners = true;
+//				}
 				
 				this.initComplete = true;
 				this.callbacks = [];

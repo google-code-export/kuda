@@ -716,14 +716,10 @@
 			// model specific	
 			model.addListener(editor.events.Created, function(data) {
 				var target = data.target,
-					spec = model.dispatchProxy.getTargetSpec(target),
-					li = shorthand.getBehaviorListItem(data.actor);
+					spec = model.dispatchProxy.getTargetSpec(target);
 				
+				shorthand.updateBehaviorListItems(target, spec);
 				tblWgt.add(target, spec);
-					
-				if (li) {
-					li.add(target, spec);
-				}
 				
 				bhvWgt.setVisible(false);
 			});			

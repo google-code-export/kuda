@@ -736,8 +736,36 @@
 		return actor ? behaviorLiTable.get(actor) : null;
 	};
 	
-	shorthand.updateBehaviorListItems = function(msgTarget) {
-
+	shorthand.updateBehaviorListItems = function(msgTarget, spec) {
+		var data = expandTargetData(msgTarget, spec),
+			source = data.source,
+			li = null;
+		
+		// check special cases
+		if (data.source.camMove || data.source.shapePick) {			
+			source = data.type;
+		}
+		li = behaviorLiTable.get(hemi.world.getCitizenById(source));
+		if (li == null) {
+			setTimeout(function(){
+				shorthand.updateBehaviorListItems(msgTarget, spec);
+			}, 50);
+		}
+		else {
+			li.add(msgTarget, spec);
+			
+			li = null;
+			switch (data.handler.getCitizenType()) {
+				case 'hemi.view.Camera':
+					var id = parseInt(data.args[0].value.replace('id:', ''));
+					li = behaviorLiTable.get(hemi.world.getCitizenById(id));
+					break;
+			}
+			
+			if (li != null) {
+				li.add(msgTarget, spec);
+			}
+		}
 	};
 	
 	shorthand.getTriggerName = getTriggerName;
