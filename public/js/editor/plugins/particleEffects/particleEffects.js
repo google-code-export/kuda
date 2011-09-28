@@ -201,6 +201,7 @@
 		
 		addColorInput: function() {
 			var colorAdder = this.find('#pteAddColorToRamp'),
+				wrapper = this.find('#pteColorRampWrapper'),
 				ndx = colorAdder.data('ndx'),
 				wgt = this,
 				colorPicker;
@@ -222,7 +223,7 @@
 				colorPicker = this.colorPickers[ndx];
 			}
 			
-			colorAdder.before(colorPicker.getUI());
+			wrapper.before(colorPicker.getUI());
 			colorAdder.data('ndx', ndx+1);
 		},
 		
