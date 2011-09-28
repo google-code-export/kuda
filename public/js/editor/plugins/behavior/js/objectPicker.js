@@ -203,7 +203,7 @@
 		
 		setValue: function(citizen) {
 			if (citizen != null && citizen.getCitizenType() === this.filter) {
-				var nodeId = shorthand.treedata.getNodeName(citizen, {
+				var nodeId = shorthand.treeData.getNodeName(citizen, {
 					prefix: citTree.pre,
 					id: citizen.getId()
 				});

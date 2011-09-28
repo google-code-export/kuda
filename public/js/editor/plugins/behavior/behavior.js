@@ -722,7 +722,7 @@
 				tblWgt.add(target, spec);
 					
 				if (li) {
-					li.add(target, spec, data.actor);
+					li.add(target, spec);
 				}
 				
 				bhvWgt.setVisible(false);
@@ -744,17 +744,18 @@
 				tblWgt.update(target, spec);
 				
 				if (li) {
-					li.update(target, spec, data.actor);
+					li.update(target, spec);
 				}
 			});
 			
 			// behavior widget specific
 			shorthand.addBehaviorListItemListener(
 				shorthand.events.ListItemEdit, function(obj) {
-					var spec = model.dispatchProxy.getTargetSpec(obj.target);
+					var spec = model.dispatchProxy.getTargetSpec(obj.target),
+						wgt = obj.widget;
 						
-					bhvWgt.setActor(obj.actor, obj.target.type, obj.target, spec);
-					bhvWgt.setVisible(true);
+					wgt.setTarget(obj.target, spec);
+					wgt.setVisible(true);
 				});
 			shorthand.addBehaviorListItemListener(
 				shorthand.events.ListItemRemove, function(target) {
