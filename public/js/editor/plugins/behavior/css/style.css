@@ -60,6 +60,21 @@
 	text-shadow: 0 -1px 0 #222;
 	border-right: 1px solid #333;
 }
+.dataTables_wrapper table th.sorting_asc:after,
+.dataTables_wrapper table th.sorting_desc:after {
+	content: '';
+	display: block;
+	background-image: url(/images/listOptionsSprite.png);
+	background-position:  -2.8em 0;
+	background-size: 420%;
+	height: 0.667em;
+	width: 0.883em;
+	float: right;
+	margin-top: 3px;
+}
+.dataTables_wrapper table th.sorting_desc:after {
+	background-position: -2.8em -0.667em;
+}
 .dataTables_wrapper table td.editHead {
 	width: 96px;
 }
