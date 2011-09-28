@@ -65,6 +65,9 @@ body.ten24 {
 	box-shadow: 0 0 10px #333;
 	opacity: 0.95;
 	width: 15.417em;
+	-webkit-transition: box-shadow 0.25s ease-in-out;
+	-moz-transition: box-shadow 0.25s ease-in-out;
+	-o-transition: box-shadow 0.25s ease-in-out;
 }
 #tabBar>h1 {
 	font-size: 182%;
@@ -501,6 +504,9 @@ body.ten24 {
 	color: #333;
 	box-shadow: 0 0 10px #666;
 	opacity: 0.85;
+	-webkit-transition: box-shadow 0.25s ease-in-out;
+	-moz-transition: box-shadow 0.25s ease-in-out;
+	-o-transition: box-shadow 0.25s ease-in-out;
 }
 .rightAligned {
 	position: absolute;
@@ -691,7 +697,8 @@ body.ten24 {
 /**
  * box shadows turned off
  */
-.minimized {
+.minimized,
+#tabBar.minimized {
 	box-shadow: none;
 }
 

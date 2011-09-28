@@ -242,11 +242,11 @@ var editor = (function(editor) {
 			
 			addSlideAnim.call(this, 0, animData);
 			this.container.bind('mouseleave', hideMinMaxBtn)
-			.bind('mouseenter', showMinMaxBtn)
-			.animate(animData, function() {
-				minMaxBtn.text('Min');
-				that.container.removeClass('minimized');
-			});
+				.bind('mouseenter', showMinMaxBtn)
+				.animate(animData, function() {
+					minMaxBtn.text('Min');
+				})
+				.removeClass('minimized');
 		},
 		
 		minimize: function() {
@@ -268,11 +268,11 @@ var editor = (function(editor) {
 			
 			addSlideAnim.call(this, -1 * dest, animData);
 			this.container.unbind('mouseleave', hideMinMaxBtn)
-			.unbind('mouseenter', showMinMaxBtn)
-			.animate(animData, function() {
-				minMaxBtn.text('Max');
-				that.container.addClass('minimized');
-			});
+				.unbind('mouseenter', showMinMaxBtn)
+				.animate(animData, function() {
+					minMaxBtn.text('Max');
+				})
+				.addClass('minimized');
 		},
 		
 		resize: function() {
@@ -322,6 +322,11 @@ var editor = (function(editor) {
 			if (visible !== this.visible) {
 				setVisible.call(this, visible, opt_skipAnim);
 				
+				if (!visible) {							
+					this.container.bind('mouseleave', hideMinMaxBtn)
+						.bind('mouseenter', showMinMaxBtn)
+						.removeClass('minimized');
+				}
 				var pnl = this;
 				this.resize();
 				this.visible = visible;
