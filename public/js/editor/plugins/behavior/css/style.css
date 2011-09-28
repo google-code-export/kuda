@@ -82,8 +82,22 @@
 	margin-left: 0.417em;
 }
 .dataTables_info, .dataTables_paginate {
-	clear: both;
 	margin-bottom: 0.417em;
+}
+.dataTables_info {
+	clear: left;
+}
+.dataTables_paginate .paginate_button,
+.dataTables_paginate .paginate_active {
+	background: #222;
+	margin: 1px;
+	cursor: pointer;
+	padding: 5px;
+	display: block;
+	float: left;
+}
+.dataTables_paginate .paginate_button_disabled {
+	color: #666;
 }
 .dataTables_filter input {
     background: #555;

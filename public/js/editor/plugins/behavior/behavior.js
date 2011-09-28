@@ -525,7 +525,9 @@
 						'sTitle': '', 
 						'sClass': 'editHead'
 					}
-				]
+				],
+				'sPaginationType': 'full_numbers',
+				'aLengthMenu': [5, 10, 15, 20]
 			});
 			
 			// modifications
@@ -538,7 +540,6 @@
 				
 			ftr.append(ipt);
 			
-			sel.remove();
 			lth.append('<span>Show</span>').append(sel)
 				.append('<span>entries</span>');
 			sel.sb({
