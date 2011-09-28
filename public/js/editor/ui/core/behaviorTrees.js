@@ -124,12 +124,18 @@ var editor = (function(module) {
 		},
 		
 		worldLoaded: function() {
-			var citizens = hemi.world.getCitizens();
+			var citizens = hemi.world.getCitizens(),
+				worldCam = hemi.world.camera;
+			
+			// Make sure to add the Camera first so Viewpoints can create
+			// CameraMove triggers
+			this.addCitizen(worldCam);
 			
 			for (var ndx = 0, len = citizens.length; ndx < len; ndx++) {
 				var citizen = citizens[ndx];
 				
-				if (citizen.name.match(module.tools.ToolConstants.EDITOR_PREFIX) === null) {
+				if (citizen.name.match(module.tools.ToolConstants.EDITOR_PREFIX) === null
+						&& citizen !== worldCam) {
 					this.addCitizen(citizen);
 				}
 			}
