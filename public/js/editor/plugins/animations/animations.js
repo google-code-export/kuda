@@ -21,9 +21,9 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.animations = editor.tools.animations || {};
+	var shorthand = editor.tools.animations = editor.tools.animations || {};
 
-	editor.tools.animations.init = function() {
+	shorthand.init = function() {
 		var tabpane = editor.ui.getTabPane('Animation'),
 			
 			anmMdl = new AnimatorModel(),
@@ -40,33 +40,31 @@
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
     
-    editor.EventTypes = editor.EventTypes || {};
-	
-	// model events
-    editor.EventTypes.AnimationSet = "animator.AnimationSet";
-    editor.EventTypes.AnimationStopped = "animator.AnimationStopped";
-    editor.EventTypes.LoopRemoved = "animator.LoopRemoved";
-    editor.EventTypes.ModelPicked = "animator.ModelPicked";
-	
-	// create animation widget events
-    editor.EventTypes.ModelSelected = "crtAnm.ModelSelected";
-    editor.EventTypes.RemoveAnmLoop = "crtAnm.RemoveAnmLoop";
-    editor.EventTypes.SetAnimation = "crtAnm.SetAnimation";
-    editor.EventTypes.StartPreview = "crtAnm.StartPreview";
-    editor.EventTypes.StopPreview = "crtAnm.StopPreview";
-    editor.EventTypes.AddAnmLoop = "crtAnm.AddAnmLoop";
-    editor.EventTypes.EditAnmLoop = "crtAnm.EditAnmLoop";
-	editor.EventTypes.SaveAnimation = "crtAnm.SaveAnimation";
-	editor.EventTypes.SetAnmBeginFrame = "crtAnm.SetAnmBeginFrame";
-	editor.EventTypes.SetAnmEndFrame = "crtAnm.SetAnmEndFrame";
-	editor.EventTypes.SetAnmName = "crtAnm.SetAnmName";
-	
-	// animation list events
-	editor.EventTypes.CreateAnimation = "anmList.CreateAnimation";
-	editor.EventTypes.EditAnimation = "anmList.EditAnimation";
-	editor.EventTypes.RemoveAnimation = "anmList.RemoveAnimation";
-	
-	// view events
+	shorthand.events = {
+		// model events
+		AnimationSet: "animator.AnimationSet",
+	    AnimationStopped: "animator.AnimationStopped",
+	    LoopRemoved: "animator.LoopRemoved",
+	    ModelPicked: "animator.ModelPicked",
+		
+		// create animation widget events
+	    ModelSelected: "crtAnm.ModelSelected",
+	    RemoveAnmLoop: "crtAnm.RemoveAnmLoop",
+	    SetAnimation: "crtAnm.SetAnimation",
+	    StartPreview: "crtAnm.StartPreview",
+	    StopPreview: "crtAnm.StopPreview",
+	    AddAnmLoop: "crtAnm.AddAnmLoop",
+	    EditAnmLoop: "crtAnm.EditAnmLoop",
+		SaveAnimation: "crtAnm.SaveAnimation",
+		SetAnmBeginFrame: "crtAnm.SetAnmBeginFrame",
+		SetAnmEndFrame: "crtAnm.SetAnmEndFrame",
+		SetAnmName: "crtAnm.SetAnmName",
+		
+		// animation list events
+		CreateAnimation: "anmList.CreateAnimation",
+		EditAnimation: "anmList.EditAnimation",
+		RemoveAnimation: "anmList.RemoveAnimation"
+	};
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -95,7 +93,7 @@
 			hemi.msg.subscribe(hemi.msg.stop,
 	            function(msg) {
 					if (that.animation && msg.src === that.animation) {
-						that.notifyListeners(editor.EventTypes.AnimationStopped, 
+						that.notifyListeners(shorthand.events.AnimationStopped, 
 							that.animation);
 					}
 				});
@@ -273,7 +271,7 @@
 	        if (this.animation) {
 	            this.stopAnimation();
 	            this.animation.removeLoop(loop);
-	            this.notifyListeners(editor.EventTypes.LoopRemoved, loop);
+	            this.notifyListeners(shorthand.events.LoopRemoved, loop);
 	        }
 	    },
 		
@@ -313,7 +311,7 @@
 			this.startTime = animation.beginTime;
 			this.endTime = animation.endTime;
 			this.isUpdate = true;
-			this.notifyListeners(editor.EventTypes.AnimationSet, animation);
+			this.notifyListeners(shorthand.events.AnimationSet, animation);
 		},
 		
 		setEnd: function(endFrame) {
@@ -323,7 +321,7 @@
 		setModel: function(model) {	            
 			if (this.selectedModel !== model) {
         		this.unSelectAll();
-				this.notifyListeners(editor.EventTypes.ModelPicked, model);
+				this.notifyListeners(shorthand.events.ModelPicked, model);
 	            this.selectedModel = model;
 				if (model != null) {
 //					this.hilightShapes();
@@ -472,7 +470,7 @@
 							&& ends <= curMax) {
 						slider.slider('option', 'values', [begins, ends]);
 						
-		                wgt.notifyListeners(editor.EventTypes.EditAnmLoop, {
+		                wgt.notifyListeners(shorthand.events.EditAnmLoop, {
 		                    loop: wrapper.data('obj'),
 							start: begins,
 							end: ends,
@@ -522,7 +520,7 @@
 					values = slider.slider('option', 'values'),
 					itr = itrInput.getValue();
 					
-	                wgt.notifyListeners(editor.EventTypes.EditAnmLoop, {
+	                wgt.notifyListeners(shorthand.events.EditAnmLoop, {
 	                    loop: loop,
 						start: values[0],
 						end: values[1],
@@ -532,7 +530,7 @@
 			
 			removeBtn.bind('click', function(evt) {
 				var loop = wrapper.data('obj');
-				wgt.notifyListeners(editor.EventTypes.RemoveAnmLoop, loop);
+				wgt.notifyListeners(shorthand.events.RemoveAnmLoop, loop);
 			});
 			
 			formDiv.append(startInput.getUI()).append(endInput.getUI())
@@ -612,15 +610,15 @@
 					
 					switch(param) {
 						case 'anmBeginFrame':
-						    msgType = editor.EventTypes.SetAnmBeginFrame;
+						    msgType = shorthand.events.SetAnmBeginFrame;
 						    val = begins;
 							break; 
 						case 'anmEndFrame':
-						    msgType = editor.EventTypes.SetAnmEndFrame;
+						    msgType = shorthand.events.SetAnmEndFrame;
 						    val = ends;
 							break;
 						case 'anmName':
-						    msgType = editor.EventTypes.SetAnmName;
+						    msgType = shorthand.events.SetAnmName;
 							val = wgt.nameInput.getValue();
 							break;
 					}
@@ -670,7 +668,7 @@
 			this.selector.bind('change', function(evt) {
 				var mdl = hemi.world.getCitizenById(
 					parseInt(jQuery(this).val()));
-				wgt.notifyListeners(editor.EventTypes.ModelSelected, mdl);
+				wgt.notifyListeners(shorthand.events.ModelSelected, mdl);
 				wgt.invalidate();
 			})
 			.addClass('fixedWidth').sb({
@@ -700,8 +698,8 @@
 						max = ui.values[1];
 
 					wgt.updateLoopLimits(min, max);
-					wgt.notifyListeners(editor.EventTypes.SetAnmBeginFrame, min);
-					wgt.notifyListeners(editor.EventTypes.SetAnmEndFrame, max);
+					wgt.notifyListeners(shorthand.events.SetAnmBeginFrame, min);
+					wgt.notifyListeners(shorthand.events.SetAnmEndFrame, max);
 				}
 			});
 	        
@@ -709,11 +707,11 @@
 				var btn = jQuery(this);
 				
 				if (btn.data('previewing')) {
-	            	wgt.notifyListeners(editor.EventTypes.StopPreview, null);
+	            	wgt.notifyListeners(shorthand.events.StopPreview, null);
 					btn.text(ButtonText.START).data('previewing', false);
 				}
 				else {
-					wgt.notifyListeners(editor.EventTypes.StartPreview, null);
+					wgt.notifyListeners(shorthand.events.StartPreview, null);
 					btn.text(ButtonText.STOP).data('previewing', true);
 				}
 	        }).data('previewing', false);
@@ -722,7 +720,7 @@
 	        	var start = wgt.beginInput.getValue(), 
 					end = wgt.endInput.getValue();
 						
-	            wgt.notifyListeners(editor.EventTypes.AddAnmLoop, {
+	            wgt.notifyListeners(shorthand.events.AddAnmLoop, {
 	                start: start,
 	                end: end
 	            });
@@ -734,7 +732,7 @@
 					end = wgt.endInput.getValue(),
 	            	name = wgt.nameInput.getValue();
 				
-				wgt.notifyListeners(editor.EventTypes.SaveAnimation, {
+				wgt.notifyListeners(shorthand.events.SaveAnimation, {
 					start: start,
 					end: end,
 					name: name
@@ -766,8 +764,8 @@
 					});
 					this.beginInput.setValue(0);
 					this.endInput.setValue(max);
-					this.notifyListeners(editor.EventTypes.SetAnmBeginFrame, 0);
-					this.notifyListeners(editor.EventTypes.SetAnmEndFrame, max);
+					this.notifyListeners(shorthand.events.SetAnmBeginFrame, 0);
+					this.notifyListeners(shorthand.events.SetAnmEndFrame, max);
 				}
 				
 				this.canSave();
@@ -807,7 +805,7 @@
 			});
 			
 			this.anmPreviewBtn.removeAttr('disabled');
-			this.notifyListeners(editor.EventTypes.SetAnimation, animation);
+			this.notifyListeners(shorthand.events.SetAnimation, animation);
 		},
 		
 		updateLoopLimits: function(min, max) {
@@ -872,12 +870,12 @@
 			var wgt = this;
 			
 			li.editBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.EditAnimation, 
+				wgt.notifyListeners(shorthand.events.EditAnimation, 
 					obj);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.RemoveAnimation, 
+				wgt.notifyListeners(shorthand.events.RemoveAnimation, 
 					obj);
 			});
 		},
@@ -947,27 +945,27 @@
 	        });	
 			
 			// creat animation widget specific		    
-	        crtWgt.addListener(editor.EventTypes.AddAnmLoop, function(obj) {
+	        crtWgt.addListener(shorthand.events.AddAnmLoop, function(obj) {
 				var loop = model.createLoop(obj.start, obj.end, -1);		
 	            crtWgt.addLoopInput(loop, obj.start, obj.end);      
 	        });	  	
 			crtWgt.addListener(editor.events.Cancel, function () {
 				model.unSelectAll();
 			});   
-	        crtWgt.addListener(editor.EventTypes.EditAnmLoop, function(obj) {				
+	        crtWgt.addListener(shorthand.events.EditAnmLoop, function(obj) {				
 	            model.saveLoop(obj.loop, obj.start, obj.end, obj.itr);     
 	        });	
-			crtWgt.addListener(editor.EventTypes.RemoveAnmLoop, function(value) {
+			crtWgt.addListener(shorthand.events.RemoveAnmLoop, function(value) {
 				model.removeLoop(value);
 			});		
-			crtWgt.addListener(editor.EventTypes.SaveAnimation, function (value) {
+			crtWgt.addListener(shorthand.events.SaveAnimation, function (value) {
 				var animation = model.saveAnimation();       	            
 	            if (animation) {
 					crtWgt.reset();
 	                model.unSelectAll();
 	            }
 			});			
-			crtWgt.addListener(editor.EventTypes.SetAnimation, function(value) {
+			crtWgt.addListener(shorthand.events.SetAnimation, function(value) {
 				if (value === null && model.animDirty) {
 					model.removeAnimation(model.animation);
 					model.animDirty = false;
@@ -975,30 +973,30 @@
 				
 				model.animation = value;
 			});		
-			crtWgt.addListener(editor.EventTypes.SetAnmBeginFrame, function (starts) {
+			crtWgt.addListener(shorthand.events.SetAnmBeginFrame, function (starts) {
 				model.setStart(starts);     
 			});			
-			crtWgt.addListener(editor.EventTypes.SetAnmEndFrame, function (ends) {
+			crtWgt.addListener(shorthand.events.SetAnmEndFrame, function (ends) {
 				model.setEnd(ends);     
 			});			
-			crtWgt.addListener(editor.EventTypes.SetAnmName, function (name) {
+			crtWgt.addListener(shorthand.events.SetAnmName, function (name) {
 				model.setName(name);     
 			});	
-			crtWgt.addListener(editor.EventTypes.StartPreview, function(value) {
+			crtWgt.addListener(shorthand.events.StartPreview, function(value) {
 	            model.previewAnimation();			
 			});	        
-	        crtWgt.addListener(editor.EventTypes.StopPreview, function(value) {
+	        crtWgt.addListener(shorthand.events.StopPreview, function(value) {
 	            model.stopAnimation();
 	        });	   
-	        crtWgt.addListener(editor.EventTypes.ModelSelected, function(mdl) {
+	        crtWgt.addListener(shorthand.events.ModelSelected, function(mdl) {
 	            model.setModel(mdl);
 	        });		 	
 			
 			// animation list widget specific
-			lstWgt.addListener(editor.EventTypes.EditAnimation, function(animation) {
+			lstWgt.addListener(shorthand.events.EditAnimation, function(animation) {
 				model.setAnimation(animation);
 			});			
-			lstWgt.addListener(editor.EventTypes.RemoveAnimation, function(animation) {
+			lstWgt.addListener(shorthand.events.RemoveAnimation, function(animation) {
 				model.removeAnimation(animation);
 			});
 	        
@@ -1009,19 +1007,19 @@
 	        model.addListener(editor.events.Removed, function(animation) {
 	            lstWgt.remove(animation);
 	        });
-	        model.addListener(editor.EventTypes.AnimationSet, function(animation) {
+	        model.addListener(shorthand.events.AnimationSet, function(animation) {
 	        	crtWgt.set(animation);
 	        });
-	        model.addListener(editor.EventTypes.AnimationStopped, function(value) {
+	        model.addListener(shorthand.events.AnimationStopped, function(value) {
 	        	crtWgt.anmPreviewBtn.text(ButtonText.START).data('previewing', false);
 	        });
-	        model.addListener(editor.EventTypes.LoopRemoved, function(loop) {
+	        model.addListener(shorthand.events.LoopRemoved, function(loop) {
 	            crtWgt.removeLoop(loop);
 	        });
 	        model.addListener(editor.events.Updated, function(animation) {
 	            lstWgt.update(animation);
 	        });		
-	        model.addListener(editor.EventTypes.ModelPicked, function(model) {
+	        model.addListener(shorthand.events.ModelPicked, function(model) {
 	            crtWgt.modelSelected(model);
 	        });
 	    }
