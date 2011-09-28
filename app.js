@@ -190,6 +190,22 @@ app.get('/plugins', function(req, res) {
 	}
 });
 
+app.post('/plugins', function(req, res) {
+	if (req.xhr) {		
+		if (!path.existsSync(pluginsPath)) {
+			fs.mkdirSync(pluginsPath, 0755);
+		}
+		
+		var plugins = req.param('plugins', { 'plugins': [] }),
+			filePath = pluginsPath + '/plugins.json';
+		
+		fs.writeFileSync(filePath, plugins);
+		res.send({
+			msg: 'Initial plugins updated'
+		}, 200);
+	}
+});
+
 app.get('/models', function(req, res) {
 	var data = {
 		models: []
