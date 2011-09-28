@@ -25,7 +25,7 @@
 	var mnpCtr = null;
 	
 	editor.tools.manips.init = function() {
-		var tabpane = editor.ui.getTabPane('Behaviors'),
+		var navPane = editor.ui.getNavPane('Behaviors'),
 			mnpMdl = new ManipsModel(),
 			mnpView = new ManipsView();
 		
@@ -33,7 +33,7 @@
 		mnpCtr.setModel(mnpMdl);
 		mnpCtr.setView(mnpView);
 		
-		tabpane.toolbar.add(mnpView);
+		navPane.add(mnpView);
 		
 		var model = editor.getModel('browser');
 		

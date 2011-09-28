@@ -334,7 +334,7 @@ var editor = (function(editor) {
 	});
 	
 	editor.plugins.init = function() {
-		var plgPane = new editor.ui.TabPane('Manage Plugins'),
+		var plgPane = new editor.ui.NavPane('Manage Plugins'),
 			plgToolBar = new editor.ui.ToolBar(),
 		
 			plgMdl = new PluginMgrModel(),
@@ -346,7 +346,7 @@ var editor = (function(editor) {
 		
 		plgToolBar.add(plgView);
 		plgPane.setToolBar(plgToolBar);
-		editor.ui.addTabPane(plgPane, 'plgPane');
+		editor.ui.addNavPane(plgPane, 'plgPane');
 		
 		// disable default behavior
 		var ui = plgPane.getUI();
@@ -360,11 +360,11 @@ var editor = (function(editor) {
 					parent = target.parents('#plgPane'), 
 					isTool = target.parents('.toolBtn').size() > 0 ||
 						target.hasClass('toolBtn'),
-					isTabPane = target.parents('#navBar h2').size() > 0,
+					isNavPane = target.parents('#navBar h2').size() > 0,
 					isDown = target.hasClass('down');
 				
 				if (parent.size() == 0 && target.attr('id') !== 'plgPane'
-						&& !isTool && !isTabPane) {
+						&& !isTool && !isNavPane) {
 					plgPane.setVisible(false);
 					jQuery(document).unbind('click.plg');
 				}

@@ -25,7 +25,7 @@
 	var mtnCtr = null;
 
 	editor.tools.motions.init = function() {
-		var tabpane = editor.ui.getTabPane('Animation'),
+		var navPane = editor.ui.getNavPane('Animation'),
 			mtnMdl = new MotionsModel(),
 			mtnView = new MotionsView();
 		
@@ -33,7 +33,7 @@
 		mtnCtr.setModel(mtnMdl);
 		mtnCtr.setView(mtnView);
 		
-		tabpane.toolbar.add(mtnView);
+		navPane.add(mtnView);
 		
 		var model = editor.getModel('browser');
 		

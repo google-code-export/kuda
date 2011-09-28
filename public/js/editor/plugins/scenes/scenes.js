@@ -24,7 +24,7 @@
 	editor.tools.scenes = editor.tools.scenes || {};
 
 	editor.tools.scenes.init = function() {
-		var tabpane = editor.ui.getTabPane('Behaviors'),
+		var navPane = editor.ui.getNavPane('Behaviors'),
 			scnMdl = new ScenesModel(),
 			scnView = new ScenesView(),
 			scnCtr = new ScenesController();
@@ -32,7 +32,7 @@
 		scnCtr.setModel(scnMdl);
 		scnCtr.setView(scnView);
 		
-		tabpane.toolbar.add(scnView);
+		navPane.add(scnView);
 	};
 
 ////////////////////////////////////////////////////////////////////////////////

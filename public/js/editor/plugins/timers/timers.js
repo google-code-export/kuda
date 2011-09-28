@@ -24,7 +24,7 @@
 	editor.tools.timers = editor.tools.timers || {};
 
 	editor.tools.timers.init = function() {
-		var tabpane = editor.ui.getTabPane('Behaviors'),
+		var navPane = editor.ui.getNavPane('Behaviors'),
 			tmrMdl = new TimersModel(),
 			tmrView = new TimersView(),
 			tmrCtr = new TimersController();
@@ -32,7 +32,7 @@
 		tmrCtr.setModel(tmrMdl);
 		tmrCtr.setView(tmrView);
 		
-		tabpane.toolbar.add(tmrView);
+		navPane.add(tmrView);
 	};
 
 ////////////////////////////////////////////////////////////////////////////////

@@ -24,7 +24,7 @@
 	editor.tools.hud = editor.tools.hud || {};
 	
 	editor.tools.hud.init = function() {
-		var tabpane = editor.ui.getTabPane('HUD'),
+		var navPane = editor.ui.getNavPane('HUD'),
 		
 		hudMdl = new HudModel(),
 		hudView = new HudView(),
@@ -33,7 +33,7 @@
 		hudCtr.setModel(hudMdl);
 		hudCtr.setView(hudView);
 		
-		tabpane.toolbar.add(hudView);
+		navPane.add(hudView);
 	};
 
 ////////////////////////////////////////////////////////////////////////////////
