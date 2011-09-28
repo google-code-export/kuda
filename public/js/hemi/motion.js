@@ -130,6 +130,7 @@ var hemi = (function(hemi) {
 			}
 			
 			this.transformObjs.push(obj);
+			applyRotator.call(this, [ obj ]);
 		},
 		
         /**
@@ -477,6 +478,7 @@ var hemi = (function(hemi) {
 			}
 			
 			this.transformObjs.push(obj);
+			applyTranslator.call(this, [ obj ]);
 		},
 		
         /**
@@ -761,9 +763,15 @@ var hemi = (function(hemi) {
 		}
 	},
 	
-	applyRotator = function() {
-		for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-			var transformObj = this.transformObjs[i];
+	applyRotator = function(opt_objs) {
+		var objs = this.transformObjs;
+
+		if (opt_objs) {
+			objs = opt_objs;
+		}
+
+		for (var i = 0, il = objs.length; i < il; i++) {
+			var transformObj = objs[i];
 			transformObj.offTran.identity();
 			transformObj.offTran.translate(this.offset);
 			transformObj.rotTran.identity();
@@ -781,9 +789,15 @@ var hemi = (function(hemi) {
 		}
 	},
 
-	applyTranslator = function() {
-		for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-			var transform = this.transformObjs[i].tran;
+	applyTranslator = function(opt_objs) {
+		var objs = this.transformObjs;
+
+		if (opt_objs) {
+			objs = opt_objs;
+		}
+
+		for (var i = 0, il = objs.length; i < il; i++) {
+			var transform = objs[i].tran;
 			transform.identity();
 			transform.translate(this.pos);
 		}
