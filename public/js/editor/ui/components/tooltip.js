@@ -29,15 +29,25 @@ var editor = (function(editor) {
 			
 			this._super(newOpts);
 			this.id = 0;
+			this.currentElement = null;
 		},
 		
 		finishLayout : function() {
+			var wgt = this,
+				hideFromMouse = function() {
+					if (!wgt.isAnimating) {
+						wgt.hide(0);
+					}
+				};
+			
 			this.container = jQuery('<div class="tooltip ' + this.config.cls + '"></div>');
 			this.msg = jQuery('<div class="content"></div>');
 			this.arrow = jQuery('<div class="arrow"></div>');
 			
-			// attach to the main body
-			this.container.append(this.msg);
+			// attach to the main body and bind mouse handler
+			this.container.append(this.msg)
+			.bind('mouseenter', hideFromMouse)
+			.bind('mouseleave', hideFromMouse);
 			
 			// detect border
 			if (this.msg.css('borderLeftWidth') !== 0) {
@@ -59,6 +69,8 @@ var editor = (function(editor) {
 			var ctn = this.container,
 				wgt = this,
 				off = jQuery.extend({ top: 0, left: 0 }, opt_offset);
+			
+			this.currentElement = element;
 			
 			if (this.container.parents().size() === 0) {
 				jQuery('body').append(this.container);
@@ -116,6 +128,21 @@ var editor = (function(editor) {
 			});
 			
 			if (!this.isAnimating) {
+				var doc = jQuery(document),
+					checkMouse = function(evt) {
+						// Make sure the mouse is still over the correct element
+						if (wgt.currentElement) {
+							var ce = wgt.currentElement[0],
+								et = evt.target,
+								ep = jQuery(et).parent()[0];
+							
+							if (et !== ce && ep !== ce) {
+								wgt.hide(0);
+							}
+						}
+						doc.unbind('mousemove', checkMouse);
+					};
+				
 				this.isAnimating = true;				
 				ctn.css('opacity', 0).animate({
 					opacity: 1,
@@ -123,6 +150,7 @@ var editor = (function(editor) {
 				}, 200, function(){
 					wgt.isAnimating = false;
 					wgt.isVisible = true;
+					doc.bind('mousemove', checkMouse);
 				});
 			}
 			
@@ -161,6 +189,7 @@ var editor = (function(editor) {
 				}, 200, function(){
 					ctn.hide();
 					wgt.isVisible = false;
+					wgt.currentElement = null;
 				});
 			}
 		}
