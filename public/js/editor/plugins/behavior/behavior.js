@@ -80,7 +80,7 @@
 		bhvMdl = null;
 	
 	shorthand.init = function() {		
-		var tabpane = editor.ui.getTabPane('Behaviors');
+		var navPane = editor.ui.getNavPane('Behaviors');
 
 		var bhvView = new BehaviorView(),
 			bhvCtr = new BehaviorController();
@@ -89,7 +89,7 @@
 		bhvCtr.setModel(bhvMdl);
 		bhvCtr.setView(bhvView);
 		
-		tabpane.toolbar.add(bhvView);
+		navPane.add(bhvView);
 	
 		// grab all views
 		var views = editor.getViews(),

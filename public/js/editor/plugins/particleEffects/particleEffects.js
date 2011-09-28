@@ -24,7 +24,7 @@
 	editor.tools.particleEffects = editor.tools.particleEffects || {};
 
 	editor.tools.particleEffects.init = function() {
-		var tabpane = editor.ui.getTabPane('Effects'),
+		var navPane = editor.ui.getNavPane('Effects'),
 			
 			pteMdl = new ParticleFxModel(),
 			pteView = new ParticleFxView(),
@@ -33,7 +33,7 @@
 		pteCtr.setModel(pteMdl);
 		pteCtr.setView(pteView);
 
-		tabpane.toolbar.add(pteView);
+		navPane.add(pteView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

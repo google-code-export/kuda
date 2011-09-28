@@ -24,7 +24,7 @@
 	var shorthand = editor.tools.animations = editor.tools.animations || {};
 
 	shorthand.init = function() {
-		var tabpane = editor.ui.getTabPane('Animation'),
+		var navPane = editor.ui.getNavPane('Animation'),
 			
 			anmMdl = new AnimatorModel(),
 			anmView = new AnimatorView(),
@@ -33,7 +33,7 @@
 		anmCtr.setModel(anmMdl);
 		anmCtr.setView(anmView);
 		
-		tabpane.toolbar.add(anmView);
+		navPane.add(anmView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

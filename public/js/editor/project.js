@@ -25,7 +25,7 @@ var editor = (function(editor) {
 	editor.projects = {};
 	
 	editor.projects.init = function() {
-		var prjPane = new editor.ui.TabPane('Projects'),
+		var prjPane = new editor.ui.NavPane('Projects'),
 			prjToolBar = new editor.ui.ToolBar(),
 			
 			prjView = new ProjectView(),
@@ -37,7 +37,7 @@ var editor = (function(editor) {
 		
 		prjToolBar.add(prjView);
 		prjPane.setToolBar(prjToolBar);
-		editor.ui.addTabPane(prjPane, 'prjPane');
+		editor.ui.addNavPane(prjPane, 'prjPane');
 		
 		// disable default behavior
 		var ui = prjPane.getUI();

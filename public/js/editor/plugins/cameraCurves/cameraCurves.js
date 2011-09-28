@@ -24,7 +24,7 @@
 	editor.tools.cameraCurves = editor.tools.cameraCurves || {};
 
  	editor.tools.cameraCurves.init = function() {
-		var tabpane = editor.ui.getTabPane('Camera'),
+		var navPane = editor.ui.getNavPane('Camera'),
 		
 			crvMdl = new CamCurveModel(),
 			crvView = new CamCurveView(),
@@ -33,7 +33,7 @@
 		crvCtr.setView(crvView);
 		crvCtr.setModel(crvMdl);
 	
-		tabpane.toolbar.add(crvView);
+		navPane.add(crvView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

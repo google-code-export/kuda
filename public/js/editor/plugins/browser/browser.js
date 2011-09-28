@@ -24,7 +24,7 @@
 	editor.tools.browser = editor.tools.browser || {};
 
 	editor.tools.browser.init = function() {
-		var tabpane = editor.ui.getTabPane('Geometry'),
+		var navPane = editor.ui.getNavPane('Geometry'),
 			
 			mbrMdl = new BrowserModel(),
 			mbrView = new BrowserView(),
@@ -33,7 +33,7 @@
 		mbrCtr.setModel(mbrMdl);
 		mbrCtr.setView(mbrView);
 		
-		tabpane.toolbar.add(mbrView);
+		navPane.add(mbrView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

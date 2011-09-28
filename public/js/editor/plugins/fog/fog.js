@@ -24,7 +24,7 @@
 	editor.tools.fog = editor.tools.fog || {};
 
 	editor.tools.fog.init = function() {
-		var tabpane = editor.ui.getTabPane('Effects'),
+		var navPane = editor.ui.getNavPane('Effects'),
 			
 			fogMdl = new FogModel(),
 			fogView = new FogView(),
@@ -33,7 +33,7 @@
 		fogCtr.setModel(fogMdl);
 		fogCtr.setView(fogView);
 
-		tabpane.toolbar.add(fogView);
+		navPane.add(fogView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

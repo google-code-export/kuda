@@ -24,7 +24,7 @@
 	editor.tools.viewpoints = editor.tools.viewpoints || {};
 
  	editor.tools.viewpoints.init = function() {
-		var tabpane = editor.ui.getTabPane('Camera'),
+ 		var navPane = editor.ui.getNavPane('Camera'),
 			
 			vptMdl = new ViewpointsModel(),
 			vptView = new ViewpointsView(),
@@ -33,7 +33,7 @@
 	    vptCtr.setView(vptView);
 	    vptCtr.setModel(vptMdl);
 		
-		tabpane.toolbar.add(vptView);
+		navPane.add(vptView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

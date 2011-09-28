@@ -24,7 +24,7 @@
 	editor.tools.particleCurves = editor.tools.particleCurves || {};
 
 	editor.tools.particleCurves.init = function() {
-		var tabpane = editor.ui.getTabPane('Effects'),
+		var navPane = editor.ui.getNavPane('Effects'),
 
 			ptcMdl = new ParticleCurvesModel(),
 			ptcView = new ParticleCurvesView(),
@@ -33,7 +33,7 @@
 		ptcCtr.setModel(ptcMdl);
 		ptcCtr.setView(ptcView);
 
-		tabpane.toolbar.add(ptcView);
+		navPane.add(ptcView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////

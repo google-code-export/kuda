@@ -24,7 +24,7 @@
 	editor.tools.shapes = editor.tools.shapes || {};
 
 	editor.tools.shapes.init = function() {
-		var tabpane = editor.ui.getTabPane('Geometry'),
+		var navPane = editor.ui.getNavPane('Geometry'),
 			
 			shpMdl = new ShapesModel(),
 			shpView = new ShapesView(),
@@ -33,7 +33,7 @@
 		shpCtr.setModel(shpMdl);
 		shpCtr.setView(shpView);
 		
-		tabpane.toolbar.add(shpView);
+		navPane.add(shpView);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
