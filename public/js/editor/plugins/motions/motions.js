@@ -21,15 +21,14 @@
 //								Initialization								  //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.motions = editor.tools.motions || {};
-	var mtnCtr = null;
+	var shorthand = editor.tools.motions = editor.tools.motions || {};
 
-	editor.tools.motions.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Animation'),
 			mtnMdl = new MotionsModel(),
-			mtnView = new MotionsView();
+			mtnView = new MotionsView(),
+			mtnCtr = new MotionsController();
 		
-		mtnCtr = new MotionsController();
 		mtnCtr.setModel(mtnMdl);
 		mtnCtr.setView(mtnView);
 		
@@ -39,30 +38,30 @@
 		
 		if (model) {
 			mtnCtr.setBrowserModel(model);
+		} else {
+			editor.addListener(editor.events.PluginLoaded, function(name) {
+				if (name === 'browser' && !mtnCtr.bound) {
+					mtnCtr.setBrowserModel(editor.getModel(name));
+				}
+			});
 		}
-		
-		editor.addListener(editor.events.PluginLoaded, function(name) {
-			if (name === 'browser' && !mtnCtr.bound) {
-				mtnCtr.setBrowserModel(editor.getModel(name));
-			}
-		});
 	};
 
 ////////////////////////////////////////////////////////////////////////////////
 //								Tool Definition								  //
 ////////////////////////////////////////////////////////////////////////////////
     
-    editor.EventTypes = editor.EventTypes || {};
-	
-	// view specific
-	editor.EventTypes.RemoveMotion = "Motion.RemoveMotion";
-	editor.EventTypes.SaveMotion = "Motion.SaveMotion";
-	editor.EventTypes.SetMotion = "Motion.SetMotion";
-	editor.EventTypes.StartPreview = "Motion.StartPreview";
-	editor.EventTypes.StopPreview = "Motion.StopPreview";
-	
-	// model specific
-	editor.EventTypes.MotionSet = "Motion.MotionSet";
+    shorthand.events = {
+		// view specific
+		RemoveMotion: "Motion.RemoveMotion",
+		SaveMotion: "Motion.SaveMotion",
+		SetMotion: "Motion.SetMotion",
+		StartPreview: "Motion.StartPreview",
+		StopPreview: "Motion.StopPreview",
+		
+		// model specific
+		MotionSet: "Motion.MotionSet"
+    };
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -144,7 +143,7 @@
 		setMotion: function(motion) {
 			this.stopPreview();
 			this.currentMotion = motion;
-			this.notifyListeners(editor.EventTypes.MotionSet, motion);
+			this.notifyListeners(shorthand.events.MotionSet, motion);
 		},
 		
 		startPreview: function(props) {
@@ -367,25 +366,25 @@
 			saveBtn.bind('click', function(evt) {
 				var props = wgt.getProperties();
 				wgt.reset();
-				wgt.notifyListeners(editor.EventTypes.SaveMotion, props);
+				wgt.notifyListeners(shorthand.events.SaveMotion, props);
 			})
 			.attr('disabled', 'disabled');
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.reset();
-				wgt.notifyListeners(editor.EventTypes.SetMotion, null);
+				wgt.notifyListeners(shorthand.events.SetMotion, null);
 			});
 			
 			prevBtn.bind('click', function(evt) {
 				var btn = jQuery(this);
 				
 				if (btn.data('previewing')) {
-	            	wgt.notifyListeners(editor.EventTypes.StopPreview, null);
+	            	wgt.notifyListeners(shorthand.events.StopPreview, null);
 					btn.text('Start Preview').data('previewing', false);
 				}
 				else {
 					var props = wgt.getProperties();
-					wgt.notifyListeners(editor.EventTypes.StartPreview, props);
+					wgt.notifyListeners(shorthand.events.StartPreview, props);
 					btn.text('Stop Preview').data('previewing', true);
 				}
 	        }).data('previewing', false);
@@ -554,13 +553,13 @@
 			
 			li.editBtn.bind('click', function(evt) {
 				var motion = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.SetMotion, motion);
+				wgt.notifyListeners(shorthand.events.SetMotion, motion);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var motion = li.getAttachedObject();
 //				if (editor.depends.check(motion)) {
-					wgt.notifyListeners(editor.EventTypes.RemoveMotion, motion);
+					wgt.notifyListeners(shorthand.events.RemoveMotion, motion);
 //				}
 			});
 		},
@@ -635,26 +634,26 @@
 				lstWgt = view.sidePanel.mtnListWidget;
 			
 			// create motion widget events
-			crtWgt.addListener(editor.EventTypes.SaveMotion, function(props) {
+			crtWgt.addListener(shorthand.events.SaveMotion, function(props) {
 				model.saveMotion(props);
 			});
-			crtWgt.addListener(editor.EventTypes.SetMotion, function(motion) {
+			crtWgt.addListener(shorthand.events.SetMotion, function(motion) {
 				model.setMotion(motion);
 			});
-			crtWgt.addListener(editor.EventTypes.StartPreview, function(props) {
+			crtWgt.addListener(shorthand.events.StartPreview, function(props) {
 				bwrModel.enableSelection(false);
 				model.startPreview(props);
 			});
-			crtWgt.addListener(editor.EventTypes.StopPreview, function(value) {
+			crtWgt.addListener(shorthand.events.StopPreview, function(value) {
 				bwrModel.enableSelection(true);
 				model.stopPreview();
 			});
 			
 			// motion list widget events
-			lstWgt.addListener(editor.EventTypes.RemoveMotion, function(motion) {
+			lstWgt.addListener(shorthand.events.RemoveMotion, function(motion) {
 				model.removeMotion(motion);
 			});
-			lstWgt.addListener(editor.EventTypes.SetMotion, function(motion) {
+			lstWgt.addListener(shorthand.events.SetMotion, function(motion) {
 				model.setMotion(motion);
 			});
 			
@@ -690,7 +689,7 @@
 //				editor.depends.clear(motion);
 				lstWgt.remove(motion);
 			});
-			model.addListener(editor.EventTypes.MotionSet, function(motion) {
+			model.addListener(shorthand.events.MotionSet, function(motion) {
 				bwrModel.deselectAll();
 				bwrModel.enableSelection(true);
 				
@@ -718,10 +717,12 @@
 			});
 			
 			// browser model events
-			bwrModel.addListener(editor.EventTypes.TransformDeselected, function(transform) {
+			var browserEvents = editor.tools.browser.events;
+			
+			bwrModel.addListener(browserEvents.TransformDeselected, function(transform) {
 				crtWgt.removeTransform(transform);
 			});
-			bwrModel.addListener(editor.EventTypes.TransformSelected, function(transform) {
+			bwrModel.addListener(browserEvents.TransformSelected, function(transform) {
 				crtWgt.addTransform(transform);
 			});
 		}

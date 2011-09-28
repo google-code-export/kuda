@@ -15,21 +15,18 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function() {
 	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
 	
-	editor.EventTypes = editor.EventTypes || {};
-	editor.EventTypes.Trees = {
-		// model specific
-		CitizenAdded: 'Trees.CitizenAdded',
-		CitizenRemoved: 'Trees.CitizenRemoved',
-		CitizenUpdated: 'Trees.CitizenUpdated',
-		
-		// view specific
-		SelectAction: 'Trees.SelectAction',
-		SelectCitizen: 'Trees.SelectCitizen',
-		SelectTrigger: 'Trees.SelectTrigger'
-	};
+	// model specific
+	shorthand.events.CitizenAdded = 'Trees.CitizenAdded';
+	shorthand.events.CitizenRemoved = 'Trees.CitizenRemoved';
+	shorthand.events.CitizenUpdated = 'Trees.CitizenUpdated';
+	
+	// view specific
+	shorthand.events.SelectAction = 'Trees.SelectAction';
+	shorthand.events.SelectCitizen = 'Trees.SelectCitizen';
+	shorthand.events.SelectTrigger = 'Trees.SelectTrigger';
 	
 	var TRIGGER_PREFIX = 'tr_',
 		ACTION_PREFIX = 'ac_',
@@ -70,25 +67,13 @@ var editor = (function(editor) {
 			}
 			
 			if (add) {
-				this.notifyListeners(editor.EventTypes.Trees.CitizenAdded, {
+				this.notifyListeners(shorthand.events.CitizenAdded, {
 					citizen: citizen,
 					createType: createType
 				});
 			}
 		},
 		
-		filterType: function(type) {
-			var cits = this.citizenTypes.get(type);
-			
-			if (cits !== null && cits.length > 0) {
-				this.notifyListeners(editor.EventTypes.Trees.FilterByType, {
-					type: type,
-					citizens: cits
-				});
-			}
-		},
-		
-		// TODO: call this on all tool models
 		listenTo: function(toolModel) {
 			toolModel.addListener(editor.events.Created, this);
 			toolModel.addListener(editor.events.Removed, this);
@@ -124,7 +109,7 @@ var editor = (function(editor) {
 			}
 			
 			if (remove) {
-				this.notifyListeners(editor.EventTypes.Trees.CitizenRemoved, {
+				this.notifyListeners(shorthand.events.CitizenRemoved, {
 					citizen: citizen,
 					removeType: removeType
 				});
@@ -132,7 +117,7 @@ var editor = (function(editor) {
 		},
 		
 		updateCitizen: function(citizen) {
-			this.notifyListeners(editor.EventTypes.Trees.CitizenUpdated, citizen);
+			this.notifyListeners(shorthand.events.CitizenUpdated, citizen);
 		},
 		
 		worldCleaned: function() {
@@ -259,7 +244,7 @@ var editor = (function(editor) {
 		},
 		
 		filter: function(type) {
-			var id = editor.treeData.getNodeName({
+			var id = shorthand.treeData.getNodeName({
 					getCitizenType: function() { return type; }
 				}, {
 					prefix: this.pre
@@ -280,7 +265,7 @@ var editor = (function(editor) {
 		},
 		
 		notify: function(eventType, value) {
-			if (eventType === editor.EventTypes.Trees.CitizenAdded) {
+			if (eventType === shorthand.events.CitizenAdded) {
 				var citizen = value.citizen, 
 					createType = value.createType;
 					
@@ -296,7 +281,7 @@ var editor = (function(editor) {
 						break;
 				}
 			}
-			else if (eventType === editor.EventTypes.Trees.CitizenRemoved) {
+			else if (eventType === shorthand.events.CitizenRemoved) {
 				var citizen = value.citizen, 
 					removeType = value.removeType;
 					
@@ -312,14 +297,14 @@ var editor = (function(editor) {
 						break;
 				}
 			}
-			else if (eventType === editor.EventTypes.Trees.CitizenUpdated) {
+			else if (eventType === shorthand.events.CitizenUpdated) {
 				this.update(value);
 			}
 		},
 		
 		restrictSelection: function(citizen, options) {
 			var id = citizen.getId ? citizen.getId() : null,
-				nodeName = editor.treeData.getNodeName(citizen, {
+				nodeName = shorthand.treeData.getNodeName(citizen, {
 					prefix: this.pre,
 					id: id
 				});
@@ -330,7 +315,7 @@ var editor = (function(editor) {
 			this.tree.addClass('restricted');
 			
 			for (var ndx = 0, len = options.length; ndx < len; ndx++) {
-				nodeName = editor.treeData.getNodeName(citizen, {
+				nodeName = shorthand.treeData.getNodeName(citizen, {
 					option: options[ndx],
 					prefix: this.pre,
 					id: id
@@ -345,7 +330,7 @@ var editor = (function(editor) {
 			if (citizen === null || option === null) {
 				this.tree.jstree('deselect_all');
 			} else {
-				var nodeName = editor.treeData.getNodeName(citizen, {
+				var nodeName = shorthand.treeData.getNodeName(citizen, {
 						option: option,
 						prefix: this.pre,
 						id: citizen.getId ? citizen.getId() : null
@@ -369,7 +354,7 @@ var editor = (function(editor) {
 			this.tree.removeClass('restricted');
 			
 			for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
-				var nodeName = editor.treeData.getNodeName(citizen, {
+				var nodeName = shorthand.treeData.getNodeName(citizen, {
 						option: msgs[ndx],
 						prefix: this.pre,
 						id: id
@@ -381,7 +366,7 @@ var editor = (function(editor) {
 		},
 		
 		update: function(citizen) {
-			var nodeName = editor.treeData.getNodeName(citizen, {
+			var nodeName = shorthand.treeData.getNodeName(citizen, {
 					option: null,
 					prefix: this.pre,
 					id: citizen.getId()
@@ -402,7 +387,7 @@ var editor = (function(editor) {
 				addActionType.call(this, citizen);
 			}
 			
-			var actionNode = editor.treeData.createActionJson(citizen, 
+			var actionNode = shorthand.treeData.createActionJson(citizen, 
 					this.pre),
 				type = citizen.getCitizenType().split('.').pop();
 				
@@ -420,7 +405,7 @@ var editor = (function(editor) {
 		},
 		
 		addActionType = function(citizen) {
-			var json = editor.treeData.createCitizenTypeJson(citizen, this.pre);
+			var json = shorthand.treeData.createCitizenTypeJson(citizen, this.pre);
 			
 			this.tree.jstree('create_node', -1, 'last', {
 				json_data: json
@@ -434,7 +419,7 @@ var editor = (function(editor) {
 				addCitizenType.call(this, citizen);
 			}
 			
-			var citizenNode = editor.treeData.createCitizenJson(citizen, 
+			var citizenNode = shorthand.treeData.createCitizenJson(citizen, 
 					this.pre),
 				type = citizen.getCitizenType().split('.').pop();
 				
@@ -444,7 +429,7 @@ var editor = (function(editor) {
 		},	
 		
 		addCitizenType = function(citizen) {
-			var json = editor.treeData.createCitizenTypeJson(citizen, this.pre);
+			var json = shorthand.treeData.createCitizenTypeJson(citizen, this.pre);
 			
 			this.tree.jstree('create_node', -1, 'last', {
 				json_data: json
@@ -452,7 +437,7 @@ var editor = (function(editor) {
 		},
 		
 		addToolTip = function(citizen, opt_func) {
-			var nodeId = editor.treeData.getNodeName(citizen, {
+			var nodeId = shorthand.treeData.getNodeName(citizen, {
 					prefix: this.pre,
 					option: opt_func,
 					id: opt_func ? citizen.getId() : null
@@ -480,11 +465,11 @@ var editor = (function(editor) {
 				addTriggerType.call(this, citizen);
 			}
 			
-			var triggerNode = editor.treeData.createTriggerJson(citizen, 
+			var triggerNode = shorthand.treeData.createTriggerJson(citizen, 
 					this.pre),
 				type = citizen.getCitizenType().split('.').pop(),
-				name = editor.treeData.getNodeName(citizen, {
-						option: editor.treeData.MSG_WILDCARD,
+				name = shorthand.treeData.getNodeName(citizen, {
+						option: shorthand.treeData.MSG_WILDCARD,
 						prefix: this.pre,
 						id: citizen.getId()
 					});
@@ -496,8 +481,8 @@ var editor = (function(editor) {
 			});
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = editor.treeData.createShapePickCitizen(citizen);
-					triggerNode = editor.treeData.createShapePickJson(spc, 
+				var spc = shorthand.treeData.createShapePickCitizen(citizen);
+					triggerNode = shorthand.treeData.createShapePickJson(spc, 
 						this.pre);
 					type = spc.getCitizenType().split('.').pop();
 				
@@ -505,8 +490,8 @@ var editor = (function(editor) {
 					json_data: triggerNode
 				});
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = editor.treeData.createCamMoveCitizen(citizen),
-					triggerNode = editor.treeData.createCamMoveJson(cmc, 
+				var cmc = shorthand.treeData.createCamMoveCitizen(citizen),
+					triggerNode = shorthand.treeData.createCamMoveJson(cmc, 
 						this.pre);
 					type = cmc.getCitizenType().split('.').pop();
 				
@@ -516,8 +501,8 @@ var editor = (function(editor) {
 			} else if (citizen instanceof hemi.view.Viewpoint) {
 				// In future if we support multiple cameras, this will need to
 				// be updated
-				var cmc = editor.treeData.createCamMoveCitizen(hemi.world.camera),
-					nodeName = editor.treeData.getNodeName(cmc, {
+				var cmc = shorthand.treeData.createCamMoveCitizen(hemi.world.camera),
+					nodeName = shorthand.treeData.getNodeName(cmc, {
 						option: null,
 						prefix: this.pre,
 						id: cmc.getId()
@@ -525,7 +510,7 @@ var editor = (function(editor) {
 					node = jQuery('#' + nodeName);
 				
 				if (node.length > 0) {
-					triggerNode = editor.treeData.createViewpointJson(cmc, 
+					triggerNode = shorthand.treeData.createViewpointJson(cmc, 
 						citizen, this.pre);
 					
 					this.tree.jstree('create_node', node, 'inside', {
@@ -540,7 +525,7 @@ var editor = (function(editor) {
 		},
 		
 		addTriggerToolTip = function(citizen, msg) {
-			var nodeId = editor.treeData.getNodeName(citizen, {
+			var nodeId = shorthand.treeData.getNodeName(citizen, {
 						prefix: this.pre,
 						option: msg,
 						id: citizen.getId()
@@ -555,7 +540,7 @@ var editor = (function(editor) {
 		},
 		
 		addTriggerType = function(citizen) {
-			var json = editor.treeData.createCitizenTypeJson(citizen, this.pre);
+			var json = shorthand.treeData.createCitizenTypeJson(citizen, this.pre);
 			
 			this.tree.jstree('create_node', -1, 'last', {
 				json_data: json
@@ -564,8 +549,8 @@ var editor = (function(editor) {
 			addToolTip.call(this, citizen);
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = editor.treeData.createShapePickCitizen(citizen);
-					json = editor.treeData.createShapePickTypeJson(spc, 
+				var spc = shorthand.treeData.createShapePickCitizen(citizen);
+					json = shorthand.treeData.createShapePickTypeJson(spc, 
 						this.pre);
 				
 				this.tree.jstree('create_node', -1, 'last', {
@@ -574,8 +559,8 @@ var editor = (function(editor) {
 				
 				addToolTip.call(this, spc);
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = editor.treeData.createCamMoveCitizen(citizen);
-				json = editor.treeData.createCamMoveTypeJson(cmc, this.pre);
+				var cmc = shorthand.treeData.createCamMoveCitizen(citizen);
+				json = shorthand.treeData.createCamMoveTypeJson(cmc, this.pre);
 				
 				this.tree.jstree('create_node', -1, 'last', {
 					json_data: json
@@ -665,7 +650,7 @@ var editor = (function(editor) {
 		},
 				
 		createTriggerTree = function(json) {
-			var wildcardTrigger = editor.treeData.createWildcardJson(this.pre);
+			var wildcardTrigger = shorthand.treeData.createWildcardJson(this.pre);
 			
 			json.unshift(wildcardTrigger);
 			this.tree = jQuery('<div class="sharedTree"></div>');
@@ -708,15 +693,15 @@ var editor = (function(editor) {
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
 			
-			var wildcard = editor.treeData.MSG_WILDCARD,
-				name = editor.treeData.getNodeName(wildcard, {
+			var wildcard = shorthand.treeData.MSG_WILDCARD,
+				name = shorthand.treeData.getNodeName(wildcard, {
 					option: wildcard,
 					prefix: this.pre
 				});
 			
 			this.tooltips.put(name, 'any trigger from any source');
 			
-			name = editor.treeData.getNodeName(wildcard, {
+			name = shorthand.treeData.getNodeName(wildcard, {
 				option: null,
 				prefix: this.pre
 			});
@@ -727,7 +712,7 @@ var editor = (function(editor) {
 		deselectAction = function(data) {
 			var citizen = data.citizen, 
 				method = data.method,
-				nodeName = editor.treeData.getNodeName(citizen, {
+				nodeName = shorthand.treeData.getNodeName(citizen, {
 					option: method,
 					prefix: this.pre,
 					id: citizen.getId()
@@ -743,7 +728,7 @@ var editor = (function(editor) {
 			var citizen = data.citizen, 
 				message = data.message,
 				id = citizen.getId ? citizen.getId() : null,
-				nodeName = editor.treeData.getNodeName(citizen, {
+				nodeName = shorthand.treeData.getNodeName(citizen, {
 					option: message,
 					prefix: this.pre,
 					id: id
@@ -756,7 +741,7 @@ var editor = (function(editor) {
 		},
 		
 		generateNodes = function(nodeName, closePath) {
-			var paths = editor.treeData.getNodePath(nodeName),
+			var paths = shorthand.treeData.getNodePath(nodeName),
 				toClose = [];
 			
 			for (var i = 0; i < paths.length; ++i) {
@@ -775,7 +760,7 @@ var editor = (function(editor) {
 		},
 		
 		removeAction = function(citizen, removeType) {
-			var nodeName = editor.treeData.getNodeName(citizen, {
+			var nodeName = shorthand.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre,
 				id: citizen.getId()
@@ -790,7 +775,7 @@ var editor = (function(editor) {
 		},
 		
 		removeActionType = function(citizen) {
-			var nodeName = editor.treeData.getNodeName(citizen, {
+			var nodeName = shorthand.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre
 			});
@@ -800,7 +785,7 @@ var editor = (function(editor) {
 		},
 		
 		removeCitizen = function(citizen, removeType) {
-			var nodeName = editor.treeData.getNodeName(citizen, {
+			var nodeName = shorthand.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre,
 				id: citizen.getId()
@@ -815,7 +800,7 @@ var editor = (function(editor) {
 		},
 		
 		removeCitizenType = function(citizen) {
-			var nodeName = editor.treeData.getNodeName(citizen, {
+			var nodeName = shorthand.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre
 			});
@@ -826,7 +811,7 @@ var editor = (function(editor) {
 		
 		removeTrigger = function(citizen, removeType) {
 			var id = citizen.getId ? citizen.getId() : null,
-				nodeName = editor.treeData.getNodeName(citizen, {
+				nodeName = shorthand.treeData.getNodeName(citizen, {
 					option: null,
 					prefix: this.pre,
 					id: id
@@ -836,8 +821,8 @@ var editor = (function(editor) {
 			this.tree.jstree('delete_node', node);
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = editor.treeData.createShapePickCitizen(citizen);
-				nodeName = editor.treeData.getNodeName(spc, {
+				var spc = shorthand.treeData.createShapePickCitizen(citizen);
+				nodeName = shorthand.treeData.getNodeName(spc, {
 					option: null,
 					prefix: this.pre,
 					id: id
@@ -846,8 +831,8 @@ var editor = (function(editor) {
 				node = jQuery('#' + nodeName);
 				this.tree.jstree('delete_node', node);
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = editor.treeData.createCamMoveCitizen(citizen);
-				nodeName = editor.treeData.getNodeName(cmc, {
+				var cmc = shorthand.treeData.createCamMoveCitizen(citizen);
+				nodeName = shorthand.treeData.getNodeName(cmc, {
 					option: null,
 					prefix: this.pre,
 					id: id
@@ -858,8 +843,8 @@ var editor = (function(editor) {
 			} else if (citizen instanceof hemi.view.Viewpoint) {
 				// In future if we support multiple cameras, this will need to
 				// be updated
-				var cmc = editor.treeData.createCamMoveCitizen(hemi.world.camera);
-				nodeName = editor.treeData.getNodeName(cmc, {
+				var cmc = shorthand.treeData.createCamMoveCitizen(hemi.world.camera);
+				nodeName = shorthand.treeData.getNodeName(cmc, {
 					option: id,
 					prefix: this.pre,
 					id: id
@@ -875,7 +860,7 @@ var editor = (function(editor) {
 		},
 		
 		removeTriggerType = function(citizen) {
-			var nodeName = editor.treeData.getNodeName(citizen, {
+			var nodeName = shorthand.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre
 			});
@@ -884,8 +869,8 @@ var editor = (function(editor) {
 			this.tree.jstree('delete_node', node);
 			
 			if (citizen instanceof hemi.model.Model) {
-				var spc = editor.treeData.createShapePickCitizen(citizen);
-				nodeName = editor.treeData.getNodeName(spc, {
+				var spc = shorthand.treeData.createShapePickCitizen(citizen);
+				nodeName = shorthand.treeData.getNodeName(spc, {
 					option: null,
 					prefix: this.pre
 				});
@@ -893,8 +878,8 @@ var editor = (function(editor) {
 				node = jQuery('#' + nodeName);
 				this.tree.jstree('delete_node', node);
 			} else if (citizen instanceof hemi.view.Camera) {
-				var cmc = editor.treeData.createCamMoveCitizen(citizen);
-				nodeName = editor.treeData.getNodeName(cmc, {
+				var cmc = shorthand.treeData.createCamMoveCitizen(citizen);
+				nodeName = shorthand.treeData.getNodeName(cmc, {
 					option: null,
 					prefix: this.pre
 				});
@@ -913,9 +898,9 @@ var editor = (function(editor) {
 			table = treeModel.citizenTypes,
 			keys = table.keys();
 			
-		treeModel.addListener(editor.EventTypes.Trees.CitizenAdded, tree);
-		treeModel.addListener(editor.EventTypes.Trees.CitizenRemoved, tree);
-		treeModel.addListener(editor.EventTypes.Trees.CitizenUpdated, tree);
+		treeModel.addListener(shorthand.events.CitizenAdded, tree);
+		treeModel.addListener(shorthand.events.CitizenRemoved, tree);
+		treeModel.addListener(shorthand.events.CitizenUpdated, tree);
 			
 		for (var i = 0, il = keys.length; i < il; i++) {
 			var list = table.get(keys[i]);
@@ -924,7 +909,7 @@ var editor = (function(editor) {
 				var cit = list[j],
 					createType = j === 0;
 				
-				tree.notify(editor.EventTypes.Trees.CitizenAdded, {
+				tree.notify(shorthand.events.CitizenAdded, {
 					citizen: cit,
 					createType: createType
 				});
@@ -955,6 +940,4 @@ var editor = (function(editor) {
 		return tree;
 	};
 	
-	
-	return editor;
-})(editor || {});
+})();

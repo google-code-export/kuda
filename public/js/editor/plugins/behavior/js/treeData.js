@@ -15,16 +15,17 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
-	editor.treeData = editor.treeData || {};
+(function() {
+	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
+	shorthand.treeData = shorthand.treeData || {};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Constants                                  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var MSG_WILDCARD = editor.treeData.MSG_WILDCARD = 'Any';
+	var MSG_WILDCARD = shorthand.treeData.MSG_WILDCARD = 'Any';
 	
-	editor.treeData.chainTable = (function() {
+	shorthand.treeData.chainTable = (function() {
 		var chainTable = new Hashtable();
 		// Animation
 		chainTable.put('hemi.animation.Animation' + '_' + 'onRender', [hemi.msg.stop]); // Calls stop()
@@ -77,7 +78,7 @@ var editor = (function(editor) {
 		return chainTable;
 	})();
 	
-	var methodsToRemove = editor.treeData.methodsToRemove = [
+	var methodsToRemove = shorthand.treeData.methodsToRemove = [
         'constructor',
 		'getId',
 		'setId',
@@ -192,12 +193,12 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.getNodeName = getNodeName;
-	editor.treeData.getNodePath = getNodePath;
-	editor.treeData.createCitizenJson = createCitizenJson;
-	editor.treeData.isCommon = isCommon;
+	shorthand.treeData.getNodeName = getNodeName;
+	shorthand.treeData.getNodePath = getNodePath;
+	shorthand.treeData.createCitizenJson = createCitizenJson;
+	shorthand.treeData.isCommon = isCommon;
 	
-	editor.treeData.createShapePickCitizen = function(model) {
+	shorthand.treeData.createShapePickCitizen = function(model) {
 		return {
 			shapePick: true,
 			name: 'Picked Shape:',
@@ -211,7 +212,7 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.createCamMoveCitizen = function(camera) {
+	shorthand.treeData.createCamMoveCitizen = function(camera) {
 		return {
 			camMove: true,
 			name: 'Camera Move:',
@@ -225,7 +226,7 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.createCitizenTypeJson = function(citizen, prefix) {
+	shorthand.treeData.createCitizenTypeJson = function(citizen, prefix) {
 		var type = citizen.getCitizenType().split('.').pop(),
 			name = getNodeName(citizen, {
 				option: null,
@@ -246,7 +247,7 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.createTriggerJson = function(citizen, prefix) {
+	shorthand.treeData.createTriggerJson = function(citizen, prefix) {
 		var id = citizen.getId(),
 			name = getNodeName(citizen, {
 				option: MSG_WILDCARD,
@@ -294,7 +295,7 @@ var editor = (function(editor) {
 		return node;
 	};
 	
-	editor.treeData.createActionJson = function(citizen, prefix) {
+	shorthand.treeData.createActionJson = function(citizen, prefix) {
 		var methods = [],
 			moreMethods = [],
 			id = citizen.getId();
@@ -357,7 +358,7 @@ var editor = (function(editor) {
 		return node;
 	};
 	
-	editor.treeData.createModuleJson = function(module, prefix) {
+	shorthand.treeData.createModuleJson = function(module, prefix) {
 		var methods = [];
 		
 		for (propName in module) {
@@ -404,13 +405,13 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.createCamMoveJson = function(cmCit, prefix) {
+	shorthand.treeData.createCamMoveJson = function(cmCit, prefix) {
 		var camera = cmCit.citizen,
 			viewpoints = hemi.world.getViewpoints(),
 			nodes = [];
 		
 		for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
-			var node = editor.treeData.createViewpointJson(cmCit,
+			var node = shorthand.treeData.createViewpointJson(cmCit,
 					viewpoints[ndx], prefix);
 			nodes.push(node);
 		}
@@ -436,7 +437,7 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.createCamMoveTypeJson = function(cmCit, prefix) {
+	shorthand.treeData.createCamMoveTypeJson = function(cmCit, prefix) {
 		var name = getNodeName(cmCit, {
 			option: null,
 			prefix: prefix
@@ -456,7 +457,7 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.createViewpointJson = function(cmCit, viewpoint, prefix) {
+	shorthand.treeData.createViewpointJson = function(cmCit, viewpoint, prefix) {
 		var name = getNodeName(cmCit, {
 				option: viewpoint.getId(),
 				prefix: prefix,
@@ -477,7 +478,7 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.createShapePickJson = function(spCit, prefix) {
+	shorthand.treeData.createShapePickJson = function(spCit, prefix) {
 		var model = spCit.citizen,
 			id = spCit.getId(),
 			shapes = [];
@@ -525,7 +526,7 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.createShapePickTypeJson = function(spCit, prefix) {
+	shorthand.treeData.createShapePickTypeJson = function(spCit, prefix) {
 		var name = getNodeName(spCit, {
 			option: null,
 			prefix: prefix
@@ -545,7 +546,7 @@ var editor = (function(editor) {
 		};
 	};
 	
-	editor.treeData.createWildcardJson = function(prefix) {
+	shorthand.treeData.createWildcardJson = function(prefix) {
 		var name = getNodeName(MSG_WILDCARD, {
 				option: MSG_WILDCARD,
 				prefix: prefix
@@ -607,5 +608,4 @@ var editor = (function(editor) {
 		};
 	};
 	
-	return editor;
-})(editor || {});
+})();

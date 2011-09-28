@@ -21,9 +21,9 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.fog = editor.tools.fog || {};
+	var shorthand = editor.tools.fog = editor.tools.fog || {};
 
-	editor.tools.fog.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Effects'),
 			
 			fogMdl = new FogModel(),
@@ -40,15 +40,15 @@
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
     
-    editor.EventTypes = editor.EventTypes || {};
-	
-	// fog form sb widget events
-	editor.EventTypes.FogOnOff = "fog.FogOnOff";
-	editor.EventTypes.SaveFog = "fog.SaveFog";
-	
-	// model events
-	editor.EventTypes.FogVisible = "fog.FogVisible";
-	editor.EventTypes.FogWorldLoaded = "fog.FogWorldLoaded";
+	shorthand.events = {
+		// fog form sb widget events
+		FogOnOff: "fog.FogOnOff",
+		SaveFog: "fog.SaveFog",
+		
+		// model events
+		FogVisible: "fog.FogVisible",
+		FogWorldLoaded: "fog.FogWorldLoaded"
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -69,7 +69,7 @@
 				hemi.world.clearFog();
 			}
 			
-			this.notifyListeners(editor.EventTypes.FogVisible, visible);
+			this.notifyListeners(shorthand.events.FogVisible, visible);
 		},
 		
 		save: function(params) {
@@ -80,14 +80,14 @@
 		worldCleaned: function() {
 			this.currentVals = null;
 			this.setVisible(false);
-			this.notifyListeners(editor.EventTypes.FogWorldLoaded, null);
+			this.notifyListeners(shorthand.events.FogWorldLoaded, null);
 	    },
 	    
 	    worldLoaded: function() {
 			var fog = hemi.world.fog;
 			
 			this.currentVals = fog;
-			this.notifyListeners(editor.EventTypes.FogWorldLoaded, fog);
+			this.notifyListeners(shorthand.events.FogWorldLoaded, fog);
 	    }
 	});
 	
@@ -138,7 +138,7 @@
 				var elem = jQuery(this),
 					checked = elem.is(':checked');
 				
-				wgt.notifyListeners(editor.EventTypes.FogOnOff, checked);
+				wgt.notifyListeners(shorthand.events.FogOnOff, checked);
 			});
 			
 			form.find('input:not(type["checkbox"])').bind('keydown', function(evt) {
@@ -152,7 +152,7 @@
 					end: wgt.end.getValue()
 				};
 				
-				wgt.notifyListeners(editor.EventTypes.SaveFog, vals);
+				wgt.notifyListeners(shorthand.events.SaveFog, vals);
 				
 				wgt.saveBtn.attr('disabled', 'disabled');
 				wgt.cancelBtn.attr('disabled', 'disabled');
@@ -240,10 +240,10 @@
 				fogWgt = view.sidePanel.fogFormWidget;
 			
 			// fog sb widget specific
-			fogWgt.addListener(editor.EventTypes.FogOnOff, function(turnOn) {
+			fogWgt.addListener(shorthand.events.FogOnOff, function(turnOn) {
 				model.setVisible(turnOn);
 			});
-			fogWgt.addListener(editor.EventTypes.SaveFog, function(params) {
+			fogWgt.addListener(shorthand.events.SaveFog, function(params) {
 				model.save(params);
 			});
 			fogWgt.addListener(editor.events.Cancel, function() {
@@ -257,10 +257,10 @@
 			});
 			
 			// model specific
-			model.addListener(editor.EventTypes.FogVisible, function(visible) {
+			model.addListener(shorthand.events.FogVisible, function(visible) {
 				fogWgt.onOff.attr('checked', visible);
 			});
-			model.addListener(editor.EventTypes.FogWorldLoaded, function(params) {
+			model.addListener(shorthand.events.FogWorldLoaded, function(params) {
 				if (fogWgt.colorPicker != null) {
 					fogWgt.set(params);
 				}

@@ -39,8 +39,8 @@
 					var bhvWgt = shorthand.createBehaviorWidget({
 						height: editor.ui.Height.FULL
 					});
-					bhvWgt.addListener(editor.EventTypes.CreateBehavior, bhvMdl);
-					bhvWgt.addListener(editor.EventTypes.UpdateBehavior, bhvMdl);
+					bhvWgt.addListener(shorthand.events.CreateBehavior, bhvMdl);
+					bhvWgt.addListener(shorthand.events.UpdateBehavior, bhvMdl);
 					
 					// add the behavior widget
 					view.sidePanel.addWidget(bhvWgt);
@@ -75,7 +75,6 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools = editor.tools || {};
 	var shorthand = editor.tools.behavior = editor.tools.behavior || {},
 		bhvMdl = null;
 	
@@ -130,23 +129,21 @@
 	editor.ToolConstants.SHAPE_PICK = "ShapePick";
 	editor.ToolConstants.CAM_MOVE = "CameraMove";
 	
-    editor.EventTypes = editor.EventTypes || {};
-	editor.EventTypes.ArgumentSet = "messaging.ArgumentSet";
-	editor.EventTypes.TriggerSet = "messaging.TriggerSet";
-	editor.EventTypes.ActionSet = "messaging.ActionSet";
-    editor.EventTypes.EditTarget = "messaging.view.EditTarget";
-    editor.EventTypes.RemoveTarget = "messaging.eventList.RemoveTarget";
-    editor.EventTypes.SaveTarget = "messaging.view.SaveTarget";
-	editor.EventTypes.SelectTrigger = "messaging.SelectTrigger";
-	editor.EventTypes.SelectAction = "messaging.SelectAction";
-	editor.EventTypes.SelectTarget = "messaging.SelectTarget";
-	editor.EventTypes.CloneTarget = "messaging.CloneTarget";
+	shorthand.events = {
+		ArgumentSet: "messaging.ArgumentSet",
+		TriggerSet: "messaging.TriggerSet",
+		ActionSet: "messaging.ActionSet",
+	    EditTarget: "messaging.view.EditTarget",
+	    RemoveTarget: "messaging.eventList.RemoveTarget",
+	    SaveTarget: "messaging.view.SaveTarget",
+		SelectTrigger: "messaging.SelectTrigger",
+		SelectAction: "messaging.SelectAction",
+		SelectTarget: "messaging.SelectTarget",
+		CloneTarget: "messaging.CloneTarget",
 
-	editor.EventTypes.CreateBehavior = "messaging.CreateBehavior";
-	editor.EventTypes.UpdateBehavior = "messaging.UpdateBehavior";
-	
-	var TRIGGER_WRAPPER = '#causeTreeWrapper',
-		ACTION_WRAPPER = '#effectTreeWrapper';
+		CreateBehavior: "messaging.CreateBehavior",
+		UpdateBehavior: "messaging.UpdateBehavior"
+	};
 	    
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -187,9 +184,9 @@
 				argList = msgTarget.handler.args;
 				
 				if (spec.src === hemi.world.WORLD_ID) {
-					source = editor.treeData.createShapePickCitizen(msgTarget.handler.citizen);
+					source = shorthand.treeData.createShapePickCitizen(msgTarget.handler.citizen);
 				} else {
-					source = editor.treeData.createCamMoveCitizen(hemi.world.camera);
+					source = shorthand.treeData.createCamMoveCitizen(hemi.world.camera);
 				}
 			} else {
 				source = spec.src;
@@ -230,7 +227,7 @@
 				trigger = data.trigger,
 				action = data.action;
 			
-			if (eventType === editor.EventTypes.UpdateBehavior) {
+			if (eventType === shorthand.events.UpdateBehavior) {
 				if (data.target !== null) {
 					this.copyTarget(data.target);
 				}
@@ -266,7 +263,6 @@
 	    save: function(name, opt_type, opt_actor) {
 			var values = this.args.values(),
 				args = [],
-				editId = null,
 				newTarget;
 			
 			if (this.msgTarget !== null) {
@@ -307,9 +303,9 @@
 				this.dispatchProxy.unswap();
 			}
 			else {
-				var src = this.source === editor.treeData.MSG_WILDCARD ? hemi.dispatch.WILDCARD 
+				var src = this.source === shorthand.treeData.MSG_WILDCARD ? hemi.dispatch.WILDCARD 
 						: this.source.getId(),
-					type = this.type === editor.treeData.MSG_WILDCARD ? hemi.dispatch.WILDCARD 
+					type = this.type === shorthand.treeData.MSG_WILDCARD ? hemi.dispatch.WILDCARD 
 						: this.type;
 				
 				newTarget = this.dispatchProxy.registerTarget(
@@ -372,7 +368,7 @@
 				}
 			}
 			
-			this.notifyListeners(editor.EventTypes.ActionSet, {
+			this.notifyListeners(shorthand.events.ActionSet, {
 				handler: this.handler,
 				method: this.method
 			});
@@ -386,7 +382,7 @@
 	        }
 	        
 //	        this.args.put(argName, arg);
-			this.notifyListeners(editor.EventTypes.ArgumentSet, {
+			this.notifyListeners(shorthand.events.ArgumentSet, {
 				name: argName,
 				value: argValue
 			});
@@ -399,19 +395,19 @@
 	    	
 	    	if (source === null || source.getId != null) {
 				this.source = source;
-			} else if (source === hemi.dispatch.WILDCARD || source === editor.treeData.MSG_WILDCARD) {
-				this.source = editor.treeData.MSG_WILDCARD;
+			} else if (source === hemi.dispatch.WILDCARD || source === shorthand.treeData.MSG_WILDCARD) {
+				this.source = shorthand.treeData.MSG_WILDCARD;
 			} else {
 				this.source = hemi.world.getCitizenById(source);
 			}
 			
-			if (type === hemi.dispatch.WILDCARD || type === editor.treeData.MSG_WILDCARD) {
-				this.type = editor.treeData.MSG_WILDCARD;
+			if (type === hemi.dispatch.WILDCARD || type === shorthand.treeData.MSG_WILDCARD) {
+				this.type = shorthand.treeData.MSG_WILDCARD;
 			} else {
 				this.type = type;
 			}
 			
-			this.notifyListeners(editor.EventTypes.TriggerSet, {
+			this.notifyListeners(shorthand.events.TriggerSet, {
 				source: this.source,
 				message: this.type
 			});
@@ -458,7 +454,7 @@
 	var	getChainMessages = function(citizen, method) {
 		var type = citizen.getCitizenType ? citizen.getCitizenType() : citizen.name,
 			key = type + '_' + method,
-			msgList = editor.treeData.chainTable.get(key),
+			msgList = shorthand.treeData.chainTable.get(key),
 			messages;
 		
 		if (citizen.parent != null) {
@@ -489,10 +485,10 @@
 		},
 		
 		add: function(msgTarget, spec) {
-			var data = editor.tools.behavior.expandBehaviorData(msgTarget, spec),
+			var data = shorthand.expandBehaviorData(msgTarget, spec),
 				row = this.table.fnAddData([
-					editor.tools.behavior.getTriggerName(data).join('.'),
-					editor.tools.behavior.getActionName(data).join('.'),
+					shorthand.getTriggerName(data).join('.'),
+					shorthand.getActionName(data).join('.'),
 					msgTarget.name,
 					'<td> \
 					<button class="editBtn">Edit</button>\
@@ -556,7 +552,7 @@
 		},
 		
 		update: function(msgTarget, spec) {
-			var data = editor.tools.behavior.expandBehaviorData(msgTarget, spec),
+			var data = shorthand.expandBehaviorData(msgTarget, spec),
 				row = jQuery(this.behaviors.get(msgTarget.dispatchId)),
 				td = row.find('td.editHead');
 			
@@ -564,8 +560,8 @@
 			td.empty();
 			
 			this.table.fnUpdate([
-					editor.tools.behavior.getTriggerName(data).join('.'),
-					editor.tools.behavior.getActionName(data).join('.'),
+					shorthand.getTriggerName(data).join('.'),
+					shorthand.getActionName(data).join('.'),
 					msgTarget.name,
 					'<td> \
 					<button class="editBtn">Edit</button>\
@@ -589,7 +585,7 @@
 		
 		td.find('.editBtn').bind('click', function(evt) {
 			var bhv = tr.data('behavior');					
-			wgt.notifyListeners(editor.EventTypes.SelectTarget, bhv);
+			wgt.notifyListeners(shorthand.events.SelectTarget, bhv);
 		});
 		
 		if (msgs.length > 0) {
@@ -607,11 +603,11 @@
 				
 				// special case
 				if (target.func === 'moveToView') {
-					handler = editor.treeData.createCamMoveCitizen(hemi.world.camera);
+					handler = shorthand.treeData.createCamMoveCitizen(hemi.world.camera);
 					messages = [parseInt(target.args[0].replace(
 						hemi.dispatch.ID_ARG, ''))];
 				}
-				wgt.notifyListeners(editor.EventTypes.SelectTrigger, {
+				wgt.notifyListeners(shorthand.events.SelectTrigger, {
 					source: handler,
 					messages: messages
 				});
@@ -624,7 +620,7 @@
 			var tr = jQuery(this).parents('tr'),
 				target = tr.data('behavior');
 			
-			wgt.notifyListeners(editor.EventTypes.CloneTarget, {
+			wgt.notifyListeners(shorthand.events.CloneTarget, {
 				target: target,
 				name: 'Copy of ' + target.name
 			});
@@ -634,7 +630,7 @@
 			var tr = jQuery(this).parents('tr'),
 				target = tr.data('behavior');
 				
-			wgt.notifyListeners(editor.EventTypes.RemoveTarget, target);
+			wgt.notifyListeners(shorthand.events.RemoveTarget, target);
 		});
 	};
 	
@@ -662,7 +658,7 @@
 				name: 'bottomPanel'
 			}));
 						
-			this.topPanel.addWidget(editor.tools.behavior.createBehaviorWidget({
+			this.topPanel.addWidget(shorthand.createBehaviorWidget({
 				height: editor.ui.Height.MANUAL
 			}));			
 			this.bottomPanel.addWidget(new TableWidget());
@@ -695,26 +691,25 @@
 			var model = this.model,
 				view = this.view,
 				tblWgt = view.bottomPanel.behaviorTableWidget,
-				bhvWgt = view.topPanel.behaviorWidget,
-				controller = this;
+				bhvWgt = view.topPanel.behaviorWidget;
 			
-			bhvWgt.addListener(editor.EventTypes.CreateBehavior, model);
-			bhvWgt.addListener(editor.EventTypes.UpdateBehavior, model);
+			bhvWgt.addListener(shorthand.events.CreateBehavior, model);
+			bhvWgt.addListener(shorthand.events.UpdateBehavior, model);
 			
 			// view specific
-			tblWgt.addListener(editor.EventTypes.CloneTarget, function(data) {
+			tblWgt.addListener(shorthand.events.CloneTarget, function(data) {
 				model.copyTarget(data.target);
 				model.save(data.name);
-			})
-			tblWgt.addListener(editor.EventTypes.RemoveTarget, function(target) {
+			});
+			tblWgt.addListener(shorthand.events.RemoveTarget, function(target) {
 				model.removeTarget(target);
 			});			
-			tblWgt.addListener(editor.EventTypes.SelectTarget, function(target) {	
+			tblWgt.addListener(shorthand.events.SelectTarget, function(target) {	
 				var spec = model.dispatchProxy.getTargetSpec(target);
 				
 				bhvWgt.setTarget(target, spec);
 			});
-			tblWgt.addListener(editor.EventTypes.SelectTrigger, function(data) {
+			tblWgt.addListener(shorthand.events.SelectTrigger, function(data) {
 				bhvWgt.setTrigger(data.source, data.messages);
 			});
 			
@@ -754,15 +749,15 @@
 			});
 			
 			// behavior widget specific
-			editor.tools.behavior.addBehaviorListItemListener(
-				editor.EventTypes.ListItemEdit, function(obj) {
+			shorthand.addBehaviorListItemListener(
+				shorthand.events.ListItemEdit, function(obj) {
 					var spec = model.dispatchProxy.getTargetSpec(obj.target);
 						
 					bhvWgt.setActor(obj.actor, obj.target.type, obj.target, spec);
 					bhvWgt.setVisible(true);
 				});
-			editor.tools.behavior.addBehaviorListItemListener(
-				editor.EventTypes.ListItemRemove, function(target) {
+			shorthand.addBehaviorListItemListener(
+				shorthand.events.ListItemRemove, function(target) {
 					model.removeTarget(target);
 				});
 				

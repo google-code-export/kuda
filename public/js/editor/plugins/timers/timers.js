@@ -21,9 +21,9 @@
 //								Initialization								  //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.timers = editor.tools.timers || {};
+	var shorthand = editor.tools.timers = editor.tools.timers || {};
 
-	editor.tools.timers.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Behaviors'),
 			tmrMdl = new TimersModel(),
 			tmrView = new TimersView(),
@@ -39,19 +39,17 @@
 //								Tool Definition								  //
 ////////////////////////////////////////////////////////////////////////////////
     
-    editor.EventTypes = editor.EventTypes || {};
-	
-	// model specific
-	editor.EventTypes.TimerSet = 'timer.set';
-	
-	// view specific
-	
-	// create timer sidebar widget specific
-	editor.EventTypes.SaveTimer = 'timer.save';
-	
-	// timer list sidebar widget specific
-	editor.EventTypes.EditTimer = 'timer.edit';
-	editor.EventTypes.RemoveTimer = 'timer.remove';
+	shorthand.events = {
+		// model specific
+		TimerSet: 'timer.set',
+		
+		// create timer widget specific
+		SaveTimer: 'timer.save',
+		
+		// timer list widget specific
+		EditTimer: 'timer.edit',
+		RemoveTimer: 'timer.remove'
+	};
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -76,7 +74,7 @@
 		
 		edit: function(timer) {
 			this.currentTimer = timer;
-			this.notifyListeners(editor.EventTypes.TimerSet, timer);
+			this.notifyListeners(shorthand.events.TimerSet, timer);
 		},
 		
 		remove: function(timer) {
@@ -167,12 +165,12 @@
 					};
 				
 				wgt.reset();
-				wgt.notifyListeners(editor.EventTypes.SaveTimer, data); 
+				wgt.notifyListeners(shorthand.events.SaveTimer, data); 
 			});
 			
 			this.cancelBtn.bind('click', function() {
 				wgt.reset();
-				wgt.notifyListeners(editor.EventTypes.EditTimer, null);
+				wgt.notifyListeners(shorthand.events.EditTimer, null);
 			});
 			
 			this.addInputsToCheck(this.startTimeIpt);
@@ -214,12 +212,12 @@
 			
 			li.editBtn.bind('click', function(evt) {
 				var timer = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.EditTimer, timer);
+				wgt.notifyListeners(shorthand.events.EditTimer, timer);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var timer = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.RemoveTimer, timer);
+				wgt.notifyListeners(shorthand.events.RemoveTimer, timer);
 			});
 		},
 		
@@ -281,15 +279,15 @@
 				lstWgt = view.sidePanel.timerListWidget;
 			
 			// create widget specific
-			crtWgt.addListener(editor.EventTypes.SaveTimer, function(data) {
+			crtWgt.addListener(shorthand.events.SaveTimer, function(data) {
 				model.save(data.name, data.startTime);
 			});
 			
 			// list widget specific
-			lstWgt.addListener(editor.EventTypes.EditTimer, function(timer) {
+			lstWgt.addListener(shorthand.events.EditTimer, function(timer) {
 				model.edit(timer);
 			});
-			lstWgt.addListener(editor.EventTypes.RemoveTimer, function(timer) {
+			lstWgt.addListener(shorthand.events.RemoveTimer, function(timer) {
 				model.remove(timer);
 			});
 			
@@ -300,7 +298,7 @@
 			model.addListener(editor.events.Removed, function(timer) {
 				lstWgt.remove(timer);
 			});
-			model.addListener(editor.EventTypes.TimerSet, function(timer) {
+			model.addListener(shorthand.events.TimerSet, function(timer) {
 				crtWgt.edit(timer);
 			});
 			model.addListener(editor.events.Updated, function(timer) {

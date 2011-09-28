@@ -21,9 +21,9 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
  
-	editor.tools.viewpoints = editor.tools.viewpoints || {};
+	var shorthand = editor.tools.viewpoints = editor.tools.viewpoints || {};
 
- 	editor.tools.viewpoints.init = function() {
+ 	shorthand.init = function() {
  		var navPane = editor.ui.getNavPane('Camera'),
 			
 			vptMdl = new ViewpointsModel(),
@@ -40,18 +40,19 @@
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.EventTypes = editor.EventTypes || {};
-	// model events
-    editor.EventTypes.CameraUpdated = "viewpoints.CameraUpdated";
-	
-	// Create Viewpoint Widget events
-	editor.EventTypes.SaveViewpoint = "viewpoints.SaveViewpoint";
-	editor.EventTypes.PreviewViewpoint = "viewpoints.PreviewViewpoint";
-	
-	// Viewpoint List Widget events
-    editor.EventTypes.AddViewpoint = "viewpoints.AddViewpoint";
-    editor.EventTypes.EditViewpoint = "viewpoints.EditViewpoint";
-    editor.EventTypes.RemoveViewpoint = "viewpoints.RemoveViewpoint";
+	shorthand.events = {
+		// model events
+	    CameraUpdated: "viewpoints.CameraUpdated",
+		
+		// Create Viewpoint Widget events
+		SaveViewpoint: "viewpoints.SaveViewpoint",
+		PreviewViewpoint: "viewpoints.PreviewViewpoint",
+		
+		// Viewpoint List Widget events
+	    AddViewpoint: "viewpoints.AddViewpoint",
+	    EditViewpoint: "viewpoints.EditViewpoint",
+	    RemoveViewpoint: "viewpoints.RemoveViewpoint"
+    };
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -112,7 +113,7 @@
 		},
 		
 		onRender: function(renderEvt) {
-			this.notifyListeners(editor.EventTypes.CameraUpdated);
+			this.notifyListeners(shorthand.events.CameraUpdated);
 		},
 		
 		previewViewpoint: function(params) {
@@ -252,7 +253,7 @@
 			});
 			
 			this.saveBtn.bind('click', function(evt) {					
-				wgt.notifyListeners(editor.EventTypes.SaveViewpoint, 
+				wgt.notifyListeners(shorthand.events.SaveViewpoint, 
 					wgt.getParams());
 			});
 			
@@ -261,7 +262,7 @@
 			});
 			
 			this.previewBtn.bind('click', function(evt) {					
-				wgt.notifyListeners(editor.EventTypes.PreviewViewpoint, 
+				wgt.notifyListeners(shorthand.events.PreviewViewpoint, 
 					wgt.getParams());
 			});
 			
@@ -348,12 +349,12 @@
 			
 			li.editBtn.bind('click', function(evt) {
 				var vpt = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.EditViewpoint, vpt);
+				wgt.notifyListeners(shorthand.events.EditViewpoint, vpt);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var vpt = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.RemoveViewpoint, vpt);
+				wgt.notifyListeners(shorthand.events.RemoveViewpoint, vpt);
 			});
 		},
 		
@@ -409,10 +410,8 @@
 			
 			var model = this.model,
 				view = this.view,
-				ctr = this,
 				crtWgt = view.sidePanel.createVptWidget,
-				lstWgt = view.sidePanel.viewpointListWidget,
-				bhvWgt = view.sidePanel.behaviorWidget;
+				lstWgt = view.sidePanel.viewpointListWidget;
 			
 			// special listener for when the toolbar button is clicked
 			view.addListener(editor.events.ToolModeSet, function(value) {
@@ -425,29 +424,28 @@
 				model.cancelViewpointEdit();
 				crtWgt.reset();
 			});
-			crtWgt.addListener(editor.EventTypes.SaveViewpoint, function(params) {
+			crtWgt.addListener(shorthand.events.SaveViewpoint, function(params) {
 				model.saveViewpoint(params);
 			});
-			crtWgt.addListener(editor.EventTypes.PreviewViewpoint, function(params) {
+			crtWgt.addListener(shorthand.events.PreviewViewpoint, function(params) {
 				model.previewViewpoint(params);
 			});
 			
 			// viewpoint list widget specific
-			lstWgt.addListener(editor.EventTypes.AddViewpoint, function() {
+			lstWgt.addListener(shorthand.events.AddViewpoint, function() {
 			});
-			lstWgt.addListener(editor.EventTypes.RemoveViewpoint, function(vpt) {
+			lstWgt.addListener(shorthand.events.RemoveViewpoint, function(vpt) {
 				model.removeViewpoint(vpt);
 			});
-			lstWgt.addListener(editor.EventTypes.EditViewpoint, function(viewpoint) {
+			lstWgt.addListener(shorthand.events.EditViewpoint, function(viewpoint) {
 				model.editViewpoint(viewpoint);
 				crtWgt.set(viewpoint);
 			});
 			
 			// model specific 
-			model.addListener(editor.EventTypes.CameraUpdated, function(value) {
+			model.addListener(shorthand.events.CameraUpdated, function(value) {
 //				view.updateCameraInfo(value);
 			});
-			// TODO: replace with hemi dispatch
 			model.addListener(editor.events.Created, function(vpt) {
 				crtWgt.reset();
 				lstWgt.add(vpt);

@@ -21,9 +21,9 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.particleEffects = editor.tools.particleEffects || {};
+	var shorthand = editor.tools.particleEffects = editor.tools.particleEffects || {};
 
-	editor.tools.particleEffects.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Effects'),
 			
 			pteMdl = new ParticleFxModel(),
@@ -40,17 +40,17 @@
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-    editor.EventTypes = editor.EventTypes || {};
-	
-	// create fx sidebar widget specific
-    editor.EventTypes.SaveParticleFx = "particleFx.SaveParticleFx";
-    editor.EventTypes.StartParticleFxPreview = "particleFx.StartParticleFxPreview";
-    editor.EventTypes.StopParticleFxPreview = "particleFx.StopParticleFxPreview";
-	editor.EventTypes.TemplateSelected = "particleFx.TemplateSelected";
-	
-	// list sidebar widget specific
-    editor.EventTypes.EditParticleFx = "particleFx.EditParticleFx";
-    editor.EventTypes.RemoveParticleFx = "particleFx.RemoveParticleFx";	
+    shorthand.events = {
+		// create fx sidebar widget specific
+	    SaveParticleFx: "particleFx.SaveParticleFx",
+	    StartParticleFxPreview: "particleFx.StartParticleFxPreview",
+	    StopParticleFxPreview: "particleFx.StopParticleFxPreview",
+		TemplateSelected: "particleFx.TemplateSelected",
+		
+		// list sidebar widget specific
+	    EditParticleFx: "particleFx.EditParticleFx",
+	    RemoveParticleFx: "particleFx.RemoveParticleFx"
+    };
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -484,7 +484,7 @@
 			// bind save button
 			saveBtn.bind('click', function(evt) {				
 				var props = wgt.getProperties();
-				wgt.notifyListeners(editor.EventTypes.SaveParticleFx, props);
+				wgt.notifyListeners(shorthand.events.SaveParticleFx, props);
 				wgt.reset();
 			}).attr('disabled', 'disabled');
 			
@@ -499,12 +499,12 @@
 				var btn = jQuery(this);
 				
 				if (btn.data('previewing')) {
-	            	wgt.notifyListeners(editor.EventTypes.StopParticleFxPreview, null);
+	            	wgt.notifyListeners(shorthand.events.StopParticleFxPreview, null);
 					btn.text('Start Preview').data('previewing', false);
 				}
 				else {
 					var props = wgt.getProperties();
-					wgt.notifyListeners(editor.EventTypes.StartParticleFxPreview, props);
+					wgt.notifyListeners(shorthand.events.StartParticleFxPreview, props);
 					btn.text('Stop Preview').data('previewing', true);
 				}
 			}).attr('disabled', 'disabled');
@@ -658,7 +658,7 @@
 					
 				if (ndx !== -1) {
 					var tpl = wgt.templates[ndx];
-					wgt.notifyListeners(editor.EventTypes.TemplateSelected, tpl);
+					wgt.notifyListeners(shorthand.events.TemplateSelected, tpl);
 					wgt.edit(tpl);
 				} else {
 					wgt.reset();
@@ -706,12 +706,12 @@
 			
 			li.editBtn.bind('click', function(evt) {
 				var effect = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.EditParticleFx, effect);
+				wgt.notifyListeners(shorthand.events.EditParticleFx, effect);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var effect = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.RemoveParticleFx, effect);
+				wgt.notifyListeners(shorthand.events.RemoveParticleFx, effect);
 			});
 		},
 		
@@ -769,25 +769,25 @@
 			pteCrt.addListener(editor.events.Cancel, function() {
 				model.cancelParticleFxEdit();
 			});
-			pteCrt.addListener(editor.EventTypes.SaveParticleFx, function(props) {
+			pteCrt.addListener(shorthand.events.SaveParticleFx, function(props) {
 				model.save(props);
 			});
-			pteCrt.addListener(editor.EventTypes.StartParticleFxPreview, function(props) {
+			pteCrt.addListener(shorthand.events.StartParticleFxPreview, function(props) {
 				model.preview(props);
 			});
-			pteCrt.addListener(editor.EventTypes.StopParticleFxPreview, function(value) {
+			pteCrt.addListener(shorthand.events.StopParticleFxPreview, function(value) {
 				model.stopPreview();
 			});
-			pteCrt.addListener(editor.EventTypes.TemplateSelected, function(template) {
+			pteCrt.addListener(shorthand.events.TemplateSelected, function(template) {
 				model.setTemplate(template);
 			});
 			
 			// list widget specific
-			pteLst.addListener(editor.EventTypes.EditParticleFx, function(effect) {
+			pteLst.addListener(shorthand.events.EditParticleFx, function(effect) {
 				model.setEffect(effect);
 				pteCrt.edit(effect);
 			});
-			pteLst.addListener(editor.EventTypes.RemoveParticleFx, function(effect) {
+			pteLst.addListener(shorthand.events.RemoveParticleFx, function(effect) {
 				model.removeEffect(effect);
 			});
 			

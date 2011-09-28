@@ -21,9 +21,9 @@
 //								Initialization								  //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.scenes = editor.tools.scenes || {};
+	var shorthand = editor.tools.scenes = editor.tools.scenes || {};
 
-	editor.tools.scenes.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Behaviors'),
 			scnMdl = new ScenesModel(),
 			scnView = new ScenesView(),
@@ -39,9 +39,7 @@
 //								Tool Definition								  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.EventTypes = editor.EventTypes || {};
-	
-	editor.EventTypes.Scenes = {
+	shorthand.events = {
 		// scene list widget specific
 	    AddScene: "scenes.AddScene",
 		EditScene: "scenes.SelectScene",
@@ -149,9 +147,7 @@
 ////////////////////////////////////////////////////////////////////////////////     
 	
 	var ADD_TXT = "Add Scene",
-		SAVE_TXT = "Save Scene",
-		ADD_WIDTH = '15em',
-		SAVE_WIDTH = '14.167em';
+		SAVE_TXT = "Save Scene";
 	
 	var ListWidget = editor.ui.ListWidget.extend({
 		init: function() {
@@ -174,14 +170,14 @@
 				var scn = li.getAttachedObject();
 				
 				wgt.nameInput.val(scn.name).addClass('save');
-				wgt.notifyListeners(editor.EventTypes.Scenes.EditScene, scn);
+				wgt.notifyListeners(shorthand.events.EditScene, scn);
 				wgt.addBtn.text(SAVE_TXT).data('isEditing', true)
 					.data('scene', scn).removeAttr('disabled');
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var scn = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.Scenes.RemoveScene, scn);
+				wgt.notifyListeners(shorthand.events.RemoveScene, scn);
 				
 				if (wgt.addBtn.data('scene') === scn) {
 					wgt.addBtn.text(ADD_TXT).data('isEditing', false)
@@ -201,7 +197,7 @@
 					prev = elem.prev().data('obj'),
 					next = elem.next().data('obj');
 				
-				wgt.notifyListeners(editor.EventTypes.Scenes.ReorderScene, {
+				wgt.notifyListeners(shorthand.events.ReorderScene, {
 					scene: scene,
 					prev: prev ? prev : null,
 					next: next ? next : null
@@ -223,8 +219,8 @@
 				var btn = jQuery(this),
 					name = wgt.nameInput.val(),
 					isEditing = btn.data('isEditing'),
-					msgType = isEditing ? editor.EventTypes.Scenes.UpdateScene 
-						: editor.EventTypes.Scenes.AddScene,
+					msgType = isEditing ? shorthand.events.UpdateScene 
+						: shorthand.events.AddScene,
 					data = isEditing ? {
 						scene: btn.data('scene'),
 						name: name
@@ -302,19 +298,19 @@
 				lstWgt = view.sidePanel.scnListWidget;
 			
 			// scene list widget specific
-			lstWgt.addListener(editor.EventTypes.Scenes.AddScene, function(sceneName) {
+			lstWgt.addListener(shorthand.events.AddScene, function(sceneName) {
 				model.addScene(sceneName);
 			});			
-			lstWgt.addListener(editor.EventTypes.Scenes.EditScene, function(scene) {
+			lstWgt.addListener(shorthand.events.EditScene, function(scene) {
 				model.setScene(scene);
 			});			
-			lstWgt.addListener(editor.EventTypes.Scenes.RemoveScene, function(scene) {
+			lstWgt.addListener(shorthand.events.RemoveScene, function(scene) {
 				model.removeScene(scene);
 			});			
-			lstWgt.addListener(editor.EventTypes.Scenes.ReorderScene, function(scnObj) {
+			lstWgt.addListener(shorthand.events.ReorderScene, function(scnObj) {
 				model.reorderScenes(scnObj.scene, scnObj.prev, scnObj.next);
 			});			
-			lstWgt.addListener(editor.EventTypes.Scenes.UpdateScene, function(scnObj) {
+			lstWgt.addListener(shorthand.events.UpdateScene, function(scnObj) {
 				model.updateScene(scnObj.name);
 			});
 			

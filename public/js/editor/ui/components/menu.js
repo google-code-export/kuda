@@ -18,10 +18,6 @@
 var editor = (function(editor) {
 	editor.ui = editor.ui || {};
 	
-    editor.EventTypes = editor.EventTypes || {};
-	editor.EventTypes.MenuItemShown = "MenuItemShown";
-    editor.EventTypes.MenuActionClicked = "MenuActionClicked";
-	
 	editor.ui.Constants = editor.ui.Constants || {};
 	editor.ui.Constants.UP_STATE = "UP";
 	editor.ui.Constants.DOWN_STATE = "DOWN";
@@ -73,7 +69,7 @@ var editor = (function(editor) {
 			
 	        this.container.bind('click', function(evt) {
 	            callback(evt);
-				that.notifyListeners(editor.EventTypes.MenuActionClicked, that);
+				that.notifyListeners(editor.events.MenuItemClicked, that);
 				that.toggleState();
 	        });
 	    },
@@ -149,8 +145,6 @@ var editor = (function(editor) {
 							}
 						});
 					}
-					
-					that.notifyListeners(editor.EventTypes.MenuItemShown, that);
 				});
 			}
 		},
@@ -174,7 +168,7 @@ var editor = (function(editor) {
 				this.list.append(li);
 				this.menuItems.push(menuItem);
 				
-				menuItem.addListener(editor.EventTypes.MenuActionClicked, function(value) {
+				menuItem.addListener(editor.events.MenuItemClicked, function(value) {
 					that.hide();
 				});
 			} else {
@@ -252,51 +246,6 @@ var editor = (function(editor) {
 			this.parent = parent;
 			
 			parent.addClass('uiMenuShown');
-		}
-	});
-    
-    editor.ui.MenuBar = editor.ui.Menu.extend({
-		init: function() {
-			this._super();
-			this.list.show();       
-			this.container.removeClass().addClass("uiMenuBar");
-    	},
-		
-	    addMenuItem: function(menuItem) {
-			var that = this;
-	        this._super(menuItem);
-			
-			menuItem.addListener(editor.EventTypes.MenuItemShown, function(value) {
-				for (var ndx = 0, len = that.menuItems.length; ndx < len; ndx++) {
-					var item = that.menuItems[ndx];
-					
-					if (item != value) {
-						item.hide();
-					}
-				}
-			});
-	    },
-	    
-	    setTitle: function(title) {
-	    },
-	    
-	    setAction: function(callback) {
-	    },
-		
-		setEnabled: function(enabled) {
-			for (var i = 0, il = this.menuItems.length; i < il; i++) {
-				this.menuItems[i].setEnabled(enabled);
-			}
-		}
-	});
-	
-	editor.ui.Separator = editor.ui.MenuItem.extend({
-		init: function() {
-	        this._super();
-		},
-		
-		finishLayout: function() {
-			this.container = jQuery('<span class="uiMenuSeparator"></span>');
 		}
 	});
 	

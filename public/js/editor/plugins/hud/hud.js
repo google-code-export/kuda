@@ -21,9 +21,9 @@
 //								Initialization								  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.tools.hud = editor.tools.hud || {};
+	var shorthand = editor.tools.hud = editor.tools.hud || {};
 	
-	editor.tools.hud.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('HUD'),
 		
 		hudMdl = new HudModel(),
@@ -40,34 +40,33 @@
 //								Tool Definition								  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-    editor.EventTypes = editor.EventTypes || {};
+	shorthand.events = {
+		// model specific
+		DisplaySet: "Hud.DisplaySet",
+		ElementCreated: "Hud.ElementCreated",
+		ElementRemoved: "Hud.ElementRemoved",
+		ElementSet: "Hud.ElementSet",
+		ElementUpdated: "Hud.ElementUpdated",
+		PageCreated: "Hud.PageCreated",
+		PageRemoved: "Hud.PageRemoved",
+		PageSet: "Hud.PageSet",
+		HudWorldLoaded: "Hud.HudWorldLoaded",
 		
-	// model specific
-	editor.EventTypes.DisplaySet = "Hud.DisplaySet";
-	editor.EventTypes.ElementCreated = "Hud.ElementCreated";
-	editor.EventTypes.ElementRemoved = "Hud.ElementRemoved";
-	editor.EventTypes.ElementSet = "Hud.ElementSet";
-	editor.EventTypes.ElementUpdated = "Hud.ElementUpdated";
-	editor.EventTypes.PageCreated = "Hud.PageCreated";
-	editor.EventTypes.PageRemoved = "Hud.PageRemoved";
-	editor.EventTypes.PageSet = "Hud.PageSet";
-	editor.EventTypes.HudWorldLoaded = "Hud.HudWorldLoaded";
-	
-	// hud edit specific
-	editor.EventTypes.CreateDisplay = "Hud.CreateDisplay";
-	editor.EventTypes.CreatePage = "Hud.CreatePage";
-	editor.EventTypes.RemoveDisplay = "Hud.RemoveDisplay";
-	editor.EventTypes.RemoveElement = "Hud.RemoveElement";
-	editor.EventTypes.RemovePage = "Hud.RemovePage";
-	editor.EventTypes.SaveElement = "Hud.SaveElement";
-	editor.EventTypes.SavePage = "Hud.SavePage";
-	
-	// hud tree specific
-	editor.EventTypes.SelectHudNode = "Hud.SelectHudNode";
-	
-	// shared
-	editor.EventTypes.SetElement = "Hud.SetElement";
-	
+		// hud edit specific
+		CreateDisplay: "Hud.CreateDisplay",
+		CreatePage: "Hud.CreatePage",
+		RemoveDisplay: "Hud.RemoveDisplay",
+		RemoveElement: "Hud.RemoveElement",
+		RemovePage: "Hud.RemovePage",
+		SaveElement: "Hud.SaveElement",
+		SavePage: "Hud.SavePage",
+		
+		// hud tree specific
+		SelectHudNode: "Hud.SelectHudNode",
+		
+		// shared
+		SetElement: "Hud.SetElement"
+	};
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -99,7 +98,7 @@
 			this.currentDisplay.addPage(page);
 			page.name = this.currentDisplay.name + ' Page ' +
 				this.currentDisplay.getNumberOfPages();
-			this.notifyListeners(editor.EventTypes.PageCreated, page);
+			this.notifyListeners(shorthand.events.PageCreated, page);
 			
 			if (opt_select) {
 				this.setPage(page);
@@ -119,24 +118,24 @@
 			this.currentPage.removeElement(element);
 			element.cleanup();
 			this.currentDisplay.showPage();
-			this.notifyListeners(editor.EventTypes.ElementRemoved, element);
+			this.notifyListeners(shorthand.events.ElementRemoved, element);
 		},
 		
 		removePage: function(page) {
 			this.currentDisplay.removePage(page);
 			page.cleanup();
-			this.notifyListeners(editor.EventTypes.PageRemoved, page);
+			this.notifyListeners(shorthand.events.PageRemoved, page);
 		},
 		
 		saveElement: function(props) {
 			var element = this.currentElement,
-				event = editor.EventTypes.ElementCreated,
+				event = shorthand.events.ElementCreated,
 				refresh = true;
 			
 			if (props.type === 'Text') {
 				if (element !== null) {
 					if (element instanceof hemi.hud.HudText) {
-						event = editor.EventTypes.ElementUpdated;
+						event = shorthand.events.ElementUpdated;
 					} else {
 						this.currentPage.removeElement(element);
 						element.cleanup();
@@ -156,7 +155,7 @@
 			} else if (props.type === 'Image') {
 				if (element !== null) {
 					if (element instanceof hemi.hud.HudImage) {
-						event = editor.EventTypes.ElementUpdated;
+						event = shorthand.events.ElementUpdated;
 					} else {
 						this.currentPage.removeElement(element);
 						element.cleanup();
@@ -217,14 +216,14 @@
 			}
 			
 			this.currentDisplay = display;
-			this.notifyListeners(editor.EventTypes.DisplaySet, display);
+			this.notifyListeners(shorthand.events.DisplaySet, display);
 		},
 		
 		setElement: function(element, opt_type) {			
 			var type = opt_type ? opt_type : null;
 			
 			this.currentElement = element;
-			this.notifyListeners(editor.EventTypes.ElementSet, {
+			this.notifyListeners(shorthand.events.ElementSet, {
 				element: element,
 				type: type
 			});
@@ -248,7 +247,7 @@
 			}
 			
 			this.currentPage = page;
-			this.notifyListeners(editor.EventTypes.PageSet, page);
+			this.notifyListeners(shorthand.events.PageSet, page);
 		},
 			
 		worldCleaned: function() {
@@ -262,7 +261,7 @@
 	    worldLoaded: function() {
 			var displays = hemi.world.getHudDisplays();
 			
-			this.notifyListeners(editor.EventTypes.HudWorldLoaded, displays);
+			this.notifyListeners(shorthand.events.HudWorldLoaded, displays);
 	    }
 	});
 	
@@ -292,7 +291,7 @@
 			
 			this.createBtn.bind('click', function(evt) {
 				var name = wgt.nameInput.val();
-				wgt.notifyListeners(editor.EventTypes.CreateDisplay, name);
+				wgt.notifyListeners(shorthand.events.CreateDisplay, name);
 				wgt.createBtn.attr('disabled', 'disabled');
 				wgt.nameInput.val('');
 			})
@@ -323,7 +322,7 @@
 				for (var ndx = 0, len = path.length; ndx < len; ndx++) {
 					hudObjs.push(jQuery('#' + path[ndx]).data('jstree'));
 				}
-				wgt.notifyListeners(editor.EventTypes.SelectHudNode, hudObjs);
+				wgt.notifyListeners(shorthand.events.SelectHudNode, hudObjs);
 			}).jstree({
 				'json_data': {
 					'data': {}
@@ -547,13 +546,13 @@
 				wgt = this;
 			
 			addPageBtn.bind('click', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.CreatePage, true);
+				wgt.notifyListeners(shorthand.events.CreatePage, true);
 			});
 			
 			removeBtn.bind('click', function(evt) {
 				var display = wgt.displayEditor.data('obj');
 				
-				wgt.notifyListeners(editor.EventTypes.RemoveDisplay, display);
+				wgt.notifyListeners(shorthand.events.RemoveDisplay, display);
 			});
 		},
 		
@@ -582,7 +581,7 @@
 			
 			addTextBtn.bind('click', function(evt) {
 				pgeEdt.hide();
-				wgt.notifyListeners(editor.EventTypes.SetElement, {
+				wgt.notifyListeners(shorthand.events.SetElement, {
 					element: null,
 					type: 'HudText'
 				});
@@ -590,7 +589,7 @@
 			
 			addImageBtn.bind('click', function(evt) {
 				pgeEdt.hide();
-				wgt.notifyListeners(editor.EventTypes.SetElement, {
+				wgt.notifyListeners(shorthand.events.SetElement, {
 					element: null,
 					type: 'HudImage'
 				});
@@ -599,7 +598,7 @@
 			removeBtn.bind('click', function(evt) {
 				var page = pgeEdt.data('obj');
 				
-				wgt.notifyListeners(editor.EventTypes.RemovePage, page);
+				wgt.notifyListeners(shorthand.events.RemovePage, page);
 			});
 			
 			saveBtn.bind('click', function(evt) {				
@@ -607,7 +606,7 @@
 					color: colorPicker.getColor()
 				};
 				
-				wgt.notifyListeners(editor.EventTypes.SavePage, props);
+				wgt.notifyListeners(shorthand.events.SavePage, props);
 				saveBtn.attr('disabled', 'disabled');
 				cancelBtn.attr('disabled', 'disabled');
 			});
@@ -703,7 +702,7 @@
 				
 				colorPicker.setColor([1, 1, 1, 1]);
 				wgt.setTextEditor(null);
-				wgt.notifyListeners(editor.EventTypes.SaveElement, props);
+				wgt.notifyListeners(shorthand.events.SaveElement, props);
 			});
 			
 			cancelBtn.bind('click', function(evt) {
@@ -716,7 +715,7 @@
 			removeBtn.bind('click', function(evt) {
 				var text = txtEdt.data('obj');
 				
-				wgt.notifyListeners(editor.EventTypes.RemoveElement, text);
+				wgt.notifyListeners(shorthand.events.RemoveElement, text);
 			})
 			.hide();
 		},
@@ -760,7 +759,7 @@
 					};
 				
 				wgt.setImageEditor(null);
-				wgt.notifyListeners(editor.EventTypes.SaveElement, props);
+				wgt.notifyListeners(shorthand.events.SaveElement, props);
 			});
 			
 			cancelBtn.bind('click', function(evt) {
@@ -773,7 +772,7 @@
 			removeBtn.bind('click', function(evt) {
 				var image = imgEdt.data('obj');
 				
-				wgt.notifyListeners(editor.EventTypes.RemoveElement, image);
+				wgt.notifyListeners(shorthand.events.RemoveElement, image);
 			}).hide();
 		},
 		
@@ -960,10 +959,10 @@
 	        }); 
 			
 			// hud tree specific listeners
-			treeWgt.addListener(editor.EventTypes.CreateDisplay, function(name) {
+			treeWgt.addListener(shorthand.events.CreateDisplay, function(name) {
 				model.createDisplay(name);
 			});
-			treeWgt.addListener(editor.EventTypes.SelectHudNode, function(hudObjs) {
+			treeWgt.addListener(shorthand.events.SelectHudNode, function(hudObjs) {
 				for (var ndx = 0, len = hudObjs.length; ndx < len; ndx++) {
 					var hudObj = hudObjs[ndx],
 						type = hudObj.getCitizenType().split('.').pop();
@@ -984,25 +983,25 @@
 			});
 			
 			// hud edit specific listeners
-			crtWgt.addListener(editor.EventTypes.CreatePage, function(select) {
+			crtWgt.addListener(shorthand.events.CreatePage, function(select) {
 				model.createPage(select);
 			});
-			crtWgt.addListener(editor.EventTypes.RemoveDisplay, function(display) {
+			crtWgt.addListener(shorthand.events.RemoveDisplay, function(display) {
 				model.removeDisplay(display);
 			});
-			crtWgt.addListener(editor.EventTypes.RemoveElement, function(element) {
+			crtWgt.addListener(shorthand.events.RemoveElement, function(element) {
 				model.removeElement(element);
 			});
-			crtWgt.addListener(editor.EventTypes.RemovePage, function(page) {
+			crtWgt.addListener(shorthand.events.RemovePage, function(page) {
 				model.removePage(page);
 			});
-			crtWgt.addListener(editor.EventTypes.SaveElement, function(props) {
+			crtWgt.addListener(shorthand.events.SaveElement, function(props) {
 				model.saveElement(props);
 			});
-			crtWgt.addListener(editor.EventTypes.SavePage, function(props) {
+			crtWgt.addListener(shorthand.events.SavePage, function(props) {
 				model.savePage(props);
 			});
-			crtWgt.addListener(editor.EventTypes.SetElement, function(elemObj) {
+			crtWgt.addListener(shorthand.events.SetElement, function(elemObj) {
 				model.setElement(elemObj.element, elemObj.type);
 			});
 			
@@ -1017,41 +1016,41 @@
 			model.addListener(editor.events.Removed, function(display) {
 				treeWgt.remove(display);
 			});
-			model.addListener(editor.EventTypes.DisplaySet, function(display) {
+			model.addListener(shorthand.events.DisplaySet, function(display) {
 				crtWgt.edit(display, hemi.hud.HudDisplay.prototype.citizenType);
 			});
-			model.addListener(editor.EventTypes.ElementCreated, function(element) {
+			model.addListener(shorthand.events.ElementCreated, function(element) {
 				crtWgt.edit(model.currentPage);
 				treeWgt.add(element, model.currentPage);
 				treeWgt.select(model.currentPage);
 			});
-			model.addListener(editor.EventTypes.ElementRemoved, function(element) {
+			model.addListener(shorthand.events.ElementRemoved, function(element) {
 				crtWgt.edit(model.currentPage);
 				treeWgt.remove(element);
 				treeWgt.select(model.currentPage);
 			});
-			model.addListener(editor.EventTypes.ElementSet, function(elemObj) {
+			model.addListener(shorthand.events.ElementSet, function(elemObj) {
 				crtWgt.edit(elemObj.element, elemObj.type);
 			});
-			model.addListener(editor.EventTypes.ElementUpdated, function(element) {
+			model.addListener(shorthand.events.ElementUpdated, function(element) {
 				crtWgt.edit(model.currentPage);
 				treeWgt.select(model.currentPage);
 				treeWgt.update(element);
 			});
-			model.addListener(editor.EventTypes.PageCreated, function(page) {
+			model.addListener(shorthand.events.PageCreated, function(page) {
 				crtWgt.edit(page);
 				treeWgt.add(page, model.currentDisplay);
 				treeWgt.select(page);
 			});
-			model.addListener(editor.EventTypes.PageRemoved, function(page) {
+			model.addListener(shorthand.events.PageRemoved, function(page) {
 				crtWgt.edit(model.currentDisplay);
 				treeWgt.remove(page);
 				treeWgt.select(model.currentDisplay);
 			});
-			model.addListener(editor.EventTypes.PageSet, function(page) {
+			model.addListener(shorthand.events.PageSet, function(page) {
 				crtWgt.edit(page, hemi.hud.HudPage.prototype.citizenType);
 			});
-			model.addListener(editor.EventTypes.HudWorldLoaded, function(displays) {			
+			model.addListener(shorthand.events.HudWorldLoaded, function(displays) {			
 				for (var ndx = 0, len = displays.length; ndx < len; ndx++) {
 					var display = displays[ndx],
 						pages = display.pages;
