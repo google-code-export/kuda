@@ -559,7 +559,7 @@
 			this.behaviorWidget = behaviorWidget;
 		},
 		
-		add: function(msgTarget, spec, actor) {
+		add: function(msgTarget, spec) {
 			var li = new editor.ui.EditableListItem(),
 				data = expandTargetData(msgTarget, spec),				
 				name = getTriggerName(data);
@@ -588,8 +588,8 @@
 				
 				behaviorLiNotifier.notifyListeners(
 					shorthand.events.ListItemEdit, {
-						actor: obj,
-						target: msgTarget
+						target: msgTarget,
+						widget: wgt.behaviorWidget
 					});
 			});
 			
@@ -665,7 +665,7 @@
 			}
 		},
 		
-		update: function(msgTarget, spec, actor) {
+		update: function(msgTarget, spec) {
 			var li = this.targets.get(msgTarget.dispatchId),
 				data = expandTargetData(msgTarget, spec),
 				name = getTriggerName(data);
@@ -734,6 +734,10 @@
 	
 	shorthand.getBehaviorListItem = function(actor) {
 		return actor ? behaviorLiTable.get(actor) : null;
+	};
+	
+	shorthand.updateBehaviorListItems = function(msgTarget) {
+
 	};
 	
 	shorthand.getTriggerName = getTriggerName;

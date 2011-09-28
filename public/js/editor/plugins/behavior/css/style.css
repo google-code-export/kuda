@@ -339,21 +339,24 @@ ul li .bhvListWrapper {
 }
 .bhvList {
 	float: left;
-	padding: 0 0 0 20px;
+	padding: 0 0 0 1.667em;
+	width: 20em;
 }
-ul.bhvList li {
+.widget:not(.widgetWithForms) .listWidget.bhvList>li {
 	padding: 0;
 	list-style: circle inside;
-	width: 240px;
+	width: 20em;
+	background: none;
 }
 ul.bhvList li:hover {
 	background: none;
 }
 ul.bhvList li > div {	
-	width: 220px;
+	width: 18.333em;
+	float: right;
 }
 ul.bhvList li > div.add {
-	width: 240px;
+	width: 20em;
 }
 ul.bhvList li .buttonContainer {
 	padding-right: 0;
