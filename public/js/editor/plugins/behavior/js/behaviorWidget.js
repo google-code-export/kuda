@@ -251,25 +251,17 @@ var editor = (function(editor) {
 		},
 		
 		setTree: function(tree) {
-			var wgt = this,
-				pnl = this.panel;
+			var pnl = this.panel;
 			
-			tree.addListener(editor.EventTypes.Trees.TreeCreated, 
-				function(treeUI) {
-					wgt.tree = treeUI;
-					wgt.tree.bind('select_node.jstree', wgt.selFcn).addClass('treeSelectorTree');
+			this.tree = tree.tree;
+			this.tree.bind('select_node.jstree', this.selFcn).addClass('treeSelectorTree');
+			pnl.append(this.tree);
+			this.input.attr('placeholder', 'Select an item');
 			
-					wgt.panel.append(wgt.tree);
-									
-					wgt.input.attr('placeholder', 'Select an item');
-				});
-		
 			this.treeBorder = Math.ceil(parseFloat(pnl.css('borderRightWidth'))) 
 				+ Math.ceil(parseFloat(pnl.css('borderLeftWidth')));
 			this.treePadding = Math.ceil(parseFloat(pnl.css('paddingLeft'))) 
 				+ Math.ceil(parseFloat(pnl.css('paddingRight')));
-				
-			this.input.attr('placeholder', 'No items to select');
 		}
 	});
 	

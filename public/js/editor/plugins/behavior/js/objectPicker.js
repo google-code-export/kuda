@@ -37,15 +37,7 @@ var editor = (function(module) {
 			try {
 				if (citTree == null) {
 					citTree = shorthand.createCitizensTree();
-					
-					if (citTree.tree == null) {
-						citTree.addListener(editor.EventTypes.Trees.TreeCreated, function(treeUI){
-							initCitizenTree(treeUI, filter);
-						});
-					}
-					else {
-						initCitizenTree(citTree.tree, filter);
-					}
+					initCitizenTree(citTree.tree, filter);
 					
 					citTree.addListener(editor.EventTypes.Trees.SelectCitizen, function(data){
 						var elem = citTreePnl.data('curElem'), 
