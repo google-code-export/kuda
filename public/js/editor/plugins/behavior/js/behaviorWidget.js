@@ -15,11 +15,11 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function() {
 	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
 	
-	editor.EventTypes.ListItemEdit = 'behavior.listitemedit';
-	editor.EventTypes.ListItemRemove = 'behavior.listitemremove';
+	shorthand.events.ListItemEdit = 'behavior.listitemedit';
+	shorthand.events.ListItemRemove = 'behavior.listitemremove';
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                Constants	    	                          //
@@ -48,13 +48,13 @@ var editor = (function(editor) {
 				argList = msgTarget.handler.args;
 				
 				if (spec.src === hemi.world.WORLD_ID) {
-					source = editor.treeData.createShapePickCitizen(msgTarget.handler.citizen);
+					source = shorthand.treeData.createShapePickCitizen(msgTarget.handler.citizen);
 				} else {
-					source = editor.treeData.createCamMoveCitizen(hemi.world.camera);
+					source = shorthand.treeData.createCamMoveCitizen(hemi.world.camera);
 				}
 			} else {
-				source = spec.src === hemi.dispatch.WILDCARD ? editor.treeData.MSG_WILDCARD : spec.src;
-				type = spec.msg === hemi.dispatch.WILDCARD ? editor.treeData.MSG_WILDCARD : spec.msg;
+				source = spec.src === hemi.dispatch.WILDCARD ? shorthand.treeData.MSG_WILDCARD : spec.src;
+				type = spec.msg === hemi.dispatch.WILDCARD ? shorthand.treeData.MSG_WILDCARD : spec.msg;
 				handler = msgTarget.handler;
 				method = msgTarget.func;
 				argList = msgTarget.args;
@@ -101,8 +101,8 @@ var editor = (function(editor) {
 			for (propName in citizen) {
 				var prop = citizen[propName];
 				
-				if (jQuery.isFunction(prop) && editor.treeData.methodsToRemove.indexOf(propName) === -1) {					
-					hasMore = !editor.treeData.isCommon(citizen, propName);
+				if (jQuery.isFunction(prop) && shorthand.treeData.methodsToRemove.indexOf(propName) === -1) {					
+					hasMore = !shorthand.treeData.isCommon(citizen, propName);
 					methods.push(propName);
 				}
 			}
@@ -119,13 +119,13 @@ var editor = (function(editor) {
 				msgType,
 				nameArr;
 			
-			if (data.type === editor.treeData.MSG_WILDCARD) {
+			if (data.type === shorthand.treeData.MSG_WILDCARD) {
 				msgType = '[any trigger]';
 			} else {
 				msgType = data.type;
 			}
 			
-			if (source === editor.treeData.MSG_WILDCARD) {
+			if (source === shorthand.treeData.MSG_WILDCARD) {
 				nameArr = ['[any source]', msgType.split('.').pop()];
 			} else if (hemi.utils.isNumeric(source)) {
 				var cit = hemi.world.getCitizenById(source),
@@ -150,7 +150,7 @@ var editor = (function(editor) {
 		},
 		
 		openNode = function(tree, citizen, prefix) {
-			var nodeName = editor.treeData.getNodeName(citizen, {
+			var nodeName = shorthand.treeData.getNodeName(citizen, {
 					prefix: prefix,
 					id: citizen.getId ? citizen.getId() : null
 				}),
@@ -174,7 +174,7 @@ var editor = (function(editor) {
 				source = hemi.utils.isNumeric(data.source) ? 
 					hemi.world.getCitizenById(data.source) : data.source;
 					
-			var nodeName = editor.treeData.getNodeName(source, {
+			var nodeName = shorthand.treeData.getNodeName(source, {
 						option: data.type,
 						prefix: this.trgTree.pre,
 						id: source.getId ? source.getId() : null
@@ -185,7 +185,7 @@ var editor = (function(editor) {
 			openNode(trgT, source, this.trgTree.pre);
 			this.trgChooser.select(nodeName);
 			
-			nodeName = editor.treeData.getNodeName(data.handler, {
+			nodeName = shorthand.treeData.getNodeName(data.handler, {
 				option: data.method,
 				prefix: this.axnTree.pre,
 				id: data.handler.getId()
@@ -208,7 +208,7 @@ var editor = (function(editor) {
 			if (data.trigger) {
 				var msg = data.trigger.type, 
 					cit = data.trigger.citizen,
-					nodeName = editor.treeData.getNodeName(cit, {
+					nodeName = shorthand.treeData.getNodeName(cit, {
 						option: msg,
 						prefix: this.trgTree.pre,
 						id: cit.getId()
@@ -220,7 +220,7 @@ var editor = (function(editor) {
 			if (data.action) {
 				var handler = data.action.handler,
 					func = data.action.method,
-					nodeName = editor.treeData.getNodeName(handler, {
+					nodeName = shorthand.treeData.getNodeName(handler, {
 						option: [func],
 						prefix: this.axnTree.pre,
 						id: handler.getId()
@@ -403,8 +403,8 @@ var editor = (function(editor) {
 						target: wgt.msgTarget,
 						actor: wgt.actor
 					},
-					msgType = wgt.msgTarget ? editor.EventTypes.UpdateBehavior :
-						editor.EventTypes.CreateBehavior;
+					msgType = wgt.msgTarget ? shorthand.events.UpdateBehavior :
+						shorthand.events.CreateBehavior;
 				
 				wgt.notifyListeners(msgType, data);
 				wgt.reset();
@@ -484,7 +484,7 @@ var editor = (function(editor) {
 						}
 						break;
 					case shorthand.BehaviorTypes.TRIGGER:	
-						var cmc = editor.treeData.createCamMoveCitizen(hemi.world.camera);
+						var cmc = shorthand.treeData.createCamMoveCitizen(hemi.world.camera);
 						actor = cmc;
 						
 						if (!data) {
@@ -532,7 +532,7 @@ var editor = (function(editor) {
 			this.trgTree.restrictSelection(source, messages);
 			openNode(this.trgTree.getUI(), source, this.trgTree.pre);
 			
-			var nodeId = editor.treeData.getNodeName(source, {
+			var nodeId = shorthand.treeData.getNodeName(source, {
 				option: messages[0],
 				prefix: this.trgTree.pre,
 				id: source.getId ? source.getId() : null
@@ -587,7 +587,7 @@ var editor = (function(editor) {
 					obj = wgt.getAttachedObject();
 				
 				behaviorLiNotifier.notifyListeners(
-					editor.EventTypes.ListItemEdit, {
+					shorthand.events.ListItemEdit, {
 						actor: obj,
 						target: msgTarget
 					});
@@ -597,7 +597,7 @@ var editor = (function(editor) {
 				var msgTarget = li.getAttachedObject();
 				msgTarget.actor = wgt.getAttachedObject();
 				behaviorLiNotifier.notifyListeners(
-					editor.EventTypes.ListItemRemove, msgTarget);
+					shorthand.events.ListItemRemove, msgTarget);
 			});
 		},
 		
@@ -679,8 +679,7 @@ var editor = (function(editor) {
 //                                	   Setup	                              //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var behaviorWidget = null,
-		behaviorLiTable = new Hashtable(),
+	var behaviorLiTable = new Hashtable(),
 		behaviorLiNotifier = new editor.utils.Listenable(),
 		behaviorMenu = new editor.ui.PopupMenu(),
 		addTriggerMnuItm = new editor.ui.MenuItem({
@@ -747,5 +746,4 @@ var editor = (function(editor) {
 		behaviorLiNotifier.removeListener(listener);
 	};
 	
-	return editor;
-})(editor || {});
+})();

@@ -18,8 +18,6 @@
 var editor = (function(module) {
 	module.ui = module.ui || {};
 	
-    module.EventTypes = module.EventTypes || {};
-	
 	module.ui.ComponentDefaults = {
 		id: '',
 		immediateLayout: true,

@@ -15,16 +15,16 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //								Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
-	var prjMdl = null;
 	
-	editor.projects = {};
+	var shorthand = editor.projects = {},
+		prjMdl = null;
 	
-	editor.projects.init = function() {
+	shorthand.init = function() {
 		var prjPane = new editor.ui.NavPane('Projects'),
 			prjToolBar = new editor.ui.ToolBar(),
 			
@@ -85,39 +85,32 @@ var editor = (function(editor) {
 		});
 	};
 	
-	editor.projects.loadingDone = function() {
-		prjMdl.dirty = false;
-		prjMdl.loading = false;
-	};
-	
 ////////////////////////////////////////////////////////////////////////////////
 //								Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
 	// TODO: change to the autosave format like in google docs
-	// TODO: have this listen to all relevant events implying changed state
-	//		perhaps have tool models automatically send a changed state event
-	//		whenever an event occurs
 	
-	var event = {
-			CheckProjectExists: 'checkProjectExists',
-			Load: 'load',
-			Loaded: 'loaded',
-			NewProject: 'newProject',
-			Projects: 'projects',
-			ProjectExists: 'projectExsits',
-			Publish: 'publish',
-			Published: 'published',
-			Remove: 'remove',
-			Removed: 'removed',
-			Save: 'save',
-			Saved: 'saved',
-			ServerRunning: 'serverRunning',
-			StartPreview: 'startPreview',
-			StopPreview: 'stopPreview',
-			UpdateProjects: 'updateProjects'
-		},
-		AUTO_SAVE = '_AutoSave_';
+	shorthand.events = {
+		CheckProjectExists: 'checkProjectExists',
+		Load: 'load',
+		Loaded: 'loaded',
+		NewProject: 'newProject',
+		Projects: 'projects',
+		ProjectExists: 'projectExsits',
+		Publish: 'publish',
+		Published: 'published',
+		Remove: 'remove',
+		Removed: 'removed',
+		Save: 'save',
+		Saved: 'saved',
+		ServerRunning: 'serverRunning',
+		StartPreview: 'startPreview',
+		StopPreview: 'stopPreview',
+		UpdateProjects: 'updateProjects'
+	};
+	
+	var AUTO_SAVE = '_AutoSave_';
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -143,20 +136,20 @@ var editor = (function(editor) {
 				},
 				error: function(xhr, status, err) {			
 					mdl.serverRunning = false;
-					mdl.notifyListeners(event.ServerRunning, false);
+					mdl.notifyListeners(shorthand.events.ServerRunning, false);
 				}
 			});
 		},
 		
 		checkExisting: function(project) {			
-			this.notifyListeners(event.ProjectExists, {
+			this.notifyListeners(shorthand.events.ProjectExists, {
 				exists: findProject.call(this, project) !== -1,
 				project: project
 			});
 		},
 		
 		getProjects: function() {
-			this.notifyListeners(event.Projects, this.serverRunning ? 
+			this.notifyListeners(shorthand.events.Projects, this.serverRunning ? 
 				this.projectCache : null);
 		},
 		
@@ -179,13 +172,13 @@ var editor = (function(editor) {
 					dispatchProxy.unswap();
 					hemi.world.ready();
 					
-					mdl.notifyListeners(event.Loaded, {
+					mdl.notifyListeners(shorthand.events.Loaded, {
 						project: project,
 						succeeded: true
 					});
 				},
 				error: function(xhr, status, err){
-					mdl.notifyListeners(event.Loaded, {
+					mdl.notifyListeners(shorthand.events.Loaded, {
 						project: project,
 						succeeded: false
 					});
@@ -203,7 +196,7 @@ var editor = (function(editor) {
 			vd.target = [0, 0, 0];
 	        hemi.world.camera.moveToView(vd, 0);
 			
-			this.notifyListeners(event.NewProject);			
+			this.notifyListeners(shorthand.events.NewProject);			
 		},
 		
 		notify: function(eventType, value) {
@@ -247,13 +240,13 @@ var editor = (function(editor) {
 				success: function(data, status, xhr) {
 					var ndx = findProject.call(mdl, project);
 					mdl.projectCache[ndx].published = true;
-					mdl.notifyListeners(event.Published, {
+					mdl.notifyListeners(shorthand.events.Published, {
 						name: project,
 						published: true
 					});
 				},
 				error: function(xhr, status, err) {
-					mdl.notifyListeners(event.Published, {
+					mdl.notifyListeners(shorthand.events.Published, {
 						name: project,
 						published: false
 					});
@@ -274,7 +267,7 @@ var editor = (function(editor) {
 				dataType: 'json',
 				type: 'delete',
 				success: function(data, status, xhr) {
-					mdl.notifyListeners(event.Removed, data.name);
+					mdl.notifyListeners(shorthand.events.Removed, data.name);
 					
 					var ndx = findProject.call(mdl, project);
 					
@@ -304,7 +297,7 @@ var editor = (function(editor) {
 				dataType: 'json',
 				type: 'post',
 				success: function(data, status, xhr) {
-					mdl.notifyListeners(event.Saved, {
+					mdl.notifyListeners(shorthand.events.Saved, {
 						project: project,
 						saved: true
 					});
@@ -315,7 +308,7 @@ var editor = (function(editor) {
 				},
 				error: function(xhr, status, err) {
 					mdl.serverRunning = false;
-					mdl.notifyListeners(event.Saved, {
+					mdl.notifyListeners(shorthand.events.Saved, {
 						project: project,
 						saved: false
 					});
@@ -529,7 +522,7 @@ var editor = (function(editor) {
 			this.removeBtn.before(this.publishLink.hide());
 			
 			this.title.bind('click', function() {
-				wgt.notifyListeners(event.Load, wgt.getText());
+				wgt.notifyListeners(shorthand.events.Load, wgt.getText());
 			});
 		},
 		
@@ -577,7 +570,7 @@ var editor = (function(editor) {
 					+ '.html').show();
 			}
 			li.removeBtn.bind('click', function(evt) {
-				wgt.notifyListeners(event.Remove, project.name);
+				wgt.notifyListeners(shorthand.events.Remove, project.name);
 			});
 		},
 		
@@ -586,8 +579,8 @@ var editor = (function(editor) {
 				wgt = this;
 			
 			// relay messages
-			li.addListener(event.Load, function(project) {
-				wgt.notifyListeners(event.Load, project);
+			li.addListener(shorthand.events.Load, function(project) {
+				wgt.notifyListeners(shorthand.events.Load, project);
 			});
 			
 			return li;
@@ -649,7 +642,7 @@ var editor = (function(editor) {
 			this.stopBtn = jQuery('<button id="prjStopPreviewBtn">Stop Preview</button>');
 			
 			this.stopBtn.bind('click', function() {
-				wgt.notifyListeners(event.StopPreview);
+				wgt.notifyListeners(shorthand.events.StopPreview);
 			});
 			
 			titleCtn.append(title).append(subTitle);
@@ -738,15 +731,12 @@ var editor = (function(editor) {
 			});
 			
 			newBtn.bind('click', function() {
-				view.notifyListeners(event.NewProject);
+				view.notifyListeners(shorthand.events.NewProject);
 			});
 			
 			previewBtn.bind('click', function(evt) {
 				view.isPreview = true;
-				view.notifyListeners(event.StartPreview);
-				
-				// proceed to hide all panels
-				var views = editor.getViews();
+				view.notifyListeners(shorthand.events.StartPreview);
 				
 				// hide the main panel
 				editor.ui.getNavBar().setVisible(false);
@@ -757,18 +747,18 @@ var editor = (function(editor) {
 			});
 			
 			publishBtn.bind('click', function() {
-				view.notifyListeners(event.Publish, saveIpt.val());
+				view.notifyListeners(shorthand.events.Publish, saveIpt.val());
 			});
 			
 			saveBtn.bind('click', function(evt) {
 				if (saveBtn.hasClass('overwrite')) {
-					view.notifyListeners(event.Save, {
+					view.notifyListeners(shorthand.events.Save, {
 						project: saveIpt.val(),
 						replace: true
 					});
 				}
 				else {
-					view.notifyListeners(event.CheckProjectExists, saveIpt.val());
+					view.notifyListeners(shorthand.events.CheckProjectExists, saveIpt.val());
 				}
 			});
 			
@@ -785,7 +775,7 @@ var editor = (function(editor) {
 				if (saveIpt.val() === 'Unsaved Project') {
 					saveIpt.val('');
 				}
-				view.notifyListeners(event.UpdateProjects);
+				view.notifyListeners(shorthand.events.UpdateProjects);
 				view.showButtons();
 			})
 			.bind('blur', function() {	
@@ -836,7 +826,7 @@ var editor = (function(editor) {
 			}
 			else {
 				this.msg.hide();
-				this.notifyListeners(event.Save, {
+				this.notifyListeners(shorthand.events.Save, {
 					project: project,
 					replace: false
 				});
@@ -898,8 +888,7 @@ var editor = (function(editor) {
 		},
 		
 		updatePublished: function(data) {
-			var lstWgt = this.sidePanel.prjListWidget,
-				view = this;
+			var lstWgt = this.sidePanel.prjListWidget;
 				
 			lstWgt.update(data);
 		},
@@ -953,70 +942,74 @@ var editor = (function(editor) {
 				prvWgt = view.topPanel.previewWidget;
 			
 			// view specific
-			view.addListener(event.CheckProjectExists, function(project) {
+			view.addListener(shorthand.events.CheckProjectExists, function(project) {
 				model.checkExisting(project);
 			});
-			view.addListener(event.NewProject, function() {
+			view.addListener(shorthand.events.NewProject, function() {
 				model.newProject();
 			});
-			view.addListener(event.Publish, function(project) {
+			view.addListener(shorthand.events.Publish, function(project) {
 				model.publish(project);
 			});
-			view.addListener(event.Save, function(data) {
+			view.addListener(shorthand.events.Save, function(data) {
 				model.save(data.project, data.replace);
 			});
-			view.addListener(event.StartPreview, function() {
+			view.addListener(shorthand.events.StartPreview, function() {
 				model.startPreview();
 			});
-			view.addListener(event.UpdateProjects, function() {
+			view.addListener(shorthand.events.UpdateProjects, function() {
 				model.getProjects();
 			});
 			
 			// widget specific
-			lstWgt.addListener(event.Load, function(project) {
+			lstWgt.addListener(shorthand.events.Load, function(project) {
 				model.load(project);
 			});
-			lstWgt.addListener(event.Remove, function(project) {
+			lstWgt.addListener(shorthand.events.Remove, function(project) {
 				model.remove(project);
 			});
-			prvWgt.addListener(event.StopPreview, function() {
+			prvWgt.addListener(shorthand.events.StopPreview, function() {
 				model.stopPreview();
 				view.stopPreview();
 			});
 			
 			// model specific		
-			model.addListener(event.Loaded, function(data) {
+			model.addListener(shorthand.events.Loaded, function(data) {
 				view.updateLoaded(data.project, data.succeeded);
 			});		
-			model.addListener(event.NewProject, function() {
+			model.addListener(shorthand.events.NewProject, function() {
 				view.updateNewProject();
 			});
-			model.addListener(event.ProjectExists, function(data) {
+			model.addListener(shorthand.events.ProjectExists, function(data) {
 				view.updateExists(data.exists, data.project);
 			});		
-			model.addListener(event.Projects, function(projects) {
+			model.addListener(shorthand.events.Projects, function(projects) {
 				view.sidePanel.setVisible(true);
 				view.updateProjects(projects);
 			});
-			model.addListener(event.Published, function(data) {
+			model.addListener(shorthand.events.Published, function(data) {
 				view.updatePublished(data);
 			});
-			model.addListener(event.Removed, function(project) {
+			model.addListener(shorthand.events.Removed, function(project) {
 				view.updateRemoved(project);
 				lstWgt.remove(project);
 			});
-			model.addListener(event.Saved, function(data) {
+			model.addListener(shorthand.events.Saved, function(data) {
 				view.updateSaved(data.project, data.saved);
 				lstWgt.add({
 					name: data.project,
 					published: false
 				});
 			});
-			model.addListener(event.ServerRunning, function(isRunning) {
+			model.addListener(shorthand.events.ServerRunning, function(isRunning) {
 				view.updateServerRunning(isRunning);
 			});
 		}
 	});
 	
-	return editor;
-})(editor || {});
+	shorthand.loadingDone = function() {
+		prjMdl.dirty = false;
+		prjMdl.loading = false;
+	};
+	
+})();

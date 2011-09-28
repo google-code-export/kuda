@@ -15,15 +15,93 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function() {
 	
-	editor.plugins = {};
+////////////////////////////////////////////////////////////////////////////////
+//								Initialization  		                      //
+////////////////////////////////////////////////////////////////////////////////
 	
-	var event = {
+	var shorthand = editor.plugins = {};
+
+	shorthand.init = function() {
+		var plgPane = new editor.ui.NavPane('Manage Plugins'),
+			plgToolBar = new editor.ui.ToolBar(),
+		
+			plgMdl = new PluginMgrModel(),
+			plgView = new PluginMgrView(),
+			plgCtr = new PluginMgrController();	
+				
+		plgCtr.setModel(plgMdl);
+		plgCtr.setView(plgView);
+		
+		plgToolBar.add(plgView);
+		plgPane.setToolBar(plgToolBar);
+		editor.ui.addNavPane(plgPane, 'plgPane');
+		
+		// disable default behavior
+		var ui = plgPane.getUI();
+		
+		ui.find('a').unbind('click');
+		ui.find('h2').bind('click', function(evt) {
+			plgPane.setVisible(!plgPane.isVisible());
+			
+			jQuery(document).bind('click.plg', function(e) {
+				var target = jQuery(e.target), 
+					parent = target.parents('#plgPane'), 
+					isTool = target.parents('.toolBtn').size() > 0 ||
+						target.hasClass('toolBtn'),
+					isNavPane = target.parents('#navBar h2').size() > 0;
+				
+				if (parent.size() == 0 && target.attr('id') !== 'plgPane'
+						&& !isTool && !isNavPane) {
+					plgPane.setVisible(false);
+					jQuery(document).unbind('click.plg');
+				}
+			});
+		});
+		
+		// load plugins
+		jQuery.get('js/editor/plugins/plugins.json', 'json')
+			.success(function(data, status, xhr) {								
+				// data is a json array
+				var plugins = data.plugins;
+				
+				if (plugins == null) {
+					plugins = JSON.parse(xhr.responseText).plugins;
+				}
+				
+				if (plugins != null) {
+					for (var i = 0, il = plugins.length; i < il; i++) {
+						plgMdl.loadPlugin(plugins[i]);
+					}
+				}
+			})
+			.error(function(xhr, status, err) {
+				// fail gracefully
+			});
+			
+		// retrieve the list of plugins
+		jQuery.get('/plugins')
+			.success(function(data, status, xhr) {
+				var plugins = data.plugins;
+				
+				for (var i = 0, il = plugins.length; i < il; i++) {
+					plgMdl.addPlugin(plugins[i]);
+				}
+			})
+			.error(function(xhr, status, err) {
+				
+			});
+	};
+	
+////////////////////////////////////////////////////////////////////////////////
+//								Tool Definition  		                      //
+////////////////////////////////////////////////////////////////////////////////
+	
+	shorthand.events = {
 		Checked: 'checked',
 		PluginActive: 'pluginActive',
-		PluginAdded: 'pluginAdded',
-		PluginLoaded: 'pluginLoaded'
+		PluginAdded: 'pluginAdded'
 	};
 	    
 ////////////////////////////////////////////////////////////////////////////////
@@ -85,7 +163,7 @@ var editor = (function(editor) {
 		addPlugin: function(pluginName) {
 			if (this.plugins.indexOf(pluginName) === -1) {
 				this.plugins.push(pluginName);
-				this.notifyListeners(event.PluginAdded, pluginName);
+				this.notifyListeners(shorthand.events.PluginAdded, pluginName);
 			}
 		},
 		
@@ -103,11 +181,11 @@ var editor = (function(editor) {
 						mdl.loadedPlugins.push(name);
 						if (mdl.plugins.indexOf(name) === -1) {
 							mdl.plugins.push(name);
-							mdl.notifyListeners(event.PluginLoaded, name);
+							mdl.notifyListeners(editor.events.PluginLoaded, name);
 						}
 						
 						mdl.updatePluginList();
-						mdl.notifyListeners(event.PluginActive, {
+						mdl.notifyListeners(shorthand.events.PluginActive, {
 							plugin: name,
 							active: true
 						});
@@ -125,7 +203,7 @@ var editor = (function(editor) {
 				}
 				
 				this.updatePluginList();
-				this.notifyListeners(event.PluginActive, {
+				this.notifyListeners(shorthand.events.PluginActive, {
 					plugin: pluginName,
 					active: true
 				});
@@ -145,7 +223,7 @@ var editor = (function(editor) {
 					if (this.currentPlugin != null) {
 						var models = this.models.get(this.currentPlugin);
 						if (models == null) {
-							models = [value.model]
+							models = [value.model];
 						}
 						this.models.put(this.currentPlugin, models);
 					}
@@ -154,7 +232,7 @@ var editor = (function(editor) {
 					if (this.currentPlugin != null) {
 						var views = this.views.get(this.currentPlugin);
 						if (views == null) {
-							views = [value.view]
+							views = [value.view];
 						}
 						this.views.put(this.currentPlugin, views);
 					}
@@ -172,7 +250,7 @@ var editor = (function(editor) {
 				views[i].setEnabled(false);
 			}
 			
-			this.notifyListeners(event.PluginActive, {
+			this.notifyListeners(shorthand.events.PluginActive, {
 				plugin: pluginName,
 				active: false
 			});
@@ -220,7 +298,7 @@ var editor = (function(editor) {
 			this.container.append(this.checkbox).append(this.title);
 			
 			this.checkbox.bind('change', function() {
-				wgt.notifyListeners(event.Checked, {
+				wgt.notifyListeners(shorthand.events.Checked, {
 					plugin: wgt.title.text(),
 					checked: wgt.checkbox.prop('checked')
 				});
@@ -268,8 +346,8 @@ var editor = (function(editor) {
 				view = this;
 			li.setText(pluginName);
 			
-			li.addListener(event.Checked, function(data) {
-				view.notifyListeners(event.Checked, data);
+			li.addListener(shorthand.events.Checked, function(data) {
+				view.notifyListeners(shorthand.events.Checked, data);
 			});
 			
 			this.list.add(li);
@@ -307,13 +385,12 @@ var editor = (function(editor) {
 			this._super();
 			
 			var model = this.model,
-				view = this.view,
-				controller = this;
+				view = this.view;
 			
 			// view specific
-			view.addListener(event.Checked, function(data) {
+			view.addListener(shorthand.events.Checked, function(data) {
 				if (data.checked) {
-					model.loadPlugin(data.plugin)
+					model.loadPlugin(data.plugin);
 				}
 				else {
 					model.removePlugin(data.plugin);
@@ -321,89 +398,16 @@ var editor = (function(editor) {
 			});
 			
 			// model specific
-			model.addListener(event.PluginLoaded, function(pluginName) {
+			model.addListener(editor.events.PluginLoaded, function(pluginName) {
 				view.add(pluginName);
 			});
-			model.addListener(event.PluginActive, function(data) {
+			model.addListener(shorthand.events.PluginActive, function(data) {
 				view.setActive(data.plugin, data.active);
 			});
-			model.addListener(event.PluginAdded, function(pluginName) {
+			model.addListener(shorthand.events.PluginAdded, function(pluginName) {
 				view.add(pluginName);
 			});
 		}
 	});
 	
-	editor.plugins.init = function() {
-		var plgPane = new editor.ui.NavPane('Manage Plugins'),
-			plgToolBar = new editor.ui.ToolBar(),
-		
-			plgMdl = new PluginMgrModel(),
-			plgView = new PluginMgrView(),
-			plgCtr = new PluginMgrController();	
-				
-		plgCtr.setModel(plgMdl);
-		plgCtr.setView(plgView);
-		
-		plgToolBar.add(plgView);
-		plgPane.setToolBar(plgToolBar);
-		editor.ui.addNavPane(plgPane, 'plgPane');
-		
-		// disable default behavior
-		var ui = plgPane.getUI();
-		
-		ui.find('a').unbind('click');
-		ui.find('h2').bind('click', function(evt) {
-			plgPane.setVisible(!plgPane.isVisible());
-			
-			jQuery(document).bind('click.plg', function(e) {
-				var target = jQuery(e.target), 
-					parent = target.parents('#plgPane'), 
-					isTool = target.parents('.toolBtn').size() > 0 ||
-						target.hasClass('toolBtn'),
-					isNavPane = target.parents('#navBar h2').size() > 0,
-					isDown = target.hasClass('down');
-				
-				if (parent.size() == 0 && target.attr('id') !== 'plgPane'
-						&& !isTool && !isNavPane) {
-					plgPane.setVisible(false);
-					jQuery(document).unbind('click.plg');
-				}
-			})
-		});
-		
-		// load plugins
-		jQuery.get('js/editor/plugins/plugins.json', 'json')
-			.success(function(data, status, xhr) {								
-				// data is a json array
-				var plugins = data.plugins;
-				
-				if (plugins == null) {
-					plugins = JSON.parse(xhr.responseText).plugins;
-				}
-				
-				if (plugins != null) {
-					for (var i = 0, il = plugins.length; i < il; i++) {
-						plgMdl.loadPlugin(plugins[i]);
-					}
-				}
-			})
-			.error(function(xhr, status, err) {
-				// fail gracefully
-			});
-			
-		// retrieve the list of plugins
-		jQuery.get('/plugins')
-			.success(function(data, status, xhr) {
-				var plugins = data.plugins;
-				
-				for (var i = 0, il = plugins.length; i < il; i++) {
-					plgMdl.addPlugin(plugins[i]);
-				}
-			})
-			.error(function(xhr, status, err) {
-				
-			});
-	};
-	
-	return editor;
-})(editor || {});
+})();

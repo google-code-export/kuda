@@ -15,14 +15,8 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function() {
 	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
-	
-	editor.EventTypes = editor.EventTypes || {};
-	
-	editor.EventTypes.Params = {
-		SetArgument: 'params.SetArgument'
-	};
 	
 	var tooltip = editor.ui.createTooltip(),
 		counter = 0;
@@ -43,8 +37,8 @@ var editor = (function(editor) {
 	shorthand.Parameters = editor.ui.Component.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, shorthand.ParamWidgetDefaults, 
-					options),
-				wgt = this;
+					options);
+			
 			this.curArgs = new Hashtable();
 			this.ndxArgs = new Hashtable();
 			this.id = counter++;
@@ -132,9 +126,6 @@ var editor = (function(editor) {
 ////////////////////////////////////////////////////////////////////////////////
 //                               Helper Methods                               //
 ////////////////////////////////////////////////////////////////////////////////
-	
-	var inputs = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'],
-		vecInputs = ['x', 'y', 'z'];
 	
 	var createListItem = function(argName, desc, ui) {
 			var option = false;
@@ -268,5 +259,4 @@ var editor = (function(editor) {
 			return retVal;
 		};
 	
-	return editor;
-})(editor || {});
+})();

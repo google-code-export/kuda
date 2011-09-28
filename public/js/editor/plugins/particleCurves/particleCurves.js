@@ -21,9 +21,9 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.tools.particleCurves = editor.tools.particleCurves || {};
+	var shorthand = editor.tools.particleCurves = editor.tools.particleCurves || {};
 
-	editor.tools.particleCurves.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Effects'),
 
 			ptcMdl = new ParticleCurvesModel(),
@@ -40,33 +40,33 @@
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////	
 	
-    editor.EventTypes = editor.EventTypes || {};
-	
-	// model specific
-    editor.EventTypes.CurveSet = "Curves.CurveSet";
-    editor.EventTypes.BoxAdded = "Curves.BoxAdded";
-    editor.EventTypes.BoxSelected = "Curves.BoxSelected";
-    editor.EventTypes.BoxRemoved = "Curves.BoxRemoved";
-    editor.EventTypes.BoxUpdated = "Curves.BoxUpdated";
-	
-	// view specific
-	editor.EventTypes.BoxManipState = "Curves.BoxManipState";
-	
-	// curve list widget specific
-	editor.EventTypes.CreateCurve = "Curves.CreateCurve";
-	editor.EventTypes.EditCurve = "Curves.EditCurve";
-	editor.EventTypes.RemoveCurve = "Curves.RemoveCurve";
-	
-	// curve edit widget specific
-	editor.EventTypes.SetParam = "Curves.SetParam";
-	editor.EventTypes.AddBox = "Curves.AddBox";
-	editor.EventTypes.RemoveBox = "Curves.RemoveBox";
-	editor.EventTypes.UpdateBox = "Curves.UpdateBox";
-	editor.EventTypes.UpdateBoxes = "Curves.UpdateBoxes";
-	editor.EventTypes.StartPreview = "Curves.StartPreview";
-	editor.EventTypes.StopPreview = "Curves.StopPreview";
-	editor.EventTypes.SetCurveColor = "Curves.SetCurveColor";
-	editor.EventTypes.Save = "Curves.Save";
+	shorthand.events = {
+		// model specific
+	    CurveSet: "Curves.CurveSet",
+	    BoxAdded: "Curves.BoxAdded",
+	    BoxSelected: "Curves.BoxSelected",
+	    BoxRemoved: "Curves.BoxRemoved",
+	    BoxUpdated: "Curves.BoxUpdated",
+		
+		// view specific
+		BoxManipState: "Curves.BoxManipState",
+		
+		// curve list widget specific
+		CreateCurve: "Curves.CreateCurve",
+		EditCurve: "Curves.EditCurve",
+		RemoveCurve: "Curves.RemoveCurve",
+		
+		// curve edit widget specific
+		SetParam: "Curves.SetParam",
+		AddBox: "Curves.AddBox",
+		RemoveBox: "Curves.RemoveBox",
+		UpdateBox: "Curves.UpdateBox",
+		UpdateBoxes: "Curves.UpdateBoxes",
+		StartPreview: "Curves.StartPreview",
+		StopPreview: "Curves.StopPreview",
+		SetCurveColor: "Curves.SetCurveColor",
+		Save: "Curves.Save"
+	};
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -139,7 +139,7 @@
 			
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(editor.EventTypes.BoxAdded, box);
+			this.notifyListeners(shorthand.events.BoxAdded, box);
 						
 			if (previewing) {
 				this.startPreview();
@@ -212,7 +212,7 @@
 			
 			this.config.boxes = getExtentsList(this.boxes);
 			
-			this.notifyListeners(editor.EventTypes.CurveSet, {
+			this.notifyListeners(shorthand.events.CurveSet, {
 				system: this.currentSystem,
 				boxes: this.boxes
 			});
@@ -230,7 +230,7 @@
 			}
 			
 			if (found !== -1) {
-				this.notifyListeners(editor.EventTypes.BoxSelected, {
+				this.notifyListeners(shorthand.events.BoxSelected, {
 					transform: transform,
 					ndx: found
 				});
@@ -260,7 +260,7 @@
 			
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(editor.EventTypes.BoxRemoved, box);
+			this.notifyListeners(shorthand.events.BoxRemoved, box);
 						
 			if (previewing && this.config.boxes.length > 1) {
 				this.startPreview();
@@ -277,7 +277,7 @@
 			
 			this.boxes = [];
 			
-			this.notifyListeners(editor.EventTypes.CurveSet, {
+			this.notifyListeners(shorthand.events.CurveSet, {
 				system: null,
 				boxes: null
 			});
@@ -354,7 +354,7 @@
 			this.config.boxes = getExtentsList(this.boxes);
 			this.updateSystem('boxes', this.config.boxes);
 			
-			this.notifyListeners(editor.EventTypes.BoxUpdated, box);
+			this.notifyListeners(shorthand.events.BoxUpdated, box);
 						
 			if (previewing) {
 				this.startPreview();
@@ -374,7 +374,7 @@
 				
 				box.update(position, [height, width, depth]);
 								
-				this.notifyListeners(editor.EventTypes.BoxUpdated, box);
+				this.notifyListeners(shorthand.events.BoxUpdated, box);
 			}
 			this.config.boxes = getExtentsList(this.boxes);			
 			this.updateSystem('boxes', this.config.boxes);
@@ -431,7 +431,7 @@
 			this.colorPickers = [];
 			this.boxHandles = new editor.ui.TransHandles();
 			this.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
-			this.boxHandles.addListener(editor.EventTypes.TransChanged, this);
+			this.boxHandles.addListener(editor.events.Updated, this);
 			this.boxes = new Hashtable();
 			
 		    this._super({
@@ -457,7 +457,7 @@
 					var id = ipt.getUI().attr('id'),
 						param = id.replace('crv', '');
 					
-					wgt.notifyListeners(editor.EventTypes.SetParam, {
+					wgt.notifyListeners(shorthand.events.SetParam, {
 						paramName: param.charAt(0).toLowerCase() + param.slice(1),
 						paramValue: ipt.getValue()
 					});
@@ -514,7 +514,7 @@
 			
 			saveBtn.bind('click', function(evt) {
 				var name = wgt.curveName.getValue();
-				wgt.notifyListeners(editor.EventTypes.Save, name);
+				wgt.notifyListeners(shorthand.events.Save, name);
 			});
 			
 			cancelBtn.bind('click', function(evt) {
@@ -525,11 +525,11 @@
 				var btn = jQuery(this);
 				
 				if (btn.data('previewing')) {
-					wgt.notifyListeners(editor.EventTypes.StopPreview);
+					wgt.notifyListeners(shorthand.events.StopPreview);
 					btn.text('Start Preview').data('previewing', false);
 				}
 				else {
-					wgt.notifyListeners(editor.EventTypes.StartPreview);
+					wgt.notifyListeners(shorthand.events.StartPreview);
 					btn.text('Stop Preview').data('previewing', true);
 				}
 			})
@@ -537,14 +537,14 @@
 			.attr('disabled', 'disabled');
 			
 			this.curveAim.bind('change', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.SetParam, {
+				wgt.notifyListeners(shorthand.events.SetParam, {
 					paramName: 'aim',
 					paramValue: wgt.curveAim.prop('checked')
 				});
 			});
 			
 			sysTypeSel.bind('change', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.SetParam, {
+				wgt.notifyListeners(shorthand.events.SetParam, {
 					paramName: 'trail',
 					paramValue: jQuery(this).val() == 'trail'
 				});
@@ -554,7 +554,7 @@
 			});
 			
 			shpTypeSel.bind('change', function(evt) {
-				wgt.notifyListeners(editor.EventTypes.SetParam, {
+				wgt.notifyListeners(shorthand.events.SetParam, {
 					paramName: 'particleShape',
 					paramValue: jQuery(this).val()
 				});
@@ -569,8 +569,8 @@
 					dim = wgt.dimensions.getValue();
 					
 				if (pos.length > 0 && dim.length > 0) {
-					var msgType = box == null ? editor.EventTypes.AddBox 
-							: editor.EventTypes.UpdateBox, 
+					var msgType = box == null ? shorthand.events.AddBox 
+							: shorthand.events.UpdateBox, 
 						data = {
 								position: pos,
 								dimensions: dim,
@@ -621,7 +621,7 @@
 				});			
 				
 				colorPicker.addListener(editor.events.ColorPicked, function(clr) {
-					wgt.notifyListeners(editor.EventTypes.SetCurveColor, {
+					wgt.notifyListeners(shorthand.events.SetCurveColor, {
 						color: clr,
 						ndx: ndx
 					});
@@ -646,7 +646,7 @@
 							
 			removeBtn.bind('click', function(evt) {
 				var box = wrapper.data('box');
-				wgt.notifyListeners(editor.EventTypes.RemoveBox, box);
+				wgt.notifyListeners(shorthand.events.RemoveBox, box);
 			});
 			
 			editBtn.bind('click', function(evt) {
@@ -792,8 +792,8 @@
 		},
 		
 		notify: function(eventType, value) {
-			if (eventType === editor.EventTypes.TransChanged) {
-				this.notifyListeners(editor.EventTypes.UpdateBoxes);
+			if (eventType === editor.events.Updated) {
+				this.notifyListeners(shorthand.events.UpdateBoxes);
 			}
 		},
 		
@@ -897,7 +897,7 @@
 			
 			// add listeners			
 			colorRampPicker.addListener(editor.events.ColorPicked, function(clr) {
-				wgt.notifyListeners(editor.EventTypes.SetCurveColor, {
+				wgt.notifyListeners(shorthand.events.SetCurveColor, {
 					color: clr,
 					ndx: 0
 				});
@@ -979,12 +979,12 @@
 			
 			li.editBtn.bind('click', function(evt) {
 				var curve = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.EditCurve, curve);
+				wgt.notifyListeners(shorthand.events.EditCurve, curve);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var curve = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.RemoveCurve, curve);
+				wgt.notifyListeners(shorthand.events.RemoveCurve, curve);
 			});
 		},
 		
@@ -1038,7 +1038,7 @@
 				}
 
 				elem.data('isDown', isDown);
-	            that.notifyListeners(editor.EventTypes.BoxManipState, {
+	            that.notifyListeners(shorthand.events.BoxManipState, {
 					drawState: that.drawState,
 	            	transform: that.transform
 	            });
@@ -1138,63 +1138,63 @@
 				}
 	        });
 	        
-	        adjWgt.addListener(editor.EventTypes.BoxManipState, function(value) {
+	        adjWgt.addListener(shorthand.events.BoxManipState, function(value) {
 				crtWgt.boxSelected(value.drawState, value.transform);
 			});
 			
 			// edit curve widget specific
-			crtWgt.addListener(editor.EventTypes.AddBox, function(boxParams) {
+			crtWgt.addListener(shorthand.events.AddBox, function(boxParams) {
 				model.addBox(boxParams.position, boxParams.dimensions);
 			});
 			crtWgt.addListener(editor.events.Cancel, function() {
 				model.cancel();
 			});
-			crtWgt.addListener(editor.EventTypes.RemoveBox, function(box) {
+			crtWgt.addListener(shorthand.events.RemoveBox, function(box) {
 				model.removeBox(box);
 			});
-			crtWgt.addListener(editor.EventTypes.Save, function(name) {
+			crtWgt.addListener(shorthand.events.Save, function(name) {
 				model.save(name);
 			});
-			crtWgt.addListener(editor.EventTypes.SetParam, function(paramObj) {
+			crtWgt.addListener(shorthand.events.SetParam, function(paramObj) {
 				model.setParam(paramObj.paramName, paramObj.paramValue);
 			});
-			crtWgt.addListener(editor.EventTypes.SetCurveColor, function(colorObj) {
+			crtWgt.addListener(shorthand.events.SetCurveColor, function(colorObj) {
 				model.addToColorRamp(colorObj.ndx, colorObj.color);
 			});
-			crtWgt.addListener(editor.EventTypes.StartPreview, function() {
+			crtWgt.addListener(shorthand.events.StartPreview, function() {
 				model.startPreview();
 			});
-			crtWgt.addListener(editor.EventTypes.StopPreview, function() {
+			crtWgt.addListener(shorthand.events.StopPreview, function() {
 				model.stopPreview();
 			});
-			crtWgt.addListener(editor.EventTypes.UpdateBox, function(params) {
+			crtWgt.addListener(shorthand.events.UpdateBox, function(params) {
 				model.updateBox(params.box, params.position, params.dimensions);
 			});
-			crtWgt.addListener(editor.EventTypes.UpdateBoxes, function() {
+			crtWgt.addListener(shorthand.events.UpdateBoxes, function() {
 				model.updateBoxes();
 			});
 			
 			// curve list widget specific
-			lstWgt.addListener(editor.EventTypes.EditCurve, function(curve) {
+			lstWgt.addListener(shorthand.events.EditCurve, function(curve) {
 				model.edit(curve);
 			});
-			lstWgt.addListener(editor.EventTypes.RemoveCurve, function(curve) {
+			lstWgt.addListener(shorthand.events.RemoveCurve, function(curve) {
 				model.remove(curve);
 			});
 			
 			// view specific
 	        
 			// model specific	
-			model.addListener(editor.EventTypes.BoxAdded, function(box) {
+			model.addListener(shorthand.events.BoxAdded, function(box) {
 				crtWgt.boxAdded(box);
 			});
-			model.addListener(editor.EventTypes.BoxRemoved, function(box) {
+			model.addListener(shorthand.events.BoxRemoved, function(box) {
 				crtWgt.boxRemoved(box);
 			});
-			model.addListener(editor.EventTypes.BoxSelected, function(vals) {
+			model.addListener(shorthand.events.BoxSelected, function(vals) {
 				view.boxSelected(vals.transform, vals.ndx);
 			});
-			model.addListener(editor.EventTypes.BoxUpdated, function(box) {
+			model.addListener(shorthand.events.BoxUpdated, function(box) {
 				crtWgt.boxUpdated(box);
 			});
 			model.addListener(editor.events.Created, function(curve) {
@@ -1203,7 +1203,7 @@
 			model.addListener(editor.events.Removed, function(curve) {
 				lstWgt.remove(curve);
 			});
-			model.addListener(editor.EventTypes.CurveSet, function(curve) {
+			model.addListener(shorthand.events.CurveSet, function(curve) {
 				if (curve.system != null) {
 					crtWgt.set(curve.system, curve.boxes);
 				} else {

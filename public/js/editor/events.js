@@ -31,6 +31,8 @@ var editor = (function(editor) {
 		
 		Enabled: 'editor.Enabled',
 		
+		MenuItemClicked: 'editor.MenuItemClicked',
+		
 		ModelAdded: 'editor.ModelAdded',
 		
 		PanelVisible: 'editor.PanelVisible',

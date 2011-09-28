@@ -16,9 +16,7 @@
  */
 
 var editor = (function(editor) {
-	editor.ui = editor.ui || {};	
-	
-	editor.EventTypes = editor.EventTypes || {};
+	editor.ui = editor.ui || {};
 	
 	// internal.  no one else can see or use
 	var Tooltip = editor.ui.Component.extend({

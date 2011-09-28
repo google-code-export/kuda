@@ -17,12 +17,6 @@
 
 var editor = (function(editor) {
 	editor.utils = editor.utils || {};
-		
-    /**
-     * EventTypes constants object.  Event types are used to differentiate
-     * listeners of model notifications.
-     */
-	editor.EventTypes = editor.EventTypes || {};
 			
     /**
      * The Listenable ...
@@ -35,8 +29,7 @@ var editor = (function(editor) {
 		/**
 		 * Adds a listener that listens for the event type given.
 		 * 
-		 * @param {editor.EventTypes} eventType the event type this 
-		 *        listener is interested in
+		 * @param {string} eventType the event this listener is interested in
 		 * @param {function(Object):void or Object that contains notify()} 
 		 *        listener the listener to add
 		 */        
@@ -89,7 +82,7 @@ var editor = (function(editor) {
 		/**
 		 * Notifies listeners interested in the given event type.
 		 * 
-		 * @param {editor.EventTypes} eventType the event type to notify about
+		 * @param {string} eventType the event to notify about
 		 * @param {Object} value the data to give to the interested listeners.
 		 */
         notifyListeners: function(eventType, value) {

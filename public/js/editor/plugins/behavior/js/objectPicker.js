@@ -15,18 +15,16 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
+(function() {
 	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
 	
-    editor.EventTypes = editor.EventTypes || {};
+	shorthand.events.SetArgument = 'params.SetArgument';
 	
 	var CIT_TREE_PNL_ID = 'objPkrCitTreePnl',
 		CIT_TREE_ID = 'objPkrCitTree';
 	
 	var citTree = null,
 		citTreePnl = jQuery('<div id="' + CIT_TREE_PNL_ID +'" class="treeSelectorPnl"></div>'),
-		padding = 0,
-		border = 0,
 		outerWidth = 0;
 		
 	citTreePnl.css({
@@ -39,7 +37,7 @@ var editor = (function(module) {
 					citTree = shorthand.createCitizensTree();
 					initCitizenTree(citTree.tree, filter);
 					
-					citTree.addListener(editor.EventTypes.Trees.SelectCitizen, function(data){
+					citTree.addListener(shorthand.events.SelectCitizen, function(data){
 						var elem = citTreePnl.data('curElem'), 
 							btn = elem.children('button'), 
 							ipt = elem.children('input'), 
@@ -54,7 +52,7 @@ var editor = (function(module) {
 						btn.removeClass('open');
 						
 						if (wgt.config.sendsNotifications) {
-							wgt.notifyListeners(editor.EventTypes.Params.SetArgument, data);
+							wgt.notifyListeners(shorthand.events.SetArgument, data);
 						}
 					});
 				}
@@ -130,9 +128,7 @@ var editor = (function(module) {
 		finishLayout: function() {
 			this.container = jQuery('<div class="objectPicker"></div>');
 						
-			var wgt = this,
-				argName = this.argName,
-				prefix = argName,
+			var argName = this.argName,
 				toggleFcn = function(evt){
 					var oldElem = citTreePnl.data('curElem'),
 						elem = jQuery(this).parent(),
@@ -207,7 +203,7 @@ var editor = (function(module) {
 		
 		setValue: function(citizen) {
 			if (citizen != null && citizen.getCitizenType() === this.filter) {
-				var nodeId = editor.treeData.getNodeName(citizen, {
+				var nodeId = shorthand.treedata.getNodeName(citizen, {
 					prefix: citTree.pre,
 					id: citizen.getId()
 				});
@@ -222,5 +218,4 @@ var editor = (function(module) {
 		}
 	});
 	
-	return module;
-})(editor || {});
+})();

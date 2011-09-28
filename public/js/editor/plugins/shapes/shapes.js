@@ -21,9 +21,9 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.shapes = editor.tools.shapes || {};
+	var shorthand = editor.tools.shapes = editor.tools.shapes || {};
 
-	editor.tools.shapes.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Geometry'),
 			
 			shpMdl = new ShapesModel(),
@@ -40,19 +40,19 @@
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
     
-    editor.EventTypes = editor.EventTypes || {};
-	
-	// create sidebar widget specific
-    editor.EventTypes.PreviewShape = "Shapes.PreviewShape";
-    editor.EventTypes.SaveShape = "Shapes.SaveShape";
-	
-	// list sidebar widget specific
-    editor.EventTypes.CreateShape = "Shapes.CreateShape";
-    editor.EventTypes.EditShape = "Shapes.EditShape";
-    editor.EventTypes.RemoveShape = "Shapes.RemoveShape";
-	
-	// model specific
-    editor.EventTypes.ShapeSet = "Shapes.ShapeSet";
+    shorthand.events = {
+		// create sidebar widget specific
+	    PreviewShape: "Shapes.PreviewShape",
+	    SaveShape: "Shapes.SaveShape",
+		
+		// list sidebar widget specific
+	    CreateShape: "Shapes.CreateShape",
+	    EditShape: "Shapes.EditShape",
+	    RemoveShape: "Shapes.RemoveShape",
+		
+		// model specific
+	    ShapeSet: "Shapes.ShapeSet"
+    };
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -96,7 +96,7 @@
 			}
 			
 			this.currentShape = shape;
-			this.notifyListeners(editor.EventTypes.ShapeSet, shape);
+			this.notifyListeners(shorthand.events.ShapeSet, shape);
 		},
 		
 		previewShape: function(props) {
@@ -283,7 +283,7 @@
 			
 			saveBtn.bind('click', function(evt) {
 				var props = wgt.getProperties();
-				wgt.notifyListeners(editor.EventTypes.SaveShape, props);
+				wgt.notifyListeners(shorthand.events.SaveShape, props);
 			})
 			.attr('disabled', 'disabled');
 			
@@ -296,7 +296,7 @@
 			
 			previewBtn.bind('click', function(evt) {
 				var props = wgt.getProperties();
-				wgt.notifyListeners(editor.EventTypes.PreviewShape, props);
+				wgt.notifyListeners(shorthand.events.PreviewShape, props);
 			})
 			.attr('disabled', 'disabled');
 			
@@ -473,12 +473,12 @@
 			
 			li.editBtn.bind('click', function(evt) {
 				var shape = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.EditShape, shape);
+				wgt.notifyListeners(shorthand.events.EditShape, shape);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var shape = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.RemoveShape, shape);
+				wgt.notifyListeners(shorthand.events.RemoveShape, shape);
 			});
 		},
 		
@@ -540,11 +540,11 @@
 				lstWgt = view.sidePanel.shapeListWidget;
 			
 			// create sidebar widget listeners
-			crtWgt.addListener(editor.EventTypes.SaveShape, function(props) {				
+			crtWgt.addListener(shorthand.events.SaveShape, function(props) {				
 				model.saveShape(props);
 				crtWgt.reset();
 			});		
-			crtWgt.addListener(editor.EventTypes.PreviewShape, function(props) {
+			crtWgt.addListener(shorthand.events.PreviewShape, function(props) {
 				model.previewShape(props);
 			});
 			crtWgt.addListener(editor.events.Cancel, function() {
@@ -552,12 +552,12 @@
 			});	
 			
 			// list sidebar widget listeners
-			lstWgt.addListener(editor.EventTypes.CreateShape, function() {
+			lstWgt.addListener(shorthand.events.CreateShape, function() {
 			});	
-			lstWgt.addListener(editor.EventTypes.EditShape, function(shape) {				
+			lstWgt.addListener(shorthand.events.EditShape, function(shape) {				
 				model.setShape(shape);
 			});	
-			lstWgt.addListener(editor.EventTypes.RemoveShape, function(shape) {
+			lstWgt.addListener(shorthand.events.RemoveShape, function(shape) {
 				model.removeShape(shape);
 			});
 			
@@ -571,7 +571,7 @@
 			model.addListener(editor.events.Removed, function(shape) {
 				lstWgt.remove(shape);
 			});
-			model.addListener(editor.EventTypes.ShapeSet, function(shape) {
+			model.addListener(shorthand.events.ShapeSet, function(shape) {
 				if (shape != null) {
 					crtWgt.set(shape);
 				}

@@ -21,9 +21,9 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	editor.tools.browser = editor.tools.browser || {};
+	var shorthand = editor.tools.browser = editor.tools.browser || {};
 
-	editor.tools.browser.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Geometry'),
 			
 			mbrMdl = new BrowserModel(),
@@ -50,37 +50,37 @@
     editor.ToolConstants.XZ_PLANE = 'xzPlane';
     editor.ToolConstants.YZ_PLANE = 'yzPlane';
 	
-	editor.EventTypes = editor.EventTypes || {};
-	
-	// browser model events
-	editor.EventTypes.AddUserCreatedShape = "browser.AddUserCreatedShape";
-	editor.EventTypes.ModelUnloaded = "browser.ModelUnloaded";
-	editor.EventTypes.PickableSet = "browser.PickableSet";
-	editor.EventTypes.RemoveUserCreatedShape = "browser.RemoveUserCreatedShape";
-	editor.EventTypes.ServerRunning = 'browser.ServerRunning';
-	editor.EventTypes.ShapeSelected = "browser.ShapeSelected";
-	editor.EventTypes.TransformDeselected = "browser.TransformDeselected";
-	editor.EventTypes.TransformHidden = "browser.TransformHidden";
-	editor.EventTypes.TransformSelected = "browser.TransformSelected";
-	editor.EventTypes.TransformShown = "browser.TransformShown";
-	editor.EventTypes.UpdateUserCreatedShape = "browser.UpdateUserCreatedShape";
-	
-	// view events
-    editor.EventTypes.ShowPicked = "browser.ShowPicked";
-    editor.EventTypes.ManipState = "browser.ManipState";
-    editor.EventTypes.SetTransOpacity = "browser.SetTransOpacity";
-	
-	// hidden items widget events
-	editor.EventTypes.SetPickable = "browser.SetPickable";
-    editor.EventTypes.ShowHiddenItem = "browser.ShowHiddenItem";
-	
-	// model tree widget events
-	editor.EventTypes.DeselectTreeItem = "browser.DeselectTreeItem";
-	editor.EventTypes.SelectTreeItem = "browser.SelectTreeItem";
-	
-	// loader widget events
-	editor.EventTypes.LoadModel = "browser.LoadModel";
-	editor.EventTypes.UnloadModel = "browser.UnloadModel";
+	shorthand.events = {
+		// browser model events
+		AddUserCreatedShape: "browser.AddUserCreatedShape",
+		ModelUnloaded: "browser.ModelUnloaded",
+		PickableSet: "browser.PickableSet",
+		RemoveUserCreatedShape: "browser.RemoveUserCreatedShape",
+		ServerRunning: 'browser.ServerRunning',
+		ShapeSelected: "browser.ShapeSelected",
+		TransformDeselected: "browser.TransformDeselected",
+		TransformHidden: "browser.TransformHidden",
+		TransformSelected: "browser.TransformSelected",
+		TransformShown: "browser.TransformShown",
+		UpdateUserCreatedShape: "browser.UpdateUserCreatedShape",
+		
+		// view events
+	    ShowPicked: "browser.ShowPicked",
+	    ManipState: "browser.ManipState",
+	    SetTransOpacity: "browser.SetTransOpacity",
+		
+		// hidden items widget events
+		SetPickable: "browser.SetPickable",
+	    ShowHiddenItem: "browser.ShowHiddenItem",
+		
+		// model tree widget events
+		DeselectTreeItem: "browser.DeselectTreeItem",
+		SelectTreeItem: "browser.SelectTreeItem",
+		
+		// loader widget events
+		LoadModel: "browser.LoadModel",
+		UnloadModel: "browser.UnloadModel"
+	};
 	
 	// TODO: We need a better way of testing for our highlight shapes than
 	// searching for this prefix.
@@ -212,12 +212,12 @@
 				dataType: 'json',
 				success: function(data, status, xhr) {	
 					mdl.models = data.models;
-					mdl.notifyListeners(editor.EventTypes.ServerRunning, 
+					mdl.notifyListeners(shorthand.events.ServerRunning, 
 						mdl.models);
 				},					
 				error: function(xhr, status, err) {
 					mdl.serverDown = true;
-					mdl.notifyListeners(editor.EventTypes.ServerRunning,
+					mdl.notifyListeners(shorthand.events.ServerRunning,
 						null);
 				}
 			});
@@ -229,7 +229,7 @@
 		},
 		
 		addShape: function(shape) {
-			this.notifyListeners(editor.EventTypes.AddUserCreatedShape, shape);
+			this.notifyListeners(shorthand.events.AddUserCreatedShape, shape);
 		},
 		
 		deselectAll: function() {
@@ -255,7 +255,7 @@
 				}
 				
 				this.currentShape = this.currentHighlightShape = null;
-				this.notifyListeners(editor.EventTypes.ShapeSelected, null);
+				this.notifyListeners(shorthand.events.ShapeSelected, null);
 			}
 		},
 		
@@ -280,9 +280,9 @@
 					this.currentShape = null;
 					this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
 					this.curHandle.setTransform(null);
-					this.notifyListeners(editor.EventTypes.ShapeSelected, null);
+					this.notifyListeners(shorthand.events.ShapeSelected, null);
 					this.unhighlightTransform(transform);
-					this.notifyListeners(editor.EventTypes.TransformDeselected, transform);
+					this.notifyListeners(shorthand.events.TransformDeselected, transform);
 				}
 			}
 			
@@ -350,7 +350,7 @@
 				transforms: [transform],
 				pick: false
 			});
-            this.notifyListeners(editor.EventTypes.TransformHidden, {
+            this.notifyListeners(shorthand.events.TransformHidden, {
 				transform: transform,
 				owner: opt_owner
 			});
@@ -475,9 +475,7 @@
 		
 		removeModel: function(modelId) {
 			var model = hemi.world.getCitizenById(modelId),
-				id = model.getId(),
-				transforms = this.selected.get(id),
-				that = this;
+				transforms = this.selected.get(modelId);
 			
 			while (transforms && transforms.length > 0) {
 				this.deselectTransform(transforms[0], model);
@@ -489,7 +487,7 @@
 		
 		removeShape: function(shape) {
 			this.deselectTransform(shape.getTransform());
-			this.notifyListeners(editor.EventTypes.RemoveUserCreatedShape, shape);
+			this.notifyListeners(shorthand.events.RemoveUserCreatedShape, shape);
 		},
 		
 		selectShape: function(shape, transform) {
@@ -521,7 +519,7 @@
 				
 				this.currentHighlightShape = highlightShape;
 				this.currentShape = shape;
-				this.notifyListeners(editor.EventTypes.ShapeSelected, {
+				this.notifyListeners(shorthand.events.ShapeSelected, {
 					shape: shape,
 					owner: hemi.world.getTranOwner(transform)
 				});
@@ -556,7 +554,7 @@
 			}
 						
 			this.highlightTransform(transform);
-			this.notifyListeners(editor.EventTypes.TransformSelected, transform);
+			this.notifyListeners(shorthand.events.TransformSelected, transform);
 			this.currentTransform = transform;
 		},
 		
@@ -582,7 +580,7 @@
 				transforms: [transform],
 				pick: pickable
 			});
-            this.notifyListeners(editor.EventTypes.PickableSet, {
+            this.notifyListeners(shorthand.events.PickableSet, {
 				tran: transform,
 				pick: pickable
 			});
@@ -613,7 +611,7 @@
 				transforms: [transform],
 				pick: true
 			});
-            this.notifyListeners(editor.EventTypes.TransformShown, transform);
+            this.notifyListeners(shorthand.events.TransformShown, transform);
 	    },
 		
 		unhighlightAll: function() {
@@ -665,7 +663,7 @@
 		},
 		
 		updateShape: function(shape) {
-			this.notifyListeners(editor.EventTypes.UpdateUserCreatedShape, shape);
+			this.notifyListeners(shorthand.events.UpdateUserCreatedShape, shape);
 		},
 			
 		worldCleaned: function() {
@@ -684,7 +682,7 @@
 			}
 			
 			for (var i = 0, il = shapes.length; i < il; ++i) {
-				this.notifyListeners(editor.EventTypes.RemoveUserCreatedShape, shapes[i]);
+				this.notifyListeners(shorthand.events.RemoveUserCreatedShape, shapes[i]);
 			}
 		},
 			
@@ -843,7 +841,7 @@
 						}
 						
 						if (data.args[2] != null) {
-							wgt.notifyListeners(editor.EventTypes.SelectTreeItem, {
+							wgt.notifyListeners(shorthand.events.SelectTreeItem, {
 								transform: metadata.actualNode,
 								node: elem,
 								mouseEvent: data.args[2],
@@ -868,7 +866,7 @@
 							}
 						}
 						
-						wgt.notifyListeners(editor.EventTypes.SelectTreeItem, {
+						wgt.notifyListeners(shorthand.events.SelectTreeItem, {
 							owner: model,
 							material: material,
 							type: metadata.type
@@ -885,7 +883,7 @@
 					metadata = elem.data('jstree');
 				
 				if (metadata != null) {
-					wgt.notifyListeners(editor.EventTypes.DeselectTreeItem, {
+					wgt.notifyListeners(shorthand.events.DeselectTreeItem, {
 						node: metadata.actualNode,
 						type: metadata.type
 					});
@@ -1042,14 +1040,14 @@
 				
 				li.pickBtn.bind('click', function(evt) {
 					var transform = li.getAttachedObject();
-					wgt.notifyListeners(editor.EventTypes.SetPickable, {
+					wgt.notifyListeners(shorthand.events.SetPickable, {
 						tran: transform,
 						pick: this.checked
 					});
 				});
 				li.showBtn.bind('click', function(evt) {
 					var transform = li.getAttachedObject();
-					wgt.notifyListeners(editor.EventTypes.ShowHiddenItem, transform);
+					wgt.notifyListeners(shorthand.events.ShowHiddenItem, transform);
 				});
 				
 				var transforms = this.ownerTransHash.get(owner) || [];
@@ -1188,7 +1186,6 @@
 			var pnl = this.find('#mbrLoadPnl'),
 				sel = pnl.find('select'),
 				ipt = pnl.find('input').hide(),
-				btn = pnl.find('button'),
 				msg = this.msgPanel,
 				wgt = this;	
 		
@@ -1199,7 +1196,7 @@
 					});
 					var val = ipt.is(':visible') ? ipt.val() : sel.val();
 					
-					wgt.notifyListeners(editor.EventTypes.LoadModel, val);
+					wgt.notifyListeners(shorthand.events.LoadModel, val);
 				}
 			});	
 		},
@@ -1207,14 +1204,12 @@
 		createUnloadPanel: function() {			
 			var pnl = this.find('#mbrUnloadPnl'),
 				sel = pnl.find('select'),
-				btn = pnl.find('button'),
-				msg = this.msgPanel,
 				wgt = this;
 		
 			sel.bind('change', function() {	
 				var id = parseInt(sel.val());
 				if (id !== -1) {
-					wgt.notifyListeners(editor.EventTypes.UnloadModel, id);
+					wgt.notifyListeners(shorthand.events.UnloadModel, id);
 				}
 			});	
 			
@@ -1350,7 +1345,7 @@
 					if (!btn.hasClass('down')) {
 						msg = editor.ui.trans.DrawState.NONE;	
 					}
-					wgt.notifyListeners(editor.EventTypes.ManipState, msg);
+					wgt.notifyListeners(shorthand.events.ManipState, msg);
 				};
 			
 			this.transBtn = jQuery('<button id="mbrTranslateBtn">Translate</button>');
@@ -1407,7 +1402,7 @@
 				value: 100,
 				range: 'min',
 				slide: function(evt, ui) {								
-					wgt.notifyListeners(editor.EventTypes.SetTransOpacity, 
+					wgt.notifyListeners(shorthand.events.SetTransOpacity, 
 						ui.value/100);
 				}
 			})
@@ -1707,7 +1702,7 @@
 			this.container.append(form);
 			
 			this.visBtn.bind('click', function() {
-				wgt.notifyListeners(editor.EventTypes.ShowPicked, 
+				wgt.notifyListeners(shorthand.events.ShowPicked, 
 					!wgt.transform.visible);
 				jQuery(this).text(wgt.transform.visible ? 'Hide' : 'Show');
 			});
@@ -1809,23 +1804,23 @@
 			});	        
 			
 			// hidden list widget specific
-			hidWgt.addListener(editor.EventTypes.SetPickable, function(data) {
+			hidWgt.addListener(shorthand.events.SetPickable, function(data) {
 				model.setTransformPickable(data.tran, data.pick);
 			});
-			hidWgt.addListener(editor.EventTypes.ShowHiddenItem, function(transform) {
+			hidWgt.addListener(shorthand.events.ShowHiddenItem, function(transform) {
                 model.showTransform(transform);
 			});
 			
 			// loader widget specific
-			ldrWgt.addListener(editor.EventTypes.LoadModel, function(url) {
+			ldrWgt.addListener(shorthand.events.LoadModel, function(url) {
 				model.addModel(url);
 			});
-			ldrWgt.addListener(editor.EventTypes.UnloadModel, function(id) {
+			ldrWgt.addListener(shorthand.events.UnloadModel, function(id) {
 				model.removeModel(id);
 			});
 			
 			// mdl browser widget specific
-			mbrWgt.addListener(editor.EventTypes.SelectTreeItem, function(value) {
+			mbrWgt.addListener(shorthand.events.SelectTreeItem, function(value) {
 				if (value.type === 'transform') {
 					if (!value.mouseEvent.shiftKey) {
 						model.deselectAll();
@@ -1840,20 +1835,20 @@
 					// that the user can see what shapes use it. ~ekitson
 				}
 			});			
-			mbrWgt.addListener(editor.EventTypes.DeselectTreeItem, function(data) {
+			mbrWgt.addListener(shorthand.events.DeselectTreeItem, function(data) {
 				if (data.type === 'transform') {
 					model.deselectTransform(data.node);
 				}
 			});
 			
 			// bottom panel			  
-	        adjWgt.addListener(editor.EventTypes.ManipState, function(state) {
+	        adjWgt.addListener(shorthand.events.ManipState, function(state) {
 				model.setManipState(state);
 	        });
-	        opaWgt.addListener(editor.EventTypes.SetTransOpacity, function(opacity) {
+	        opaWgt.addListener(shorthand.events.SetTransOpacity, function(opacity) {
 				model.setOpacity(opacity);
 	        });
-	        visWgt.addListener(editor.EventTypes.ShowPicked, function(value) {
+	        visWgt.addListener(shorthand.events.ShowPicked, function(value) {
 				if (value) {
 	                model.showSelected();
 				} else {
@@ -1876,7 +1871,7 @@
 				view.bottomPanel.setVisible(false);
 	        });	
 			
-			model.addListener(editor.EventTypes.AddUserCreatedShape, function(shape) {
+			model.addListener(shorthand.events.AddUserCreatedShape, function(shape) {
 				var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
 				
 				mbrWgt.addShape(shape);
@@ -1886,30 +1881,30 @@
 					hidWgt.setVisible(isDown);
 				}
 			});	
-			model.addListener(editor.EventTypes.ModelUnloaded, function(model) {
+			model.addListener(shorthand.events.ModelUnloaded, function(model) {
 			});		
-			model.addListener(editor.EventTypes.RemoveUserCreatedShape, function(shape) {
+			model.addListener(shorthand.events.RemoveUserCreatedShape, function(shape) {
 				mbrWgt.removeShape(shape);
 				hidWgt.removeOwner(shape);
 			});	
-			model.addListener(editor.EventTypes.ServerRunning, function(models) {
+			model.addListener(shorthand.events.ServerRunning, function(models) {
 				ldrWgt.updateServerRunning(models);
 			});
-			model.addListener(editor.EventTypes.UpdateUserCreatedShape, function(shape) {
+			model.addListener(shorthand.events.UpdateUserCreatedShape, function(shape) {
 				mbrWgt.updateShape(shape);
 			});
-			model.addListener(editor.EventTypes.PickableSet, function(data) {
+			model.addListener(shorthand.events.PickableSet, function(data) {
 	            hidWgt.setPickable(data.tran, data.pick);
 	        });
-			model.addListener(editor.EventTypes.TransformDeselected, function(transform) {
+			model.addListener(shorthand.events.TransformDeselected, function(transform) {
 				mbrWgt.deselectNode(getNodeId(transform));
 			});
-	        model.addListener(editor.EventTypes.TransformHidden, function(obj) {
+	        model.addListener(shorthand.events.TransformHidden, function(obj) {
 				var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
 	            hidWgt.addHiddenItem(obj.transform, obj.owner);
 				hidWgt.setVisible(isDown);
 	        });
-			model.addListener(editor.EventTypes.TransformSelected, function(transform) {
+			model.addListener(shorthand.events.TransformSelected, function(transform) {
 				mbrWgt.selectNode(getNodeId(transform));
 				detWgt.set(transform, DetailsType.TRANSFORM);
 				visWgt.set(transform);
@@ -1918,7 +1913,7 @@
 					view.bottomPanel.setVisible(true);
 				}
 			});
-	        model.addListener(editor.EventTypes.TransformShown, function(transform) {
+	        model.addListener(shorthand.events.TransformShown, function(transform) {
 	            hidWgt.removeHiddenItem(transform);
 	        });
 		}

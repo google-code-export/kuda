@@ -21,9 +21,9 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
  
-	editor.tools.cameraCurves = editor.tools.cameraCurves || {};
+	var shorthand = editor.tools.cameraCurves = editor.tools.cameraCurves || {};
 
- 	editor.tools.cameraCurves.init = function() {
+	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Camera'),
 		
 			crvMdl = new CamCurveModel(),
@@ -40,26 +40,27 @@
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	editor.EventTypes = editor.EventTypes || {};
-	// model events
-    editor.EventTypes.CameraUpdated = "camcurve.CameraUpdated";
-    editor.EventTypes.PreviewStopped = "camcurve.PreviewStopped";
-	editor.EventTypes.WaypointAdded = "camcurve.WaypointAdded";
-	editor.EventTypes.WaypointRemoved = "camcurve.WaypointRemoved";
-	editor.EventTypes.WaypointUpdated = "camcurve.WaypointUpdated";
-	
-	// Create Camera Curve Widget events
-	editor.EventTypes.AddWaypoint = "camcurve.AddWaypoint";
-	editor.EventTypes.RemoveWaypoint = "camcurve.RemoveWaypoint";
-	editor.EventTypes.SaveCamCurve = "camcurve.SaveCamCurve";
-	editor.EventTypes.StartCurvePreview = "camcurve.StartCurvePreview";
-	editor.EventTypes.StopCurvePreview = "camcurve.StopCurvePreview";
-	editor.EventTypes.UpdateWaypoint = "camcurve.UpdateWaypoint";
-	
-	// Camera Curve List Widget events
-	editor.EventTypes.AddCamCurve = "camcurve.AddCamCurve";
-	editor.EventTypes.EditCamCurve = "camcurve.EditCamCurve";
-	editor.EventTypes.RemoveCamCurve = "camcurve.RemoveCamCurve";
+	shorthand.events = {
+		// model events
+	    CameraUpdated: "camcurve.CameraUpdated",
+	    PreviewStopped: "camcurve.PreviewStopped",
+		WaypointAdded: "camcurve.WaypointAdded",
+		WaypointRemoved: "camcurve.WaypointRemoved",
+		WaypointUpdated: "camcurve.WaypointUpdated",
+		
+		// Create Camera Curve Widget events
+		AddWaypoint: "camcurve.AddWaypoint",
+		RemoveWaypoint: "camcurve.RemoveWaypoint",
+		SaveCamCurve: "camcurve.SaveCamCurve",
+		StartCurvePreview: "camcurve.StartCurvePreview",
+		StopCurvePreview: "camcurve.StopCurvePreview",
+		UpdateWaypoint: "camcurve.UpdateWaypoint",
+		
+		// Camera Curve List Widget events
+		AddCamCurve: "camcurve.AddCamCurve",
+		EditCamCurve: "camcurve.EditCamCurve",
+		RemoveCamCurve: "camcurve.RemoveCamCurve"
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //
@@ -88,7 +89,7 @@
 				};
 			this.waypoints.push(wp);
 			this.updatePreviewCurve();
-			this.notifyListeners(editor.EventTypes.WaypointAdded, wp);
+			this.notifyListeners(shorthand.events.WaypointAdded, wp);
 		},
 		
 		enableMonitoring: function(enable) {
@@ -101,7 +102,7 @@
 		},
 		
 		onRender: function(renderEvt) {
-			this.notifyListeners(editor.EventTypes.CameraUpdated);
+			this.notifyListeners(shorthand.events.CameraUpdated);
 		},
 		
 		removeCamCurve: function(curve) {
@@ -115,7 +116,7 @@
 			if (ndx >= 0) {
 				this.waypoints.splice(ndx, 1);
 				this.updatePreviewCurve();
-				this.notifyListeners(editor.EventTypes.WaypointRemoved, waypoint);
+				this.notifyListeners(shorthand.events.WaypointRemoved, waypoint);
 			}
 		},
 		
@@ -185,7 +186,7 @@
 				hemi.world.camera.moveToView(this.camData, 0);
 				this.camData = null;
 				this.previewing = false;
-				this.notifyListeners(editor.EventTypes.PreviewStopped, null);
+				this.notifyListeners(shorthand.events.PreviewStopped, null);
 			}
 		},
 		
@@ -251,7 +252,7 @@
 			waypoint.tgt = target;
 			
 			this.updatePreviewCurve();
-			this.notifyListeners(editor.EventTypes.WaypointUpdated, waypoint);
+			this.notifyListeners(shorthand.events.WaypointUpdated, waypoint);
 						
 			if (previewing) {
 				this.startPreview();
@@ -337,7 +338,7 @@
 			
 			saveBtn.bind('click', function(evt) {
 				var name = wgt.nameIpt.getValue();
-				wgt.notifyListeners(editor.EventTypes.SaveCamCurve, name);
+				wgt.notifyListeners(shorthand.events.SaveCamCurve, name);
 				wgt.reset();
 			});
 			
@@ -349,11 +350,11 @@
 			
 			previewBtn.bind('click', function(evt) {
 				if (previewBtn.data('started')) {
-					wgt.notifyListeners(editor.EventTypes.StopCurvePreview);
+					wgt.notifyListeners(shorthand.events.StopCurvePreview);
 					previewBtn.data('started', false).text(PREVIEW_TXT);
 				}
 				else {
-					wgt.notifyListeners(editor.EventTypes.StartCurvePreview);
+					wgt.notifyListeners(shorthand.events.StartCurvePreview);
 					previewBtn.data('started', true).text(STARTED_TXT);
 				}
 			})
@@ -387,8 +388,8 @@
 					tgt = wgt.target.getValue();
 					
 				if (pos.length > 0 && tgt.length > 0) {
-					var msgType = pnt == null ? editor.EventTypes.AddWaypoint
-							: editor.EventTypes.UpdateWaypoint,
+					var msgType = pnt == null ? shorthand.events.AddWaypoint
+							: shorthand.events.UpdateWaypoint,
 						data = {
 								position: pos,
 								target: tgt,
@@ -485,7 +486,7 @@
 			
 			removeBtn.bind('click', function(evt){
 				var wp = wrapper.data('waypoint');
-				wgt.notifyListeners(editor.EventTypes.RemoveWaypoint, wp);
+				wgt.notifyListeners(shorthand.events.RemoveWaypoint, wp);
 			});
 			
 			editBtn.bind('click', function(evt){
@@ -581,12 +582,12 @@
 			
 			li.editBtn.bind('click', function(evt) {
 				var crv = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.EditCamCurve, crv);
+				wgt.notifyListeners(shorthand.events.EditCamCurve, crv);
 			});
 			
 			li.removeBtn.bind('click', function(evt) {
 				var crv = li.getAttachedObject();
-				wgt.notifyListeners(editor.EventTypes.RemoveCamCurve, crv);
+				wgt.notifyListeners(shorthand.events.RemoveCamCurve, crv);
 			});
 		},
 		
@@ -653,41 +654,41 @@
 			});
 			
 			// create camera curve widget specific
-			crtWgt.addListener(editor.EventTypes.AddWaypoint, function(wpData) {
+			crtWgt.addListener(shorthand.events.AddWaypoint, function(wpData) {
 				model.addWaypoint(wpData.position, wpData.target);
 			});
 			crtWgt.addListener(editor.events.Cancel, function() {
 				model.setCamCurve(null);
 			});
-			crtWgt.addListener(editor.EventTypes.RemoveWaypoint, function(wp) {
+			crtWgt.addListener(shorthand.events.RemoveWaypoint, function(wp) {
 				model.removeWaypoint(wp);
 			});
-			crtWgt.addListener(editor.EventTypes.SaveCamCurve, function(name) {
+			crtWgt.addListener(shorthand.events.SaveCamCurve, function(name) {
 				model.saveCamCurve(name);
 			});
-			crtWgt.addListener(editor.EventTypes.StartCurvePreview, function() {
+			crtWgt.addListener(shorthand.events.StartCurvePreview, function() {
 				model.startPreview();
 			});
-			crtWgt.addListener(editor.EventTypes.StopCurvePreview, function() {
+			crtWgt.addListener(shorthand.events.StopCurvePreview, function() {
 				model.stopPreview();
 			});
-			crtWgt.addListener(editor.EventTypes.UpdateWaypoint, function(wpData) {
+			crtWgt.addListener(shorthand.events.UpdateWaypoint, function(wpData) {
 				model.updateWaypoint(wpData.point, wpData.position, wpData.target);
 			});
 			
 			// camera curve list widget specific
-			lstWgt.addListener(editor.EventTypes.AddCamCurve, function() {
+			lstWgt.addListener(shorthand.events.AddCamCurve, function() {
 			});
-			lstWgt.addListener(editor.EventTypes.EditCamCurve, function(crv) {
+			lstWgt.addListener(shorthand.events.EditCamCurve, function(crv) {
 				model.setCamCurve(crv);
 				crtWgt.set(crv);
 			});
-			lstWgt.addListener(editor.EventTypes.RemoveCamCurve, function(crv) {
+			lstWgt.addListener(shorthand.events.RemoveCamCurve, function(crv) {
 				model.removeCamCurve(crv);
 			});
 			
 			// model specific			
-			model.addListener(editor.EventTypes.CameraUpdated, function(value) {
+			model.addListener(shorthand.events.CameraUpdated, function(value) {
 //				view.updateCameraInfo(value);
 			});
 			model.addListener(editor.events.Created, function(crv) {
@@ -699,16 +700,16 @@
 			model.addListener(editor.events.Updated, function(crv) {
 				lstWgt.update(crv);
 			});
-			model.addListener(editor.EventTypes.PreviewStopped, function(crv) {
+			model.addListener(shorthand.events.PreviewStopped, function(crv) {
 				crtWgt.previewBtn.data('started', false).text(PREVIEW_TXT);
 			});
-			model.addListener(editor.EventTypes.WaypointAdded, function(wp) {
+			model.addListener(shorthand.events.WaypointAdded, function(wp) {
 				crtWgt.waypointAdded(wp);
 			});
-			model.addListener(editor.EventTypes.WaypointRemoved, function(wp) {
+			model.addListener(shorthand.events.WaypointRemoved, function(wp) {
 				crtWgt.waypointRemoved(wp);
 			});
-			model.addListener(editor.EventTypes.WaypointUpdated, function(wp) {
+			model.addListener(shorthand.events.WaypointUpdated, function(wp) {
 				crtWgt.waypointUpdated(wp);
 			});
 		}

@@ -30,9 +30,6 @@ var editor = (function(editor) {
 		NONE: 3
 	};
 	
-    editor.EventTypes = editor.EventTypes || {};
-    editor.EventTypes.TransChanged = "TransHandles.TransChanged";
-	
 	editor.ui.TransHandles = editor.utils.Listenable.extend({
 		init: function() {
 			this._super();
@@ -136,7 +133,7 @@ var editor = (function(editor) {
 		},
 		
 		onChange: function(val) {
-			this.notifyListeners(editor.EventTypes.TransChanged, val);
+			this.notifyListeners(editor.events.Updated, val);
 		},
 		
 		onMouseDown: function(evt) {

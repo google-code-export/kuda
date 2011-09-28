@@ -16,9 +16,7 @@
  */
 
 var editor = (function(editor) {
-	editor.ui = editor.ui || {};	
-	
-	editor.EventTypes = editor.EventTypes || {};
+	editor.ui = editor.ui || {};
 	
 	var tooltip = new editor.ui.createTooltip('errorWrapper');
 	

@@ -23,11 +23,6 @@ var editor = (function(editor) {
 		ORDERED: 1
 	};
 	
-	editor.EventTypes = editor.EventTypes || {};
-	editor.EventTypes.ListItemRemoveClicked = "listener.ListItemRemoveClicked";
-	editor.EventTypes.ListItemEditClicked = "listener.ListItemEditClicked";
-	editor.EventTypes.ListItemClicked = "listener.ListItemClicked";
-	
 	/*
 	 * Configuration object for the Widget.
 	 */

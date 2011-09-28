@@ -18,8 +18,6 @@
 var editor = (function(module) {
 	module.ui = module.ui || {};
 	
-    module.EventTypes = module.EventTypes || {};
-	
 	var vertShaderVars = "varying float v_alpha;\n" +
 			"varying vec4 v_orig_position;\n\n",
 		vertShaderFunc = "void setAlpha(vec4 position) {\n" +
