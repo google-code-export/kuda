@@ -220,7 +220,7 @@
 .bhvTopPanel .widgetForm fieldset:nth-child(2) {
 	border-right: none;
 }
-.bhvTopPanel .widgetForm input {
+.bhvTopPanel .widgetForm input[type=text] {
 	width: 12.5em;
 }
 .bhvTopPanel div.buttons {
@@ -276,6 +276,10 @@ form .objectPicker input.treeSelectorIpt {
 #behaviorAxnParams input[type=text]:not(.short) {
 	width: 10.417em;
 	float: left;
+	margin-bottom: 2px;
+}
+#behaviorAxnParams input[type=text].vector {
+	width: 3.363em;
 }
 #behaviorMenu {
 	position: absolute;
