@@ -28,8 +28,7 @@ var editor = (function(editor) {
 		// view specific
 		SelectAction: 'Trees.SelectAction',
 		SelectCitizen: 'Trees.SelectCitizen',
-		SelectTrigger: 'Trees.SelectTrigger',
-		TreeCreated: 'Trees.TreeCreated'
+		SelectTrigger: 'Trees.SelectTrigger'
 	};
 	
 	var TRIGGER_PREFIX = 'tr_',
@@ -177,52 +176,61 @@ var editor = (function(editor) {
 			this.currentTimeout = null;
 			this.currentDehover = null;
 			this.id = idCounter++;
+			this.pre = type + this.id + '_';
 			
-			var addOn = this.id + '_',
-				view = this;
-			this.pre = type + addOn;
+			switch (type) {
+				case CITIZEN_PREFIX:
+					createCitizenTree.call(this, []);
+					break;
+				case TRIGGER_PREFIX:
+					createTriggerTree.call(this, []);
+					break;
+				case ACTION_PREFIX:
+					createActionTree.call(this, []);
+					break;
+			}
 			
-			this.addListener(editor.EventTypes.Trees.TreeCreated, function(tree) {
-				tree.bind('hover_node.jstree', function(evt, data) {
-					var elem = data.rslt.obj,
-						id = elem.attr('id'),
-						desc = view.tooltips.get(id);
+			var view = this;
+			
+			this.tree.bind('hover_node.jstree', function(evt, data) {
+				var elem = data.rslt.obj,
+					id = elem.attr('id'),
+					desc = view.tooltips.get(id);
+				
+				if (view.currentTooltip !== id && desc != null) {		
+					view.currentTooltip = id;	
 					
-					if (view.currentTooltip !== id && desc != null) {		
-						view.currentTooltip = id;	
-						
-						var t = setTimeout(function() {
-							elem.data('timeout', null);
-							tooltip.show(elem, desc);
-						}, 500);
-						
-						elem.data('timeout', t);
-					}
-				})
-				.bind('dehover_node.jstree', function(evt, data) {
-					var elem = data.rslt.obj,
-						timeout = elem.data('timeout');
-						
-					if (timeout != null) {
-						clearTimeout(timeout);
-					}
-				})
-				.bind('select_node.jstree', function(evt, data) {		
-					var elem = data.rslt.obj,
-						timeout = elem.data('timeout');
-									
-					if (view.currentTooltip != null) {
-						clearTimeout(timeout);
-						tooltip.hide(100);
-						view.currentTooltip = null;
-					}
-				})
-				.bind('mouseout', function(evt) {
-					if (view.currentTooltip != null && !tooltip.isAnimating) {
-						tooltip.hide(100);
-						view.currentTooltip = null;
-					}
-				});
+					var t = setTimeout(function() {
+						elem.data('timeout', null);
+						tooltip.show(elem, desc);
+					}, 500);
+					
+					elem.data('timeout', t);
+				}
+			})
+			.bind('dehover_node.jstree', function(evt, data) {
+				var elem = data.rslt.obj,
+					timeout = elem.data('timeout');
+					
+				if (timeout != null) {
+					clearTimeout(timeout);
+				}
+			})
+			.bind('select_node.jstree', function(evt, data) {		
+				var elem = data.rslt.obj,
+					timeout = elem.data('timeout');
+								
+				if (view.currentTooltip != null) {
+					clearTimeout(timeout);
+					tooltip.hide(100);
+					view.currentTooltip = null;
+				}
+			})
+			.bind('mouseout', function(evt) {
+				if (view.currentTooltip != null && !tooltip.isAnimating) {
+					tooltip.hide(100);
+					view.currentTooltip = null;
+				}
 			});
 		},
 		
@@ -412,16 +420,11 @@ var editor = (function(editor) {
 		},
 		
 		addActionType = function(citizen) {
-			var json = editor.treeData.createCitizenTypeJson(citizen, 
-				this.pre);
+			var json = editor.treeData.createCitizenTypeJson(citizen, this.pre);
 			
-			if (this.tree == null) {
-				createActionTree.call(this, [json]);
-			} else {
-				this.tree.jstree('create_node', -1, 'last', {
-					json_data: json
-				});
-			}
+			this.tree.jstree('create_node', -1, 'last', {
+				json_data: json
+			});
 			
 			addToolTip.call(this, citizen);
 		},
@@ -441,16 +444,11 @@ var editor = (function(editor) {
 		},	
 		
 		addCitizenType = function(citizen) {
-			var json = editor.treeData.createCitizenTypeJson(citizen, 
-				this.pre);
+			var json = editor.treeData.createCitizenTypeJson(citizen, this.pre);
 			
-			if (this.tree == null) {
-				createCitizenTree.call(this, [json]);
-			} else {
-				this.tree.jstree('create_node', -1, 'last', {
-					json_data: json
-				});
-			}
+			this.tree.jstree('create_node', -1, 'last', {
+				json_data: json
+			});
 		},
 		
 		addToolTip = function(citizen, opt_func) {
@@ -559,13 +557,9 @@ var editor = (function(editor) {
 		addTriggerType = function(citizen) {
 			var json = editor.treeData.createCitizenTypeJson(citizen, this.pre);
 			
-			if (this.tree == null) {
-				createTriggerTree.call(this, [json]);
-			} else {
-				this.tree.jstree('create_node', -1, 'last', {
-					json_data: json
-				});
-			}
+			this.tree.jstree('create_node', -1, 'last', {
+				json_data: json
+			});
 			
 			addToolTip.call(this, citizen);
 			
@@ -631,9 +625,7 @@ var editor = (function(editor) {
 					'selected_parent_close': 'false'
 				},
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
-			});	
-			
-			this.notifyListeners(editor.EventTypes.Trees.TreeCreated, this.tree);
+			});
 		},
 		
 		createCitizenTree = function(json) {
@@ -670,8 +662,6 @@ var editor = (function(editor) {
 				},
 				'plugins': ['json_data', 'sort', 'themes', 'types', 'ui']
 			});
-			
-			this.notifyListeners(editor.EventTypes.Trees.TreeCreated, this.tree);
 		},
 				
 		createTriggerTree = function(json) {
@@ -732,8 +722,6 @@ var editor = (function(editor) {
 			});
 			
 			this.tooltips.put(name, 'a trigger from any source');
-			
-			this.notifyListeners(editor.EventTypes.Trees.TreeCreated, this.tree);
 		},
 		
 		deselectAction = function(data) {
