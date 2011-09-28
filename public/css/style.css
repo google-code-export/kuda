@@ -51,10 +51,10 @@ body.ten24 {
 }
 
 /******************************************************************************
- * 									TabBar									  *
+ * 									NavBar									  *
  ******************************************************************************/
 
-#tabBar {
+#navBar {
 	position: absolute;
 	left: 0;
 	background: #333;
@@ -69,7 +69,7 @@ body.ten24 {
 	-moz-transition: box-shadow 0.25s ease-in-out;
 	-o-transition: box-shadow 0.25s ease-in-out;
 }
-#tabBar>h1 {
+#navBar>h1 {
 	font-size: 182%;
 	line-height: 250%;
 	font-weight: bold;
@@ -79,34 +79,34 @@ body.ten24 {
 	text-transform: uppercase;
 	float: left;
 }
-#tabBar>h1 span {
+#navBar>h1 span {
 	display: block;
 	float: left;
 }
-#tabBar>h1 span.editor {	
+#navBar>h1 span.editor {	
 	color: #75d0f4;
 	font-weight: 300;
 }
-#tabBar>ul {
+#navBar>ul {
 	font-weight: normal; 
 	margin-left: 0;
 }
-#tabBar>ul h2 {
+#navBar>ul h2 {
 	font-weight: 300;
 	font-size: 133.3%;
 	line-height: 200%;
 }
-#tabBar>ul>li {
+#navBar>ul>li {
 	float: left;
 	padding: 0.417em 0;
 	width: 100%;
 	clear: left;
 }
-#tabBar>ul>li>div {
+#navBar>ul>li>div {
 	padding-left: 0.833em;
 	position: relative;
 }
-#tabBar h2>a {
+#navBar h2>a {
 	text-decoration: none;
 	display: block;
 	color: #fff;
@@ -118,10 +118,10 @@ body.ten24 {
 	-o-transition: color 0.15s ease-in-out,
 		font-weight 0.25s ease-in-out;
 }
-#tabBar h2>a:hover {
+#navBar h2>a:hover {
 	color: #75d0f4;
 }
-#tabBar>ul>li>div.down h2>a {
+#navBar>ul>li>div.down h2>a {
 	color: #75d0f4;
 	font-weight: bold;
 }
@@ -620,7 +620,7 @@ body.ten24 {
 	display: block;
 	position: absolute;
 }
-#tabBar .minMax {
+#navBar .minMax {
 	height: 100px;
 	border-radius: 0 30px 30px 0;
 }
@@ -628,31 +628,31 @@ body.ten24 {
 	height: 100px;
 	border-radius: 30px 0 0 30px;
 }
-#tabBar .minMax:before,
+#navBar .minMax:before,
 .rightAligned .minMax:before {
 	width: 14px;
 	height: 21px;
 	margin: -4px 0 0 4px;	
 }
-#tabBar .minMax:before {
+#navBar .minMax:before {
 	left: -4px;
 }
 .rightAligned .minMax:before {
 	left: 0;
 }
-#tabBar .minMax:before,
+#navBar .minMax:before,
 .rightAligned.minimized .minMax:before {
 	background-position: -21px -42px;
 }
-#tabBar .minMax:hover:before,
+#navBar .minMax:hover:before,
 .rightAligned.minimized .minMax:hover:before {
 	background-position: -21px -63px;
 }
-#tabBar.minimized .minMax:before,
+#navBar.minimized .minMax:before,
 .rightAligned .minMax:before {
 	background-position: -21px 0;
 }
-#tabBar.minimized .minMax:hover:before,
+#navBar.minimized .minMax:hover:before,
 .rightAligned .minMax:hover:before {
 	background-position: -21px -21px;
 }
@@ -698,7 +698,7 @@ body.ten24 {
  * box shadows turned off
  */
 .minimized,
-#tabBar.minimized {
+#navBar.minimized {
 	box-shadow: none;
 }
 
