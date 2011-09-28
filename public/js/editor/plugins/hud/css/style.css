@@ -1,0 +1,57 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+
+/******************************************************************************
+ * 									 Forms									  *
+ ******************************************************************************/
+
+.hudSidePanel form input:not([type=radio]),
+.hudSidePanel form textarea {
+    width: 260px;
+}
+.hudSidePanel li.ranged input {
+	width: 123px;
+	float: left;
+	margin-right: 2px;
+}
+.hudSidePanel li.ranged div:last-child input {
+	margin-right: 0;
+}
+.hudSidePanel li input.vector {
+	width: 50px;
+}
+.hudSidePanel li input.color {
+	width: 24px;
+}
+
+/******************************************************************************
+ * 									General									  *
+ ******************************************************************************/
+#hudDpyName {
+	width: 126px;
+	float: left;
+}
+#hudEditDlg>div {
+	float: left;
+	width: 100%;
+}
+#hudTree {
+	float: left;
+	background: none;
+	margin-left: 10px;
+}
