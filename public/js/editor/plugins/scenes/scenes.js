@@ -165,16 +165,6 @@
 				sortable: true,
 				height: editor.ui.Height.FULL
 			});
-			
-			this.items = new Hashtable();
-		},
-		
-		add: function(obj) {
-			var li = this._super(obj);
-			
-			this.items.put(obj.getId(), li);
-			
-			return li;
 		},
 		
 		bindButtons: function(li, obj) {
@@ -221,31 +211,6 @@
 		
 		getOtherHeights: function() {
 			return this.form.outerHeight(true);
-		},
-		
-		getListItem: function(obj) {
-			if (obj instanceof hemi.dispatch.MessageTarget) {
-				var items = this.items.values(),
-					found = -1,
-					itm = null;
-				
-				for (var ndx = 0, len = items.length; ndx < len && found === -1; ndx++) {
-					var item = items[ndx];
-					
-					if (item.events.containsKey(obj.dispatchId)) {
-						found = ndx;
-					}
-				}
-				
-			 	if (found !== -1) {
-					itm = items[found];
-				}
-				
-				return itm;
-			}
-			else { // it's a scene
-				return this.items.get(obj.getId());
-			}
 		},
 		
 		layoutExtra: function() {
