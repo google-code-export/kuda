@@ -339,7 +339,7 @@ app.post('/publish', function(req, res) {
 		fs.mkdirSync(toDir + '/lib', stat.mode);
 		copyFile('./public/js/hemi.min.js', toDir);
 		copyFile('./public/js/o3d.min.js', toDir);
-		copyFile('./public/js/lib/jshashtable.js', toDir + '/lib');
+		copyFile('./public/js/lib/jshashtable.min.js', toDir + '/lib');
 		copyFile(projectsPath + '/' + name + '.json', toDir);
 		fs.writeFileSync(toDir + '/README', readme.concat(models));
 		fs.writeFileSync(toDir + '/' + name + '.html',
