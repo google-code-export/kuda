@@ -46,7 +46,7 @@ var editor = (function(editor) {
 		prjPane.setVisible(true);
 		
 		prjView.sidePanel.addListener(editor.events.PanelVisible, function(data) {
-			var pane = editor.ui.getTabBar().visiblePane;
+			var pane = editor.ui.getNavBar().visiblePane;
 			
 			if (pane && !prjView.isPreview) {
 				pane.setVisible(!data.visible);
@@ -749,7 +749,7 @@ var editor = (function(editor) {
 				var views = editor.getViews();
 				
 				// hide the main panel
-				editor.ui.getTabBar().setVisible(false);
+				editor.ui.getNavBar().setVisible(false);
 				view.sidePanel.setVisible(false);
 				
 				// show the preview panel
@@ -822,7 +822,7 @@ var editor = (function(editor) {
 				view.isPreview = false;
 			}, 0);
 			
-			editor.ui.getTabBar().setVisible(true);
+			editor.ui.getNavBar().setVisible(true);
 			this.sidePanel.setVisible(true);
 			this.topPanel.setVisible(false);
 		},

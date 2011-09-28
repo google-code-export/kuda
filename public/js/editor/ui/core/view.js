@@ -342,7 +342,7 @@ var editor = (function(editor) {
 //                     			   	  Tab Bar	  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var TabBar = PanelBase.extend({
+	var NavBar = PanelBase.extend({
 		init: function() {
 			this.panes = new Hashtable();
 			this.visiblePane = null;
@@ -357,7 +357,7 @@ var editor = (function(editor) {
 
 			var title = jQuery('<h1><span>World</span><span class="editor">Editor</span></h1>');
 			this.list = jQuery('<ul></ul>');
-			this.container.attr('id', 'tabBar').append(title).append(this.list);
+			this.container.attr('id', 'navBar').append(title).append(this.list);
 			this.resize();
 		},
 		
@@ -837,70 +837,70 @@ var editor = (function(editor) {
 //                     			  Private Vars  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var tabbar;
-		
 	var resize = function() {		
-		var bdy = jQuery('body'),
-			win = jQuery(window),
-			vwr = jQuery('.mainView'),
-		
-			windowWidth = window.innerWidth ? window.innerWidth 
-				: document.documentElement.offsetWidth,
-			windowHeight = win.height();
+			var bdy = jQuery('body'),
+				win = jQuery(window),
+				vwr = jQuery('.mainView'),
 			
-		if (windowWidth <= 1024) {
-			bdy.addClass('ten24');
-			windowWidth = 1024;
-		}
-		else {
-			bdy.removeClass('ten24');
-		}
-		
-		if (windowHeight <= 728) {
-			windowHeight = 728;
-			if (!bdy.hasClass('ten24')) {
+				windowWidth = window.innerWidth ? window.innerWidth 
+					: document.documentElement.offsetWidth,
+				windowHeight = win.height();
+				
+			if (windowWidth <= 1024) {
 				bdy.addClass('ten24');
+				windowWidth = 1024;
 			}
-		}
+			else {
+				bdy.removeClass('ten24');
+			}
+			
+			if (windowHeight <= 728) {
+				windowHeight = 728;
+				if (!bdy.hasClass('ten24')) {
+					bdy.addClass('ten24');
+				}
+			}
+			
+			vwr.width(windowWidth);
+			vwr.height(windowHeight);
+			
+			for (var i = 0, il = panels.length; i < il; i++) {
+				panels[i].resize();
+			}
+			
+			// Unfortunately we also have to do this O3D-specific resizing
+			var cans = vwr.find('canvas'),
+				displayInfo = hemi.core.client.gl.displayInfo;
+			
+			cans.attr('width', windowWidth);
+			cans.attr('height', windowHeight);
+			displayInfo.width = windowWidth;
+			displayInfo.height = windowHeight;
+			// For some reason, textBaseline gets reset when canvas is resized
+			hemi.hud.hudMgr.canvas.textBaseline = 'top';
+		},
 		
-		vwr.width(windowWidth);
-		vwr.height(windowHeight);
-		
-		for (var i = 0, il = panels.length; i < il; i++) {
-			panels[i].resize();
-		}
-		
-		// Unfortunately we also have to do this fairly O3D-specific resizing
-		var cans = vwr.find('canvas'),
-			displayInfo = hemi.core.client.gl.displayInfo;
-		
-		cans.attr('width', windowWidth);
-		cans.attr('height', windowHeight);
-		displayInfo.width = windowWidth;
-		displayInfo.height = windowHeight;
-		// For some reason, textBaseline gets reset when the canvas is resized
-		hemi.hud.hudMgr.canvas.textBaseline = 'top';
-	};
+		navBar;
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			   Public Methods  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 		
 	editor.ui.addTabPane = function(tabpane, opt_liId) {
-		tabbar.add(tabpane, opt_liId);
+		navBar.add(tabpane, opt_liId);
 	};
 	
-	editor.ui.getTabBar = function() {
-		return tabbar;
+	editor.ui.getNavBar = function() {
+		return navBar;
 	};
 	
 	editor.ui.getTabPane = function(title) {
-		var tabpane = tabbar.get(title);
+		var tabpane = navBar.get(title);
 		
 		if (!tabpane) {
 			tabpane = new editor.ui.TabPane(title);
 			tabpane.setToolBar(new editor.ui.ToolBar());
-			tabbar.add(tabpane);
+			navBar.add(tabpane);
 		}
 		
 		return tabpane;
@@ -914,7 +914,7 @@ var editor = (function(editor) {
 		// create the grid plane
 		grid = new editor.ui.GridPlane(EXTENT, FIDELITY);
 		// create the plugin panel
-		tabbar = new TabBar();
+		navBar = new NavBar();
 			
 		var cam = hemi.world.camera;
 		cam.enableControl();
