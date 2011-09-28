@@ -105,7 +105,8 @@ var editor = (function(editor) {
 							mdl.plugins.push(name);
 							mdl.notifyListeners(event.PluginLoaded, name);
 						}
-			
+						
+						mdl.updatePluginList();
 						mdl.notifyListeners(event.PluginActive, {
 							plugin: name,
 							active: true
@@ -122,7 +123,8 @@ var editor = (function(editor) {
 				for (var i = 0, il = views.length; i < il; i++) {
 					views[i].setEnabled(true);
 				}
-			
+				
+				this.updatePluginList();
 				this.notifyListeners(event.PluginActive, {
 					plugin: pluginName,
 					active: true
@@ -174,6 +176,28 @@ var editor = (function(editor) {
 				plugin: pluginName,
 				active: false
 			});
+			
+			this.updatePluginList();
+		},
+		
+		updatePluginList: function() {
+			if (this.initComplete) {
+				var mdl = this,
+					plugsData = {
+						plugins: mdl.activePlugins
+					},
+					data = {
+						plugins: JSON.stringify(plugsData)
+					};
+				
+				jQuery.post('/plugins', data, 'json')
+				.success(function(data, status, xhr) {
+					// No feedback expected
+				})
+				.error(function(xhr, status, err) {
+					// No feedback expected
+				});
+			}
 		}
 	});
 		
