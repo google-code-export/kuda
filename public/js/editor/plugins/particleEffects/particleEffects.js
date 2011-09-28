@@ -203,11 +203,10 @@
 			var colorAdder = this.find('#pteAddColorToRamp'),
 				wrapper = this.find('#pteColorRampWrapper'),
 				ndx = colorAdder.data('ndx'),
-				wgt = this,
-				colorPicker;
+				wgt = this;
 			
 			if (this.colorPickers.length <= ndx) {
-				colorPicker = new editor.ui.ColorPicker({
+				var colorPicker = new editor.ui.ColorPicker({
 					inputId: 'pte-colorRamp' + ndx,
 					containerClass: 'colorRampAdd',
 					buttonId: 'pteColorRamp' + ndx + 'Picker'
@@ -218,12 +217,13 @@
 				});
 			
 				this.colorPickers.push(colorPicker);
+				wrapper.before(colorPicker.getUI());
 			}
 			else {
-				colorPicker = this.colorPickers[ndx];
+				var colorPicker = this.colorPickers[ndx];
+				colorPicker.getUI().show();
 			}
 			
-			wrapper.before(colorPicker.getUI());
 			colorAdder.data('ndx', ndx+1);
 		},
 		
@@ -264,9 +264,8 @@
 					fireInt = effect.fireInterval, 
 					numColors = colorRamp.length / 4;
 				
-				this.tplSelect.val(-1);
-				this.typeSelect.val(type).change();
-				this.stateSelect.val(state);
+				this.typeSelect.val(type).change().sb('refresh');
+				this.stateSelect.val(state).sb('refresh');
 				this.name.setValue(effect.name);
 				
 				for (var paramName in params) {
@@ -513,9 +512,11 @@
 		},
 		
 		getColorRamp: function() {
-			var ramp = [];
+			var colorAdder = this.find('#pteAddColorToRamp'),
+				colors = colorAdder.data('ndx'),
+				ramp = [];
 			
-			for (var i = 0, il = this.colorPickers.length; i < il; ++i) {
+			for (var i = 0; i < colors; ++i) {
 				ramp = ramp.concat(this.colorPickers[i].getColor());
 			}
 			
@@ -564,9 +565,9 @@
 		
 		reset: function() {      
 			// reset selects
-			this.tplSelect.val(-1);
-			this.typeSelect.val(-1).removeAttr('disabled');
-			this.stateSelect.val(-1);
+			this.tplSelect.val(-1).sb('refresh');
+			this.typeSelect.val(-1).sb('refresh');
+			this.stateSelect.val(-1).sb('refresh');
 			
 			// set all inputs to blank
 			this.numParticles.reset();
@@ -606,7 +607,7 @@
 			this.find('#ptePreviewBtn').text('Start Preview').data('previewing', false).attr('disabled', 'disabled');
 			
 			// remove additional color ramp values
-			this.find('.colorRampAdd').remove();
+			this.find('.colorRampAdd').hide();
 			this.find('#pteAddColorToRamp').data('ndx', 1);
 			var colorRampPicker = this.colorPickers[0];
 			colorRampPicker.reset();
