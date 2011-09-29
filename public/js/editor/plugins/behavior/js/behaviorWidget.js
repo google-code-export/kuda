@@ -702,29 +702,22 @@
 				// actions				
 				for (var k = 0, kl = spec.targets.length; k < kl; k++) {
 					var target = spec.targets[k],
-						idCompares = target.handler === id;
+						compId;
 					
-					if (!idCompares) {
-						// value check case
-						if (target.handler instanceof hemi.handlers.ValueCheck) {
-							var firstArg = target.handler.args[0], 
-								testId = firstArg === 'string' ? 
-									parseInt(firstArg.replace('id:', '')) : -1;
-							
-							idCompares = testId === id ||
-								target.handler.values[0] === id ||
-								target.handler.handler.getId() === id;
+					// valuecheck case
+					if (target.handler instanceof hemi.handlers.ValueCheck) {
+						if (target.handler.citizen instanceof hemi.view.Camera){
+							compId = target.handler.values[0];
 						}
-						// camera case
-						else if (target.handler.getCitizenType() === 
-								'hemi.view.Camera') {
-							idCompares =  
-								parseInt(target.args[0].replace('id:', '')) === 
-								id;
+						else {
+							compId = target.handler.citizen.getId();
 						}
 					}
+					else {
+						compId = target.handler.getId();
+					}
 					
-					if (idCompares) {
+					if (compId === id) {
 						this.add(target, spec);
 					}
 				}
@@ -801,29 +794,28 @@
 			li = null;
 		
 		// check special cases
-		if (data.source.camMove) {
+		if (source.camMove) {
 			li = behaviorLiTable.get(hemi.world.getCitizenById(data.type));
 		}
-		else if (!data.source.shapePick) {
-			li = behaviorLiTable.get(hemi.world.getCitizenById(data.source));
+		else if (source !== shorthand.treeData.MSG_WILDCARD && !source.shapePick) {
+			li = behaviorLiTable.get(hemi.world.getCitizenById(source));
 		}
 		
 		if (li != null)  {
 			li[method](msgTarget, spec);
-			
 			li = null;
+		}
 			
-			if (data.handler.getCitizenType() === 'hemi.view.Camera') {
-				var id = parseInt(data.args[0].value.replace('id:', ''));
-				li = behaviorLiTable.get(hemi.world.getCitizenById(id));				
-			}
-			else {
-				li = behaviorLiTable.get(data.handler);
-			}
-			
-			if (li != null) {
-				li[method](msgTarget, spec);
-			}
+		if (data.method === 'moveToView' && data.handler.getCitizenType() === 'hemi.view.Camera') {
+			var id = parseInt(data.args[0].value.replace('id:', ''));
+			li = behaviorLiTable.get(hemi.world.getCitizenById(id));				
+		}
+		else {
+			li = behaviorLiTable.get(data.handler);
+		}
+		
+		if (li != null) {
+			li[method](msgTarget, spec);
 		}
 	};
 	
