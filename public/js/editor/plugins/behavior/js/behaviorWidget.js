@@ -696,14 +696,29 @@
 				// actions				
 				for (var k = 0, kl = spec.targets.length; k < kl; k++) {
 					var target = spec.targets[k],
-						isValueCheck = target.handler 
-							instanceof hemi.handlers.ValueCheck;
+						idCompares = target.handler === id;
 					
-					if (target.handler === id || (isValueCheck
-							&& parseInt(target.handler.args[0].replace(
-							'id:', '')) === id) || (isValueCheck 
-							&& target.handler.values[0] === id)
-							) {
+					if (!idCompares) {
+						// value check case
+						if (target.handler instanceof hemi.handlers.ValueCheck) {
+							var firstArg = target.handler.args[0], 
+								testId = firstArg === 'string' ? 
+									parseInt(firstArg.replace('id:', '')) : -1;
+							
+							idCompares = testId === id ||
+								target.handler.values[0] === id ||
+								target.handler.handler.getId() === id;
+						}
+						// camera case
+						else if (target.handler.getCitizenType() === 
+								'hemi.view.Camera') {
+							idCompares =  
+								parseInt(target.args[0].replace('id:', '')) === 
+								id;
+						}
+					}
+					
+					if (idCompares) {
 						this.add(target, spec);
 					}
 				}
@@ -780,10 +795,13 @@
 			li = null;
 		
 		// check special cases
-		if (data.source.camMove) {			
-			source = data.type;
+		if (data.source.camMove) {
+			li = behaviorLiTable.get(hemi.world.getCitizenById(data.type));
 		}
-		li = behaviorLiTable.get(hemi.world.getCitizenById(source));
+		else if (!data.source.shapePick) {
+			li = behaviorLiTable.get(hemi.world.getCitizenById(data.source));
+		}
+		
 		if (li != null)  {
 			li[method](msgTarget, spec);
 			
