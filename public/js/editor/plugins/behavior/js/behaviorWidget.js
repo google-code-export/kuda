@@ -560,22 +560,25 @@
 		},
 		
 		add: function(msgTarget, spec) {
-			var li = new editor.ui.EditableListItem(),
-				data = expandTargetData(msgTarget, spec),				
-				name = getTriggerName(data);
-			
-			li.setText(name.join('.') + ': ' + msgTarget.name);
-			li.attachObject(msgTarget);
-			
-			this.bindButtons(li);
-			this.list.add(li);
-			
-			this.targets.put(msgTarget.dispatchId, li);
+			if (this.targets.get(msgTarget.dispatchId) == null) {
+				var li = new editor.ui.EditableListItem(), 
+					data = expandTargetData(msgTarget, spec), 
+					name = getTriggerName(data);
+				
+				li.setText(name.join('.') + ': ' + msgTarget.name);
+				li.attachObject(msgTarget);
+				
+				this.bindButtons(li);
+				this.list.add(li);
+				
+				this.targets.put(msgTarget.dispatchId, li);
+			}
 		},
 		
 		attachObject: function(obj) {
 			this._super(obj);
 			
+			detectTriggersAndActions.call(this, obj);
 			behaviorLiTable.put(obj, this);
 		},
 		
@@ -675,6 +678,40 @@
 		}
 	});
 	
+	var detectTriggersAndActions = function(citizen) {
+		editor.getDispatchProxy().swap();
+		var specs = hemi.dispatch.getSpecs(),
+			id = citizen.getId();
+		
+		for (var i = 0, il = specs.length; i < il; i++) {
+			var spec = specs[i];
+			
+			if (spec.src === id) {
+				// triggers
+				for (var k = 0, kl = spec.targets.length; k < kl; k++) {
+					this.add(spec.targets[k], spec);
+				}
+			}
+			else {
+				// actions				
+				for (var k = 0, kl = spec.targets.length; k < kl; k++) {
+					var target = spec.targets[k],
+						isValueCheck = target.handler 
+							instanceof hemi.handlers.ValueCheck;
+					
+					if (target.handler === id || (isValueCheck
+							&& parseInt(target.handler.args[0].replace(
+							'id:', '')) === id) || (isValueCheck 
+							&& target.handler.values[0] === id)
+							) {
+						this.add(target, spec);
+					}
+				}
+			}
+		}
+		editor.getDispatchProxy().unswap();
+	};
+	
 ////////////////////////////////////////////////////////////////////////////////
 //                                	   Setup	                              //
 ////////////////////////////////////////////////////////////////////////////////
@@ -736,34 +773,32 @@
 		return actor ? behaviorLiTable.get(actor) : null;
 	};
 	
-	shorthand.updateBehaviorListItems = function(msgTarget, spec) {
+	shorthand.updateBehaviorListItems = function(msgTarget, spec, opt_update) {
 		var data = expandTargetData(msgTarget, spec),
 			source = data.source,
+			method = opt_update ? 'update' : 'add',
 			li = null;
 		
 		// check special cases
-		if (data.source.camMove || data.source.shapePick) {			
+		if (data.source.camMove) {			
 			source = data.type;
 		}
 		li = behaviorLiTable.get(hemi.world.getCitizenById(source));
-		if (li == null) {
-			setTimeout(function(){
-				shorthand.updateBehaviorListItems(msgTarget, spec);
-			}, 50);
-		}
-		else {
-			li.add(msgTarget, spec);
+		if (li != null)  {
+			li[method](msgTarget, spec);
 			
 			li = null;
-			switch (data.handler.getCitizenType()) {
-				case 'hemi.view.Camera':
-					var id = parseInt(data.args[0].value.replace('id:', ''));
-					li = behaviorLiTable.get(hemi.world.getCitizenById(id));
-					break;
+			
+			if (data.handler.getCitizenType() === 'hemi.view.Camera') {
+				var id = parseInt(data.args[0].value.replace('id:', ''));
+				li = behaviorLiTable.get(hemi.world.getCitizenById(id));				
+			}
+			else {
+				li = behaviorLiTable.get(data.handler);
 			}
 			
 			if (li != null) {
-				li.add(msgTarget, spec);
+				li[method](msgTarget, spec);
 			}
 		}
 	};
