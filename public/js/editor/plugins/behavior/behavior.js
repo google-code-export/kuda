@@ -697,6 +697,12 @@
 			bhvWgt.addListener(shorthand.events.UpdateBehavior, model);
 			
 			// view specific
+			view.topPanel.addListener(editor.events.PanelVisible, function(data) {
+				if (data.visible) {
+					bhvWgt.axnChooser.rebindTree();
+					bhvWgt.trgChooser.rebindTree();
+				}
+			});
 			tblWgt.addListener(shorthand.events.CloneTarget, function(data) {
 				model.copyTarget(data.target);
 				model.save(data.name);
@@ -718,31 +724,23 @@
 				var target = data.target,
 					spec = model.dispatchProxy.getTargetSpec(target);
 				
-				shorthand.updateBehaviorListItems(target, spec);
+				shorthand.modifyBehaviorListItems(target, spec);
 				tblWgt.add(target, spec);
 				
 				bhvWgt.setVisible(false);
 			});			
 			model.addListener(editor.events.Removed, function(target) {
+				var	spec = model.dispatchProxy.getTargetSpec(target);
+				
 				tblWgt.remove(target);
-				
-				var li = shorthand.getBehaviorListItem(target.actor);
-				
-				if (li) {
-					li.remove(target);
-				}
+				shorthand.modifyBehaviorListItems(target, spec, 'remove');
 			});			
 			model.addListener(editor.events.Updated, function(data) {
 				var target = data.target,
 					spec = model.dispatchProxy.getTargetSpec(target);
-//					li = shorthand.getBehaviorListItem(data.actor);
 				
-				shorthand.updateBehaviorListItems(target, spec, true);
+				shorthand.modifyBehaviorListItems(target, spec, 'update');
 				tblWgt.update(target, spec);
-				
-//				if (li) {
-//					li.update(target, spec);
-//				}
 			});
 			
 			// behavior widget specific
