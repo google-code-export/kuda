@@ -734,14 +734,15 @@
 			});			
 			model.addListener(editor.events.Updated, function(data) {
 				var target = data.target,
-					spec = model.dispatchProxy.getTargetSpec(target),
-					li = shorthand.getBehaviorListItem(data.actor);
+					spec = model.dispatchProxy.getTargetSpec(target);
+//					li = shorthand.getBehaviorListItem(data.actor);
 				
+				shorthand.updateBehaviorListItems(target, spec, true);
 				tblWgt.update(target, spec);
 				
-				if (li) {
-					li.update(target, spec);
-				}
+//				if (li) {
+//					li.update(target, spec);
+//				}
 			});
 			
 			// behavior widget specific
