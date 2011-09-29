@@ -45,7 +45,6 @@
 	    SaveParticleFx: "particleFx.SaveParticleFx",
 	    StartParticleFxPreview: "particleFx.StartParticleFxPreview",
 	    StopParticleFxPreview: "particleFx.StopParticleFxPreview",
-		TemplateSelected: "particleFx.TemplateSelected",
 		
 		// list sidebar widget specific
 	    EditParticleFx: "particleFx.EditParticleFx",
@@ -62,82 +61,79 @@
     var ParticleFxModel = editor.ToolModel.extend({
 		init: function() {
 			this._super('particleEffects');
-			this.currentParticleEffect = null;
-			this.isUpdating = false;
+			this.currentEffect = null;
+			this.previewEffect = null;
 	    },
 		
-		cancelParticleFxEdit: function() {
-			this.stopPreview();
-				
-			if (!this.isUpdating && this.currentParticleEffect) {
-				this.currentParticleEffect.cleanup();
-			}
-			
-			this.currentParticleEffect = null;
-			this.isUpdating = false;
-		},
-		
 		create: function(props) {
-			var oldId = null;
-				
-			if (this.currentParticleEffect) {
+			if (this.previewEffect) {
 				this.stopPreview();
-				oldId = this.currentParticleEffect.getId();
-				this.currentParticleEffect.cleanup();
+				this.previewEffect.cleanup();
 			}
 			
 			switch (props.type) {
 				case 'Burst':
-					this.currentParticleEffect = hemi.effect.createBurst(props.state, props.colorRamp, props.params);
+					this.previewEffect = hemi.effect.createBurst(props.state, props.colorRamp, props.params);
 					break;
 				case 'Trail':
-					this.currentParticleEffect = hemi.effect.createTrail(props.state, props.colorRamp, props.params, props.fireInterval);
+					this.previewEffect = hemi.effect.createTrail(props.state, props.colorRamp, props.params, props.fireInterval);
 					break;
 				case 'Emitter':
-					this.currentParticleEffect = hemi.effect.createEmitter(props.state, props.colorRamp, props.params);
+					this.previewEffect = hemi.effect.createEmitter(props.state, props.colorRamp, props.params);
 					break;
 			}
 			
-			if (oldId) {
-				this.currentParticleEffect.setId(oldId);
-			}
+			this.previewEffect.name = editor.ToolConstants.EDITOR_PREFIX + 'PreviewEffect';
 		},
 		
 		preview: function(props) {
 			this.create(props);
-			this.currentParticleEffect.particles = null;
 			
-			switch(this.currentParticleEffect.citizenType) {
+			switch(this.previewEffect.citizenType) {
 				case 'hemi.effect.Burst':
-					this.currentParticleEffect.trigger();
+					this.previewEffect.trigger();
 					break;
 				case 'hemi.effect.Trail':
-					this.currentParticleEffect.start();
+					this.previewEffect.start();
 					break;
 				case 'hemi.effect.Emitter':
-					this.currentParticleEffect.show();
+					this.previewEffect.show();
 					break;
 			}
 		},
 		
 		removeEffect: function(effect) {
+			if (effect === this.currentEffect) {
+				this.currentEffect = null;
+			}
+			
 			effect.cleanup();
 			this.notifyListeners(editor.events.Removed, effect);
 		},
 		
 		save: function(props) {
+			var oldId = null,
+				msgType;
+			
+			if (this.currentEffect) {
+				msgType = editor.events.Updated;
+				oldId = this.currentEffect.getId();
+				this.currentEffect.cleanup();
+			} else {
+				msgType = editor.events.Created;
+			}
+			
 			this.create(props);
+			this.previewEffect.name = props.name;
 			
-			var msgType = this.isUpdating ? editor.events.Updated 
-				: editor.events.Created;
-										
-			this.currentParticleEffect.name = props.name;
-			this.currentParticleEffect.particles = null;
+			if (oldId) {
+				this.previewEffect.setId(oldId);
+			}
 				
-			this.notifyListeners(msgType, this.currentParticleEffect);
+			this.notifyListeners(msgType, this.previewEffect);
 			
-			this.currentParticleEffect = null;
-			this.isUpdating = false;	
+			this.currentEffect = null;
+			this.previewEffect = null;	
 		},
 		
 		saveTemplate: function(name) {
@@ -145,24 +141,23 @@
 		},
 		
 		setEffect: function(effect) {
-			this.currentParticleEffect = effect;
-			this.isUpdating = true;
-		},
-		
-		setTemplate: function(tpl) {
-			if (this.isUpdating) {
-				this.create(tpl);
+			if (this.previewEffect) {
+				this.stopPreview();
+				this.previewEffect.cleanup();
+				this.previewEffect = null;
 			}
+			
+			this.currentEffect = effect;
 		},
 		
 		stopPreview: function() {
-			if (this.currentParticleEffect) {
-				switch(this.currentParticleEffect.citizenType) {
+			if (this.previewEffect) {
+				switch(this.previewEffect.citizenType) {
 					case 'hemi.effect.Trail':
-						this.currentParticleEffect.stop();
+						this.previewEffect.stop();
 						break;
 					case 'hemi.effect.Emitter':
-						this.currentParticleEffect.hide();
+						this.previewEffect.hide();
 						break;
 				}
 			}
@@ -659,7 +654,6 @@
 					
 				if (ndx !== -1) {
 					var tpl = wgt.templates[ndx];
-					wgt.notifyListeners(shorthand.events.TemplateSelected, tpl);
 					wgt.edit(tpl);
 				} else {
 					wgt.reset();
@@ -768,7 +762,7 @@
 			
 			// create widget specific
 			pteCrt.addListener(editor.events.Cancel, function() {
-				model.cancelParticleFxEdit();
+				model.setEffect(null);
 			});
 			pteCrt.addListener(shorthand.events.SaveParticleFx, function(props) {
 				model.save(props);
@@ -778,9 +772,6 @@
 			});
 			pteCrt.addListener(shorthand.events.StopParticleFxPreview, function(value) {
 				model.stopPreview();
-			});
-			pteCrt.addListener(shorthand.events.TemplateSelected, function(template) {
-				model.setTemplate(template);
 			});
 			
 			// list widget specific
