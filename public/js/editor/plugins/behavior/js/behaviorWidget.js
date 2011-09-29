@@ -30,6 +30,9 @@
 		ACTION: 'action',
 		NA: 'na'
 	};
+			
+	var axnTree = null,
+		trgTree = null;
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                              Widget Helpers                                //
@@ -182,22 +185,22 @@
 					
 			var nodeName = shorthand.treeData.getNodeName(source, {
 						option: data.type,
-						prefix: this.trgTree.pre,
+						prefix: trgTree.pre,
 						id: source.getId ? source.getId() : null
 					}),				
-				trgT = this.trgTree.getUI(),
-				axnT = this.axnTree.getUI();
+				trgT = trgTree.getUI(),
+				axnT = axnTree.getUI();
 			
-			openNode(trgT, source, this.trgTree.pre);
+			openNode(trgT, source, trgTree.pre);
 			this.trgChooser.select(nodeName);
 			
 			nodeName = shorthand.treeData.getNodeName(data.handler, {
 				option: data.method,
-				prefix: this.axnTree.pre,
+				prefix: axnTree.pre,
 				id: data.handler.getId()
 			});
 			
-			openNode(axnT, data.handler, this.axnTree.pre);
+			openNode(axnT, data.handler, axnTree.pre);
 			this.axnChooser.select(nodeName);	
 						
 			for (var i = 0, il = data.args.length; i < il; i++) {
@@ -216,23 +219,23 @@
 					cit = data.trigger.citizen,
 					nodeName = shorthand.treeData.getNodeName(cit, {
 						option: msg,
-						prefix: this.trgTree.pre,
+						prefix: trgTree.pre,
 						id: cit.getId()
 					});
 				
 				this.trgChooser.select(nodeName);
-				openNode(this.trgTree.getUI(), cit, this.trgTree.pre);
+				openNode(trgTree.getUI(), cit, trgTree.pre);
 			}
 			if (data.action) {
 				var handler = data.action.handler,
 					func = data.action.method,
 					nodeName = shorthand.treeData.getNodeName(handler, {
 						option: [func],
-						prefix: this.axnTree.pre,
+						prefix: axnTree.pre,
 						id: handler.getId()
 					});
 				
-				openNode(this.axnTree.getUI(), handler, this.axnTree.pre);
+				openNode(axnTree.getUI(), handler, axnTree.pre);
 				this.axnChooser.select(nodeName);
 			}
 			if (data.args) {					
@@ -268,6 +271,12 @@
 				+ Math.ceil(parseFloat(pnl.css('borderLeftWidth')));
 			this.treePadding = Math.ceil(parseFloat(pnl.css('paddingLeft'))) 
 				+ Math.ceil(parseFloat(pnl.css('paddingRight')));
+		},
+		
+		rebindTree: function() {
+			this.tree.unbind('select_node.jstree')
+				.bind('select_node.jstree', this.selFcn);
+			this.panel.append(this.tree);
 		}
 	});
 	
@@ -369,9 +378,6 @@
 			this.saveBtn = saveBtn;
 			this.cancelBtn = cancelBtn;
 			this.nameIpt = nameIpt;
-			
-			this.axnTree = shorthand.createActionsTree();
-			this.trgTree = shorthand.createTriggersTree();
 							
 			this.prms = new shorthand.Parameters({
 					prefix: 'bhvEdt'
@@ -379,13 +385,21 @@
 			
 			paramsList.find('li').append(this.prms.getUI());
 				
+			// init trees
+			if (axnTree == null) {
+				axnTree = shorthand.createActionsTree();
+			}
+			if (trgTree == null) {				
+				trgTree = shorthand.createTriggersTree();
+			}
+			
 			this.trgChooser = new BhvTreeSelector({
-				tree: this.trgTree,
+				tree: trgTree,
 				select: selFcn
 			}); 
 			
 			this.axnChooser = new BhvTreeSelector({
-				tree: this.axnTree,
+				tree: axnTree,
 				select: selFcn
 			});
 			
@@ -453,8 +467,8 @@
 			this.prms.reset();
 			this.nameIpt.val('');
 			
-			reset(this.trgTree.getUI());
-			reset(this.axnTree.getUI());
+			reset(trgTree.getUI());
+			reset(axnTree.getUI());
 			
 			this.checkSaveButton();
 			this.msgTarget = null;
@@ -511,13 +525,13 @@
 			switch(type) {
 				case shorthand.BehaviorTypes.ACTION:
 					// get the list of functions
-					this.axnTree.restrictSelection(actor, getMethods(actor));
+					axnTree.restrictSelection(actor, getMethods(actor));
 					// open up to the actor's node
-					openNode(this.axnTree.getUI(), actor, this.axnTree.pre);
+					openNode(axnTree.getUI(), actor, axnTree.pre);
 					break;
 				case shorthand.BehaviorTypes.TRIGGER:
-					this.trgTree.restrictSelection(actor, getMessages(actor));
-					openNode(this.trgTree.getUI(), actor, this.trgTree.pre);		    
+					trgTree.restrictSelection(actor, getMessages(actor));
+					openNode(trgTree.getUI(), actor, trgTree.pre);		    
 					break;
 			}
 			
@@ -535,12 +549,12 @@
 		},
 		
 		setTrigger: function(source, messages) {
-			this.trgTree.restrictSelection(source, messages);
-			openNode(this.trgTree.getUI(), source, this.trgTree.pre);
+			trgTree.restrictSelection(source, messages);
+			openNode(trgTree.getUI(), source, trgTree.pre);
 			
 			var nodeId = shorthand.treeData.getNodeName(source, {
 				option: messages[0],
-				prefix: this.trgTree.pre,
+				prefix: trgTree.pre,
 				id: source.getId ? source.getId() : null
 			});
 			
@@ -548,6 +562,10 @@
 		},
 		
 		setVisible: function(visible, etc) {
+			if (visible) {
+				this.axnChooser.rebindTree();
+				this.trgChooser.rebindTree();
+			}
 			this._super(visible, etc);
 		}
 	});
@@ -736,17 +754,17 @@
 		addTriggerMnuItm = new editor.ui.MenuItem({
 			title: 'Trigger a behavior',
 			action: function(evt) {
+				behaviorMenu.widget.setVisible(true);
 				behaviorMenu.widget.setActor(behaviorMenu.actor, 
 					shorthand.BehaviorTypes.TRIGGER);
-				behaviorMenu.widget.setVisible(true);
 			}
 		}),
 		addActionMnuItm = new editor.ui.MenuItem({
 			title: 'Respond to a trigger',
 			action: function(evt) {
+				behaviorMenu.widget.setVisible(true);
 				behaviorMenu.widget.setActor(behaviorMenu.actor, 
 					shorthand.BehaviorTypes.ACTION);
-				behaviorMenu.widget.setVisible(true);
 			}
 		});
 		
@@ -787,10 +805,12 @@
 		return actor ? behaviorLiTable.get(actor) : null;
 	};
 	
-	shorthand.updateBehaviorListItems = function(msgTarget, spec, opt_update) {
+	shorthand.modifyBehaviorListItems = function(msgTarget, spec, opt_method) {
 		var data = expandTargetData(msgTarget, spec),
 			source = data.source,
-			method = opt_update ? 'update' : 'add',
+			method = opt_method == null || (opt_method != 'add' && 
+				opt_method != 'update' && opt_method != 'remove') ? 'add' : 
+				opt_method,
 			li = null;
 		
 		// check special cases
