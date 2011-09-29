@@ -133,7 +133,12 @@ var editor = (function(editor) {
 		},
 		
 		onChange: function(val) {
-			this.notifyListeners(editor.events.Updated, val);
+			var that = this;
+			
+			this.notifyListeners(editor.events.Updated, {
+				tran: that.transform,
+				delta: val
+			});
 		},
 		
 		onMouseDown: function(evt) {

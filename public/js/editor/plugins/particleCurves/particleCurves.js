@@ -61,7 +61,6 @@
 		AddBox: "Curves.AddBox",
 		RemoveBox: "Curves.RemoveBox",
 		UpdateBox: "Curves.UpdateBox",
-		UpdateBoxes: "Curves.UpdateBoxes",
 		StartPreview: "Curves.StartPreview",
 		StopPreview: "Curves.StopPreview",
 		SetCurveColor: "Curves.SetCurveColor",
@@ -361,25 +360,6 @@
 			}
 		},
 		
-		updateBoxes: function() {				
-			for (var i = 0, il = this.boxes.length; i < il; i++) {
-				var box = this.boxes[i],
-					transform = box.transform,
-					minExtent = transform.boundingBox.minExtent,
-					maxExtent = transform.boundingBox.maxExtent,
-					height = maxExtent[1] - minExtent[1],
-					width = maxExtent[0] - minExtent[0],
-					depth = maxExtent[2] - minExtent[2],
-					position = transform.getUpdatedWorldMatrix()[3];
-				
-				box.update(position, [height, width, depth]);
-								
-				this.notifyListeners(shorthand.events.BoxUpdated, box);
-			}
-			this.config.boxes = getExtentsList(this.boxes);			
-			this.updateSystem('boxes', this.config.boxes);
-		},
-		
 		updateSystem: function(param, value) {
 			if (this.currentSystem) {
 				var method = this.currentSystem['set' + param.capitalize()];
@@ -677,7 +657,7 @@
 			this.boxes.put(box, wrapper);
 			this.boxList.append(wrapper);
 			this.boxesUpdated(this.boxes.size());
-			this.showBoxWireframes();
+			this.showBoxWireframe(box);
 		},
 		
 		boxesUpdated: function(size) {
@@ -742,7 +722,7 @@
 			}
 			
 			boxUI.find('span').text('Box at [' + position.join(',') + ']');
-			this.showBoxWireframes();
+			this.showBoxWireframe(box);
 		},
 		
 		checkSaveButton: function() {
@@ -793,7 +773,29 @@
 		
 		notify: function(eventType, value) {
 			if (eventType === editor.events.Updated) {
-				this.notifyListeners(shorthand.events.UpdateBoxes);
+				var boxes = this.boxes.keys(),
+					transform = value.tran;
+				
+				for (var i = 0, il = boxes.length; i < il; i++) {
+					var box = boxes[i];
+					
+					if (box.transform === transform) {
+						var minExtent = transform.boundingBox.minExtent,
+							maxExtent = transform.boundingBox.maxExtent,
+							height = maxExtent[1] - minExtent[1],
+							width = maxExtent[0] - minExtent[0],
+							depth = maxExtent[2] - minExtent[2],
+							position = transform.getUpdatedWorldMatrix()[3];
+						
+						this.notifyListeners(shorthand.events.UpdateBox, {
+							box: box,
+							position: position.slice(0,3),
+							dimensions: [height, width, depth]
+						});
+						
+						break;
+					}
+				}
 			}
 		},
 		
@@ -923,36 +925,38 @@
 			}
 		},
 		
+		showBoxWireframe: function(b) {
+			var w = b.dimensions[1], 
+				h = b.dimensions[0], 
+				d = b.dimensions[2], 
+				x = b.position[0], 
+				y = b.position[1], 
+				z = b.position[2];
+			
+			if (b.transform == null) {
+				var pack = hemi.curve.pack,
+					transform = pack.createObject('Transform'), 
+					box = o3djs.primitives.createBox(pack, this.boxMat, 1, 1, 1);
+			
+				transform.addShape(box);
+				transform.translate(x,y,z);
+				transform.scale(w,h,d);
+				transform.parent = hemi.picking.pickRoot;
+				b.transform = transform;
+			} 
+			else {
+				b.transform.identity();
+				b.transform.translate(x,y,z);
+				b.transform.scale(w,h,d);
+				b.transform.visible = true;
+			}
+		},
+		
 		showBoxWireframes: function() {
-			var pack = hemi.curve.pack,
-				boxes = this.boxes.keys();
+			var boxes = this.boxes.keys();
 			
 			for (var i = 0; i < boxes.length; i++) {
-				var b = boxes[i], 
-					w = b.dimensions[1], 
-					h = b.dimensions[0], 
-					d = b.dimensions[2], 
-					x = b.position[0], 
-					y = b.position[1], 
-					z = b.position[2];
-				
-				if (b.transform == null) {
-					var transform = pack.createObject('Transform'), 
-						box = o3djs.primitives.createBox(pack, this.boxMat, 1, 
-							1, 1);
-				
-					transform.addShape(box);
-					transform.translate(x,y,z);
-					transform.scale(w,h,d);
-					transform.parent = hemi.picking.pickRoot;
-					b.transform = transform;
-				} 
-				else {
-					b.transform.identity();
-					b.transform.translate(x,y,z);
-					b.transform.scale(w,h,d);
-					b.transform.visible = true;
-				}
+				showBoxWireframe(boxes[i]);
 			}
 		}
 	});
@@ -1021,8 +1025,11 @@
 					id = elem.attr('id'),
 					isDown = !elem.data('isDown');
 				
+				// Reset all buttons (create toggle/radio effect)
+				manipBtns.data('isDown', false).removeClass(downMode);
+				
 				if (isDown) {
-					elem.addClass(downMode);
+					elem.addClass(downMode).data('isDown', isDown);
 					
 					switch(id) {
 						case 'boxTranslate':
@@ -1033,11 +1040,9 @@
 							break;
 					}
 				} else {
-					elem.removeClass(downMode);
 					that.drawState = editor.ui.trans.DrawState.NONE;
 				}
-
-				elem.data('isDown', isDown);
+				
 	            that.notifyListeners(shorthand.events.BoxManipState, {
 					drawState: that.drawState,
 	            	transform: that.transform
@@ -1169,9 +1174,6 @@
 			});
 			crtWgt.addListener(shorthand.events.UpdateBox, function(params) {
 				model.updateBox(params.box, params.position, params.dimensions);
-			});
-			crtWgt.addListener(shorthand.events.UpdateBoxes, function() {
-				model.updateBoxes();
 			});
 			
 			// curve list widget specific
