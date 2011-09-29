@@ -60,8 +60,14 @@
 				argList = msgTarget.args;
 			}
 			
-			argNames = meta.getParameters(
-				handler.getCitizenType(), method);
+			argNames = meta.getParameters(handler.getCitizenType(), method);
+			
+			if (!argNames) {
+				// If the metadata is missing, try the old way to get the
+				// parameter names. Unfortunately this will be ugly if the
+				// source is minified.
+				argNames = editor.utils.getFunctionParams(handler[method]);
+			}
 				
 			for (var i = 0, il = argNames.length; i < il; i++) {
 				args.push({
