@@ -116,7 +116,11 @@
 		},
 	    
 	    worldCleaned: function() {
-			this.notifyListeners(editor.events.WorldCleaned, null);
+			var scenes = hemi.world.getScenes();
+			
+			for (var i = 0, il = scenes.length; i < il; i++) {
+				this.notifyListeners(editor.events.Removed, scenes[i]);
+			}
 	    },
 		    
 	    worldLoaded: function() {
