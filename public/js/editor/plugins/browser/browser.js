@@ -34,6 +34,36 @@
 		mbrCtr.setView(mbrView);
 		
 		navPane.add(mbrView);
+		
+		var model = editor.getModel('shapes');
+		
+		if (model) {
+			model.addListener(editor.events.Created, function(shape) {
+				mbrMdl.addShape(shape);
+			});
+			model.addListener(editor.events.Removed, function(shape) {
+				mbrMdl.removeShape(shape);
+			});
+			model.addListener(editor.events.Updated, function(shape) {
+				mbrMdl.updateShape(shape);
+			});
+		} else {
+			editor.addListener(editor.events.PluginLoaded, function(name) {
+				if (name === 'shapes') {
+					var model = editor.getModel(name);
+					
+					model.addListener(editor.events.Created, function(shape) {
+						mbrMdl.addShape(shape);
+					});
+					model.addListener(editor.events.Removed, function(shape) {
+						mbrMdl.removeShape(shape);
+					});
+					model.addListener(editor.events.Updated, function(shape) {
+						mbrMdl.updateShape(shape);
+					});
+				}
+			});
+		}
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
