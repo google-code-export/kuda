@@ -203,7 +203,7 @@
 			if (this.colorPickers.length <= ndx) {
 				var colorPicker = new editor.ui.ColorPicker({
 					inputId: 'pte-colorRamp' + ndx,
-					containerClass: 'colorRampAdd',
+					containerClass: 'pteColorRampAdd',
 					buttonId: 'pteColorRamp' + ndx + 'Picker'
 				});			
 				
@@ -602,7 +602,7 @@
 			this.find('#ptePreviewBtn').text('Start Preview').data('previewing', false).attr('disabled', 'disabled');
 			
 			// remove additional color ramp values
-			this.find('.colorRampAdd').hide();
+			this.find('.pteColorRampAdd').hide();
 			this.find('#pteAddColorToRamp').data('ndx', 1);
 			var colorRampPicker = this.colorPickers[0];
 			colorRampPicker.reset();
