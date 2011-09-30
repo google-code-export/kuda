@@ -1,5 +1,5 @@
 ﻿/*
- * jPicker 1.1.5
+ * jPicker 1.1.6
  *
  * jQuery Plugin for Photoshop style color picker
  *
@@ -311,7 +311,107 @@
           value = inputs.eq(2),
           hex = inputs.eq(inputs.length > 7 ? 7 : 6),
           ahex = inputs.length > 7 ? inputs.eq(8) : null,
-          keyUp = // hue, saturation, or value input box key up - validate value and set color
+          keyDown = // input box key down - use arrows to alter color
+            function(e)
+            {
+              if (e.target.value == '' && e.target != hex.get(0) && (bindedHex != null && e.target != bindedHex.get(0) || bindedHex == null)) return;
+              if (!validateKey(e)) return e;
+              switch (e.target)
+              {
+                case red.get(0):
+                  switch (e.keyCode)
+                  {
+                    case 38:
+                      red.val(setValueInRange.call($this, (red.val() << 0) + 1, 0, 255));
+                      color.val('r', red.val(), e.target);
+                      return false;
+                    case 40:
+                      red.val(setValueInRange.call($this, (red.val() << 0) - 1, 0, 255));
+                      color.val('r', red.val(), e.target);
+                      return false;
+                  }
+                  break;
+                case green.get(0):
+                  switch (e.keyCode)
+                  {
+                    case 38:
+                      green.val(setValueInRange.call($this, (green.val() << 0) + 1, 0, 255));
+                      color.val('g', green.val(), e.target);
+                      return false;
+                    case 40:
+                      green.val(setValueInRange.call($this, (green.val() << 0) - 1, 0, 255));
+                      color.val('g', green.val(), e.target);
+                      return false;
+                  }
+                  break;
+                case blue.get(0):
+                  switch (e.keyCode)
+                  {
+                    case 38:
+                      blue.val(setValueInRange.call($this, (blue.val() << 0) + 1, 0, 255));
+                      color.val('b', blue.val(), e.target);
+                      return false;
+                    case 40:
+                      blue.val(setValueInRange.call($this, (blue.val() << 0) - 1, 0, 255));
+                      color.val('b', blue.val(), e.target);
+                      return false;
+                  }
+                  break;
+                case alpha && alpha.get(0):
+                  switch (e.keyCode)
+                  {
+                    case 38:
+                      alpha.val(setValueInRange.call($this, parseFloat(alpha.val()) + 1, 0, 100));
+                      color.val('a', Math.precision((alpha.val() * 255) / 100, alphaPrecision), e.target);
+                      return false;
+                    case 40:
+                      alpha.val(setValueInRange.call($this, parseFloat(alpha.val()) - 1, 0, 100));
+                      color.val('a', Math.precision((alpha.val() * 255) / 100, alphaPrecision), e.target);
+                      return false;
+                  }
+                  break;
+                case hue.get(0):
+                  switch (e.keyCode)
+                  {
+                    case 38:
+                      hue.val(setValueInRange.call($this, (hue.val() << 0) + 1, 0, 360));
+                      color.val('h', hue.val(), e.target);
+                      return false;
+                    case 40:
+                      hue.val(setValueInRange.call($this, (hue.val() << 0) - 1, 0, 360));
+                      color.val('h', hue.val(), e.target);
+                      return false;
+                  }
+                  break;
+                case saturation.get(0):
+                  switch (e.keyCode)
+                  {
+                    case 38:
+                      saturation.val(setValueInRange.call($this, (saturation.val() << 0) + 1, 0, 100));
+                      color.val('s', saturation.val(), e.target);
+                      return false;
+                    case 40:
+                      saturation.val(setValueInRange.call($this, (saturation.val() << 0) - 1, 0, 100));
+                      color.val('s', saturation.val(), e.target);
+                      return false;
+                  }
+                  break;
+                case value.get(0):
+                  switch (e.keyCode)
+                  {
+                    case 38:
+                      value.val(setValueInRange.call($this, (value.val() << 0) + 1, 0, 100));
+                      color.val('v', value.val(), e.target);
+                      return false;
+                    case 40:
+                      value.val(setValueInRange.call($this, (value.val() << 0) - 1, 0, 100));
+                      color.val('v', value.val(), e.target);
+                      return false;
+                  }
+                  break;
+              }
+            },
+          keyUp = // input box key up - validate value and set color
             function(e)
             {
               if (e.target.value == '' && e.target != hex.get(0) && (bindedHex != null && e.target != bindedHex.get(0) || bindedHex == null)) return;
@@ -362,7 +462,7 @@
                   break;
               }
             },
-          blur = // hue, saturation, or value input box blur - reset to original if value empty
+          blur = // input box blur - reset to original if value empty
             function(e)
             {
               if (color.val() != null)
@@ -394,8 +494,7 @@
                 case 16:
                 case 29:
                 case 37:
-                case 38:
-                case 40:
+                case 39:
                   return false;
                 case 'c'.charCodeAt():
                 case 'v'.charCodeAt():
@@ -431,6 +530,7 @@
             {
               // unbind all events and null objects
               red.add(green).add(blue).add(alpha).add(hue).add(saturation).add(value).add(hex).add(bindedHex).add(ahex).unbind('keyup', keyUp).unbind('blur', blur);
+              red.add(green).add(blue).add(alpha).add(hue).add(saturation).add(value).unbind('keydown', keyDown);
               color.unbind(colorChanged);
               red = null;
               green = null;
@@ -447,6 +547,7 @@
             destroy: destroy
           });
         red.add(green).add(blue).add(alpha).add(hue).add(saturation).add(value).add(hex).add(bindedHex).add(ahex).bind('keyup', keyUp).bind('blur', blur);
+        red.add(green).add(blue).add(alpha).add(hue).add(saturation).add(value).bind('keydown', keyDown);
         color.bind(colorChanged);
       };
   $.jPicker =
@@ -1363,7 +1464,7 @@
                   img.attr('pngSrc', src);
                   img.css({ backgroundImage: 'none', filter: 'progid:DXImageTransform.Microsoft.AlphaImageLoader(src=\'' + src + '\', sizingMethod=\'scale\')' });
                 }
-                else img.css({ backgroundImage: 'url(' + src + ')' });
+                else img.css({ backgroundImage: 'url(\'' + src + '\')' });
               },
             setImgLoc =
               function(img, y)
@@ -1502,23 +1603,7 @@
             show =
               function()
               {
-			  	// modified by Khang to auto adjust positioning everytime shown
-                var win = settings.window,
-                    popup = win.expandable ? $($this).next().find('.Container:first') : null;
-					
                 color.current.val('ahex', color.active.val('ahex'));
-				container.css( // positions must be set and display set to absolute before source code injection or IE will size the container to fit the window
-				{
-					left:
-						win.position.x == 'left' ? (popup.offset().left - 530 - (win.position.y == 'center' ? 25 : 0)) + 'px' :
-						win.position.x == 'center' ? (popup.offset().left - 260) + 'px' :
-						win.position.x == 'right' ? (popup.offset().left - 10 + (win.position.y == 'center' ? 25 : 0)) + 'px' :
-						win.position.x == 'screenCenter' ? (($(document).width() >> 1) - 260) + 'px' : (popup.offset().left + parseInt(win.position.x)) + 'px',
-					position: 'absolute',
-					top: win.position.y == 'top' ? (popup.offset().top - 312) + 'px' :
-						win.position.y == 'center' ? (popup.offset().top - 156) + 'px' :
-						win.position.y == 'bottom' ? (popup.offset().top + 25) + 'px' : (popup.offset().top + parseInt(win.position.y)) + 'px'
-				});
                 var attachIFrame = function()
                   {
                     if (!settings.window.expandable || $.support.boxModel) return;
@@ -1529,7 +1614,7 @@
                 if (settings.window.expandable)
                 {
                   $(document.body).children('div.jPicker.Container').css({zIndex:10});
-                  container.css({zIndex:5000});
+                  container.css({zIndex:20});
                 }
                 switch (settings.window.effects.type)
                 {
@@ -1576,7 +1661,7 @@
                 container = win.expandable ? $('<div/>') : $($this);
                 container.addClass('jPicker Container');
                 if (win.expandable) container.hide();
-                container.get(0).onselectstart=function(){return false;};
+                container.get(0).onselectstart = function(event){ if (event.target.nodeName.toLowerCase() !== 'input') return false; };
                 // inject html source code - we are using a single table for this control - I know tables are considered bad, but it takes care of equal height columns and
                 // this control really is tabular data, so I believe it is the right move
                 var all = color.active.val('all');
@@ -1592,7 +1677,7 @@
                     function()
                     {
                       $(document.body).children('div.jPicker.Container').css({zIndex:10});
-                      container.css({zIndex:5000});
+                      container.css({zIndex:20});
                     });
                   container.css( // positions must be set and display set to absolute before source code injection or IE will size the container to fit the window
                     {
@@ -1715,7 +1800,7 @@
                   setAlpha.call($this, iconAlpha, Math.precision(((255 - (all != null ? all.a : 0)) * 100) / 255, 4));
                   iconImage = $this.icon.find('.Image:first').css(
                     {
-                      backgroundImage: 'url(' + images.clientPath + images.picker.file + ')'
+                      backgroundImage: 'url(\'' + images.clientPath + images.picker.file + '\')'
                     }).bind('click', iconImageClicked);
                   if (win.bindToInput&&win.updateInputColor)
                     win.input.css(
@@ -1816,7 +1901,7 @@
             y: 'top' /* acceptable values "top", "bottom", "center", or relative px value */
           },
           expandable: false, /* default to large static picker - set to true to make an expandable picker (small icon with popup) - set automatically when binded to input element */
-          liveUpdate: true, /* set false if you want the user to have to click "OK" before the binded input box updates values */
+          liveUpdate: true, /* set false if you want the user to have to click "OK" before the binded input box updates values (always "true" for expandable picker) */
           alphaSupport: false, /* set to true to enable alpha picking */
           alphaPrecision: 0, /* set decimal precision for alpha percentage display - hex codes do not map directly to percentage integers - range 0-2 */
           updateInputColor: true /* set to false to prevent binded input colors from changing */
@@ -1998,4 +2083,4 @@
           }
         }
     };
-})(jQuery, '1.1.5');
+})(jQuery, '1.1.6');
