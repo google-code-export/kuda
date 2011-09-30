@@ -18,7 +18,9 @@
 var editor = (function(editor) {
 	editor.ui = editor.ui || {};
 	
-	var tooltip = new editor.ui.createTooltip('errorWrapper');
+	var tooltip = new editor.ui.createTooltip({
+			cls: 'errorWrapper'
+		});
 	
 	editor.ui.Validator = editor.utils.Listenable.extend({
 		init: function(opt_elements, checkFunction) {

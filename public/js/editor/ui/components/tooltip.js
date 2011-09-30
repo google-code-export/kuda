@@ -22,7 +22,8 @@ var editor = (function(editor) {
 	var Tooltip = editor.ui.Component.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({
-				cls: ''
+				cls: '',
+				mouseHide: true
 			}, options);
 			
 			this._super(newOpts);
@@ -43,9 +44,12 @@ var editor = (function(editor) {
 			this.arrow = jQuery('<div class="arrow"></div>');
 			
 			// attach to the main body and bind mouse handler
-			this.container.append(this.msg)
-			.bind('mouseenter', hideFromMouse)
-			.bind('mouseleave', hideFromMouse);
+			this.container.append(this.msg);
+			
+			if (this.config.mouseHide) {
+				this.container.bind('mouseenter', hideFromMouse)
+				.bind('mouseleave', hideFromMouse);
+			}
 			
 			// detect border
 			if (this.msg.css('borderLeftWidth') !== 0) {
@@ -193,10 +197,8 @@ var editor = (function(editor) {
 		}
 	});
 	
-	editor.ui.createTooltip = function(cls) {		
-		return new Tooltip({
-			cls: cls
-		});
+	editor.ui.createTooltip = function(opts) {		
+		return new Tooltip(opts);
 	};
 	
 	return editor;
