@@ -59,6 +59,7 @@ var editor = (function(module) {
 				b = this.bInput,
 				a = this.aInput,
 				colorPickerElem = this.pickerBtn,
+				layer = editor.ui.Layer.DIALOG,
 				wgt = this;
 			
 			var options = {
@@ -104,10 +105,6 @@ var editor = (function(module) {
 				var clr = colorPickedFcn(color);
 				wgt.notifyListeners(module.events.ColorPicked, clr);
 			});
-			
-			setTimeout(function() {
-				jQuery('.Move').text('Color Picker');				
-			}, 0);
 				
 			// save this picker
 			var found = false,
@@ -120,6 +117,56 @@ var editor = (function(module) {
 					found = true;
 				}
 			}
+						
+			// puts these last lines in the setTimeout queue, which should be
+			// after the colorpicker
+			setTimeout(function() {
+				jQuery('div.jPicker.Container:last.Move').text('Color Picker');
+			
+				jQuery(wgt.picker).siblings('.jPicker')
+					.bind('click', function(evt) {
+						var btn = jQuery(this),
+							win = options.window;
+						
+						// override default behavior
+						jQuery('div.jPicker.Container').each(function(){
+							var elem = jQuery(this);
+							
+							if (parseInt(elem.css('zIndex')) === 10) {
+								elem.css({ zIndex: layer });	
+							}
+							else {
+								elem.css({ 
+									zIndex: layer + 1,
+								
+									// popups in the wrong place due to the button 
+									// being hidden at first
+									
+									left:
+										win.position.x == 'left' ? (btn.offset().left - 530 - (win.position.y == 'center' ? 25 : 0)) + 'px' :
+										win.position.x == 'center' ? (btn.offset().left - 260) + 'px' :
+										win.position.x == 'right' ? (btn.offset().left - 10 + (win.position.y == 'center' ? 25 : 0)) + 'px' :
+										win.position.x == 'screenCenter' ? (($(document).width() >> 1) - 260) + 'px' : (btn.offset().left + parseInt(win.position.x)) + 'px',
+									position: 'absolute',
+									top: win.position.y == 'top' ? (btn.offset().top - 312) + 'px' :
+										win.position.y == 'center' ? (btn.offset().top - 156) + 'px' :
+										win.position.y == 'bottom' ? (btn.offset().top + 25) + 'px' : (btn.offset().top + parseInt(win.position.y)) + 'px'
+								});
+								 
+							}
+						});
+					});
+				
+				// find the last container and override default
+				jQuery('div.jPicker.Container:last')
+					.unbind('mousedown')
+					.bind('mousedown', function() {
+						jQuery('div.jPicker.Container').each(function() {								
+							jQuery(this).css({ zIndex: layer });
+						});
+						jQuery(this).css({ zIndex: layer + 1 });
+					});				
+			}, 0);
 		},
 		
 		setColor: function(color) {	
