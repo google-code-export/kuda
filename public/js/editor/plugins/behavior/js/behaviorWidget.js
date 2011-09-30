@@ -99,6 +99,32 @@
 					msgs.push(citizen.msgSent[ndx]);
 				}
 			}
+			// viewpoint case
+			else if (citizen.camMove) {
+				// get the list of viewpoints
+				var vps = hemi.world.getViewpoints();
+				
+				for (var i = 0, il = vps.length; i < il; i++) {
+					msgs.push(vps[i].getId());
+				}
+			}			
+			// shape pick case
+			else if (citizen.shapePick) {
+				// get list of shapes
+//				var shapes = hemi.world.getShapes();
+//				
+//				for (var i = 0, il = shapes.length; i < il; i++) {
+//					msgs.push(shapes.getId());
+//				}
+				var models = hemi.world.getModels();
+				
+				for (var i = 0, il = models.length; i < il; i++) {
+					var shapes = models[i].shapes;
+					for (var j = 0, jl = shapes.length; j < jl; j++) {
+						msgs.push(shapes[j].name);
+					}					
+				}
+			}			
 			
 			return msgs;
 		},
@@ -799,10 +825,6 @@
 		var handler = data.handler;
 		
 		return [handler.getCitizenType().split('.').pop(), handler.name, data.method];
-	};
-	
-	shorthand.getBehaviorListItem = function(actor) {
-		return actor ? behaviorLiTable.get(actor) : null;
 	};
 	
 	shorthand.modifyBehaviorListItems = function(msgTarget, spec, opt_method) {
