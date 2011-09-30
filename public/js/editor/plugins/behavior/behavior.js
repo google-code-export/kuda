@@ -263,17 +263,12 @@
 	    save: function(name, opt_type, opt_actor) {
 			var values = this.args.values(),
 				args = [],
+				oldSpec = null,
 				newTarget;
 			
 			if (this.msgTarget !== null) {
+				oldSpec = this.dispatchProxy.getTargetSpec(this.msgTarget);
 				this.dispatchProxy.removeTarget(this.msgTarget);
-				
-				if (this.msgTarget.handler instanceof hemi.handlers.ValueCheck) {
-					this.msgTarget.handler.cleanup();
-					this.msgTarget.citizen = null;
-				}
-				
-				this.msgTarget.cleanup();
 			}
 			
 			for (var ndx = 0, len = values.length; ndx < len; ndx++) {
@@ -319,14 +314,26 @@
 			newTarget.name = name;
 			newTarget.type = opt_type;
 			
-			var data = {
-				target: newTarget,
-				actor: opt_actor
-			};
+			var newSpec = this.dispatchProxy.getTargetSpec(newTarget),
+				oldTarget = this.msgTarget,
+				data = {
+					target: newTarget,
+					spec: newSpec,
+					oldTarget: oldTarget,
+					oldSpec: oldSpec,
+					actor: opt_actor
+				};
 			
 			if (this.msgTarget !== null) {
 				newTarget.dispatchId = this.msgTarget.dispatchId;
 				this.notifyListeners(editor.events.Updated, data);
+				
+				if (this.msgTarget.handler instanceof hemi.handlers.ValueCheck) {
+					this.msgTarget.handler.cleanup();
+					this.msgTarget.citizen = null;
+				}
+				
+				this.msgTarget.cleanup();
 			} else {
 				this.notifyListeners(editor.events.Created, data);
 			}
@@ -737,9 +744,16 @@
 			});			
 			model.addListener(editor.events.Updated, function(data) {
 				var target = data.target,
-					spec = model.dispatchProxy.getTargetSpec(target);
+					spec = data.spec;
 				
-				shorthand.modifyBehaviorListItems(target, spec, 'update');
+				if (data.oldSpec === spec && data.oldTarget === target) {
+					shorthand.modifyBehaviorListItems(target, spec, 'update');
+				}
+				else {
+					shorthand.modifyBehaviorListItems(data.oldTarget, data.oldSpec, 'remove');
+					shorthand.modifyBehaviorListItems(target, spec, 'add');
+				}
+				
 				tblWgt.update(target, spec);
 			});
 			
