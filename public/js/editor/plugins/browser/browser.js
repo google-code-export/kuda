@@ -1625,7 +1625,10 @@
 			this.form.append(this.btn);
 			this.container.append(this.form);
 			
-			var popup = editor.ui.createTooltip('mbrPopup'),
+			var popup = editor.ui.createTooltip({
+					cls: 'mbrPopup',
+					mouseHide: false
+				}),
 				wgt = this;
 			
 			this.btn.bind('click', function(evt) {
