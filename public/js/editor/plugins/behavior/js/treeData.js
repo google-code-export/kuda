@@ -478,7 +478,7 @@
 		};
 	};
 	
-	shorthand.treeData.createShapePickJson = function(spCit, prefix) {
+	shorthand.treeData.createModelPickJson = function(spCit, prefix) {
 		var model = spCit.citizen,
 			id = spCit.getId(),
 			shapes = [];
@@ -518,6 +518,48 @@
 				rel: 'citizen'
 			},
 			children: shapes,
+			state: 'closed',
+			metadata: {
+				type: 'citizen',
+				citizen: spCit
+			}
+		};
+	};
+	
+	shorthand.treeData.createShapePickJson = function(spCit, prefix) {
+		var shape = spCit.citizen.transform.shapes[0],
+			id = spCit.getId(),
+			name = getNodeName(spCit, {
+				option: shape.name,
+				prefix: prefix,
+				id: id
+			}),
+			children = [{
+				data: shape.name,
+				attr: {
+					id: name,
+					rel: 'message'
+				},
+				metadata: {
+					type: 'message',
+					parent: spCit,
+					msg: shape.name
+				}
+			}];
+		
+		name = getNodeName(spCit, {
+			option: null,
+			prefix: prefix,
+			id: id
+		});
+		
+		return {
+			data: spCit.citizen.name,
+			attr: {
+				id: name,
+				rel: 'citizen'
+			},
+			children: children,
 			state: 'closed',
 			metadata: {
 				type: 'citizen',
