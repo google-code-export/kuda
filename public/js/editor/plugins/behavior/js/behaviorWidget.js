@@ -111,11 +111,11 @@
 			// shape pick case
 			else if (citizen.shapePick) {
 				// get list of shapes
-//				var shapes = hemi.world.getShapes();
-//				
-//				for (var i = 0, il = shapes.length; i < il; i++) {
-//					msgs.push(shapes.getId());
-//				}
+				var shapes = hemi.world.getShapes();
+				
+				for (var i = 0, il = shapes.length; i < il; i++) {
+					msgs.push(shapes[i].transform.shapes[0].name);
+				}
 				var models = hemi.world.getModels();
 				
 				for (var i = 0, il = models.length; i < il; i++) {
@@ -516,15 +516,16 @@
 						actor = hemi.world.camera;	
 						
 						if (!data) {
-							data = {};							
-							data.action = {
-								handler: actor,
-								method: 'moveToView'
+							data = {
+								action: {
+									handler: actor,
+									method: 'moveToView'
+								},
+								args: [{
+									name: 'view',
+									value: 'id:' + vp.getId()
+								}]
 							};
-							data.args = [{
-								name: 'view',
-								value: 'id:' + vp.getId()
-							}];
 							this.prms.populateArgList(data.action.handler,
 									data.action.method, data.args);
 						}
@@ -534,15 +535,32 @@
 						actor = cmc;
 						
 						if (!data) {
-							data = {};
-							data.trigger = {
-								citizen: cmc,
-								type: vp.getId()
+							data = {
+								trigger: {
+									citizen: cmc,
+									type: vp.getId()
+								}
 							};
 						}
 						break;
 				}
 			} 
+			else if (actor instanceof hemi.shape.Shape 
+					&& type === shorthand.BehaviorTypes.TRIGGER) {
+				var shp = actor,
+					spc = shorthand.treeData.createShapePickCitizen(actor);
+				
+				actor = spc;
+				
+				if (!data) {
+					data = {
+						trigger: {
+							citizen: spc,
+							type: shp.transform.shapes[0].name
+						}
+					}
+				}
+			}
 			
 		    this.axnFieldset.show();
 			this.trgFieldset.show();
