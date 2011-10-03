@@ -1532,26 +1532,6 @@
 		MATERIAL: 1
 	};
 	
-	var ChildListItem = editor.ui.ListItem.extend({
-		init: function() {
-			this._super();
-		},
-						
-		finishLayout: function() {
-			this.container = jQuery('<div></div>');
-			this.title = jQuery('<span></span>');
-			this.removeBtn = jQuery('<button class="removeBtn">Remove</button>');
-			var btnDiv = jQuery('<div class="buttonContainer"></div>');
-			
-			btnDiv.append(this.removeBtn);
-			this.container.append(this.title).append(btnDiv);
-		},
-		
-		setText: function(text) {
-			this.title.text(text);
-		}
-	});
-	
 	var buildMaterialPopup = function(material, model) {
 			var params = material.params,
 				textures = {},
@@ -1580,15 +1560,15 @@
 			for (var tId in textures) {
 				var tex = textures[tId],
 					name = tex.name !== '' ? tex.name : 'unnamed',
-					item = new ChildListItem();
+					item = new editor.ui.ListItem();
 				
 				item.setText(name);
 				item.attachObject({
 					model: model,
 					texture: tex
 				});
-				item.title.data('liWidget', item);
-				item.title.bind('click', function(evt) {
+				item.data('liWidget', item);
+				item.container.bind('click', function(evt) {
 					var item = jQuery(this).data('liWidget'),
 						data = item.getAttachedObject();
 						
@@ -1623,15 +1603,15 @@
 					name = shape.name !== '' ? shape.name : 'unnamed'; 
 				
 				if (name.match(HIGHLIGHT_PRE) === null) {
-					var item = new ChildListItem();
+					var item = new editor.ui.ListItem();
 					
 					item.setText(name);
 					item.attachObject({
 						transform: transform,
 						shape: shape
 					});
-					item.title.data('liWidget', item);
-					item.title.bind('click', function(evt) {
+					item.data('liWidget', item);
+					item.container.bind('click', function(evt) {
 						var item = jQuery(this).data('liWidget'),
 							data = item.getAttachedObject();
 						showShapeDetails(data.shape, data.transform, detPnl);

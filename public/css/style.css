@@ -773,7 +773,10 @@ ol.listWidget li>div {
 }
 ul.listWidget li>div {
 	float: left;
-	width: 25em;
+	width: 23.333em;
+	padding: 0 0.833em;
+	font-weight: bold;
+	cursor: pointer;
 }
 .listWidget>li:nth-child(odd) {
 	background: #e4e4e4;
@@ -783,15 +786,9 @@ ul.listWidget li>div {
 } 
 .listWidget li span {
 	float: left;
-	margin: 0 0.833em;
 }
 ol.listWidget li span {
 	margin: 0;
-}
-.listWidget .msgEdtListItm {
-	float: left;
-	width: 100%;
-	padding: 0.417em 0;
 }
 .listWidget li:hover {
 	background: #fff;
@@ -799,16 +796,12 @@ ol.listWidget li span {
 .widget:not(.widgetWithForms) .listWidget li:hover {
 	background: #555;
 }
-.listWidget li>div>span {
-	font-weight: bold;
-	cursor: pointer;
-}
 .listWidget li:hover>div>span {
 	text-decoration: underline;
 }
 .listWidget .buttonContainer {
 	float: right;
-	padding: 0 0.833em 0.417em 0;
+	padding: 0 0 0.417em 0;
 }
 
 /**
