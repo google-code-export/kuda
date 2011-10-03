@@ -643,9 +643,10 @@ var hemi = (function(hemi) {
 	 */
 	hemi.world.toOctane = function(opt_filter) {
 		var octane = {
-			citizens: [],
+			version: hemi.version,
 			nextId: nextId,
 			camera: this.camera.getId(),
+			citizens: [],
 			fog: this.fog
 		};
 		

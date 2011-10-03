@@ -3147,9 +3147,10 @@ var hemi = (function(hemi) {
 	 */
 	hemi.world.toOctane = function(opt_filter) {
 		var octane = {
-			citizens: [],
+			version: hemi.version,
 			nextId: nextId,
 			camera: this.camera.getId(),
+			citizens: [],
 			fog: this.fog
 		};
 		
@@ -7060,6 +7061,12 @@ var hemi = (function(hemi) {
 			this.shapes = config.getShapes();
 			this.transforms = config.getTransforms();
 			this.pack = config.pack;
+			
+			for (var i = 0, il = this.materials.length; i < il; ++i) {
+				var mat = this.materials[i],
+					oid = mat.createParam('ownerId', 'o3d.ParamInteger');
+				oid.value = id;
+			}
 			
 			for (var t = 0, len = this.transforms.length; t < len; ++t) {
 				var transform = this.transforms[t],
