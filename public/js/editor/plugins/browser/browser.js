@@ -160,11 +160,13 @@
 			for (var i = 0; i < paths.length; ++i) {
 				var node = this.tree.find('#' + paths[i]);
 				
-				if (closePath && this.tree.jstree('is_closed', node)) {
-					toClose.unshift(node);
+				if (node.length > 0) {
+					if (closePath && this.tree.jstree('is_closed', node)) {
+						toClose.unshift(node);
+					}
+					
+					this.tree.jstree('open_node', node, false, true);
 				}
-				
-				this.tree.jstree('open_node', node, false, true);
 			}
 			
 			for (var i = 0; i < toClose.length; ++i) {
