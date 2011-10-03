@@ -315,7 +315,8 @@ form .objectPicker input.treeSelectorIpt {
 	border-width: 1px 0;
 }
 ul li .bhvListWrapper {
-	margin: 0;
+	margin: 0 -0.833em;
+	cursor: default;
 }
 .bhvListArrow {
 	display: block; 
