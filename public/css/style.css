@@ -769,7 +769,7 @@ ol.listWidget li {
 }
 ol.listWidget li>div {
 	float: right;
-	width: 22.5em;
+	width: 22em;
 }
 ul.listWidget li>div {
 	float: left;

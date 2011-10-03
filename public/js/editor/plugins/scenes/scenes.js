@@ -197,9 +197,9 @@
 			
 			this.list.getUI().bind('sortupdate', function(evt, ui) {
 				var elem = ui.item,
-					scene = elem.data('obj'),
-					prev = elem.prev().data('obj'),
-					next = elem.next().data('obj');
+					scene = elem.children('div').data('obj'),
+					prev = elem.prev().children('div').data('obj'),
+					next = elem.next().children('div').data('obj');
 				
 				wgt.notifyListeners(shorthand.events.ReorderScene, {
 					scene: scene,
