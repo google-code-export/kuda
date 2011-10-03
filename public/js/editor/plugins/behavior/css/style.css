@@ -318,6 +318,9 @@ ul li .bhvListWrapper {
 	margin: 0 -0.833em;
 	cursor: default;
 }
+ol li .bhvListWrapper {
+	margin: 0 -3em;
+}
 .bhvListArrow {
 	display: block; 
 	position: absolute;
