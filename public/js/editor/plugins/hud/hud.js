@@ -50,7 +50,6 @@
 		PageCreated: "Hud.PageCreated",
 		PageRemoved: "Hud.PageRemoved",
 		PageSet: "Hud.PageSet",
-		HudWorldLoaded: "Hud.HudWorldLoaded",
 		
 		// hud edit specific
 		CreateDisplay: "Hud.CreateDisplay",
@@ -219,14 +218,9 @@
 			this.notifyListeners(shorthand.events.DisplaySet, display);
 		},
 		
-		setElement: function(element, opt_type) {			
-			var type = opt_type ? opt_type : null;
-			
+		setElement: function(element) {			
 			this.currentElement = element;
-			this.notifyListeners(shorthand.events.ElementSet, {
-				element: element,
-				type: type
-			});
+			this.notifyListeners(shorthand.events.ElementSet, element);
 		},
 		
 		setPage: function(page) {
@@ -261,7 +255,9 @@
 	    worldLoaded: function() {
 			var displays = hemi.world.getHudDisplays();
 			
-			this.notifyListeners(shorthand.events.HudWorldLoaded, displays);
+			for (var ndx = 0, len = displays.length; ndx < len; ndx++) {
+				this.notifyListeners(editor.events.Created, displays[ndx]);
+			}
 	    }
 	});
 	
@@ -315,17 +311,22 @@
 				.append(this.form).append(this.tree);
 			
 			this.tree.bind('select_node.jstree', function(evt, data) {
-				var elem = data.rslt.obj,
-					path = wgt.tree.jstree('get_path', elem, true),
-					hudObjs = [];
-					
-				for (var ndx = 0, len = path.length; ndx < len; ndx++) {
-					hudObjs.push(jQuery('#' + path[ndx]).data('jstree'));
+				var elem = data.rslt.obj;
+				wgt.tree.jstree('open_node', elem);
+				
+				if (data.args[2] != null) {
+					var path = wgt.tree.jstree('get_path', elem, true),
+						hudObjs = [];
+						
+					for (var ndx = 0, len = path.length; ndx < len; ndx++) {
+						hudObjs.push(jQuery('#' + path[ndx]).data('jstree'));
+					}
+					wgt.notifyListeners(shorthand.events.SelectHudNode, hudObjs);
 				}
-				wgt.notifyListeners(shorthand.events.SelectHudNode, hudObjs);
 			}).jstree({
 				'json_data': {
-					'data': {}
+					'data': {},
+					'progressive_render': true
 				},
 				'types': {
 					'types': {
@@ -392,16 +393,38 @@
 				var id = this.getNodeName(obj),
 					name = obj.name,
 					type = obj.getCitizenType().split('.').pop().toLowerCase()
-						.replace('hud', '');
-					
+						.replace('hud', ''),
+					leaf = false,
+					children = [];
+				
+				switch (type) {
+					case 'display':
+						var pages = obj.pages;
+						
+						for (var i = 0, il = pages.length; i < il; ++i) {
+							children.push(this.createJson(pages[i]));
+						}
+						break;
+					case 'page':
+						var elems = obj.elements;
+						
+						for (var i = 0, il = elems.length; i < il; ++i) {
+							children.push(this.createJson(elems[i]));
+						}
+						break;
+					default:
+						leaf = true;
+						break;
+				}
+				
 				json = {
 					data: name,
 					attr: {
 						id: id,
 						rel: type
 					},
-					state: 'closed',
-					children: [],
+					state: leaf ? 'leaf' : 'closed',
+					children: children,
 					metadata: obj
 				};
 			}
@@ -416,8 +439,6 @@
 			this.tree.jstree('create_node', parentNode, 'inside', {
 				json_data: objJson
 			});
-			
-			this.tree.jstree('open_node', parentNode);
 	    },
 	    
 	    remove: function(obj) {
@@ -434,7 +455,10 @@
 		
 		select: function(obj) {
 			this.tree.jstree('deselect_all');
-			this.tree.jstree('select_node', this.getNode(obj));
+			
+			if (obj) {
+				this.tree.jstree('select_node', this.getNode(obj));
+			}
 		},
 		
 		resize: function(maxHeight) {
@@ -485,39 +509,34 @@
 			});
 			
 			// hide all
-			this.displayEditor.hide();
-			this.pageEditor.hide();
-			this.textEditor.hide();
-			this.imageEditor.hide();
+			this.reset();
 		},
 		
-		edit: function(obj, citizenType) {
+		edit: function(obj) {
 			if (obj) {
-				citizenType = obj.getCitizenType().split('.').pop();
-			}
-			
-			// now setup the appropriate editor
-			switch (citizenType) {
-				case 'HudDisplay':
-					this.setDisplayEditor(obj);
-					// set the preferred height
-					this.preferredHeight = this.displayEditor.height();
-					break;
-				case 'HudPage':
-					this.setPageEditor(obj);
-					// set the preferred height
-					this.preferredHeight = this.pageEditor.height();
-					break;
-				case 'HudText':
-					this.setTextEditor(obj);
-					// set the preferred height
-					this.preferredHeight = this.textEditor.height();
-					break;
-				case 'HudImage':
-					this.setImageEditor(obj);
-					// set the preferred height
-					this.preferredHeight = this.imageEditor.height();
-					break;
+				var citizenType = obj.getCitizenType().split('.').pop();
+				
+				// now setup the appropriate editor
+				switch (citizenType) {
+					case 'HudDisplay':
+						this.setDisplayEditor(obj);
+						this.preferredHeight = this.displayEditor.height();
+						break;
+					case 'HudPage':
+						this.setPageEditor(obj);
+						this.preferredHeight = this.pageEditor.height();
+						break;
+					case 'HudText':
+						this.setTextEditor(obj);
+						this.preferredHeight = this.textEditor.height();
+						break;
+					case 'HudImage':
+						this.setImageEditor(obj);
+						this.preferredHeight = this.imageEditor.height();
+						break;
+				}
+			} else {
+				this.reset();
 			}
 		},
 		
@@ -580,19 +599,15 @@
 			pgeEdt.data('colorPicker', colorPicker);
 			
 			addTextBtn.bind('click', function(evt) {
-				pgeEdt.hide();
-				wgt.notifyListeners(shorthand.events.SetElement, {
-					element: null,
-					type: 'HudText'
-				});
+				wgt.notifyListeners(shorthand.events.SetElement, null);
+				wgt.setTextEditor(null);
+				wgt.preferredHeight = wgt.textEditor.height();
 			});
 			
 			addImageBtn.bind('click', function(evt) {
-				pgeEdt.hide();
-				wgt.notifyListeners(shorthand.events.SetElement, {
-					element: null,
-					type: 'HudImage'
-				});
+				wgt.notifyListeners(shorthand.events.SetElement, null);
+				wgt.setImageEditor(null);
+				wgt.preferredHeight = wgt.imageEditor.height();
 			});
 			
 			removeBtn.bind('click', function(evt) {
@@ -777,12 +792,9 @@
 		},
 		
 		setDisplayEditor: function(obj) {
+			this.reset();
 			this.displayEditor.data('obj', obj).find('.displayName').text(obj.name);
-			
 			this.displayEditor.show();
-			this.pageEditor.hide();
-			this.textEditor.hide();
-			this.imageEditor.hide();
 		},
 		
 		setPageEditor: function(obj) {
@@ -790,16 +802,13 @@
 				colorPicker = pgeEdt.data('colorPicker'),
 				color = obj && obj.config.color ? obj.config.color 
 					: hemi.hud.theme.page.color;
-				
+			
+			this.reset();
 			pgeEdt.data('obj', obj).data('oldColor', color)
 				.find('.displayName').text(obj.name);
 			
-			colorPicker.setColor(color);		
-			
+			colorPicker.setColor(color);
 			pgeEdt.show();
-			this.displayEditor.hide();
-			this.textEditor.hide();
-			this.imageEditor.hide();
 		},
 		
 		setTextEditor: function(obj) {
@@ -813,7 +822,8 @@
 				colorPicker = txtEdt.data('colorPicker'),
 				color = obj && obj.config.color ? obj.config.color 
 					: hemi.hud.theme.text.color;
-				
+			
+			this.reset();
 			txtEdt.data('obj', obj).find('.displayName').text(obj ? obj.name : '');
 			obj ? this.textPosition.setValue([obj.x, obj.y]) : this.textPosition.reset();
 			this.widthInput.setValue(obj ? obj.width : null);
@@ -839,16 +849,13 @@
 			
 			this.canSave(required, [txtEdt.find('#hudTxtSaveBtn')]);
 			txtEdt.show();
-			
-			this.pageEditor.hide();
-			this.displayEditor.hide();
-			this.imageEditor.hide();
 		},
 		
 		setImageEditor: function(obj) {
 			var imgEdt = this.imageEditor,
 				removeBtn = imgEdt.find('#hudImgRemoveBtn');
-				
+			
+			this.reset();
 			imgEdt.data('obj', obj).find('.displayName').text(obj ? obj.name : '');
 			obj ? this.imagePosition.setValue([obj.x, obj.y]) : this.imagePosition.reset();
 			this.urlInput.setValue(obj ? obj.getImageUrl() : null);
@@ -862,8 +869,10 @@
 			}
 			
 			imgEdt.show();
-			
-			this.imageEditor.show();
+		},
+		
+		reset: function() {
+			this.imageEditor.hide();
 			this.pageEditor.hide();
 			this.textEditor.hide();
 			this.displayEditor.hide();
@@ -1001,36 +1010,39 @@
 			crtWgt.addListener(shorthand.events.SavePage, function(props) {
 				model.savePage(props);
 			});
-			crtWgt.addListener(shorthand.events.SetElement, function(elemObj) {
-				model.setElement(elemObj.element, elemObj.type);
+			crtWgt.addListener(shorthand.events.SetElement, function(element) {
+				model.setElement(element);
 			});
 			
 			// view specific listeners
 			
 			// model specific listeners
 			model.addListener(editor.events.Created, function(display) {
-				crtWgt.edit(display);
 				treeWgt.add(display);
-				treeWgt.select(display);
 			});
 			model.addListener(editor.events.Removed, function(display) {
 				treeWgt.remove(display);
 			});
 			model.addListener(shorthand.events.DisplaySet, function(display) {
-				crtWgt.edit(display, hemi.hud.HudDisplay.prototype.citizenType);
+				crtWgt.edit(display);
+				treeWgt.select(display);
 			});
 			model.addListener(shorthand.events.ElementCreated, function(element) {
-				crtWgt.edit(model.currentPage);
 				treeWgt.add(element, model.currentPage);
-				treeWgt.select(model.currentPage);
 			});
 			model.addListener(shorthand.events.ElementRemoved, function(element) {
 				crtWgt.edit(model.currentPage);
 				treeWgt.remove(element);
 				treeWgt.select(model.currentPage);
 			});
-			model.addListener(shorthand.events.ElementSet, function(elemObj) {
-				crtWgt.edit(elemObj.element, elemObj.type);
+			model.addListener(shorthand.events.ElementSet, function(element) {
+				if (element) {
+					crtWgt.edit(element);
+					treeWgt.select(element);
+				} else {
+					crtWgt.edit(model.currentPage);
+					treeWgt.select(model.currentPage);
+				}
 			});
 			model.addListener(shorthand.events.ElementUpdated, function(element) {
 				crtWgt.edit(model.currentPage);
@@ -1038,9 +1050,7 @@
 				treeWgt.update(element);
 			});
 			model.addListener(shorthand.events.PageCreated, function(page) {
-				crtWgt.edit(page);
 				treeWgt.add(page, model.currentDisplay);
-				treeWgt.select(page);
 			});
 			model.addListener(shorthand.events.PageRemoved, function(page) {
 				crtWgt.edit(model.currentDisplay);
@@ -1048,27 +1058,8 @@
 				treeWgt.select(model.currentDisplay);
 			});
 			model.addListener(shorthand.events.PageSet, function(page) {
-				crtWgt.edit(page, hemi.hud.HudPage.prototype.citizenType);
-			});
-			model.addListener(shorthand.events.HudWorldLoaded, function(displays) {			
-				for (var ndx = 0, len = displays.length; ndx < len; ndx++) {
-					var display = displays[ndx],
-						pages = display.pages;
-					
-					treeWgt.add(display);
-					
-					for (var ndx2 = 0, len2 = pages.length; ndx2 < len2; ndx2++) {
-						var page = pages[ndx2],
-							elems = page.elements;
-						
-						treeWgt.add(page, display);
-					
-						for (var ndx3 = 0, len3 = elems.length; ndx3 < len3; ndx3++) {
-							var elem = elems[ndx3];							
-							treeWgt.add(elem, page);
-						}
-					}
-				}
+				crtWgt.edit(page);
+				treeWgt.select(page);
 			});
 	    }
 	});
