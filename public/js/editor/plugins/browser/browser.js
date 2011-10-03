@@ -138,7 +138,7 @@
 			var tNode = {
 				data: node.name,
 				attr: {
-					id: 'node_' + getNodeId(node),
+					id: getNodeId(node),
 					rel: nodeType
 				},
 				state: children.length > 0 ? 'closed' : 'leaf',
@@ -153,6 +153,39 @@
 			return tNode;
 		},
 		
+		generateNodes = function(nodeName, closePath) {
+			var paths = getNodePath(nodeName),
+				toClose = [];
+			
+			for (var i = 0; i < paths.length; ++i) {
+				var node = this.tree.find('#' + paths[i]);
+				
+				if (closePath && this.tree.jstree('is_closed', node)) {
+					toClose.unshift(node);
+				}
+				
+				this.tree.jstree('open_node', node, false, true);
+			}
+			
+			for (var i = 0; i < toClose.length; ++i) {
+				this.tree.jstree('close_node', toClose[i], true);
+			}
+		},
+		
+		getNodePath = function(nodeName) {
+			var ndx = nodeName.indexOf('_'),
+				names = [];
+			
+			ndx = nodeName.indexOf('_', ndx + 1);
+			
+			while (ndx > -1) {
+				names.push(nodeName.substr(0, ndx));
+				ndx = nodeName.indexOf('_', ndx + 1);
+			}
+			
+			return names;
+		},
+		
 		getNodeChildren = function(node) {
 			var children;
 			
@@ -161,20 +194,28 @@
 				
 				switch(type) {
 					case 'Model':
-						var tranObj = {
+						var citId = getCitNodeId(node),
+							tranObj = {
 								name: 'Transforms',
 								children: [node.root],
-								className: 'directory'
+								className: 'directory',
+								nodeId: citId + '_trans'
 							},
 							matObj = {
 								name: 'Materials',
 								children: node.materials,
-								className: 'directory'
+								className: 'directory',
+								nodeId: citId + '_mats'
 							};
 					    children = [tranObj, matObj];
 						break;
 					case 'Shape':
-					    children = [node.getTransform()];
+					    children = [{
+								name: 'Transforms',
+								children: [node.getTransform()],
+								className: 'directory',
+								nodeId: getCitNodeId(node) + '_trans'
+							}];
 						break;
 					default:
 						children = null;
@@ -186,16 +227,53 @@
 			
 			return children;
 		},
-	
-		getNodeId = function(node) {
-			// assumes nodes are always tranforms
-			var isCitizen = jQuery.isFunction(node.getCitizenType);
+		
+		getCitNodeId = function(cit) {
+			var type = cit.getCitizenType(),
+				id = 'br_';
 			
-			if (isCitizen) {
-				return node.getId();
+			if (type === 'hemi.model.Model') {
+				id += 'models_';
+			} else if (type === 'hemi.shape.Shape') {
+				id += 'shapes_';
 			}
 			
-			return node.clientId;
+			id += cit.getId();
+			return id;
+		},
+	
+		getNodeId = function(obj) {
+			var isCitizen = jQuery.isFunction(obj.getCitizenType),
+				id = '';
+			
+			if (isCitizen) {
+				id = getCitNodeId(obj);
+			} else if (obj.clientId) {
+				var cit = hemi.world.getCitizenById(obj.getParam('ownerId').value);
+				id = getCitNodeId(cit);
+				
+				if (obj.className === 'Material') {
+					id += '_mats_' + obj.clientId;
+				} else {
+					var ids = [],
+						tran = obj;
+					
+					while (tran !== hemi.model.modelRoot && tran !== hemi.shape.root) {
+						ids.push('_' + tran.clientId);
+						tran = tran.parent;
+					}
+					
+					id += '_trans';
+					
+					while (ids.length > 0) {
+						id += ids.pop();
+					}
+				}
+			} else if (obj.className === 'directory') {
+				id = obj.nodeId;
+			}
+			
+			return id;
 		},
 		
 		getNodeType = function(node) {
@@ -803,7 +881,7 @@
 		addModel: function(model) {
 			var modelData = createJsonObj(model);
 			
-			this.tree.jstree('create_node', jQuery('#node_models'), 
+			this.tree.jstree('create_node', this.tree.find('#br_models'), 
 				'inside', {
 					json_data: modelData
 				});
@@ -812,14 +890,14 @@
 		addShape: function(shape) {
 			var shapeData = createJsonObj(shape);
 			
-			this.tree.jstree('create_node', jQuery('#node_shapes'), 
+			this.tree.jstree('create_node', this.tree.find('#br_shapes'), 
 				'inside', {
 					json_data: shapeData
 				});
 		},
 		
 		deselectNode: function(nodeName) {
-	        var node = jQuery('#node_' + nodeName);
+	        var node = this.tree.find('#' + nodeName);
 			this.tree.jstree('deselect_node', node);
 		},
 		
@@ -830,7 +908,7 @@
 				baseJson = [{
 					data: 'models',
 					attr: {
-						id: 'node_models',
+						id: 'br_models',
 						rel: 'type'
 					},
 					state: 'leaf',
@@ -841,7 +919,7 @@
 				{
 					data: 'shapes',
 					attr: {
-						id: 'node_shapes',
+						id: 'br_shapes',
 						rel: 'type'
 					},
 					state: 'leaf',
@@ -860,7 +938,7 @@
 				
 				switch(type) {
 					case 'transform':
-						// Deselect any non-transformsmdlt may be selected
+						// Deselect any non-transforms that may be selected
 						for (var i = 0, il = selected.length; i < il; i++) {
 							var sel = selected[i],
 								selData = jQuery(sel).data('jstree');
@@ -920,9 +998,9 @@
 				}
 			})
 			.jstree({
-				'progress_render': true,
 				'json_data': {
-					'data': baseJson
+					'data': baseJson,
+					'progressive_render': true
 				},
 				'types': {
 					'types': {
@@ -969,25 +1047,20 @@
 		},
 		
 		removeModel: function(model) {
-			var node = jQuery('#node_' + getNodeId(model));
+			var node = this.tree.find('#' + getNodeId(model));
 			this.tree.jstree('delete_node', node);
 		},
 		
 		removeShape: function(shape) {
-			var node = jQuery('#node_' + getNodeId(shape));
+			var node = this.tree.find('#' + getNodeId(shape));
 			this.tree.jstree('delete_node', node);
 		},
 		
 		selectNode: function(nodeName) {
-			var elem = jQuery('#node_' + nodeName);
-			var path = this.tree.jstree('get_path', elem, true);
+			generateNodes.call(this, nodeName, false);
 			
-			for (var i = 0, il = path.length - 1; i < il; i++) {
-				var node = jQuery('#' + path[i]);
-				this.tree.jstree('open_node', node, false, true);
-			}
-			
-			this.tree.jstree('select_node', elem, false);
+			var node = this.tree.find('#' + nodeName);
+			this.tree.jstree('select_node', node, false);
 		},
 		
 		sizeAndPosition: function() {
@@ -998,7 +1071,10 @@
 			// shape transforms may invariably change so we need to replace the
 			// whole node
 			var shapeData = createJsonObj(shape),
-				node = jQuery('#node_' + getNodeId(shape));
+				nodeName = getNodeId(shape);
+			
+			generateNodes.call(this, nodeName, true);
+			var node = this.tree.find('#' + nodeName);
 			
 			this.tree.jstree('create_node', node, 'after', {
 				json_data: shapeData
