@@ -34,6 +34,7 @@ var editor = (function(module) {
 			this.barWrapper.append(this.indicator);
 			this.container.append(this.text).append(this.barWrapper);
 			
+			this.container.css('zIndex', editor.ui.Layer.DIALOG);
 			// immediately update
 			this.update(0);
 			hemi.world.subscribe(hemi.msg.progress, this, 'msgUpdate');
@@ -62,16 +63,14 @@ var editor = (function(module) {
 			
 			if (visible) {
 				var	windowHeight = jQuery(window).height(),
-					top = windowHeight - this.container.height(),
-					left = 80;
-				
-				// position this
-				ctn.show().offset({
-					top: top + 20,
-					left: left
-				});
-				
-				ctn.css({
+					windowWidth = window.innerWidth ? window.innerWidth 
+						: document.documentElement.offsetWidth,
+					top = windowHeight - ctn.height(),
+					left = (windowWidth - ctn.width())/2;
+								
+				ctn.show().css({
+					top: top + 20 + 'px',
+					left: left + 'px',
 					opacity: 0,
 					position: 'absolute'
 				}).animate({
