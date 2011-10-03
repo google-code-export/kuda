@@ -521,6 +521,7 @@
 		
 		finishLayout: function() {
 			this._super();
+			var wgt = this;
 			
 			this.tableElem = jQuery('<table></table>');
 			this.container.append(this.tableElem);
@@ -554,6 +555,9 @@
 				.append('<span>entries</span>');
 			sel.sb({
 				ddCtx: '.topBottomSelect'
+			})
+			.bind('change', function() {
+				wgt.invalidate();
 			});
 			lLbl.hide();
 		},
