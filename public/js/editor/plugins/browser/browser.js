@@ -959,7 +959,7 @@
 							});
 							wgt.tree.jstree('toggle_node', elem);
 						} else {
-							wgt.treeParent.scrollTo(elem, 400);
+							wgt.container.scrollTo(elem, 400);
 						}
 						
 						break;
