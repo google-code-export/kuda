@@ -64,6 +64,13 @@
 							}
 						}
 					});
+					bhvWgt.parentPanel.addListener(editor.events.PanelVisible, function(data) {
+						if (data.visible) {
+							bhvWgt.axnChooser.rebindTree();
+							bhvWgt.trgChooser.rebindTree();
+							bhvWgt.checkRestrictions();
+						}
+					});
 					
 					done = true;
 				}
@@ -708,6 +715,7 @@
 				if (data.visible) {
 					bhvWgt.axnChooser.rebindTree();
 					bhvWgt.trgChooser.rebindTree();
+					bhvWgt.checkRestrictions();
 				}
 			});
 			tblWgt.addListener(shorthand.events.CloneTarget, function(data) {

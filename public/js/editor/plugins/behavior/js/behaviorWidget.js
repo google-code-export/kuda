@@ -317,6 +317,24 @@
 			}, options));
 		},
 		
+		checkRestrictions: function() {
+			if (this.restrictions) {
+				var actor = this.restrictions.actor,
+					type = this.restrictions.type;
+					
+				if (type === shorthand.BehaviorTypes.ACTION) {
+				 	axnTree.restrictSelection(actor, getMethods(actor));
+				}
+				else {
+					trgTree.restrictSelection(actor, getMessages(actor));
+				}
+			}
+			else {
+				reset(axnTree.getUI());
+				reset(trgTree.getUI());
+			}
+		},
+		
 		checkSaveButton: function() {
 			var btn = this.saveBtn,
 				saveable = this.checkSaveable();
@@ -499,6 +517,9 @@
 			this.checkSaveButton();
 			this.msgTarget = null;
 			this.invalidate();
+			
+			// clear restrictions
+			this.restrictions = null;
 		},
 		
 		setActor: function(actor, type, data, opt_spec) {
@@ -578,6 +599,12 @@
 					openNode(trgTree.getUI(), actor, trgTree.pre);		    
 					break;
 			}
+					
+			// save restriction state
+			this.restrictions = {
+				actor: actor,
+				type: type
+			}
 			
 			if (data instanceof hemi.dispatch.MessageTarget) {
 				setByMsgTarget.call(this, data, opt_spec);
@@ -609,6 +636,8 @@
 			if (visible) {
 				this.axnChooser.rebindTree();
 				this.trgChooser.rebindTree();
+				
+				this.checkRestrictions();
 			}
 			this._super(visible, etc);
 		}
