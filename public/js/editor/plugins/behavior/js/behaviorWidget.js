@@ -800,6 +800,9 @@
 						if (target.handler.citizen instanceof hemi.view.Camera){
 							compId = target.handler.values[0];
 						}
+						else if (target.handler.citizen instanceof hemi.model.Model) {
+							compId = target.handler.handler.getId();
+						}
 						else {
 							compId = target.handler.citizen.getId();
 						}
