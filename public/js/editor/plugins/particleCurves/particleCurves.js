@@ -524,7 +524,8 @@
 				});
 			})
 			.addClass('fixedWidth').sb({
-				fixedWidth: true
+				fixedWidth: true,
+				useTie: true
 			});
 			
 			shpTypeSel.bind('change', function(evt) {
@@ -534,7 +535,8 @@
 				});
 			})
 			.addClass('fixedWidth').sb({
-				fixedWidth: true
+				fixedWidth: true,
+				useTie: true
 			});
 			
 			boxAddBtn.bind('click', function(evt) {

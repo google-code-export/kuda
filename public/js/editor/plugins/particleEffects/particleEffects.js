@@ -255,8 +255,8 @@
 					fireInt = effect.fireInterval, 
 					numColors = colorRamp.length / 4;
 				
-				this.typeSelect.val(type).change().sb('refresh');
-				this.stateSelect.val(state).sb('refresh');
+				this.typeSelect.val(type).change();
+				this.stateSelect.val(state);
 				this.name.setValue(effect.name);
 				
 				for (var paramName in params) {
@@ -453,14 +453,16 @@
 				}
 			})
 			.addClass('fixedWidth').sb({
-				fixedWidth: true
+				fixedWidth: true,
+				useTie: true
 			});
 			
 			this.stateSelect.bind('change', function(evt) {
 				wgt.canSave();
 			})
 			.addClass('fixedWidth').sb({
-				fixedWidth: true
+				fixedWidth: true,
+				useTie: true
 			});
 			
 			this.name.getUI().bind('keyup', function(evt) {
@@ -556,9 +558,9 @@
 		
 		reset: function() {      
 			// reset selects
-			this.tplSelect.val(-1).sb('refresh');
-			this.typeSelect.val(-1).sb('refresh');
-			this.stateSelect.val(-1).sb('refresh');
+			this.tplSelect.val(-1);
+			this.typeSelect.val(-1);
+			this.stateSelect.val(-1);
 			
 			// set all inputs to blank
 			this.numParticles.reset();
@@ -656,7 +658,8 @@
 				}
 			})
 			.addClass('fixedWidth').sb({
-				fixedWidth: true
+				fixedWidth: true,
+				useTie: true
 			});
 			
 			hemi.utils.get('js/editor/plugins/particleEffects/templates/particleFx.json', function(data, status) {
@@ -670,7 +673,7 @@
 						var tpl = wgt.templates[i],
 							option = jQuery('<option value="' + i + '">' + tpl.name + '</option>');
 							
-						wgt.tplSelect.append(option).sb('refresh');				
+						wgt.tplSelect.append(option);				
 					}
 				}
 			});
