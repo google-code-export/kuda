@@ -889,6 +889,9 @@
 		if (source.camMove) {
 			li = behaviorLiTable.get(hemi.world.getCitizenById(data.type));
 		}
+		else if (source.shapePick && source.citizen instanceof hemi.shape.Shape) {
+			li = behaviorLiTable.get(source.citizen);
+		}
 		else if (source !== shorthand.treeData.MSG_WILDCARD && !source.shapePick) {
 			li = behaviorLiTable.get(hemi.world.getCitizenById(source));
 		}
