@@ -1342,7 +1342,8 @@
 			
 			this.msgPanel = this.find('#mbrMsg').hide();
 			this.container.find('select').sb({
-				ddCtx: '.topBottomSelect'
+				ddCtx: '.topBottomSelect',
+				useTie: true
 			});
 			this.createImportPanel();
 			this.createLoadPanel();
@@ -1355,7 +1356,7 @@
 			
 			this.msgPanel.text('').hide(200, function() {
 				wgt.invalidate();		
-				sel.val(-1).sb('refresh');
+				sel.val(-1);
 			});
 			
 			populateUnloadPanel.call(wgt);
@@ -1391,7 +1392,6 @@
 					var prj = jQuery('<option value="' + mdl.url + '">' + mdl.name + '</option>');
 					sel.append(prj);
 				}
-				sel.sb('refresh');
 				
 				this.invalidate();
 			}
@@ -1418,8 +1418,6 @@
 					sel.append(prj);
 				}
 			}
-			
-			sel.sb('refresh');
 		};
 	
 ////////////////////////////////////////////////////////////////////////////////

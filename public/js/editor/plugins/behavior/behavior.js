@@ -614,7 +614,8 @@
 			lth.append('<span>Show</span>').append(sel)
 				.append('<span>entries</span>');
 			sel.sb({
-				ddCtx: '.topBottomSelect'
+				ddCtx: '.topBottomSelect',
+				useTie: true
 			})
 			.bind('change', function() {
 				wgt.invalidate();

@@ -351,7 +351,8 @@
 			})
 			.change()
 			.addClass('fixedWidth').sb({
-				fixedWidth: true
+				fixedWidth: true,
+				useTie: true
 			});
 			
 			this.nameInput.getUI().bind('keyup', function(evt) {

@@ -401,7 +401,6 @@
 						id = mdl.getId();
 					wgt.selector.append('<option id="anmMdlSel_' + id + '" value="' + id + '">'
 						+ mdl.name + '</option>');
-					wgt.selector.sb('refresh');
 				}
 			});
 			
@@ -414,7 +413,6 @@
 					}
 					
 					wgt.find('#' + elemId).remove();
-					wgt.selector.sb('refresh');
 				}
 			});
 		},
@@ -669,7 +667,8 @@
 				wgt.invalidate();
 			})
 			.addClass('fixedWidth').sb({
-				fixedWidth: true
+				fixedWidth: true,
+				useTie: true
 			});
 	            
 	        inputs.bind('keyup', function(evt) {				

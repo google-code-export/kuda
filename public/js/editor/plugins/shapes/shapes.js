@@ -266,7 +266,8 @@
 				saveBtn.attr('disabled', 'disabled');
 				previewBtn.attr('disabled', 'disabled');
 			}).addClass('fixedWidth').sb({
-				fixedWidth: true
+				fixedWidth: true,
+				useTie: true
 			});
 			
 			this.shapeName.getUI().bind('keyup', function(evt) {
