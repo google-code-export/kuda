@@ -53,14 +53,9 @@
     
     shorthand.events = {
 		// view specific
-		RemoveMotion: "Motion.RemoveMotion",
 		SaveMotion: "Motion.SaveMotion",
-		SetMotion: "Motion.SetMotion",
 		StartPreview: "Motion.StartPreview",
-		StopPreview: "Motion.StopPreview",
-		
-		// model specific
-		MotionSet: "Motion.MotionSet"
+		StopPreview: "Motion.StopPreview"
     };
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +76,7 @@
 	    },
 		
 		removeMotion: function(motion) {
-			this.notifyListeners(editor.events.Removed, motion);
+			this.notifyListeners(editor.events.Removing, motion);
 			motion.cleanup();
 		},
 		
@@ -143,7 +138,7 @@
 		setMotion: function(motion) {
 			this.stopPreview();
 			this.currentMotion = motion;
-			this.notifyListeners(shorthand.events.MotionSet, motion);
+			this.notifyListeners(editor.events.Editing, motion);
 		},
 		
 		startPreview: function(props) {
@@ -204,10 +199,10 @@
 				trans = hemi.world.getTranslators();
 			
 			for (var i = 0, il = rots.length; i < il; i++) {
-				this.notifyListeners(editor.events.Removed, rots[i]);
+				this.notifyListeners(editor.events.Removing, rots[i]);
 			}
 			for (var i = 0, il = trans.length; i < il; i++) {
-				this.notifyListeners(editor.events.Removed, trans[i]);
+				this.notifyListeners(editor.events.Removing, trans[i]);
 			}
 	    },
 	    
@@ -372,7 +367,7 @@
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.reset();
-				wgt.notifyListeners(shorthand.events.SetMotion, null);
+				wgt.notifyListeners(editor.events.Edit, null);
 			});
 			
 			prevBtn.bind('click', function(evt) {
@@ -548,22 +543,6 @@
 			});
 		},
 		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				var motion = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.SetMotion, motion);
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var motion = li.getAttachedObject();
-//				if (editor.depends.check(motion)) {
-					wgt.notifyListeners(shorthand.events.RemoveMotion, motion);
-//				}
-			});
-		},
-		
 		getOtherHeights: function() {
 			return this.buttonDiv.outerHeight(true);
 		}
@@ -634,11 +613,11 @@
 				lstWgt = view.sidePanel.mtnListWidget;
 			
 			// create motion widget events
+			crtWgt.addListener(editor.events.Edit, function(motion) {
+				model.setMotion(motion);
+			});
 			crtWgt.addListener(shorthand.events.SaveMotion, function(props) {
 				model.saveMotion(props);
-			});
-			crtWgt.addListener(shorthand.events.SetMotion, function(motion) {
-				model.setMotion(motion);
 			});
 			crtWgt.addListener(shorthand.events.StartPreview, function(props) {
 				bwrModel.enableSelection(false);
@@ -650,11 +629,11 @@
 			});
 			
 			// motion list widget events
-			lstWgt.addListener(shorthand.events.RemoveMotion, function(motion) {
-				model.removeMotion(motion);
-			});
-			lstWgt.addListener(shorthand.events.SetMotion, function(motion) {
+			lstWgt.addListener(editor.events.Edit, function(motion) {
 				model.setMotion(motion);
+			});
+			lstWgt.addListener(editor.events.Remove, function(motion) {
+				model.removeMotion(motion);
 			});
 			
 			// view events
@@ -665,31 +644,18 @@
 			
 			// model events
 			model.addListener(editor.events.Created, function(motion) {
-//				var trans = motion.getTransforms();
-//				
-//				for (var i = 0, il = trans.length; i < il; ++i) {
-//					var id = trans[i].getParam('ownerId').value,
-//						model = hemi.world.getCitizenById(id);
-//					
-//					editor.depends.add(motion, model);
-//				}
+				var trans = motion.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.add(motion, model);
+				}
 				
 				lstWgt.add(motion);
 			});
-			model.addListener(editor.events.Removed, function(motion) {
-//				var trans = motion.getTransforms();
-//				
-//				for (var i = 0, il = trans.length; i < il; ++i) {
-//					var id = trans[i].getParam('ownerId').value,
-//						model = hemi.world.getCitizenById(id);
-//					
-//					editor.depends.remove(motion, model);
-//				}
-//				
-//				editor.depends.clear(motion);
-				lstWgt.remove(motion);
-			});
-			model.addListener(shorthand.events.MotionSet, function(motion) {
+			model.addListener(editor.events.Editing, function(motion) {
 				bwrModel.deselectAll();
 				bwrModel.enableSelection(true);
 				
@@ -702,16 +668,28 @@
 					}
 				}
 			});
+			model.addListener(editor.events.Removing, function(motion) {
+				var trans = motion.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.remove(motion, model);
+				}
+				
+				lstWgt.remove(motion);
+			});
 			model.addListener(editor.events.Updated, function(motion) {
-//				editor.depends.reset(motion);
-//				var trans = motion.getTransforms();
-//				
-//				for (var i = 0, il = trans.length; i < il; ++i) {
-//					var id = trans[i].getParam('ownerId').value,
-//						model = hemi.world.getCitizenById(id);
-//					
-//					editor.depends.add(motion, model);
-//				}
+				editor.depends.reset(motion);
+				var trans = motion.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.add(motion, model);
+				}
 				
 				lstWgt.update(motion);
 			});

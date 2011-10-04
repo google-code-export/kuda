@@ -76,14 +76,14 @@
 		
 		listenTo: function(toolModel) {
 			toolModel.addListener(editor.events.Created, this);
-			toolModel.addListener(editor.events.Removed, this);
+			toolModel.addListener(editor.events.Removing, this);
 			toolModel.addListener(editor.events.Updated, this);
 		},
 		
 		notify: function(eventType, value) {
 			if (eventType === editor.events.Created) {
 				this.addCitizen(value);
-			} else if (eventType === editor.events.Removed) {
+			} else if (eventType === editor.events.Removing) {
 				this.removeCitizen(value);
 			} else if (eventType === editor.events.Updated) {
 				this.updateCitizen(value);

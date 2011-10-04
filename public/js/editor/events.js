@@ -29,6 +29,10 @@ var editor = (function(editor) {
 		
 		Created: 'editor.Created',
 		
+		Edit: 'editor.Edit',
+		
+		Editing: 'editor.Editing',
+		
 		Enabled: 'editor.Enabled',
 		
 		MenuItemClicked: 'editor.MenuItemClicked',
@@ -41,7 +45,9 @@ var editor = (function(editor) {
 		
 		PluginRemoved: 'editor.PluginRemoved',
 		
-		Removed: 'editor.Removed',
+		Remove: 'editor.Remove',
+		
+		Removing: 'editor.Removing',
 		
 		ScriptLoaded: 'editor.ScriptLoaded',
 		

@@ -352,5 +352,37 @@ var editor = (function(module) {
 		return dlg;
 	};
 	
+	module.ui.createDependencyDialog = function(depList) {
+		var dlg = createSimpleDialog('showDeps', 'Unable to Remove'),
+			form = dlg.data('form').attr('style', 'float:none;'),
+			msg = dlg.data('msg').attr('style', 'text-align:left;'),
+			lbl = dlg.data('label').attr('for', 'depList').attr('style', 'float:none;'),
+			list = jQuery('<p style="text-align:left;" id="depList"></p>'),
+			btn = jQuery('<button id="okayBtn">Okay</button>');
+		
+		form.append(list);
+		dlg.append(btn);
+		lbl.text('Dependencies:');
+		msg.text('The following elements depend on this element either directly\
+				or indirectly. Please remove or modify them first.');
+		list.html(depList);
+		
+		btn.click(function() {
+			dlg.dialog('close');
+		});
+		dlg.dialog({
+			width: 300,
+			resizable: false,
+			autoOpen: false,
+			modal: true
+		})
+		.bind('dialogopen', function() {
+			form.show();
+			msg.show();
+		});
+		
+		return dlg;
+	};
+	
 	return module;
 })(editor || {});

@@ -58,9 +58,12 @@
 		
 		for (var i = 0, il = models.length; i < il; ++i) {
 			var model = models[i];
-			model.addListener(editor.events.Created, prjMdl);
-			model.addListener(editor.events.Removed, prjMdl);
-			model.addListener(editor.events.Updated, prjMdl);
+			
+			if (model !== prjMdl) {
+				model.addListener(editor.events.Created, prjMdl);
+				model.addListener(editor.events.Removing, prjMdl);
+				model.addListener(editor.events.Updated, prjMdl);
+			}
 		}
 		
 		editor.addListener(editor.events.PluginLoaded, function(name) {
@@ -68,7 +71,7 @@
 			
 			if (model) {
 				model.addListener(editor.events.Created, prjMdl);
-				model.addListener(editor.events.Removed, prjMdl);
+				model.addListener(editor.events.Removing, prjMdl);
 				model.addListener(editor.events.Updated, prjMdl);
 			}
 		});
@@ -100,8 +103,6 @@
 		ProjectExists: 'projectExsits',
 		Publish: 'publish',
 		Published: 'published',
-		Remove: 'remove',
-		Removed: 'removed',
 		Save: 'save',
 		Saved: 'saved',
 		ServerRunning: 'serverRunning',
@@ -204,7 +205,7 @@
 			
 			switch (eventType) {
 				case editor.events.Created:
-				case editor.events.Removed:
+				case editor.events.Removing:
 				case editor.events.Updated: 
 					this.dirty = true;
 					break;
@@ -267,7 +268,7 @@
 				dataType: 'json',
 				type: 'delete',
 				success: function(data, status, xhr) {
-					mdl.notifyListeners(shorthand.events.Removed, data.name);
+					mdl.notifyListeners(editor.events.Removing, data.name);
 					
 					var ndx = findProject.call(mdl, project);
 					
@@ -570,7 +571,7 @@
 					+ '.html').show();
 			}
 			li.removeBtn.bind('click', function(evt) {
-				wgt.notifyListeners(shorthand.events.Remove, project.name);
+				wgt.notifyListeners(editor.events.Remove, project.name);
 			});
 		},
 		
@@ -965,7 +966,7 @@
 			lstWgt.addListener(shorthand.events.Load, function(project) {
 				model.load(project);
 			});
-			lstWgt.addListener(shorthand.events.Remove, function(project) {
+			lstWgt.addListener(editor.events.Remove, function(project) {
 				model.remove(project);
 			});
 			prvWgt.addListener(shorthand.events.StopPreview, function() {
@@ -990,7 +991,7 @@
 			model.addListener(shorthand.events.Published, function(data) {
 				view.updatePublished(data);
 			});
-			model.addListener(shorthand.events.Removed, function(project) {
+			model.addListener(editor.events.Removing, function(project) {
 				view.updateRemoved(project);
 				lstWgt.remove(project);
 			});

@@ -42,7 +42,6 @@
 	
 	shorthand.events = {
 		// model specific
-		DisplaySet: "Hud.DisplaySet",
 		ElementCreated: "Hud.ElementCreated",
 		ElementRemoved: "Hud.ElementRemoved",
 		ElementSet: "Hud.ElementSet",
@@ -54,7 +53,6 @@
 		// hud edit specific
 		CreateDisplay: "Hud.CreateDisplay",
 		CreatePage: "Hud.CreatePage",
-		RemoveDisplay: "Hud.RemoveDisplay",
 		RemoveElement: "Hud.RemoveElement",
 		RemovePage: "Hud.RemovePage",
 		SaveElement: "Hud.SaveElement",
@@ -108,9 +106,9 @@
 			if (display === this.currentDisplay) {
 				this.setDisplay(null);
 			}
-			
-			display.cleanup();		
-			this.notifyListeners(editor.events.Removed, display);
+
+			this.notifyListeners(editor.events.Removing, display);
+			display.cleanup();
 		},
 		
 		removeElement: function(element) {
@@ -215,7 +213,7 @@
 			}
 			
 			this.currentDisplay = display;
-			this.notifyListeners(shorthand.events.DisplaySet, display);
+			this.notifyListeners(editor.events.Editing, display);
 		},
 		
 		setElement: function(element) {			
@@ -248,7 +246,7 @@
 			var displays = hemi.world.getHudDisplays();
 			
 			for (var ndx = 0, len = displays.length; ndx < len; ndx++) {
-				this.notifyListeners(editor.events.Removed, displays[ndx]);
+				this.notifyListeners(editor.events.Removing, displays[ndx]);
 			}
 	    },
 	    
@@ -571,7 +569,9 @@
 			removeBtn.bind('click', function(evt) {
 				var display = wgt.displayEditor.data('obj');
 				
-				wgt.notifyListeners(shorthand.events.RemoveDisplay, display);
+				if (editor.depends.check(display)) {
+					wgt.notifyListeners(editor.events.Remove, display);
+				}
 			});
 		},
 		
@@ -995,7 +995,7 @@
 			crtWgt.addListener(shorthand.events.CreatePage, function(select) {
 				model.createPage(select);
 			});
-			crtWgt.addListener(shorthand.events.RemoveDisplay, function(display) {
+			crtWgt.addListener(editor.events.Remove, function(display) {
 				model.removeDisplay(display);
 			});
 			crtWgt.addListener(shorthand.events.RemoveElement, function(element) {
@@ -1020,12 +1020,12 @@
 			model.addListener(editor.events.Created, function(display) {
 				treeWgt.add(display);
 			});
-			model.addListener(editor.events.Removed, function(display) {
-				treeWgt.remove(display);
-			});
-			model.addListener(shorthand.events.DisplaySet, function(display) {
+			model.addListener(editor.events.Editing, function(display) {
 				crtWgt.edit(display);
 				treeWgt.select(display);
+			});
+			model.addListener(editor.events.Removing, function(display) {
+				treeWgt.remove(display);
 			});
 			model.addListener(shorthand.events.ElementCreated, function(element) {
 				treeWgt.add(element, model.currentPage);

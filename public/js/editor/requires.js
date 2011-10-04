@@ -33,6 +33,7 @@ var editor = (function(editor) {
 	
     o3djs.require('editor.utils.listener');
 	o3djs.require('editor.utils.misc');
+	o3djs.require('editor.utils.dependency');
 		
 	o3djs.require('editor.data.metadata');
 	

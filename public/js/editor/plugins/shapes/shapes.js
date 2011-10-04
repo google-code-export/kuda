@@ -43,15 +43,7 @@
     shorthand.events = {
 		// create sidebar widget specific
 	    PreviewShape: "Shapes.PreviewShape",
-	    SaveShape: "Shapes.SaveShape",
-		
-		// list sidebar widget specific
-	    CreateShape: "Shapes.CreateShape",
-	    EditShape: "Shapes.EditShape",
-	    RemoveShape: "Shapes.RemoveShape",
-		
-		// model specific
-	    ShapeSet: "Shapes.ShapeSet"
+	    SaveShape: "Shapes.SaveShape"
     };
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,7 +66,7 @@
 			var shapes = hemi.world.getShapes();
 			
 			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
-				this.notifyListeners(editor.events.Removed, shapes[ndx]);
+				this.notifyListeners(editor.events.Removing, shapes[ndx]);
 			}
 	    },
 	    
@@ -96,7 +88,7 @@
 			}
 			
 			this.currentShape = shape;
-			this.notifyListeners(shorthand.events.ShapeSet, shape);
+			this.notifyListeners(editor.events.Editing, shape);
 		},
 		
 		previewShape: function(props) {
@@ -114,7 +106,7 @@
 		},
 		
 		removeShape: function(shape) {
-			this.notifyListeners(editor.events.Removed, shape);
+			this.notifyListeners(editor.events.Removing, shape);
 			shape.cleanup();
 		},
 		
@@ -464,22 +456,6 @@
 				title: 'Shapes',
 				instructions: "Add shapes above."
 			});
-			
-			this.items = new Hashtable();
-		},
-		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				var shape = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.EditShape, shape);
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var shape = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.RemoveShape, shape);
-			});
 		},
 		
 		getOtherHeights: function() {
@@ -552,29 +528,27 @@
 			});	
 			
 			// list sidebar widget listeners
-			lstWgt.addListener(shorthand.events.CreateShape, function() {
-			});	
-			lstWgt.addListener(shorthand.events.EditShape, function(shape) {				
+			lstWgt.addListener(editor.events.Edit, function(shape) {				
 				model.setShape(shape);
 			});	
-			lstWgt.addListener(shorthand.events.RemoveShape, function(shape) {
+			lstWgt.addListener(editor.events.Remove, function(shape) {
 				model.removeShape(shape);
 			});
 			
 			// model specific listeners
 			model.addListener(editor.events.Created, function(shape) {
 				lstWgt.add(shape);
+			});
+			model.addListener(editor.events.Editing, function(shape) {
+				if (shape != null) {
+					crtWgt.set(shape);
+				}
 			});		
 			model.addListener(editor.events.Updated, function(shape) {
 				lstWgt.update(shape);
 			});		
-			model.addListener(editor.events.Removed, function(shape) {
+			model.addListener(editor.events.Removing, function(shape) {
 				lstWgt.remove(shape);
-			});
-			model.addListener(shorthand.events.ShapeSet, function(shape) {
-				if (shape != null) {
-					crtWgt.set(shape);
-				}
 			});
 	    }
 	});

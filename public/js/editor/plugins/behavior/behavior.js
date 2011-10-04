@@ -140,12 +140,9 @@
 		ArgumentSet: "messaging.ArgumentSet",
 		TriggerSet: "messaging.TriggerSet",
 		ActionSet: "messaging.ActionSet",
-	    EditTarget: "messaging.view.EditTarget",
-	    RemoveTarget: "messaging.eventList.RemoveTarget",
 	    SaveTarget: "messaging.view.SaveTarget",
 		SelectTrigger: "messaging.SelectTrigger",
 		SelectAction: "messaging.SelectAction",
-		SelectTarget: "messaging.SelectTarget",
 		CloneTarget: "messaging.CloneTarget",
 
 		CreateBehavior: "messaging.CreateBehavior",
@@ -259,7 +256,7 @@
 				this.msgTarget = null;
 			}
 
-	        this.notifyListeners(editor.events.Removed, target);	
+	        this.notifyListeners(editor.events.Removing, target);	
 			this.dispatchProxy.removeTarget(target);
 			
 			if (target.handler instanceof hemi.handlers.ValueCheck) {
@@ -432,7 +429,7 @@
 			
 			for (var ndx = 0, len = targets.length; ndx < len; ndx++) {
 	            var target = targets[ndx];
-	            this.notifyListeners(editor.events.Removed, target);
+	            this.notifyListeners(editor.events.Removing, target);
 	        }
 			
 			this.dispatchProxy.cleanup();
@@ -449,11 +446,13 @@
 			var targets = this.dispatchProxy.getTargets();
 			
 			for (var ndx = 0, len = targets.length; ndx < len; ndx++) {
-				var target = targets[ndx];
+				var target = targets[ndx],
+					spec = this.dispatchProxy.getTargetSpec(target);
 				
 				if (target.name.match(editor.ToolConstants.EDITOR_PREFIX) === null) {
 					this.notifyListeners(editor.events.Created, {
-						target: target
+						target: target,
+						spec: spec
 					});
 				}
 	        }
@@ -603,7 +602,7 @@
 		
 		td.find('.editBtn').bind('click', function(evt) {
 			var bhv = tr.data('behavior');					
-			wgt.notifyListeners(shorthand.events.SelectTarget, bhv);
+			wgt.notifyListeners(editor.events.Edit, bhv);
 		});
 		
 		if (msgs.length > 0) {
@@ -648,7 +647,7 @@
 			var tr = jQuery(this).parents('tr'),
 				target = tr.data('behavior');
 				
-			wgt.notifyListeners(shorthand.events.RemoveTarget, target);
+			wgt.notifyListeners(editor.events.Remove, target);
 		});
 	};
 	
@@ -726,13 +725,12 @@
 				model.copyTarget(data.target);
 				model.save(data.name);
 			});
-			tblWgt.addListener(shorthand.events.RemoveTarget, function(target) {
-				model.removeTarget(target);
-			});			
-			tblWgt.addListener(shorthand.events.SelectTarget, function(target) {	
+			tblWgt.addListener(editor.events.Edit, function(target) {	
 				var spec = model.dispatchProxy.getTargetSpec(target);
-				
 				bhvWgt.setTarget(target, spec);
+			});
+			tblWgt.addListener(editor.events.Remove, function(target) {
+				model.removeTarget(target);
 			});
 			tblWgt.addListener(shorthand.events.SelectTrigger, function(data) {
 				bhvWgt.setTrigger(data.source, data.messages);
@@ -741,22 +739,77 @@
 			// model specific	
 			model.addListener(editor.events.Created, function(data) {
 				var target = data.target,
-					spec = model.dispatchProxy.getTargetSpec(target);
+					handler = target.handler,
+					spec = data.spec,
+					source;
+			
+				if (handler instanceof hemi.handlers.ValueCheck) {
+					if (handler.citizen instanceof hemi.view.Camera) {
+						source = hemi.world.getCitizenById(handler.values[0]);
+					}
+					else {
+						source = handler.citizen;
+					}
+					
+					handler = handler.handler;
+				} else {
+					source = hemi.world.getCitizenById(spec.src);
+				}
+				
+				editor.depends.add(target, handler);
+				editor.depends.add(target, source);
 				
 				shorthand.modifyBehaviorListItems(target, spec);
 				tblWgt.add(target, spec);
 				
 				bhvWgt.setVisible(false);
 			});			
-			model.addListener(editor.events.Removed, function(target) {
-				var	spec = model.dispatchProxy.getTargetSpec(target);
+			model.addListener(editor.events.Removing, function(target) {
+				var handler = target.handler,
+					spec = model.dispatchProxy.getTargetSpec(target),
+					source;
+					
+					if (handler instanceof hemi.handlers.ValueCheck) {
+						if (handler.citizen instanceof hemi.view.Camera) {
+							source = hemi.world.getCitizenById(handler.values[0]);
+						}
+						else {
+							source = handler.citizen;
+						}
+						
+						handler = handler.handler;
+					} else {
+						source = hemi.world.getCitizenById(spec.src);
+					}
+				
+				editor.depends.remove(target, handler);
+				editor.depends.remove(target, source);
 				
 				tblWgt.remove(target);
 				shorthand.modifyBehaviorListItems(target, spec, 'remove');
 			});			
 			model.addListener(editor.events.Updated, function(data) {
 				var target = data.target,
-					spec = data.spec;
+					handler = target.handler,
+					spec = data.spec,
+					source;
+					
+					if (handler instanceof hemi.handlers.ValueCheck) {
+						if (handler.citizen instanceof hemi.view.Camera) {
+							source = hemi.world.getCitizenById(handler.values[0]);
+						}
+						else {
+							source = handler.citizen;
+						}
+						
+						handler = handler.handler;
+					} else {
+						source = hemi.world.getCitizenById(spec.src);
+					}
+				
+				editor.depends.reset(target);
+				editor.depends.add(target, handler);
+				editor.depends.add(target, source);
 				
 				if (data.oldSpec === spec && data.oldTarget === target) {
 					shorthand.modifyBehaviorListItems(target, spec, 'update');

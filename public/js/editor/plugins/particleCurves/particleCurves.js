@@ -42,7 +42,6 @@
 	
 	shorthand.events = {
 		// model specific
-	    CurveSet: "Curves.CurveSet",
 	    BoxAdded: "Curves.BoxAdded",
 	    BoxSelected: "Curves.BoxSelected",
 	    BoxRemoved: "Curves.BoxRemoved",
@@ -50,11 +49,6 @@
 		
 		// view specific
 		BoxManipState: "Curves.BoxManipState",
-		
-		// curve list widget specific
-		CreateCurve: "Curves.CreateCurve",
-		EditCurve: "Curves.EditCurve",
-		RemoveCurve: "Curves.RemoveCurve",
 		
 		// curve edit widget specific
 		SetParam: "Curves.SetParam",
@@ -211,7 +205,7 @@
 			
 			this.config.boxes = getExtentsList(this.boxes);
 			
-			this.notifyListeners(shorthand.events.CurveSet, {
+			this.notifyListeners(editor.events.Editing, {
 				system: this.currentSystem,
 				boxes: this.boxes
 			});
@@ -238,9 +232,9 @@
 		
 		remove: function(system) {
 			this.stopPreview();
+			this.notifyListeners(editor.events.Removing, system);
 			system.cleanup();			
 			this.reset();
-			this.notifyListeners(editor.events.Removed, system);
 		},
 		
 		removeBox: function(box) {				
@@ -276,7 +270,7 @@
 			
 			this.boxes = [];
 			
-			this.notifyListeners(shorthand.events.CurveSet, {
+			this.notifyListeners(editor.events.Editing, {
 				system: null,
 				boxes: null
 			});
@@ -375,7 +369,7 @@
 			this.reset();
 			
 			for (var i = 0, il = systems.length; i < il; i++) {
-				this.notifyListeners(editor.events.Removed, systems[i]);
+				this.notifyListeners(editor.events.Removing, systems[i]);
 			}
 	    },
 		
@@ -978,20 +972,6 @@
 			this.items = new Hashtable();	
 		},
 		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				var curve = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.EditCurve, curve);
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var curve = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.RemoveCurve, curve);
-			});
-		},
-		
 		getOtherHeights: function() {
 			return this.buttonDiv.outerHeight(true);
 		}
@@ -1177,10 +1157,10 @@
 			});
 			
 			// curve list widget specific
-			lstWgt.addListener(shorthand.events.EditCurve, function(curve) {
+			lstWgt.addListener(editor.events.Edit, function(curve) {
 				model.edit(curve);
 			});
-			lstWgt.addListener(shorthand.events.RemoveCurve, function(curve) {
+			lstWgt.addListener(editor.events.Remove, function(curve) {
 				model.remove(curve);
 			});
 			
@@ -1202,16 +1182,16 @@
 			model.addListener(editor.events.Created, function(curve) {
 				lstWgt.add(curve);
 			});
-			model.addListener(editor.events.Removed, function(curve) {
-				lstWgt.remove(curve);
-			});
-			model.addListener(shorthand.events.CurveSet, function(curve) {
+			model.addListener(editor.events.Editing, function(curve) {
 				if (curve.system != null) {
 					crtWgt.set(curve.system, curve.boxes);
 				} else {
 					crtWgt.reset();
 					view.boxSelected(null, -1);
 				}
+			});
+			model.addListener(editor.events.Removing, function(curve) {
+				lstWgt.remove(curve);
 			});
 			model.addListener(editor.events.Updated, function(curve) {
 				lstWgt.update(curve);
