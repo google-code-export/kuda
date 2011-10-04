@@ -301,6 +301,10 @@
 			}
 			else if (eventType === shorthand.events.CitizenUpdated) {
 				this.update(value);
+				
+				if (this.type === TRIGGER_PREFIX) {
+					updateTrigger.call(this, value);
+				}
 			}
 		},
 		
@@ -377,6 +381,10 @@
 			generateNodes.call(this, nodeName, true);
 			var node = jQuery('#' + nodeName, this.tree);
 			this.tree.jstree('rename_node', node, citizen.name);
+			
+			// shape case
+			
+			// camera move case
 		}
 	});
 	
@@ -909,6 +917,40 @@
 				node = jQuery('#' + nodeName);
 				this.tree.jstree('delete_node', node);
 			}
+		},
+		
+		updateTrigger = function(citizen) {
+			if (citizen instanceof hemi.shape.Shape) {
+				var spc = shorthand.treeData.createShapePickCitizen(citizen),
+					nodeName = shorthand.treeData.getNodeName(spc, {
+						option: null,
+						prefix: this.pre,
+						id: citizen.getId()
+					}),
+					triggerNode = shorthand.treeData.createShapePickJson(spc, 
+						this.pre),
+					type = spc.getCitizenType().split('.').pop();
+				
+				this.tree.jstree('delete_node', '#' + nodeName);				
+				this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
+					json_data: triggerNode
+				});
+			} else if (citizen instanceof hemi.view.Viewpoint) {
+				// In future if we support multiple cameras, this will need to
+				// be updated
+				var cmc = shorthand.treeData.createCamMoveCitizen(hemi.world.camera),
+					id = citizen.getId(),
+					nodeName = shorthand.treeData.getNodeName(cmc, {
+						option: id,
+						prefix: this.pre,
+						id: cmc.getId()
+					});
+				
+				generateNodes.call(this, nodeName, false);
+				this.tree.jstree('rename_node', '#' + nodeName, citizen.name);
+			}
+			
+			// TODO: now update valuecheck behaviors to show the updated name
 		};
 	
 ////////////////////////////////////////////////////////////////////////////////
