@@ -542,7 +542,8 @@
 				loop: loop,
 				start: startInput,
 				end: endInput,
-				slider: slider
+				slider: slider,
+				wrapper: wrapper
 			});
 		},
 		
