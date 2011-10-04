@@ -436,6 +436,7 @@
 				lstWgt.add(vpt);
 			});
 			model.addListener(editor.events.Updated, function(vpt) {
+				crtWgt.reset();
 				lstWgt.update(vpt);
 			});
 			model.addListener(editor.events.Removing, function(vpt) {
