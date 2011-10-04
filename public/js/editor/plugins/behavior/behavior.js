@@ -106,14 +106,16 @@
 						
 						// valuecheck case
 						if (target.handler instanceof hemi.handlers.ValueCheck) {
-							if (target.handler.citizen instanceof hemi.view.Camera){
+							if (target.handler.citizen instanceof hemi.view.Camera) {
 								compId = target.handler.values[0];
 							}
 							else if (target.handler.citizen instanceof hemi.model.Model) {
 								compId = target.handler.handler.getId();
 							}
 							else {
+								// shape
 								compId = target.handler.citizen.getId();
+								target.handler.values[0] = obj.transform.shapes[0].name;
 							}
 						}
 						else {
