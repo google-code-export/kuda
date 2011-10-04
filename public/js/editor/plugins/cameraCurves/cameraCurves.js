@@ -57,9 +57,7 @@
 		UpdateWaypoint: "camcurve.UpdateWaypoint",
 		
 		// Camera Curve List Widget events
-		AddCamCurve: "camcurve.AddCamCurve",
-		EditCamCurve: "camcurve.EditCamCurve",
-		RemoveCamCurve: "camcurve.RemoveCamCurve"
+		AddCamCurve: "camcurve.AddCamCurve"
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +104,7 @@
 		},
 		
 		removeCamCurve: function(curve) {
-			this.notifyListeners(editor.events.Removed, curve);
+			this.notifyListeners(editor.events.Removing, curve);
 			curve.cleanup();
 		},
 		
@@ -264,7 +262,7 @@
 	        
 	        for (var ndx = 0, len = camCurves.length; ndx < len; ndx++) {
 	            var cc = camCurves[ndx];
-	            this.notifyListeners(editor.events.Removed, cc);
+	            this.notifyListeners(editor.events.Removing, cc);
 	        }
 	    },
 	    
@@ -577,20 +575,6 @@
 			});
 		},
 		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				var crv = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.EditCamCurve, crv);
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var crv = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.RemoveCamCurve, crv);
-			});
-		},
-		
 		getOtherHeights: function() {
 			return this.form.outerHeight(true);
 		}
@@ -679,11 +663,11 @@
 			// camera curve list widget specific
 			lstWgt.addListener(shorthand.events.AddCamCurve, function() {
 			});
-			lstWgt.addListener(shorthand.events.EditCamCurve, function(crv) {
+			lstWgt.addListener(editor.events.Edit, function(crv) {
 				model.setCamCurve(crv);
 				crtWgt.set(crv);
 			});
-			lstWgt.addListener(shorthand.events.RemoveCamCurve, function(crv) {
+			lstWgt.addListener(editor.events.Remove, function(crv) {
 				model.removeCamCurve(crv);
 			});
 			
@@ -694,7 +678,7 @@
 			model.addListener(editor.events.Created, function(crv) {
 				lstWgt.add(crv);
 			});
-			model.addListener(editor.events.Removed, function(crv) {
+			model.addListener(editor.events.Removing, function(crv) {
 				lstWgt.remove(crv);
 			});
 			model.addListener(editor.events.Updated, function(crv) {

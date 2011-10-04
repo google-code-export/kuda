@@ -41,11 +41,8 @@
 	
 	shorthand.events = {
 		// scene list widget specific
-	    AddScene: "scenes.AddScene",
-		EditScene: "scenes.SelectScene",
-	    UpdateScene: "scenes.UpdateScene",
-	    RemoveScene: "scenes.RemoveScene",
-	    ReorderScene: "scenes.ReorderScene"
+	    ReorderScene: "scenes.ReorderScene",
+	    SaveScene: "scenes.SaveScene"
 	};
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -63,25 +60,16 @@
 			this.editScene = null;
 	    },
 	    
-	    addScene: function(sceneName) {
-			var scene = new hemi.scene.Scene();
-			scene.name = sceneName;
-			
-			if (this.lastScene) {
-				this.lastScene.next = scene;
-				scene.prev = this.lastScene;
-			}
-			this.lastScene = scene;
-			this.notifyListeners(editor.events.Created, scene);
-	    },
-	    
 	    removeScene: function(scene) {
 			if (this.lastScene === scene) {
 				this.lastScene = scene.prev;
 			}
+			if (this.editScene === scene) {
+				this.setScene(null);
+			}
 			
+			this.notifyListeners(editor.events.Removing, scene);
 			scene.cleanup();
-			this.notifyListeners(editor.events.Removed, scene);
 	    },
 		
 		reorderScenes: function(scene, previous, next) {
@@ -107,19 +95,33 @@
 		
 		setScene: function(scene) {
 			this.editScene = scene;
+			this.notifyListeners(editor.events.Editing, scene);
 		},
 		
-		updateScene: function(sceneName) {
-			this.editScene.name = sceneName;
-			this.notifyListeners(editor.events.Updated, this.editScene);
-			this.editScene = null;
+		saveScene: function(sceneName) {
+			if (this.editScene) {
+				this.editScene.name = sceneName;
+				this.notifyListeners(editor.events.Updated, this.editScene);
+				this.editScene = null;
+			} else {
+				var scene = new hemi.scene.Scene();
+				scene.name = sceneName;
+				
+				if (this.lastScene) {
+					this.lastScene.next = scene;
+					scene.prev = this.lastScene;
+				}
+				
+				this.lastScene = scene;
+				this.notifyListeners(editor.events.Created, scene);
+			}
 		},
 	    
 	    worldCleaned: function() {
 			var scenes = hemi.world.getScenes();
 			
 			for (var i = 0, il = scenes.length; i < il; i++) {
-				this.notifyListeners(editor.events.Removed, scenes[i]);
+				this.notifyListeners(editor.events.Removing, scenes[i]);
 			}
 	    },
 		    
@@ -167,30 +169,6 @@
 			});
 		},
 		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				var scn = li.getAttachedObject();
-				
-				wgt.nameInput.val(scn.name).addClass('save');
-				wgt.notifyListeners(shorthand.events.EditScene, scn);
-				wgt.addBtn.text(SAVE_TXT).data('isEditing', true)
-					.data('scene', scn).removeAttr('disabled');
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var scn = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.RemoveScene, scn);
-				
-				if (wgt.addBtn.data('scene') === scn) {
-					wgt.addBtn.text(ADD_TXT).data('isEditing', false)
-						.data('scene', null);
-					wgt.nameInput.val('').removeClass('save');
-				}
-			});
-		},
-		
 		finishLayout: function() {
 			this._super();		
 			var wgt = this;	
@@ -221,19 +199,11 @@
 			
 			this.addBtn.bind('click', function(evt) {
 				var btn = jQuery(this),
-					name = wgt.nameInput.val(),
-					isEditing = btn.data('isEditing'),
-					msgType = isEditing ? shorthand.events.UpdateScene 
-						: shorthand.events.AddScene,
-					data = isEditing ? {
-						scene: btn.data('scene'),
-						name: name
-					} : name;
+					name = wgt.nameInput.val();
 					
-				wgt.notifyListeners(msgType, data);
+				wgt.notifyListeners(shorthand.events.SaveScene, name);
 				wgt.nameInput.val('').removeClass('save');
-				btn.attr('disabled', 'disabled').text(ADD_TXT)
-					.data('isEditing', false).data('scene', null);
+				btn.attr('disabled', 'disabled').text(ADD_TXT);
 			})
 			.attr('disabled', 'disabled');
 			
@@ -252,6 +222,16 @@
 			});
 			
 			return this.form;
+		},
+		
+		set: function(scene) {
+			if (scene) {
+				this.nameInput.val(scene.name).addClass('save');
+				this.addBtn.text(SAVE_TXT).removeAttr('disabled');
+			} else {
+				this.nameInput.val('').removeClass('save');
+				this.addBtn.text(ADD_TXT).attr('disabled', 'disabled');
+			}
 		}
 	});
 	
@@ -302,30 +282,30 @@
 				lstWgt = view.sidePanel.scnListWidget;
 			
 			// scene list widget specific
-			lstWgt.addListener(shorthand.events.AddScene, function(sceneName) {
-				model.addScene(sceneName);
-			});			
-			lstWgt.addListener(shorthand.events.EditScene, function(scene) {
+			lstWgt.addListener(editor.events.Edit, function(scene) {
 				model.setScene(scene);
 			});			
-			lstWgt.addListener(shorthand.events.RemoveScene, function(scene) {
+			lstWgt.addListener(editor.events.Remove, function(scene) {
 				model.removeScene(scene);
 			});			
 			lstWgt.addListener(shorthand.events.ReorderScene, function(scnObj) {
 				model.reorderScenes(scnObj.scene, scnObj.prev, scnObj.next);
 			});			
-			lstWgt.addListener(shorthand.events.UpdateScene, function(scnObj) {
-				model.updateScene(scnObj.name);
+			lstWgt.addListener(shorthand.events.SaveScene, function(name) {
+				model.saveScene(name);
 			});
 			
 			// model specific
 			model.addListener(editor.events.Created, function(scene) {
 				lstWgt.add(scene);
-			});		
+			});
+			model.addListener(editor.events.Editing, function(scene) {
+				lstWgt.set(scene);
+			});
 			model.addListener(editor.events.Updated, function(scene) {
 				lstWgt.update(scene);
-			});		
-			model.addListener(editor.events.Removed, function(scene) {
+			});
+			model.addListener(editor.events.Removing, function(scene) {
 				lstWgt.remove(scene);
 			});
 	    }

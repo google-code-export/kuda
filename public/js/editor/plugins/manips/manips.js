@@ -53,15 +53,9 @@
 
 	shorthand.events = {
 		// view specific
-		CreateManip: "Manip.CreateManip",
-		RemoveManip: "Manip.RemoveManip",
 		SaveManip: "Manip.SaveManip",
-		SetManip: "Manip.SetManip",
 		StartPreview: "Manip.StartPreview",
-		StopPreview: "Manip.StopPreview",
-		
-		// model specific
-		ManipSet: "Manip.ManipSet"
+		StopPreview: "Manip.StopPreview"
 	};
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -81,7 +75,7 @@
 	    },
 		
 		removeManip: function(manip) {
-			this.notifyListeners(editor.events.Removed, manip);
+			this.notifyListeners(editor.events.Removing, manip);
 			manip.cleanup();
 		},
 		
@@ -137,7 +131,7 @@
 		setManip: function(manip) {
 			this.stopPreview();
 			this.currentManip = manip;
-			this.notifyListeners(shorthand.events.ManipSet, manip);
+			this.notifyListeners(editor.events.Editing, manip);
 		},
 		
 		startPreview: function(props) {
@@ -207,10 +201,10 @@
 				turns = hemi.world.getTurnables();
 			
 			for (var i = 0, il = drags.length; i < il; i++) {
-				this.notifyListeners(editor.events.Removed, drags[i]);
+				this.notifyListeners(editor.events.Removing, drags[i]);
 			}
 			for (var i = 0, il = turns.length; i < il; i++) {
-				this.notifyListeners(editor.events.Removed, turns[i]);
+				this.notifyListeners(editor.events.Removing, turns[i]);
 			}
 	    },
 	    
@@ -435,7 +429,7 @@
 			
 			cancelBtn.bind('click', function(evt) {
 				wgt.reset();
-				wgt.notifyListeners(shorthand.events.SetManip, null);
+				wgt.notifyListeners(editor.events.Edit, null);
 				wgt.invalidate();
 			});
 			
@@ -580,22 +574,6 @@
 			});
 		},
 		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				var manip = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.SetManip, manip);
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var manip = li.getAttachedObject();
-//				if (editor.depends.check(manip)) {
-					wgt.notifyListeners(shorthand.events.RemoveManip, manip);
-//				}
-			});
-		},
-		
 		getOtherHeights: function() {
 			return this.buttonDiv.outerHeight(true);
 		}
@@ -665,11 +643,11 @@
 				lstWgt = view.sidePanel.mnpListWidget;
 			
 			// view events
+			crtWgt.addListener(editor.events.Edit, function(manip) {
+				model.setManip(manip);
+			});
 			crtWgt.addListener(shorthand.events.SaveManip, function(props) {
 				model.saveManip(props);
-			});
-			crtWgt.addListener(shorthand.events.SetManip, function(manip) {
-				model.setManip(manip);
 			});
 			crtWgt.addListener(shorthand.events.StartPreview, function(props) {
 				bwrModel.enableSelection(false);
@@ -679,12 +657,12 @@
 				bwrModel.enableSelection(true);
 				model.stopPreview();
 			});
-			
-			lstWgt.addListener(shorthand.events.RemoveManip, function(manip) {
-				model.removeManip(manip);
-			});
-			lstWgt.addListener(shorthand.events.SetManip, function(manip) {
+
+			lstWgt.addListener(editor.events.Edit, function(manip) {
 				model.setManip(manip);
+			});
+			lstWgt.addListener(editor.events.Remove, function(manip) {
+				model.removeManip(manip);
 			});
 			
 			view.addListener(editor.events.ToolModeSet, function(value) {
@@ -694,31 +672,18 @@
 			
 			// model events
 			model.addListener(editor.events.Created, function(manip) {
-//				var trans = manip.getTransforms();
-//				
-//				for (var i = 0, il = trans.length; i < il; ++i) {
-//					var id = trans[i].getParam('ownerId').value,
-//						model = hemi.world.getCitizenById(id);
-//					
-//					editor.depends.add(manip, model);
-//				}
+				var trans = manip.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.add(manip, model);
+				}
 				
 				lstWgt.add(manip);
 			});
-			model.addListener(editor.events.Removed, function(manip) {
-//				var trans = manip.getTransforms();
-//				
-//				for (var i = 0, il = trans.length; i < il; ++i) {
-//					var id = trans[i].getParam('ownerId').value,
-//						model = hemi.world.getCitizenById(id);
-//					
-//					editor.depends.remove(manip, model);
-//				}
-//				
-//				editor.depends.clear(manip);
-				lstWgt.remove(manip);
-			});
-			model.addListener(shorthand.events.ManipSet, function(manip) {
+			model.addListener(editor.events.Editing, function(manip) {
 				bwrModel.deselectAll();
 				bwrModel.enableSelection(true);
 				
@@ -731,16 +696,28 @@
 					}
 				}
 			});
+			model.addListener(editor.events.Removing, function(manip) {
+				var trans = manip.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.remove(manip, model);
+				}
+				
+				lstWgt.remove(manip);
+			});
 			model.addListener(editor.events.Updated, function(manip) {
-//				editor.depends.reset(manip);
-//				var trans = manip.getTransforms();
-//				
-//				for (var i = 0, il = trans.length; i < il; ++i) {
-//					var id = trans[i].getParam('ownerId').value,
-//						model = hemi.world.getCitizenById(id);
-//					
-//					editor.depends.add(manip, model);
-//				}
+				editor.depends.reset(manip);
+				var trans = manip.getTransforms();
+				
+				for (var i = 0, il = trans.length; i < il; ++i) {
+					var id = trans[i].getParam('ownerId').value,
+						model = hemi.world.getCitizenById(id);
+					
+					editor.depends.add(manip, model);
+				}
 				
 				lstWgt.update(manip);
 			});

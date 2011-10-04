@@ -735,7 +735,7 @@ var editor = (function(editor) {
 			var li = this.items.get(obj.getId());
 			
 			if (!li) {
-				var li = this.createListItem();
+				li = this.createListItem();
 					
 				li.setText(obj.name);
 				li.attachObject(obj);
@@ -749,8 +749,21 @@ var editor = (function(editor) {
 			return li;
 	    },
 		
-		bindButtons: function() {
+	    bindButtons: function(li, obj) {
+			var wgt = this;
 			
+			li.editBtn.bind('click', function(evt) {
+				var obj = li.getAttachedObject();
+				wgt.notifyListeners(editor.events.Edit, obj);
+			});
+			
+			li.removeBtn.bind('click', function(evt) {
+				var obj = li.getAttachedObject();
+				
+				if (editor.depends.check(obj)) {
+					wgt.notifyListeners(editor.events.Remove, obj);
+				}
+			});
 		},
 		
 		clear: function() {
@@ -770,8 +783,7 @@ var editor = (function(editor) {
 			this._super();
 			this.title = jQuery('<h1>' + this.config.title + '</h1>');
 			this.instructions = jQuery('<p>' + this.config.instructions + '</p>');
-			var wgt = this,
-				otherElems = this.layoutExtra();
+			var otherElems = this.layoutExtra();
 			
 			this.list = new editor.ui.List({
 				id: this.config.listId,

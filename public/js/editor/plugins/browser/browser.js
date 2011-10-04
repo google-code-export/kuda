@@ -41,7 +41,7 @@
 			model.addListener(editor.events.Created, function(shape) {
 				mbrMdl.addShape(shape);
 			});
-			model.addListener(editor.events.Removed, function(shape) {
+			model.addListener(editor.events.Removing, function(shape) {
 				mbrMdl.removeShape(shape);
 			});
 			model.addListener(editor.events.Updated, function(shape) {
@@ -55,7 +55,7 @@
 					model.addListener(editor.events.Created, function(shape) {
 						mbrMdl.addShape(shape);
 					});
-					model.addListener(editor.events.Removed, function(shape) {
+					model.addListener(editor.events.Removing, function(shape) {
 						mbrMdl.removeShape(shape);
 					});
 					model.addListener(editor.events.Updated, function(shape) {
@@ -83,7 +83,6 @@
 	shorthand.events = {
 		// browser model events
 		AddUserCreatedShape: "browser.AddUserCreatedShape",
-		ModelUnloaded: "browser.ModelUnloaded",
 		PickableSet: "browser.PickableSet",
 		RemoveUserCreatedShape: "browser.RemoveUserCreatedShape",
 		ServerRunning: 'browser.ServerRunning',
@@ -583,16 +582,15 @@
 	        }
 	    },
 		
-		removeModel: function(modelId) {
-			var model = hemi.world.getCitizenById(modelId),
-				transforms = this.selected.get(modelId);
+		removeModel: function(model) {
+			var transforms = this.selected.get(model.getId());
 			
 			while (transforms && transforms.length > 0) {
 				this.deselectTransform(transforms[0], model);
 			}
 			model.cleanup();
 			
-			this.notifyListeners(editor.events.Removed, model);
+			this.notifyListeners(editor.events.Removing, model);
 		},
 		
 		removeShape: function(shape) {
@@ -788,7 +786,7 @@
 			this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
 			
 			for (var i = 0, il = models.length; i < il; ++i) {
-				this.notifyListeners(editor.events.Removed, models[i]);
+				this.notifyListeners(editor.events.Removing, models[i]);
 			}
 			
 			for (var i = 0, il = shapes.length; i < il; ++i) {
@@ -1317,7 +1315,11 @@
 			sel.bind('change', function() {	
 				var id = parseInt(sel.val());
 				if (id !== -1) {
-					wgt.notifyListeners(shorthand.events.UnloadModel, id);
+					var model = hemi.world.getCitizenById(id);
+					
+					if (editor.depends.check(model)) {
+						wgt.notifyListeners(shorthand.events.UnloadModel, model);
+					}
 				}
 			});	
 			
@@ -1906,8 +1908,8 @@
 			ldrWgt.addListener(shorthand.events.LoadModel, function(url) {
 				model.addModel(url);
 			});
-			ldrWgt.addListener(shorthand.events.UnloadModel, function(id) {
-				model.removeModel(id);
+			ldrWgt.addListener(shorthand.events.UnloadModel, function(model) {
+				model.removeModel(model);
 			});
 			
 			// mdl browser widget specific
@@ -1952,7 +1954,7 @@
 				ldrWgt.updateModelLoaded(model);
 				mbrWgt.addModel(model);
 			});			
-	        model.addListener(editor.events.Removed, function(model) {
+	        model.addListener(editor.events.Removing, function(model) {
 	            mbrWgt.removeModel(model);
 				hidWgt.removeOwner(model);
 				ldrWgt.updateModelRemoved(model);
@@ -1971,9 +1973,7 @@
 					hidWgt.addHiddenItem(shape.transform, shape);
 					hidWgt.setVisible(isDown);
 				}
-			});	
-			model.addListener(shorthand.events.ModelUnloaded, function(model) {
-			});		
+			});
 			model.addListener(shorthand.events.RemoveUserCreatedShape, function(shape) {
 				mbrWgt.removeShape(shape);
 				hidWgt.removeOwner(shape);

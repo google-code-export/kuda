@@ -44,11 +44,7 @@
 		// create fx sidebar widget specific
 	    SaveParticleFx: "particleFx.SaveParticleFx",
 	    StartParticleFxPreview: "particleFx.StartParticleFxPreview",
-	    StopParticleFxPreview: "particleFx.StopParticleFxPreview",
-		
-		// list sidebar widget specific
-	    EditParticleFx: "particleFx.EditParticleFx",
-	    RemoveParticleFx: "particleFx.RemoveParticleFx"
+	    StopParticleFxPreview: "particleFx.StopParticleFxPreview"
     };
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +104,7 @@
 			}
 			
 			effect.cleanup();
-			this.notifyListeners(editor.events.Removed, effect);
+			this.notifyListeners(editor.events.Removing, effect);
 		},
 		
 		save: function(props) {
@@ -175,7 +171,7 @@
 	    	var effects = hemi.world.getEffects();
 			
 			for (var ndx = 0, len = effects.length; ndx < len; ndx++) {
-				this.notifyListeners(editor.events.Removed, effects[ndx]);
+				this.notifyListeners(editor.events.Removing, effects[ndx]);
 			}
 	    }
 	});
@@ -696,20 +692,6 @@
 			});
 		},
 		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				var effect = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.EditParticleFx, effect);
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var effect = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.RemoveParticleFx, effect);
-			});
-		},
-		
 		getOtherHeights: function() {
 			return this.buttonDiv.outerHeight(true);
 		}
@@ -775,11 +757,11 @@
 			});
 			
 			// list widget specific
-			pteLst.addListener(shorthand.events.EditParticleFx, function(effect) {
+			pteLst.addListener(editor.events.Edit, function(effect) {
 				model.setEffect(effect);
 				pteCrt.edit(effect);
 			});
-			pteLst.addListener(shorthand.events.RemoveParticleFx, function(effect) {
+			pteLst.addListener(editor.events.Remove, function(effect) {
 				model.removeEffect(effect);
 			});
 			
@@ -787,7 +769,7 @@
 			model.addListener(editor.events.Created, function(particleFx) {
 				pteLst.add(particleFx);			
 			});
-			model.addListener(editor.events.Removed, function(value) {
+			model.addListener(editor.events.Removing, function(value) {
 				pteCrt.reset();
 				pteLst.remove(value);
 			});

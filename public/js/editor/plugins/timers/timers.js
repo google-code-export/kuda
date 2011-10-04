@@ -40,15 +40,8 @@
 ////////////////////////////////////////////////////////////////////////////////
     
 	shorthand.events = {
-		// model specific
-		TimerSet: 'timer.set',
-		
 		// create timer widget specific
-		SaveTimer: 'timer.save',
-		
-		// timer list widget specific
-		EditTimer: 'timer.edit',
-		RemoveTimer: 'timer.remove'
+		SaveTimer: 'timer.save'
 	};
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -74,12 +67,12 @@
 		
 		edit: function(timer) {
 			this.currentTimer = timer;
-			this.notifyListeners(shorthand.events.TimerSet, timer);
+			this.notifyListeners(editor.events.Editing, timer);
 		},
 		
 		remove: function(timer) {
 			timer.cleanup();
-			this.notifyListeners(editor.events.Removed, timer);
+			this.notifyListeners(editor.events.Removing, timer);
 		},
 		
 		save: function(name, startTime) {
@@ -98,7 +91,7 @@
 			var timers = hemi.world.getTimers();
 			
 			for (var ndx = 0, len = timers.length; ndx < len; ndx++) {
-				this.notifyListeners(editor.events.Removed, timers[ndx]);
+				this.notifyListeners(editor.events.Removing, timers[ndx]);
 			}
 	    },
 	    
@@ -170,7 +163,7 @@
 			
 			this.cancelBtn.bind('click', function() {
 				wgt.reset();
-				wgt.notifyListeners(shorthand.events.EditTimer, null);
+				wgt.notifyListeners(editor.events.Edit, null);
 			});
 			
 			this.addInputsToCheck(this.startTimeIpt);
@@ -204,20 +197,6 @@
 				prefix: 'tmrLst',
 				title: 'Timers',
 				instructions: 'Add timers above.'
-			});
-		},
-		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				var timer = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.EditTimer, timer);
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var timer = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.RemoveTimer, timer);
 			});
 		},
 		
@@ -279,15 +258,18 @@
 				lstWgt = view.sidePanel.timerListWidget;
 			
 			// create widget specific
+			crtWgt.addListener(editor.events.Edit, function(timer) {
+				model.edit(timer);
+			});
 			crtWgt.addListener(shorthand.events.SaveTimer, function(data) {
 				model.save(data.name, data.startTime);
 			});
 			
 			// list widget specific
-			lstWgt.addListener(shorthand.events.EditTimer, function(timer) {
+			lstWgt.addListener(editor.events.Edit, function(timer) {
 				model.edit(timer);
 			});
-			lstWgt.addListener(shorthand.events.RemoveTimer, function(timer) {
+			lstWgt.addListener(editor.events.Remove, function(timer) {
 				model.remove(timer);
 			});
 			
@@ -295,11 +277,11 @@
 			model.addListener(editor.events.Created, function(timer) {
 				lstWgt.add(timer);
 			});
-			model.addListener(editor.events.Removed, function(timer) {
-				lstWgt.remove(timer);
-			});
-			model.addListener(shorthand.events.TimerSet, function(timer) {
+			model.addListener(editor.events.Editing, function(timer) {
 				crtWgt.edit(timer);
+			});
+			model.addListener(editor.events.Removing, function(timer) {
+				lstWgt.remove(timer);
 			});
 			model.addListener(editor.events.Updated, function(timer) {
 				lstWgt.update(timer);

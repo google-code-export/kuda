@@ -42,7 +42,6 @@
     
 	shorthand.events = {
 		// model events
-		AnimationSet: "animator.AnimationSet",
 	    AnimationStopped: "animator.AnimationStopped",
 	    LoopRemoved: "animator.LoopRemoved",
 	    ModelPicked: "animator.ModelPicked",
@@ -50,7 +49,6 @@
 		// create animation widget events
 	    ModelSelected: "crtAnm.ModelSelected",
 	    RemoveAnmLoop: "crtAnm.RemoveAnmLoop",
-	    SetAnimation: "crtAnm.SetAnimation",
 	    StartPreview: "crtAnm.StartPreview",
 	    StopPreview: "crtAnm.StopPreview",
 	    AddAnmLoop: "crtAnm.AddAnmLoop",
@@ -61,9 +59,7 @@
 		SetAnmName: "crtAnm.SetAnmName",
 		
 		// animation list events
-		CreateAnimation: "anmList.CreateAnimation",
-		EditAnimation: "anmList.EditAnimation",
-		RemoveAnimation: "anmList.RemoveAnimation"
+		CreateAnimation: "anmList.CreateAnimation"
 	};
     
 ////////////////////////////////////////////////////////////////////////////////
@@ -233,7 +229,7 @@
 	    }, 
 		
 	    removeAnimation: function(animation) {
-	        this.notifyListeners(editor.events.Removed, animation);
+	        this.notifyListeners(editor.events.Removing, animation);
 			animation.cleanup();
 		},
 	    
@@ -307,11 +303,12 @@
 		setAnimation: function(animation) {
 			this.setModel(animation.target);
 			this.animation = animation;
+			this.animDirty = false;
 			this.name = animation.name;
 			this.startTime = animation.beginTime;
 			this.endTime = animation.endTime;
 			this.isUpdate = true;
-			this.notifyListeners(shorthand.events.AnimationSet, animation);
+			this.notifyListeners(editor.events.Editing, animation);
 		},
 		
 		setEnd: function(endFrame) {
@@ -364,7 +361,7 @@
 	    	
 	        for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
 	            var anm = animations[ndx];
-	            this.notifyListeners(editor.events.Removed, anm);
+	            this.notifyListeners(editor.events.Removing, anm);
 	        }
 	    },
 		
@@ -805,7 +802,6 @@
 			});
 			
 			this.anmPreviewBtn.removeAttr('disabled');
-			this.notifyListeners(shorthand.events.SetAnimation, animation);
 		},
 		
 		updateLoopLimits: function(min, max) {
@@ -864,20 +860,6 @@
 				instructions: "Add animations above.",
 				title: 'Animations'
 			});	
-		},
-		
-		bindButtons: function(li, obj) {
-			var wgt = this;
-			
-			li.editBtn.bind('click', function(evt) {
-				wgt.notifyListeners(shorthand.events.EditAnimation, 
-					obj);
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				wgt.notifyListeners(shorthand.events.RemoveAnimation, 
-					obj);
-			});
 		},
 		
 		getOtherHeights: function() {
@@ -964,15 +946,7 @@
 					crtWgt.reset();
 	                model.unSelectAll();
 	            }
-			});			
-			crtWgt.addListener(shorthand.events.SetAnimation, function(value) {
-				if (value === null && model.animDirty) {
-					model.removeAnimation(model.animation);
-					model.animDirty = false;
-				}
-				
-				model.animation = value;
-			});		
+			});
 			crtWgt.addListener(shorthand.events.SetAnmBeginFrame, function (starts) {
 				model.setStart(starts);     
 			});			
@@ -993,22 +967,24 @@
 	        });		 	
 			
 			// animation list widget specific
-			lstWgt.addListener(shorthand.events.EditAnimation, function(animation) {
+			lstWgt.addListener(editor.events.Edit, function(animation) {
 				model.setAnimation(animation);
 			});			
-			lstWgt.addListener(shorthand.events.RemoveAnimation, function(animation) {
+			lstWgt.addListener(editor .events.Remove, function(animation) {
 				model.removeAnimation(animation);
 			});
 	        
 			// model specific	
 			model.addListener(editor.events.Created, function(animation) {
+				editor.depends.add(animation, animation.target);
 				lstWgt.add(animation);
-			});	     	
-	        model.addListener(editor.events.Removed, function(animation) {
-	            lstWgt.remove(animation);
-	        });
-	        model.addListener(shorthand.events.AnimationSet, function(animation) {
+			});
+	        model.addListener(editor.events.Editing, function(animation) {
 	        	crtWgt.set(animation);
+	        });	     	
+	        model.addListener(editor.events.Removing, function(animation) {
+	        	editor.depends.remove(animation, animation.target);
+	            lstWgt.remove(animation);
 	        });
 	        model.addListener(shorthand.events.AnimationStopped, function(value) {
 	        	crtWgt.anmPreviewBtn.text(ButtonText.START).data('previewing', false);

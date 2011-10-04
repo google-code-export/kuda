@@ -46,12 +46,7 @@
 		
 		// Create Viewpoint Widget events
 		SaveViewpoint: "viewpoints.SaveViewpoint",
-		PreviewViewpoint: "viewpoints.PreviewViewpoint",
-		
-		// Viewpoint List Widget events
-	    AddViewpoint: "viewpoints.AddViewpoint",
-	    EditViewpoint: "viewpoints.EditViewpoint",
-	    RemoveViewpoint: "viewpoints.RemoveViewpoint"
+		PreviewViewpoint: "viewpoints.PreviewViewpoint"
     };
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -127,7 +122,7 @@
 		},
 		
 		removeViewpoint: function(viewpoint) {
-			this.notifyListeners(editor.events.Removed, viewpoint);
+			this.notifyListeners(editor.events.Removing, viewpoint);
 			viewpoint.cleanup();
 		},
 		
@@ -151,7 +146,7 @@
 	        
 	        for (var ndx = 0, len = viewpoints.length; ndx < len; ndx++) {
 	            var vpt = viewpoints[ndx];
-	            this.notifyListeners(editor.events.Removed, vpt);
+	            this.notifyListeners(editor.events.Removing, vpt);
 	        }
 	    },
 	    
@@ -340,21 +335,13 @@
 		},
 		
 		bindButtons: function(li, obj) {
+			this._super(li, obj);
+			
 			var wgt = this;
 			
 			li.title.bind('click', function(evt) {
 				var vpt = li.getAttachedObject();
 				hemi.world.camera.moveToView(vpt);
-			});
-			
-			li.editBtn.bind('click', function(evt) {
-				var vpt = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.EditViewpoint, vpt);
-			});
-			
-			li.removeBtn.bind('click', function(evt) {
-				var vpt = li.getAttachedObject();
-				wgt.notifyListeners(shorthand.events.RemoveViewpoint, vpt);
 			});
 		},
 		
@@ -432,14 +419,12 @@
 			});
 			
 			// viewpoint list widget specific
-			lstWgt.addListener(shorthand.events.AddViewpoint, function() {
-			});
-			lstWgt.addListener(shorthand.events.RemoveViewpoint, function(vpt) {
-				model.removeViewpoint(vpt);
-			});
-			lstWgt.addListener(shorthand.events.EditViewpoint, function(viewpoint) {
+			lstWgt.addListener(editor.events.Edit, function(viewpoint) {
 				model.editViewpoint(viewpoint);
 				crtWgt.set(viewpoint);
+			});
+			lstWgt.addListener(editor.events.Remove, function(vpt) {
+				model.removeViewpoint(vpt);
 			});
 			
 			// model specific 
@@ -453,7 +438,7 @@
 			model.addListener(editor.events.Updated, function(vpt) {
 				lstWgt.update(vpt);
 			});
-			model.addListener(editor.events.Removed, function(vpt) {
+			model.addListener(editor.events.Removing, function(vpt) {
 				lstWgt.remove(vpt);
 			});
 		}
