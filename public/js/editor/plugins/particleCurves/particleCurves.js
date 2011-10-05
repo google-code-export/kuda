@@ -522,10 +522,6 @@
 					paramName: 'trail',
 					paramValue: jQuery(this).val() == 'trail'
 				});
-			})
-			.addClass('fixedWidth').sb({
-				fixedWidth: true,
-				useTie: true
 			});
 			
 			shpTypeSel.bind('change', function(evt) {
@@ -533,10 +529,6 @@
 					paramName: 'particleShape',
 					paramValue: jQuery(this).val()
 				});
-			})
-			.addClass('fixedWidth').sb({
-				fixedWidth: true,
-				useTie: true
 			});
 			
 			boxAddBtn.bind('click', function(evt) {
