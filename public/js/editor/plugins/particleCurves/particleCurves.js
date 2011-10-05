@@ -952,7 +952,7 @@
 			var boxes = this.boxes.keys();
 			
 			for (var i = 0; i < boxes.length; i++) {
-				showBoxWireframe(boxes[i]);
+				this.showBoxWireframe(boxes[i]);
 			}
 		}
 	});
