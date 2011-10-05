@@ -548,6 +548,38 @@
 			return props;
 		},
 		
+		loadTemplates: function() {
+			var wgt = this;
+			
+			this.tplSelect.bind('change', function(evt) {
+				var elem = jQuery(this),
+					ndx = elem.val();
+					
+				if (ndx !== -1) {
+					var tpl = wgt.templates[ndx];
+					wgt.edit(tpl);
+				} else {
+					wgt.reset();
+				}
+			});
+			
+			hemi.utils.get('js/editor/plugins/particleEffects/templates/particleFx.json', function(data, status) {
+				if (data == null) {
+					hemi.core.error(status);
+				} else {
+					var tplData = JSON.parse(data);
+					wgt.templates = tplData.templates;
+					
+					for (var i = 0, il = wgt.templates.length; i < il; ++i) {
+						var tpl = wgt.templates[i],
+							option = jQuery('<option value="' + i + '">' + tpl.name + '</option>');
+							
+						wgt.tplSelect.append(option);				
+					}
+				}
+			});
+		},
+		
 		reset: function() {      
 			// reset selects
 			this.tplSelect.val(-1);
@@ -635,36 +667,13 @@
 			this.colorPickers.push(colorRampPicker);
 		},
 		
-		loadTemplates: function() {
-			var wgt = this;
+		stopPreview: function() {
+			var btn = this.find('#ptePreviewBtn');
 			
-			this.tplSelect.bind('change', function(evt) {
-				var elem = jQuery(this),
-					ndx = elem.val();
-					
-				if (ndx !== -1) {
-					var tpl = wgt.templates[ndx];
-					wgt.edit(tpl);
-				} else {
-					wgt.reset();
-				}
-			});
-			
-			hemi.utils.get('js/editor/plugins/particleEffects/templates/particleFx.json', function(data, status) {
-				if (data == null) {
-					hemi.core.error(status);
-				} else {
-					var tplData = JSON.parse(data);
-					wgt.templates = tplData.templates;
-					
-					for (var i = 0, il = wgt.templates.length; i < il; ++i) {
-						var tpl = wgt.templates[i],
-							option = jQuery('<option value="' + i + '">' + tpl.name + '</option>');
-							
-						wgt.tplSelect.append(option);				
-					}
-				}
-			});
+			if (btn.data('previewing')) {
+            	this.notifyListeners(shorthand.events.StopParticleFxPreview, null);
+				btn.text('Start Preview').data('previewing', false);
+			}
 		}
 	});
 	
@@ -732,6 +741,10 @@
 	        	view = this.view,
 				pteCrt = view.sidePanel.createPteWidget,
 				pteLst = view.sidePanel.pteListWidget;
+	        
+	        view.addListener(editor.events.ToolModeSet, function(value) {
+	            pteCrt.stopPreview();
+	        });	
 			
 			// create widget specific
 			pteCrt.addListener(editor.events.Cancel, function() {
