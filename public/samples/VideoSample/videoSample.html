@@ -1,0 +1,69 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Kuda Video Sample</title>
+        <script type="text/javascript" src="../../js/lib/jquery.js"></script>
+        <script type="text/javascript" src="../../js/lib/jshashtable.min.js"></script>
+        <script type="text/javascript" src="../../js/o3d.min.js"></script>
+        <script type="text/javascript" src="../../js/hemi.min.js"></script>
+        <script type="text/javascript" src="../../js/hext/house/structure.js"></script>
+        <script type="text/javascript" src="videoSample.js"></script>
+        <style>
+            #videoOverlay, #divOverlay {
+                display: none;
+                width: 680px;
+                height: 420px;
+                position: absolute;
+                top: 30px;
+                left: 40px;
+                z-index: 10;
+            }
+            
+            #o3d {
+                width: 800px;
+                height: 600px;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="o3d">
+        </div>
+        <br>
+        <form id="enterForm" action="" method="POST">
+            <button id="enter">
+                Enter
+            </button>
+            <button id="divBased">
+                Toggle Video in Div
+            </button>
+        </form>
+        <div id="divOverlay">
+            <object width="640" height="385">
+                <param name="movie" value="http://www.youtube.com/v/ahViPV7RYuc?fs=1&amp;hl=en_US">
+                </param><param name="allowFullScreen" value="true">
+                </param><param name="allowscriptaccess" value="always">
+                </param>
+                <embed src="http://www.youtube.com/v/ahViPV7RYuc?fs=1&amp;hl=en_US" type="application/x-shockwave-flash" allowscriptaccess="always" allowfullscreen="true" width="640" height="385">
+                </embed>
+            </object>
+        </div>
+    </body>
+</html>
