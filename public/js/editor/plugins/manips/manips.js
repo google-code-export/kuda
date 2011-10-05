@@ -375,10 +375,6 @@
 				wgt.inputsToCheck = inputs;
 				wgt.checkStatus();
 				wgt.invalidate();
-			})
-			.addClass('fixedWidth').sb({
-				fixedWidth: true,
-				useTie: true
 			});
 			
 			// bind plane selection
@@ -407,10 +403,6 @@
 				}
 				
 				wgt.checkStatus();
-			})
-			.addClass('fixedWidth').sb({
-				fixedWidth: true,
-				useTie: true
 			});
 			
 			// bind axis selection

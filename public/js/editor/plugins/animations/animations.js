@@ -666,10 +666,6 @@
 					parseInt(jQuery(this).val()));
 				wgt.notifyListeners(shorthand.events.ModelSelected, mdl);
 				wgt.invalidate();
-			})
-			.addClass('fixedWidth').sb({
-				fixedWidth: true,
-				useTie: true
 			});
 	            
 	        inputs.bind('keyup', function(evt) {				

@@ -349,11 +349,7 @@
 				wgt.checkStatus();
 				wgt.invalidate();
 			})
-			.change()
-			.addClass('fixedWidth').sb({
-				fixedWidth: true,
-				useTie: true
-			});
+			.change();
 			
 			this.nameInput.getUI().bind('keyup', function(evt) {
 				wgt.checkStatus();
