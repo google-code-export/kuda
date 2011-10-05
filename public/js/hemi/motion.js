@@ -34,33 +34,34 @@ var hemi = (function(hemi) {
 	 * @param {o3d.Transform} opt_tran optional transform that will be spinning
 	 * @param {Object} opt_config optional configuration for the Rotator
 	 */
-	hemi.motion.Rotator = function(opt_tran, opt_config) {
-		hemi.world.Citizen.call(this);
-		var cfg = opt_config || {};
+	hemi.motion.Rotator = hemi.world.Citizen.extend({
+		init: function(opt_tran, opt_config) {
+			this._super();
+			
+			var cfg = opt_config || {};
+			
+			this.accel = cfg.accel || [0,0,0];
+			this.angle = cfg.angle || [0,0,0];
+			this.origin = cfg.origin || [0,0,0];
+			this.vel = cfg.vel || [0,0,0];
+	
+			this.offset = hemi.core.math.mulScalarVector(-1,this.origin);
+			this.time = 0;
+			this.stopTime = 0;
+			this.steadyRotate = false;
+			this.mustComplete = false;
+			this.startAngle = this.angle;
+			this.stopAngle = this.angle;
+			this.toLoad = {};
+			this.transformObjs = [];
 		
-		this.accel = cfg.accel || [0,0,0];
-		this.angle = cfg.angle || [0,0,0];
-		this.origin = cfg.origin || [0,0,0];
-		this.vel = cfg.vel || [0,0,0];
-
-		this.offset = hemi.core.math.mulScalarVector(-1,this.origin);
-		this.time = 0;
-		this.stopTime = 0;
-		this.steadyRotate = false;
-		this.mustComplete = false;
-		this.startAngle = this.angle;
-		this.stopAngle = this.angle;
-		this.toLoad = {};
-		this.transformObjs = [];
+			if (opt_tran != null) {
+				this.addTransform(opt_tran);
+			}
 	
-		if (opt_tran != null) {
-			this.addTransform(opt_tran);
-		}
-
-		this.enable();
-	};
-	
-	hemi.motion.Rotator.prototype = {
+			this.enable();
+		},
+		
 		/**
 		 * Add a Transform to the list of Transforms that will be spinning. A
 		 * child Transform is created to allow the Rotator to spin about an
@@ -144,7 +145,7 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			this.disable();
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.clearTransforms();
 		},
 		
@@ -348,7 +349,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Rotator
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
+			var octane = this._super(),
 				valNames = ['accel', 'angle', 'vel'];
 			
 			for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
@@ -389,9 +390,8 @@ var hemi = (function(hemi) {
 			
 			return octane;
 		}
-	};
+	});
 	
-    hemi.motion.Rotator.inheritsFrom(hemi.world.Citizen);
 	hemi.motion.Rotator.prototype.msgSent =
 		hemi.motion.Rotator.prototype.msgSent.concat([
 			hemi.msg.start,
@@ -405,31 +405,32 @@ var hemi = (function(hemi) {
 	 * @param {o3d.Transform} opt_tran optional Transform that will be moving
 	 * @param {Object} opt_config optional configuration for the Translator
 	 */
-	hemi.motion.Translator = function(opt_tran, opt_config) {
-		hemi.world.Citizen.call(this);
-		var cfg = opt_config || {};
+	hemi.motion.Translator = hemi.world.Citizen.extend({
+		init: function(opt_tran, opt_config) {
+			this._super();
+			
+			var cfg = opt_config || {};
+			
+			this.pos = cfg.pos || [0,0,0];
+			this.vel = cfg.vel || [0,0,0];
+			this.accel = cfg.accel || [0,0,0];
+	
+			this.time = 0;
+			this.stopTime = 0;
+			this.mustComplete = false;
+			this.steadyMove = false;
+			this.startPos = this.pos;
+			this.stopPos = this.pos;
+			this.toLoad = {};
+			this.transformObjs = [];
+			
+			if (opt_tran != null) {
+				this.addTransform(opt_tran);
+			}
+	
+			this.enable();
+		},
 		
-		this.pos = cfg.pos || [0,0,0];
-		this.vel = cfg.vel || [0,0,0];
-		this.accel = cfg.accel || [0,0,0];
-
-		this.time = 0;
-		this.stopTime = 0;
-		this.mustComplete = false;
-		this.steadyMove = false;
-		this.startPos = this.pos;
-		this.stopPos = this.pos;
-		this.toLoad = {};
-		this.transformObjs = [];
-		
-		if (opt_tran != null) {
-			this.addTransform(opt_tran);
-		}
-
-		this.enable();
-	};
-
-	hemi.motion.Translator.prototype = {
 		/**
 		 * Add the Transform to the list of Transforms that will be moving.
 		 *
@@ -492,7 +493,7 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			this.disable();
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.clearTransforms();
 		},
 		
@@ -679,7 +680,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Translator
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
+			var octane = this._super(),
 				valNames = ['pos', 'vel', 'accel'];
 			
 			for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
@@ -713,9 +714,8 @@ var hemi = (function(hemi) {
 			
 			return octane;
 		}
-	};
+	});
 	
-    hemi.motion.Translator.inheritsFrom(hemi.world.Citizen);
 	hemi.motion.Translator.prototype.msgSent =
 		hemi.motion.Translator.prototype.msgSent.concat([
 			hemi.msg.start,

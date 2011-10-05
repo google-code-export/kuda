@@ -28,7 +28,6 @@ var editor = (function(editor) {
     o3djs.require('o3djs.primitives');
     o3djs.require('o3djs.particles');
 	
-	o3djs.require('editor.inheritance');
 	o3djs.require('editor.events');
 	
     o3djs.require('editor.utils.listener');

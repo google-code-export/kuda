@@ -26,56 +26,56 @@ var hemi = (function(hemi) {
 	 * etc.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.audio.Audio = function() {
-		hemi.world.Citizen.call(this);
+	hemi.audio.Audio = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/*
+			 * The actual audio DOM element.
+			 */
+			this.audio = document.createElement('audio');
+			/*
+			 * Flag indicating if the Audio should loop when it ends.
+			 */
+			this.looping = false;
+			/*
+			 * Flag indicating if a seek operation is currently happening.
+			 */
+			this.seeking = false;
+			/*
+			 * Flag indicating if the Audio should start playing when the current
+			 * seek operation finishes.
+			 */
+			this.startPlay = false;
+			/*
+			 * Array of objects containing source URLs, types, and DOM elements.
+			 */
+			this.urls = [];
+			var that = this;
+			
+			// For now, onevent functions (like onemptied) are not supported for
+			// media elements in Webkit browsers.
+			this.audio.addEventListener('emptied', function(e) {
+					that.send(hemi.msg.unload, { });
+				}, true);
+			this.audio.addEventListener('loadeddata', function(e) {
+	//				that.setLoop_();	*see below*
+					that.send(hemi.msg.load, {
+						src: that.audio.currentSrc
+					});
+				}, true);
+			this.audio.addEventListener('playing', function(e) {
+					that.send(hemi.msg.start, { });
+				}, true);
+			this.audio.addEventListener('ended', function(e) {
+					if (that.looping) {
+						that.play();
+					}
+					
+					that.send(hemi.msg.stop, { });
+				}, true);
+		},
 		
-		/*
-		 * The actual audio DOM element.
-		 */
-		this.audio = document.createElement('audio');
-		/*
-		 * Flag indicating if the Audio should loop when it ends.
-		 */
-		this.looping = false;
-		/*
-		 * Flag indicating if a seek operation is currently happening.
-		 */
-		this.seeking = false;
-		/*
-		 * Flag indicating if the Audio should start playing when the current
-		 * seek operation finishes.
-		 */
-		this.startPlay = false;
-		/*
-		 * Array of objects containing source URLs, types, and DOM elements.
-		 */
-		this.urls = [];
-		var that = this;
-		
-		// For now, onevent functions (like onemptied) are not supported for
-		// media elements in Webkit browsers.
-		this.audio.addEventListener('emptied', function(e) {
-				that.send(hemi.msg.unload, { });
-			}, true);
-		this.audio.addEventListener('loadeddata', function(e) {
-//				that.setLoop_();	*see below*
-				that.send(hemi.msg.load, {
-					src: that.audio.currentSrc
-				});
-			}, true);
-		this.audio.addEventListener('playing', function(e) {
-				that.send(hemi.msg.start, { });
-			}, true);
-		this.audio.addEventListener('ended', function(e) {
-				if (that.looping) {
-					that.play();
-				}
-				
-				that.send(hemi.msg.stop, { });
-			}, true);
-	};
-	
-	hemi.audio.Audio.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -106,7 +106,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the Audio.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.audio = null;
 			this.urls = [];
 		},
@@ -256,7 +256,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Audio
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'looping',
@@ -274,9 +274,8 @@ var hemi = (function(hemi) {
 			
 			return octane;
 		}
-	};
+	});
 
-	hemi.audio.Audio.inheritsFrom(hemi.world.Citizen);
 	hemi.audio.Audio.prototype.msgSent =
 		hemi.audio.Audio.prototype.msgSent.concat([hemi.msg.load,
 			hemi.msg.start, hemi.msg.stop, hemi.msg.unload]);

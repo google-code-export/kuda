@@ -1409,44 +1409,37 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {Object} opt_cfg optional configuration object for the system
 	 */
-	hemi.curve.GpuParticleSystem = function(opt_cfg) {
-		hemi.world.Citizen.call(this);
-		this.active = false;
-		this.aim = false;
-		this.boxes = [];
-		this.colors = [];
-		this.decParam = null;
-		this.life = 0;
-		this.material = null;
-		this.materialSrc = null;
-		this.maxTimeParam = null;
-		this.particles = 0;
-		this.ptcShape = 0;
-		this.scales = [];
-		this.size = 0;
-		this.tension = 0;
-		this.texNdx = -1;
-		this.timeParam = null;
-		this.transform = null;
+	hemi.curve.GpuParticleSystem = hemi.world.Citizen.extend({
+		init: function(opt_cfg) {
+			this._super();
+			this.active = false;
+			this.aim = false;
+			this.boxes = [];
+			this.colors = [];
+			this.decParam = null;
+			this.life = 0;
+			this.material = null;
+			this.materialSrc = null;
+			this.maxTimeParam = null;
+			this.particles = 0;
+			this.ptcShape = 0;
+			this.scales = [];
+			this.size = 0;
+			this.tension = 0;
+			this.texNdx = -1;
+			this.timeParam = null;
+			this.transform = null;
+			
+			if (opt_cfg) {
+				this.loadConfig(opt_cfg);
+			}
+		},
 		
-		if (opt_cfg) {
-			this.loadConfig(opt_cfg);
-		}
-	};
-	
-	hemi.curve.GpuParticleSystem.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
 		 * @type string
          */
         citizenType: 'hemi.curve.GpuParticleSystem',
-		
-		/**
-		 * Send a cleanup Message and remove all references in the GpuParticleSystem.
-		 */
-		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
-		},
 	
 		/**
 		 * Hide the particle system's bounding boxes from view.
@@ -1981,7 +1974,7 @@ var hemi = (function(hemi) {
 	     *     GpuParticleSystem
 		 */
 		toOctane: function(){
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'loadConfig',
@@ -2022,24 +2015,22 @@ var hemi = (function(hemi) {
 			}
 			setupBounds(this.material, this.boxes);
 		}
-	};
-
-	hemi.curve.GpuParticleSystem.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	/**
 	 * @class A GPU driven particle system that has trailing starts and stops.
 	 * 
 	 * @param {Object} opt_cfg the configuration object for the system
 	 */
-	hemi.curve.GpuParticleTrail = function(opt_cfg) {
-		hemi.curve.GpuParticleSystem.call(this, opt_cfg);
+	hemi.curve.GpuParticleTrail = hemi.curve.GpuParticleSystem.extend({
+		init: function(opt_cfg) {
+			this._super(opt_cfg);
+			
+			this.endTime = 1.0;
+			this.starting = false;
+			this.stopping = false;
+		},
 		
-		this.endTime = 1.0;
-		this.starting = false;
-		this.stopping = false;
-	};
-	
-	hemi.curve.GpuParticleTrail.prototype = {
 		/**
 		 * Update the particles on each render.
 		 * 
@@ -2121,9 +2112,7 @@ var hemi = (function(hemi) {
 				
 			}
 		}
-	};
-	
-	hemi.curve.GpuParticleTrail.inheritsFrom(hemi.curve.GpuParticleSystem);
+	});
 	
 	/*
 	 * Take the existing vertex buffer in the given primitive and copy the data

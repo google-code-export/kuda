@@ -91,44 +91,44 @@ var hemi = (function(hemi) {
 	 * @class An Effect is a 3D particle effect.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.effect.Effect = function() {
-		hemi.world.Citizen.call(this);
+	hemi.effect.Effect = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The particle state to use for drawing.
+			 * @type hemi.core.particles.ParticleStateIds
+			 * @default hemi.core.particles.ParticleStateIds.BLEND
+			 */
+			this.state = hemi.core.particles.ParticleStateIds.BLEND;
+			
+			/**
+			 * An array of colors for each particle to transition through. Each
+			 * color value is in the form RGBA.
+			 * @type number[]
+			 */
+			this.colorRamp = [];
+			
+			/**
+			 * A set of parameters for the particle emitter.
+			 * @type hemi.core.particles.ParticleSpec
+			 */
+			this.params = {};
+			
+			/**
+			 * Optional specs that identify a particle updating function to use and
+			 * properties to set for it.
+			 * @type hemi.effect.ParticleFunction
+			 */
+			this.particleFunction = null;
+			
+			/* The actual particle emitter for the Effect */
+			this.particles = null;
+			/* The containing Transform for the Effect */
+			this.transform = hemi.effect.particlePack.createObject('Transform');
+			this.transform.parent = hemi.core.client.root;
+		},
 		
-		/**
-		 * The particle state to use for drawing.
-		 * @type hemi.core.particles.ParticleStateIds
-		 * @default hemi.core.particles.ParticleStateIds.BLEND
-		 */
-		this.state = hemi.core.particles.ParticleStateIds.BLEND;
-		
-		/**
-		 * An array of colors for each particle to transition through. Each
-		 * color value is in the form RGBA.
-		 * @type number[]
-		 */
-		this.colorRamp = [];
-		
-		/**
-		 * A set of parameters for the particle emitter.
-		 * @type hemi.core.particles.ParticleSpec
-		 */
-		this.params = {};
-		
-		/**
-		 * Optional specs that identify a particle updating function to use and
-		 * properties to set for it.
-		 * @type hemi.effect.ParticleFunction
-		 */
-		this.particleFunction = null;
-		
-		/* The actual particle emitter for the Effect */
-		this.particles = null;
-		/* The containing Transform for the Effect */
-		this.transform = hemi.effect.particlePack.createObject('Transform');
-		this.transform.parent = hemi.core.client.root;
-	};
-	
-	hemi.effect.Effect.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @type string
@@ -139,7 +139,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the Effect.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			
 			this.particles = null;
 			this.transform.parent = null;
@@ -161,7 +161,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Effect
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			var valNames = ['state', 'colorRamp', 'params'];
 			
@@ -188,19 +188,20 @@ var hemi = (function(hemi) {
 			
 			return octane;
 		}
-	};
+	});
 	
 	/**
 	 * @class An Emitter constantly generates particles.
 	 * @extends hemi.effect.Effect
 	 */
-	hemi.effect.Emitter = function() {
-		hemi.effect.Effect.call(this);
-		/* Flag indicating if the Emitter is visible */
-		this.visible = false;
-	};
-	
-	hemi.effect.Emitter.prototype = {
+	hemi.effect.Emitter = hemi.effect.Effect.extend({
+		init: function() {
+			this._super();
+			
+			/* Flag indicating if the Emitter is visible */
+			this.visible = false;
+		},
+		
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @type string
@@ -262,20 +263,24 @@ var hemi = (function(hemi) {
 					});
 			}
 		}
-	};
+	});
+	
+	hemi.effect.Emitter.prototype.msgSent =
+		hemi.effect.Emitter.prototype.msgSent.concat([hemi.msg.visible]);
 	
 	/**
 	 * @class A Burst generates one set of particles at a time. It can be used
 	 * for a smoke puff, explosion, firework, water drip, etc.
 	 * @extends hemi.effect.Emitter
 	 */
-	hemi.effect.Burst = function() {
-		hemi.effect.Emitter.call(this);
-		/* The OneShot particle effect */
-		this.oneShot = null;
-	};
-	
-	hemi.effect.Burst.prototype = {
+	hemi.effect.Burst = hemi.effect.Emitter.extend({
+		init: function() {
+			this._super();
+			
+			/* The OneShot particle effect */
+			this.oneShot = null;
+		},
+		
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @type string
@@ -286,7 +291,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the Burst.
 		 */
 		cleanup: function() {
-			hemi.effect.Effect.prototype.cleanup.call(this);
+			this._super();
 			
 			this.oneShot = null;
 		},
@@ -295,7 +300,7 @@ var hemi = (function(hemi) {
 		 * Set the particle emitter up for the Burst.
 		 */
 		setup: function() {
-			hemi.effect.Emitter.prototype.setup.call(this);
+			this._super();
 			
 			this.oneShot = this.particles.createOneShot(this.transform);
 		},
@@ -314,24 +319,27 @@ var hemi = (function(hemi) {
 					position: this.params.position
 				});
 		}
-	};
+	});
+	
+	hemi.effect.Burst.prototype.msgSent =
+		hemi.effect.Burst.prototype.msgSent.concat([hemi.msg.burst]);
 	
 	/**
 	 * @class A Trail is a particle effect that can be started and stopped like
 	 * an animation. It can be used for effects like exhaust.
 	 * @extends hemi.effect.Effect
 	 */
-	hemi.effect.Trail = function() {
-		hemi.effect.Effect.call(this);
+	hemi.effect.Trail = hemi.effect.Effect.extend({
+		init: function() {
+			this._super();
+			
+			/* A flag that indicates if the Trail is currently animating */
+			this.isAnimating = false;
+			/* The number of seconds between particle births */
+			this.fireInterval = 1;
+			this.count = 0;
+		},
 		
-		/* A flag that indicates if the Trail is currently animating */
-		this.isAnimating = false;
-		/* The number of seconds between particle births */
-		this.fireInterval = 1;
-		this.count = 0;
-	};
-	
-	hemi.effect.Trail.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @type string
@@ -423,7 +431,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Trail
 		 */
 		toOctane: function() {
-			var octane = hemi.effect.Effect.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.unshift({
 				name: 'fireInterval',
@@ -432,7 +440,12 @@ var hemi = (function(hemi) {
 			
 			return octane;
 		}
-	};
+	});
+	
+	hemi.effect.Trail.prototype.msgSent =
+		hemi.effect.Trail.prototype.msgSent.concat([
+			hemi.msg.start,
+			hemi.msg.stop]);
 	
 	/**
 	 * Initialize the resources for the effect module.
@@ -442,20 +455,6 @@ var hemi = (function(hemi) {
 		this.particleSystem = hemi.core.particles.createParticleSystem(
 			this.particlePack,
 			hemi.view.viewInfo);
-		
-		// Perform inheritance for effect classes
-		hemi.effect.Effect.inheritsFrom(hemi.world.Citizen);
-		hemi.effect.Emitter.inheritsFrom(hemi.effect.Effect);
-		hemi.effect.Emitter.prototype.msgSent =
-			hemi.effect.Emitter.prototype.msgSent.concat([hemi.msg.visible]);
-		hemi.effect.Burst.inheritsFrom(hemi.effect.Emitter);
-		hemi.effect.Burst.prototype.msgSent =
-			hemi.effect.Burst.prototype.msgSent.concat([hemi.msg.burst]);
-		hemi.effect.Trail.inheritsFrom(hemi.effect.Effect);
-		hemi.effect.Trail.prototype.msgSent =
-			hemi.effect.Trail.prototype.msgSent.concat([
-				hemi.msg.start,
-				hemi.msg.stop]);
 	};
 	
 	/**

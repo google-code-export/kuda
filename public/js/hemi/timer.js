@@ -27,33 +27,33 @@ var hemi = (function(hemi) {
 	 * behavior and sequence events.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.time.Timer = function() {
-		hemi.world.Citizen.call(this);
+	hemi.time.Timer = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
 		
-		/*
-		 * The epoch time that this Timer was last started (or resumed)
-		 * @type number
-		 */
-		this._started = null;
-		/*
-		 * The elapsed time (not including any currently running JS timer)
-		 * @type number
-		 */
-		this._time = 0;
-		/*
-		 * The id of the current JS timer
-		 * @type number
-		 */
-		this._timeId = null;
-		/**
-		 * The time the timer will start counting down from (milliseconds).
-		 * @type number
-		 * @default 1000
-		 */
-		this.startTime = 1000;
-	};
-	
-	hemi.time.Timer.prototype = {
+			/*
+			 * The epoch time that this Timer was last started (or resumed)
+			 * @type number
+			 */
+			this._started = null;
+			/*
+			 * The elapsed time (not including any currently running JS timer)
+			 * @type number
+			 */
+			this._time = 0;
+			/*
+			 * The id of the current JS timer
+			 * @type number
+			 */
+			this._timeId = null;
+			/**
+			 * The time the timer will start counting down from (milliseconds).
+			 * @type number
+			 * @default 1000
+			 */
+			this.startTime = 1000;
+		},
+		
         /**
          * Overwrites hemi.world.Citizen.citizenType.
          * @string
@@ -64,7 +64,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the Timer.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			
 			if (this._timeId !== null) {
 				clearTimeout(this._timeId);
@@ -149,7 +149,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Timer
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'startTime',
@@ -158,9 +158,8 @@ var hemi = (function(hemi) {
 			
 			return octane;
 		}
-	};
+	});
 	
-	hemi.time.Timer.inheritsFrom(hemi.world.Citizen);
 	hemi.time.Timer.prototype.msgSent =
 		hemi.time.Timer.prototype.msgSent.concat([hemi.msg.start, hemi.msg.stop]);
 	

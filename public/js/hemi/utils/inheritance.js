@@ -20,17 +20,17 @@
  * MIT Licensed.
  */
 // Inspired by base2 and Prototype
-var editor = (function(module){
+var hemi = (function(hemi){
     var initializing = false, 
 		fnTest = /xyz/.test(function(){
 	        xyz;
 	    }) ? /\b_super\b/ : /.*/;
     
     // The base Class implementation (does nothing)
-    module.Class = function(){};
+    hemi.Class = function(){};
     
     // Create a new Class that inherits from this class
-    module.Class.extend = function(prop){
+    hemi.Class.extend = function(prop){
         var _super = this.prototype;
         
         // Instantiate a base class (but only create the instance,
@@ -81,5 +81,5 @@ var editor = (function(module){
         return Class;
     };
 	
-	return module;
-})(editor || {});
+	return hemi;
+})(hemi || {});

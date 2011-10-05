@@ -52,82 +52,83 @@ var hemi = (function(hemi) {
 	 * 3D scene.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.view.Camera = function() {
-		hemi.world.Citizen.call(this);	
-		var tween = hemi.utils.penner.linearTween,		
-			t = {
-				cam    : hemi.core.mainPack.createObject('Transform'),
-				pan    : hemi.core.mainPack.createObject('Transform'),
-				tilt   : hemi.core.mainPack.createObject('Transform'),
-				target : hemi.core.mainPack.createObject('Transform')
+	hemi.view.Camera = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			var tween = hemi.utils.penner.linearTween,		
+				t = {
+					cam    : hemi.core.mainPack.createObject('Transform'),
+					pan    : hemi.core.mainPack.createObject('Transform'),
+					tilt   : hemi.core.mainPack.createObject('Transform'),
+					target : hemi.core.mainPack.createObject('Transform')
+				};
+			t.cam.name = 'hemi.view.cam';
+			t.pan.name = 'hemi.view.pan';
+			t.tilt.name = 'hemi.view.tilt';
+			t.target.name = 'hemi.view.target';		
+			t.pan.parent = hemi.core.client.root;
+			t.tilt.parent = t.pan;
+			t.cam.parent = t.tilt;
+			t.target.parent = t.cam;
+			t.target.translate([0,0,-1]);
+			t.cam.translate([0,0,1]);	
+			this.transforms = t;
+			this.vd = { current: null, last: null };
+			this.paramObj = hemi.core.mainPack.createObject('ParamObject');
+			this.light = {
+				position : this.paramObj.createParam('lightWorldPos','ParamFloat3'),
+				color : this.paramObj.createParam('lightColor','ParamFloat4'),
+				fixed : true
 			};
-		t.cam.name = 'hemi.view.cam';
-		t.pan.name = 'hemi.view.pan';
-		t.tilt.name = 'hemi.view.tilt';
-		t.target.name = 'hemi.view.target';		
-		t.pan.parent = hemi.core.client.root;
-		t.tilt.parent = t.pan;
-		t.cam.parent = t.tilt;
-		t.target.parent = t.cam;
-		t.target.translate([0,0,-1]);
-		t.cam.translate([0,0,1]);	
-		this.transforms = t;
-		this.vd = { current: null, last: null };
-		this.paramObj = hemi.core.mainPack.createObject('ParamObject');
-		this.light = {
-			position : this.paramObj.createParam('lightWorldPos','ParamFloat3'),
-			color : this.paramObj.createParam('lightColor','ParamFloat4'),
-			fixed : true
-		};
-		this.light.color.value = [1,1,1,1]; 
-        this.pan = {
-			current : 0,
-			min     : null,
-			max     : null
-		};
-        this.tilt = { 
-			current : 0,
-			min     : hemi.view.defaults.MIN_TILT,
-			max     : hemi.view.defaults.MAX_TILT  
-		};
-        this.fov = {
-			current : hemi.view.defaults.FOV,
-			min     : hemi.view.defaults.MIN_FOV,
-			max     : hemi.view.defaults.MAX_FOV
-		};
-		this.camPan = { current : 0, min: null, max: null };
-		this.camTilt = { current: 0, min: null, max: null };
-        this.distance = 1;
-        this.up = [0, 1, 0];
-		this.mode = {
-			scroll     : true,
-			scan       : true,
-			fixed      : false,
-			frames     : true,
-			control    : false,
-			projection : hemi.view.projection.PERSPECTIVE
-		};	
-		this.state = {
-			moving : false,
-			curve  : null,
-			time   : { current: 0.0, end: 0.0 },
-			mouse  : false,
-			xy     : { current: [-1,-1], last: [-1,-1] },
-			shift  : false,
-			update : false,
-			vp     : null
-		};
-		this.clip = {
-			near : hemi.view.defaults.NP,
-			far  : hemi.view.defaults.FP
-		};
-		this.easeFunc = [tween,tween,tween];			
-		hemi.view.addRenderListener(this);
-		this.update();
-		this.updateProjection();
-	};
-
-	hemi.view.Camera.prototype = {
+			this.light.color.value = [1,1,1,1]; 
+	        this.pan = {
+				current : 0,
+				min     : null,
+				max     : null
+			};
+	        this.tilt = { 
+				current : 0,
+				min     : hemi.view.defaults.MIN_TILT,
+				max     : hemi.view.defaults.MAX_TILT  
+			};
+	        this.fov = {
+				current : hemi.view.defaults.FOV,
+				min     : hemi.view.defaults.MIN_FOV,
+				max     : hemi.view.defaults.MAX_FOV
+			};
+			this.camPan = { current : 0, min: null, max: null };
+			this.camTilt = { current: 0, min: null, max: null };
+	        this.distance = 1;
+	        this.up = [0, 1, 0];
+			this.mode = {
+				scroll     : true,
+				scan       : true,
+				fixed      : false,
+				frames     : true,
+				control    : false,
+				projection : hemi.view.projection.PERSPECTIVE
+			};	
+			this.state = {
+				moving : false,
+				curve  : null,
+				time   : { current: 0.0, end: 0.0 },
+				mouse  : false,
+				xy     : { current: [-1,-1], last: [-1,-1] },
+				shift  : false,
+				update : false,
+				vp     : null
+			};
+			this.clip = {
+				near : hemi.view.defaults.NP,
+				far  : hemi.view.defaults.FP
+			};
+			this.easeFunc = [tween,tween,tween];			
+			hemi.view.addRenderListener(this);
+			this.update();
+			this.updateProjection();
+		},
+		
         /**
          * Overwrites hemi.world.Citizen.citizenType
          * @string
@@ -150,7 +151,7 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			hemi.view.removeRenderListener(this);
-			hemi.world.Citizen.prototype.cleanup.call(this);			
+			this._super();			
 			this.disableControl();
 			for (t in this.transforms) {
 				this.transforms[t].parent = null;
@@ -704,7 +705,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing this Camera
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
+			var octane = this._super(),
 				curView = hemi.view.createViewData(this);
 			
 			octane.props.push({
@@ -828,9 +829,8 @@ var hemi = (function(hemi) {
 					this.fov.current,aspect,this.clip.near,this.clip.far);
 			}
 		}
-	};
+	});
 	
-	hemi.view.Camera.inheritsFrom(hemi.world.Citizen);
 	hemi.view.Camera.prototype.msgSent =
 		hemi.view.Camera.prototype.msgSent.concat([
 			hemi.msg.start,
@@ -844,13 +844,14 @@ var hemi = (function(hemi) {
 	 * @param {hemi.curve.Curve} eye Curve for camera eye to follow
 	 * @param {hemi.curve.Curve} target Curve for camera target to follow
 	 */
-	hemi.view.CameraCurve = function(eye, target) {
-		hemi.world.Citizen.call(this);
-		this.eye = eye;
-		this.target = target;
-	};
-	
-	hemi.view.CameraCurve.prototype = {
+	hemi.view.CameraCurve = hemi.world.Citizen.extend({
+		init: function(eye, target) {
+			this._super();
+			
+			this.eye = eye;
+			this.target = target;
+		},
+		
 		/**
          * Overwrites hemi.world.Citizen.citizenType
          * @string
@@ -861,7 +862,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the CameraCurve.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);			
+			this._super();			
 			this.eye = null;
 			this.target = null;
 		},
@@ -872,7 +873,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing this CameraCurve
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'eye',
@@ -885,9 +886,7 @@ var hemi = (function(hemi) {
 
 			return octane;
 		}
-	};
-	
-	hemi.view.CameraCurve.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	hemi.view.ViewData = function(config) {
 		var cfg = config || {};
@@ -904,19 +903,20 @@ var hemi = (function(hemi) {
 	 * up axis, field of view, near plane, and far plane.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.view.Viewpoint = function(config) {
-		hemi.world.Citizen.call(this);
-		var cfg = config || {};
-		this.name = cfg.name || '';
-		this.eye = cfg.eye || [0,0,-1];
-		this.target = cfg.target || [0,0,0];
-		this.up = cfg.up || [0,1,0];
-		this.fov = cfg.fov || hemi.view.defaults.FOV;
-		this.np = cfg.np || hemi.view.defaults.NP;
-		this.fp = cfg.fp ||hemi.view.defaults.FP;
-	};
-	
-	hemi.view.Viewpoint.prototype = {
+	hemi.view.Viewpoint = hemi.world.Citizen.extend({
+		init: function(config) {
+			this._super();
+			
+			var cfg = config || {};
+			this.name = cfg.name || '';
+			this.eye = cfg.eye || [0,0,-1];
+			this.target = cfg.target || [0,0,0];
+			this.up = cfg.up || [0,1,0];
+			this.fov = cfg.fov || hemi.view.defaults.FOV;
+			this.np = cfg.np || hemi.view.defaults.NP;
+			this.fp = cfg.fp ||hemi.view.defaults.FP;
+		},
+		
 		/**
          * Overwrites hemi.world.Citizen.citizenType
          * @string
@@ -952,7 +952,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing this Viewpoint
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			var names = ['eye', 'target', 'up', 'fov', 'np', 'fp'];
 			
@@ -967,9 +967,7 @@ var hemi = (function(hemi) {
 
 			return octane;
 		}
-	};
-	
-	hemi.view.Viewpoint.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	/**
 	 * @class A ClientSize contains the height and width of the O3D client and

@@ -193,27 +193,27 @@ var hemi = (function(hemi) {
 	 * displayed.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.model.Model = function() {
-		hemi.world.Citizen.call(this);
+	hemi.model.Model = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
 
-		/**
-		 * A flag that indicates if the Model is currently animating.
-		 * @type boolean
-		 * @default false
-		 */
-		this.isAnimating = false;
-		this.isSkinned = false;
-		this.fileName = '';
-		this.root = null;
-		this.materials = [];
-		this.shapes = [];
-		this.transforms = [];
-		this.transformUpdates = [];
-		this.animParam = null;
-		this.pack = null;
-	};
-
-	hemi.model.Model.prototype = {
+			/**
+			 * A flag that indicates if the Model is currently animating.
+			 * @type boolean
+			 * @default false
+			 */
+			this.isAnimating = false;
+			this.isSkinned = false;
+			this.fileName = '';
+			this.root = null;
+			this.materials = [];
+			this.shapes = [];
+			this.transforms = [];
+			this.transformUpdates = [];
+			this.animParam = null;
+			this.pack = null;
+		},
+		
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -224,7 +224,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the Model.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.unload();
 		},
 
@@ -234,7 +234,7 @@ var hemi = (function(hemi) {
 		 * @return {Object} the Octane structure representing the Model
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 
 			octane.props.push({
 				name: 'setFileName',
@@ -781,9 +781,8 @@ var hemi = (function(hemi) {
 			
 			this.send(hemi.msg.unload, {});
 		}
-	};
+	});
 
-	hemi.model.Model.inheritsFrom(hemi.world.Citizen);
 	hemi.model.Model.prototype.msgSent =
 		hemi.model.Model.prototype.msgSent.concat([hemi.msg.animate,
 			hemi.msg.load, hemi.msg.unload]);

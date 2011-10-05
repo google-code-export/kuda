@@ -51,7 +51,7 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Find the HemiTransformInfo for the given Transform and set its pickable
+	 * Find the TransformInfo for the given Transform and set its pickable
 	 * property.
 	 * 
 	 * @param {o3d.Transform} transform the Transform to set pickable for
@@ -80,80 +80,65 @@ var hemi = (function(hemi) {
 		this.pickManager = hemi.core.picking.createPickManager(this.pickRoot);
 		/*
 		 * Override PickManager's createTransformInfo function so that it will
-		 * construct our extended HemiTransformInfo instead.
+		 * construct our extended TransformInfo instead. Allows the user to
+		 * specify if the referenced Transform should be pickable or not. 
 		 */
 		this.pickManager.createTransformInfo = function(transform, parent) {
-			var info = new hemi.picking.HemiTransformInfo(transform, parent, this);
+			var info = new o3djs.picking.TransformInfo(transform, parent, this);
+			// Add the pickable property
+			info.pickable = true;
+			// Override the default value for this TransformInfo property
+			info.pickableEvenIfInvisible = true;
+			
 			this.addTransformInfo(info);
 			return info;
 		};
 	};
 	
 	/**
-	 * @class A HemiTransformInfo extends O3D's TransformInfo to allow the user
-	 * to specify if the referenced Transform should be pickable or not.
-	 * @extends o3djs.picking.TransformInfo
+	 * Set the pickable property for the TransformInfo.
 	 * 
-	 * @param {o3d.Transform} transform Transform to keep info about
-	 * @param {o3djs.picking.TransformInfo} parent Parent transformInfo of the
-	 *     transform. Can be null.
-	 * @param {o3djs.picking.PickManager} pickManager The PickManager this
-	 *     TransformInfo belongs to.
+	 * @param {boolean} pickable true to allow picks
+	 * @param {boolean} recurse true to apply the change to any child
+	 *     Transforms as well
 	 */
-	hemi.picking.HemiTransformInfo = function(transform, parent, pickManager) {		
-		o3djs.picking.TransformInfo.call(this, transform, parent, pickManager);
+	o3djs.picking.TransformInfo.prototype.setPickable = function(pickable, recurse) {
+		this.pickable = pickable;
 		
-		this.pickable = true;
-		// Override the default value for this TransformInfo property
-		this.pickableEvenIfInvisible = true;
-	};
-	
-	hemi.picking.HemiTransformInfo.prototype = {
-		/**
-		 * Set the pickable property for the HemiTransformInfo.
-		 * 
-		 * @param {boolean} pickable true to allow picks
-		 * @param {boolean} recurse true to apply the change to any child
-		 *     Transforms as well
-		 */
-		setPickable: function(pickable, recurse) {
-			this.pickable = pickable;
-			
-			if (recurse) {
-				for (var key in this.childTransformInfos) {
-					this.childTransformInfos[key].setPickable(pickable, recurse);
-				}
+		if (recurse) {
+			for (var key in this.childTransformInfos) {
+				this.childTransformInfos[key].setPickable(pickable, recurse);
 			}
-		},
-		
-		/**
-		 * Override TransformInfo's pick function so that we can temporarily
-		 * hide the TransformInfo's shapes if it is not pickable.
-		 * 
-		 * @param {o3djs.picking.Ray} worldRay A ray in world space to pick
-		 *     against
-		 * @return {o3djs.picking.PickInfo} Information about the picking.
-		 *     null if the ray did not intersect any triangles.
-		 */
-		pick: function(worldRay) {
-			var hiddenShapeInfos;
-			
-			if (!this.pickable) {
-				hiddenShapeInfos = this.shapeInfos;
-				this.shapeInfos = {};
-			}
-			
-			var pickInfo = o3djs.picking.TransformInfo.prototype.pick.call(this, worldRay);
-			
-			if (!this.pickable) {
-				this.shapeInfos = hiddenShapeInfos;
-			}
-			
-			return pickInfo;
 		}
 	};
 	
-	hemi.picking.HemiTransformInfo.inheritsFrom(o3djs.picking.TransformInfo);
+	var pickFunc = o3djs.picking.TransformInfo.prototype.pick;
+	
+	/**
+	 * Override TransformInfo's pick function so that we can temporarily
+	 * hide the TransformInfo's shapes if it is not pickable.
+	 * 
+	 * @param {o3djs.picking.Ray} worldRay A ray in world space to pick
+	 *     against
+	 * @return {o3djs.picking.PickInfo} Information about the picking.
+	 *     null if the ray did not intersect any triangles.
+	 */
+	o3djs.picking.TransformInfo.prototype.pick = function(worldRay) {
+		var hiddenShapeInfos = null;
+		
+		if (!this.pickable) {
+			hiddenShapeInfos = this.shapeInfos;
+			this.shapeInfos = {};
+		}
+		
+		var pickInfo = pickFunc.call(this, worldRay);
+		
+		if (!this.pickable) {
+			this.shapeInfos = hiddenShapeInfos;
+		}
+		
+		return pickInfo;
+	};
 	
 	return hemi;
 })(hemi || {});

@@ -92,35 +92,35 @@ var hemi = (function(hemi) {
 	 * time, and Loops for repeating sections of the Animation.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.animation.Animation = function() {
-		hemi.world.Citizen.call(this);
+	hemi.animation.Animation = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The target of the Animation. It should have an 'isAnimating'
+			 * property.
+			 * @type Object
+			 */
+			this.target = null;
+			
+			/**
+			 * The time the Animation begins at.
+			 * @type number
+			 * @default 0
+			 */
+			this.beginTime = 0;
+			
+			/**
+			 * The time the Animation ends at.
+			 * @type number
+			 * @default 0
+			 */
+			this.endTime = 0;
+			
+			this.currentTime = 0;
+			this.loops = [];
+		},
 		
-		/**
-		 * The target of the Animation. It should have an 'isAnimating'
-		 * property.
-		 * @type Object
-		 */
-		this.target = null;
-		
-		/**
-		 * The time the Animation begins at.
-		 * @type number
-		 * @default 0
-		 */
-		this.beginTime = 0;
-		
-		/**
-		 * The time the Animation ends at.
-		 * @type number
-		 * @default 0
-		 */
-		this.endTime = 0;
-		
-		this.currentTime = 0;
-		this.loops = [];
-	};
-	
-	hemi.animation.Animation.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
 		 * @type string
@@ -294,9 +294,8 @@ var hemi = (function(hemi) {
 		updateTarget: function(currentTime) {
 			this.target.setAnimationTime(currentTime);
 		}
-	};
+	});
 	
-	hemi.animation.Animation.inheritsFrom(hemi.world.Citizen);
 	hemi.animation.Animation.prototype.msgSent =
 		hemi.animation.Animation.prototype.msgSent.concat([
 			hemi.msg.start,
