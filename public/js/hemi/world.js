@@ -73,19 +73,19 @@ var hemi = (function(hemi) {
 	 * all that is necessary to retrieve the Citizen from its World, regardless
 	 * of its type.
 	 */
-	hemi.world.Citizen = function() {
-		/**
-		 * The name of the Citizen.
-		 * @type string
-		 * @default ''
-		 */
-		this.name = '';
-		/* The unique identifier for any Citizen of the World */
-		this.worldId = null;
-		hemi.world.addCitizen(this);
-	};
-	
-	hemi.world.Citizen.prototype = {
+	hemi.world.Citizen = hemi.Class.extend({
+		init: function() {
+			/**
+			 * The name of the Citizen.
+			 * @type string
+			 * @default ''
+			 */
+			this.name = '';
+			/* The unique identifier for any Citizen of the World */
+			this.worldId = null;
+			hemi.world.addCitizen(this);
+		},
+		
         /**
          * Essentially a class name for Citizens.
          * @type string
@@ -255,20 +255,20 @@ var hemi = (function(hemi) {
 			
 			return octane;
 		}
-	};
+	});
 	
 	/**
 	 * @class A TransformOwner contains a Citizen that owns at least one
 	 * Transform and entries of other Citizens that need to be given any of
 	 * those Transforms as they become available during Octane loading.
 	 */
-	hemi.world.TransformOwner = function() {
-		this.citizen = null;
-		this.entries = new Hashtable();
-		this.toLoad = null;
-	};
-	
-	hemi.world.TransformOwner.prototype = {
+	hemi.world.TransformOwner = hemi.Class.extend({
+		init: function() {
+			this.citizen = null;
+			this.entries = new Hashtable();
+			this.toLoad = null;
+		},
+		
 		/**
 		 * Distribute the Transforms of the owning Citizen to any other Citizens
 		 * that have registered interest in those Transforms.
@@ -425,19 +425,19 @@ var hemi = (function(hemi) {
 				}
 			}
 		}
-	};
+	});
 	
 	/**
 	 * @class A TransformRegistry maintains listings of which Transforms to
 	 * distribute to which Citizens as they become available during Octane
 	 * loading. This is necessary because Transforms are not proper Citizens.
 	 */
-	hemi.world.TransformRegistry = function() {
-		this.owners = new Hashtable();
-		this.toLoad = null;
-	};
-	
-	hemi.world.TransformRegistry.prototype = {
+	hemi.world.TransformRegistry = hemi.Class.extend({
+		init: function() {
+			this.owners = new Hashtable();
+			this.toLoad = null;
+		},
+		
 		/**
 		 * Distribute the Transforms of the given Citizen to any other Citizens
 		 * that have registered interest in those Transforms.
@@ -565,7 +565,7 @@ var hemi = (function(hemi) {
 				}
 			}
 		}
-	};
+	});
 	
 	/* All of the Citizens of the World */
 	hemi.world.citizens = new hemi.utils.Hashtable();
@@ -1349,8 +1349,6 @@ var hemi = (function(hemi) {
 	 * Setup the initial World.
 	 */
 	hemi.world.init = function() {
-		// Clean up 'fake' Citizens created by inheritance mechanism
-		hemi.world.citizens.clear();
 		nextId = reserveIds;
 		hemi.world.loader = createWorldLoader();
 		hemi.world.setCamera(new hemi.view.Camera());

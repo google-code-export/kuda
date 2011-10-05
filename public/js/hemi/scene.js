@@ -28,30 +28,30 @@ var hemi = (function(hemi) {
 	 * valid or if various events should be enabled.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.scene.Scene = function() {
-		hemi.world.Citizen.call(this);
+	hemi.scene.Scene = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * Flag indicating if the Scene is currently loaded.
+			 * @type boolean
+			 * @default false
+			 */
+			this.isLoaded = false;
+			
+			/**
+			 * The next Scene to move to after this one.
+			 * @type hemi.scene.Scene
+			 */
+			this.next = null;
+			
+			/**
+			 * The previous Scene that occurred before this one.
+			 * @type hemi.scene.Scene
+			 */
+			this.prev = null;
+		},
 		
-		/**
-		 * Flag indicating if the Scene is currently loaded.
-		 * @type boolean
-		 * @default false
-		 */
-		this.isLoaded = false;
-		
-		/**
-		 * The next Scene to move to after this one.
-		 * @type hemi.scene.Scene
-		 */
-		this.next = null;
-		
-		/**
-		 * The previous Scene that occurred before this one.
-		 * @type hemi.scene.Scene
-		 */
-		this.prev = null;
-	};
-	
-	hemi.scene.Scene.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
          * @string
@@ -62,7 +62,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the Scene.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			
 			if (this.next !== null) {
 				this.next.prev = this.prev;
@@ -81,7 +81,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Scene
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			if (this.next === null) {
 				octane.props.push({
@@ -151,9 +151,8 @@ var hemi = (function(hemi) {
 				this.prev.load();
 			}
 		}
-	};
+	});
 	
-	hemi.scene.Scene.inheritsFrom(hemi.world.Citizen);
 	hemi.scene.Scene.prototype.msgSent =
 		hemi.scene.Scene.prototype.msgSent.concat([hemi.msg.load, hemi.msg.unload]);
 	

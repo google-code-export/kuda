@@ -15,7 +15,10 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = {};
+var editor = {
+		// Keep a copy of the Hemi Class for inheritnace
+		Class: hemi.Class
+	};
 
 (function() {
 	o3djs.require('editor.requires');

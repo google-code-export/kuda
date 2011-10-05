@@ -124,23 +124,24 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {Object} opt_config optional configuration for the Shape
 	 */
-	hemi.shape.Shape = function(opt_config) {
-		hemi.world.Citizen.call(this);
-		this.color = null;
-		this.dim = {};
-		this.shapeType = null;
-		this.transform = null;
-		this.tranUp = new hemi.shape.TransformUpdate();
+	hemi.shape.Shape = hemi.world.Citizen.extend({
+		init: function(opt_config) {
+			this._super();
+			
+			this.color = null;
+			this.dim = {};
+			this.shapeType = null;
+			this.transform = null;
+			this.tranUp = new hemi.shape.TransformUpdate();
+			
+			if (opt_config != null) {
+				this.loadConfig(opt_config);
+			}
+			if (this.color && this.shapeType) {
+				this.create();
+			}
+		},
 		
-		if (opt_config != null) {
-			this.loadConfig(opt_config);
-		}
-		if (this.color && this.shapeType) {
-			this.create();
-		}
-	};
-	
-	hemi.shape.Shape.prototype =  {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
          * @string
@@ -151,7 +152,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the Shape.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			
 			if (this.transform !== null) {
 				destroyTransform(this.transform);
@@ -170,7 +171,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Shape
 		 */
 		toOctane: function(){
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
+			var octane = this._super(),
 				valNames = ['color', 'dim', 'shapeType'];
 			
 			for (var i = 0, il = valNames.length; i < il; i++) {
@@ -285,7 +286,7 @@ var hemi = (function(hemi) {
 		 * @param {number} id the new id
 		 */
 		setId: function(id) {
-			this.parent.setId.call(this, id);
+			this._super(id);
 			
 			if (this.ownerId) {
 				this.ownerId.value = id;
@@ -390,9 +391,7 @@ var hemi = (function(hemi) {
 				this.tranUp.localMatrix = hemi.utils.clone(this.transform.localMatrix);
 			}
 		}
-	};
-
-	hemi.shape.Shape.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	/**
 	 * Initialize a local root transform and pack.

@@ -57,160 +57,160 @@ var hemi = (function(hemi) {
 	 * like pages and text.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.hud.Theme = function() {
-		hemi.world.Citizen.call(this);
-		
-		/**
-		 * Configuration options for an image foreground overlay.
-		 * @type Object
-		 */
-		this.image = {
+	hemi.hud.Theme = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
 			/**
-			 * Options for a blur shadow effect on the image. Set radius to 0 to
-			 * cancel.
+			 * Configuration options for an image foreground overlay.
 			 * @type Object
 			 */
-			shadow: {
-				radius: 0,
-				offsetY: 0,
-				offsetX: 0,
-				color: [0, 0, 0, 1]
-			}
-		};
-		
-		/**
-		 * Configuration options for a rectangular background overlay.
-		 * @type Object
-		 */
-		this.page = {
-			/**
-			 * The color and opacity of the rectangular overlay in RGBA format.
-			 * @type number[4]
-			 * @default [0, 0, 0, 0.45]
-			 */
-			color: [0, 0, 0, 0.45],
+			this.image = {
+				/**
+				 * Options for a blur shadow effect on the image. Set radius to 0 to
+				 * cancel.
+				 * @type Object
+				 */
+				shadow: {
+					radius: 0,
+					offsetY: 0,
+					offsetX: 0,
+					color: [0, 0, 0, 1]
+				}
+			};
 			
 			/**
-			 * The amount of curving to apply to the corners of the page. Range
-			 * is from 0.0 to 1.0 where 0 is a plain rectangle and 1 is an oval.
-			 */
-			curve: 0,
-			
-			/**
-			 * Options for a blur shadow effect on the page. This is mutually
-			 * exclusive to outline. Set radius to 0 to cancel.
+			 * Configuration options for a rectangular background overlay.
 			 * @type Object
 			 */
-			shadow: {
-				radius: 0,
-				offsetY: 0,
-				offsetX: 0,
-				color: [0, 0, 0, 0]
-			},
+			this.page = {
+				/**
+				 * The color and opacity of the rectangular overlay in RGBA format.
+				 * @type number[4]
+				 * @default [0, 0, 0, 0.45]
+				 */
+				color: [0, 0, 0, 0.45],
+				
+				/**
+				 * The amount of curving to apply to the corners of the page. Range
+				 * is from 0.0 to 1.0 where 0 is a plain rectangle and 1 is an oval.
+				 */
+				curve: 0,
+				
+				/**
+				 * Options for a blur shadow effect on the page. This is mutually
+				 * exclusive to outline. Set radius to 0 to cancel.
+				 * @type Object
+				 */
+				shadow: {
+					radius: 0,
+					offsetY: 0,
+					offsetX: 0,
+					color: [0, 0, 0, 0]
+				},
+				
+				/**
+				 * Optional outline for the page in RGBA format. This is mutually
+				 * exclusive to shadow. Set to null to cancel.
+				 * @type number[4]
+				 */
+				outline: null
+			};
 			
 			/**
-			 * Optional outline for the page in RGBA format. This is mutually
-			 * exclusive to shadow. Set to null to cancel.
-			 * @type number[4]
-			 */
-			outline: null
-		};
-		
-		/**
-		 * Configuration options for a textual foreground overlay.
-		 * @type Object
-		 */
-		this.text = {
-			/**
-			 * The font size of the text.
-			 * @type number
-			 * @default 12
-			 */
-			textSize: 12,
-			
-			/**
-			 * The name of the font to use to paint the text.
-			 * @type string
-			 * @default 'helvetica'
-			 */
-			textTypeface: 'helvetica',
-			
-			/**
-			 * The horizontal alignment of the text.
-			 * @type string
-			 * @default 'center'
-			 */
-			textAlign: 'center',
-			
-			/**
-			 * Additional styling for the text (normal, bold, italics)
-			 * @type string
-			 * @default 'bold'
-			 */
-			textStyle: 'bold',
-			
-			/**
-			 * Flag to indicate if the HudManager should perform strict text
-			 * wrapping.
-			 * @type boolean
-			 * @default true
-			 */
-			strictWrapping: true,
-			
-			/**
-			 * Number of pixels to place between lines of text.
-			 * @type number
-			 * @default 5
-			 */
-			lineMargin: 5,
-			
-			/**
-			 * The color and opacity of the text in RGBA format.
-			 * @type number[4]
-			 * @default [1, 1, 0.6, 1]
-			 */
-			color: [1, 1, 0.6, 1],
-			
-			/**
-			 * Options for a blur shadow effect on the text. This is mutually
-			 * exclusive to outline. Set radius to 0 to cancel.
+			 * Configuration options for a textual foreground overlay.
 			 * @type Object
 			 */
-			shadow: {
-				radius: 0.5,
-				offsetY: 1,
-				offsetX: 1,
-				color: [0, 0, 0, 1]
-			},
+			this.text = {
+				/**
+				 * The font size of the text.
+				 * @type number
+				 * @default 12
+				 */
+				textSize: 12,
+				
+				/**
+				 * The name of the font to use to paint the text.
+				 * @type string
+				 * @default 'helvetica'
+				 */
+				textTypeface: 'helvetica',
+				
+				/**
+				 * The horizontal alignment of the text.
+				 * @type string
+				 * @default 'center'
+				 */
+				textAlign: 'center',
+				
+				/**
+				 * Additional styling for the text (normal, bold, italics)
+				 * @type string
+				 * @default 'bold'
+				 */
+				textStyle: 'bold',
+				
+				/**
+				 * Flag to indicate if the HudManager should perform strict text
+				 * wrapping.
+				 * @type boolean
+				 * @default true
+				 */
+				strictWrapping: true,
+				
+				/**
+				 * Number of pixels to place between lines of text.
+				 * @type number
+				 * @default 5
+				 */
+				lineMargin: 5,
+				
+				/**
+				 * The color and opacity of the text in RGBA format.
+				 * @type number[4]
+				 * @default [1, 1, 0.6, 1]
+				 */
+				color: [1, 1, 0.6, 1],
+				
+				/**
+				 * Options for a blur shadow effect on the text. This is mutually
+				 * exclusive to outline. Set radius to 0 to cancel.
+				 * @type Object
+				 */
+				shadow: {
+					radius: 0.5,
+					offsetY: 1,
+					offsetX: 1,
+					color: [0, 0, 0, 1]
+				},
+				
+				/**
+				 * Optional outline for the text in RGBA format. This is mutually
+				 * exclusive to shadow. Set to null to cancel.
+				 * @type number[4]
+				 */
+				outline: null
+			};
 			
 			/**
-			 * Optional outline for the text in RGBA format. This is mutually
-			 * exclusive to shadow. Set to null to cancel.
-			 * @type number[4]
-			 */
-			outline: null
-		};
-		
-		/**
-		 * Configuration options for a video foreground overlay.
-		 * @type Object
-		 */
-		this.video = {
-			/**
-			 * Options for a blur shadow effect on the video. Set radius to 0 to
-			 * cancel.
+			 * Configuration options for a video foreground overlay.
 			 * @type Object
 			 */
-			shadow: {
-				radius: 0,
-				offsetY: 0,
-				offsetX: 0,
-				color: [0, 0, 0, 1]
-			}
-		};
-	};
-	
-	hemi.hud.Theme.prototype = {
+			this.video = {
+				/**
+				 * Options for a blur shadow effect on the video. Set radius to 0 to
+				 * cancel.
+				 * @type Object
+				 */
+				shadow: {
+					radius: 0,
+					offsetY: 0,
+					offsetX: 0,
+					color: [0, 0, 0, 1]
+				}
+			};
+		},
+		
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -230,7 +230,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Theme
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'image',
@@ -251,72 +251,70 @@ var hemi = (function(hemi) {
 			
 			return octane;
 		}
-	};
-	
-	hemi.hud.Theme.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	/**
 	 * @class A HudElement contains the basics of any element to be drawn on
 	 * the canvas.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.hud.HudElement = function() {
-		hemi.world.Citizen.call(this);
+	hemi.hud.HudElement = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The handler function for mouse down events that occur within the
+			 * bounds of the HudElement.
+			 * @type function(o3d.Event): void
+			 */
+			this.mouseDown = null;
+			
+			/**
+			 * The handler function for mouse up events that occur within the
+			 * bounds of the HudElement.
+			 * @type function(o3d.Event): void
+			 */
+			this.mouseUp = null;
+			
+			/**
+			 * The handler function for mouse move events. It takes the Event and a
+			 * boolean indicating if the Event occurred within the bounds of the
+			 * HudElement.
+			 * @type function(o3d.Event, boolean): void
+			 */
+			this.mouseMove = null;
+			
+			/**
+			 * The y-value of the upper boundary of the HudElement. This value
+			 * should be calculated at draw time rather than set directly.
+			 * @type number 
+			 */
+			this.top = 0;
+			
+			/**
+			 * The y-value of the lower boundary of the HudElement. This value
+			 * should be calculated at draw time rather than set directly.
+			 * @type number 
+			 */
+			this.bottom = 0;
+			
+			/**
+			 * The x-value of the left boundary of the HudElement. This value
+			 * should be calculated at draw time rather than set directly.
+			 * @type number 
+			 */
+			this.left = 0;
+			
+			/**
+			 * The x-value of the right boundary of the HudElement. This value
+			 * should be calculated at draw time rather than set directly.
+			 * @type number 
+			 */
+			this.right = 0;
+			
+			this.config = {};
+		},
 		
-		/**
-		 * The handler function for mouse down events that occur within the
-		 * bounds of the HudElement.
-		 * @type function(o3d.Event): void
-		 */
-		this.mouseDown = null;
-		
-		/**
-		 * The handler function for mouse up events that occur within the
-		 * bounds of the HudElement.
-		 * @type function(o3d.Event): void
-		 */
-		this.mouseUp = null;
-		
-		/**
-		 * The handler function for mouse move events. It takes the Event and a
-		 * boolean indicating if the Event occurred within the bounds of the
-		 * HudElement.
-		 * @type function(o3d.Event, boolean): void
-		 */
-		this.mouseMove = null;
-		
-		/**
-		 * The y-value of the upper boundary of the HudElement. This value
-		 * should be calculated at draw time rather than set directly.
-		 * @type number 
-		 */
-		this.top = 0;
-		
-		/**
-		 * The y-value of the lower boundary of the HudElement. This value
-		 * should be calculated at draw time rather than set directly.
-		 * @type number 
-		 */
-		this.bottom = 0;
-		
-		/**
-		 * The x-value of the left boundary of the HudElement. This value
-		 * should be calculated at draw time rather than set directly.
-		 * @type number 
-		 */
-		this.left = 0;
-		
-		/**
-		 * The x-value of the right boundary of the HudElement. This value
-		 * should be calculated at draw time rather than set directly.
-		 * @type number 
-		 */
-		this.right = 0;
-		
-		this.config = {};
-	};
-	
-	hemi.hud.HudElement.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -327,7 +325,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the HudElement.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.mouseDown = null;
 			this.mouseUp = null;
 			this.mouseMove = null;
@@ -340,7 +338,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the HudElement
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'top',
@@ -457,62 +455,60 @@ var hemi = (function(hemi) {
 		setConfig: function(config) {
 			this.config = config;
 		}
-	};
-	
-	hemi.hud.HudElement.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	/**
 	 * @class A HudText contains formated text and display options for a single
 	 * area of text on the HUD.
 	 * @extends hemi.hud.HudElement
 	 */
-	hemi.hud.HudText = function() {
-		hemi.hud.HudElement.call(this);
+	hemi.hud.HudText = hemi.hud.HudElement.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The x-coordinate of the HudText. The actual on screen location will
+			 * depend on the horizontal alignment of the text.
+			 * @type number
+			 * @default 0
+			 */
+			this.x = 0;
+			
+			/**
+			 * The y-coordinate of the top of the HudText.
+			 * @type number
+			 * @default 0
+			 */
+			this.y = 0;
+			
+			/**
+			 * The formatted text that is actually drawn on screen. This property
+			 * is created whenever the text, config, or width are set. It should
+			 * typically not be set directly.
+			 * @type string[]
+			 */
+			this.wrappedText = [];
+			
+			/**
+			 * The height of the formatted text. This property is calculated
+			 * whenever the text, config, or width are set. It should typically not
+			 * be set directly.
+			 * @type number
+			 */
+			this.wrappedHeight = 0;
+			
+			/**
+			 * The width of the formatted text. This property is calculated
+			 * whenever the text, config, or width are set. It should typically not
+			 * be set directly.
+			 * @type number
+			 */
+			this.wrappedWidth = 0;
+			
+			this.text = [];
+			this.width = 0;
+		},
 		
-		/**
-		 * The x-coordinate of the HudText. The actual on screen location will
-		 * depend on the horizontal alignment of the text.
-		 * @type number
-		 * @default 0
-		 */
-		this.x = 0;
-		
-		/**
-		 * The y-coordinate of the top of the HudText.
-		 * @type number
-		 * @default 0
-		 */
-		this.y = 0;
-		
-		/**
-		 * The formatted text that is actually drawn on screen. This property
-		 * is created whenever the text, config, or width are set. It should
-		 * typically not be set directly.
-		 * @type string[]
-		 */
-		this.wrappedText = [];
-		
-		/**
-		 * The height of the formatted text. This property is calculated
-		 * whenever the text, config, or width are set. It should typically not
-		 * be set directly.
-		 * @type number
-		 */
-		this.wrappedHeight = 0;
-		
-		/**
-		 * The width of the formatted text. This property is calculated
-		 * whenever the text, config, or width are set. It should typically not
-		 * be set directly.
-		 * @type number
-		 */
-		this.wrappedWidth = 0;
-		
-		this.text = [];
-		this.width = 0;
-	};
-	
-	hemi.hud.HudText.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -525,7 +521,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the HudText
 		 */
 		toOctane: function() {
-			var octane = hemi.hud.HudElement.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'x',
@@ -595,7 +591,7 @@ var hemi = (function(hemi) {
 		 * @param {Object} config configuration options
 		 */
 		setConfig: function(config) {
-			hemi.hud.HudElement.prototype.setConfig.call(this, config);
+			this._super(config);
 			this.wrapText();
 		},
 
@@ -654,65 +650,63 @@ var hemi = (function(hemi) {
 			this.wrappedHeight = height;
 			this.wrappedText = wrappedText;
 		}
-	};
-	
-	hemi.hud.HudText.inheritsFrom(hemi.hud.HudElement);
+	});
 	
 	/**
 	 * @class A HudImage contains a texture and display options for a single
 	 * image on the HUD.
 	 * @extends hemi.hud.HudElement
 	 */
-	hemi.hud.HudImage = function() {
-		hemi.hud.HudElement.call(this);
+	hemi.hud.HudImage = hemi.hud.HudElement.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The x-coordinate of the left side of the HudImage.
+			 * @type number
+			 * @default 0
+			 */
+			this.x = 0;
+			
+			/**
+			 * The y-coordinate of the top of the HudImage.
+			 * @type number
+			 * @default 0
+			 */
+			this.y = 0;
+			
+			/**
+			 * The x-coordinate of the source image to pull image data from.
+			 * @type number
+			 * @default 0
+			 */
+			this.srcX = 0;
+			
+			/**
+			 * The y-coordinate of the source image to pull image data from.
+			 * @type number
+			 * @default 0
+			 */
+			this.srcY = 0;
+			
+			/**
+			 * The height of the image. This property is calculated when the image
+			 * URL is loaded. It should typically not be set directly.
+			 * @type number
+			 */
+			this.height = 0;
+			
+			/**
+			 * The width of the image. This property is calculated when the image
+			 * URL is loaded. It should typically not be set directly.
+			 * @type number
+			 */
+			this.width = 0;
+			
+			this.image = null;
+			this.url = null;
+		},
 		
-		/**
-		 * The x-coordinate of the left side of the HudImage.
-		 * @type number
-		 * @default 0
-		 */
-		this.x = 0;
-		
-		/**
-		 * The y-coordinate of the top of the HudImage.
-		 * @type number
-		 * @default 0
-		 */
-		this.y = 0;
-		
-		/**
-		 * The x-coordinate of the source image to pull image data from.
-		 * @type number
-		 * @default 0
-		 */
-		this.srcX = 0;
-		
-		/**
-		 * The y-coordinate of the source image to pull image data from.
-		 * @type number
-		 * @default 0
-		 */
-		this.srcY = 0;
-		
-		/**
-		 * The height of the image. This property is calculated when the image
-		 * URL is loaded. It should typically not be set directly.
-		 * @type number
-		 */
-		this.height = 0;
-		
-		/**
-		 * The width of the image. This property is calculated when the image
-		 * URL is loaded. It should typically not be set directly.
-		 * @type number
-		 */
-		this.width = 0;
-		
-		this.image = null;
-		this.url = null;
-	};
-	
-	hemi.hud.HudImage.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -723,7 +717,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the HudImage.
 		 */
 		cleanup: function() {
-			hemi.hud.HudElement.prototype.cleanup.call(this);
+			this._super();
 			this.image = null;
 		},
 		
@@ -733,7 +727,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the HudImage
 		 */
 		toOctane: function() {
-			var octane = hemi.hud.HudElement.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'x',
@@ -827,9 +821,8 @@ var hemi = (function(hemi) {
 					that.send(hemi.msg.load, {});
 				});
 		}
-	};
+	});
 
-	hemi.hud.HudImage.inheritsFrom(hemi.hud.HudElement);
 	hemi.hud.HudImage.prototype.msgSent =
 		hemi.hud.HudImage.prototype.msgSent.concat([hemi.msg.load]);
 
@@ -838,87 +831,87 @@ var hemi = (function(hemi) {
 	 * enabled or if a mouse is hovering over it.
 	 * @extends hemi.hud.HudImage
 	 */
-	hemi.hud.HudButton = function() {
-		hemi.hud.HudElement.call(this);
-		
-		/**
-		 * The x-coordinate of the left side of the HudButton.
-		 * @type number
-		 * @default 0
-		 */
-		this.x = 0;
-		
-		/**
-		 * The y-coordinate of the top of the HudButton.
-		 * @type number
-		 * @default 0
-		 */
-		this.y = 0;
-		
-		/**
-		 * Flag indicating if the HudButton is enabled.
-		 * @type boolean
-		 * @default true
-		 */
-		this.enabled = true;
-		
-		/**
-		 * Flag indicating if the mouse cursor is hovering over the HudButton.
-		 * @type boolean
-		 * @default false
-		 */
-		this.hovering = false;
-		
-		/**
-		 * The HudImage to use for the HudButton when it is enabled.
-		 * @type hemi.hud.HudImage
-		 */
-		this.enabledImg = null;
-		
-		/**
-		 * The HudImage to use for the HudButton when it is disabled.
-		 * @type hemi.hud.HudImage
-		 */
-		this.disabledImg = null;
-		
-		/**
-		 * The HudImage to use for the HudButton when it is enabled and the
-		 * mouse cursor is hovering.
-		 * @type hemi.hud.HudImage
-		 */
-		this.hoverImg = null;
-		
-		var that = this;
-		
-		/**
-		 * The built-in mouse move handler for a HudButton. If the mouse move
-		 * occurred within the button's bounds, set it's hovering flag and
-		 * redraw the button.
-		 * @see hemi.hud.HudElement#mouseMove
-		 * 
-		 * @param {o3d.Event} event the mouse move event
-		 * @param {boolean} intersected true if the event occurred within the
-		 *     HudButton's bounds
-		 */
-		this.mouseMove = function(event, intersected) {
-			if (intersected) {
-				if (!that.hovering) {
-					that.hovering = true;
+	hemi.hud.HudButton = hemi.hud.HudElement.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The x-coordinate of the left side of the HudButton.
+			 * @type number
+			 * @default 0
+			 */
+			this.x = 0;
+			
+			/**
+			 * The y-coordinate of the top of the HudButton.
+			 * @type number
+			 * @default 0
+			 */
+			this.y = 0;
+			
+			/**
+			 * Flag indicating if the HudButton is enabled.
+			 * @type boolean
+			 * @default true
+			 */
+			this.enabled = true;
+			
+			/**
+			 * Flag indicating if the mouse cursor is hovering over the HudButton.
+			 * @type boolean
+			 * @default false
+			 */
+			this.hovering = false;
+			
+			/**
+			 * The HudImage to use for the HudButton when it is enabled.
+			 * @type hemi.hud.HudImage
+			 */
+			this.enabledImg = null;
+			
+			/**
+			 * The HudImage to use for the HudButton when it is disabled.
+			 * @type hemi.hud.HudImage
+			 */
+			this.disabledImg = null;
+			
+			/**
+			 * The HudImage to use for the HudButton when it is enabled and the
+			 * mouse cursor is hovering.
+			 * @type hemi.hud.HudImage
+			 */
+			this.hoverImg = null;
+			
+			var that = this;
+			
+			/**
+			 * The built-in mouse move handler for a HudButton. If the mouse move
+			 * occurred within the button's bounds, set it's hovering flag and
+			 * redraw the button.
+			 * @see hemi.hud.HudElement#mouseMove
+			 * 
+			 * @param {o3d.Event} event the mouse move event
+			 * @param {boolean} intersected true if the event occurred within the
+			 *     HudButton's bounds
+			 */
+			this.mouseMove = function(event, intersected) {
+				if (intersected) {
+					if (!that.hovering) {
+						that.hovering = true;
+						that.draw();
+					}
+				} else if (that.hovering) {
+					that.hovering = false;
 					that.draw();
 				}
-			} else if (that.hovering) {
-				that.hovering = false;
-				that.draw();
-			}
-		};
-	};
-	
-	hemi.hud.HudButton.prototype = {
+			};
+		},
+		
 		/**
 		 * Send a cleanup Message and remove all references in the HudButton.
 		 */
 		cleanup: function() {
-			hemi.hud.HudElement.prototype.cleanup.call(this);
+			this._super();
 			this.mouseMove = null;
 			
 			if (this.enabledImg) {
@@ -941,7 +934,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the HudButton
 		 */
 		toOctane: function() {
-			var octane = hemi.hud.HudElement.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'x',
@@ -1095,67 +1088,65 @@ var hemi = (function(hemi) {
 			}
 			this.enabledImg.setImageUrl(enabledUrl);
 		}
-	};
-	
-	hemi.hud.HudButton.inheritsFrom(hemi.hud.HudElement);
+	});
 	
 	/**
 	 * @class A HudVideo contains a texture and display options for a single
 	 * image on the HUD.
 	 * @extends hemi.hud.HudElement
 	 */
-	hemi.hud.HudVideo = function() {
-		hemi.hud.HudElement.call(this);
+	hemi.hud.HudVideo = hemi.hud.HudElement.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The x-coordinate of the left side of the HudVideo.
+			 * @type number
+			 * @default 0
+			 */
+			this.x = 0;
+			
+			/**
+			 * The y-coordinate of the top of the HudVideo.
+			 * @type number
+			 * @default 0
+			 */
+			this.y = 0;
+			
+			/**
+			 * The height of the video. Call setHeight to change.
+			 * @type number
+			 */
+			this.height = 0;
+			
+			/**
+			 * The width of the video. Call setWidth to change.
+			 * @type number
+			 */
+			this.width = 0;
+			
+			this.urls = [];
+			this.video = document.createElement('video');
+			var vid = this.video,
+				that = this;
+			
+			this.video.onloadeddata = function() {
+				if (that.height === 0) {
+					that.height = vid.videoHeight;
+				} else {
+					vid.setAttribute('height', '' + that.height);
+				}
+				if (that.width === 0) {
+					that.width = vid.videoWidth;
+				} else {
+					vid.setAttribute('width', '' + that.width);
+				}
+				that.send(hemi.msg.load, {
+					src: vid.currentSrc
+				});
+			};
+		},
 		
-		/**
-		 * The x-coordinate of the left side of the HudVideo.
-		 * @type number
-		 * @default 0
-		 */
-		this.x = 0;
-		
-		/**
-		 * The y-coordinate of the top of the HudVideo.
-		 * @type number
-		 * @default 0
-		 */
-		this.y = 0;
-		
-		/**
-		 * The height of the video. Call setHeight to change.
-		 * @type number
-		 */
-		this.height = 0;
-		
-		/**
-		 * The width of the video. Call setWidth to change.
-		 * @type number
-		 */
-		this.width = 0;
-		
-		this.urls = [];
-		this.video = document.createElement('video');
-		var vid = this.video,
-			that = this;
-		
-		this.video.onloadeddata = function() {
-			if (that.height === 0) {
-				that.height = vid.videoHeight;
-			} else {
-				vid.setAttribute('height', '' + that.height);
-			}
-			if (that.width === 0) {
-				that.width = vid.videoWidth;
-			} else {
-				vid.setAttribute('width', '' + that.width);
-			}
-			that.send(hemi.msg.load, {
-				src: vid.currentSrc
-			});
-		};
-	};
-	
-	hemi.hud.HudVideo.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -1186,7 +1177,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the HudVideo.
 		 */
 		cleanup: function() {
-			hemi.hud.HudElement.prototype.cleanup.call(this);
+			this._super();
 			this.video = null;
 			this.urls = [];
 		},
@@ -1197,7 +1188,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the HudVideo
 		 */
 		toOctane: function() {
-			var octane = hemi.hud.HudElement.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'x',
@@ -1280,9 +1271,8 @@ var hemi = (function(hemi) {
 				this.video.setAttribute('width', '' + width);
 			}
 		}
-	};
+	});
 
-	hemi.hud.HudVideo.inheritsFrom(hemi.hud.HudElement);
 	hemi.hud.HudVideo.prototype.msgSent =
 		hemi.hud.HudVideo.prototype.msgSent.concat([hemi.msg.load]);
 	
@@ -1291,30 +1281,30 @@ var hemi = (function(hemi) {
 	 * drawing a single page on the HUD.
 	 * @extends hemi.hud.HudElement
 	 */
-	hemi.hud.HudPage = function() {
-		hemi.hud.HudElement.call(this);
+	hemi.hud.HudPage = hemi.hud.HudElement.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * Flag indicating if a background rectangle should be drawn for the
+			 * HudPage.
+			 * @type boolean
+			 * @default true
+			 */
+			this.drawBackground = true;
+			
+			/**
+			 * The number of pixels to add as padding around the bounds of the
+			 * HudPage's elements when drawing the background rectangle.
+			 * @type number
+			 * @default 5
+			 */
+			this.margin = 5;
+			
+			this.elements = [];
+			this.auto = true;
+		},
 		
-		/**
-		 * Flag indicating if a background rectangle should be drawn for the
-		 * HudPage.
-		 * @type boolean
-		 * @default true
-		 */
-		this.drawBackground = true;
-		
-		/**
-		 * The number of pixels to add as padding around the bounds of the
-		 * HudPage's elements when drawing the background rectangle.
-		 * @type number
-		 * @default 5
-		 */
-		this.margin = 5;
-		
-		this.elements = [];
-		this.auto = true;
-	};
-	
-	hemi.hud.HudPage.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -1325,7 +1315,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the HudPage.
 		 */
 		cleanup: function() {
-			hemi.hud.HudElement.prototype.cleanup.call(this);
+			this._super();
 			
 			for (var ndx = 0, len = this.elements.length; ndx < len; ndx++) {
 				this.elements[ndx].cleanup();
@@ -1340,7 +1330,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the HudPage
 		 */
 		toOctane: function() {
-			var octane = hemi.hud.HudElement.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'auto',
@@ -1576,24 +1566,22 @@ var hemi = (function(hemi) {
 			this.right = right;
 			this.auto = false;
 		}
-	};
-	
-	hemi.hud.HudPage.inheritsFrom(hemi.hud.HudElement);
+	});
 	
 	/**
 	 * @class A HudDisplay contains one or more HudPages to display
 	 * sequentially.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.hud.HudDisplay = function() {
-		hemi.world.Citizen.call(this);
+	hemi.hud.HudDisplay = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			this.visible = false;
+			this.pages = [];
+			this.currentPage = 0;
+		},
 		
-		this.visible = false;
-		this.pages = [];
-		this.currentPage = 0;
-	};
-	
-	hemi.hud.HudDisplay.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -1604,7 +1592,7 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the HudDisplay.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			
 			for (var ndx = 0, len = this.pages.length; ndx < len; ndx++) {
 				this.pages[ndx].cleanup();
@@ -1619,7 +1607,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the HudDisplay
 		 */
 		toOctane: function() {
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			var pagesEntry = {
 				name: 'pages',
@@ -1851,9 +1839,8 @@ var hemi = (function(hemi) {
 			
 			return intersected;
 		}
-	};
+	});
 	
-	hemi.hud.HudDisplay.inheritsFrom(hemi.world.Citizen);
 	hemi.hud.HudDisplay.prototype.msgSent =
 		hemi.hud.HudDisplay.prototype.msgSent.concat([hemi.msg.visible]);
 	

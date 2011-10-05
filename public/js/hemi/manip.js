@@ -64,33 +64,33 @@ var hemi = (function(hemi) {
 	 * @param {number[2]} opt_startUV Draggable's starting uv coordinate, if
 	 *		not [0,0]
 	 */
-	hemi.manip.Draggable = function(opt_plane, opt_limits, opt_startUV) {
-		hemi.world.Citizen.call(this);
-		
-		this.activeTransform = null;
-		this.dragUV = null;
-		this.enabled = false;
-		this.local = false;
-		this.msgHandler = null;
-		this.plane = null;
-		this.transformObjs = [];
-		this.umin = null;
-		this.umax = null;
-		this.uv = opt_startUV == null ? [0,0] : opt_startUV;
-		this.vmin = null;
-		this.vmax = null;
-		
-		if (opt_plane != null) {
-			this.setPlane(opt_plane);
-		}
-		if (opt_limits != null) {
-			this.setLimits(opt_limits);
-		}
-		
-		this.enable();
-	};
+	hemi.manip.Draggable = hemi.world.Citizen.extend({
+		init: function(opt_plane, opt_limits, opt_startUV) {
+			this._super();
+			
+			this.activeTransform = null;
+			this.dragUV = null;
+			this.enabled = false;
+			this.local = false;
+			this.msgHandler = null;
+			this.plane = null;
+			this.transformObjs = [];
+			this.umin = null;
+			this.umax = null;
+			this.uv = opt_startUV == null ? [0,0] : opt_startUV;
+			this.vmin = null;
+			this.vmax = null;
+			
+			if (opt_plane != null) {
+				this.setPlane(opt_plane);
+			}
+			if (opt_limits != null) {
+				this.setLimits(opt_limits);
+			}
+			
+			this.enable();
+		},
 
-	hemi.manip.Draggable.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -102,7 +102,7 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			this.disable();
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.clearTransforms();
 			this.msgHandler = null;
 		},
@@ -113,7 +113,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Draggable
 		 */
 		toOctane: function(){
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
+			var octane = this._super(),
 				valNames = ['local', 'plane', 'umin', 'umax', 'vmin', 'vmax'];
 			
 			for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
@@ -462,7 +462,7 @@ var hemi = (function(hemi) {
 		setToWorld: function() {
 			this.local = false;
 		}
-	};
+	});
 
 	/**
 	 * @class A Turnable allows a Transform to be turned about an axis by the
@@ -473,32 +473,32 @@ var hemi = (function(hemi) {
 	 * @param {number[2]} opt_limits minimum and maximum angle limits (in radians)
 	 * @param {number} opt_startAngle starting angle (in radians, default is 0)
 	 */
-	hemi.manip.Turnable = function(opt_axis, opt_limits, opt_startAngle) {
-		hemi.world.Citizen.call(this);
+	hemi.manip.Turnable = hemi.world.Citizen.extend({
+		init: function(opt_axis, opt_limits, opt_startAngle) {
+			this._super();
+			
+			this.angle = opt_startAngle == null ? 0 : opt_startAngle;
+			this.axis = null;
+			this.activeTransform = null;
+			this.dragAngle = null;
+			this.enabled = false;
+			this.local = false;
+			this.min = null;
+			this.max = null;
+			this.msgHandler = null;
+			this.plane = null;
+			this.transformObjs = [];
+			
+			if (opt_axis != null) {
+				this.setAxis(opt_axis);
+			}
+			if (opt_limits != null) {
+				this.setLimits(opt_limits);
+			}
+			
+			this.enable();
+		},
 		
-		this.angle = opt_startAngle == null ? 0 : opt_startAngle;
-		this.axis = null;
-		this.activeTransform = null;
-		this.dragAngle = null;
-		this.enabled = false;
-		this.local = false;
-		this.min = null;
-		this.max = null;
-		this.msgHandler = null;
-		this.plane = null;
-		this.transformObjs = [];
-		
-		if (opt_axis != null) {
-			this.setAxis(opt_axis);
-		}
-		if (opt_limits != null) {
-			this.setLimits(opt_limits);
-		}
-		
-		this.enable();
-	};
-	
-	hemi.manip.Turnable.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 * @string
@@ -510,7 +510,7 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			this.disable();
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.clearTransforms();
 			this.msgHandler = null;
 		},
@@ -521,7 +521,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Turnable
 		 */
 		toOctane: function(){
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this),
+			var octane = this._super(),
 				valNames = ['min', 'max'];
 			
 			for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
@@ -852,23 +852,23 @@ var hemi = (function(hemi) {
 			this.local = false;
 		}
 		
-	};
+	});
 	
-	hemi.manip.Scalable = function(axis) {
-		hemi.world.Citizen.call(this);
-		this.activeTransform = null;
-		this.axis = null;
-		this.dragAxis = null;
-		this.dragOrigin = null;
-		this.local = false;
-		this.scale = null;
-		this.transformObjs = [];
+	hemi.manip.Scalable = hemi.world.Citizen.extend({
+		init: function(axis) {
+			this._super();
+			this.activeTransform = null;
+			this.axis = null;
+			this.dragAxis = null;
+			this.dragOrigin = null;
+			this.local = false;
+			this.scale = null;
+			this.transformObjs = [];
+			
+			this.setAxis(axis);
+			this.enable();
+		},
 		
-		this.setAxis(axis);
-		this.enable();
-	};
-	
-	hemi.manip.Scalable.prototype = {
 		addTransform : function(transform) {
 			hemi.world.tranReg.register(transform, this);
 			var param = transform.getParam('ownerId'),
@@ -899,7 +899,7 @@ var hemi = (function(hemi) {
 		},
 		cleanup: function() {
 			this.disable();
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.clearTransforms();
 			this.msgHandler = null;
 		},
@@ -1055,15 +1055,11 @@ var hemi = (function(hemi) {
 			
 			return u.worldToScreenFloat(point);
 		}
-	};
+	});
 	
-	hemi.manip.Draggable.inheritsFrom(hemi.world.Citizen);
 	hemi.manip.Draggable.prototype.msgSent =
 		hemi.manip.Draggable.prototype.msgSent.concat([hemi.msg.drag]);
 	
-	hemi.manip.Turnable.inheritsFrom(hemi.world.Citizen);
-	
-	hemi.manip.Scalable.inheritsFrom(hemi.world.Citizen);
 	hemi.manip.Scalable.prototype.msgSent =
 		hemi.manip.Scalable.prototype.msgSent.concat([hemi.msg.scale]);
 

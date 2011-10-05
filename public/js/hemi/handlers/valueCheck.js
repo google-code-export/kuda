@@ -28,43 +28,43 @@ var hemi = (function(hemi) {
 	 * Message is passed to the actual handler.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.handlers.ValueCheck = function() {
-		hemi.world.Citizen.call(this);
+	hemi.handlers.ValueCheck = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * A Citizen that the ValueCheck may be using.
+			 * @type hemi.world.Citizen
+			 */
+			this.citizen = null;
+			/**
+			 * The values to check for.
+			 * @type Object[]
+			 */
+			this.values = [];
+			/**
+			 * The parameter names to use to get the values to check.
+			 * @type string[]
+			 */
+			this.valueParams = [];
+			/**
+			 * The handler object for the Message.
+			 * @type Object
+			 */
+			this.handler = null;
+			/**
+			 * The name of the object function to pass the Message to.
+			 * @type string
+			 */
+			this.func = null;
+			/**
+			 * Optional array to specify arguments to pass to the handler. Otherwise
+			 * just pass it the Message.
+			 * @type string[]
+			 */
+			this.args = [];
+		},
 		
-		/**
-		 * A Citizen that the ValueCheck may be using.
-		 * @type hemi.world.Citizen
-		 */
-		this.citizen = null;
-		/**
-		 * The values to check for.
-		 * @type Object[]
-		 */
-		this.values = [];
-		/**
-		 * The parameter names to use to get the values to check.
-		 * @type string[]
-		 */
-		this.valueParams = [];
-		/**
-		 * The handler object for the Message.
-		 * @type Object
-		 */
-		this.handler = null;
-		/**
-		 * The name of the object function to pass the Message to.
-		 * @type string
-		 */
-		this.func = null;
-		/**
-		 * Optional array to specify arguments to pass to the handler. Otherwise
-		 * just pass it the Message.
-		 * @type string[]
-		 */
-		this.args = [];
-	};
-	
-	hemi.handlers.ValueCheck.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType.
          */
@@ -74,7 +74,8 @@ var hemi = (function(hemi) {
 		 * Send a cleanup Message and remove all references in the ValueCheck.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
+			
 			this.citizen = null;
 			this.values = [];
 			this.handler = null;
@@ -114,7 +115,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the ValueCheck
 		 */
         toOctane: function() {
-            var octane = hemi.world.Citizen.prototype.toOctane.call(this),
+            var octane = this._super(),
             	valNames = ['values', 'valueParams', 'func', 'args'];
 			
 			for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
@@ -140,9 +141,7 @@ var hemi = (function(hemi) {
             
             return octane;
         }
-	};
-	
-	hemi.handlers.ValueCheck.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	/**
 	 * Create a ValueCheck handler that will check pick Messages for the given

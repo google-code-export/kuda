@@ -246,6 +246,7 @@ var uglifyHemi = function(src, dst) {
 			dist: src,
 			moduleFiles: [
 				'hemi/core.js',
+				'hemi/utils/inheritance.js',
 				'hemi/utils/hashtable.js',
 				'hemi/utils/jsUtils.js',
 				'hemi/utils/mathUtils.js',

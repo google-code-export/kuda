@@ -27,6 +27,7 @@ o3djs.require('o3djs.particles');
 o3djs.require('o3djs.picking');
 o3djs.require('o3djs.rendergraph');
 o3djs.require('o3djs.canvas');
+o3djs.require('hemi.utils.inheritance');
 o3djs.require('hemi.utils.hashtable');
 o3djs.require('hemi.utils.jsUtils');
 o3djs.require('hemi.utils.mathUtils');
@@ -75,43 +76,6 @@ var hemi = (function(hemi) {
 	 * calls to the underlying O3D library.
 	 */
 	hemi.core = hemi.core || {};
-	
-	/*
-	 * Create our own inheritance for Javascript.
-	 */
-	Function.prototype.inheritsFrom = function(parentClassOrObject) {
-		// First save the new and overridden properties of the subclass.
-		var propNames = [];
-		var props = [];
-		
-		for (var name in this.prototype) {
-			propNames.push(name);
-			props.push(this.prototype[name]);
-		}
-		
-		// Then perform inheritance. This replaces all properties of
-		// the subclass with those from the superclass.
-		if (parentClassOrObject.constructor == Function) {	
-			// Normal Inheritance		
-			this.prototype = new parentClassOrObject;
-			this.prototype.constructor = this;
-			this.prototype.parent = parentClassOrObject.prototype;
-		}
-		else {
-			// Pure Virtual Inheritance 
-			this.prototype = parentClassOrObject;
-			this.prototype.constructor = this;
-			this.prototype.parent = parentClassOrObject;
-		}
-			
-		// Finally add the subclass properties back in (or override those
-		// of the superclass).
-		for (var ndx = 0, len = props.length; ndx < len; ndx++) {
-			this.prototype[propNames[ndx]] = props[ndx];
-		}
-		
-		return this;
-	};
 
 	/*
 	 * Because Internet Explorer does not support Array.indexOf(), we can add
