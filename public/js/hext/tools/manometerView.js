@@ -36,86 +36,45 @@ var hext = (function(hext) {
 	var RIGHT_FL_MODE_ID = 'right-fl';
 	
 	/**
-	 * @class A ManometerViewConfig contains configuration options for a
-	 * ManometerView.
-	 * @extends hext.tools.HtmlViewConfig
-	 */
-	hext.tools.ManometerViewConfig = function() {
-		hext.tools.HtmlViewConfig.call(this);
-		
-		/**
-		 * @see hext.tools.HtmlViewConfig#contentFileName
-		 * @default 'js/hext/tools/assets/manometerDisplay.htm'
-		 */
-		this.contentFileName = 'js/hext/tools/assets/manometerDisplay.htm';
-		
-		/**
-		 * The CSS class to apply to the HTML element for a manometer tap
-		 * that is selected.
-		 * @type string
-		 * @default 'selected'
-		 */
-		this.selectedClass = 'selected';
-		
-		/**
-		 * The CSS class to apply to the HTML element for a manometer tap
-		 * that is connected to the outside Location.
-		 * @type string
-		 * @default 'toDoor'
-		 */
-		this.toDoorClass = 'toDoor';
-		
-		/**
-		 * The CSS class to apply to the HTML element for a manometer tap
-		 * that is connected to a BlowerDoor.
-		 * @type string
-		 * @default 'toBlower'
-		 */
-		this.toBlowerClass = 'toBlower';
-		
-		/**
-		 * The CSS class to apply to the HTML element for a manometer tap
-		 * that is connected to an inside Location.
-		 * @type string
-		 * @default 'toRoom'
-		 */
-		this.toRoomClass = 'toRoom';
-	};
-	
-	/**
 	 * @class A ManometerView is the HTML view for a Manometer.
 	 * @extends hext.tools.HtmlView
 	 * 
-	 * @param {hext.tools.ManometerViewConfig} config configuration options
+	 * @param {Object} config configuration options
 	 */
-	hext.tools.ManometerView = function(config) {
-		hext.tools.HtmlView.call(this);
+	hext.tools.ManometerView = hext.tools.HtmlView.extend({
+		init: function(config) {
+			this.config = hemi.utils.join({
+				contentFileName: 'js/hext/tools/assets/manometerDisplay.htm',
+				selectedClass: 'selected',
+				toDoorClass: 'toDoor',
+				toBlowerClass: 'toBlower',
+				toRoomClass: 'toRoom'
+			}, config);
+			this._super(this.config);
+			
+			this.rightMode = hext.tools.ManometerMode.Pressure;
+			this.deviceName = null;
+			this.leftDisplay = null;
+			this.rightDisplay = null;
+			this.rightPrMode = null;
+			this.rightFlMode = null;
+			this.rightPaUnits = null;
+			this.rightCfmUnits = null;
+			this.leftValue = 0;
+			this.rightValue = 0;
+			this.updateLeft = false;
+			this.updateRight = false;
+			this.time = 0;
+			this.refreshTime = 0.5;
+			
+			var that = this;
+			
+			this.addLoadCallback(function() {
+				that.setupElements();
+				hemi.view.addRenderListener(that);
+			});
+		},
 		
-		this.config = hemi.utils.join(new hext.tools.ManometerViewConfig(), config);
-		this.rightMode = hext.tools.ManometerMode.Pressure;
-		this.deviceName = null;
-		this.leftDisplay = null;
-		this.rightDisplay = null;
-		this.rightPrMode = null;
-		this.rightFlMode = null;
-		this.rightPaUnits = null;
-		this.rightCfmUnits = null;
-		this.leftValue = 0;
-		this.rightValue = 0;
-		this.updateLeft = false;
-		this.updateRight = false;
-		this.time = 0;
-		this.refreshTime = 0.5;
-		
-		var that = this;
-		
-		this.addLoadCallback(function() {
-			that.setupElements();
-			hemi.view.addRenderListener(that);
-		});
-	};
-	
-	hext.tools.ManometerView.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -127,7 +86,7 @@ var hext = (function(hext) {
 		 */
 		cleanup: function() {
 			hemi.view.removeRenderListener(this);
-			hext.tools.HtmlView.prototype.cleanup.call(this);
+			this._super();
 			this.config = null;
 			this.deviceName = null;
 			this.leftDisplay = null;
@@ -376,45 +335,23 @@ var hext = (function(hext) {
 				}
 			}
 		}
-	};
-	
-	/**
-	 * @class A ManometerToolbarViewConfig contains configuration options for
-	 * a ManometerToolbarView.
-	 * @extends hext.tools.ToolbarViewConfig
-	 */
-	hext.tools.ManometerToolbarViewConfig = function() {
-		hext.tools.ToolbarViewConfig.call(this);
-		
-		/**
-		 * @see hext.tools.ToolbarViewConfig#containerId
-		 * @default 'manometerToolbarView'
-		 */
-		this.containerId = 'manometerToolbarView';
-		
-		/**
-		 * The id for the HTML element containing the Manometer toolbar
-		 * button.
-		 * @type string
-		 * @default 'manometerButtonId'
-		 */
-		this.buttonId = 'manometerButtonId';
-	};
+	});
 	
 	/**
 	 * @class A ManometerToolbarView is the toolbar view for a Manometer.
 	 * @extends hext.tools.ToolbarView
 	 * 
-	 * @param {hext.tools.ManometerToolbarViewConfig} config configuration
-	 *     options
+	 * @param {Object} config configuration options
 	 */
-	hext.tools.ManometerToolbarView = function(config) {
-		this.button = null;
-		hext.tools.ToolbarView.call(this, config);
-	};
-	
-	
-	hext.tools.ManometerToolbarView.prototype = {
+	hext.tools.ManometerToolbarView = hext.tools.ToolbarView.extend({
+		init: function(config) {
+			this.button = null;
+			this._super(hemi.utils.join({
+				containerId: 'manometerToolbarView',
+				buttonId: 'manometerButtonId'
+			}, config));
+		},
+		
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -425,7 +362,7 @@ var hext = (function(hext) {
 		 * ManometerToolbarView.
 		 */
 		cleanup: function() {
-			hext.tools.ToolbarView.prototype.cleanup.call(this);
+			this._super();
 			
 			if (this.button) {
 				this.button.unbind();
@@ -448,20 +385,10 @@ var hext = (function(hext) {
 			this.button = jQuery('<button id="' + this.config.buttonId + '" title="Manometer Tool">Manometer</button>');
 			this.container.append(this.button);
 		}
-	};
+	});
+
+	hext.tools.ManometerView.prototype.msgSent =
+		hext.tools.ManometerView.prototype.msgSent.concat([hext.msg.input]);
 	
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.ManometerViewConfig.inheritsFrom(hext.tools.HtmlViewConfig);
-	hext.tools.ManometerView.inheritsFrom(hext.tools.HtmlView);
-	hext.tools.ManometerView.prototype.msgSent =
-		hext.tools.ManometerView.prototype.msgSent.concat([hext.msg.input]);
-	hext.tools.ManometerToolbarViewConfig.inheritsFrom(hext.tools.ToolbarViewConfig);
-	hext.tools.ManometerToolbarView.inheritsFrom(hext.tools.ToolbarView);
-});

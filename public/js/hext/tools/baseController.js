@@ -25,35 +25,35 @@ var hext = (function(hext) {
 	 * and views.
 	 * @extends hemi.world.Citizen
 	 */
-	hext.tools.BaseController = function() {
-		hemi.world.Citizen.call(this);
+	hext.tools.BaseController = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The tool model.
+			 * @type hext.tools.BaseTool
+			 */
+			this.model = null;
+			
+			/**
+			 * The tool HTML view.
+			 * @type hext.tools.HtmlView
+			 */
+			this.view = null;
+			
+			/**
+			 * The tool shape view.
+			 * @type hext.tools.ShapeView
+			 */
+			this.shapeView = null;
+			
+			/**
+			 * The tool toolbar view.
+			 * @type hext.tools.ToolbarView
+			 */
+			this.toolbarView = null;
+		},
 		
-		/**
-		 * The tool model.
-		 * @type hext.tools.BaseTool
-		 */
-		this.model = null;
-		
-		/**
-		 * The tool HTML view.
-		 * @type hext.tools.HtmlView
-		 */
-		this.view = null;
-		
-		/**
-		 * The tool shape view.
-		 * @type hext.tools.ShapeView
-		 */
-		this.shapeView = null;
-		
-		/**
-		 * The tool toolbar view.
-		 * @type hext.tools.ToolbarView
-		 */
-		this.toolbarView = null;
-	};
-	
-	hext.tools.BaseController.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -64,7 +64,7 @@ var hext = (function(hext) {
 		 * BaseController.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			
 			this.model = null;
 			this.view = null;
@@ -182,9 +182,7 @@ var hext = (function(hext) {
 				toolbarView.setClickedState(toolModel.visible);
 			});
 		}
-	};
-	
-	hext.tools.BaseController.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	return hext;
 })(hext || {});

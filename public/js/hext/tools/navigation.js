@@ -29,27 +29,27 @@ var hext = (function(hext) {
 	 * @param {hemi.view.Viewpoint} originalViewpoint the default Viewpoint to
 	 *     move the Camera to when zooming out
 	 */
-	hext.tools.Navigation = function(camera, originalViewpoint) {
-		hext.tools.BaseTool.call(this);
+	hext.tools.Navigation = hext.tools.BaseTool.extend({
+		init: function(camera, originalViewpoint) {
+			this._super();
+			
+			/**
+			 * The Camera to control.
+			 * @type hemi.view.Camera
+			 */
+			this.camera = camera;
+			
+			/**
+			 * The default Viewpoint to move the Camera to when zooming out.
+			 * @type hemi.view.Viewpoint
+			 */
+			this.originalView = originalViewpoint;
+			
+			this.picking = false;
+			this.areas = new Hashtable();
+			this.zoomSelectTransforms = [];
+		},
 		
-		/**
-		 * The Camera to control.
-		 * @type hemi.view.Camera
-		 */
-		this.camera = camera;
-		
-		/**
-		 * The default Viewpoint to move the Camera to when zooming out.
-		 * @type hemi.view.Viewpoint
-		 */
-		this.originalView = originalViewpoint;
-		
-		this.picking = false;
-		this.areas = new Hashtable();
-		this.zoomSelectTransforms = [];
-	};
-	
-	hext.tools.Navigation.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -59,7 +59,7 @@ var hext = (function(hext) {
 		 * Send a cleanup Message and remove all references in the Navigation.
 		 */
 		cleanup: function() {
-			hext.tools.BaseTool.prototype.cleanup.call(this);
+			this._super();
 			this.camera = null;
 			this.originalView = null;
 			this.areas.clear();
@@ -134,15 +134,7 @@ var hext = (function(hext) {
 		addArea: function(areaName, viewpoint) {
 			this.areas.put(areaName, viewpoint);
 		}
-	};
+	});
 	
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.Navigation.inheritsFrom(hext.tools.BaseTool);
-});

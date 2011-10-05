@@ -454,10 +454,8 @@
 		// Set up the tools
 		
 		// Manometer
-		var manConfig = new hext.tools.ManometerViewConfig();
-		var manView = new hext.tools.ManometerView(manConfig);
-        var manToolbarConfig = new hext.tools.ManometerToolbarViewConfig();
-		var manToolbarView = new hext.tools.ManometerToolbarView(manToolbarConfig);
+		var manView = new hext.tools.ManometerView();
+		var manToolbarView = new hext.tools.ManometerToolbarView();
 		
 		var manometer = new hext.tools.Manometer();
 		manometer.setLocation(livingroom);
@@ -488,10 +486,8 @@
 			"sendUpdate",
 			["msg:data.airFlow"]);
 		
-		var viewCfg = new hext.tools.BlowerDoorViewConfig();
-		var blowerDoorView = new hext.tools.BlowerDoorView(viewCfg);
-        var bdToolbarConfig = new hext.tools.BlowerDoorToolbarViewConfig();
-		var blowerDoorToolbarView = new hext.tools.BlowerDoorToolbarView(bdToolbarConfig);
+		var blowerDoorView = new hext.tools.BlowerDoorView();
+		var blowerDoorToolbarView = new hext.tools.BlowerDoorToolbarView();
 		
 		hext.html.toolViews.addView(blowerDoorView);
 		hext.html.toolbar.addView(blowerDoorToolbarView);

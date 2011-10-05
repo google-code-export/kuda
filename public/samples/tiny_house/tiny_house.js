@@ -118,9 +118,9 @@
 		var redTube = new hext.tools.ManometerTube(hext.tools.InputId.UpperRight, hext.tools.TubeType.Cfm);
 		redTube.manometer = manometerModel;
 		// Create the manometer view's
-		var manometerView = new hext.tools.ManometerView(new hext.tools.ManometerViewConfig());
+		var manometerView = new hext.tools.ManometerView();
 		manometerView.setVisible(true);
-		var manometerToolbarView = new hext.tools.ManometerToolbarView(new hext.tools.ManometerToolbarViewConfig());
+		var manometerToolbarView = new hext.tools.ManometerToolbarView();
 		manometerToolbarView.setClickedState(true);
 		manometerView.addLoadCallback(function() {
 			manometerModel.setInput(greenTube);
@@ -159,9 +159,9 @@
 			"sendUpdate",
 			["msg:data.airFlow"]);
 		// Create the blower door view's
-		var blowerDoorView = new hext.tools.BlowerDoorView(new hext.tools.BlowerDoorViewConfig());
+		var blowerDoorView = new hext.tools.BlowerDoorView();
 		blowerDoorView.setVisible(true);
-		var blowerDoorToolbarView = new hext.tools.BlowerDoorToolbarView(new hext.tools.BlowerDoorToolbarViewConfig());
+		var blowerDoorToolbarView = new hext.tools.BlowerDoorToolbarView();
 		blowerDoorToolbarView.setClickedState(true);
 		// Create the blower door controller
 		var blowerDoorController = new hext.tools.BlowerDoorController();

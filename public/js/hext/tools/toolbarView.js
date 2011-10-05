@@ -19,47 +19,29 @@ var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
 	/**
-	 * @class A ToolbarViewConfig contains configuration options for a
-	 * ToolbarView.
-	 */
-	hext.tools.ToolbarViewConfig = function() {
-		/**
-		 * The id of the element containing the HTML content for the
-		 * ToolbarView.
-		 * @type string
-		 * @default 'toolbarView'
-		 */
-		this.containerId = 'toolbarView';
-		
-		/**
-		 * The CSS class to apply to the ToolbarView when it is clicked.
-		 * @type string
-		 * @default 'clicked'
-		 */
-		this.clickClass = 'clicked';
-	};
-	
-	/**
 	 * @class A ToolbarView represents the functionality common to toolbar views
 	 * for all tools.
 	 * @extends hemi.world.Citizen
 	 * 
-	 * @param {hext.tools.ToolbarViewConfig} config configuration options
+	 * @param {Object} config configuration options
 	 */
-	hext.tools.ToolbarView = function(config) {
-		hemi.world.Citizen.call(this);
-		this.config = hemi.utils.join(new hext.tools.ToolbarViewConfig(), config);
+	hext.tools.ToolbarView = hemi.world.Citizen.extend({
+		init: function(config) {
+			this._super();
+			this.config = hemi.utils.join({
+				containerId: 'toolbarView',
+				clickClass: 'clicked'
+			}, config);
+			
+			/**
+			 * The container for all HTML content.
+			 * @type jQuery
+			 */
+			this.container = jQuery('<div id="' + this.config.containerId + '"></div>');
+			
+			this.layoutView();
+		},
 		
-		/**
-		 * The container for all HTML content.
-		 * @type jQuery
-		 */
-		this.container = jQuery('<div id="' + this.config.containerId + '"></div>');
-		
-		this.layoutView();
-	};
-	
-	hext.tools.ToolbarView.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -69,7 +51,7 @@ var hext = (function(hext) {
 		 * Send a cleanup Message and remove all references in the ToolbarView.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.config = null;
 			this.container = null;
 		},
@@ -108,9 +90,7 @@ var hext = (function(hext) {
 				this.container.removeClass(this.config.clickClass);
 			}
 		}
-	};
-	
-	hext.tools.ToolbarView.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	return hext;
 })(hext || {});

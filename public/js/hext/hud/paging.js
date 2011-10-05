@@ -37,53 +37,55 @@ var hext = (function(hext) {
 	 * @class A PagingInfo contains text and images for displaying information
 	 * about a multi-page HudDisplay.
 	 */
-	hext.hud.PagingInfo = function() {
-		/**
-		 * The HudDisplay currently using the PagingInfo.
-		 * @type hemi.hud.HudDisplay
-		 */
-		this.display = null;
+	hext.hud.PagingInfo = hemi.hud.HudPage.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The HudDisplay currently using the PagingInfo.
+			 * @type hemi.hud.HudDisplay
+			 */
+			this.display = null;
+			
+			/**
+			 * The URL of the image file containing navigation icons.
+			 * @type string
+			 * @default 'js/hext/hud/assets/hudPaging.png'
+			 */
+			this.imageFile = 'js/hext/hud/assets/hudPaging.png';
+			
+			/**
+			 * The width of each navigation icon.
+			 * @type number
+			 * @default 17
+			 */
+			this.imageWidth = 17;
+			
+			/**
+			 * The height of each navigation icon.
+			 * @type number
+			 * @default 16
+			 */
+			this.imageHeight = 16;
+			
+			this.pageInfo = new hemi.hud.HudText();
+			this.leftNav = new hemi.hud.HudButton();
+			this.rightNav = new hemi.hud.HudButton();
+			
+			// Remove from the World's Citizens
+			hemi.world.removeCitizen(this.pageInfo);
+			hemi.world.removeCitizen(this.leftNav);
+			hemi.world.removeCitizen(this.rightNav);
+			
+			var that = this;
+			this.leftNav.mouseDown = function(mouseEvent) {
+				that.previousPage();
+			};
+			this.rightNav.mouseDown = function(mouseEvent) {
+				that.nextPage();
+			};
+		},
 		
-		/**
-		 * The URL of the image file containing navigation icons.
-		 * @type string
-		 * @default 'js/hext/hud/assets/hudPaging.png'
-		 */
-		this.imageFile = 'js/hext/hud/assets/hudPaging.png';
-		
-		/**
-		 * The width of each navigation icon.
-		 * @type number
-		 * @default 17
-		 */
-		this.imageWidth = 17;
-		
-		/**
-		 * The height of each navigation icon.
-		 * @type number
-		 * @default 16
-		 */
-		this.imageHeight = 16;
-		
-		this.pageInfo = new hemi.hud.HudText();
-		this.leftNav = new hemi.hud.HudButton();
-		this.rightNav = new hemi.hud.HudButton();
-		
-		// Remove from the World's Citizens
-		hemi.world.removeCitizen(this.pageInfo);
-		hemi.world.removeCitizen(this.leftNav);
-		hemi.world.removeCitizen(this.rightNav);
-		
-		var that = this;
-		this.leftNav.mouseDown = function(mouseEvent) {
-			that.previousPage();
-		};
-		this.rightNav.mouseDown = function(mouseEvent) {
-			that.nextPage();
-		};
-	};
-	
-	hext.hud.PagingInfo.prototype = {
 		/**
 		 * Position the elements of the PagingInfo so they are drawn at the
 		 * bottom of the given HudPage.
@@ -212,9 +214,7 @@ var hext = (function(hext) {
 			this.leftNav.enabled = ndx > 0;
 			this.rightNav.enabled = ndx < max - 1;
 		}
-	};
-	
-	hext.hud.PagingInfo.inheritsFrom(hemi.hud.HudPage);
+	});
 	
 	/**
 	 * Add the PagingInfo control to the bottom of the given HudDisplay. This

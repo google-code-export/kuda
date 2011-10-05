@@ -23,13 +23,13 @@ var hext = (function(hext) {
 	 * for all tools.
 	 * @extends hemi.world.Citizen
 	 */
-	hext.tools.ShapeView = function() {
-		hemi.world.Citizen.call(this);
+	hext.tools.ShapeView = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+	        this.transforms = [];
+		},
 		
-        this.transforms = [];
-	};
-	
-	hext.tools.ShapeView.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -39,7 +39,7 @@ var hext = (function(hext) {
 		 * Send a cleanup Message and remove all references in the ShapeView.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.transforms = [];
 		},
 		
@@ -99,9 +99,7 @@ var hext = (function(hext) {
 				hemi.picking.setPickable(transform, visible, true);
 			}
 		}
-	};
-	
-	hext.tools.ShapeView.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	return hext;
 })(hext || {});

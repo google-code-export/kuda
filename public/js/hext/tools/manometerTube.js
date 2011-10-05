@@ -43,33 +43,33 @@ var hext = (function(hext) {
 	 * @parameter {hext.tools.InputId} inputId the input id
 	 * @parameter {hext.tools.TubeType} tubeType the type of ManometerTube
 	 */
-	hext.tools.ManometerTube = function(inputId, tubeType) {
-        hext.tools.BaseTool.call(this);
+	hext.tools.ManometerTube = hext.tools.BaseTool.extend({
+		init: function(inputId, tubeType) {
+			this._super();
+			
+			/**
+			 * The id of the Manometer input the ManometerTube connects to.
+			 * @type hext.tools.InputId
+			 */
+			this.inputId = inputId;
+			
+			/**
+			 * The type of data the ManometerTube is receiving.
+			 * @type hext.tools.TubeType
+			 */
+			this.tubeType = tubeType;
+			
+			/**
+			 * The Manometer the ManometerTube is connected to.
+			 * @type hext.tools.Manometer
+			 */
+			this.manometer = null;
+			
+			this.location = null;
+			this.value = 0;
+			this.msgHandler = null;
+		},
 		
-		/**
-		 * The id of the Manometer input the ManometerTube connects to.
-		 * @type hext.tools.InputId
-		 */
-		this.inputId = inputId;
-		
-		/**
-		 * The type of data the ManometerTube is receiving.
-		 * @type hext.tools.TubeType
-		 */
-		this.tubeType = tubeType;
-		
-		/**
-		 * The Manometer the ManometerTube is connected to.
-		 * @type hext.tools.Manometer
-		 */
-		this.manometer = null;
-		
-		this.location = null;
-		this.value = 0;
-		this.msgHandler = null;
-	};
-	
-	hext.tools.ManometerTube.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -80,7 +80,7 @@ var hext = (function(hext) {
 		 * ManometerTube.
 		 */
 		cleanup: function() {
-			hext.tools.BaseTool.prototype.cleanup.call(this);
+			this._super();
 			this.manometer = null;
 			this.location = null;
 		},
@@ -152,20 +152,20 @@ var hext = (function(hext) {
 				'setValue',
 				params);
 		}
-	};
+	});
 	
 	/**
 	 * @class A ManometerTubeManager manages and provides lookup service for
 	 * ManometerTubes.
 	 * @extends hemi.world.Citizen
 	 */
-	hext.tools.ManometerTubeManager = function() {
-        hemi.world.Citizen.call(this);
+	hext.tools.ManometerTubeManager = hemi.world.Citizen.extend({
+        init: function() {
+        	this._super();
+			
+			this.tubes = [];
+		},
 		
-		this.tubes = [];
-	};
-	
-	hext.tools.ManometerTubeManager.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -176,7 +176,7 @@ var hext = (function(hext) {
 		 * ManometerTubeManager.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.tubes = [];
 		},
 		
@@ -245,16 +245,7 @@ var hext = (function(hext) {
 			
 			return found;
 		}
-	};
+	});
 	
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-    hext.tools.ManometerTube.inheritsFrom(hext.tools.BaseTool);
-    hext.tools.ManometerTubeManager.inheritsFrom(hemi.world.Citizen);
-});

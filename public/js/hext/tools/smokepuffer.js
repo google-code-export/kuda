@@ -84,15 +84,15 @@ var hext = (function(hext) {
 	 * detect drafts.
 	 * @extends hext.tools.BaseTool
 	 */
-	hext.tools.SmokePuffer = function() {
-        hext.tools.BaseTool.call(this);
-		
-		this.puffConfigs = [];
-		this.puffs = new Hashtable();
-		this.pickNames = new Hashtable();
-	};
-    
-    hext.tools.SmokePuffer.prototype = {
+	hext.tools.SmokePuffer = hext.tools.BaseTool.extend({
+		init: function() {
+			this._super();
+			
+			this.puffConfigs = [];
+			this.puffs = new Hashtable();
+			this.pickNames = new Hashtable();
+		},
+	    
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -102,7 +102,7 @@ var hext = (function(hext) {
 		 * Send a cleanup Message and remove all references in the SmokePuffer.
 		 */
 		cleanup: function() {
-			hext.tools.BaseTool.prototype.cleanup.call(this);
+			this._super();
 			this.puffConfigs = [];
 			this.puffs.clear();
 			this.puffs = null;
@@ -145,7 +145,7 @@ var hext = (function(hext) {
 			
 			this.pickNames.put(shapeName, puff);
 		}
-	};
+	});
 	
 	hext.tools.createSmokePuff = function(scale,position,opt_wind,opt_windRange) {
 		var wind = opt_wind || [0,0,0];
@@ -183,11 +183,3 @@ var hext = (function(hext) {
 	
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-    hext.tools.SmokePuffer.inheritsFrom(hext.tools.BaseTool);
-});

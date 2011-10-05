@@ -25,11 +25,7 @@ var hext = (function(hext) {
 	 * SmokePuffer and its views.
 	 * @extends hext.tools.BaseController
 	 */
-	hext.tools.SmokePufferController = function() {
-		hext.tools.BaseController.call(this);
-	};
-	
-	hext.tools.SmokePufferController.prototype = {
+	hext.tools.SmokePufferController = hext.tools.BaseController.extend({
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 */
@@ -86,15 +82,7 @@ var hext = (function(hext) {
 				puff.trigger();
 			}
 		}
-	};
+	});
 	
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.SmokePufferController.inheritsFrom(hext.tools.BaseController);
-});

@@ -25,12 +25,8 @@ var hext = (function(hext) {
 	 * Navigation tool and its views.
 	 * @extends hext.tools.BaseController
 	 */
-	hext.tools.NavigationController = function() {
-		hext.tools.BaseController.call(this);
-	};
-	
-	hext.tools.NavigationController.prototype = {
-        /**
+	hext.tools.NavigationController = hext.tools.BaseController.extend({
+		/**
          * Overwrites hemi.world.Citizen.citizenType
          */
 		citizenType: 'hext.tools.NavigationController',
@@ -96,15 +92,7 @@ var hext = (function(hext) {
 			this.model.setPicking(false);
 			this.toolbarView.setClickedState(false);
 		}
-	};
+	});
 	
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.NavigationController.inheritsFrom(hext.tools.BaseController);
-});

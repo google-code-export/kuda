@@ -57,47 +57,47 @@ var hext = (function(hext) {
 	 * weatherization tool. It measures pressure and airflow.
 	 * @extends hext.tools.BaseTool
 	 */
-	hext.tools.Manometer = function() {
-		hext.tools.BaseTool.call(this);
+	hext.tools.Manometer = hext.tools.BaseTool.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The calculated value of the Manometer's left inputs. This should not
+			 * be set directly.
+			 * @type number
+			 */
+			this.leftValue = 0;
+			
+			/**
+			 * The calculated value of the Manometer's right inputs. This should not
+			 * be set directly.
+			 * @type number
+			 */
+			this.rightValue = 0;
+			
+			/**
+			 * The input mode of the Manometer's left inputs. This should not be
+			 * set directly.
+			 * @type hext.tools.ManometerMode
+			 */
+			this.leftMode = hext.tools.ManometerMode.Pressure;
+			
+			/**
+			 * The input mode of the Manometer's right inputs. This should not be
+			 * set directly.
+			 * @type hext.tools.ManometerMode
+			 */
+			this.rightMode = hext.tools.ManometerMode.Pressure;
+			
+			this.value = 0;
+			this.location = null;
+			this.ulInput = this;
+			this.llInput = this;
+			this.urInput = this;
+			this.lrInput = this;
+			this.msgHandler = null;
+		},
 		
-		/**
-		 * The calculated value of the Manometer's left inputs. This should not
-		 * be set directly.
-		 * @type number
-		 */
-		this.leftValue = 0;
-		
-		/**
-		 * The calculated value of the Manometer's right inputs. This should not
-		 * be set directly.
-		 * @type number
-		 */
-		this.rightValue = 0;
-		
-		/**
-		 * The input mode of the Manometer's left inputs. This should not be
-		 * set directly.
-		 * @type hext.tools.ManometerMode
-		 */
-		this.leftMode = hext.tools.ManometerMode.Pressure;
-		
-		/**
-		 * The input mode of the Manometer's right inputs. This should not be
-		 * set directly.
-		 * @type hext.tools.ManometerMode
-		 */
-		this.rightMode = hext.tools.ManometerMode.Pressure;
-		
-		this.value = 0;
-		this.location = null;
-		this.ulInput = this;
-		this.llInput = this;
-		this.urInput = this;
-		this.lrInput = this;
-		this.msgHandler = null;
-	};
-	
-	hext.tools.Manometer.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -107,7 +107,7 @@ var hext = (function(hext) {
 		 * Send a cleanup Message and remove all references in the Manometer.
 		 */
 		cleanup: function() {
-			hext.tools.BaseTool.prototype.cleanup.call(this);
+			this._super();
 			this.location = null;
 			this.ulInput = null;
 			this.llInput = null;
@@ -130,7 +130,7 @@ var hext = (function(hext) {
 		 *     visible
 		 */
 		setVisible: function(visible) {
-			hext.tools.BaseTool.prototype.setVisible.call(this, visible);
+			this._super(visible);
 			
 			if (this.ulInput != this) {
 				this.ulInput.setVisible(visible);
@@ -353,19 +353,12 @@ var hext = (function(hext) {
 					right: this.rightValue
 				});
 		}
-	};
+	});
 	
-	return hext;
-})(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.Manometer.inheritsFrom(hext.tools.BaseTool);
 	hext.tools.Manometer.prototype.msgSent =
 		hext.tools.Manometer.prototype.msgSent.concat([
 			hext.msg.input,
 			hext.msg.pressure]);
-});
+	
+	return hext;
+})(hext || {});

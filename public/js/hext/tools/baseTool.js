@@ -28,25 +28,25 @@ var hext = (function(hext) {
 	 * all tools. It can be visible or not and enabled or not.
 	 * @extends hemi.world.Citizen
 	 */
-	hext.tools.BaseTool = function() {
-		hemi.world.Citizen.call(this);
+	hext.tools.BaseTool = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * Flag indicating if the BaseTool is enabled.
+			 * @type boolean
+			 * @default false
+			 */
+			this.enabled = false;
+			
+			/**
+			 * Flag indicating if the BaseTool is visible.
+			 * @type boolean
+			 * @default false
+			 */
+			this.visible = false;
+		},
 		
-		/**
-		 * Flag indicating if the BaseTool is enabled.
-		 * @type boolean
-		 * @default false
-		 */
-		this.enabled = false;
-		
-		/**
-		 * Flag indicating if the BaseTool is visible.
-		 * @type boolean
-		 * @default false
-		 */
-		this.visible = false;
-	};
-	
-	hext.tools.BaseTool.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -97,9 +97,8 @@ var hext = (function(hext) {
 					});
 			}
 		}
-	};
+	});
 	
-	hext.tools.BaseTool.inheritsFrom(hemi.world.Citizen);
 	hext.tools.BaseTool.prototype.msgSent =
 		hext.tools.BaseTool.prototype.msgSent.concat([
 			hemi.msg.enable,

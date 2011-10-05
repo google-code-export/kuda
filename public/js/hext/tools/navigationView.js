@@ -21,52 +21,25 @@ var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
 	/**
-	 * @class A NavigationToolbarViewConfig contains configuration options for
-	 * a NavigationToolbarView.
-	 * @extends hext.tools.ToolbarViewConfig
-	 */
-	hext.tools.NavigationToolbarViewConfig = function() {
-		hext.tools.ToolbarViewConfig.call(this);
-		
-		/**
-		 * @see hext.tools.ToolbarViewConfig#containerId
-		 * @default 'navigateToolbarView'
-		 */
-		this.containerId = 'navigateToolbarView';
-		
-		/**
-		 * The id for the HTML element containing the Navigation 'zoom in'
-		 * toolbar button.
-		 * @type string
-		 * @default 'zoomInButtonId'
-		 */
-		this.zoomInButtonId = 'zoomInButtonId';
-		
-		/**
-		 * The id for the HTML element containing the Navigation 'zoom out'
-		 * toolbar button.
-		 * @type string
-		 * @default 'zoomOutButtonId'
-		 */
-		this.zoomOutButtonId = 'zoomOutButtonId';
-	};
-	
-	/**
 	 * @class A NavigationToolbarView is the toolbar view for a Navigation
 	 * tool.
 	 * @extends hext.tools.ToolbarView
 	 * 
-	 * @param {hext.tools.NavigationToolbarViewConfig} config configuration
-	 *     options
+	 * @param {Object} config configuration options
 	 */
-	hext.tools.NavigationToolbarView = function(config) {
-		this.zoomInBtn = null;
-		this.zoomOutBtn = null;
-		config = hemi.utils.join(new hext.tools.NavigationToolbarViewConfig(), config);
-		hext.tools.ToolbarView.call(this, config);
-	};
-	
-	hext.tools.NavigationToolbarView.prototype = {
+	hext.tools.NavigationToolbarView = hext.tools.ToolbarView.extend({
+		init: function(config) {
+			this.zoomInBtn = null;
+			this.zoomOutBtn = null;
+			config = hemi.utils.join({
+				containerId: 'navigateToolbarView',
+				zoomInButtonId: 'zoomInButtonId',
+				zoomOutButtonId: 'zoomOutButtonId'
+			}, config);
+			
+			this._super(config);
+		},
+		
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -77,7 +50,7 @@ var hext = (function(hext) {
 		 * NavigationToolbarView.
 		 */
 		cleanup: function() {
-			hext.tools.ToolbarView.prototype.cleanup.call(this);
+			this._super();
 			
 			if (this.zoomInBtn) {
 				this.zoomInBtn.unbind();
@@ -121,16 +94,7 @@ var hext = (function(hext) {
 				this.zoomInBtn.removeClass(this.config.clickClass);
 			}
 		}
-	};
+	});
 	
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.NavigationToolbarViewConfig.inheritsFrom(hext.tools.ToolbarViewConfig);
-	hext.tools.NavigationToolbarView.inheritsFrom(hext.tools.ToolbarView);
-});

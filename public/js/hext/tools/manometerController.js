@@ -35,35 +35,35 @@ var hext = (function(hext) {
 	 * and its views.
 	 * @extends hext.tools.BaseController
 	 */
-	hext.tools.ManometerController = function() {
-		hext.tools.BaseController.call(this);
+	hext.tools.ManometerController = hext.tools.BaseController.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The manager used to look up Locations by picked shape names.
+			 * @type hext.engines.PressureEngine
+			 */
+			this.locationManager = null;
+			
+			/**
+			 * The manager used to look up ManometerTubes by Location and InputId.
+			 * @type hext.tools.ManometerTubeManager
+			 */
+			this.tubeManager = null;
+			
+			/**
+			 * The id of the currently selected input tap.
+			 * @type string
+			 */
+			this.activeInputId = null;
+			
+			/**
+			 * The id of the HTML element for the currently selected input tap.
+			 * @type string
+			 */
+			this.activeWidgetId = null;
+		},
 		
-		/**
-		 * The manager used to look up Locations by picked shape names.
-		 * @type hext.engines.PressureEngine
-		 */
-		this.locationManager = null;
-		
-		/**
-		 * The manager used to look up ManometerTubes by Location and InputId.
-		 * @type hext.tools.ManometerTubeManager
-		 */
-		this.tubeManager = null;
-		
-		/**
-		 * The id of the currently selected input tap.
-		 * @type string
-		 */
-		this.activeInputId = null;
-		
-		/**
-		 * The id of the HTML element for the currently selected input tap.
-		 * @type string
-		 */
-		this.activeWidgetId = null;
-	};
-	
-	hext.tools.ManometerController.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -74,7 +74,7 @@ var hext = (function(hext) {
 		 * ManometerController.
 		 */
 		cleanup: function() {
-			hext.tools.BaseController.prototype.cleanup.call(this);
+			this._super();
 			this.locationManager = null;
 			this.tubeManager = null;
 		},
@@ -138,7 +138,7 @@ var hext = (function(hext) {
 		 * @see hext.tools.BaseController#setupView
 		 */
 		setupView: function() {
-			hext.tools.BaseController.prototype.setupView.call(this);
+			this._super();
 			
 			this.model.subscribe(hext.msg.pressure,
 				this.view,
@@ -211,15 +211,7 @@ var hext = (function(hext) {
 				});
 			});
 		}
-	};
+	});
 
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.ManometerController.inheritsFrom(hext.tools.BaseController);
-});

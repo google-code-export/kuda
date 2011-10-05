@@ -26,11 +26,7 @@ var hext = (function(hext) {
 	 * BlowerDoor and its views.
 	 * @extends hext.tools.BaseController
 	 */
-	hext.tools.BlowerDoorController = function() {
-		hext.tools.BaseController.call(this);
-	};
-
-	hext.tools.BlowerDoorController.prototype = {
+	hext.tools.BlowerDoorController = hext.tools.BaseController.extend({
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 */
@@ -41,7 +37,7 @@ var hext = (function(hext) {
 		 * BlowerDoorController.
 		 */
 		cleanup: function() {
-			hext.tools.BaseController.prototype.cleanup.call(this);
+			this._super();
 			jQuery('body').unbind('mouseup');
 		},
 
@@ -58,7 +54,7 @@ var hext = (function(hext) {
 		 * @see hext.tools.BaseController#setupView
 		 */
 		setupView: function() {
-			hext.tools.BaseController.prototype.setupView.call(this);
+			this._super();
 		
 			this.model.subscribe(hext.msg.speed,
 				this.view,
@@ -95,15 +91,7 @@ var hext = (function(hext) {
 				jQuery(this).unbind('mousemove');
 			});
 		}
-	};
+	});
 
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.BlowerDoorController.inheritsFrom(hext.tools.BaseController);
-});

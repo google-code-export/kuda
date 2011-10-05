@@ -20,44 +20,35 @@ var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
 	/**
-	 * @class An HtmlViewConfig contains configuration options for an HtmlView.
-	 */
-	hext.tools.HtmlViewConfig = function() {
-		/**
-		 * The name of the HTML file with content for the HtmlView.
-		 * @type string
-		 */
-		this.contentFileName = '';
-	};
-	
-	/**
 	 * @class An HtmlView represents the functionality common to HTML views for
 	 * all tools.
 	 * @extends hemi.world.Citizen
 	 * 
-	 * @param {hext.tools.HtmlViewConfig} config configuration options
+	 * @param {Object} config configuration options
 	 */
-	hext.tools.HtmlView = function(config) {
-		hemi.world.Citizen.call(this);
+	hext.tools.HtmlView = hemi.world.Citizen.extend({
+		init: function(config) {
+			this._super();
+			
+			/**
+			 * The container for all HTML content.
+			 * @type jQuery
+			 */
+	        this.container = jQuery('<div></div>');
+			
+			/**
+			 * Flag indicating if the HtmlView is visible.
+			 * @type boolean
+			 * @default false
+			 */
+			this.visible = false;
+			
+			this.config = hemi.utils.join({
+				contentFileName: ''
+			}, config);
+			this.callbacks = [];
+		},
 		
-		/**
-		 * The container for all HTML content.
-		 * @type jQuery
-		 */
-        this.container = jQuery('<div></div>');
-		
-		/**
-		 * Flag indicating if the HtmlView is visible.
-		 * @type boolean
-		 * @default false
-		 */
-		this.visible = false;
-		
-		this.config = hemi.utils.join(new hext.tools.HtmlViewConfig(), config);
-		this.callbacks = [];
-	};
-	
-	hext.tools.HtmlView.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -67,7 +58,7 @@ var hext = (function(hext) {
 		 * Send a cleanup Message and remove all references in the HtmlView.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.config = null;
 			this.callbacks = [];
 			
@@ -99,7 +90,7 @@ var hext = (function(hext) {
 		},
 		
 		/**
-		 * Load the HTML content from the file specified by the HtmlViewConfig.
+		 * Load the HTML content from the file specified by the config.
 		 */
 		loadConfig: function() {
 			var that = this;
@@ -169,9 +160,7 @@ var hext = (function(hext) {
 				}
 			}
 		}
-	};
-	
-	hext.tools.HtmlView.inheritsFrom(hemi.world.Citizen);
+	});
 	
 	return hext;
 })(hext || {});

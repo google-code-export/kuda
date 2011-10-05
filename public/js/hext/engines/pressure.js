@@ -15,8 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hext.msg');
-
 var hext = (function(hext) {
 	/**
 	 * @namespace A module for simulation engines.
@@ -30,42 +28,42 @@ var hext = (function(hext) {
 	 * can flow through.
 	 * @extends hemi.world.Citizen
 	 */
-	hext.engines.Portal = function(){
-		hemi.world.Citizen.call(this);
+	hext.engines.Portal = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The Location on one side of the Portal.
+			 * @type hext.engines.Location
+			 */
+			this.locationA = null;
+			
+			/**
+			 * The Location on the other side of the Portal.
+			 * @type hext.engines.Location
+			 */
+			this.locationB = null;
+			
+			this.closedPosition = [0, 0, 0];
+			this.position = [0, 0, 0];
+			this.airFlow = 0;
+			this.area = 0;
+			
+			/**
+			 * The length of the Portal opening.
+			 * @type number
+			 * @default 0
+			 */
+			this.length = 0;
+			
+			/**
+			 * The width of the Portal opening.
+			 * @type number
+			 * @default 0
+			 */
+			this.width = 0;
+		},
 		
-		/**
-		 * The Location on one side of the Portal.
-		 * @type hext.engines.Location
-		 */
-		this.locationA = null;
-		
-		/**
-		 * The Location on the other side of the Portal.
-		 * @type hext.engines.Location
-		 */
-		this.locationB = null;
-		
-		this.closedPosition = [0, 0, 0];
-		this.position = [0, 0, 0];
-		this.airFlow = 0;
-		this.area = 0;
-		
-		/**
-		 * The length of the Portal opening.
-		 * @type number
-		 * @default 0
-		 */
-		this.length = 0;
-		
-		/**
-		 * The width of the Portal opening.
-		 * @type number
-		 * @default 0
-		 */
-		this.width = 0;
-	};
-	
-	hext.engines.Portal.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 */
@@ -75,7 +73,7 @@ var hext = (function(hext) {
 		 * Send a cleanup Message and remove all references in the Portal.
 		 */
 		cleanup: function() {
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.locationA = null;
 			this.locationB = null;
 		},
@@ -216,28 +214,31 @@ var hext = (function(hext) {
 					airFlow: this.airFlow
 				});
 		}
-	};
+	});
+	
+	hext.engines.Portal.prototype.msgSent =
+		hext.engines.Portal.prototype.msgSent.concat([hext.msg.pressure]);
 	
 	/**
 	 * @class A Location represents a discrete volume of space with a distinct
 	 * pressure value.
 	 * @extends hemi.world.Citizen
 	 */
-	hext.engines.Location = function(){
-		hemi.world.Citizen.call(this);
+	hext.engines.Location = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The volume of the Location.
+			 * @type number
+			 * @default 0
+			 */
+			this.volume = 0;
+			
+			this.pressure = 0;
+			this.airFlow = 0;
+		},
 		
-		/**
-		 * The volume of the Location.
-		 * @type number
-		 * @default 0
-		 */
-		this.volume = 0;
-		
-		this.pressure = 0;
-		this.airFlow = 0;
-	};
-	
-	hext.engines.Location.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 */
@@ -306,7 +307,10 @@ var hext = (function(hext) {
 					pressure: this.pressure
 				});
 		}
-	};
+	});
+	
+	hext.engines.Location.prototype.msgSent =
+		hext.engines.Location.prototype.msgSent.concat([hext.msg.pressure]);
 	
 	// TEMPORARY! Until we can figure out a better way to tie a Location to the
 	// shapes that act as select objects for it.
@@ -331,26 +335,26 @@ var hext = (function(hext) {
 	 * system of Locations connected by Portals.
 	 * @extends hemi.world.Citizen
 	 */
-	hext.engines.PressureEngine = function(){
-		hemi.world.Citizen.call(this);
+	hext.engines.PressureEngine = hemi.world.Citizen.extend({
+		init: function() {
+			this._super();
+			
+			/**
+			 * The time increment to perform differential calculations for.
+			 * @type number
+			 * @default 0.001
+			 */
+			this.increment = 0.001;
+			
+			this.locations = [];
+			this.portals = [];
+			this.time = 0;
+			// TEMPORARY
+			this.selectors = [];
+			
+			hemi.view.addRenderListener(this);
+		},
 		
-		/**
-		 * The time increment to perform differential calculations for.
-		 * @type number
-		 * @default 0.001
-		 */
-		this.increment = 0.001;
-		
-		this.locations = [];
-		this.portals = [];
-		this.time = 0;
-		// TEMPORARY
-		this.selectors = [];
-		
-		hemi.view.addRenderListener(this);
-	};
-	
-	hext.engines.PressureEngine.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 */
@@ -361,7 +365,7 @@ var hext = (function(hext) {
 		 */
 		cleanup: function() {
 			hemi.view.removeRenderListener(this);
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.locations = [];
 			this.portals = [];
 		},
@@ -518,7 +522,7 @@ var hext = (function(hext) {
 			
 			return found;
 		}
-	};
+	});
 	
 	/**
 	 * Create a Location that represents the outside world with an infinite
@@ -535,17 +539,3 @@ var hext = (function(hext) {
 
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.engines.Portal.inheritsFrom(hemi.world.Citizen);
-	hext.engines.Portal.prototype.msgSent =
-		hext.engines.Portal.prototype.msgSent.concat([hext.msg.pressure]);
-	hext.engines.Location.inheritsFrom(hemi.world.Citizen);
-	hext.engines.Location.prototype.msgSent =
-		hext.engines.Location.prototype.msgSent.concat([hext.msg.pressure]);
-	hext.engines.PressureEngine.inheritsFrom(hemi.world.Citizen);
-});

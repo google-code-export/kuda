@@ -26,39 +26,39 @@ var hext = (function(hext) {
 	 * weatherization tool.
 	 * @extends hext.tools.BaseTool
 	 */
-	hext.tools.BlowerDoor = function() {
-		hext.tools.BaseTool.call(this);
+	hext.tools.BlowerDoor = hext.tools.BaseTool.extend({
+		init: function() {
+			this._super();
 
-		/**
-		 * The maximum fan speed.
-		 * @type number
-		 * @default 135
-		 */
-		this.max = 135;
+			/**
+			 * The maximum fan speed.
+			 * @type number
+			 * @default 135
+			 */
+			this.max = 135;
+	
+			/**
+			 * The minimum fan speed.
+			 * @type number
+			 * @default 0
+			 */
+			this.min = 0;
+			
+			/**
+			 * The Location the BlowerDoor blows air to.
+			 * @type hext.engines.Location
+			 */
+			this.toLocation = null;
+			
+			/**
+			 * The Location the BlowerDoor blows air from.
+			 * @type hext.engines.Location
+			 */
+			this.fromLocation = null;
+			
+			this.currentSpeed = 0;
+		},
 
-		/**
-		 * The minimum fan speed.
-		 * @type number
-		 * @default 0
-		 */
-		this.min = 0;
-		
-		/**
-		 * The Location the BlowerDoor blows air to.
-		 * @type hext.engines.Location
-		 */
-		this.toLocation = null;
-		
-		/**
-		 * The Location the BlowerDoor blows air from.
-		 * @type hext.engines.Location
-		 */
-		this.fromLocation = null;
-		
-		this.currentSpeed = 0;
-	};
-
-	hext.tools.BlowerDoor.prototype = {
 		/**
 		 * Overwrites hemi.world.Citizen.citizenType
 		 */
@@ -68,7 +68,7 @@ var hext = (function(hext) {
 		 * Send a cleanup Message and remove all references in the BlowerDoor.
 		 */
 		cleanup: function() {
-			hext.tools.BaseTool.prototype.cleanup.call(this);
+			this._super();
 			this.toLocation = null;
 			this.fromLocation = null;
 		},
@@ -135,19 +135,12 @@ var hext = (function(hext) {
 					});
 			}
 		}
-	};
+	});
 
-	return hext;
-})(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.BlowerDoor.inheritsFrom(hext.tools.BaseTool);
 	hext.tools.BlowerDoor.prototype.msgSent =
 		hext.tools.BlowerDoor.prototype.msgSent.concat([
 			hext.msg.pressure,
 			hext.msg.speed]);
-});
+	
+	return hext;
+})(hext || {});

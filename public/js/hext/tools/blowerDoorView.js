@@ -22,47 +22,28 @@ var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
 	/**
-	 * @class A BlowerDoorViewConfig contains configuration options for a
-	 * BlowerDoorView.
-	 * @extends hext.tools.HtmlViewConfig
-	 */
-	hext.tools.BlowerDoorViewConfig = function() {
-		hext.tools.HtmlViewConfig.call(this);
-		
-		/**
-		 * @see hext.tools.HtmlViewConfig#contentFileName
-		 * @default 'js/hext/tools/assets/blowerDoorDisplay.htm'
-		 */
-		this.contentFileName = 'js/hext/tools/assets/blowerDoorDisplay.htm';
-		
-		/**
-		 * The id for the HTML element containing the BlowerDoor knob widget.
-		 * @type string
-		 * @default 'blowerDoorKnob'
-		 */
-		this.blowerDoorKnobId = 'blowerDoorKnob';
-	};
-	
-	/**
 	 * @class A BlowerDoorView is the HTML view for a BlowerDoor.
 	 * @extends hext.tools.HtmlView
 	 * 
-	 * @param {hext.tools.BlowerDoorViewConfig} config configuration options
+	 * @param {Object} config configuration options
 	 */
-	hext.tools.BlowerDoorView = function(config) {
-		hext.tools.HtmlView.call(this, config);
+	hext.tools.BlowerDoorView = hext.tools.HtmlView.extend({
+		init: function(config) {
+			this._super(hemi.utils.join({
+				contentFileName: 'js/hext/tools/assets/blowerDoorDisplay.htm',
+				blowerDoorKnobId: 'blowerDoorKnob'
+			}, config));
+			
+			this.knob = null;
+			this.canvasKnob = null;
+			
+			var that = this;
+			
+			this.addLoadCallback(function () {
+				that.knob = that.getElement(that.config.blowerDoorKnobId);
+			});
+		},
 		
-		this.knob = null;
-		this.canvasKnob = null;
-		
-		var that = this;
-		
-		this.addLoadCallback(function () {
-			that.knob = that.getElement(that.config.blowerDoorKnobId);
-		});
-	};
-	
-	hext.tools.BlowerDoorView.prototype = {
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -73,7 +54,7 @@ var hext = (function(hext) {
 		 * BlowerDoorView.
 		 */
 		cleanup: function() {
-			hext.tools.HtmlView.prototype.cleanup.call(this);
+			this._super();
 			
 			if (this.knob && this.knob.rotate) {
 				this.knob.rotate.unbind();
@@ -100,45 +81,24 @@ var hext = (function(hext) {
 				this.canvasKnob.rotateAnimation(value);
 			}
 		}
-	};
-    
-	/**
-	 * @class A BlowerDoorToolbarViewConfig contains configuration options
-	 * for a BlowerDoorToolbarView.
-	 * @extends hext.tools.ToolbarViewConfig
-	 */
-    hext.tools.BlowerDoorToolbarViewConfig = function() {
-        hext.tools.ToolbarViewConfig.call(this);
-		
-		/**
-		 * @see hext.tools.ToolbarViewConfig#containerId
-		 * @default 'blowerDoorToolbarView'
-		 */
-		this.containerId = 'blowerDoorToolbarView';
-		
-		/**
-		 * The id for the HTML element containing the BlowerDoor toolbar
-		 * button.
-		 * @type string
-		 * @default 'blowerDoorButtonId'
-		 */
-		this.buttonId = 'blowerDoorButtonId';
-    };
+	});
 	
 	/**
 	 * @class A BlowerDoorToolbarView is the toolbar view for a BlowerDoor.
 	 * @extends hext.tools.ToolbarView
 	 * 
-	 * @param {hext.tools.BlowerDoorToolbarViewConfig} config configuration
-	 *     options
+	 * @param {Object} config configuration options
 	 */
-	hext.tools.BlowerDoorToolbarView = function(config) {
-		this.button = null;
-        config = hemi.utils.join(new hext.tools.BlowerDoorToolbarViewConfig(), config);
-        hext.tools.ToolbarView.call(this, config);
-	};
-	
-    hext.tools.BlowerDoorToolbarView.prototype = {
+	hext.tools.BlowerDoorToolbarView = hext.tools.ToolbarView.extend({
+		init: function(config) {
+			this.button = null;
+	        config = hemi.utils.join({
+	        	containerId: 'blowerDoorToolbarView',
+				buttonId: 'blowerDoorButtonId'
+	        }, config);
+	        this._super(config);
+		},
+		
         /**
          * Overwrites hemi.world.Citizen.citizenType
          */
@@ -149,7 +109,7 @@ var hext = (function(hext) {
 		 * BlowerDoorToolbarView.
 		 */
 		cleanup: function() {
-			hext.tools.ToolbarView.prototype.cleanup.call(this);
+			this._super();
 			
 			if (this.button) {
 				this.button.unbind();
@@ -172,18 +132,7 @@ var hext = (function(hext) {
 	        this.button = jQuery('<button id="' + this.config.buttonId + '" title="Blower Door Tool">Blower Door</button>');
 			this.container.append(this.button);
 		}
-    };
+    });
 	
 	return hext;
 })(hext || {});
-
-/*
- * Wait until the DOM is loaded (and hext and hemi are defined) before
- * performing inheritance.
- */
-jQuery(window).ready(function() {
-	hext.tools.BlowerDoorViewConfig.inheritsFrom(hext.tools.HtmlViewConfig);
-	hext.tools.BlowerDoorView.inheritsFrom(hext.tools.HtmlView);
-    hext.tools.BlowerDoorToolbarViewConfig.inheritsFrom(hext.tools.ToolbarViewConfig);
-    hext.tools.BlowerDoorToolbarView.inheritsFrom(hext.tools.ToolbarView);
-});
