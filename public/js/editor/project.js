@@ -586,10 +586,6 @@
 			
 			return li;
 		},
-		
-		getOtherHeights: function() {
-			return this.buttonDiv.outerHeight(true);
-		},
 	    
 	    remove: function(projectName) {
 			var li = this.items.get(projectName),

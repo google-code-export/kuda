@@ -187,10 +187,6 @@
 			});
 		},
 		
-		getOtherHeights: function() {
-			return this.form.outerHeight(true);
-		},
-		
 		layoutExtra: function() {
 			this.form = jQuery('<form method="post"></form>');
 			this.nameInput = jQuery('<input type="text" id="scnName" />');

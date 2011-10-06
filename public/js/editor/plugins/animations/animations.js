@@ -844,26 +844,6 @@
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                     	 Animation List Sidebar Widget                        //
-////////////////////////////////////////////////////////////////////////////////     
-		
-	var ListWidget = editor.ui.ListWidget.extend({
-		init: function(options) {
-		    this._super({
-				name: 'anmListWidget',
-				listId: 'animationList',
-				prefix: 'anmLst',
-				instructions: "Add animations above.",
-				title: 'Animations'
-			});	
-		},
-		
-		getOtherHeights: function() {
-			return this.buttonDiv.outerHeight(true);
-		}
-	});
-	
-////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
     
@@ -886,7 +866,13 @@
 			}));
 			
 			this.sidePanel.addWidget(new CreateWidget());
-			this.sidePanel.addWidget(new ListWidget());
+			this.sidePanel.addWidget(new editor.ui.ListWidget({
+				name: 'anmListWidget',
+				listId: 'animationList',
+				prefix: 'anmLst',
+				instructions: "Add animations above.",
+				title: 'Animations'
+			}));
 		}
 	});
 	

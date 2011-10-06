@@ -775,10 +775,6 @@ var editor = (function(editor) {
 			return new editor.ui.EditableListItem();
 		},
 		
-		getOtherHeights: function() {
-			return 0;
-		},
-		
 		finishLayout: function() {
 			this._super();
 			this.title = jQuery('<h1>' + this.config.title + '</h1>');
@@ -817,27 +813,6 @@ var editor = (function(editor) {
 			
 			return retVal;
 	    },
-		
-//		resize: function(maxHeight) {
-//			this._super(maxHeight);	
-//			var list = this.list.getUI(),	
-//				
-//			// now determine button container height
-//				insHeight = this.instructions.outerHeight(true),
-//			
-//			// get the header height
-//				hdrHeight = this.title.outerHeight(true),
-//				
-//			// get other heights
-//				otherHeight = this.getOtherHeights(),
-//			
-//			// adjust the list pane height
-//			 	listHeight = maxHeight - insHeight - hdrHeight - otherHeight;
-//				
-//			if (listHeight > 0) {
-//				list.height(listHeight);
-//			}
-//		},
 		
 		update: function(obj) {
 			var li = this.items.get(obj.getId()),

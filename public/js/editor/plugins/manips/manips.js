@@ -554,26 +554,6 @@
 	});
 
 ////////////////////////////////////////////////////////////////////////////////
-//                        Manip List Sidebar Widget                           //
-////////////////////////////////////////////////////////////////////////////////    
-
-	var ListWidget = editor.ui.ListWidget.extend({
-		init: function() {
-		    this._super({
-				name: 'mnpListWidget',
-				listId: 'manipList',
-				prefix: 'mnpLst',
-				title: 'Manipulations',
-				instructions: "Add manipulations above."
-			});
-		},
-		
-		getOtherHeights: function() {
-			return this.buttonDiv.outerHeight(true);
-		}
-	});
-
-////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
 
@@ -596,7 +576,13 @@
 			}));
 			
 			this.sidePanel.addWidget(new CreateWidget());
-			this.sidePanel.addWidget(new ListWidget());
+			this.sidePanel.addWidget(new editor.ui.ListWidget({
+				name: 'mnpListWidget',
+				listId: 'manipList',
+				prefix: 'mnpLst',
+				title: 'Manipulations',
+				instructions: "Add manipulations above."
+			}));
 	    }
 	});
 
