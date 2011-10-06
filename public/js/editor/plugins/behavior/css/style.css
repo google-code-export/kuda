@@ -126,6 +126,12 @@
 	float: right;
 	height: 1.667em;
 	line-height: 1.667em;
+	-webkit-transition: background 0.15s ease-in-out;
+	-moz-transition: background 0.15s ease-in-out;
+	-o-transition: background 0.15s ease-in-out;
+}
+.dataTables_filter input:focus {
+	background: #666;
 }
 .dataTables_filter label {
 	display: block;

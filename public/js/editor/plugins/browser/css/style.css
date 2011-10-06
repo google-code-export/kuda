@@ -104,15 +104,8 @@
 	float: left;
 	margin-right: 0.417em;
 }
-.mbrTopPanel form input[type=text] {
-	background: -moz-linear-gradient(100% 100% 90deg, #dadada, #eee);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#dadada));
-    border: 1px solid #333;
-	box-shadow: 0 1px 0 #666;
-}
 .mbrTopPanel form input[type=text]:focus {
-	background: -moz-linear-gradient(100% 100% 90deg, #c2dfef, #dbeff9);
-	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#dbeff9), to(#c2dfef));
+	background: #666;
 }
 .mbrTopPanel form span,
 .mbrTopPanel label {
