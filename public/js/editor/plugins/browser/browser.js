@@ -1306,12 +1306,13 @@
 			});	
 			
 			ipt.bind('keydown', function(evt) {
-				var code = (evt.keyCode ? evt.keyCode : evt.which);
+				var code = (evt.keyCode ? evt.keyCode : evt.which),
+					val = ipt.val();
 				
-				if (code == 13) { //Enter keycode
-					wgt.notifyListeners(shorthand.events.LoadModel, ipt.val());
+				if (code == 13 && val !== '') { //Enter keycode
+					wgt.notifyListeners(shorthand.events.LoadModel, val);
 				}
-			})
+			});
 		},
 		
 		createUnloadPanel: function() {			
@@ -1337,7 +1338,7 @@
 			this._super();
 			this.container.append('<p id="mbrMsg"></p> \
 				<form id="mbrLoadPnl"> \
-					<input type="text" id="loadMdlSel" /> \
+					<input type="text" id="loadMdlSel" placeholder="Model Path:" /> \
 					<select id="loadMdlIpt"></select> \
 				</form> \
 				<form id="mbrImportPnl"> \
@@ -1351,6 +1352,9 @@
 			this.container.find('select').sb({
 				ddCtx: '.topBottomSelect',
 				useTie: true
+			});
+			this.container.find('form').submit(function() { 
+				return false; 
 			});
 			this.createImportPanel();
 			this.createLoadPanel();
