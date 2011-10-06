@@ -1300,11 +1300,18 @@
 					msg.text('Loading Model...').slideDown(200, function() {
 						wgt.invalidate();
 					});
-					var val = ipt.is(':visible') ? ipt.val() : sel.val();
 					
-					wgt.notifyListeners(shorthand.events.LoadModel, val);
+					wgt.notifyListeners(shorthand.events.LoadModel, sel.val());
 				}
 			});	
+			
+			ipt.bind('keydown', function(evt) {
+				var code = (evt.keyCode ? evt.keyCode : evt.which);
+				
+				if (code == 13) { //Enter keycode
+					wgt.notifyListeners(shorthand.events.LoadModel, ipt.val());
+				}
+			})
 		},
 		
 		createUnloadPanel: function() {			
@@ -1371,11 +1378,13 @@
 			var importPnl = this.find('#mbrImportPnl'),
 				loadPnl = this.find('#mbrLoadPnl'),
 				sel = loadPnl.find('select'),
-				ipt = loadPnl.find('input');
+				ipt = loadPnl.find('input'),
+				sb = loadPnl.find('.sb.selectbox');
 				
 			if (models == null) {
 				importPnl.hide();
 				sel.hide();
+				sb.hide();
 				ipt.show();
 				
 				this.invalidate();
@@ -1384,6 +1393,7 @@
 				importPnl.show();	
 			
 				ipt.hide();
+				sb.show();
 				sel.empty().show() 
 					.append('<option value="-1">Load a Model</option>');
 					
@@ -2005,6 +2015,11 @@
 	        model.addListener(shorthand.events.TransformShown, function(transform) {
 	            hidWgt.removeHiddenItem(transform);
 	        });
+			
+			
+			if (!model.serverRunning) {
+				ldrWgt.updateServerRunning(null);
+			}
 		}
 	});
 	
