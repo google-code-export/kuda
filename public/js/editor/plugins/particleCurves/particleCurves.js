@@ -953,24 +953,6 @@
 //                     		Curve List Sidebar Widget                         //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var ListWidget = editor.ui.ListWidget.extend({
-		init: function(options) {
-		    this._super({
-				name: 'ptcCurveListWidget',
-				listId: 'curveList',
-				prefix: 'crvLst',
-				title: 'Particle Curves',
-				instructions: "Add particle curves above."
-			});
-			
-			this.items = new Hashtable();	
-		},
-		
-		getOtherHeights: function() {
-			return this.buttonDiv.outerHeight(true);
-		}
-	});
-	
 	var AdjustWidget = editor.ui.Widget.extend({
 		init: function() {
 			this._super({
@@ -1047,7 +1029,13 @@
 			}));
 			
 			this.sidePanel.addWidget(new CreateWidget());
-			this.sidePanel.addWidget(new ListWidget());
+			this.sidePanel.addWidget(new editor.ui.ListWidget({
+				name: 'ptcCurveListWidget',
+				listId: 'curveList',
+				prefix: 'crvLst',
+				title: 'Particle Curves',
+				instructions: "Add particle curves above."
+			}));
 
 			this.bottomPanel.addWidget(new AdjustWidget());
 		},

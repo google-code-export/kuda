@@ -337,16 +337,10 @@
 		bindButtons: function(li, obj) {
 			this._super(li, obj);
 			
-			var wgt = this;
-			
 			li.title.bind('click', function(evt) {
 				var vpt = li.getAttachedObject();
 				hemi.world.camera.moveToView(vpt);
 			});
-		},
-		
-		getOtherHeights: function() {
-			return this.form.outerHeight(true);
 		}
 	});
 	

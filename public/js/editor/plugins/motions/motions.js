@@ -526,26 +526,6 @@
 	});
 
 ////////////////////////////////////////////////////////////////////////////////
-//						Motion List Sidebar Widget							  //
-////////////////////////////////////////////////////////////////////////////////    
-
-	var ListWidget = editor.ui.ListWidget.extend({
-		init: function() {
-		    this._super({
-				name: 'mtnListWidget',
-				listId: 'motionList',
-				prefix: 'mtnLst',
-				title: 'Motions',
-				instructions: "Add motions above."
-			});
-		},
-		
-		getOtherHeights: function() {
-			return this.buttonDiv.outerHeight(true);
-		}
-	});
-
-////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
 
@@ -568,7 +548,13 @@
 			}));
 			
 			this.sidePanel.addWidget(new CreateWidget());
-			this.sidePanel.addWidget(new ListWidget());
+			this.sidePanel.addWidget(new editor.ui.ListWidget({
+				name: 'mtnListWidget',
+				listId: 'motionList',
+				prefix: 'mtnLst',
+				title: 'Motions',
+				instructions: "Add motions above."
+			}));
 	    }
 	});
 

@@ -561,26 +561,6 @@
 	});
 	
 ////////////////////////////////////////////////////////////////////////////////
-//                     		  Camera Curve List Widget   	                  //
-////////////////////////////////////////////////////////////////////////////////     
-		
-	var ListWidget = editor.ui.ListWidget.extend({
-		init: function() {
-		    this._super({
-				name: 'camCurveListWgt',
-				listId: 'camCurveList',
-				prefix: 'camCrvLst',
-				title: 'Camera Curves',
-				instructions: "Add camera curves above."
-			});
-		},
-		
-		getOtherHeights: function() {
-			return this.form.outerHeight(true);
-		}
-	});
-	
-////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////    
 		
@@ -600,9 +580,14 @@
 			
 			this.addPanel(new editor.ui.Panel());
 			
-//			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
 			this.sidePanel.addWidget(new CreateWidget());
-			this.sidePanel.addWidget(new ListWidget());
+			this.sidePanel.addWidget(new editor.ui.ListWidget({
+				name: 'camCurveListWgt',
+				listId: 'camCurveList',
+				prefix: 'camCrvLst',
+				title: 'Camera Curves',
+				instructions: "Add camera curves above."
+			}));
 		}
 	});
 		

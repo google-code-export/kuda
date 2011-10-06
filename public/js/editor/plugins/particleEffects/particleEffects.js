@@ -676,26 +676,6 @@
 			}
 		}
 	});
-	
-////////////////////////////////////////////////////////////////////////////////
-//                   Particle Effects List Sidebar Widget                     //
-////////////////////////////////////////////////////////////////////////////////     
-	
-	var ListWidget = editor.ui.ListWidget.extend({
-		init: function(options) {
-		    this._super({
-				name: 'pteListWidget',
-				listId: 'pteFxList',
-				prefix: 'pteLst',
-				title: 'Particle Effects',
-				instructions: "Add particle effects above."
-			});
-		},
-		
-		getOtherHeights: function() {
-			return this.buttonDiv.outerHeight(true);
-		}
-	});
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
@@ -713,7 +693,13 @@
 			this.addPanel(new editor.ui.Panel());
 			
 			this.sidePanel.addWidget(new CreateWidget());
-			this.sidePanel.addWidget(new ListWidget());
+			this.sidePanel.addWidget(new editor.ui.ListWidget({
+				name: 'pteListWidget',
+				listId: 'pteFxList',
+				prefix: 'pteLst',
+				title: 'Particle Effects',
+				instructions: "Add particle effects above."
+			}));
 	    }
 	});
     

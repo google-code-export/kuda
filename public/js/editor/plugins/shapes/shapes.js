@@ -440,26 +440,6 @@
 			this.checkToggleButtons();
 		}
 	});
-	
-////////////////////////////////////////////////////////////////////////////////
-//                     	 		Shapes List Widget  	                      //
-////////////////////////////////////////////////////////////////////////////////     
-		
-	var ListWidget = editor.ui.ListWidget.extend({
-		init: function() {
-		    this._super({
-				name: 'shapeListWidget',
-				listId: 'shapeList',
-				prefix: 'shpLst',
-				title: 'Shapes',
-				instructions: "Add shapes above."
-			});
-		},
-		
-		getOtherHeights: function() {
-			return this.buttonDiv.outerHeight(true);
-		}
-	});
          
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
@@ -483,8 +463,13 @@
 			}));
 			
 			this.sidePanel.addWidget(new CreateWidget());
-			this.sidePanel.addWidget(new ListWidget());
-//			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
+			this.sidePanel.addWidget(new editor.ui.ListWidget({
+				name: 'shapeListWidget',
+				listId: 'shapeList',
+				prefix: 'shpLst',
+				title: 'Shapes',
+				instructions: "Add shapes above."
+			}));
 	    }
 	});
     
