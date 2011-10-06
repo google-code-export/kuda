@@ -89,20 +89,110 @@ var parseFile = function(data, classes) {
 		
 		clsObj.desc = head.split(/\s*\*\s*/gm).join(' ').trim();
 		
-		// Parse the class name
-		ndx = body.search(/\s*=\s*function/m);
-		var clsName = body.substr(0, ndx);
-		clsObj.name = clsName;
-		
-		// Find the prototype declaration
-		var re = new RegExp(clsName + '.prototype\\s*=\\s*{');
-		ndx = body.search(re);
-		
-		if (ndx > -1) {
-			// Parse the class functions
-			head = body.substr(0, ndx);
+		// If the class inherits from another one, the code will look different.
+		if (clsObj.parent) {
+			// Parse the class name
+			var re = new RegExp('\\s*=\\s*' + clsObj.parent + '\\.extend\\({', 'm');
+			
+			ndx = body.search(re);
+			clsObj.name = body.substr(0, ndx);
+
+			// Parse the constructor (the head)
+			ndx = body.search(/init\s*:\s*function/m);
+			
+			if (ndx > -1) {
+				ndx = body.indexOf('{', ndx);
+				var count = 1;
+				
+				while (count > 0) {
+					var ch = body[++ndx];
+					
+					if (ch === '{') {
+						++count;
+					} else if (ch === '}') {
+						--count;
+					}
+				}
+				
+				head = body.substr(0, ndx);
+			} else {
+				head = null;
+				ndx = body.search(re);
+			}
+			
 			ndx = body.indexOf('/**', ndx);
 			body = body.substr(ndx + 3);
+		} else {
+			// Parse the class name
+			ndx = body.search(/\s*=\s*function/m);
+			var clsName = body.substr(0, ndx);
+			clsObj.name = clsName;
+			
+			// Parse the constructor (the head)
+			var re = new RegExp(clsName + '.prototype\\s*=\\s*{');
+			ndx = body.search(re);
+			
+			if (ndx > -1) {
+				head = body.substr(0, ndx);
+				ndx = body.indexOf('/**', ndx);
+				body = body.substr(ndx + 3);
+			} else {
+				head = body;
+				body = null;
+			}
+			
+			ndx = head.indexOf('{');
+			var count = 1;
+			
+			while (count > 0) {
+				var ch = head[++ndx];
+				
+				if (ch === '{') {
+					++count;
+				} else if (ch === '}') {
+					--count;
+				}
+			}
+			
+			head = head.substr(0, ndx);
+		}
+		
+		if (head !== null) {
+			// Parse the class properties in the constructor
+			var props = head.split('/**');
+			
+			for (var j = 1, jl = props.length; j < jl; j++) {
+				var propStr = props[j],
+					prop = {};
+				
+				ndx = propStr.indexOf('*/');
+				var propDecl = propStr.substr(ndx + 2);
+				propStr = propStr.substr(0, ndx);
+				
+				ndx = propDecl.indexOf('this.');
+				propDecl = propDecl.substr(ndx + 5);
+				ndx = propDecl.search(/\s*=/);
+				prop.name = propDecl.substr(0, ndx);
+				
+				propStr = propStr.split(/\s*\*\s*/gm).join(' ');
+				ndx = propStr.indexOf('@');
+				prop.desc = propStr.substr(0, ndx).trim();
+				ndx = propStr.indexOf('@type');
+				propStr = propStr.substr(ndx + 5);
+				ndx = propStr.indexOf('@');
+				
+				if (ndx === -1) {
+					prop.type = propStr.trim();
+				} else {
+					prop.type = propStr.substr(0, ndx).trim();
+				}
+				
+				clsObj.props.push(prop);
+			}
+		}
+		
+		if (body !== null) {
+			// Parse the class functions
 			var funcs = body.split(/\,\s*\/\*\*/gm);
 			
 			for (var j = 0, jl = funcs.length; j < jl; j++) {
@@ -114,53 +204,6 @@ var parseFile = function(data, classes) {
 					clsObj.props.push(func);
 				}
 			}
-		} else {
-			head = body;
-		}
-		
-		ndx = head.indexOf('{');
-		var count = 1;
-		
-		while (count > 0) {
-			var ch = head[++ndx];
-			
-			if (ch === '{') {
-				++count;
-			} else if (ch === '}') {
-				--count;
-			}
-		}
-		
-		head = head.substr(0, ndx);
-		var props = head.split('/**');
-		
-		for (var j = 1, jl = props.length; j < jl; j++) {
-			var propStr = props[j],
-				prop = {};
-			
-			ndx = propStr.indexOf('*/');
-			var propDecl = propStr.substr(ndx + 2);
-			propStr = propStr.substr(0, ndx);
-			
-			ndx = propDecl.indexOf('this.');
-			propDecl = propDecl.substr(ndx + 5);
-			ndx = propDecl.search(/\s*=/);
-			prop.name = propDecl.substr(0, ndx);
-			
-			propStr = propStr.split(/\s*\*\s*/gm).join(' ');
-			ndx = propStr.indexOf('@');
-			prop.desc = propStr.substr(0, ndx).trim();
-			ndx = propStr.indexOf('@type');
-			propStr = propStr.substr(ndx + 5);
-			ndx = propStr.indexOf('@');
-			
-			if (ndx === -1) {
-				prop.type = propStr.trim();
-			} else {
-				prop.type = propStr.substr(0, ndx).trim();
-			}
-			
-			clsObj.props.push(prop);
 		}
 		
 		classes.push(clsObj);
@@ -250,7 +293,6 @@ var parseParam = function(param) {
 };
 
 var parseMessages = function(data, classes) {
-	debugger;
 	var ndx = data.search(/hemi.msg\s*=/),
 		msgObj = {};
 	
