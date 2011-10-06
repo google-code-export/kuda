@@ -266,17 +266,20 @@ var hemi = (function(hemi) {
 		 * the file.
 		 * 
 		 * @param {string} fileName name of the file
+		 * @param {function(string):void} opt_errFnc optional error callback
 		 */
-		setFileName: function(fileName) {
+		setFileName: function(fileName, opt_errFnc) {
 			this.fileName = fileName;
 			this.name = getModelName(fileName);
-			this.load();
+			this.load(opt_errFnc);
 		},
 		
 		/**
 		 * Load the Model (or reload) from its file url.
+		 * 
+		 * @param {function(string):void} opt_errFnc optional error callback
 		 */
-		load: function() {
+		load: function(opt_errFnc) {
 			var config = new hemi.model.ModelConfig(),
 				that = this;
 			
@@ -284,20 +287,16 @@ var hemi = (function(hemi) {
 				this.unload();
 			}
 			
-			try {
-				hemi.loader.loadModel(
-					this.fileName,
-					config.pack,
-					config.rootTransform,
-					function(pack, parent) {
-						hemi.core.loaderCallback(pack);
-						that.loadConfig(config);
-					},
-					{opt_animSource: config.animationTime});
-			} 
-			catch (e) {
-				alert('Loading failed: ' + e);
-			}
+			hemi.loader.loadModel(
+				this.fileName,
+				config.pack,
+				config.rootTransform,
+				function(pack, parent) {
+					hemi.core.loaderCallback(pack);
+					that.loadConfig(config);
+				},
+				{opt_animSource: config.animationTime},
+				opt_errFnc);
 		},
 
 		/**
