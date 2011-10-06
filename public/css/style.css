@@ -335,8 +335,21 @@ body.ten24 {
 #prjPane .toolbarArrow {
 	display: none !important;
 }
-#prjPane h2, #prjPane h3 {
+#navBar > ul > li#prjPane > div.down h2 > a {
+	color: #fff;
+	font-weight: 300;
+}
+#navBar > ul > li#prjPane > div > h2 > a:hover {
+	color: #75d0f4;
+}
+#prjPane h3 {
 	display: none;
+}
+#prjPane p {
+	width: 13.333em;
+	padding: 0.167em 0;
+	font-size: 100%;
+	line-height: 133.3%;
 }
 #prjSaveIpt {
 	width: 13.333em;
@@ -347,6 +360,7 @@ body.ten24 {
 	margin: 0;
 	color: #eee;
 	font-size: 100%;
+	font-family: 'Lato', Helvetica, Arial, sans-serif;
 	line-height: 133.3%;
 }
 #prjSaveIpt:hover {
