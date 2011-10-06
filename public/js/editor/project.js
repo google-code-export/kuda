@@ -25,7 +25,7 @@
 		prjMdl = null;
 	
 	shorthand.init = function() {
-		var prjPane = new editor.ui.NavPane('Projects'),
+		var prjPane = new editor.ui.NavPane('Project:'),
 			prjToolBar = new editor.ui.ToolBar(),
 			
 			prjView = new ProjectView(),
@@ -687,7 +687,7 @@
 		cancel: function() {
 			this.hideButtons();
 			this.sidePanel.setVisible(false);
-			this.saveIpt.val('').blur();
+			this.saveIpt.val('').show().blur();
 			jQuery(document).unbind('click.prj');
 		},
 		
@@ -772,7 +772,7 @@
 				}
 			});
 			
-			saveIpt.bind('keydown', function(evt) {
+			saveIpt.bind('keyup', function(evt) {
 				var code = evt.keyCode ? evt.keyCode : evt.which;
 				
 				if (code == 27) {
@@ -789,12 +789,13 @@
 				view.showButtons();
 			})
 			.bind('blur', function() {	
-				var val = saveIpt.val();			
-				
-				if (val === '') {
-					view.reset();
+				if (saveIpt.is(':visible')) {
+					var val = saveIpt.val();			
+					
+					if (val === '') {
+						view.reset();
+					}
 				}
-				view.checkSaveable();
 			});
 			
 			this.checkSaveable();
