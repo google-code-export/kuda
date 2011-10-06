@@ -241,6 +241,10 @@
 .bhvTopPanel .treeSelector.hasValue input {
 	width: 17.917em;
 }
+form fieldset ol ul>li>label.optional {
+    color: #808080;
+	font-style: italic;
+}
 
 /******************************************************************************
  * 								  1024 specific								  *
