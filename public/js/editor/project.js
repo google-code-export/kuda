@@ -42,7 +42,16 @@
 		// disable default behavior
 		var ui = prjPane.getUI();
 		
-		ui.find('a').unbind('click');
+		ui.find('a').unbind('click').bind('click', function() {
+			var down = prjView.buttons.is(':visible');
+			if (down) {
+				prjView.cancel();
+			}
+			else {
+				prjView.notifyListeners(shorthand.events.UpdateProjects);
+				prjView.showButtons();
+			}
+		});
 		prjPane.setVisible(true);
 		
 		prjView.sidePanel.addListener(editor.events.PanelVisible, function(data) {
@@ -654,7 +663,7 @@
 	var ProjectView = editor.ToolView.extend({
 		init: function() {
 			this._super({
-				toolName: 'Projects',
+				toolName: 'Project:',
 				toolTip: '',
 				elemId: 'projectsCtn',
 				id: 'projectLoad'
@@ -676,7 +685,7 @@
 		},
 		
 		cancel: function() {
-			this.buttons.slideUp(200);
+			this.hideButtons();
 			this.sidePanel.setVisible(false);
 			this.saveIpt.val('').blur();
 			jQuery(document).unbind('click.prj');
@@ -696,6 +705,10 @@
 			}
 			
 			return saveable;
+		},
+		
+		hideButtons: function() {
+			this.buttons.slideUp(200);
 		},
 		
 		layoutToolBarContainer: function() {			
@@ -793,7 +806,7 @@
 			this.msg.empty().hide();
 			this.cancelBtn.hide().removeClass('overwite');
 			this.saveBtn.text('Save').removeClass('overwrite');
-			this.saveIpt.removeClass('overwrite');
+			this.saveIpt.removeClass('overwrite').show();
 			this.checkSaveable();
 		},
 		
@@ -848,14 +861,14 @@
 			}
 
 			this.sidePanel.setVisible(false);
-			this.buttons.slideUp(200);
+			this.hideButtons();
 		},
 		
 		updateNewProject: function() {
 			this.loadedProject = null;
 			this.reset();
 			this.sidePanel.setVisible(false);
-			this.buttons.slideUp(200);
+			this.hideButtons();
 		},
 		
 		updateProjects: function(projects) {
@@ -866,22 +879,23 @@
 			
 			if (projects === null) {
 				this.msg.empty().text('Server Down').show();
+				this.saveIpt.hide();
 			}
 			else {
 				for (var i = 0, il = projects.length; i < il; i++) {
 					lstWgt.add(projects[i]);
 				}
-				
-				jQuery(document).bind('click.prj', function(e) {
-					var target = jQuery(e.target), 
-						parent = target.parents('.prjSidePanel, #prjPane');
-					
-					if (parent.size() == 0 && target.attr('id') !== 'prjPane' 
-							&& !view.isPreview) {
-						view.cancel();
-					}
-				});
 			}
+				
+			jQuery(document).bind('click.prj', function(e) {
+				var target = jQuery(e.target), 
+					parent = target.parents('.prjSidePanel, #prjPane');
+				
+				if (parent.size() == 0 && target.attr('id') !== 'prjPane' 
+						&& !view.isPreview) {
+					view.cancel();
+				}
+			});
 		},
 		
 		updatePublished: function(data) {
