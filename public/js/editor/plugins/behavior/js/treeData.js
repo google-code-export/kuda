@@ -80,6 +80,7 @@
 	
 	var methodsToRemove = shorthand.treeData.methodsToRemove = [
         'constructor',
+        'init',
 		'getId',
 		'setId',
 		'getCitizenType',
