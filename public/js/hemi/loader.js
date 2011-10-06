@@ -83,13 +83,13 @@ var hemi = (function(hemi) {
 
 		hemi.world.loader.loadBitmaps(pack, url,
 			function(bitmaps, exception){
+				hemi.loader.updateTask(url, 100);
+				
 				if (exception) {
 					hemi.core.error(exception);
 				} else {
 					callback(bitmaps);
 				}
-				
-				hemi.loader.updateTask(url, 100);
 			});
 		
 		var list = hemi.world.loader.loadInfo.children_,
@@ -145,13 +145,13 @@ var hemi = (function(hemi) {
 
 		hemi.world.loader.loadTexture(pack, url,
 			function(texture, exception) {
+				hemi.loader.updateTask(url, 100);
+				
 				if (exception) {
 					hemi.core.error(exception);
 				} else {
 					onLoadTexture.call(opt_this, texture);
 				}
-
-				hemi.loader.updateTask(url, 100);
 			});
 		
 		var list = hemi.world.loader.loadInfo.children_,
@@ -174,26 +174,33 @@ var hemi = (function(hemi) {
 	 * @param {function(o3d.Pack, o3d.Transform):void} opt_callback a function
 	 *     to pass the Pack and Transform loaded with data from the file
 	 * @param {o3djs.serialization.Options} opt_options options for the loader
+	 * @param {function(string):void} opt_errFnc optional error callback
 	 */
-	hemi.loader.loadModel = function(url, pack, parent, opt_callback, opt_options) {
+	hemi.loader.loadModel = function(url, pack, parent, opt_callback,
+			opt_options, opt_errFnc) {
 		url = hemi.loader.getPath(url);
 		opt_options = opt_options || {};
-
-		hemi.world.loader.loadScene(hemi.core.client, pack, parent, url,
-			function(pack, parent, exception) {
-				if (exception) {
-					hemi.core.error(exception);
-				} else if (opt_callback) {
-					opt_callback(pack, parent);
-				}
-				
-				hemi.loader.updateTask(url, 100);
-			}, opt_options);
+		opt_errFnc = opt_errFnc || hemi.core.error;
 		
-		var list = hemi.world.loader.loadInfo.children_,
-			loadInfo = list[list.length - 1];
-		
-		syncedIntervalFcn(url, loadInfo);
+		try {
+			hemi.world.loader.loadScene(hemi.core.client, pack, parent, url,
+				function(pack, parent, exception) {
+					hemi.loader.updateTask(url, 100);
+					
+					if (exception) {
+						opt_errFnc(exception);
+					} else if (opt_callback) {
+						opt_callback(pack, parent);
+					}
+				}, opt_options);
+			
+			var list = hemi.world.loader.loadInfo.children_,
+				loadInfo = list[list.length - 1];
+			
+			syncedIntervalFcn(url, loadInfo);
+		} catch (err) {
+			opt_errFnc(err);
+		}
 	};
 
 	/**
