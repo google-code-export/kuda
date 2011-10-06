@@ -2607,6 +2607,7 @@ var hemi = (function(hemi) {
 	 * able to send Messages through the World's dispatch. The Citizen's id is
 	 * all that is necessary to retrieve the Citizen from its World, regardless
 	 * of its type.
+	 * @extends hemi.Class
 	 */
 	hemi.world.Citizen = hemi.Class.extend({
 		init: function() {
@@ -2796,6 +2797,7 @@ var hemi = (function(hemi) {
 	 * @class A TransformOwner contains a Citizen that owns at least one
 	 * Transform and entries of other Citizens that need to be given any of
 	 * those Transforms as they become available during Octane loading.
+	 * @extends hemi.Class
 	 */
 	hemi.world.TransformOwner = hemi.Class.extend({
 		init: function() {
@@ -2966,6 +2968,7 @@ var hemi = (function(hemi) {
 	 * @class A TransformRegistry maintains listings of which Transforms to
 	 * distribute to which Citizens as they become available during Octane
 	 * loading. This is necessary because Transforms are not proper Citizens.
+	 * @extends hemi.Class
 	 */
 	hemi.world.TransformRegistry = hemi.Class.extend({
 		init: function() {
@@ -14258,6 +14261,7 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * @class A particle system that is GPU driven.
+	 * @extends hemi.world.Citizen
 	 * 
 	 * @param {Object} opt_cfg optional configuration object for the system
 	 */
@@ -14871,6 +14875,7 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * @class A GPU driven particle system that has trailing starts and stops.
+	 * @extends hemi.curve.GpuParticleSystem
 	 * 
 	 * @param {Object} opt_cfg the configuration object for the system
 	 */

@@ -1406,6 +1406,7 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * @class A particle system that is GPU driven.
+	 * @extends hemi.world.Citizen
 	 * 
 	 * @param {Object} opt_cfg optional configuration object for the system
 	 */
@@ -2019,6 +2020,7 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * @class A GPU driven particle system that has trailing starts and stops.
+	 * @extends hemi.curve.GpuParticleSystem
 	 * 
 	 * @param {Object} opt_cfg the configuration object for the system
 	 */
