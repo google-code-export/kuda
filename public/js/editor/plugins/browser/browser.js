@@ -83,6 +83,7 @@
 	shorthand.events = {
 		// browser model events
 		AddUserCreatedShape: "browser.AddUserCreatedShape",
+		LoadException: "browser.LoadException",
 		PickableSet: "browser.PickableSet",
 		RemoveUserCreatedShape: "browser.RemoveUserCreatedShape",
 		ServerRunning: 'browser.ServerRunning',
@@ -333,8 +334,13 @@
 		},
 		
 		addModel: function(url) {
-			var model = new hemi.model.Model();				
-			model.setFileName(url);
+			var model = new hemi.model.Model(),
+				that = this;
+			
+			model.setFileName(url, function(exception) {
+				model.cleanup();
+				that.notifyListeners(shorthand.events.LoadException, url);
+			});
 		},
 		
 		addShape: function(shape) {
@@ -1227,11 +1233,12 @@
 				name: 'loaderWidget',
 				height: editor.ui.Height.MANUAL
 			});
+			
+			this.importData = null;
 		},
 		
 		createImportPanel: function() {			
-			var msg = this.msgPanel,
-				pnl = this.find('#mbrImportPnl'),
+			var pnl = this.find('#mbrImportPnl'),
 				btn = pnl.find('button'),
 				wgt = this;				
 			
@@ -1240,9 +1247,7 @@
 			})
 			.file()
 			.choose(function(evt, input) {
-				msg.text('Uploading Model...').slideDown(200, function() {
-					wgt.invalidate();
-				});
+				wgt.showMessage('Uploading Model...');
 				
 				// assuming no multi select file
 				var file = input.files[0],
@@ -1261,21 +1266,12 @@
 						'X-File-Type': file.type
 					},
 					success: function(data, status, xhr) {
-						msg.text('Loading Model...').removeClass('errMsg');
-						loadModel(data.url, function() {
-							var sel = wgt.find('#mbrLoadPnl select'), 
-								prj = jQuery('<option value="' + data.url + '">' + data.name + '</option>');
-								
-							sel.append(prj);
-							msg.text('').slideUp(200, function() {
-								wgt.invalidate();
-							});
-							populateUnloadPanel.call(wgt);
-						});
+						wgt.showMessage('Loading Model...');
+						wgt.importData = data;
+						wgt.notifyListeners(shorthand.events.LoadModel, data.url);
 					},
 					error: function(xhr, status, err) {
-						msg.text(xhr.responseText).addClass('errMsg').show();
-						wgt.invalidate();
+						wgt.showMessage(xhr.responseText);
 					}
 				});
 			});
@@ -1292,15 +1288,11 @@
 			var pnl = this.find('#mbrLoadPnl'),
 				sel = pnl.find('select'),
 				ipt = pnl.find('input').hide(),
-				msg = this.msgPanel,
 				wgt = this;	
 		
 			sel.bind('change', function() {
 				if (sel.val() !== '-1') {
-					msg.text('Loading Model...').slideDown(200, function() {
-						wgt.invalidate();
-					});
-					
+					wgt.showMessage('Loading Model...');
 					wgt.notifyListeners(shorthand.events.LoadModel, sel.val());
 				}
 			});	
@@ -1310,6 +1302,7 @@
 					val = ipt.val();
 				
 				if (code == 13 && val !== '') { //Enter keycode
+					wgt.showMessage('Loading Model...');
 					wgt.notifyListeners(shorthand.events.LoadModel, val);
 				}
 			});
@@ -1361,20 +1354,47 @@
 			this.createUnloadPanel();
 		},
 		
+		showMessage: function(msg) {
+			var wgt = this;
+			
+			this.msgPanel.text(msg).slideDown(200, function() {
+				wgt.invalidate();
+			});
+		},
+		
+		updateLoadException: function(url) {
+			this.importData = null;
+			this.showMessage('Unable to load: ' + url);
+			
+			populateUnloadPanel.call(this);
+		},
+		
 		updateModelLoaded: function(model) {
 			var wgt = this,
-				sel = this.find('#mbrLoadPnl select');
+				sel = this.find('#mbrLoadPnl select'),
+				ipt = this.find('input');
 			
-			this.msgPanel.text('').hide(200, function() {
-				wgt.invalidate();		
-				sel.val(-1);
+			if (this.importData) {
+				var prj = jQuery('<option value="' + this.importData.url + '">' + this.importData.name + '</option>');
+				sel.append(prj);
+				this.importData = null;
+			}
+			
+			this.msgPanel.text('').slideUp(200, function() {		
+				sel.val(-1).sb('refresh');
+				ipt.val('');
+				wgt.invalidate();
 			});
 			
-			populateUnloadPanel.call(wgt);
+			populateUnloadPanel.call(this);
 		},
 		
 		updateModelRemoved: function(model) {
-			this.msgPanel.text('').slideUp(200);
+			var wgt = this;
+			
+			this.msgPanel.text('').slideUp(200, function() {		
+				wgt.invalidate();
+			});
 			populateUnloadPanel.call(this);
 		},
 		
@@ -1920,8 +1940,8 @@
 			ldrWgt.addListener(shorthand.events.LoadModel, function(url) {
 				model.addModel(url);
 			});
-			ldrWgt.addListener(shorthand.events.UnloadModel, function(model) {
-				model.removeModel(model);
+			ldrWgt.addListener(shorthand.events.UnloadModel, function(mdl) {
+				model.removeModel(mdl);
 			});
 			
 			// mdl browser widget specific
@@ -1965,7 +1985,10 @@
 			model.addListener(editor.events.Created, function(model) {
 				ldrWgt.updateModelLoaded(model);
 				mbrWgt.addModel(model);
-			});			
+			});
+			model.addListener(shorthand.events.LoadException, function(url) {
+				ldrWgt.updateLoadException(url);
+			});
 	        model.addListener(editor.events.Removing, function(model) {
 	            mbrWgt.removeModel(model);
 				hidWgt.removeOwner(model);
@@ -1974,7 +1997,7 @@
 				detWgt.reset();
 				opaWgt.reset();
 				view.bottomPanel.setVisible(false);
-	        });	
+	        });
 			
 			model.addListener(shorthand.events.AddUserCreatedShape, function(shape) {
 				var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
