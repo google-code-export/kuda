@@ -1222,6 +1222,9 @@ form input:not([type=radio]), form textarea {
 	box-shadow: 0 1px 0 #444;
 	color: #fff;
 	height: 1.28em;
+	-webkit-transition: background 0.15s ease-in-out;
+	-moz-transition: background 0.15s ease-in-out;
+	-o-transition: background 0.15s ease-in-out;
 }
 form input[type=checkbox] {
 	width: auto;
