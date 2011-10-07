@@ -788,7 +788,11 @@
 			if (spec.src === id) {
 				// triggers
 				for (var k = 0, kl = spec.targets.length; k < kl; k++) {
-					this.add(spec.targets[k], spec);
+					var target = spec.targets[k];
+					
+					if (!jQuery.isFunction(target.handler)) {
+						this.add(spec.targets[k], spec);
+					}
 				}
 			}
 			else {
@@ -810,7 +814,7 @@
 						}
 					}
 					else {
-						compId = target.handler.getId();
+						compId = target.handler.getId ? target.handler.getId() : null;
 					}
 					
 					if (compId === id) {

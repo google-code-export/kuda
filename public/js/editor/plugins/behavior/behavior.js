@@ -804,27 +804,29 @@
 					handler = target.handler,
 					spec = data.spec,
 					source;
-			
-				if (handler instanceof hemi.handlers.ValueCheck) {
-					if (handler.citizen instanceof hemi.view.Camera) {
-						source = hemi.world.getCitizenById(handler.values[0]);
-					}
-					else {
-						source = handler.citizen;
+				
+				if (!jQuery.isFunction(handler)) {
+					if (handler instanceof hemi.handlers.ValueCheck) {
+						if (handler.citizen instanceof hemi.view.Camera) {
+							source = hemi.world.getCitizenById(handler.values[0]);
+						}
+						else {
+							source = handler.citizen;
+						}
+						
+						handler = handler.handler;
+					} else {
+						source = hemi.world.getCitizenById(spec.src);
 					}
 					
-					handler = handler.handler;
-				} else {
-					source = hemi.world.getCitizenById(spec.src);
+					editor.depends.add(target, handler);
+					editor.depends.add(target, source);
+					
+					shorthand.modifyBehaviorListItems(target, spec);
+					tblWgt.add(target, spec);
+					
+					bhvWgt.setVisible(false);
 				}
-				
-				editor.depends.add(target, handler);
-				editor.depends.add(target, source);
-				
-				shorthand.modifyBehaviorListItems(target, spec);
-				tblWgt.add(target, spec);
-				
-				bhvWgt.setVisible(false);
 			});			
 			model.addListener(editor.events.Removing, function(target) {
 				var handler = target.handler,
