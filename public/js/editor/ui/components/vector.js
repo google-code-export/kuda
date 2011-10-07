@@ -46,7 +46,7 @@ var editor = (function(editor) {
 			this._super(newOpts);
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			// initialize container
 			this.container = this.config.container;
 			

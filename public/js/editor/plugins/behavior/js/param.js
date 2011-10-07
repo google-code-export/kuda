@@ -46,9 +46,7 @@
 		    this._super(newOpts);
 		},
 		
-		finishLayout: function() {
-			this._super();
-			
+		layout: function() {
 			this.container = jQuery('<ul id="' + this.config.containerId + '"></ul>');
 		},
 		

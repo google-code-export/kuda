@@ -104,7 +104,7 @@
 		    this._super(newOpts);
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			var wgt = this,

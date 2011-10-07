@@ -847,7 +847,7 @@
 			}
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			this.buttons = jQuery('<div class="panelButtons"></div>');
@@ -907,7 +907,7 @@
 			this.tree.jstree('deselect_node', node);
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();	
 				
 			var wgt = this,
@@ -1094,12 +1094,9 @@
 //////////////////////////////////////////////////////////////////////////////// 
 	
 	var HiddenItemListItem = editor.ui.ListItem.extend({
-		init: function() {
+		layout: function() {
 			this._super();
-		},
-		
-		finishLayout: function() {
-			this.container = jQuery('<div></div>');
+			
 			this.title = jQuery('<span></span>');
 			this.pickBtn = jQuery('<input type="checkbox"/>');
 			this.showBtn = jQuery('<button class="removeBtn">Show</button>');
@@ -1113,10 +1110,6 @@
 		
 		setText: function(text) {
 			this.title.text(text);
-		},
-		
-		attachModel: function(model) {
-			this.model = model;
 		}
 	});
 	
@@ -1130,7 +1123,7 @@
 			this.ownerTransHash = new Hashtable();
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			this.list = new editor.ui.List({
@@ -1327,7 +1320,7 @@
 			populateUnloadPanel.call(this);
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			this.container.append('<p id="mbrMsg"></p> \
 				<form id="mbrLoadPnl"> \
@@ -1475,7 +1468,7 @@
 			this.state = AdjustState.NONE;
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			var wgt = this,
 				form = jQuery('<form></form>').submit(function() { 
@@ -1534,7 +1527,7 @@
 			});
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			var wgt = this,
@@ -1736,7 +1729,7 @@
 			}
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			this.btn = jQuery('<button id="mbrDetailsBtn">View Shapes</button>');
@@ -1814,8 +1807,8 @@
 			});
 		},
 		
-		finishLayout: function() {
-			this._super();			
+		layout: function() {
+			this._super();
 			this.visBtn = jQuery('<button>Hide</button>');
 			
 			var form = jQuery('<form></form>').submit(function() {

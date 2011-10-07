@@ -294,7 +294,7 @@
 			}
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			var saveBtn = this.find('#pteSaveBtn'),

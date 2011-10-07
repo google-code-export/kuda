@@ -174,7 +174,7 @@ var editor = (function(editor) {
 			panels.push(this);
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			var minMaxBtn = this.minMaxBtn = jQuery('<button class="minMax" style="position:absolute;"></button>'),
 				ctn = this.container = jQuery('<div></div>'),
 				pnl = this;
@@ -352,7 +352,7 @@ var editor = (function(editor) {
 			});
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 
 			var title = jQuery('<h1><span>World</span><span class="editor">Editor</span></h1>');
@@ -423,15 +423,14 @@ var editor = (function(editor) {
 			this._super(options);
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this.toolbarContainer = jQuery('<div class="toolbarContainer"></div>');
 			this.toolbarContainer.hide();
 			this.container = jQuery('<div></div>');
 			this.titleElem = jQuery('<h2><a href="#">' + this.title + '</a></h2>');
-//			this.arrow = jQuery('<div class="toolbarArrow"></div>').hide();
 			
-			this.container.append(this.titleElem)//.append(this.arrow)
-				.append(this.toolbarContainer);
+			this.container.append(this.titleElem)
+			.append(this.toolbarContainer);
 		},
 		
 		add: function(toolView) {
@@ -476,7 +475,6 @@ var editor = (function(editor) {
 						opt_callback();
 					}
 				});
-//				this.arrow.show(100);
 				this.toolbar.loadState();
 				this.container.addClass('down');
 				this.visible = true;
@@ -487,7 +485,6 @@ var editor = (function(editor) {
 						opt_callback();
 					}
 				});
-//				this.arrow.hide(100);
 				this.toolbar.saveState();
 				this.container.removeClass('down');
 				this.visible = false;
@@ -555,24 +552,32 @@ var editor = (function(editor) {
 	editor.ui.Widget = editor.ui.Component.extend({
 		init: function(options) {
 			var newOpts = jQuery.extend({}, editor.ui.WidgetDefaults, options);
+			
+			if (newOpts.classes) {
+				newOpts.classes.unshift('widget');
+			} else {
+				newOpts.classes = ['widget'];
+			}
+			
 			this._super(newOpts);
 		},
 		
 		layout: function() {
-			this.container = jQuery('<div class="widget"></div>');
-			
+			if (!this.container) {
+				this.container = jQuery('<div></div>');
+			}
+		},
+		
+		finishLayout: function() {
 			for (var i = 0, il = this.config.classes.length; i < il; i++) {
 				this.container.addClass(this.config.classes[i]);
 			}
 			
-			this._super();
-		},
-		
-		finishLayout: function() {			
 			// make sure forms are widget forms
 			this.find('form').addClass('widgetForm').submit(function() {
 				return false;
 			});
+			this.sizeAndPosition();
 		},
 		
 		getName: function() {
@@ -586,10 +591,6 @@ var editor = (function(editor) {
 		invalidate: function() {
 			this.sizeAndPosition();
 			this.notifyListeners(editor.events.WidgetResized);
-		},
-		
-		layoutDone: function() {
-			this.sizeAndPosition();
 		},
 		
 		setVisible: function(visible) {
@@ -639,11 +640,16 @@ var editor = (function(editor) {
 		
 	editor.ui.FormWidget = editor.ui.Widget.extend({
 		init: function(options) {
-			var newOpts = jQuery.extend({}, editor.ui.WidgetDefaults, options);			
 			this.checkers = [];
+			options = options || {};
 			
-		    this._super(newOpts);
-			this.container.addClass('widgetWithForms');
+			if (options.classes) {
+				options.classes.unshift('widgetWithForms');
+			} else {
+				options.classes = ['widgetWithForms'];
+			}
+			
+		    this._super(options);
 		},
 		
 		addInputsToCheck: function(inputs) {
@@ -775,11 +781,10 @@ var editor = (function(editor) {
 			return new editor.ui.EditableListItem();
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			this.title = jQuery('<h1>' + this.config.title + '</h1>');
 			this.instructions = jQuery('<p>' + this.config.instructions + '</p>');
-			var otherElems = this.layoutExtra();
 			
 			this.list = new editor.ui.List({
 				id: this.config.listId,
@@ -788,16 +793,9 @@ var editor = (function(editor) {
 				sortable: this.config.sortable
 			});
 			
-			this.container.append(this.title).append(this.instructions)
-				.append(this.list.getUI());
-				
-			if (otherElems !== null) {
-				this.instructions.after(otherElems);
-			}
-		},
-		
-		layoutExtra: function() {
-			return null;
+			this.container.append(this.title)
+			.append(this.instructions)
+			.append(this.list.getUI());
 		},
 	    
 	    remove: function(obj) {

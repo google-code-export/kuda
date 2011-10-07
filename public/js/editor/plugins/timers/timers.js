@@ -129,7 +129,9 @@
 			}
 		},
 		
-		finishLayout: function() {
+		layout: function() {
+			this._super();
+			
 			var validator = editor.ui.createDefaultValidator(),
 				wgt = this;
 			
@@ -168,8 +170,6 @@
 			
 			this.addInputsToCheck(this.startTimeIpt);
 			this.addInputsToCheck(this.nameIpt);
-			
-			this._super();
 		},
 		
 		edit: function(timer) {

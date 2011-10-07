@@ -69,7 +69,7 @@ var editor = (function(editor) {
 			}
 		},
 		
-		finishLayout: function() {		
+		layout: function() {		
 			this.container = jQuery('<div class="toolbar"></div>');
 			this.header = jQuery('<h3 class="toolTitle"></h3>');
 			this.list = jQuery('<ul></ul>');

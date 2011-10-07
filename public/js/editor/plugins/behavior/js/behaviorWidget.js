@@ -347,7 +347,9 @@
 			}
 		},
 		
-		finishLayout: function() {			
+		layout: function() {			
+			this._super();
+			
 			var form = jQuery('<form class="noSteps" action="" method="post"></form>'), 
 				triggerFieldset = jQuery('<fieldset><legend>Select a Trigger</legend><ol></ol></fieldset>'), 
 				actionFieldset = jQuery('<fieldset><legend>Select an Action</legend><ol id="behaviorAxnSelect"></ol><ol id="behaviorAxnParams"><li></li></ol></fieldset>'),
@@ -500,7 +502,7 @@
 			this.addInputsToCheck(nameIpt);
 			this.addInputsToCheck(trgChecker);
 			this.addInputsToCheck(axnChecker);
-			this._super();
+			
 			this.setVisible(false);
 		},
 		
@@ -701,7 +703,7 @@
 			});
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			this.behaviorBtn = jQuery('<button class="behaviorBtn">Edit Behavior</button>');

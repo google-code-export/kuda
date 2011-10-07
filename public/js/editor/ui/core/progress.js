@@ -25,7 +25,7 @@ var editor = (function(module) {
 			this.progress = -1;
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this.container = jQuery('<div id="progressIndicator"></div>');
 			this.text = jQuery('<span class="prgBarText">Loading...</span>');
 			this.barWrapper = jQuery('<div class="prgBarContainer"></div>');

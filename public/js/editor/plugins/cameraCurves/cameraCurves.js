@@ -294,7 +294,7 @@
 			this.waypoints = [];
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			var form = this.find('form'),

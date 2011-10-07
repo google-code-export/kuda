@@ -288,13 +288,13 @@
 			this._super();
 		},
 						
-		finishLayout: function() {
+		layout: function() {
+			this._super();
+			
 			var wgt = this;
 			
-			this.container = jQuery('<div></div>');
 			this.title = jQuery('<label></label>');
 			this.checkbox = jQuery('<input type="checkbox" />');
-						
 			this.container.append(this.checkbox).append(this.title);
 			
 			this.checkbox.bind('change', function() {

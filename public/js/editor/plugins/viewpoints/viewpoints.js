@@ -195,7 +195,7 @@
 			}
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			var wgt = this,

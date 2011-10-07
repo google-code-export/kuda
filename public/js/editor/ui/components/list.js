@@ -86,7 +86,7 @@ var editor = (function(editor) {
 			widget.setText(newName);
 		},
 		
-		finishLayout : function() {
+		layout : function() {
 			this.container = this.list = 
 				this.config.type == editor.ui.ListType.UNORDERED ?
 				jQuery('<ul class="listWidget"></ul>') : 
@@ -140,7 +140,7 @@ var editor = (function(editor) {
 			}
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this.container = jQuery('<div></div>');
 		},
 		
@@ -188,11 +188,10 @@ var editor = (function(editor) {
 			this._super(newOpts);
 		},
 						
-		finishLayout: function() {
-			var btnDiv = jQuery('<div class="buttonContainer"></div>'),
-				wgt = this;
+		layout: function() {
+			this._super();
 			
-			this.container = jQuery('<div></div>');
+			var btnDiv = jQuery('<div class="buttonContainer"></div>');
 			this.title = jQuery('<span></span>');
 			
 			if (this.config.editable) {
