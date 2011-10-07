@@ -31,7 +31,7 @@ var editor = (function(editor) {
 			this.currentElement = null;
 		},
 		
-		finishLayout : function() {
+		layout : function() {
 			var wgt = this,
 				hideFromMouse = function() {
 					if (!wgt.isAnimating) {

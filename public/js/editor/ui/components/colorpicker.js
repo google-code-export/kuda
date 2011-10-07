@@ -32,7 +32,7 @@ var editor = (function(module) {
 			this._super(newOpts);
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			// initialize container
 			this.container = jQuery('<div></div>');
 			this.container.addClass(this.config.containerClass);

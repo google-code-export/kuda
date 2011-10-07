@@ -125,7 +125,7 @@
 			this._super();
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this.container = jQuery('<div class="objectPicker"></div>');
 						
 			var argName = this.argName,
@@ -182,19 +182,19 @@
 				},			
 				ip = jQuery('<input type="text" class="treeSelectorIpt" id="objPkr_' + argName + '"></input>'),
 				cb = jQuery('<button class="treeSelectorBtn dialogBtn">Citizens</button>');
-				
-	            this.container.append(ip).append(cb);
-				
-				ip.data('widget', this).bind('click', toggleFcn);		
-				cb.bind('click', toggleFcn);
-				
-				this.input = ip;
-				
-				if (this.cannotFilter) {
-					this.input.val('none available');
-					cb.attr('disabled', 'disabled');
-					ip.attr('disabled', 'disabled');
-				}
+			
+            this.container.append(ip).append(cb);
+			
+			ip.data('widget', this).bind('click', toggleFcn);		
+			cb.bind('click', toggleFcn);
+			
+			this.input = ip;
+			
+			if (this.cannotFilter) {
+				this.input.val('none available');
+				cb.attr('disabled', 'disabled');
+				ip.attr('disabled', 'disabled');
+			}
 		},
 		
 		getValue: function() {

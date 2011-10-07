@@ -414,7 +414,7 @@
 			});
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			var form = this.find('form'),
@@ -965,7 +965,7 @@
 			this.transform = null;
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			var manipBtns = this.getUI().find('#boxTranslate, #boxScale'),

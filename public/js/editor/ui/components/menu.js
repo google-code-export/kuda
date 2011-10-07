@@ -44,7 +44,7 @@ var editor = (function(editor) {
 			this.upClass = newOpts.stateUpClass;
 	    },
 		
-		finishLayout: function() {
+		layout: function() {
 	        this.container = jQuery('<a></a>');
 	        
 	        if (this.config.title) {
@@ -149,7 +149,7 @@ var editor = (function(editor) {
 			}
 		},
 		
-		finishLayout: function() {	
+		layout: function() {	
 			this.container = jQuery('<div class="uiMenu"></div>');
 			this.titleLink = jQuery('<span></span>');
 	        this.list = jQuery('<ul></ul>');

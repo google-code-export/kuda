@@ -39,7 +39,7 @@ var editor = (function(editor) {
 			this._super(newOpts);
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			var wgt = this;
 			
 			if (this.config.container) {

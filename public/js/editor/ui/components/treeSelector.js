@@ -38,7 +38,7 @@ var editor = (function(module) {
 			this._super(newOpts);
 		},
 		
-		finishLayout: function() {			
+		layout: function() {			
 			var wgt = this,
 				
 				toggleFcn = function(evt) {

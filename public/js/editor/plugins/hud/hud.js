@@ -272,7 +272,7 @@
 			});	
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			this.tree = jQuery('<div id="hudTree"></div>');
@@ -476,7 +476,7 @@
 			});	
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			var wgt = this,

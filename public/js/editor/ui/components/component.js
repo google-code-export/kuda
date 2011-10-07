@@ -19,12 +19,9 @@ var editor = (function(module) {
 	module.ui = module.ui || {};
 	
 	module.ui.ComponentDefaults = {
-		id: '',
-		immediateLayout: true,
 		uiFile: null,
 		showOptions: null,
-		hideOptions: null,
-		finishLayout: null
+		hideOptions: null
 	};
 	
 	module.ui.Component = module.utils.Listenable.extend({
@@ -38,48 +35,34 @@ var editor = (function(module) {
 				this.visible = false;
 			}
 			
-			if (this.config.immediateLayout) {
-				this.layout();
-			}
-		},
-		
-		layout: function() {
 			if (this.config.uiFile && this.config.uiFile !== '') {
 				this.load();
 			}
 			else {
+				this.layout();
 				this.finishLayout();
-				this.layoutDone();
 			}
 		},
 		
-		layoutDone: function() {
-			
+		layout: function() {
+			// Place DOM elements
 		},
 		
 		finishLayout: function() {
-			var layoutFcn = this.config.finishLayout;
-			
-			if (layoutFcn && jQuery.isFunction(layoutFcn)) {
-				layoutFcn.call(this);
-			}
+			// Do any final styling or event binding
 		},
 		
 		load: function() {
 			var cmp = this;
+			this.container = jQuery('<div></div>');
 
 			if (this.config.uiFile && this.config.uiFile !== '') {
 				hemi.loader.loadHtml(this.config.uiFile, function(data) {
 					// clean the string of html comments
 					var cleaned = data.replace(/<!--(.|\s)*?-->/, '');
-					if (cmp.container) {
-						cmp.container.append(jQuery(cleaned));
-					}
-					else {
-						cmp.container = jQuery(cleaned);
-					}
+					cmp.container.append(jQuery(cleaned));
+					cmp.layout();
 					cmp.finishLayout();
-					cmp.layoutDone();
 				});
 			}
 		},

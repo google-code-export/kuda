@@ -169,8 +169,20 @@
 			});
 		},
 		
-		finishLayout: function() {
-			this._super();		
+		layout: function() {
+			this._super();
+			
+			this.form = jQuery('<form method="post"></form>');
+			this.nameInput = jQuery('<input type="text" id="scnName" />');
+			this.addBtn = jQuery('<button id="scnCreate" class="inlineBtn">Add Scene</button>');
+			
+			this.form.append(this.nameInput).append(this.addBtn)
+			.bind('submit', function(evt) {
+				return false;
+			});
+			
+			this.instructions.after(this.form);
+			
 			var wgt = this;	
 			
 			this.list.getUI().bind('sortupdate', function(evt, ui) {
@@ -185,13 +197,6 @@
 					next: next ? next : null
 				});
 			});
-		},
-		
-		layoutExtra: function() {
-			this.form = jQuery('<form method="post"></form>');
-			this.nameInput = jQuery('<input type="text" id="scnName" />');
-			this.addBtn = jQuery('<button id="scnCreate" class="inlineBtn">Add Scene</button>');
-			var wgt = this;
 			
 			this.addBtn.bind('click', function(evt) {
 				var btn = jQuery(this),
@@ -203,11 +208,6 @@
 			})
 			.attr('disabled', 'disabled');
 			
-			this.form.append(this.nameInput).append(this.addBtn)
-			.bind('submit', function(evt) {
-				return false;
-			});
-			
 			this.nameInput.bind('keyup', function(evt) {
 				var elem = jQuery(this);
 				if (elem.val() !== '') {
@@ -216,8 +216,6 @@
 					wgt.addBtn.attr('disabled', 'disabled');
 				}
 			});
-			
-			return this.form;
 		},
 		
 		set: function(scene) {

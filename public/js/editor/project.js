@@ -507,7 +507,7 @@
 			this.versionsHash.put(version, li);
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			
 			// attach the sub lists
@@ -552,8 +552,7 @@
 				instructions: "Click on a project to load it. Click the 'x' to delete.",
 				height: editor.ui.Height.FULL
 			});
-			
-			this.items = new Hashtable();	
+				
 			this.container.addClass('widgetWithForms');
 		},
 			    
@@ -638,7 +637,7 @@
 			});
 		},
 		
-		finishLayout: function() {
+		layout: function() {
 			this._super();
 			var wgt = this,
 				title = jQuery('<h1>World<span>Editor</span></h1>'),
