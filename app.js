@@ -1,77 +1,173 @@
 
-/**
- * Module dependencies.
+/*
+ * Simple web server to serve the Kuda World Editor. It provides asset
+ * management, project management, editor plugin management, and publishing.
+ *
+ * Add new routes to the var routes as a constant and use the convenience
+ * functions for get, post, put, and del for the http verbs.
+ *
+ * NOTES: Asset importing is currently disabled. Windows does not have tar or
+ * zip support out of the box. Currently investigating solutions.
+ *
+ * Requirements:
+ *		node.exe (Windows native)
+ *		node (OS X, Linux)
  */
-var express = require('express'),
-	child = require('child_process'),
+
+var qs = require('querystring'),
+	http = require('http'),
+	//child = require('child_process'),
 	fs = require('fs'),
-	util = require('util'),
-	path = require('path');
+	//util = require('util'),
+	path = require('path'),
+	JSONt = 'application/json',
+	HTMLt = 'text/html',
+	PLAINt = 'text/plain',
 
-var app = module.exports = express.createServer(),
-	projectsPath = 'public/projects',
-	pluginsPath = 'public/js/editor/plugins',
-	assetsPath = 'public/assets',
-	uploadPath = 'public/tmp',
-	procFds = [process.stdin.fd, process.stdout.fd, process.stderr.fd];
+	routes = {
+		ROOT: '/',
+		ROOTANY: '/*',
+		PROJECTS: '/projects',
+		PROJECT: '/project',
+		MODELS: '/models',
+		PLUGINS: '/plugins',
+		PUBLISH: '/publish',
+		rootPath: 'public',
+		pluginsPath: 'public/js/editor/plugins',
+		projectsPath: 'public/projects',
+		assetsPath: 'public/assets',
+		//uploadPath: 'public/tmp',
+		get: function(route, handler) {
+			console.log('...adding GET handler for route ' + route);
+			this.gets[route] = handler;
+		},
+		gets: {},
+		post: function(route, handler) {
+			console.log('...adding POST handler for route ' + route);
+			this.posts[route] = handler;
+		},
+		posts: {},
+		put: function(route, handler) {
+			console.log('...adding PUT handler for route ' + route);
+			this.puts[route] = handler;
+		},
+		puts: {},
+		del: function(route, handler) {
+			console.log('...adding DELETE handler for route ' + route);
+			this.dels[route] = handler;
+		},
+		dels: {},
+		dispatch: function(req, res) {
+			var url = req.reqPath;
 
-// Configuration
+			switch (req.method) {
+			case "GET":
+				if (this.gets[url]) {
+					this.gets[url](req, res);
+				} else {
+					this.gets['/*'](req, res);
+				}
+				break;
+			case "POST":
+				if (this.posts[url]) {
+					this.posts[url](req, res);
+				} else {
+					console.log('unknown POST route ' + url);
+				}
+				break;
+			case "PUT":
+				if (this.puts[url]) {
+					this.puts[url](req, res);
+				} else {
+					console.log('unknown PUT route ' + url);
+				}
+				break;
+			case "DELETE":
+				if (this.dels[url]) {
+					this.dels[url](req, res);
+				} else {
+					console.log('unknown DELETE route ' + url);
+				}
+				break;
+			default:
+				console.log('unknown request method ' + req.method);
+			}
+		}
+	};
 
-app.configure(function(){
-//    app.set('views', __dirname + '/views');
-//    app.set('view engine', 'jade');
-//	app.use(form({ keepExtensions: true }));
-    app.use(express.bodyParser());
-    app.use(express.methodOverride());
-    app.use(express.cookieParser());
-    app.use(express.session({
-        secret: 'your secret here'
-    }));
-//    app.use(express.compiler({
-//        src: __dirname + '/public',
-//        enable: ['sass']
-//    }));
-    app.use(app.router);
-    app.use(express.static(__dirname + '/public'));
+http.createServer(function (hreq, hres) {
+	var pltqs = getPathLessTheQueryString(hreq.url),
+		req = {
+			url: hreq.url,
+			method: hreq.method,
+			headers: hreq.headers,
+			body: '',
+			xhr: hreq.headers['x-requested-with'] == 'XMLHttpRequest',
+			reqPath: decodeURIComponent(pltqs),
+			contentType: req2ContentType(pltqs),
+			queryString: getTheQueryString(hreq.url),
+			param: undefined,
+			httpReq: hreq,
+		},
+		res = {
+			httpRes: hres,
+			send: function(data, status, contentType) {
+				this.httpRes.writeHead(status, { 'Content-Type': contentType });
+				this.httpRes.end(data);
+			}
+		};
+
+        hreq
+	        .on('data', function (data) {
+	            req.body += data;
+	        })
+	        .on('end', function () {
+	        	req.param = qs.parse(req.queryString == '' ? req.body : req.queryString);
+				routes.dispatch(req, res);
+			});
+}).listen(3000, "127.0.0.1");
+console.log('Kuda server running at http://localhost:3000/');
+
+routes.get(routes.ROOT, function(req, res) {
+	console.log('...handling route GET ' + routes.ROOT);
+	var data = fs.readFileSync(routes.rootPath + '/index.html');
+	res.send(data, 200, HTMLt);
 });
 
-app.configure('development', function(){
-    app.use(express.errorHandler({
-        dumpExceptions: true,
-        showStack: true
-    }));
+routes.get(routes.ROOTANY, function(req, res) {
+	console.log('...handling route GET ' + routes.ROOTANY + ' for ' + req.reqPath);
+
+	var status = 404;
+		data = '';
+
+	if (path.existsSync(routes.rootPath + req.reqPath)) {
+		status = 200;
+		data = fs.readFileSync(routes.rootPath + req.reqPath);
+	}
+
+	res.send(data, status, req.contentType);
 });
 
-app.configure('production', function(){
-    app.use(express.errorHandler());
-});
+routes.get(routes.PROJECTS, function(req, res) {
+	console.log('...handling route GET ' + routes.PROJECTS);
 
-// Routes
-
-//app.get('/', function(req, res){
-//  res.render('index', {
-//    title: 'Express'
-//  });
-//});
-
-app.get('/projects', function(req, res) {
 	if (req.xhr) {
 		var data = {
 			projects: []
 		};
-		
-		if (!path.existsSync(projectsPath)) {
-			fs.mkdirSync(projectsPath, 0755);
+
+		if (!path.existsSync(routes.projectsPath)) {
+			fs.mkdirSync(routes.projectsPath, 0755);
 		} else {
-			var files = fs.readdirSync(projectsPath);
-			
+			var files = fs.readdirSync(routes.projectsPath);
+
 			for (var i = 0, il = files.length; i < il; i++) {				
 				var file = files[i];
 				
 				if (file.match('.json')) {
 					file = file.split('.')[0];
 					
-					var published = projectsPath + '/' + file + '.html',
+					var published = routes.projectsPath + '/' + file + '.html',
 						pData = {
 							name: file,
 							published: path.existsSync(published)
@@ -81,90 +177,223 @@ app.get('/projects', function(req, res) {
 				}
 			}
 		}
-		
-		res.send(data, 200);		
+
+		res.send(JSON.stringify(data), 200, JSONt);
+	} else {
+		res.send('{}\n', 200, JSONt);
 	}
 });
 
-app.post('/project', function(req, res) {	
-	if (req.xhr) {		
-		if (!path.existsSync(projectsPath)) {
-			fs.mkdirSync(projectsPath, 0755);
+routes.get(routes.PROJECT, function(req, res) {
+	console.log('...handling route GET ' + routes.PROJECT);
+
+	if (req.xhr) {
+		var name = req.param['name'] + '.json',
+			filePath = routes.projectsPath + '/' + name;
+
+		if (path.existsSync(filePath)) {
+			var data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+			res.send(JSON.stringify(data), 200, JSONt);
+		} else {
+			res.send('', 404, PLAINt);
 		}
-		
-		var defName = 'project',			
-			name = req.param('name', defName) + '.json',
-			replace = req.param('replace') == 'true',
-			filePath = projectsPath + '/' + name;
-		
+	} else {
+		res.send('{}\n', 200, JSONt);
+	}
+});
+
+routes.post(routes.PROJECT, function(req, res) {
+	console.log('...handling route POST ' + routes.PROJECT);
+
+	if (req.xhr) {
+		if (!path.existsSync(routes.projectsPath)) {
+			fs.mkdirSync(routes.projectsPath, 0755);
+		}
+
+		var defName = 'project',
+			param = req.param,
+			name = (param['name'] || defName) + '.json',
+			replace = param['replace'] == 'true',
+			filePath = routes.projectsPath + '/' + name;
+
 		if (path.existsSync(filePath) && !replace) {
 			var oldData = {
-				name: req.param('name'),
-				octane: req.param('octane')
+				name: param['name'],
+				octane: param['octane']
 			};
-			
-			res.send({
+
+			res.send(JSON.stringify({
 				errType: 'fileExists',
 				errData: oldData,
 				errMsg: 'File by that name already exists'
-			}, 400);
-		}
-		else {
-			var input = req.param('octane');
-			
+			}), 400, JSONt);
+		} else {
+			var input = param['octane'];
+
 			fs.writeFileSync(filePath, input);
-			res.send({
+			res.send(JSON.stringify({
 				name: name
-			}, 200);
+			}), 200, JSONt);
 		}
+	} else {
+		res.send('{}\n', 200, JSONt);
 	}
 });
 
-app.get('/project', function(req, res) {
-	if (req.xhr) {
-		var name = req.param('name') + '.json',
-			filePath = projectsPath + '/' + name;
-		
-		if (path.existsSync(filePath)) {			
-			var data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-			res.send(data, 200);
-		}
-		else {
-			res.send('File named ' + name + ' does not exist', 400);
-		}
-	}
-});
+routes.del(routes.PROJECT, function(req, res) {
+	console.log('...handling route DELETE ' + routes.PROJECT);
 
-app.del('/project', function(req, res) {
 	if (req.xhr) {
-		var name = req.param('name'),
-			filePath = projectsPath + '/' + name + '.json';
-			
+		var name = req.param['name'],
+			filePath = routes.projectsPath + '/' + name + '.json';
+
 		if (path.existsSync(filePath)) {
 			fs.unlinkSync(filePath);
-			res.send({
+			res.send(JSON.stringify({
 				name: name,
 				msg: 'Successfully removed ' + name
-			}, 200);
+			}), 200, JSONt);
+		} else {
+			res.send('', 404, JSONt);
 		}
-		else {
-			res.send('File named ' + name + ' does not exist', 400);
-		}
+	} else {
+		res.send('{}\n', 200, JSONt);
 	}
 });
 
-app.get('/plugins', function(req, res) {
+routes.get(routes.MODELS, function(req, res) {
+	console.log('...handling route GET ' + routes.MODELS);
+
+	var data = {
+		models: []
+	};
+	
+	if (!path.existsSync(routes.assetsPath)) {
+		fs.mkdirSync(routes.assetsPath, 0755);
+	} else {
+		var files = fs.readdirSync(routes.assetsPath),
+			urlDir = 'assets/';
+		
+		for (var i = 0, il = files.length; i < il; i++) {				
+			var file = files[i],
+				dir = routes.assetsPath + '/' + file,
+				mDir = urlDir + file,
+				stat = fs.statSync(dir);
+			
+			if (stat.isDirectory()) {
+				var mFiles = fs.readdirSync(dir),
+					mData = {
+						name: file
+					},
+					found = false;
+				
+				for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
+					var mFile = mFiles[j];
+					
+					if (mFile.match('.json')) {
+						mData.url = mDir + '/' + mFile;
+						found = true;
+					}
+				}
+				
+				if (found) {
+					data.models.push(mData);
+				}
+			}
+		}
+	}
+
+	res.send(JSON.stringify(data), 200, JSONt);
+});
+
+// TODO: Support model import without using tar, use zip and unzip?
+routes.post('/model', function(req, res) {
+	console.log('...handling route post /model');
+
+    if (req.xhr && req.headers['content-type'] == 'application/octet-stream') {
+		// if (!path.existsSync(uploadPath)) {
+		// 	fs.mkdirSync(uploadPath, 0755);
+		// }
+
+ 		// var fName = req.header('x-file-name'), 
+		// 	fSize = req.header('x-file-size'), 
+		// 	fType = req.header('x-file-type'), 
+		// 	tmpFile = uploadPath + '/' + fName,
+		// 	toDir = assetsPath + '/' + fName.split('.').shift(),
+		// 	origDir = toDir,
+		// 	ws = fs.createWriteStream(tmpFile),
+		// 	ext = fName.split('.').pop(),
+		// 	counter = 0;
+			
+		// req.on('data', function(data){
+		// 	ws.write(data);
+		// });
+        
+		// if (ext === 'o3dtgz' || ext === 'tgz' || ext === 'zip') {
+			
+		// 	while (path.existsSync(toDir)) {
+		// 		toDir = origDir + counter++;
+		// 	}
+		// 	fs.mkdirSync(toDir, 0755);
+			
+		// 	var tarChild = child.spawn('tar', ['-C', toDir, '-xzf', tmpFile], {
+		// 		customFds: procFds
+		// 	});
+			
+		// 	tarChild.on('exit', function(code){
+		// 		if (code === 0) {
+		// 			// Clean up the temp file
+		// 			fs.unlinkSync(tmpFile);
+					
+		// 			var mFiles = fs.readdirSync(toDir), 
+		// 				found = false, 
+		// 				retVal = {}, 
+		// 				urlDir = toDir.split('/');
+					
+		// 			urlDir.shift();
+					
+		// 			for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
+		// 				var mFile = mFiles[j];
+						
+		// 				if (mFile.match('.json')) {
+		// 					retVal.name = urlDir[urlDir.length - 1];
+		// 					retVal.url = urlDir.join('/') + '/' + mFile;
+		// 					found = true;
+		// 				}
+		// 			}
+					
+		// 			res.send(retVal, 200);
+		// 		}
+		// 		else {
+		// 			res.send('Failed to upload file', 300);
+		// 			fs.unlinkSync(tmpFile);
+		// 		}
+		// 	});
+		// } else {			
+		// 	res.send('File must be an archive file', 300);
+		// 	fs.unlinkSync(tmpFile);
+		// }
+
+		res.send('{}\n', 200, JSONt);
+    } else {
+		res.send('{}\n', 200, JSONt);
+    }
+});
+
+routes.get(routes.PLUGINS, function(req, res) {
+	console.log('...handling route GET ' + routes.PLUGINS);
+
 	if (req.xhr) {
 		var data = {
 			plugins: []
 		};
 		
-		if (path.existsSync(pluginsPath)) {
-			var files = fs.readdirSync(pluginsPath);
+		if (path.existsSync(routes.pluginsPath)) {
+			var files = fs.readdirSync(routes.pluginsPath);
 			
 			for (var i = 0, il = files.length; i < il; i++) {				
 				var file = files[i],	
-					dir = pluginsPath + '/' + file,
+					dir = routes.pluginsPath + '/' + file,
 					stat = fs.statSync(dir);
 				
 				if (stat.isDirectory()) {
@@ -186,178 +415,121 @@ app.get('/plugins', function(req, res) {
 			}
 		}
 		
-		res.send(data, 200);		
-	}
-});
-
-app.post('/plugins', function(req, res) {
-	if (req.xhr) {		
-		if (!path.existsSync(pluginsPath)) {
-			fs.mkdirSync(pluginsPath, 0755);
-		}
-		
-		var plugins = req.param('plugins', { 'plugins': [] }),
-			filePath = pluginsPath + '/plugins.json';
-		
-		fs.writeFileSync(filePath, plugins);
-		res.send({
-			msg: 'Initial plugins updated'
-		}, 200);
-	}
-});
-
-app.get('/models', function(req, res) {
-	var data = {
-		models: []
-	};
-	
-	if (!path.existsSync(assetsPath)) {
-		fs.mkdirSync(assetsPath, 0755);
+		res.send(JSON.stringify(data), 200, JSONt);
 	} else {
-		var files = fs.readdirSync(assetsPath),
-			urlDir = 'assets/';
-		
-		for (var i = 0, il = files.length; i < il; i++) {				
-			var file = files[i],
-				dir = assetsPath + '/' + file,	
-				mDir = urlDir + file,				
-				stat = fs.statSync(dir);
-			
-			if (stat.isDirectory()) {
-				var mFiles = fs.readdirSync(dir),
-					mData = {
-						name: file
-					},
-					found = false;
-				
-				for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
-					var mFile = mFiles[j];
-					
-					if (mFile.match('.json')) {
-						mData.url = mDir + '/' + mFile;
-						found = true;
-					}
-				}
-				
-				if (found) {
-					data.models.push(mData);
-				}	
-			}
-		}
+		res.send('{}\n', 200, JSONt);
 	}
-	
-	res.send(data, 200);
 });
 
-app.post('/model', function(req, res) {
-    if (req.xhr && req.header('content-type') === 'application/octet-stream') {
-		if (!path.existsSync(uploadPath)) {
-			fs.mkdirSync(uploadPath, 0755);
+routes.post(routes.PLUGINS, function(req, res) {
+	console.log('...handling route POST ' + routes.PLUGINS);
+
+	if (req.xhr) {		
+		if (!path.existsSync(routes.pluginsPath)) {
+			fs.mkdirSync(routes.pluginsPath, 0755);
 		}
 		
-        var fName = req.header('x-file-name'), 
-			fSize = req.header('x-file-size'), 
-			fType = req.header('x-file-type'), 
-			tmpFile = uploadPath + '/' + fName,
-			toDir = assetsPath + '/' + fName.split('.').shift(),
-			origDir = toDir,
-			ws = fs.createWriteStream(tmpFile),
-			ext = fName.split('.').pop(),
-			counter = 0;
-			
-		req.on('data', function(data){
-			ws.write(data);
-		});
-        
-		if (ext === 'o3dtgz' || ext === 'tgz' || ext === 'zip') {
-			
-			while (path.existsSync(toDir)) {
-				toDir = origDir + counter++;
-			}
-			fs.mkdirSync(toDir, 0755);
-			
-			var tarChild = child.spawn('tar', ['-C', toDir, '-xzf', tmpFile], {
-				customFds: procFds
-			});
-			
-			tarChild.on('exit', function(code){
-				if (code === 0) {
-					// Clean up the temp file
-					fs.unlinkSync(tmpFile);
-					
-					var mFiles = fs.readdirSync(toDir), 
-						found = false, 
-						retVal = {}, 
-						urlDir = toDir.split('/');
-					
-					urlDir.shift();
-					
-					for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
-						var mFile = mFiles[j];
-						
-						if (mFile.match('.json')) {
-							retVal.name = urlDir[urlDir.length - 1];
-							retVal.url = urlDir.join('/') + '/' + mFile;
-							found = true;
-						}
-					}
-					
-					res.send(retVal, 200);
-				}
-				else {
-					res.send('Failed to upload file', 300);
-					fs.unlinkSync(tmpFile);
-				}
-			});
-		}
-		else {			
-			res.send('File must be an archive file', 300);
-			fs.unlinkSync(tmpFile);
-		}
-    }
+		var plugins = req.param['plugins'] || { 'plugins': [] },
+			filePath = routes.pluginsPath + '/plugins.json';
+
+		fs.writeFileSync(filePath, plugins);
+		res.send(JSON.stringify({
+			msg: 'Initial plugins updated'
+		}), 200, JSONt);
+	} else {
+		res.send('{}\n', 200, JSONt);
+	}
 });
 
-app.post('/publish', function(req, res) {
-	if (req.isXMLHttpRequest) {
-		var name = req.param('name'),
-			models = req.param('models'),
-			filePath = projectsPath + '/' + name + '.html',
+routes.post(routes.PUBLISH, function(req, res) {
+	console.log('...handling route POST ' + routes.PUBLISH);
+
+	if (req.xhr) {
+		var name = req.param['name'],
+			models = req.param['models'],
+			filePath = routes.projectsPath + '/' + name + '.html',
 			content = fs.readFileSync('PublishTemplate.html', 'utf8'),
 			readme = fs.readFileSync('PublishReadMe', 'utf8'),
 			start = content.indexOf('<!DOCTYPE');
-		
+
 		content = content.substr(start);
 		fs.writeFileSync(filePath,
 			content.replace(/%PROJECT%/g, 'projects/' + name)
 				.replace(/%LOAD%/g, '..').replace(/%SCRIPT%/g, '../js'));
 		
-		// Create the published package
-		var toDir = projectsPath + '/' + name;
-		var stat = fs.statSync(projectsPath);
+		// Create the published package directory
+		var toDir = routes.projectsPath + '/' + name;
+		var stat = fs.statSync(routes.projectsPath);
 		fs.mkdirSync(toDir, stat.mode);
 		fs.mkdirSync(toDir + '/assets', stat.mode);
 		fs.mkdirSync(toDir + '/lib', stat.mode);
 		copyFile('./public/js/hemi.min.js', toDir);
 		copyFile('./public/js/o3d.min.js', toDir);
 		copyFile('./public/js/lib/jshashtable.min.js', toDir + '/lib');
-		copyFile(projectsPath + '/' + name + '.json', toDir);
+		copyFile(routes.projectsPath + '/' + name + '.json', toDir);
 		fs.writeFileSync(toDir + '/README', readme.concat(models));
 		fs.writeFileSync(toDir + '/' + name + '.html',
 			content.replace(/%PROJECT%/g, name).replace(/%LOAD%/g, '.')
 				.replace(/%SCRIPT%/g, '.'));
-		
-		// Compress the package and remove the files
-		var tarChild = child.spawn('tar', ['-czf', name + '.tgz', name],
-			{cwd: projectsPath});
-		
-		tarChild.on('exit', function (code) {
-			removeFiles(toDir);
-			res.send({
-				name: name + '.html'
-			}, code === 0 ? 200 : 500);
-		});
+		res.send(JSON.stringify({
+			name: name + '.html'
+		}), 200, HTMLt);
 	}
 });
+
+function getPathLessTheQueryString(url) {
+	return url.indexOf('?') === -1 ? url : url.substring(0, url.indexOf('?'));
+}
+
+function getTheQueryString(url) {
+	return url.indexOf('?') === -1 ? '' : url.slice(url.indexOf('?') + 1);
+}
+
+function req2ContentType(urlLessQueryString) {
+	var at = urlLessQueryString.lastIndexOf('.'),
+		fileType = at === -1 ? '.html' : urlLessQueryString.slice(at),
+		contentType;
+
+	switch (fileType) {
+	case '.css':
+		contentType = 'text/css';
+		break;
+	case '.js':
+		contentType = 'text/javascript';
+		break;
+	case '.html':
+		contentType = HTMLt;
+		break;
+	case '.htm':
+		contentType = HTMLt;
+		break;
+	case '.txt':
+		contentType = PLAINt;
+		break;
+	case '.json':
+		contentType = JSONt;
+		break;
+	case '.png':
+		contentType = 'image/png';
+		break;
+	case '.jpeg':
+		contentType = 'image/jpeg';
+		break;
+	case '.jpg':
+		contentType = 'image/jpeg';
+		break;
+	case '.gif':
+		contentType = 'image/gif';
+		break;
+	case '.ico':
+		contentType = 'image/x-icon';
+		break;
+	default:
+		console.log('unknown content type for ' + fileType);
+	}
+
+	return contentType;
+}
 
 var copyFile = function(srcFile, dstDir) {
 	var data = fs.readFileSync(srcFile),
@@ -365,65 +537,3 @@ var copyFile = function(srcFile, dstDir) {
 	fs.writeFileSync(newFile, data);
 };
 
-var copyFiles = function(fromDir, toDir) {
-	var files = [],
-		dirs = [];
-	
-	getDirContents(fromDir, files, dirs);
-	
-	if (!path.existsSync(toDir)) {
-		var stat = fs.statSync(fromDir);
-		fs.mkdirSync(toDir, stat.mode);
-	}
-	
-	for (var i = 0, il = files.length; i < il; i++) {
-		copyFile(files[i], toDir);
-	}
-	
-	for (var i = 0, il = dirs.length; i < il; i++) {
-		var dir = '/' + path.basename(dirs[i]);
-		copyFiles(fromDir + dir, toDir + dir);
-	}
-};
-
-var getDirContents = function(dir, files, dirs) {
-	var dirFiles = fs.readdirSync(dir);
-	
-	for (var i = 0, il = dirFiles.length; i < il; i++) {
-		var file = dirFiles[i],
-			fPath = path.resolve(dir, file),
-			stat = fs.statSync(fPath);
-		
-		if (stat.isDirectory()) {
-			dirs.push(fPath);
-		} else if (stat.isFile()) {
-			files.push(fPath);
-		}
-	}
-};
-
-var removeFiles = function(dir) {
-	var files = [],
-		dirs = [];
-	
-	getDirContents(dir, files, dirs);
-	
-	for (var i = 0, il = dirs.length; i < il; i++) {
-		var subDir = '/' + path.basename(dirs[i]);
-		removeFiles(dir + subDir);
-	}
-	
-	for (var i = 0, il = files.length; i < il; i++) {
-		fs.unlinkSync(files[i]);
-	}
-	
-	fs.rmdirSync(dir);
-};
-
-
-// Only listen on $ node app.js
-
-if (!module.parent) {
-    app.listen(3000);
-    console.log("Express server listening on port %d", app.address().port);
-}
