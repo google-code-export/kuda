@@ -136,21 +136,21 @@ var editor = (function(module) {
 								elem.css({ zIndex: layer });	
 							}
 							else {
+								// popups in the wrong place due to the button 
+								// being hidden at first
+								var left = win.position.x == 'left' ? (btn.offset().left - 530 - (win.position.y == 'center' ? 25 : 0)) :
+										win.position.x == 'center' ? (btn.offset().left - 260) :
+										win.position.x == 'right' ? (btn.offset().left - 10 + (win.position.y == 'center' ? 25 : 0)) :
+										win.position.x == 'screenCenter' ? (($(document).width() >> 1) - 260) : (btn.offset().left + parseInt(win.position.x)),
+									top = win.position.y == 'top' ? (btn.offset().top - 312) :
+										win.position.y == 'center' ? (btn.offset().top - 156) :
+										win.position.y == 'bottom' ? (btn.offset().top + 25) : (btn.offset().top + parseInt(win.position.y));
+								
 								elem.css({ 
 									zIndex: layer + 1,
-								
-									// popups in the wrong place due to the button 
-									// being hidden at first
-									
-									left:
-										win.position.x == 'left' ? (btn.offset().left - 530 - (win.position.y == 'center' ? 25 : 0)) + 'px' :
-										win.position.x == 'center' ? (btn.offset().left - 260) + 'px' :
-										win.position.x == 'right' ? (btn.offset().left - 10 + (win.position.y == 'center' ? 25 : 0)) + 'px' :
-										win.position.x == 'screenCenter' ? (($(document).width() >> 1) - 260) + 'px' : (btn.offset().left + parseInt(win.position.x)) + 'px',
+									left: Math.max(left, 0) + 'px',
 									position: 'absolute',
-									top: win.position.y == 'top' ? (btn.offset().top - 312) + 'px' :
-										win.position.y == 'center' ? (btn.offset().top - 156) + 'px' :
-										win.position.y == 'bottom' ? (btn.offset().top + 25) + 'px' : (btn.offset().top + parseInt(win.position.y)) + 'px'
+									top: Math.max(top, 0) + 'px'
 								});
 								 
 							}
