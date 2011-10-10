@@ -25,33 +25,23 @@
 			if (view.toolTitle.match(/Project|project/) != null) {
 				return;
 			}
+							
+			var widgets = view.sidePanel ? view.sidePanel.widgets : [],
+				bhvWgt = null;
 			
-			var panels = view.panels,
-				done = false;
+			for (var k = 0, kl = widgets.length; k < kl; k++) {
+				var widget = widgets[k];
 				
-			for (var j = 0, jl = panels.length; j < jl && !done; j++) {
-				var widgets = panels[j].widgets;
-				
-				for (var k = 0, kl = widgets.length; k < kl && !done; k++) {
-					var widget = widgets[k];
-					
-					if (widget instanceof editor.ui.ListWidget) {
-						var bhvWgt = shorthand.createBehaviorWidget({
+				if (widget instanceof editor.ui.ListWidget) {
+					if (bhvWgt == null) {
+						bhvWgt = shorthand.createBehaviorWidget({
 							height: editor.ui.Height.FULL
 						});
+						
 						bhvWgt.addListener(shorthand.events.CreateBehavior, bhvMdl);
 						bhvWgt.addListener(shorthand.events.UpdateBehavior, bhvMdl);
-						
-						// add the behavior widget
-						view.sidePanel.addWidget(bhvWgt);
-						
-						// replace the createListItem method
-						widget.behaviorWidget = bhvWgt;
-						widget.createListItem = function() {
-							return new shorthand.BhvListItem(this.behaviorWidget);
-						};
-						
 						bhvWgt.parentPanel = view.sidePanel;
+					
 						bhvWgt.addListener(editor.events.WidgetVisible, function(obj) {
 							var thisWgt = obj.widget,
 								wgts = thisWgt.parentPanel.widgets;
@@ -71,9 +61,16 @@
 								bhvWgt.checkRestrictions();
 							}
 						});
-						
-						done = true;
 					}
+					
+					// add the behavior widget
+					view.sidePanel.addWidget(bhvWgt);
+					
+					// replace the createListItem method
+					widget.behaviorWidget = bhvWgt;
+					widget.createListItem = function() {
+						return new shorthand.BhvListItem(this.behaviorWidget);
+					};
 				}
 			}
 		},

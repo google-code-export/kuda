@@ -35,6 +35,8 @@ var editor = (function(editor) {
 		
 		Enabled: 'editor.Enabled',
 		
+		Loaded: 'editor.Loaded',
+		
 		MenuItemClicked: 'editor.MenuItemClicked',
 		
 		ModelAdded: 'editor.ModelAdded',
