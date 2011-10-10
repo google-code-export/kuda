@@ -135,7 +135,7 @@ var hemi = (function(hemi) {
 				this.stop();
 			}
 			
-			hemi.world.Citizen.prototype.cleanup.call(this);
+			this._super();
 			this.target = null;
 			this.loops = [];
 		},
@@ -146,7 +146,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the Animation
 		 */
 		toOctane: function(){
-			var octane = hemi.world.Citizen.prototype.toOctane.call(this);
+			var octane = this._super();
 			
 			octane.props.push({
 				name: 'target',
