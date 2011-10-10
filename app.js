@@ -13,16 +13,15 @@
  *		node.exe (Windows native)
  *		node (OS X, Linux)
  */
-
 var qs = require('querystring'),
 	http = require('http'),
-	//child = require('child_process'),
 	fs = require('fs'),
-	//util = require('util'),
 	path = require('path'),
 	JSONt = 'application/json',
 	HTMLt = 'text/html',
 	PLAINt = 'text/plain',
+	opt_quiet = false,
+	opt_repl = false, 
 
 	routes = {
 		ROOT: '/',
@@ -38,22 +37,22 @@ var qs = require('querystring'),
 		assetsPath: 'public/assets',
 		//uploadPath: 'public/tmp',
 		get: function(route, handler) {
-			console.log('...adding GET handler for route ' + route);
+			log('...adding GET handler for route ' + route);
 			this.gets[route] = handler;
 		},
 		gets: {},
 		post: function(route, handler) {
-			console.log('...adding POST handler for route ' + route);
+			log('...adding POST handler for route ' + route);
 			this.posts[route] = handler;
 		},
 		posts: {},
 		put: function(route, handler) {
-			console.log('...adding PUT handler for route ' + route);
+			log('...adding PUT handler for route ' + route);
 			this.puts[route] = handler;
 		},
 		puts: {},
 		del: function(route, handler) {
-			console.log('...adding DELETE handler for route ' + route);
+			log('...adding DELETE handler for route ' + route);
 			this.dels[route] = handler;
 		},
 		dels: {},
@@ -72,70 +71,66 @@ var qs = require('querystring'),
 				if (this.posts[url]) {
 					this.posts[url](req, res);
 				} else {
-					console.log('unknown POST route ' + url);
+					log('unknown POST route ' + url);
 				}
 				break;
 			case "PUT":
 				if (this.puts[url]) {
 					this.puts[url](req, res);
 				} else {
-					console.log('unknown PUT route ' + url);
+					log('unknown PUT route ' + url);
 				}
 				break;
 			case "DELETE":
 				if (this.dels[url]) {
 					this.dels[url](req, res);
 				} else {
-					console.log('unknown DELETE route ' + url);
+					log('unknown DELETE route ' + url);
 				}
 				break;
 			default:
-				console.log('unknown request method ' + req.method);
+				log('unknown request method ' + req.method);
 			}
+		}
+	},
+	log = function(msg) {
+		if (!opt_quiet) {
+			console.log(msg);
 		}
 	};
 
-http.createServer(function (hreq, hres) {
-	var pltqs = getPathLessTheQueryString(hreq.url),
-		req = {
-			url: hreq.url,
-			method: hreq.method,
-			headers: hreq.headers,
-			body: '',
-			xhr: hreq.headers['x-requested-with'] == 'XMLHttpRequest',
-			reqPath: decodeURIComponent(pltqs),
-			contentType: req2ContentType(pltqs),
-			queryString: getTheQueryString(hreq.url),
-			param: undefined,
-			httpReq: hreq,
-		},
-		res = {
-			httpRes: hres,
-			send: function(data, status, contentType) {
-				this.httpRes.writeHead(status, { 'Content-Type': contentType });
-				this.httpRes.end(data);
-			}
-		};
+if (process.argv.length > 2) {
+	var ndx = 2;
 
-        hreq
-	        .on('data', function (data) {
-	            req.body += data;
-	        })
-	        .on('end', function () {
-	        	req.param = qs.parse(req.queryString == '' ? req.body : req.queryString);
-				routes.dispatch(req, res);
-			});
-}).listen(3000, "127.0.0.1");
-console.log('Kuda server running at http://localhost:3000/');
+	// Check for flags
+	while (process.argv[ndx] && process.argv[ndx].charAt(0) === '-') {
+		var flag = process.argv[ndx++];
+
+		switch (flag) {
+		case '-q':
+			opt_quiet = true;
+			break;
+		case '-i':
+			opt_repl = true;
+			break;
+		default:
+			console.log('Usage: ' + process.argv[0] + ' ' + path.basename(process.argv[1]) + ' [OPTIONS]');
+			console.log(' -q quiet, no logging to the console');
+			console.log(' -i interactive, start with a node repl console');
+			console.log(' -h help, show the usage');
+			process.exit(0);
+		}
+	}
+}
 
 routes.get(routes.ROOT, function(req, res) {
-	console.log('...handling route GET ' + routes.ROOT);
+	log('...handling route GET ' + routes.ROOT);
 	var data = fs.readFileSync(routes.rootPath + '/index.html');
 	res.send(data, 200, HTMLt);
 });
 
 routes.get(routes.ROOTANY, function(req, res) {
-	console.log('...handling route GET ' + routes.ROOTANY + ' for ' + req.reqPath);
+	log('...handling route GET ' + routes.ROOTANY + ' for ' + req.reqPath);
 
 	var status = 404;
 		data = '';
@@ -149,7 +144,7 @@ routes.get(routes.ROOTANY, function(req, res) {
 });
 
 routes.get(routes.PROJECTS, function(req, res) {
-	console.log('...handling route GET ' + routes.PROJECTS);
+	log('...handling route GET ' + routes.PROJECTS);
 
 	if (req.xhr) {
 		var data = {
@@ -185,7 +180,7 @@ routes.get(routes.PROJECTS, function(req, res) {
 });
 
 routes.get(routes.PROJECT, function(req, res) {
-	console.log('...handling route GET ' + routes.PROJECT);
+	log('...handling route GET ' + routes.PROJECT);
 
 	if (req.xhr) {
 		var name = req.param['name'] + '.json',
@@ -203,7 +198,7 @@ routes.get(routes.PROJECT, function(req, res) {
 });
 
 routes.post(routes.PROJECT, function(req, res) {
-	console.log('...handling route POST ' + routes.PROJECT);
+	log('...handling route POST ' + routes.PROJECT);
 
 	if (req.xhr) {
 		if (!path.existsSync(routes.projectsPath)) {
@@ -241,7 +236,7 @@ routes.post(routes.PROJECT, function(req, res) {
 });
 
 routes.del(routes.PROJECT, function(req, res) {
-	console.log('...handling route DELETE ' + routes.PROJECT);
+	log('...handling route DELETE ' + routes.PROJECT);
 
 	if (req.xhr) {
 		var name = req.param['name'],
@@ -262,7 +257,7 @@ routes.del(routes.PROJECT, function(req, res) {
 });
 
 routes.get(routes.MODELS, function(req, res) {
-	console.log('...handling route GET ' + routes.MODELS);
+	log('...handling route GET ' + routes.MODELS);
 
 	var data = {
 		models: []
@@ -308,7 +303,7 @@ routes.get(routes.MODELS, function(req, res) {
 
 // TODO: Support model import without using tar, use zip and unzip?
 routes.post('/model', function(req, res) {
-	console.log('...handling route post /model');
+	log('...handling route post /model');
 
     if (req.xhr && req.headers['content-type'] == 'application/octet-stream') {
 		// if (!path.existsSync(uploadPath)) {
@@ -381,7 +376,7 @@ routes.post('/model', function(req, res) {
 });
 
 routes.get(routes.PLUGINS, function(req, res) {
-	console.log('...handling route GET ' + routes.PLUGINS);
+	log('...handling route GET ' + routes.PLUGINS);
 
 	if (req.xhr) {
 		var data = {
@@ -422,7 +417,7 @@ routes.get(routes.PLUGINS, function(req, res) {
 });
 
 routes.post(routes.PLUGINS, function(req, res) {
-	console.log('...handling route POST ' + routes.PLUGINS);
+	log('...handling route POST ' + routes.PLUGINS);
 
 	if (req.xhr) {		
 		if (!path.existsSync(routes.pluginsPath)) {
@@ -442,7 +437,7 @@ routes.post(routes.PLUGINS, function(req, res) {
 });
 
 routes.post(routes.PUBLISH, function(req, res) {
-	console.log('...handling route POST ' + routes.PUBLISH);
+	log('...handling route POST ' + routes.PUBLISH);
 
 	if (req.xhr) {
 		var name = req.param['name'],
@@ -487,8 +482,8 @@ function getTheQueryString(url) {
 
 function req2ContentType(urlLessQueryString) {
 	var at = urlLessQueryString.lastIndexOf('.'),
-		fileType = at === -1 ? '.html' : urlLessQueryString.slice(at),
-		contentType;
+		fileType = at === -1 ? '.txt' : urlLessQueryString.slice(at),
+		contentType = PLAINt;
 
 	switch (fileType) {
 	case '.css':
@@ -524,8 +519,11 @@ function req2ContentType(urlLessQueryString) {
 	case '.ico':
 		contentType = 'image/x-icon';
 		break;
+	case '.fx':
+		contentType = PLAINt;
+		break;
 	default:
-		console.log('unknown content type for ' + fileType);
+		log('unknown content type for ' + fileType);
 	}
 
 	return contentType;
@@ -537,3 +535,60 @@ var copyFile = function(srcFile, dstDir) {
 	fs.writeFileSync(newFile, data);
 };
 
+http.createServer(function (hreq, hres) {
+	var pltqs = getPathLessTheQueryString(hreq.url),
+		req = {
+			url: hreq.url,
+			method: hreq.method,
+			headers: hreq.headers,
+			body: '',
+			xhr: hreq.headers['x-requested-with'] == 'XMLHttpRequest',
+			reqPath: decodeURIComponent(pltqs),
+			contentType: req2ContentType(pltqs),
+			queryString: getTheQueryString(hreq.url),
+			param: undefined,
+			httpReq: hreq,
+		},
+		res = {
+			httpRes: hres,
+			send: function(data, status, contentType) {
+				this.httpRes.writeHead(status, { 'Content-Type': contentType });
+				this.httpRes.end(data);
+			}
+		};
+
+        hreq
+	        .on('data', function (data) {
+	            req.body += data;
+	        })
+	        .on('end', function () {
+	        	req.param = qs.parse(req.queryString == '' ? req.body : req.queryString);
+				routes.dispatch(req, res);
+			});
+}).listen(3000, "127.0.0.1");
+
+console.log('Node ' + process.version + ' Kuda server running at http://localhost:3000/');
+
+if (opt_repl) {
+	console.log('Kuda server interactive mode');
+
+	var repl = require('repl'),
+		svr = repl.start();
+
+	svr.defineCommand('x', {
+		help: 'Exit the interactive mode and server',
+		action: function(code) {
+			process.exit(code || 0);
+		}
+	});
+
+	// TODO: Find a better way, but for now this will do.
+	svr.context.qs = qs;
+	svr.context.http = http;
+	svr.context.fs = fs;
+	svr.context.path = path;
+	svr.context.JSONt = JSONt;
+	svr.context.HTMLt = HTMLt;
+	svr.context.PLAINt = PLAINt;
+	svr.context.routes = routes;
+}
