@@ -1342,7 +1342,9 @@
 			this.container.find('form').submit(function() { 
 				return false; 
 			});
-			this.createImportPanel();
+			// Removing import panel until import is reenabled in the server
+			this.find('#mbrImportPnl').hide();
+//			this.createImportPanel();
 			this.createLoadPanel();
 			this.createUnloadPanel();
 		},
@@ -1407,7 +1409,8 @@
 				this.invalidate();
 			}
 			else {									
-				importPnl.show();	
+				// Removing import panel until import is reenabled in the server
+//				importPnl.show();
 			
 				ipt.hide();
 				sb.show();
