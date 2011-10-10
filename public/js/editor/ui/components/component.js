@@ -41,6 +41,7 @@ var editor = (function(module) {
 			else {
 				this.layout();
 				this.finishLayout();
+				this.notifyListeners(editor.events.Loaded);
 			}
 		},
 		
@@ -63,6 +64,7 @@ var editor = (function(module) {
 					cmp.container.append(jQuery(cleaned));
 					cmp.layout();
 					cmp.finishLayout();
+					cmp.notifyListeners(editor.events.Loaded);
 				});
 			}
 		},
