@@ -829,7 +829,8 @@
 				var handler = target.handler,
 					spec = model.dispatchProxy.getTargetSpec(target),
 					source;
-					
+				
+				if (!jQuery.isFunction(handler)) {
 					if (handler instanceof hemi.handlers.ValueCheck) {
 						if (handler.citizen instanceof hemi.view.Camera) {
 							source = hemi.world.getCitizenById(handler.values[0]);
@@ -842,12 +843,13 @@
 					} else {
 						source = hemi.world.getCitizenById(spec.src);
 					}
-				
-				editor.depends.remove(target, handler);
-				editor.depends.remove(target, source);
-				
-				tblWgt.remove(target);
-				shorthand.modifyBehaviorListItems(target, spec, 'remove');
+					
+					editor.depends.remove(target, handler);
+					editor.depends.remove(target, source);
+					
+					tblWgt.remove(target);
+					shorthand.modifyBehaviorListItems(target, spec, 'remove');
+				}
 			});			
 			model.addListener(editor.events.Updated, function(data) {
 				var target = data.target,
