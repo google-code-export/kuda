@@ -83,7 +83,7 @@ var editor = (function(editor) {
 		},
 		
 		getValue: function() {
-			if (this.container.is(':focus')) {
+			if (this.container.is(':focus') || this.config.type === 'boolean') {
 				return getContainerValue.call(this);
 			} else {
 				return this.value;
