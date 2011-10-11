@@ -522,6 +522,9 @@ function req2ContentType(urlLessQueryString) {
 	case '.fx':
 		contentType = PLAINt;
 		break;
+	case '.woff':
+		contentType = 'application/octet-stream';
+		break;
 	default:
 		log('unknown content type for ' + fileType);
 	}
