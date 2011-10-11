@@ -8640,11 +8640,17 @@ var hemi = (function(hemi) {
 			hemi.core.mainPack.removeObject(rotTran);
 			hemi.utils.unfosterTransform(offTran);
 		} else {
-			var parTran = tranObj.parent;
-			
-			parTran.children[0].parent = parTran.parent;
-			rotTran.children[0].localMatrix = parTran.localMatrix;
-			rotTran.children[0].parent = rotTran.parent;
+			var parTran = tranObj.parent,
+				pChild = parTran.children[0],
+				rChild = rotTran.children[0];
+
+			if (pChild) {
+				pChild.parent = parTran.parent;
+			}
+			if (rChild) {
+				rChild.localMatrix = parTran.localMatrix;
+				rChild.parent = rotTran.parent;
+			}
 			
 			origTran = offTran;
 			
@@ -8711,10 +8717,13 @@ var hemi = (function(hemi) {
 		if (tranObj.foster) {
 			origTran = hemi.utils.unfosterTransform(tranObj.tran);
 		} else {
-			var parTran = tranObj.parent;
+			var parTran = tranObj.parent,
+				child = parTran.children[0];
 
-			parTran.children[0].localMatrix = parTran.localMatrix;
-			parTran.children[0].parent = parTran.parent;
+			if (child) {
+				child.localMatrix = parTran.localMatrix;
+				child.parent = parTran.parent;
+			}
 			
 			origTran = tranObj.tran;
 			parTran.parent = null;
