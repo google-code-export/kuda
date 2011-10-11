@@ -51,6 +51,8 @@ var editor = (function(editor) {
 		
 		Removing: 'editor.Removing',
 		
+		Save: 'editor.Save',
+		
 		ScriptLoaded: 'editor.ScriptLoaded',
 		
 		ScriptLoadStart: 'editor.ScriptLoadStart',
