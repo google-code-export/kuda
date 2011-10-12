@@ -120,9 +120,11 @@ var editor = (function(editor) {
 	editor.addListener(editor.events.PluginLoaded, function(name) {
 		var model = editor.getModel(name);
 		
-		model.addListener(editor.events.Removing, function(citizen) {
-			mgr.clearDependencies(citizen);
-	    });
+		if (model) {
+			model.addListener(editor.events.Removing, function(citizen) {
+				mgr.clearDependencies(citizen);
+		    });
+		}
 	});
 	
 	editor.depends.add = function(child, parent) {
