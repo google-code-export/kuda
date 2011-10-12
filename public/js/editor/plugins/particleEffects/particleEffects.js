@@ -21,7 +21,7 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var shorthand = editor.tools.particleEffects = editor.tools.particleEffects || {};
+	var shorthand = editor.tools.particleEffects;
 
 	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Effects'),

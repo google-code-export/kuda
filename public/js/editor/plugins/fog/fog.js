@@ -21,7 +21,7 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var shorthand = editor.tools.fog = editor.tools.fog || {};
+	var shorthand = editor.tools.fog;
 
 	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Effects'),

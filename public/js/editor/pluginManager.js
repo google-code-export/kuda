@@ -171,7 +171,10 @@
 			var mdl = this;
 			
 			if (this.loadedPlugins.indexOf(pluginName) === -1) {
+				// Initialize the plugin's namespace
+				editor.tools[pluginName] = {};
 				editor.getScript('js/editor/plugins/' + pluginName + '/' + pluginName + '.js');
+				
 				this.callbacks.push({
 					callback: function(name){
 						mdl.currentPlugin = name;

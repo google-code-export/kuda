@@ -21,7 +21,7 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
  
-	var shorthand = editor.tools.viewpoints = editor.tools.viewpoints || {};
+	var shorthand = editor.tools.viewpoints;
 
  	shorthand.init = function() {
  		var navPane = editor.ui.getNavPane('Camera'),

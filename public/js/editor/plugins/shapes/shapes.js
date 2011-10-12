@@ -21,7 +21,7 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var shorthand = editor.tools.shapes = editor.tools.shapes || {};
+	var shorthand = editor.tools.shapes;
 
 	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Geometry'),

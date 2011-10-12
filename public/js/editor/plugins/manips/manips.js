@@ -21,7 +21,7 @@
 //								Initialization								  //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var shorthand = editor.tools.manips = editor.tools.manips || {};
+	var shorthand = editor.tools.manips;
 	
 	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Behaviors'),

@@ -21,7 +21,7 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var shorthand = editor.tools.animations = editor.tools.animations || {};
+	var shorthand = editor.tools.animations;
 
 	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Animation'),
