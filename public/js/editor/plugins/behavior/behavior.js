@@ -135,7 +135,7 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var shorthand = editor.tools.behavior = editor.tools.behavior || {},
+	var shorthand = editor.tools.behavior,
 		bhvMdl = null,
 		bhvView = null;
 	

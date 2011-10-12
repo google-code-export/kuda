@@ -16,7 +16,7 @@
  */
 
 (function() {
-	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
+	var shorthand = editor.tools.behavior;
 	
 	var tooltip = editor.ui.createTooltip(),
 		counter = 0;

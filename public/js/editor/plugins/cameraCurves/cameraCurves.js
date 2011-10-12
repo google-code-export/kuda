@@ -21,7 +21,7 @@
 //                     			   Initialization  		                      //
 ////////////////////////////////////////////////////////////////////////////////
  
-	var shorthand = editor.tools.cameraCurves = editor.tools.cameraCurves || {};
+	var shorthand = editor.tools.cameraCurves;
 
 	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Camera'),

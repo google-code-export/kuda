@@ -21,7 +21,7 @@
 //								Initialization								  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var shorthand = editor.tools.hud = editor.tools.hud || {};
+	var shorthand = editor.tools.hud;
 	
 	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('HUD'),

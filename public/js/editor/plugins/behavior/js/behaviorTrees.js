@@ -16,7 +16,7 @@
  */
 
 (function() {
-	var shorthand = editor.tools.behavior = editor.tools.behavior || {};
+	var shorthand = editor.tools.behavior;
 	
 	// model specific
 	shorthand.events.CitizenAdded = 'Trees.CitizenAdded';
