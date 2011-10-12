@@ -179,7 +179,7 @@
 			var model = editor.getModel(name),
 				view = editor.getView(name);
 			
-			if (model !== bhvMdl) {
+			if (model && model !== bhvMdl) {
 				shorthand.treeModel.listenTo(model);
 			}
 			injectBehaviorWidget(view);
