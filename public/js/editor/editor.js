@@ -101,11 +101,7 @@ var editor = {
 ////////////////////////////////////////////////////////////////////////////////
 //                                 Main App                                   //
 ////////////////////////////////////////////////////////////////////////////////
-			
-//	test = {
-//		activePlugins: activePlugins,
-//		loadedPlugins: loadedPlugins
-//	};
+		
 		
 	var initViewerStep1 = function() {						
 			o3djs.webgl.makeClients(function(clientElements) {
@@ -206,16 +202,11 @@ var editor = {
 	    document.body.appendChild(script);
 	};
 	
-	window.onload = function() {		
-//		app.sizeViewerPane();
+	window.onload = function() {	
 		initViewerStep1();
 	};
 	
 	window.onunload = function() {
 		uninitViewer();
 	};
-	
-	jQuery(window).resize(function() {
-//		app.sizeViewerPane();
-	});
 })();
