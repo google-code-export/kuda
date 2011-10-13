@@ -2551,6 +2551,93 @@ var hemi = (function(hemi) {
  */
 
 var hemi = (function(hemi) {
+
+	/**
+	 * @class A object that allows the assigning of keys to functions in the code, and a tab list, so that elements can be selected without a mouse.
+	 */
+	hemi.Accessibility = function() {
+		this.init();
+	};
+	
+	hemi.Accessibility.prototype = {
+		currentSelectionItem: 0,
+		selectionList: new Array(),
+		selectionTrigger: null,
+		mapKey: function(keyNum, obj){
+			hemi.input.addKeyDownListener({
+				onKeyDown : function(e) {
+				if (e.keyCode == keyNum) {
+					obj.down();
+				}
+			}});
+			hemi.input.addKeyUpListener({
+				onKeyUp : function(e) {
+				if (e.keyCode == keyNum) {
+					obj.up();
+				}
+			}});
+			
+		},
+		init: function(){
+			hemi.input.addKeyDownListener(this); 
+			hemi.input.addKeyUpListener(this);
+		},
+		onKeyUp : function(e) {
+			//ENTER Key
+			if (e.keyCode == 13) {
+				this.selectionList[this.currentSelectionItem].up();
+			}
+		},
+		onKeyDown : function(e) {
+			//Trigger
+			if (e.keyCode == this.selectionTrigger) {
+				this.cycleSelectionItems();
+			}
+			//ENTER Key
+			if (e.keyCode == 13) {
+				this.selectionList[this.currentSelectionItem].down();
+			}
+		},
+		setCycleTrigger: function(trigger){
+			this.selectionTrigger = trigger;
+		},
+		cycleSelectionItems: function(){
+			if (this.currentSelectionItem < this.selectionList.length - 1) {
+				this.currentSelectionItem++;
+			} else {
+				this.selectionList[this.selectionList.length - 1].deselect();
+				this.currentSelectionItem = 0;
+			}
+			if(this.selectionList[this.currentSelectionItem - 1]) this.selectionList[this.currentSelectionItem - 1].deselect();
+			this.selectionList[this.currentSelectionItem].select();
+		},
+		addSelectionItem: function(selectionItem){
+			this.selectionList.push(selectionItem);
+		},
+		removeSelectionItem: function(idx){
+			this.selectionList.splice(idx, 1);			
+		}
+	};
+	
+	return hemi;
+})(hemi || {});/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for managing all elements of a 3D world. The World
 	 * manages a set of Citizens and provides look up services for them.
@@ -9808,6 +9895,12 @@ var hemi = (function(hemi) {
 			this._super();
 			
 			/**
+			 * Allows the element to be drawn or not
+			 * @type boolean
+			 */
+			this.visible = true;
+			
+			/**
 			 * The handler function for mouse down events that occur within the
 			 * bounds of the HudElement.
 			 * @type function(o3d.Event): void
@@ -10402,6 +10495,13 @@ var hemi = (function(hemi) {
 			this.enabled = true;
 			
 			/**
+			 * Flag indicating if the HudButton is selected.
+			 * @type boolean
+			 * @default false
+			 */
+			this.selected = false;
+			
+			/**
 			 * Flag indicating if the mouse cursor is hovering over the HudButton.
 			 * @type boolean
 			 * @default false
@@ -10421,11 +10521,18 @@ var hemi = (function(hemi) {
 			this.disabledImg = null;
 			
 			/**
+			 * The HudImage to use for the HudButton when it is selected.
+			 * @type hemi.hud.HudImage
+			 */
+			this.selectedImg = null;
+			
+			/**
 			 * The HudImage to use for the HudButton when it is enabled and the
 			 * mouse cursor is hovering.
 			 * @type hemi.hud.HudImage
 			 */
 			this.hoverImg = null;
+			
 			
 			var that = this;
 			
@@ -10440,6 +10547,8 @@ var hemi = (function(hemi) {
 			 *     HudButton's bounds
 			 */
 			this.mouseMove = function(event, intersected) {
+				if (that.enabled == false || that.selected)
+					return;
 				if (intersected) {
 					if (!that.hovering) {
 						that.hovering = true;
@@ -10458,6 +10567,7 @@ var hemi = (function(hemi) {
 		cleanup: function() {
 			this._super();
 			this.mouseMove = null;
+
 			
 			if (this.enabledImg) {
 				this.enabledImg.cleanup();
@@ -10467,11 +10577,25 @@ var hemi = (function(hemi) {
 				this.disabledImg.cleanup();
 				this.disabledImg = null;
 			}
+			if (this.selectedImg) {
+				this.selectedImg.cleanup();
+				this.selectedImg = null;
+			}
+			
 			if (this.hoverImg) {
 				this.hoverImg.cleanup();
 				this.hoverImg = null;
 			}
 		},
+		
+		/**
+		 * Sets whether the HudButton is selected or not and then draws it
+		 * @param {boolean} selected if the element is selected
+		 */
+		 select: function(isSelected) {
+			this.selected = isSelected;
+			this.draw();
+		 },
 		
 		/**
 		 * Get the Octane structure for the HudButton.
@@ -10501,6 +10625,11 @@ var hemi = (function(hemi) {
 				name: 'hoverImg',
 				id: this.hoverImg.getId()
 			});
+			octane.props.push({
+				name: 'selectedImg',
+				id: this.selectedImg.getId()
+			});
+			
 			
 			return octane;
 		},
@@ -10522,13 +10651,48 @@ var hemi = (function(hemi) {
 		 * and then draw it.
 		 * @see hemi.hud.HudImage#draw
 		 */
-		draw: function() {
+		draw: function() {		
 			var img = this.getImage();
 			img.x = this.x;
 			img.y = this.y;
 			img.draw();
 		},
 		
+		
+		/**
+		 * Sets the images to be used for HudButton's disabled, hover, and enabled textures
+		 * @param {string} disabledUrl the URL of the disabled image file
+		 * @param {string} enabledUrl the URL of the enabled image file
+		 * @param {string} hoverUrl the URL of the hover image file
+		 */
+		 setImages : function(disabledUrl, enabledUrl, hoverUrl, selectedUrl) {
+			var that = this;
+			if (disabledUrl != null)
+			{
+				this.disabledImg =  new hemi.hud.HudImage();
+				this.disabledImg.setImageUrl(disabledUrl);
+			}
+			
+			if (selectedUrl != null)
+			{
+				this.selectedImg =  new hemi.hud.HudImage();
+				this.selectedImg.setImageUrl(selectedUrl);
+			}
+			
+			if (enabledUrl != null)
+			{
+				this.enabledImg =  new hemi.hud.HudImage();
+				this.enabledImg.setImageUrl(enabledUrl);
+			}
+			
+			if (hoverUrl != null)
+			{
+				this.hoverImg =  new hemi.hud.HudImage();
+				this.hoverImg.setImageUrl(hoverUrl);
+			}
+		 },
+		 
+		 
 		/**
 		 * Get the image that represents the HudButton in its current state.
 		 * 
@@ -10540,6 +10704,10 @@ var hemi = (function(hemi) {
 			if (!this.enabled) {
 				if (this.disabledImg) {
 					img = this.disabledImg;
+				}
+			}else if(this.selected){
+				if (this.selectedImg) {
+					img = this.selectedImg;
 				}
 			} else if (this.hovering) {
 				if (this.hoverImg) {
@@ -10974,7 +11142,8 @@ var hemi = (function(hemi) {
 			}
 			
 			for (var ndx = 0, len = this.elements.length; ndx < len; ndx++) {
-				this.elements[ndx].draw();
+				if (this.elements[ndx].visible)
+					this.elements[ndx].draw();
 			}
 		},
 		
@@ -11030,6 +11199,9 @@ var hemi = (function(hemi) {
 		 *     the HudPage, otherwise false
 		 */
 		onMouseDown: function(event) {
+			if (!this.visible)
+				return false;
+			
 			var intersected = this.checkEvent(event);
 			
 			if (intersected || !this.auto) {
@@ -11037,7 +11209,8 @@ var hemi = (function(hemi) {
 				var len = this.elements.length;
 				
 				for (var ndx = 0; ndx < len && !caught; ndx++) {
-					caught = this.elements[ndx].onMouseDown(event);
+					if (this.elements[ndx].visible)
+						caught = this.elements[ndx].onMouseDown(event);
 				}
 				
 				if (intersected && !caught && this.mouseDown) {
@@ -11056,8 +11229,12 @@ var hemi = (function(hemi) {
 		 * @param {o3d.Event} event the event that occurred
 		 */
 		onMouseMove: function(event) {
+			if (!this.visible)
+				return;
+				
 			for (var ndx = 0, len = this.elements.length; ndx < len; ndx++) {
-				this.elements[ndx].onMouseMove(event);
+				if (this.elements[ndx].visible)
+					this.elements[ndx].onMouseMove(event);
 			}
 			
 			if (this.mouseMove) {
