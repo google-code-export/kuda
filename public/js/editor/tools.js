@@ -17,6 +17,7 @@
 
 var editor = (function(editor) {	
 	editor.ui = editor.ui || {};
+	editor.tools = editor.tools || {};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  Architecture	  		                      //
