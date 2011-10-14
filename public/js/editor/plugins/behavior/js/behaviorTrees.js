@@ -81,12 +81,14 @@
 		},
 		
 		notify: function(eventType, value) {
-			if (eventType === editor.events.Created) {
-				this.addCitizen(value);
-			} else if (eventType === editor.events.Removing) {
-				this.removeCitizen(value);
-			} else if (eventType === editor.events.Updated) {
-				this.updateCitizen(value);
+			if (value instanceof hemi.world.Citizen) {
+				if (eventType === editor.events.Created) {
+					this.addCitizen(value);
+				} else if (eventType === editor.events.Removing) {
+					this.removeCitizen(value);
+				} else if (eventType === editor.events.Updated) {
+					this.updateCitizen(value);
+				}
 			}
 		},
 		
