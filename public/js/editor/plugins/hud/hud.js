@@ -912,7 +912,6 @@
 	        this._super({
 	            toolName: 'Heads-Up Displays',
 	    		toolTip: 'Create and edit heads-up displays',
-	    		elemId: 'hudBtn',
 	    		id: 'hud'
 	        });
 			

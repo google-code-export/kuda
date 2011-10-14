@@ -538,7 +538,6 @@
 	        this._super({
 	            toolName: 'Motions',
 	    		toolTip: 'Create and edit moving transforms',
-	    		elemId: 'motionsBtn',
 	    		id: 'motions'
 	        });
 	        

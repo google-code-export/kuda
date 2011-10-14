@@ -566,7 +566,6 @@
 	        this._super({
 	            toolName: 'Manipulations',
 	    		toolTip: 'Create and edit manipulatable transforms',
-	    		elemId: 'manipsBtn',
 	    		id: 'manips'
 	        });
 	        

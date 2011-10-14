@@ -357,13 +357,11 @@
 			this._super({
 				toolName: 'Viewpoints',
 		        toolTip: 'Create and edit viewpoints for cameras to move between',
-				elemId: 'viewpointsBtn',
 				id: 'viewpoints'
 			});
 			
 			this.addPanel(new editor.ui.Panel());
 			
-//			this.sidePanel.addWidget(editor.ui.getBehaviorWidget());
 			this.sidePanel.addWidget(new CreateWidget());
 			this.sidePanel.addWidget(new ListWidget());
 		}

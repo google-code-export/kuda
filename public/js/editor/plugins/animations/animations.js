@@ -856,7 +856,6 @@
 			this._super({
 		        toolName: 'Animator',
 				toolTip: 'Create and edit key frame animations',
-		        elemId: 'animationsBtn',
 				id: 'animations'
 		    });
 			

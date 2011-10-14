@@ -454,7 +454,6 @@
 	        this._super({
 		        toolName: 'Shapes',
 				toolTip: 'Create and edit primitive shapes',
-				elemId: 'shapesBtn',
 				id: 'shapes'
 		    });
 			

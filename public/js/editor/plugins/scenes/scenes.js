@@ -238,7 +238,6 @@
 	        this._super({
 	            toolName: 'Scenes',
 	    		toolTip: 'Create and edit scenes',
-	    		elemId: 'scenesBtn',
 	    		id: 'scenes'
 	        });
 	        

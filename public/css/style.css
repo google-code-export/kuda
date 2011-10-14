@@ -230,92 +230,92 @@ body.ten24 {
 .toolBtn:last-child {
     margin-bottom: 0;
 }
-#browserBtn:after {
-	background-position: 0 0;
-}
-#browserBtn:hover:after, #browserBtn.down:after {
-    background-position: 0 -4em;
-}
-#animationsBtn:after {
-	background-position: -4em 0;
-}
-#animationsBtn:hover:after, #animationsBtn.down:after {
-    background-position: -4em -4em;
-}
-#viewpointsBtn:after {
-	background-position: -8em 0;
-}
-#viewpointsBtn:hover:after, #viewpointsBtn.down:after {
-    background-position: -8em -4emx;
-}
-#behaviorBtn:after {
-	background-position: -16em 0;
-}
-#behaviorBtn:hover:after, #behaviorBtn.down:after {
-    background-position: -16em -4em;
-}
-#scenesBtn:after {
-	background-position: -20em 0;
-}
-#scenesBtn:hover:after, #scenesBtn.down:after {
-    background-position: -20em -4em;
-}
-#particleEffectsBtn:after {
-	background-position: -24em 0;
-}
-#particleEffectsBtn:hover:after, #particleEffectsBtn.down:after {
-	background-position: -24em -4em;
-}
-#shapesBtn:after {
-	background-position: -28em 0;
-}
-#shapesBtn:hover:after, #shapesBtn.down:after {
-	background-position: -28em -4em;
-}
-#hudBtn:after {
-	background-position: -32em 0;
-}
-#hudBtn:hover:after, #hudBtn.down:after {
-	background-position: -32em -4em;
-}
-#fogBtn:after {
-	background-position: -36em 0;
-}
-#fogBtn:hover:after, #fogBtn.down:after {
-	background-position: -36em -4em;
-}
-#motionsBtn:after {
-	background-position: -12em 0;
-}
-#motionsBtn:hover:after, #motionsBtn.down:after  {
-	background-position: -12em -4em;
-}
-#manipsBtn:after {
-	background-position: -40em 0;
-}
-#manipsBtn:hover:after, #manipsBtn.down:after {
-	background-position: -40em -4em;
-}
-#timersBtn:after {
-	background-position: -44em 0;
-}
-#timersBtn:hover:after, #timersBtn.down:after {
-	background-position: -44em -4em;
-}
-#particleCurvesBtn:after {
-	background-position: -48em 0;
-}
-#particleCurvesBtn:hover:after, #particleCurvesBtn.down:after {
-	background-position: -48em -4em;
-}
-#camCurvesBtn:after {
-	background-position: -52em 0;
-}
-#camCurvesBtn:hover:after, #camCurvesBtn.down:after {
-	background-position: -52em -4em;
-}
 .toolBtn.down {
 	background: #75d0f4;   
+}
+.toolBtn.browser:after {
+	background-position: 0 0;
+}
+.toolBtn.browser:hover:after, .toolBtn.browser.down:after {
+    background-position: 0 -4em;
+}
+.toolBtn.animations:after {
+	background-position: -4em 0;
+}
+.toolBtn.animations:hover:after, .toolBtn.animations.down:after {
+    background-position: -4em -4em;
+}
+.toolBtn.viewpoints:after {
+	background-position: -8em 0;
+}
+.toolBtn.viewpoints:hover:after, .toolBtn.viewpoints.down:after {
+    background-position: -8em -4em;
+}
+.toolBtn.behavior:after {
+	background-position: -16em 0;
+}
+.toolBtn.behavior:hover:after, .toolBtn.behavior.down:after {
+    background-position: -16em -4em;
+}
+.toolBtn.scenes:after {
+	background-position: -20em 0;
+}
+.toolBtn.scenes:hover:after, .toolBtn.scenes.down:after {
+    background-position: -20em -4em;
+}
+.toolBtn.particleEffects:after {
+	background-position: -24em 0;
+}
+.toolBtn.particleEffects:hover:after, .toolBtn.particleEffects.down:after {
+	background-position: -24em -4em;
+}
+.toolBtn.shapes:after {
+	background-position: -28em 0;
+}
+.toolBtn.shapes:hover:after, .toolBtn.shapes.down:after {
+	background-position: -28em -4em;
+}
+.toolBtn.hud:after {
+	background-position: -32em 0;
+}
+.toolBtn.hud:hover:after, .toolBtn.hud.down:after {
+	background-position: -32em -4em;
+}
+.toolBtn.fog:after {
+	background-position: -36em 0;
+}
+.toolBtn.fog:hover:after, .toolBtn.fog.down:after {
+	background-position: -36em -4em;
+}
+.toolBtn.motions:after {
+	background-position: -12em 0;
+}
+.toolBtn.motions:hover:after, .toolBtn.motions.down:after  {
+	background-position: -12em -4em;
+}
+.toolBtn.manips:after {
+	background-position: -40em 0;
+}
+.toolBtn.manips:hover:after, .toolBtn.manips.down:after {
+	background-position: -40em -4em;
+}
+.toolBtn.timers:after {
+	background-position: -44em 0;
+}
+.toolBtn.timers:hover:after, .toolBtn.timers.down:after {
+	background-position: -44em -4em;
+}
+.toolBtn.particleCurves:after {
+	background-position: -48em 0;
+}
+.toolBtn.particleCurves:hover:after, .toolBtn.particleCurves.down:after {
+	background-position: -48em -4em;
+}
+.toolBtn.cameraCurves:after {
+	background-position: -52em 0;
+}
+.toolBtn.cameraCurves:hover:after, .toolBtn.cameraCurves.down:after {
+	background-position: -52em -4em;
 }
 
 /******************************************************************************

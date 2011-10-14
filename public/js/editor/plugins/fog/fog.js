@@ -207,7 +207,6 @@
 			this._super({
 		        toolName: 'Fog',
 				toolTip: 'Create and edit fog',
-		        elemId: 'fogBtn',
 				id: 'fog'
 		    });
 			

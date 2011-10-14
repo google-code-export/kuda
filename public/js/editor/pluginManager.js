@@ -336,7 +336,6 @@
 		init: function() {
 			this._super({
 				id: 'pluginManager',
-				elemId: 'plgWrapper',
 				toolName: 'Manage Plugins',
 				toolTip: ''
 			});
@@ -359,8 +358,7 @@
 		
 		layoutToolBarContainer: function() {			
 			var ctn = this.toolbarContainer = jQuery('<div id="' 
-				+ this.config.elemId + '"> \
-				</div>');
+				+ this.id + '"> </div>');
 				
 			this.list = new editor.ui.List();			
 			ctn.append(this.list.getUI());
