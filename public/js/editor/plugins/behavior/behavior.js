@@ -190,9 +190,10 @@
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
     
-    editor.ToolConstants = editor.ToolConstants || {};
-	editor.ToolConstants.SHAPE_PICK = "ShapePick";
-	editor.ToolConstants.CAM_MOVE = "CameraMove";
+	shorthand.constants = {
+		CAM_MOVE: "CameraMove",
+		SHAPE_PICK: "ShapePick"
+	};
 	
 	shorthand.events = {
 		ArgumentSet: "messaging.ArgumentSet",

@@ -19,6 +19,15 @@ var editor = (function(editor) {
 	editor.ui = editor.ui || {};
 	editor.tools = editor.tools || {};
 	
+	/**
+	 * Constants often used by tools.
+	 */
+	editor.ToolConstants = {
+		EDITOR_PREFIX: 'EditorCitizen:',
+		MODE_DOWN: 'down',
+		MODE_UP: 'up'
+	};
+	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  Architecture	  		                      //
 ////////////////////////////////////////////////////////////////////////////////
@@ -234,16 +243,6 @@ var editor = (function(editor) {
 	        
 	        return found;
 		};
-	
-	/**
-	 * Constants for setting up a tool.
-	 */
-	editor.ToolConstants = {
-		MODE_DOWN: 'down',
-		MODE_UP: 'up',
-		SHAPE_PICK: "ShapePick",
-		CAM_MOVE: "CameraMove"
-	};
     
 ////////////////////////////////////////////////////////////////////////////////
 //                                   Model                                    //

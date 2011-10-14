@@ -70,15 +70,12 @@
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
 	
-    editor.ToolConstants = editor.ToolConstants || {};
-	editor.ToolConstants.EDITOR_PREFIX = 'EditorCitizen:';
-    editor.ToolConstants.SEL_HIGHLIGHT = 'selectorHighlight';
-    editor.ToolConstants.X_AXIS = 'x';
-    editor.ToolConstants.Y_AXIS = 'y';
-    editor.ToolConstants.Z_AXIS = 'z';
-    editor.ToolConstants.XY_PLANE = 'xyPlane';
-    editor.ToolConstants.XZ_PLANE = 'xzPlane';
-    editor.ToolConstants.YZ_PLANE = 'yzPlane';
+    shorthand.constants = {
+		// TODO: We need a better way of testing for our highlight shapes than
+		// searching for this prefix.
+    	HIGHLIGHT_PRE: 'kuda_highlight_',
+    	SEL_HIGHLIGHT: 'selectorHighlight'	
+    };
 	
 	shorthand.events = {
 		// browser model events
@@ -111,11 +108,6 @@
 		LoadModel: "browser.LoadModel",
 		UnloadModel: "browser.UnloadModel"
 	};
-	
-	// TODO: We need a better way of testing for our highlight shapes than
-	// searching for this prefix.
-	HIGHLIGHT_PRE = 'kuda_highlight_';
-	
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                          	Helper Methods                                //
@@ -485,7 +477,7 @@
 	    
 	    highlightShape: function(shape, transform) {
 	        var highlightShape = hemi.core.shape.duplicateShape(hemi.core.mainPack, shape);
-			highlightShape.name = HIGHLIGHT_PRE + shape.name;
+			highlightShape.name = shorthand.constants.HIGHLIGHT_PRE + shape.name;
 	        
 	        // Set all of it's elements to use the highlight material.
 	        var elements = highlightShape.elements;
@@ -534,9 +526,9 @@
 			state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
 			
 			this.tranHighlightMat.state = state;
-			this.tranHighlightMat.name = editor.ToolConstants.SEL_HIGHLIGHT;
+			this.tranHighlightMat.name = shorthand.constants.SEL_HIGHLIGHT;
 			this.shapHighlightMat.state = state;
-			this.shapHighlightMat.name = editor.ToolConstants.SEL_HIGHLIGHT + 'Shape';
+			this.shapHighlightMat.name = shorthand.constants.SEL_HIGHLIGHT + 'Shape';
 		},
 		
 		isSelected: function(transform, opt_owner) {
@@ -605,7 +597,7 @@
 		},
 		
 		selectShape: function(shape, transform) {
-			var shapeName = HIGHLIGHT_PRE + shape.name,
+			var shapeName = shorthand.constants.HIGHLIGHT_PRE + shape.name,
 				shapes = transform.shapes,
 				highlightShape = null;
 			
@@ -763,7 +755,7 @@
 			for (var ndx = 0, len = shapes.length; ndx < len; ndx++) {
 				var shape = shapes[ndx];
 				
-				if (shape.name.match(HIGHLIGHT_PRE) === null) {
+				if (shape.name.match(shorthand.constants.HIGHLIGHT_PRE) === null) {
 					filtered.push(shape);
 				}
 			}
@@ -1634,7 +1626,7 @@
 				var shape = shapes[ndx],
 					name = shape.name !== '' ? shape.name : 'unnamed'; 
 				
-				if (name.match(HIGHLIGHT_PRE) === null) {
+				if (name.match(shorthand.constants.HIGHLIGHT_PRE) === null) {
 					var item = new editor.ui.ListItem();
 					
 					item.setText(name);

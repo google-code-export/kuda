@@ -205,7 +205,7 @@
 			name: 'Picked Shape:',
 			citizen: model,
 			getCitizenType: function() {
-				return editor.ToolConstants.SHAPE_PICK;
+				return shorthand.constants.SHAPE_PICK;
 			},
 			getId: function() {
 				return this.citizen.getId();
@@ -219,7 +219,7 @@
 			name: 'Camera Move:',
 			citizen: camera,
 			getCitizenType: function() {
-				return editor.ToolConstants.CAM_MOVE;
+				return shorthand.constants.CAM_MOVE;
 			},
 			getId: function() {
 				return this.citizen.getId();
