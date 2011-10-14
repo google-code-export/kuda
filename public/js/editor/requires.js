@@ -45,14 +45,14 @@ var editor = (function(editor) {
 	o3djs.require('editor.ui.components.tooltip');
 	o3djs.require('editor.ui.components.validator');	
 	o3djs.require('editor.ui.components.list');
-	
+
 	o3djs.require('editor.ui.core.view');
 	o3djs.require('editor.ui.core.progress');
-	o3djs.require('editor.ui.core.tools');
 	o3djs.require('editor.ui.core.transformHandles');
 	o3djs.require('editor.ui.core.gridPlane');
     o3djs.require('editor.ui.core.dialogs');
-	
+
+	o3djs.require('editor.tools');
 	o3djs.require('editor.project');
 	o3djs.require('editor.pluginManager');
 	
