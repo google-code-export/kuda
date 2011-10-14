@@ -686,7 +686,6 @@
 	        this._super({
 	            toolName: 'Particle Effects',
 	    		toolTip: 'Particle Effects: Create and edit particle effects',
-	    		elemId: 'particleEffectsBtn',
 	    		id: 'particleEffects'
 	        });
 

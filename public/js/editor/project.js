@@ -664,7 +664,6 @@
 			this._super({
 				toolName: 'Project:',
 				toolTip: '',
-				elemId: 'projectsCtn',
 				id: 'projectLoad'
 			});
 			
@@ -712,7 +711,7 @@
 		
 		layoutToolBarContainer: function() {			
 			var ctn = this.toolbarContainer = jQuery('<div id="' 
-				+ this.config.elemId + '"> \
+				+ this.id + '"> \
 					<p id="prjMsg"></p> \
 					<input type="text" id="prjSaveIpt" value="Unsaved Project" /> \
 					<div class="buttons"> \

@@ -198,7 +198,6 @@
 	        this._super({
 	            toolName: 'Timers',
 	    		toolTip: 'Create and edit timers',
-	    		elemId: 'timersBtn',
 	    		id: 'timers'
 	        });
 	        

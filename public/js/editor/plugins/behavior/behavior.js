@@ -719,7 +719,6 @@
 			this._super({
 				toolName: 'Behaviors',
 				toolTip: 'Overview of behaviors',
-				elemId: 'behaviorBtn',
 				id: 'behavior'
 			});
 			

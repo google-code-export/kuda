@@ -1017,7 +1017,6 @@
 			this._super({
 				toolName: 'Particle Curves',
 				toolTip: 'Create and edit particle curves',
-		        elemId: 'particleCurvesBtn',
 		        id: 'particleCurves'
 		    });
 			

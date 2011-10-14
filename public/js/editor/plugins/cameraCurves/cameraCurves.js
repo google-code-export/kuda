@@ -573,7 +573,6 @@
 			this._super({
 				toolName: 'Camera Curves',
 		        toolTip: 'Create curves for cameras to travel on',
-				elemId: 'camCurvesBtn',
 				id: 'cameraCurves'
 			});
 			this.pre = 'vp_';

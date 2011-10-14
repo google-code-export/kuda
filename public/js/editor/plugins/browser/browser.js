@@ -1849,7 +1849,6 @@
 			this._super({
 				toolName: 'Geometry Browser',
 				toolTip: 'Browse through the transforms and materials of models and shapes',
-				elemId: 'browserBtn',
 				id: 'browser'
 			});
 			
