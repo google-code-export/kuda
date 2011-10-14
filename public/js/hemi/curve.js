@@ -129,7 +129,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.curve.drawCurve = function(points, config) {
 		if (!this.dbgLineMat) {
-			this.dbgLineMat = this.newMaterial(false);
+			this.dbgLineMat = this.newMaterial('phong', false);
 			this.dbgLineMat.getParam('lightWorldPos').bind(hemi.world.camera.light.position);
 		}
 		
@@ -177,7 +177,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.curve.drawLine = function(p0, p1, opt_size, opt_color) {
 		if (!this.dbgLineMat) {
-			this.dbgLineMat = this.newMaterial(false);
+			this.dbgLineMat = this.newMaterial('phong', false);
 			this.dbgLineMat.getParam('lightWorldPos').bind(hemi.world.camera.light.position);
 		}
 		
@@ -256,8 +256,9 @@ var hemi = (function(hemi) {
 	 * @param {o3d.Transform} opt_trans optional parent transform for the boxes
 	 */
 	hemi.curve.showBoxes = function(boxes, opt_trans) {
+		opt_trans = opt_trans || hemi.picking.pickRoot;
+		
 		var pack = hemi.curve.pack,
-			opt_trans = opt_trans || hemi.picking.pickRoot,
 			trans = this.dbgBoxTransforms[opt_trans.clientId] || [];
 		
 		for (var i = 0; i < boxes.length; i++) {
@@ -350,13 +351,35 @@ var hemi = (function(hemi) {
 		return system;
 	};
 	
-	hemi.curve.newMaterial = function(opt_trans) {
-		var trans = opt_trans == null ? true : opt_trans;
-		return hemi.core.material.createBasicMaterial(
-			this.pack,
-			hemi.view.viewInfo,
-			[0,0,0,1],
-			trans);
+	/**
+	 * Create a new material for a hemi particle curve to use.
+	 * 
+	 * @param {string} opt_type optional shader type to use (defaults to phong)
+	 * @param {boolean} opt_trans optional flag indicating if material should
+	 *     support transparency (defaults to true)
+	 * @return {o3d.Material} the created material
+	 */
+	hemi.curve.newMaterial = function(opt_type, opt_trans) {
+		var trans = opt_trans == null ? true : opt_trans,
+			mat;
+		
+		switch (opt_type) {
+		case 'constant':
+			mat = hemi.core.material.createConstantMaterial(this.pack,
+				hemi.view.viewInfo, [0,0,0,1], trans);
+			break;
+		case 'lambert':
+			mat = hemi.core.material.createLambertMaterial(this.pack,
+				hemi.view.viewInfo, [0,0,0,1], trans);
+			break;
+		case 'phong':
+		default:
+			mat = hemi.core.material.createBasicMaterial(this.pack,
+				hemi.view.viewInfo, [0,0,0,1], trans);
+			break;
+		}
+		
+		return mat;
 	};
 	
 	hemi.curve.init = function() {
@@ -797,7 +820,7 @@ var hemi = (function(hemi) {
 			this.scales = [];
 			if(scaleKeys) {
 				var sKeys = [];
-				for (i = 0; i < scaleKeys.length; i++) {
+				for (var i = 0; i < scaleKeys.length; i++) {
 					var p = {};
 					var c = scaleKeys[i];
 					p.key = c.key;
@@ -964,10 +987,10 @@ var hemi = (function(hemi) {
 		this.points = [];
 		this.frames = config.frames || this.pLife*hemi.view.FPS;
 		
-		for(j = 0; j < this.maxParticles; j++) {
+		for(var j = 0; j < this.maxParticles; j++) {
 			var curve = this.newCurve(config.tension || 0);
 			this.points[j] = [];
-			for(i=0; i < this.frames; i++) {
+			for(var i=0; i < this.frames; i++) {
 				this.points[j][i] = curve.interpolate((i)/this.frames);
 			}
 		}
@@ -979,7 +1002,7 @@ var hemi = (function(hemi) {
 			colorKeys = config.colorKeys;
 		} else if (config.colors) {
 			var len = config.colors.length,
-				step = len === 1 ? 1 : 1 / (len - 1),
+				step = len === 1 ? 1 : 1 / (len - 1);
 			
 			colorKeys = [];
 			
@@ -994,7 +1017,7 @@ var hemi = (function(hemi) {
 			scaleKeys = config.scaleKeys;
 		} else if (config.scales) {
 			var len = config.scales.length,
-				step = len === 1 ? 1 : 1 / (len - 1),
+				step = len === 1 ? 1 : 1 / (len - 1);
 			
 			scaleKeys = [];
 			
@@ -1037,7 +1060,7 @@ var hemi = (function(hemi) {
 			this.active = false;
 			if(opt_hard) {
 				// Destroy All Particles
-				for(i = 0; i < this.maxParticles; i++) {
+				for(var i = 0; i < this.maxParticles; i++) {
 					if(this.particles[i] != null) {
 						this.particles[i].reset();
 					}
@@ -1053,7 +1076,7 @@ var hemi = (function(hemi) {
 		 *     render loop
 		 */
 		onRender : function(event) {
-			for(i = 0; i < this.maxParticles; i++) {
+			for(var i = 0; i < this.maxParticles; i++) {
 				if(this.particles[i] != null) {
 					this.particles[i].update(event);
 				}
@@ -1078,7 +1101,7 @@ var hemi = (function(hemi) {
 		newCurve : function(tension) {
 			var points = [];
 			var num = this.boxes.length;
-			for (i = 0; i < num; i++) {
+			for (var i = 0; i < num; i++) {
 				var min = this.boxes[i].min;
 				var max = this.boxes[i].max;
 				points[i+1] = hemi.curve.randomPoint(min,max);
@@ -1131,7 +1154,7 @@ var hemi = (function(hemi) {
 			} else {
 				this.shapes.push(shape);
 			}
-			for (i = 0; i < this.maxParticles; i++) {
+			for (var i = 0; i < this.maxParticles; i++) {
 				for (var j = startndx; j < this.shapes.length; j++) {
 					this.particles[i].addShape(this.shapes[j]);
 				}
