@@ -356,13 +356,11 @@ var editor = (function(module) {
 		var dlg = createSimpleDialog('showDeps', 'Unable to Remove'),
 			form = dlg.data('form').attr('style', 'float:none;'),
 			msg = dlg.data('msg').attr('style', 'text-align:left;'),
-			lbl = dlg.data('label').attr('for', 'depList').attr('style', 'float:none;'),
 			list = jQuery('<p style="text-align:left;" id="depList"></p>'),
 			btn = jQuery('<button id="okayBtn">Okay</button>');
 		
 		form.append(list);
 		dlg.append(btn);
-		lbl.text('Dependencies:');
 		msg.text('The following elements depend on this element either directly\
 				or indirectly. Please remove or modify them first.');
 		list.html(depList);
