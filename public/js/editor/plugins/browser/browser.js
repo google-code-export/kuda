@@ -183,38 +183,28 @@
 		getNodeChildren = function(node) {
 			var children;
 			
-			if (jQuery.isFunction(node.getCitizenType)) {
-				var type = node.getCitizenType().split('.').pop();
-				
-				switch(type) {
-					case 'Model':
-						var citId = getCitNodeId(node),
-							tranObj = {
-								name: 'Transforms',
-								children: [node.root],
-								className: 'directory',
-								nodeId: citId + '_trans'
-							},
-							matObj = {
-								name: 'Materials',
-								children: node.materials,
-								className: 'directory',
-								nodeId: citId + '_mats'
-							};
-					    children = [tranObj, matObj];
-						break;
-					case 'Shape':
-					    children = [{
-								name: 'Transforms',
-								children: [node.getTransform()],
-								className: 'directory',
-								nodeId: getCitNodeId(node) + '_trans'
-							}];
-						break;
-					default:
-						children = null;
-						break;
-				}
+			if (node instanceof hemi.model.Model) {
+				var citId = getCitNodeId(node),
+					tranObj = {
+						name: 'Transforms',
+						children: [node.root],
+						className: 'directory',
+						nodeId: citId + '_trans'
+					},
+					matObj = {
+						name: 'Materials',
+						children: node.materials,
+						className: 'directory',
+						nodeId: citId + '_mats'
+					};
+			    children = [tranObj, matObj];
+			} else if (node instanceof hemi.shape.Shape) {
+			    children = [{
+						name: 'Transforms',
+						children: [node.getTransform()],
+						className: 'directory',
+						nodeId: getCitNodeId(node) + '_trans'
+					}];
 			} else {
 				children = node.children;
 			}
