@@ -2128,13 +2128,20 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * Stop the particle system.
+		 * 
+		 * @param {boolean} opt_hard optional flag to indicate a hard stop (all
+		 *     particles disappear at once)
 		 */
-		stop: function() {
-			if (this.active && !this.stopping) {
+		stop: function(opt_hard) {
+			if (this.active) {
+				if (opt_hard) {
+					this.endTime = -1.0;
+				} else if (!this.stopping) {
+					this.endTime = this.timeParam.value + 1.0;
+				}
+				
 				this.starting = false;
 				this.stopping = true;
-				this.endTime = this.timeParam.value + 1.0;
-				
 			}
 		}
 	});
