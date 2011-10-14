@@ -457,9 +457,9 @@
 			
 			if (opt_func) {
 				desc = editor.data.getMetaData().getDescription(type, opt_func);
-			} else if (type === editor.ToolConstants.SHAPE_PICK) {
+			} else if (type === shorthand.constants.SHAPE_PICK) {
 				desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
-			} else if (type === editor.ToolConstants.CAM_MOVE) {
+			} else if (type === shorthand.constants.CAM_MOVE) {
 				desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
 			} else {
 				desc = editor.data.getMetaData().getDescription(type);
