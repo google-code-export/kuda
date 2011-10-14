@@ -182,7 +182,7 @@
 		});
 		
 		return {
-			data: citizen.name,
+			data: citizen.name || '',
 			attr: {
 				id: name,
 				rel: 'citizen'
@@ -424,7 +424,7 @@
 		});
 		
 		return {
-			data: camera.name,
+			data: camera.name || '',
 			attr: {
 				id: name,
 				rel: 'citizen'
@@ -466,7 +466,7 @@
 			});
 			
 		return {
-			data: viewpoint.name,
+			data: viewpoint.name || '',
 			attr: {
 				id: name,
 				rel: 'message'
@@ -487,13 +487,13 @@
 		for (var ndx = 0, len = model.shapes.length; ndx < len; ndx++) {
 			var shape = model.shapes[ndx],
 				name = getNodeName(spCit, {
-					option: shape.name,
+					option: shape.name || '',
 					prefix: prefix,
 					id: id
 				});
 			
 			shapes.push({
-				data: shape.name,
+				data: shape.name || '',
 				attr: {
 					id: name,
 					rel: 'message'
@@ -501,7 +501,7 @@
 				metadata: {
 					type: 'message',
 					parent: spCit,
-					msg: shape.name
+					msg: shape.name || ''
 				}
 			});
 		}
@@ -513,7 +513,7 @@
 		});
 		
 		return {
-			data: model.name,
+			data: model.name || '',
 			attr: {
 				id: name,
 				rel: 'citizen'
@@ -531,12 +531,12 @@
 		var shape = spCit.citizen.transform.shapes[0],
 			id = spCit.getId(),
 			name = getNodeName(spCit, {
-				option: shape.name,
+				option: shape.name || '',
 				prefix: prefix,
 				id: id
 			}),
 			children = [{
-				data: shape.name,
+				data: shape.name || '',
 				attr: {
 					id: name,
 					rel: 'message'
@@ -544,7 +544,7 @@
 				metadata: {
 					type: 'message',
 					parent: spCit,
-					msg: shape.name
+					msg: shape.name || ''
 				}
 			}];
 		
@@ -555,7 +555,7 @@
 		});
 		
 		return {
-			data: spCit.citizen.name,
+			data: spCit.citizen.name || '',
 			attr: {
 				id: name,
 				rel: 'citizen'
