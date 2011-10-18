@@ -1,11 +1,22 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
 var editor = (function(editor) {
 	editor.ui = editor.ui || {};	
-	
-// Notes: NavPanes own toolBars
-// 		  ToolBars own tools
-//  	  Tools are made up of MVC
-//		  Tool views are made up of widgets
-//		  	 tool views maintain widget states  
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			   	Constants	  		                      //
@@ -44,6 +55,15 @@ var editor = (function(editor) {
 
 	var panels = [],
 		
+		/*
+		 * Adds the opacity parameter for animation.
+		 * 
+		 * @param {boolean} visible flag indicating visibility
+		 * @param {number} origOpacity the original opacity of the target
+		 * @param {jQuery} target the target element
+		 * @param {object} animData animation object literal passed to jQuery 
+		 * 		animate() method
+		 */
 		addOpacityAnim = function(visible, origOpacity, target, animData) {
 			var opacityStart = visible ? 0 : origOpacity,
 				opacityEnd = visible ? origOpacity : 0;
@@ -56,6 +76,14 @@ var editor = (function(editor) {
 			}
 		},
 		
+		/*
+		 * Adds the location parameter for animation, which is used for sliding
+		 * the element.
+		 * 
+		 * @param {number} destination the x/y position to slide to
+		 * @param {object} animData animation object literal passed to jQuery 
+		 * 		animate() method
+		 */
 		addSlideAnim = function(destination, animData) {
 			var ctn = this.container,
 				location;
@@ -81,6 +109,13 @@ var editor = (function(editor) {
 			animData[location] = animAmt;
 		},
 		
+		/*
+		 * Sets the visibility of a panel, using animations if specified
+		 * 
+		 * @param {boolean} visible flag indicating the new visibility
+		 * @param {boolean} opt_skipAnim optional flag indicating whether to 
+		 * 		skip the animation 
+		 */
 		setVisible = function(visible, opt_skipAnim) {
 			var ctn = this.container,
 				btn = this.minMaxBtn,
@@ -138,23 +173,28 @@ var editor = (function(editor) {
 			}
 		},
 	
-	hideMinMaxBtn = function(evt) {
-		var btn = jQuery(this).find('button.minMax'),
-			animData = {};
+		/*
+		 * Hides the min/max button of a panel
+		 * 
+		 * @param {Object} evt
+		 */
+		hideMinMaxBtn = function(evt) {
+			var btn = jQuery(this).find('button.minMax'),
+				animData = {};
+			
+			addOpacityAnim(false, btn.data('origOpacity'), btn, animData);
+			btn.animate(animData, function() {
+				btn.hide();
+			});
+		},
 		
-		addOpacityAnim(false, btn.data('origOpacity'), btn, animData);
-		btn.animate(animData, function() {
-			btn.hide();
-		});
-	},
-	
-	showMinMaxBtn = function(evt) {
-		var btn = jQuery(this).find('button.minMax'),
-			animData = {};
-		
-		addOpacityAnim(true, btn.data('origOpacity'), btn, animData);
-		btn.animate(animData);
-	},
+		showMinMaxBtn = function(evt) {
+			var btn = jQuery(this).find('button.minMax'),
+				animData = {};
+			
+			addOpacityAnim(true, btn.data('origOpacity'), btn, animData);
+			btn.animate(animData);
+		},
 	
 	PanelBase = editor.ui.Component.extend({
 		init: function(options) {
