@@ -138,6 +138,8 @@ body.ten24 {
 .mainView {
     margin: 0;
 	width: 100%;
+	min-height: 768px;
+	min-width: 1024px;
 }
 .hiddenView {
     height: 0;
@@ -482,6 +484,8 @@ body.ten24 {
 	border: none;
 	box-shadow: none;
 	margin-bottom: 0;
+	max-height: 700px;
+	overflow: auto;
 	padding-bottom: 0;
 }
 #plgPane .listWidget {
@@ -497,9 +501,7 @@ body.ten24 {
 	background: #2a2a2a;
 }
 #plgPane .listWidget>li>div {
-	width: auto;
-	padding-left: 0.833em;
-	width: 14.583em;
+	width: 13.584em;
 }
 #plgPane .listWidget>li label {
 	margin-left: 0.417em;
@@ -527,6 +529,7 @@ body.ten24 {
 	right: 0;
 	top: 0;
 	max-width: 25em;
+	min-height: 768px;
 	height: 100%;
 }
 .rightAligned .widget:nth-child(n+2):not(.widgetWithForms) {

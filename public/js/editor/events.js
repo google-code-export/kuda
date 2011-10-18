@@ -73,8 +73,6 @@ var editor = (function(editor) {
 		
 		WidgetVisible: 'editor.WidgetVisible',
 		
-		WidgetResized: 'editor.WidgetResized',
-		
 		WorldCleaned: 'editor.WorldCleaned',
 		
 		WorldLoaded: 'editor.WorldLoaded'
