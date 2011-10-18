@@ -40,8 +40,10 @@ var hemi = (function(hemi) {
 	
 	var attachProgressListener = function(url, loadInfo) {
 		loadInfo.request_.addProgressListener(function(evt) {
-			var pct = evt.loaded / evt.total * 100;
-			hemi.loader.updateTask(url, pct);
+			if (evt.lengthComputable) {
+				var pct = evt.loaded / evt.total * 100;
+				hemi.loader.updateTask(url, pct);
+			}
 		});
 	};
 	
@@ -322,9 +324,11 @@ var hemi = (function(hemi) {
 			percent = 0;
 			
 		for (var ndx = 0; ndx < total; ndx++) {
-			var fileObj = values[ndx];
-			
-			percent += fileObj.percent / total;
+			percent += values[ndx].percent;
+		}
+		
+		if (total > 0) {
+			percent /= total;
 		}
 		
 		hemi.world.send(hemi.msg.progress, {
