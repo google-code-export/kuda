@@ -566,11 +566,15 @@ var editor = (function(editor) {
 			this[widget.getName()] = widget;
 			this.widgets.push(widget);
 			
-			var pnl = this;
-			// TODO: listen to when a widget gets made visible/invisible
-			widget.addListener(editor.events.WidgetResized, function() {
-				pnl.resize();
-			});
+			widget.setMinHeight(parseInt(this.container.css('min-height')));
+		},
+		
+		resize: function() {
+			this._super();
+			
+			for (var i = 0, il = this.widgets.length; i < il; i++) {
+				this.widgets[i].sizeAndPosition();	
+			}
 		},
 		
 		setVisible: function(visible, opt_skipAnim) {
@@ -623,6 +627,7 @@ var editor = (function(editor) {
 				newOpts.classes = ['widget'];
 			}
 			
+			this.minHeight = null;
 			this._super(newOpts);
 		},
 		
@@ -654,7 +659,10 @@ var editor = (function(editor) {
 		
 		invalidate: function() {
 			this.sizeAndPosition();
-			this.notifyListeners(editor.events.WidgetResized);
+		},
+		
+		setMinHeight: function(pnlHeight) {
+			this.minHeight = pnlHeight;
 		},
 		
 		setVisible: function(visible) {
@@ -672,7 +680,7 @@ var editor = (function(editor) {
 				padding = parseInt(container.css('paddingBottom')) +
 					parseInt(container.css('paddingTop')),
 				win = jQuery(window),
-				winHeight = win.height();
+				winHeight = this.minHeight ? Math.max(win.height(), this.minHeight) : win.height();
 			
 			switch(this.config.height) {
 				case editor.ui.Height.FULL:
@@ -899,8 +907,7 @@ var editor = (function(editor) {
 				win = jQuery(window),
 				vwr = jQuery('.mainView'),
 			
-				windowWidth = window.innerWidth ? window.innerWidth 
-					: document.documentElement.offsetWidth,
+				windowWidth = win.width(),
 				windowHeight = win.height();
 				
 			if (windowWidth <= 1024) {
