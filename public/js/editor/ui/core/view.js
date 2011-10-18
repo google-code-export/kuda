@@ -161,8 +161,11 @@ var editor = (function(editor) {
 			var newOpts = jQuery.extend({
 				location: editor.ui.Location.RIGHT,
 				classes: [],
+				minMax: true,
 				startsVisible: true
 			}, options);
+			
+			this.minMaxBtn = null;
 			this.origOpacity = null;
 			this.visible = true;
 			
@@ -179,8 +182,18 @@ var editor = (function(editor) {
 				ctn = this.container = jQuery('<div></div>'),
 				pnl = this;
 			
-			ctn.append(minMaxBtn);
 			jQuery('body').append(ctn);
+			
+			if (this.config.minMax) {
+				ctn.append(minMaxBtn);
+			}
+			
+			// put this on the tool layer and align it correctly
+			ctn.css({
+				zIndex: editor.ui.Layer.TOOL
+			})
+			.bind('mouseenter', showMinMaxBtn)
+			.bind('mouseleave', hideMinMaxBtn);
 			
 			minMaxBtn.bind('click', function(evt) {
 				var min = minMaxBtn.data('min');
@@ -192,19 +205,12 @@ var editor = (function(editor) {
 				}
 				
 				minMaxBtn.data('min', !min);
-			}).data('min', true).text('Min').hide();
+			}).data('origOpacity', 1).data('min', true).text('Min').hide();
 			
 			// add any specified classes
 			for (var i = 0, il = this.config.classes.length; i < il; i++) {
 				ctn.addClass(this.config.classes[i]);
 			}
-			
-			// put this on the tool layer and align it correctly
-			ctn.css({
-				zIndex: editor.ui.Layer.TOOL
-			})
-			.bind('mouseenter', showMinMaxBtn)
-			.bind('mouseleave', hideMinMaxBtn);
 			
 			switch(this.config.location) {
 				case editor.ui.Location.RIGHT:
@@ -220,7 +226,6 @@ var editor = (function(editor) {
 			
 			
 			this.origOpacity = ctn.css('opacity');
-			minMaxBtn.data('origOpacity', 1);
 		},
 		
 		getName: function() {
@@ -315,7 +320,7 @@ var editor = (function(editor) {
 						left: ctnWidth
 					});
 					break;
-			}			
+			}
 		},
 		
 		setVisible: function(visible, opt_skipAnim) {
@@ -536,6 +541,25 @@ var editor = (function(editor) {
 					this.widgets[i].sizeAndPosition();	
 				}
 			}
+		}
+	});
+	
+////////////////////////////////////////////////////////////////////////////////
+//								Full Panel		  		                      //
+////////////////////////////////////////////////////////////////////////////////
+	
+	editor.ui.FullPanel = editor.ui.Panel.extend({
+		init: function(options) {
+			options = options || {};
+			options.minMax = false;
+			
+			if (options.classes) {
+				options.classes.unshift('fullPanel');
+			} else {
+				options.classes = ['fullPanel'];
+			}
+			
+			this._super(options);
 		}
 	});
 	

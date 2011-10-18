@@ -197,7 +197,7 @@ div#mbrBrowserTree div#mbrTree {
 	color: #fff;
 	background: #333;
 	border: 1px solid #666;
-	opacity: 0.85;
+	opacity: 0.95;
 }
 /* creates triangle */
 .mbrPopup .arrow {
@@ -212,7 +212,7 @@ div#mbrBrowserTree div#mbrTree {
 	border-top-color: #333;
 	left: 10px;
 	margin-top: -11px;
-	opacity: 0.85;
+	opacity: 0.95;
 }
 .mbrPopup .listWidget > li:nth-child(2n+1) {
 	background: #222;
