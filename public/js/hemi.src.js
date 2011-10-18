@@ -7159,7 +7159,9 @@ var hemi = (function(hemi) {
 		 */
 		setFileName: function(fileName, opt_errFnc) {
 			this.fileName = fileName;
-			this.name = getModelName(fileName);
+			if (this.name.length <= 0) {
+				this.name = getModelName(fileName);
+			}
 			this.load(opt_errFnc);
 		},
 		
@@ -7197,7 +7199,9 @@ var hemi = (function(hemi) {
 		loadConfig: function(config) {
 			var id = this.getId();
 			
-			this.name = getModelName(this.fileName);
+			if (this.name.length <= 0) {
+				this.name = getModelName(this.fileName);
+			}
 			this.isSkinned = config.isSkinned();
 			this.root = config.rootTransform;
 			this.root.name = this.name + '_Root';
