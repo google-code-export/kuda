@@ -517,7 +517,7 @@ body.ten24 {
 	background: #eee;
 	color: #333;
 	box-shadow: 0 0 10px #666;
-	opacity: 0.85;
+	opacity: 0.95;
 	-webkit-transition: box-shadow 0.25s ease-in-out;
 	-moz-transition: box-shadow 0.25s ease-in-out;
 	-o-transition: box-shadow 0.25s ease-in-out;
@@ -588,6 +588,17 @@ body.ten24 {
 }
 .bottomPanel button:not(:last-child) {
 	margin-right: 5px;
+}
+
+/******************************************************************************
+ * 								Full Panel									  *
+ ******************************************************************************/
+
+.fullPanel {
+	border-left: 1px solid #666;
+	box-shadow: none;
+	left: 15.417em;
+	max-width: 100%;
 }
 
 /******************************************************************************
