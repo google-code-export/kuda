@@ -315,10 +315,10 @@
 			});
 		},
 		
-		addModel: function(url) {
+		addModel: function(url, modelName) {
 			var model = new hemi.model.Model(),
 				that = this;
-			
+			model.name = modelName;
 			model.setFileName(url, function(exception) {
 				model.cleanup();
 				that.notifyListeners(shorthand.events.LoadException, url);
@@ -1214,43 +1214,66 @@
 		
 		createImportPanel: function() {			
 			var pnl = this.find('#mbrImportPnl'),
-				btn = pnl.find('button'),
-				wgt = this;				
+			btn = pnl.find('button'),
+			wgt = this;				
+		
+			var errorHandler = function(error) {
+				console.log(error);
+			}
+			var loadPnl = this.find('#mbrLoadPnl');
+			var sel = loadPnl.find('select');
 			
 			btn.bind('click', function(evt) {
 				fileDiv.show();
 				fileInput.focus().click();
 				fileDiv.hide();
 			})
-			.file()
+			.file({multiple: true})
 			.choose(function(evt, input) {
-				wgt.showMessage('Uploading Model...');
-				
-				// assuming no multi select file
-				var file = input.files[0],
-					name = file.fileName != null ? file.fileName : file.name;
-					
-				jQuery.ajax({
-					url: '/model',
-					dataType: 'json',
-					type: 'post',
-					data: file,
-					processData: false,
-					contentType: 'application/octet-stream',
-					headers: {
-						'X-File-Name': encodeURIComponent(name),
-						'X-File-Size': file.size,
-						'X-File-Type': file.type
-					},
-					success: function(data, status, xhr) {
-						wgt.showMessage('Loading Model...');
-						wgt.importData = data;
-						wgt.notifyListeners(shorthand.events.LoadModel, data.url);
-					},
-					error: function(xhr, status, err) {
-						wgt.showMessage(xhr.responseText);
+				window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+				var files = input.files;
+				var jsonFileEntry;
+				var fileReadCounter = files.length;
+				var regEx = /.+\.json/;
+				window.requestFileSystem(window.PERMANENT, 50 * 1024 * 1024, function(fs) {
+					for (var i = 0; i < files.length; ++i) {
+						var file = files[i];
+						(function(curFile) {
+							var createFile = function(fileEntry) {
+								fileEntry.createWriter(function(fileWriter) {
+									fileWriter.onwriteend = function() {
+										fileReadCounter--;
+										if (fileReadCounter == 0 && jsonFileEntry) {
+											var prj = jQuery('<option value="' + jsonFileEntry.toURL() + '">' + jsonFileEntry.name.split('.')[0] + '</option>');
+											sel.append(prj);
+										}
+									};
+									if (regEx.test(fileEntry.name)) {
+										jsonFileEntry = fileEntry;
+									}
+									fileWriter.write(curFile);
+								}, errorHandler);
+							};
+							
+							var eraseCreateFile = function(fileEntry) {
+								var name = fileEntry.name;
+								(function(fileName) {
+									fileEntry.remove(function() {
+										fs.root.getFile(fileName, {create: true, exclusive: true}, createFile, errorHandler);
+									});
+								})(name);
+							};
+							
+							//Only one of these callbacks will get called
+							//if file exists
+							fs.root.getFile(curFile.name, {create: false, exclusive: true}, eraseCreateFile);
+							//if file doesn't exist
+							fs.root.getFile(curFile.name, {create: true, exclusive: true}, createFile);
+						})(file);
 					}
-				});
+					
+					
+				}, errorHandler);
 			});
 			
 			// We need to hide the file div because it interferes with the mouse
@@ -1270,7 +1293,8 @@
 			sel.bind('change', function() {
 				if (sel.val() !== '-1') {
 					wgt.showMessage('Loading Model...');
-					wgt.notifyListeners(shorthand.events.LoadModel, sel.val());
+					var modelName = sel.find('option[value="' + sel.val() + '"]').text();
+					wgt.notifyListeners(shorthand.events.LoadModel, {url: sel.val(), modelName: modelName});
 				}
 			});	
 			
@@ -1280,7 +1304,8 @@
 				
 				if (code == 13 && val !== '') { //Enter keycode
 					wgt.showMessage('Loading Model...');
-					wgt.notifyListeners(shorthand.events.LoadModel, val);
+					var modelName = sel.find('option[value="' + sel.val() + '"]').text();
+					wgt.notifyListeners(shorthand.events.LoadModel, {url: val, modelName: ipt.text()});
 				}
 			});
 		},
@@ -1328,7 +1353,7 @@
 			});
 			// Removing import panel until import is reenabled in the server
 			this.find('#mbrImportPnl').hide();
-//			this.createImportPanel();
+			this.createImportPanel();
 			this.createLoadPanel();
 			this.createUnloadPanel();
 		},
@@ -1352,12 +1377,6 @@
 			var wgt = this,
 				sel = this.find('#mbrLoadPnl select'),
 				ipt = this.find('input');
-			
-			if (this.importData) {
-				var prj = jQuery('<option value="' + this.importData.url + '">' + this.importData.name + '</option>');
-				sel.append(prj);
-				this.importData = null;
-			}
 			
 			this.msgPanel.text('').slideUp(200, function() {		
 				sel.val(-1).sb('refresh');
@@ -1394,7 +1413,7 @@
 			}
 			else {									
 				// Removing import panel until import is reenabled in the server
-//				importPnl.show();
+				importPnl.show();
 			
 				ipt.hide();
 				sb.show();
@@ -1916,8 +1935,8 @@
 			});
 			
 			// loader widget specific
-			ldrWgt.addListener(shorthand.events.LoadModel, function(url) {
-				model.addModel(url);
+			ldrWgt.addListener(shorthand.events.LoadModel, function(data) {
+				model.addModel(data.url, data.modelName);
 			});
 			ldrWgt.addListener(shorthand.events.UnloadModel, function(mdl) {
 				model.removeModel(mdl);
