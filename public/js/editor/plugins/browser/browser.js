@@ -1218,7 +1218,9 @@
 				wgt = this;				
 			
 			btn.bind('click', function(evt) {
-				fileInput.click();
+				fileDiv.show();
+				fileInput.focus().click();
+				fileDiv.hide();
 			})
 			.file()
 			.choose(function(evt, input) {
