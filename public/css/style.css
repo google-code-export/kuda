@@ -388,11 +388,12 @@ body.ten24 {
     padding: 0.333em 0.25em;
     text-shadow: 0 -1px 0 #000;
 	margin-right: 0.167em;
-	margin-bottom: 0.167en;
-	-webkit-transition: color 0.25s ease-in-out;
-	-moz-transition: color 0.25s ease-in-out;
-	-o-transition: color 0.25s ease-in-out;
+	margin-bottom: 0.167em;
 	width: 6.154em;
+}
+#prjPane button:active {
+    background: #777;
+    color: #fff;
 }
 #prjPane #prjSaveBtn {
 	background: -moz-linear-gradient(100% 100% 90deg, #0a6496, #2a86b7);
@@ -1316,10 +1317,7 @@ button {
 	-o-transition: color 0.25s ease-in-out;
 }
 button:active {
-	-webkit-transform: translate(0, 2px);
-	-moz-transform: translate(0, 2px);
-	-o-transform: translate(0, 2px);
-	transform: translate(0, 2px);
+	background: #ccc;
 }
 .widget:not(.widgetWithForms) button {
     background: #555;
@@ -1338,7 +1336,11 @@ button:active {
     border: 1px solid #222;
 	box-shadow: inset 0 0 1px #aaa;
     text-shadow: 0 -1px 0 #000;
-} 
+}
+.widget:not(.widgetWithForms) button:active {
+    background: #777;
+    color: #fff;
+}
 form button:first-child {
     margin-left: 0;
 }
