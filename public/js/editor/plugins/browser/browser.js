@@ -1212,14 +1212,17 @@
 			this.importData = null;
 		},
 		
+		errorHandler: function(error) {
+			wgt.showMessage(error);
+		},
+		
 		createImportPanel: function() {			
+			window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+			
 			var pnl = this.find('#mbrImportPnl'),
 			btn = pnl.find('button'),
 			wgt = this;				
 		
-			var errorHandler = function(error) {
-				console.log(error);
-			}
 			var loadPnl = this.find('#mbrLoadPnl');
 			var sel = loadPnl.find('select');
 			
@@ -1230,7 +1233,6 @@
 			})
 			.file({multiple: true})
 			.choose(function(evt, input) {
-				window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
 				var files = input.files;
 				var jsonFileEntry;
 				var fileReadCounter = files.length;
@@ -1252,14 +1254,14 @@
 										jsonFileEntry = fileEntry;
 									}
 									fileWriter.write(curFile);
-								}, errorHandler);
+								}, this.errorHandler);
 							};
 							
 							var eraseCreateFile = function(fileEntry) {
 								var name = fileEntry.name;
 								(function(fileName) {
 									fileEntry.remove(function() {
-										fs.root.getFile(fileName, {create: true, exclusive: true}, createFile, errorHandler);
+										fs.root.getFile(fileName, {create: true, exclusive: true}, createFile, this.errorHandler);
 									});
 								})(name);
 							};
@@ -1273,7 +1275,7 @@
 					}
 					
 					
-				}, errorHandler);
+				}, this.errorHandler);
 			});
 			
 			// We need to hide the file div because it interferes with the mouse
@@ -1282,6 +1284,45 @@
 				fileDiv = fileInput.parent().parent();
 			
 			fileDiv.hide();
+		},
+		
+		loadModelsFromLocalFS: function(selectElement) {
+			window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+			
+			var regEx = /.+\.json/;
+			function listResults(entries) {
+				for (var i = 0; i < entries.length; ++i) {
+					var entry = entries[i];
+					if (regEx.test(entry.name)) {
+						var prj = jQuery('<option value="' + entry.toURL() + '">' + entry.name.split('.')[0] + '</option>');
+						selectElement.append(prj);
+					}
+				}
+			}
+			
+			function toArray(list) {
+				return Array.prototype.slice.call(list || [], 0);
+			}
+
+			window.requestFileSystem(window.PERMANENT, 50 * 1024 * 1024, function(fs) {
+				var dirReader = fs.root.createReader();
+				var entries = [];
+
+				// Call the reader.readEntries() until no more results are returned.
+				var readEntries = function() {
+					dirReader.readEntries (function(results) {
+						if (!results.length) {
+							listResults(entries);
+						} 
+						else {
+							entries = entries.concat(toArray(results));
+							readEntries();
+						}
+					}, this.errorHandler);
+				};
+	
+				readEntries(); // Start reading dirs.
+			});
 		},
 		
 		createLoadPanel: function() {				
@@ -1308,6 +1349,9 @@
 					wgt.notifyListeners(shorthand.events.LoadModel, {url: val, modelName: ipt.text()});
 				}
 			});
+			
+			this.loadModelsFromLocalFS(sel);
+
 		},
 		
 		createUnloadPanel: function() {			
