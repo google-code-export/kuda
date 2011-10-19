@@ -135,7 +135,12 @@ var parseFile = function(data, classes) {
 			if (ndx > -1) {
 				head = body.substr(0, ndx);
 				ndx = body.indexOf('/**', ndx);
-				body = body.substr(ndx + 3);
+				
+				if (ndx > -1) {
+					body = body.substr(ndx + 3);
+				} else {
+					body = null;
+				}
 			} else {
 				head = body;
 				body = null;
