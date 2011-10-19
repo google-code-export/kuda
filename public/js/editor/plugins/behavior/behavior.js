@@ -563,10 +563,10 @@
 					shorthand.getActionName(data).join('.'),
 					msgTarget.name,
 					'<td> \
-					<button class="editBtn">Edit</button>\
-					<button class="chainBtn">Chain</button>\
-					<button class="cloneBtn">Clone</button>\
-					<button class="removeBtn">Remove</button>\
+					<button class="editBtn" title="Edit behavior">Edit</button>\
+					<button class="chainBtn" title="Trigger another behavior from this">Chain</button>\
+					<button class="cloneBtn" title="Duplicate this behavior">Clone</button>\
+					<button class="removeBtn" title="Remove this behavior">Remove</button>\
 					</td>'
 				]),
 				tr = jQuery(this.table.fnGetNodes(row)),
