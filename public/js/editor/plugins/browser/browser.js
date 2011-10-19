@@ -1213,7 +1213,7 @@
 		},
 		
 		errorHandler: function(error) {
-			wgt.showMessage(error);
+			this.showMessage(error);
 		},
 		
 		createImportPanel: function() {			
@@ -1254,14 +1254,14 @@
 										jsonFileEntry = fileEntry;
 									}
 									fileWriter.write(curFile);
-								}, this.errorHandler);
+								}, wgt.errorHandler);
 							};
 							
 							var eraseCreateFile = function(fileEntry) {
 								var name = fileEntry.name;
 								(function(fileName) {
 									fileEntry.remove(function() {
-										fs.root.getFile(fileName, {create: true, exclusive: true}, createFile, this.errorHandler);
+										fs.root.getFile(fileName, {create: true, exclusive: true}, createFile, wgt.errorHandler);
 									});
 								})(name);
 							};
@@ -1275,7 +1275,7 @@
 					}
 					
 					
-				}, this.errorHandler);
+				}, wgt.errorHandler);
 			});
 			
 			// We need to hide the file div because it interferes with the mouse
@@ -1288,6 +1288,7 @@
 		
 		loadModelsFromLocalFS: function(selectElement) {
 			window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+			var wgt = this;
 			
 			var regEx = /.+\.json/;
 			function listResults(entries) {
@@ -1318,7 +1319,7 @@
 							entries = entries.concat(toArray(results));
 							readEntries();
 						}
-					}, this.errorHandler);
+					}, wgt.errorHandler);
 				};
 	
 				readEntries(); // Start reading dirs.
