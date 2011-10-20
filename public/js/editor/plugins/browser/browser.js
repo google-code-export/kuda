@@ -1226,57 +1226,64 @@
 			var loadPnl = this.find('#mbrLoadPnl');
 			var sel = loadPnl.find('select');
 			
-			btn.bind('click', function(evt) {
-				fileDiv.show();
-				fileInput.focus().click();
-				fileDiv.hide();
-			})
-			.file({multiple: true})
-			.choose(function(evt, input) {
-				var files = input.files;
-				var jsonFileEntry;
-				var fileReadCounter = files.length;
-				var regEx = /.+\.json/;
-				window.requestFileSystem(window.PERMANENT, 50 * 1024 * 1024, function(fs) {
-					for (var i = 0; i < files.length; ++i) {
-						var file = files[i];
-						(function(curFile) {
-							var createFile = function(fileEntry) {
-								fileEntry.createWriter(function(fileWriter) {
-									fileWriter.onwriteend = function() {
-										fileReadCounter--;
-										if (fileReadCounter == 0 && jsonFileEntry) {
-											var prj = jQuery('<option value="' + jsonFileEntry.toURL() + '">' + jsonFileEntry.name.split('.')[0] + '</option>');
-											sel.append(prj);
+			if (window.requestFileSystem) {
+				btn.bind('click', function(evt) {
+					fileDiv.show();
+					fileInput.focus().click();
+					fileDiv.hide();
+				})
+				.file({multiple: true})
+				.choose(function(evt, input) {
+					var files = input.files;
+					var jsonFileEntry;
+					var fileReadCounter = files.length;
+					var regEx = /.+\.json/;
+					window.requestFileSystem(window.PERMANENT, 50 * 1024 * 1024, function(fs) {
+						for (var i = 0; i < files.length; ++i) {
+							var file = files[i];
+							(function(curFile) {
+								var createFile = function(fileEntry) {
+									fileEntry.createWriter(function(fileWriter) {
+										fileWriter.onwriteend = function() {
+											fileReadCounter--;
+											if (fileReadCounter == 0 && jsonFileEntry) {
+												var prj = jQuery('<option value="' + jsonFileEntry.toURL() + '">' + jsonFileEntry.name.split('.')[0] + '</option>');
+												sel.append(prj);
+											}
+										};
+										if (regEx.test(fileEntry.name)) {
+											jsonFileEntry = fileEntry;
 										}
-									};
-									if (regEx.test(fileEntry.name)) {
-										jsonFileEntry = fileEntry;
-									}
-									fileWriter.write(curFile);
-								}, wgt.errorHandler);
-							};
-							
-							var eraseCreateFile = function(fileEntry) {
-								var name = fileEntry.name;
-								(function(fileName) {
-									fileEntry.remove(function() {
-										fs.root.getFile(fileName, {create: true, exclusive: true}, createFile, wgt.errorHandler);
-									});
-								})(name);
-							};
-							
-							//Only one of these callbacks will get called
-							//if file exists
-							fs.root.getFile(curFile.name, {create: false, exclusive: true}, eraseCreateFile);
-							//if file doesn't exist
-							fs.root.getFile(curFile.name, {create: true, exclusive: true}, createFile);
-						})(file);
-					}
-					
-					
-				}, wgt.errorHandler);
-			});
+										fileWriter.write(curFile);
+									}, wgt.errorHandler);
+								};
+								
+								var eraseCreateFile = function(fileEntry) {
+									var name = fileEntry.name;
+									(function(fileName) {
+										fileEntry.remove(function() {
+											fs.root.getFile(fileName, {create: true, exclusive: true}, createFile, wgt.errorHandler);
+										});
+									})(name);
+								};
+								
+								//Only one of these callbacks will get called
+								//if file exists
+								fs.root.getFile(curFile.name, {create: false, exclusive: true}, eraseCreateFile);
+								//if file doesn't exist
+								fs.root.getFile(curFile.name, {create: true, exclusive: true}, createFile);
+							})(file);
+						}
+						
+						
+					}, wgt.errorHandler);
+				});
+			}
+			else {
+				btn.bind('click', function(evt) {
+					wgt.errorHandler('Import not supported on this browser');
+				});
+			}
 			
 			// We need to hide the file div because it interferes with the mouse
 			// events for the minMax button.
@@ -1305,25 +1312,27 @@
 				return Array.prototype.slice.call(list || [], 0);
 			}
 
-			window.requestFileSystem(window.PERMANENT, 50 * 1024 * 1024, function(fs) {
-				var dirReader = fs.root.createReader();
-				var entries = [];
-
-				// Call the reader.readEntries() until no more results are returned.
-				var readEntries = function() {
-					dirReader.readEntries (function(results) {
-						if (!results.length) {
-							listResults(entries);
-						} 
-						else {
-							entries = entries.concat(toArray(results));
-							readEntries();
-						}
-					}, wgt.errorHandler);
-				};
+			if (window.requestFileSystem) {
+				window.requestFileSystem(window.PERMANENT, 50 * 1024 * 1024, function(fs) {
+					var dirReader = fs.root.createReader();
+					var entries = [];
 	
-				readEntries(); // Start reading dirs.
-			});
+					// Call the reader.readEntries() until no more results are returned.
+					var readEntries = function() {
+						dirReader.readEntries (function(results) {
+							if (!results.length) {
+								listResults(entries);
+							} 
+							else {
+								entries = entries.concat(toArray(results));
+								readEntries();
+							}
+						}, wgt.errorHandler);
+					};
+		
+					readEntries(); // Start reading dirs.
+				});
+			}
 		},
 		
 		createLoadPanel: function() {				
