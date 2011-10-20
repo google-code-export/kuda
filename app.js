@@ -132,7 +132,7 @@ routes.get(routes.ROOT, function(req, res) {
 routes.get(routes.ROOTANY, function(req, res) {
 	log('...handling route GET ' + routes.ROOTANY + ' for ' + req.reqPath);
 
-	var status = 404;
+	var status = 404,
 		data = 'The requested URL ' + req.reqPath + ' was not found on this server';
 
 	if (path.existsSync(routes.rootPath + req.reqPath)) {
