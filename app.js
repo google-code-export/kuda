@@ -22,7 +22,7 @@ var qs = require('querystring'),
 	PLAINt = 'text/plain',
 	opt_quiet = false,
 	opt_repl = false, 
-
+    opt_ws = false;
 	routes = {
 		ROOT: '/',
 		ROOTANY: '/*',
@@ -35,6 +35,13 @@ var qs = require('querystring'),
 		pluginsPath: 'public/js/editor/plugins',
 		projectsPath: 'public/projects',
 		assetsPath: 'public/assets',
+        EXAMPLE: 'websocket-example',
+        ws: function(protocol,handler) {
+            log('...adding WebSocket protocol for ' + protocol);
+            this.wss[protocol] = handler;
+        },
+        wss: {},
+        wsConnections: [],
 		//uploadPath: 'public/tmp',
 		get: function(route, handler) {
 			log('...adding GET handler for route ' + route);
@@ -72,8 +79,7 @@ var qs = require('querystring'),
 					this.posts[url](req, res);
 				} else {
 					log('unknown POST route ' + url);
-				}
-				break;
+				}break;
 			case "PUT":
 				if (this.puts[url]) {
 					this.puts[url](req, res);
@@ -113,10 +119,14 @@ if (process.argv.length > 2) {
 		case '-i':
 			opt_repl = true;
 			break;
+        case '-ws':
+            opt_ws = true;
+            break;
 		default:
 			console.log('Usage: ' + process.argv[0] + ' ' + path.basename(process.argv[1]) + ' [OPTIONS]');
 			console.log(' -q quiet, no logging to the console');
 			console.log(' -i interactive, start with a node repl console');
+            console.log(' -ws WebSocket, enables WebSockets');
 			console.log(' -h help, show the usage');
 			process.exit(0);
 		}
@@ -472,6 +482,7 @@ routes.post(routes.PUBLISH, function(req, res) {
 	}
 });
 
+
 function getPathLessTheQueryString(url) {
 	return url.indexOf('?') === -1 ? url : url.substring(0, url.indexOf('?'));
 }
@@ -538,7 +549,7 @@ var copyFile = function(srcFile, dstDir) {
 	fs.writeFileSync(newFile, data);
 };
 
-http.createServer(function (hreq, hres) {
+var app = http.createServer(function (hreq, hres) {
 	var pltqs = getPathLessTheQueryString(hreq.url),
 		req = {
 			url: hreq.url,
@@ -568,9 +579,9 @@ http.createServer(function (hreq, hres) {
 	        	req.param = qs.parse(req.queryString == '' ? req.body : req.queryString);
 				routes.dispatch(req, res);
 			});
-}).listen(3000, "127.0.0.1");
+});
+app.listen(3000, "127.0.0.1");
 
-console.log('Node ' + process.version + ' Kuda server running at http://localhost:3000/');
 
 if (opt_repl) {
 	console.log('Kuda server interactive mode');
@@ -595,3 +606,80 @@ if (opt_repl) {
 	svr.context.PLAINt = PLAINt;
 	svr.context.routes = routes;
 }
+
+//-----------------------------------------------------------------------------
+// Web socket set up
+//-----------------------------------------------------------------------------
+if (opt_ws) {
+    var WebSocketServer = require('WebSockets/websocket').server;
+    var wsServer = new WebSocketServer({
+        httpServer: app,
+        // You should not use autoAcceptConnections for production
+        // applications, as it defeats all standard cross-origin protection
+        // facilities built into the protocol and the browser.  You should
+        // *always* verify the connection's origin and decide whether or not
+        // to accept it.
+        fragmentOutgoingMessages: false
+    });
+
+    wsServer.on('request', function(request) {
+        log('...handling requested WebSocket for ' + request.requestedProtocols.toString());
+        for(var i = 0; i < request.requestedProtocols.length; i++) {
+            if (routes.wss[request.requestedProtocols[i]]) {
+                var connection = request.accept(request.requestedProtocols[i], request.origin);
+                connection.on('close', function() {
+                    log('Connection closed: ' + connection.remoteAddress);
+                    var index = routes.wsConnections.indexOf(connection);
+                    if (index !== -1) {
+                        // remove the connection from the pool
+                        routes.wsConnections.splice(index, 1);
+                    }
+                });
+                log('Connection accepted: ' + connection.remoteAddress);
+                routes.wss[request.requestedProtocols[i]](connection);
+                routes.wsConnections.push(connection);
+            } else {
+                log('unknown WebSocket protocol' + request.requestedProtocols[i]);
+            }       
+        }
+    });
+
+    // Image transfer
+    routes.ws(routes.EXAMPLE, function(connection) {
+        log('...handling route WebSocket ' + routes.EXAMPLE);
+        var intervalId = [];
+        var index = routes.wsConnections.length;
+        // Send image data to new clients
+        var imageFile='public/samples/imageTransfer/test.png';
+        var imageBase64;
+        this.imageBase64 = fs.readFileSync(imageFile,'base64'); 
+        var data = JSON.stringify({
+            msg: 'canvasImage',
+            data: {img: this.imageBase64}
+        });
+        intervalId[index] = setInterval(function () {
+            connection.sendUTF(data);
+            }, 1000)
+        // Handle closed connections
+        connection.on('close', function() {
+            clearInterval(intervalId[index]);
+        });
+        // Handle incoming messages
+        connection.on('message', function(message) {
+            if (message.type === 'utf8') {
+                try {
+                    var command = JSON.parse(message.utf8Data);
+                   
+                    if (command.msg === 'stop'){
+                        clearInterval(intervalId[index]);
+                    }   else {
+                        console.log('Unknown command');
+                    }
+                } catch(e) {
+                    console.log(e)
+                }
+            }
+        });
+    });
+}
+console.log('Node ' + process.version + ' Kuda server running at http://localhost:3000/');
