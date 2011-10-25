@@ -54,7 +54,7 @@
 		 *		cameras, effects, etc. When we set the model's file name, it
 		 *		will begin loading that file.
 		 */
-        hemi.loader.loadOctane('samples/grandmasHouseOctane/grandmasHouseOctane.json',
+        hemi.loader.loadOctane('samples/GrandmasHouseOctane/grandmasHouseOctane.json',
         function() {
             // This will be executed before hemi.world.ready() is called.
             hemi.world.subscribe(hemi.msg.ready,
