@@ -31,7 +31,7 @@ var qs = require('querystring'),
         MODELS: '/models',
         PLUGINS: '/plugins',
         PUBLISH: '/publish',
-        WSEXAMPLE: 'websocket-example',
+        LIGHTING_WS: 'websocket-lighting',
         rootPath: 'public',
         pluginsPath: 'public/js/editor/plugins',
         projectsPath: 'public/projects',
@@ -611,9 +611,7 @@ if (opt_ws) {
     var WebSocketServer = require('WebSockets/websocket').server;
     var wsServer = new WebSocketServer({
         httpServer: app,
-        // Firefox 7 alpha has a bug that drops the connection on large fragmented messages
-        // JPP NOTE: We support FF7 stable, so leave this out, but still commented here
-        //fragmentOutgoingMessages: false
+        fragmentOutgoingMessages: false
     });
 
     wsServer.on('request', function(request) {
@@ -642,41 +640,122 @@ if (opt_ws) {
         }
     });
 
-    routes.ws(routes.WSEXAMPLE, function(connection) {
-        log('...adding ' + routes.WSEXAMPLE + ' protocol request message handler');
-
-        var intervalId = [],
-            index = routes.wsConnections.length,
-            imageFile = 'public/samples/imageTransfer/test.png',
-            imageBase64 = fs.readFileSync(imageFile, 'base64'),
-            data = JSON.stringify({
-                msg: 'canvasImage',
-                data: { img: this.imageBase64 }
-            });
-
-        intervalId[index] = setInterval(function () {
-            connection.sendUTF(data);
-        }, 1000);
-        // Handle closed connections
-        connection.on('close', function() {
-            clearInterval(intervalId[index]);
-        });
-        // Handle incoming messages
-        connection.on('message', function(message) {
-            if (message.type === 'utf8') {
-                try {
-                    var command = JSON.parse(message.utf8Data);
-                   
-                    if (command.msg === 'stop') {
-                        clearInterval(intervalId[index]);
-                    } else {
-                        console.log('Unknown command for ' + routes.WSEXAMPLE + ' on message');
-                    }
-                } catch(e) {
-                    console.log(e)
+    // Lighting Example
+    routes.ws(routes.LIGHTING_WS, function(connection) {
+        log('...handling route WebSocket ' + routes.LIGHTING_WS);
+        var base64,
+        type,
+        imgData,
+        filename,
+        tmp,
+        data,
+        maps = [{
+			kitchen: './public/assets/images/TimeMaps/Kitchen_0800.jpg',
+			walls: './public/assets/images/TimeMaps/Walls_0800.jpg',
+			logs: './public/assets/images/TimeMaps/Logs_0800.jpg',
+			ceiling: './public/assets/images/TimeMaps/Ceiling_0800.jpg',
+			ba: './public/assets/images/TimeMaps/BA_0800.jpg',
+			b1: './public/assets/images/TimeMaps/B1_0800.jpg',
+			b2: './public/assets/images/TimeMaps/B2_0800.jpg',
+			floor: './public/assets/images/TimeMaps/Floor_0800.jpg',
+			window_south: './public/assets/images/TimeMaps/Window_South_0800.jpg',
+			window_lr3: './public/assets/images/TimeMaps/Window_LR3_0800.jpg',
+			window_b2: './public/assets/images/TimeMaps/Window_B2_0800.jpg',
+			window_b1: './public/assets/images/TimeMaps/Window_B1_0800.jpg',
+			window_ki: './public/assets/images/TimeMaps/Window_KI_0800.jpg',
+			window_lr4: './public/assets/images/TimeMaps/Window_LR4_0800.jpg'
+			}, {
+			kitchen: './public/assets/images/TimeMaps/Kitchen_1000.jpg',
+			walls: './public/assets/images/TimeMaps/Walls_1000.jpg',
+			logs: './public/assets/images/TimeMaps/Logs_1000.jpg',
+			ceiling: './public/assets/images/TimeMaps/Ceiling_1000.jpg',
+			ba: './public/assets/images/TimeMaps/BA_1000.jpg',
+			b1: './public/assets/images/TimeMaps/B1_1000.jpg',
+			b2: './public/assets/images/TimeMaps/B2_1000.jpg',
+			floor: './public/assets/images/TimeMaps/Floor_1000.jpg',
+			window_south: './public/assets/images/TimeMaps/Window_South_1000.jpg',
+			window_lr3: './public/assets/images/TimeMaps/Window_LR3_1000.jpg',
+			window_b2: './public/assets/images/TimeMaps/Window_B2_1000.jpg',
+			window_b1: './public/assets/images/TimeMaps/Window_B1_1000.jpg',
+			window_ki: './public/assets/images/TimeMaps/Window_KI_1000.jpg',
+			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1000.jpg'
+			}, {
+			kitchen: './public/assets/images/TimeMaps/Kitchen_1200.jpg',
+			walls: './public/assets/images/TimeMaps/Walls_1200.jpg',
+			logs: './public/assets/images/TimeMaps/Logs_1200.jpg',
+			ceiling: './public/assets/images/TimeMaps/Ceiling_1200.jpg',
+			ba: './public/assets/images/TimeMaps/BA_1200.jpg',
+			b1: './public/assets/images/TimeMaps/B1_1200.jpg',
+			b2: './public/assets/images/TimeMaps/B2_1200.jpg',
+			floor: './public/assets/images/TimeMaps/Floor_1200.jpg',
+			window_south: './public/assets/images/TimeMaps/Window_South_1200.jpg',
+			window_lr3: './public/assets/images/TimeMaps/Window_LR3_1200.jpg',
+			window_b2: './public/assets/images/TimeMaps/Window_B2_1200.jpg',
+			window_b1: './public/assets/images/TimeMaps/Window_B1_1200.jpg',
+			window_ki: './public/assets/images/TimeMaps/Window_KI_1200.jpg',
+			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1200.jpg'
+			}, {
+			kitchen: './public/assets/images/TimeMaps/Kitchen_1500.jpg',
+			walls: './public/assets/images/TimeMaps/Walls_1500.jpg',
+			logs: './public/assets/images/TimeMaps/Logs_1500.jpg',
+			ceiling: './public/assets/images/TimeMaps/Ceiling_1500.jpg',
+			ba: './public/assets/images/TimeMaps/BA_1500.jpg',
+			b1: './public/assets/images/TimeMaps/B1_1500.jpg',
+			b2: './public/assets/images/TimeMaps/B2_1500.jpg',
+			floor: './public/assets/images/TimeMaps/Floor_1500.jpg',
+			window_south: './public/assets/images/TimeMaps/Window_South_1500.jpg',
+			window_lr3: './public/assets/images/TimeMaps/Window_LR3_1500.jpg',
+			window_b2: './public/assets/images/TimeMaps/Window_B2_1500.jpg',
+			window_b1: './public/assets/images/TimeMaps/Window_B1_1500.jpg',
+			window_ki: './public/assets/images/TimeMaps/Window_KI_1500.jpg',
+			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1500.jpg'
+			}, {
+			kitchen: './public/assets/images/TimeMaps/Kitchen_1725.jpg',
+			walls: './public/assets/images/TimeMaps/Walls_1725.jpg',
+			logs: './public/assets/images/TimeMaps/Logs_1725.jpg',
+			ceiling: './public/assets/images/TimeMaps/Ceiling_1725.jpg',
+			ba: './public/assets/images/TimeMaps/BA_1725.jpg',
+			b1: './public/assets/images/TimeMaps/B1_1725.jpg',
+			b2: './public/assets/images/TimeMaps/B2_1725.jpg',
+			floor: './public/assets/images/TimeMaps/Floor_1725.jpg',
+			window_south: './public/assets/images/TimeMaps/Window_South_1725.jpg',
+			window_lr3: './public/assets/images/TimeMaps/Window_LR3_1725.jpg',
+			window_b2: './public/assets/images/TimeMaps/Window_B2_1725.jpg',
+			window_b1: './public/assets/images/TimeMaps/Window_B1_1725.jpg',
+			window_ki: './public/assets/images/TimeMaps/Window_KI_1725.jpg',
+			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1725.jpg'
+		}];
+        
+        for (var i in maps) {
+            for (var keys in maps[i]) {
+                base64 = fs.readFileSync(maps[i][keys],'base64');
+                type = maps[i][keys].slice(-3);
+                imgData;
+                if (type === 'jpg') {
+                    imgData = 'data:image/jpg;base64,'+base64;
+                } else if(type === 'png') {
+                    imgData = 'data:image/png;base64,'+base64;
+                } else {
+                    console.log('Invalid image type');
                 }
+                
+                tmp = maps[i][keys].split("/");
+                if(tmp.length == 1) {
+                    tmp = maps[i][keys].split("\\");
+                }
+                filename = tmp[tmp.length - 1];
+                data = JSON.stringify({
+                            msg: 'textureImage',
+                            data: {name: filename,
+                            // drop filename
+                            // setName: i (setName)
+                            // keyName: keys (textureName)
+                            // rename to texture data
+                            img: imgData}
+                        });
+                connection.sendUTF(data)
             }
-        });
+        }
     });
 }
 
