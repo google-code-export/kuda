@@ -20,11 +20,9 @@
  */
 
 (function() {
-	var	houseModel,
-		emissiveSamplers = {};
+	var	houseModel;
 
 	function initStep(clientElements) {
-		bindJavaScript();
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		hemi.loader.loadPath = '../../';
@@ -38,31 +36,10 @@
 		hemi.world.subscribe(hemi.msg.ready,
 			function(msg) {
 				setupScene();
-                var client = new Websocket();
-                client.connect();
 			});
 		hemi.world.ready();
 	}
-
-	function bindJavaScript() {
-		jQuery(':button').attr('disabled', 'disabled');
-		jQuery('#set0800').click(function() {
-			changeModelSamplers(textureSet['set0800'].samplers);
-		});
-		jQuery('#set1000').click(function() {
-			changeModelSamplers(textureSet['set1000'].samplers);
-		});
-		jQuery('#set1200').click(function() {
-			changeModelSamplers(textureSet['set1200'].samplers);
-		});
-		jQuery('#set1500').click(function() {
-			changeModelSamplers(textureSet['set1500'].samplers);
-		});
-		jQuery('#set1725').click(function() {
-			changeModelSamplers(textureSet['set1725'].samplers);
-		});
-	}
-
+   
 	function setupScene() {
 		for (var i = 0, materials = houseModel.materials; i < materials.length; i++) {
 			emissiveSamplers[materials[i].name] = materials[i].getParam("emissiveSampler");
@@ -73,27 +50,11 @@
 		viewpoint.eye = [160.0, 1500.0, 1500.0];
 		viewpoint.target = [160.0, 100.0, 0.0];
 		hemi.world.camera.moveToView(viewpoint, 1);
-		hemi.world.camera.subscribe(hemi.msg.stop,function(){});
+		hemi.world.camera.subscribe(hemi.msg.stop,function(){
+            var client = new Websocket();
+            client.connect();
+        });
 	}
-
-	function changeModelSamplers(samplers) {
-		// Note: value of a "Sampler", or "Sampler2D", the "emmissiveSampler" is write only.
-        emissiveSamplers.Walls_S.value = samplers.Walls.value;
-		emissiveSamplers.Logs_S.value = samplers.Logs.value;
-		emissiveSamplers.Kitchen_S.value = samplers.Kitchen.value;
-		emissiveSamplers.Ceiling_S.value = samplers.Ceiling.value;
-		emissiveSamplers.Bath_S.value = samplers.BA.value;
-		emissiveSamplers.B1_S.value = samplers.B1.value;
-		emissiveSamplers.B2_S.value = samplers.B2.value;
-		emissiveSamplers.Floor_S.value = samplers.Floor.value;
-		emissiveSamplers.Win_South_S.value = samplers.Window_South.value;
-		emissiveSamplers.Win_LR3_S.value = samplers.Window_LR3.value;
-		emissiveSamplers.Win_B2_S.value = samplers.Window_B2.value;
-		emissiveSamplers.Win_B1_S.value = samplers.Window_B1.value;
-		emissiveSamplers.Win_KI_S.value = samplers.Window_KI.value;
-		emissiveSamplers.Win_LR4_S.value = samplers.Window_LR4.value;
-	}
-
 	
 	function getParam(name) {
 		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
@@ -118,7 +79,9 @@
 })();
 
 // WebSockets handling
-var textureSet = {};
+var textureSet = {},
+    emissiveSamplers = {};
+    
 function Websocket() {    
     // Define accepted commands
     this.messageHandlers = {
@@ -164,7 +127,8 @@ Websocket.prototype.dispatchCommand = function(command) {
 
 Websocket.prototype.textureImage = function(data) {
     // Get texture name
-    var name = data.name;
+    var setName =data.setName;
+    var textureName = data.textureName;
     // Create texture
     var pack = hemi.core.mainPack;
     var rawData = new o3d.RawData();
@@ -175,19 +139,52 @@ Websocket.prototype.textureImage = function(data) {
         var texture = o3djs.texture.createTextureFromRawData(pack,rawData);
         var textureSampler = new hemi.texture.TextureSampler();
         textureSampler.value.texture = texture;
-        var set = 'set' + data.name.slice(-8, -4);
-        var name = data.name.slice(0,-9);
-        if (set in textureSet) {
-            textureSet[set].addTextureSampler(name,textureSampler);
-            textureSet[set].samplers.length =  textureSet[set].samplers.length  + 1;
-            if (textureSet[set].samplers.length == 14) {
-                jQuery('#' + set).removeAttr('disabled');
+        if (setName in textureSet) {
+            textureSet[setName].addTextureSampler(textureName,textureSampler);
+            textureSet[setName].samplers.length =  textureSet[setName].samplers.length  + 1;
+            if (textureSet[setName].samplers.length == 14) {
+                    createButton(setName);
             }
         } else {
-            textureSet[set] = new hemi.texture.TextureSet();
-            textureSet[set].addTextureSampler(name,textureSampler);        
-            textureSet[set].samplers.length =  textureSet[set].samplers.length  + 1;
+            textureSet[setName] = new hemi.texture.TextureSet();
+            textureSet[setName].addTextureSampler(textureName,textureSampler);        
+            textureSet[setName].samplers.length =  textureSet[setName].samplers.length  + 1;
         }    
         return;
     }
+}
+
+function createButton(setName) {
+    //Create an input type dynamically.
+    var element = document.createElement("input");
+ 
+    //Assign different attributes to the element.
+    element.setAttribute("type", 'button');
+    element.setAttribute("value", setName);
+    element.setAttribute("name", setName);
+    element.onclick = function() {
+        changeModelSamplers(textureSet[setName].samplers);
+    };
+    var buttonDiv = document.getElementById("buttons");
+ 
+    //Append the element in page (in span).
+    buttonDiv.appendChild(element); 
+}
+    
+function changeModelSamplers(samplers) {
+    // Note: value of a "Sampler", or "Sampler2D", the "emmissiveSampler" is write only.
+    emissiveSamplers.Walls_S.value = samplers.walls.value;
+    emissiveSamplers.Logs_S.value = samplers.logs.value;
+    emissiveSamplers.Kitchen_S.value = samplers.kitchen.value;
+    emissiveSamplers.Ceiling_S.value = samplers.ceiling.value;
+    emissiveSamplers.Bath_S.value = samplers.ba.value;
+    emissiveSamplers.B1_S.value = samplers.b1.value;
+    emissiveSamplers.B2_S.value = samplers.b2.value;
+    emissiveSamplers.Floor_S.value = samplers.floor.value;
+    emissiveSamplers.Win_South_S.value = samplers.window_south.value;
+    emissiveSamplers.Win_LR3_S.value = samplers.window_lr3.value;
+    emissiveSamplers.Win_B2_S.value = samplers.window_b2.value;
+    emissiveSamplers.Win_B1_S.value = samplers.window_b1.value;
+    emissiveSamplers.Win_KI_S.value = samplers.window_ki.value;
+    emissiveSamplers.Win_LR4_S.value = samplers.window_lr4.value;
 }

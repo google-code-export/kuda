@@ -645,11 +645,11 @@ if (opt_ws) {
         log('...handling route WebSocket ' + routes.LIGHTING_WS);
         var base64,
         type,
-        imgData,
+        textureData,
         filename,
         tmp,
         data,
-        maps = [{
+        maps = {0800: {
 			kitchen: './public/assets/images/TimeMaps/Kitchen_0800.jpg',
 			walls: './public/assets/images/TimeMaps/Walls_0800.jpg',
 			logs: './public/assets/images/TimeMaps/Logs_0800.jpg',
@@ -664,7 +664,7 @@ if (opt_ws) {
 			window_b1: './public/assets/images/TimeMaps/Window_B1_0800.jpg',
 			window_ki: './public/assets/images/TimeMaps/Window_KI_0800.jpg',
 			window_lr4: './public/assets/images/TimeMaps/Window_LR4_0800.jpg'
-			}, {
+			},1000: {
 			kitchen: './public/assets/images/TimeMaps/Kitchen_1000.jpg',
 			walls: './public/assets/images/TimeMaps/Walls_1000.jpg',
 			logs: './public/assets/images/TimeMaps/Logs_1000.jpg',
@@ -679,7 +679,7 @@ if (opt_ws) {
 			window_b1: './public/assets/images/TimeMaps/Window_B1_1000.jpg',
 			window_ki: './public/assets/images/TimeMaps/Window_KI_1000.jpg',
 			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1000.jpg'
-			}, {
+			},1200: {
 			kitchen: './public/assets/images/TimeMaps/Kitchen_1200.jpg',
 			walls: './public/assets/images/TimeMaps/Walls_1200.jpg',
 			logs: './public/assets/images/TimeMaps/Logs_1200.jpg',
@@ -694,7 +694,7 @@ if (opt_ws) {
 			window_b1: './public/assets/images/TimeMaps/Window_B1_1200.jpg',
 			window_ki: './public/assets/images/TimeMaps/Window_KI_1200.jpg',
 			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1200.jpg'
-			}, {
+			},1500: {
 			kitchen: './public/assets/images/TimeMaps/Kitchen_1500.jpg',
 			walls: './public/assets/images/TimeMaps/Walls_1500.jpg',
 			logs: './public/assets/images/TimeMaps/Logs_1500.jpg',
@@ -709,7 +709,7 @@ if (opt_ws) {
 			window_b1: './public/assets/images/TimeMaps/Window_B1_1500.jpg',
 			window_ki: './public/assets/images/TimeMaps/Window_KI_1500.jpg',
 			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1500.jpg'
-			}, {
+			},1725: {
 			kitchen: './public/assets/images/TimeMaps/Kitchen_1725.jpg',
 			walls: './public/assets/images/TimeMaps/Walls_1725.jpg',
 			logs: './public/assets/images/TimeMaps/Logs_1725.jpg',
@@ -724,36 +724,36 @@ if (opt_ws) {
 			window_b1: './public/assets/images/TimeMaps/Window_B1_1725.jpg',
 			window_ki: './public/assets/images/TimeMaps/Window_KI_1725.jpg',
 			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1725.jpg'
-		}];
-        
-        for (var i in maps) {
-            for (var keys in maps[i]) {
-                base64 = fs.readFileSync(maps[i][keys],'base64');
-                type = maps[i][keys].slice(-3);
-                imgData;
-                if (type === 'jpg') {
-                    imgData = 'data:image/jpg;base64,'+base64;
-                } else if(type === 'png') {
-                    imgData = 'data:image/png;base64,'+base64;
-                } else {
-                    console.log('Invalid image type');
-                }
-                
-                tmp = maps[i][keys].split("/");
-                if(tmp.length == 1) {
-                    tmp = maps[i][keys].split("\\");
-                }
-                filename = tmp[tmp.length - 1];
-                data = JSON.stringify({
-                            msg: 'textureImage',
-                            data: {name: filename,
-                            // drop filename
-                            // setName: i (setName)
-                            // keyName: keys (textureName)
-                            // rename to texture data
-                            img: imgData}
-                        });
-                connection.sendUTF(data)
+		}};
+
+        for (var setName in maps) {
+            for (var textureName in maps[setName]) {
+                var obj =  {
+                    msg: 'textureImage',
+                    data: {                                   
+                        setName: setName,
+                        textureName: textureName,
+                    }
+                },
+                filename = maps[setName][textureName];
+                fs.readFile(filename, 'base64', (function(obj, filename) {
+                    var callback = function(err, data) {
+                        type = filename.slice(-3);
+                        if (type === 'jpg') {
+                            textureData = 'data:image/jpg;base64,' + data;
+                        } else if (type === 'png') {
+                            textureData = 'data:image/png;base64,' + data;
+                        } else {
+                            log('Unknown image type');
+                        }
+                        
+                        obj.data.img = textureData;
+                        data = JSON.stringify(obj);
+                        connection.sendUTF(data);                    
+                    };
+                    
+                    return callback;
+                })(obj, filename));
             }
         }
     });
