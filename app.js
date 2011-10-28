@@ -482,6 +482,120 @@ routes.post(routes.PUBLISH, function(req, res) {
     }
 });
 
+routes.ws(routes.LIGHTING_WS, function(connection) {
+    log('...handling route WebSocket ' + routes.LIGHTING_WS);
+    var maps = { 0800: {
+            kitchen: './public/assets/images/TimeMaps/Kitchen_0800.jpg',
+            walls: './public/assets/images/TimeMaps/Walls_0800.jpg',
+            logs: './public/assets/images/TimeMaps/Logs_0800.jpg',
+            ceiling: './public/assets/images/TimeMaps/Ceiling_0800.jpg',
+            ba: './public/assets/images/TimeMaps/BA_0800.jpg',
+            b1: './public/assets/images/TimeMaps/B1_0800.jpg',
+            b2: './public/assets/images/TimeMaps/B2_0800.jpg',
+            floor: './public/assets/images/TimeMaps/Floor_0800.jpg',
+            window_south: './public/assets/images/TimeMaps/Window_South_0800.jpg',
+            window_lr3: './public/assets/images/TimeMaps/Window_LR3_0800.jpg',
+            window_b2: './public/assets/images/TimeMaps/Window_B2_0800.jpg',
+            window_b1: './public/assets/images/TimeMaps/Window_B1_0800.jpg',
+            window_ki: './public/assets/images/TimeMaps/Window_KI_0800.jpg',
+            window_lr4: './public/assets/images/TimeMaps/Window_LR4_0800.jpg'
+            }, 1000: {
+            kitchen: './public/assets/images/TimeMaps/Kitchen_1000.jpg',
+            walls: './public/assets/images/TimeMaps/Walls_1000.jpg',
+            logs: './public/assets/images/TimeMaps/Logs_1000.jpg',
+            ceiling: './public/assets/images/TimeMaps/Ceiling_1000.jpg',
+            ba: './public/assets/images/TimeMaps/BA_1000.jpg',
+            b1: './public/assets/images/TimeMaps/B1_1000.jpg',
+            b2: './public/assets/images/TimeMaps/B2_1000.jpg',
+            floor: './public/assets/images/TimeMaps/Floor_1000.jpg',
+            window_south: './public/assets/images/TimeMaps/Window_South_1000.jpg',
+            window_lr3: './public/assets/images/TimeMaps/Window_LR3_1000.jpg',
+            window_b2: './public/assets/images/TimeMaps/Window_B2_1000.jpg',
+            window_b1: './public/assets/images/TimeMaps/Window_B1_1000.jpg',
+            window_ki: './public/assets/images/TimeMaps/Window_KI_1000.jpg',
+            window_lr4: './public/assets/images/TimeMaps/Window_LR4_1000.jpg'
+            }, 1200: {
+            kitchen: './public/assets/images/TimeMaps/Kitchen_1200.jpg',
+            walls: './public/assets/images/TimeMaps/Walls_1200.jpg',
+            logs: './public/assets/images/TimeMaps/Logs_1200.jpg',
+            ceiling: './public/assets/images/TimeMaps/Ceiling_1200.jpg',
+            ba: './public/assets/images/TimeMaps/BA_1200.jpg',
+            b1: './public/assets/images/TimeMaps/B1_1200.jpg',
+            b2: './public/assets/images/TimeMaps/B2_1200.jpg',
+            floor: './public/assets/images/TimeMaps/Floor_1200.jpg',
+            window_south: './public/assets/images/TimeMaps/Window_South_1200.jpg',
+            window_lr3: './public/assets/images/TimeMaps/Window_LR3_1200.jpg',
+            window_b2: './public/assets/images/TimeMaps/Window_B2_1200.jpg',
+            window_b1: './public/assets/images/TimeMaps/Window_B1_1200.jpg',
+            window_ki: './public/assets/images/TimeMaps/Window_KI_1200.jpg',
+            window_lr4: './public/assets/images/TimeMaps/Window_LR4_1200.jpg'
+            }, 1500: {
+            kitchen: './public/assets/images/TimeMaps/Kitchen_1500.jpg',
+            walls: './public/assets/images/TimeMaps/Walls_1500.jpg',
+            logs: './public/assets/images/TimeMaps/Logs_1500.jpg',
+            ceiling: './public/assets/images/TimeMaps/Ceiling_1500.jpg',
+            ba: './public/assets/images/TimeMaps/BA_1500.jpg',
+            b1: './public/assets/images/TimeMaps/B1_1500.jpg',
+            b2: './public/assets/images/TimeMaps/B2_1500.jpg',
+            floor: './public/assets/images/TimeMaps/Floor_1500.jpg',
+            window_south: './public/assets/images/TimeMaps/Window_South_1500.jpg',
+            window_lr3: './public/assets/images/TimeMaps/Window_LR3_1500.jpg',
+            window_b2: './public/assets/images/TimeMaps/Window_B2_1500.jpg',
+            window_b1: './public/assets/images/TimeMaps/Window_B1_1500.jpg',
+            window_ki: './public/assets/images/TimeMaps/Window_KI_1500.jpg',
+            window_lr4: './public/assets/images/TimeMaps/Window_LR4_1500.jpg'
+            }, 1725: {
+            kitchen: './public/assets/images/TimeMaps/Kitchen_1725.jpg',
+            walls: './public/assets/images/TimeMaps/Walls_1725.jpg',
+            logs: './public/assets/images/TimeMaps/Logs_1725.jpg',
+            ceiling: './public/assets/images/TimeMaps/Ceiling_1725.jpg',
+            ba: './public/assets/images/TimeMaps/BA_1725.jpg',
+            b1: './public/assets/images/TimeMaps/B1_1725.jpg',
+            b2: './public/assets/images/TimeMaps/B2_1725.jpg',
+            floor: './public/assets/images/TimeMaps/Floor_1725.jpg',
+            window_south: './public/assets/images/TimeMaps/Window_South_1725.jpg',
+            window_lr3: './public/assets/images/TimeMaps/Window_LR3_1725.jpg',
+            window_b2: './public/assets/images/TimeMaps/Window_B2_1725.jpg',
+            window_b1: './public/assets/images/TimeMaps/Window_B1_1725.jpg',
+            window_ki: './public/assets/images/TimeMaps/Window_KI_1725.jpg',
+            window_lr4: './public/assets/images/TimeMaps/Window_LR4_1725.jpg'
+            }
+        };
+
+    for (var setName in maps) {
+        for (var textureName in maps[setName]) {
+            var obj =  {
+                    msg: 'textureImage',
+                    data: {
+                        setName: setName,
+                        textureName: textureName,
+                    }
+                },
+                filename = maps[setName][textureName];
+
+            fs.readFile(filename, 'base64', (function(obj, filename) {
+                var callback = function(err, data) {
+                    var type = filename.slice(-3),
+                        textureData;
+
+                    if (type === 'jpg') {
+                        textureData = 'data:image/jpg;base64,' + data;
+                    } else if (type === 'png') {
+                        textureData = 'data:image/png;base64,' + data;
+                    } else {
+                        log('unknown image type ' + type);
+                    }
+                    
+                    obj.data.img = textureData;
+                    var data = JSON.stringify(obj);
+                    connection.sendUTF(data);                    
+                };
+                
+                return callback;
+            })(obj, filename));
+        }
+    }
+});
 
 function getPathLessTheQueryString(url) {
     return url.indexOf('?') === -1 ? url : url.substring(0, url.indexOf('?'));
@@ -580,8 +694,44 @@ var app = http.createServer(function (hreq, hres) {
                 routes.dispatch(req, res);
             });
 });
+
 app.listen(3000, "127.0.0.1");
 
+if (opt_ws) {
+    var WebSocketServer = require('WebSockets/websocket').server,
+        wsServer = new WebSocketServer({
+            httpServer: app,
+            fragmentOutgoingMessages: false
+        });
+
+    wsServer.on('request', function(request) {
+        log('...handling WebSocket connection request for ' + request.requestedProtocols.toString());
+
+        for (var i = 0; i < request.requestedProtocols.length; i++) {
+            if (routes.wss[request.requestedProtocols[i]]) {
+                var connection = request.accept(request.requestedProtocols[i], request.origin);
+
+                connection.on('close', function() {
+                    log('...WebSocket connection closed to ' + connection.remoteAddress);
+                    var index = routes.wsConnections.indexOf(connection);
+
+                    if (index !== -1) {
+                        // remove the connection from the pool
+                        routes.wsConnections.splice(index, 1);
+                    }
+                });
+
+                log('...WebSocket connection accepted for ' + connection.remoteAddress);
+                routes.wss[request.requestedProtocols[i]](connection);
+                routes.wsConnections.push(connection);
+            } else {
+                log('unknown WebSocket protocol ' + request.requestedProtocols[i]);
+            }       
+        }
+    });
+}
+
+console.log('Node ' + process.version + ' Kuda server running at http://localhost:3000/');
 
 if (opt_repl) {
     console.log('Kuda server interactive mode');
@@ -606,157 +756,3 @@ if (opt_repl) {
     svr.context.PLAINt = PLAINt;
     svr.context.routes = routes;
 }
-
-if (opt_ws) {
-    var WebSocketServer = require('WebSockets/websocket').server;
-    var wsServer = new WebSocketServer({
-        httpServer: app,
-        fragmentOutgoingMessages: false
-    });
-
-    wsServer.on('request', function(request) {
-        log('...handling WebSocket connection request for ' + request.requestedProtocols.toString());
-
-        for (var i = 0; i < request.requestedProtocols.length; i++) {
-            if (routes.wss[request.requestedProtocols[i]]) {
-                var connection = request.accept(request.requestedProtocols[i], request.origin);
-
-                connection.on('close', function() {
-                    log('WebSocket connection closed to ' + connection.remoteAddress);
-                    var index = routes.wsConnections.indexOf(connection);
-
-                    if (index !== -1) {
-                        // remove the connection from the pool
-                        routes.wsConnections.splice(index, 1);
-                    }
-                });
-
-                log('WebSocket connection accepted for ' + connection.remoteAddress);
-                routes.wss[request.requestedProtocols[i]](connection);
-                routes.wsConnections.push(connection);
-            } else {
-                log('Unknown WebSocket protocol ' + request.requestedProtocols[i]);
-            }       
-        }
-    });
-
-    // Lighting Example
-    routes.ws(routes.LIGHTING_WS, function(connection) {
-        log('...handling route WebSocket ' + routes.LIGHTING_WS);
-        var base64,
-        type,
-        textureData,
-        filename,
-        tmp,
-        data,
-        maps = {0800: {
-			kitchen: './public/assets/images/TimeMaps/Kitchen_0800.jpg',
-			walls: './public/assets/images/TimeMaps/Walls_0800.jpg',
-			logs: './public/assets/images/TimeMaps/Logs_0800.jpg',
-			ceiling: './public/assets/images/TimeMaps/Ceiling_0800.jpg',
-			ba: './public/assets/images/TimeMaps/BA_0800.jpg',
-			b1: './public/assets/images/TimeMaps/B1_0800.jpg',
-			b2: './public/assets/images/TimeMaps/B2_0800.jpg',
-			floor: './public/assets/images/TimeMaps/Floor_0800.jpg',
-			window_south: './public/assets/images/TimeMaps/Window_South_0800.jpg',
-			window_lr3: './public/assets/images/TimeMaps/Window_LR3_0800.jpg',
-			window_b2: './public/assets/images/TimeMaps/Window_B2_0800.jpg',
-			window_b1: './public/assets/images/TimeMaps/Window_B1_0800.jpg',
-			window_ki: './public/assets/images/TimeMaps/Window_KI_0800.jpg',
-			window_lr4: './public/assets/images/TimeMaps/Window_LR4_0800.jpg'
-			},1000: {
-			kitchen: './public/assets/images/TimeMaps/Kitchen_1000.jpg',
-			walls: './public/assets/images/TimeMaps/Walls_1000.jpg',
-			logs: './public/assets/images/TimeMaps/Logs_1000.jpg',
-			ceiling: './public/assets/images/TimeMaps/Ceiling_1000.jpg',
-			ba: './public/assets/images/TimeMaps/BA_1000.jpg',
-			b1: './public/assets/images/TimeMaps/B1_1000.jpg',
-			b2: './public/assets/images/TimeMaps/B2_1000.jpg',
-			floor: './public/assets/images/TimeMaps/Floor_1000.jpg',
-			window_south: './public/assets/images/TimeMaps/Window_South_1000.jpg',
-			window_lr3: './public/assets/images/TimeMaps/Window_LR3_1000.jpg',
-			window_b2: './public/assets/images/TimeMaps/Window_B2_1000.jpg',
-			window_b1: './public/assets/images/TimeMaps/Window_B1_1000.jpg',
-			window_ki: './public/assets/images/TimeMaps/Window_KI_1000.jpg',
-			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1000.jpg'
-			},1200: {
-			kitchen: './public/assets/images/TimeMaps/Kitchen_1200.jpg',
-			walls: './public/assets/images/TimeMaps/Walls_1200.jpg',
-			logs: './public/assets/images/TimeMaps/Logs_1200.jpg',
-			ceiling: './public/assets/images/TimeMaps/Ceiling_1200.jpg',
-			ba: './public/assets/images/TimeMaps/BA_1200.jpg',
-			b1: './public/assets/images/TimeMaps/B1_1200.jpg',
-			b2: './public/assets/images/TimeMaps/B2_1200.jpg',
-			floor: './public/assets/images/TimeMaps/Floor_1200.jpg',
-			window_south: './public/assets/images/TimeMaps/Window_South_1200.jpg',
-			window_lr3: './public/assets/images/TimeMaps/Window_LR3_1200.jpg',
-			window_b2: './public/assets/images/TimeMaps/Window_B2_1200.jpg',
-			window_b1: './public/assets/images/TimeMaps/Window_B1_1200.jpg',
-			window_ki: './public/assets/images/TimeMaps/Window_KI_1200.jpg',
-			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1200.jpg'
-			},1500: {
-			kitchen: './public/assets/images/TimeMaps/Kitchen_1500.jpg',
-			walls: './public/assets/images/TimeMaps/Walls_1500.jpg',
-			logs: './public/assets/images/TimeMaps/Logs_1500.jpg',
-			ceiling: './public/assets/images/TimeMaps/Ceiling_1500.jpg',
-			ba: './public/assets/images/TimeMaps/BA_1500.jpg',
-			b1: './public/assets/images/TimeMaps/B1_1500.jpg',
-			b2: './public/assets/images/TimeMaps/B2_1500.jpg',
-			floor: './public/assets/images/TimeMaps/Floor_1500.jpg',
-			window_south: './public/assets/images/TimeMaps/Window_South_1500.jpg',
-			window_lr3: './public/assets/images/TimeMaps/Window_LR3_1500.jpg',
-			window_b2: './public/assets/images/TimeMaps/Window_B2_1500.jpg',
-			window_b1: './public/assets/images/TimeMaps/Window_B1_1500.jpg',
-			window_ki: './public/assets/images/TimeMaps/Window_KI_1500.jpg',
-			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1500.jpg'
-			},1725: {
-			kitchen: './public/assets/images/TimeMaps/Kitchen_1725.jpg',
-			walls: './public/assets/images/TimeMaps/Walls_1725.jpg',
-			logs: './public/assets/images/TimeMaps/Logs_1725.jpg',
-			ceiling: './public/assets/images/TimeMaps/Ceiling_1725.jpg',
-			ba: './public/assets/images/TimeMaps/BA_1725.jpg',
-			b1: './public/assets/images/TimeMaps/B1_1725.jpg',
-			b2: './public/assets/images/TimeMaps/B2_1725.jpg',
-			floor: './public/assets/images/TimeMaps/Floor_1725.jpg',
-			window_south: './public/assets/images/TimeMaps/Window_South_1725.jpg',
-			window_lr3: './public/assets/images/TimeMaps/Window_LR3_1725.jpg',
-			window_b2: './public/assets/images/TimeMaps/Window_B2_1725.jpg',
-			window_b1: './public/assets/images/TimeMaps/Window_B1_1725.jpg',
-			window_ki: './public/assets/images/TimeMaps/Window_KI_1725.jpg',
-			window_lr4: './public/assets/images/TimeMaps/Window_LR4_1725.jpg'
-		}};
-
-        for (var setName in maps) {
-            for (var textureName in maps[setName]) {
-                var obj =  {
-                    msg: 'textureImage',
-                    data: {                                   
-                        setName: setName,
-                        textureName: textureName,
-                    }
-                },
-                filename = maps[setName][textureName];
-                fs.readFile(filename, 'base64', (function(obj, filename) {
-                    var callback = function(err, data) {
-                        type = filename.slice(-3);
-                        if (type === 'jpg') {
-                            textureData = 'data:image/jpg;base64,' + data;
-                        } else if (type === 'png') {
-                            textureData = 'data:image/png;base64,' + data;
-                        } else {
-                            log('Unknown image type');
-                        }
-                        
-                        obj.data.img = textureData;
-                        data = JSON.stringify(obj);
-                        connection.sendUTF(data);                    
-                    };
-                    
-                    return callback;
-                })(obj, filename));
-            }
-        }
-    });
-}
-
-console.log('Node ' + process.version + ' Kuda server running at http://localhost:3000/');
