@@ -28,10 +28,7 @@
 		hemi.core.init(clientElements[0]);
 		hemi.view.setBGColor([1, 1, 1, 1]);
 		hemi.loader.loadPath = '../../';
-		
-        // instantiate the progress bar to receive our progress updates
         pbar = new hext.progressUI.bar();
-
 		houseModel = new hemi.model.Model();
 		houseModel.setFileName('assets/LightingHouse_v082/scene.json');
 		
@@ -52,20 +49,9 @@
 		viewpoint.eye = [160.0, 1500.0, 1500.0];
 		viewpoint.target = [160.0, 100.0, 0.0];
 		hemi.world.camera.moveToView(viewpoint, 1);
-		hemi.world.camera.subscribe(hemi.msg.stop,function(){
+		hemi.world.camera.subscribe(hemi.msg.stop, function(){
             connect();
         });
-	}
-	
-	function getParam(name) {
-		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-		var regexS = "[\\?&]"+name+"=([^&#]*)";
-		var regex = new RegExp( regexS );
-		var results = regex.exec( window.location.href );
-		if( results == null )
-			return "";
-		else
-			return results[1];
 	}
 
 	jQuery(window).load(function() {
@@ -77,60 +63,39 @@
 			hemi.core.client.cleanup();
 		}
 	});
-    // WebSockets handling
-
-        
+            
     function connect() {
-        var url = "ws://" + document.URL.substr(7).split('/')[0];
-        var wsCtor = window['MozWebSocket'] ? MozWebSocket : WebSocket;
-        this.socket = new wsCtor(url, 'websocket-lighting');
+        var url = "ws://" + document.URL.substr(7).split('/')[0],
+            wsCtor = window['WebSocket'] ? WebSocket : MozWebSocket,
+            socket = new wsCtor(url, 'websocket-lighting');
 
-        this.socket.onmessage = handleWebsocketMessage.bind(this);
-        this.socket.onclose = handleWebsocketClose.bind(this);
+        socket.onmessage = function(message) {
+            textureImage(JSON.parse(message.data));
+        };
+        socket.onclose = function() {};
     };
 
-    function handleWebsocketMessage (message) {
-        try {
-            var command = JSON.parse(message.data);
-        }
-        catch(e) { 
-            console.log('Error on JSON parse');
-            console.log(e);
-            console.log(message);
-        }
-
-        textureImage(command);
-    };
-
-    function handleWebsocketClose () {
-        alert("WebSocket Connection Closed.");
-    };
-
-
-    function textureImage (command) {
-        var data = command.data;
-        // Get texture name
-        var setName =data.setName;
-        var textureName = data.textureName;
-        // Create texture
-        var pack = hemi.core.mainPack;
-        var rawData = new o3d.RawData();
+    function textureImage(message) {
+        var data = message.data,
+            setName = data.setName,
+            textureName = data.textureName,
+            rawData = new o3d.RawData();
         rawData.image_ = new Image();
         rawData.image_.src = data.img;
         rawData.image_.onload = function() {
             // When loading, create textureSampler and load into a textureSet
-            var texture = o3djs.texture.createTextureFromRawData(pack,rawData);
-            var textureSampler = new hemi.texture.TextureSampler();
+            var texture = o3djs.texture.createTextureFromRawData(hemi.core.mainPack, rawData),
+                textureSampler = new hemi.texture.TextureSampler();
             textureSampler.value.texture = texture;
             if (setName in textureSet) {
-                textureSet[setName].addTextureSampler(textureName,textureSampler);
+                textureSet[setName].addTextureSampler(textureName, textureSampler);
                 textureSet[setName].samplers.length =  textureSet[setName].samplers.length  + 1;
                 if (textureSet[setName].samplers.length == 14) {
-                        createButton(setName);
+                    createButton(setName);
                 }
             } else {
                 textureSet[setName] = new hemi.texture.TextureSet();
-                textureSet[setName].addTextureSampler(textureName,textureSampler);        
+                textureSet[setName].addTextureSampler(textureName, textureSampler);        
                 textureSet[setName].samplers.length =  textureSet[setName].samplers.length  + 1;
             }    
             return;
