@@ -182,7 +182,9 @@
 			if (model && model !== bhvMdl) {
 				shorthand.treeModel.listenTo(model);
 			}
-			injectBehaviorWidget(view);
+			if (view) {
+				injectBehaviorWidget(view);
+			}
 		});
 	};	
 	
