@@ -18,11 +18,11 @@
 var hemi = (function(hemi) {
 	
 	hemi.Client = function(renderer) {
-		this.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+		this.camera = new hemi.Camera();
 		this.light = new THREE.DirectionalLight(0xffffff);
 		this.renderer = renderer;
 		this.scene = new THREE.Scene();
-		
+		this.scene.add(this.camera.light);
 		this.scene.add(this.light);
 	};
 	
@@ -47,7 +47,7 @@ var hemi = (function(hemi) {
 		},
 		
 		onRender: function() {
-			this.renderer.render(this.scene, this.camera);
+			this.renderer.render(this.scene, this.camera.threeCamera);
 		}
 	};
 	
