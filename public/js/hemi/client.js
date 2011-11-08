@@ -24,6 +24,7 @@ var hemi = (function(hemi) {
 		this.scene = new THREE.Scene();
 		this.scene.add(this.camera.light);
 		this.scene.add(this.light);
+        hemi.input.init(renderer.domElement);
 	};
 	
 	hemi.Client.prototype = {
