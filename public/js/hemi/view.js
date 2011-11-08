@@ -138,7 +138,7 @@ var hemi = (function(hemi) {
 		 * Disable control of the Camera through the mouse and keyboard.
 		 */
 		disableControl : function() {
-			/*if (!this.mode.control) {
+			if (!this.mode.control) {
 				return false;
 			} else {
 				hemi.input.removeMouseDownListener(this);
@@ -150,7 +150,7 @@ var hemi = (function(hemi) {
 				this.mode.control = false;
 				this.state.mouse = false;
 				return true;
-			}*/
+			}
 		},
 		
 		/**
@@ -171,7 +171,7 @@ var hemi = (function(hemi) {
 		 * Enable control of the Camera through the mouse and keyboard.
 		 */
 		enableControl : function(element) {
-		/*	if (this.mode.control) {
+			if (this.mode.control) {
 				return false;
 			} else {
 				hemi.input.addMouseDownListener(this);
@@ -182,7 +182,7 @@ var hemi = (function(hemi) {
 				hemi.input.addKeyUpListener(this);
 				this.mode.control = true;
 				return true;
-			}*/
+			}
 		},
 		
 		/**
@@ -419,8 +419,8 @@ var hemi = (function(hemi) {
 		 */
 		onMouseDown : function(mouseEvent) {
 			this.state.mouse = true;
-			this.state.xy.current[0] = this.state.xy.last[0] = mouseEvent.clientX;
-			this.state.xy.current[1] = this.state.xy.last[1] = mouseEvent.clientY;
+			this.state.xy.current[0] = this.state.xy.last[0] = mouseEvent.x;
+			this.state.xy.current[1] = this.state.xy.last[1] = mouseEvent.y;
 		},
 
 		/**
@@ -432,8 +432,8 @@ var hemi = (function(hemi) {
 			if (this.state.mouse) {
 				this.state.xy.last[0] = this.state.xy.current[0];
 				this.state.xy.last[1] = this.state.xy.current[1];
-				this.state.xy.current[0] = mouseEvent.clientX;
-				this.state.xy.current[1] = mouseEvent.clientY;
+				this.state.xy.current[0] = mouseEvent.x;
+				this.state.xy.current[1] = mouseEvent.y;
 				var xMovement = this.state.xy.current[0] - this.state.xy.last[0];
 				var yMovement = this.state.xy.current[1] - this.state.xy.last[1];
 					if (this.mode.projection) {
@@ -478,18 +478,17 @@ var hemi = (function(hemi) {
 		 * @param {o3d.Event} mouseEvent Message describing mouse behavior
 		 */
 		onScroll : function(mouseEvent) {
-            var deltaY = -mouseEvent.detail;
 			if (!this.mode.scroll) {
 				return;
 			}
 			if (this.state.shift) {
 				var dis = this.distance * hemi.viewDefaults.TRUCK_SPEED,
-					dir = (deltaY > 0) ? 1 : -1;
+					dir = (mouseEvent.deltaY > 0) ? 1 : -1;
 				this.truck(dis*dir);
 			} else {
 				if (this.mode.fixed) {
 					var breakpoint = (this.fov.max + this.fov.min)/2;
-					if (deltaY > 0) {
+					if (mouseEvent.deltaY > 0) {
 						if (this.fov.current < breakpoint) {
 							this.fov.current = this.fov.min + (this.fov.current - this.fov.min)*11/12;
 						} else {
@@ -506,7 +505,7 @@ var hemi = (function(hemi) {
 					this.state.update = true;
 					return;
 				} else {
-					var t = (deltaY > 0) ? 11/12 : 13/12;
+					var t = (mouseEvent.deltaY > 0) ? 11/12 : 13/12;
 					this.distance = this.lerpScalar(0, this.distance, t);
 					if (!this.mode.projection) {
 						this.identity(this.cam);
