@@ -123,7 +123,7 @@ var catFiles = function(args) {
 	for (var i = 0, il = args.moduleFiles.length; i < il; i++) {
 		var file = args.moduleFiles[i],
 			data = fs.readFileSync(args.dist + '/' + file),
-			uglyData = data.toString().replace(args.replace, "");
+			uglyData = data.toString();
 		args.uglyData += uglyData;
 	}
 };
@@ -252,33 +252,33 @@ var uglifyHemi = function(src, dst) {
 				'hemi/utils/shaderUtils.js',
 				'hemi/utils/stringUtils.js',
 				'hemi/utils/transformUtils.js',
-				'hemi/msg.js',
-				'hemi/console.js',
-				'hemi/picking.js',
+				//'hemi/msg.js',
+				//'hemi/console.js',
+				//'hemi/picking.js',
 				'hemi/loader.js',
-				'hemi/accessibility.js',
+				//'hemi/accessibility.js',
 				'hemi/world.js',
 				'hemi/octane.js',
-				'hemi/handlers/valueCheck.js',
-				'hemi/audio.js',
-				'hemi/dispatch.js',
+				//'hemi/handlers/valueCheck.js',
+				//'hemi/audio.js',
+				//'hemi/dispatch.js',
 				'hemi/input.js',
 				'hemi/view.js',
 				'hemi/model.js',
-				'hemi/animation.js',
-				'hemi/motion.js',
-				'hemi/effect.js',
-				'hemi/scene.js',
-				'hemi/hud.js',
-				'hemi/manip.js',
-				'hemi/curve.js',
-				'hemi/sprite.js',
-				'hemi/shape.js',
-				'hemi/fx.js',
-				'hemi/texture.js',
-				'hemi/timer.js'
-			],
-			replace: /o3djs\.require\('(hemi|o3djs).*?'\);\s*/g
+                'hemi/client.js'
+				//'hemi/animation.js',
+				//'hemi/motion.js',
+				//'hemi/effect.js',
+				//'hemi/scene.js',
+				//'hemi/hud.js',
+				//'hemi/manip.js',
+				//'hemi/curve.js',
+				//'hemi/sprite.js',
+				//'hemi/shape.js',
+				//'hemi/fx.js',
+				//'hemi/texture.js',
+				//'hemi/timer.js'
+			]
 		},
 		header =
 '/*\n\
