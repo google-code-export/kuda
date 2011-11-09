@@ -999,6 +999,10 @@ var editor = (function(editor) {
 		
 		// add an empty panel for select boxes
 		bdy.append('<div class="topBottomSelect"></div>');
+		
+		// unfortunately, this is necessary due to Chrome 15 in Windows 7, where
+		// a hardware accelerated 2d canvas comes up black
+		hemi.hud.hudMgr.clearDisplay();
 	};
 	
 	return editor;
