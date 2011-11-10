@@ -753,6 +753,63 @@ var hemi = (function(hemi) {
 		
 		return arguments;
 	};
+
+	// Wildcard functions
+	var anon = {
+		getId: function() {
+			return hemi.dispatch.WILDCARD;
+		}
+	};
+	
+	/**
+	 * Send a Message with the given attributes from an anonymous wildcard
+	 * source to any registered MessageTargets.
+	 * 
+	 * @param {string} type type of Message
+	 * @param {Object} data container for any and all information relevant to
+	 *     the Message
+	 */
+	hemi.send = function(type, data) {
+		hemi.dispatch.postMessage(anon, type, data);
+	};
+	
+	/**
+	 * Register the given handler to receive Messages of the specified type
+	 * from any source. This creates a MessageTarget.
+	 * 
+	 * @param {string} type type of Message to handle
+	 * @param {Object} handler either a function or an object
+	 * @param {string} opt_func name of the function to call if handler is
+	 *     an object
+	 * @param {string[]} opt_args optional array of names of arguments to
+	 *     pass to the handler. Otherwise the entire Message is just passed
+	 *     in.
+	 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
+	 */
+	hemi.subscribe = function(type, handler, opt_func, opt_args) {
+		return hemi.dispatch.registerTarget(hemi.dispatch.WILDCARD, type,
+			handler, opt_func, opt_args);
+	};
+	
+	/**
+	 * Remove the given MessageTarget for the specified Message type. Note
+	 * that this removes a MessageTarget registered with the wildcard as the
+	 * source id. It does not remove the MessageTarget from any Citizens it
+	 * may be directly registered with.
+	 * 
+	 * @param {hemi.dispatch.MessageTarget} target the MessageTarget to
+	 *     remove from the Dispatch
+	 * @param {string} opt_type Message type the MessageTarget was
+	 *     registered for
+	 * @return {hemi.dispatch.MessageTarget} the removed MessageTarget or
+	 *     null
+	 */
+	hemi.unsubscribe = function(target, opt_type) {
+		return hemi.dispatch.removeTarget(target, {
+			src: hemi.dispatch.WILDCARD,
+			msg: opt_type
+		});
+	};
 	
 	return hemi;
 })(hemi || {});

@@ -17,15 +17,52 @@
 
 var hemi = (function(hemi) {
 	
-	var colladaLoader = new THREE.ColladaLoader();
+	var colladaLoader = new THREE.ColladaLoader(),
+		taskCount = 1,
+	
+		decrementTaskCount = function() {
+			if (--taskCount === 0) {
+				taskCount = 1;
+				hemi.send(hemi.msg.ready, {});
+			}
+		},
+		
+		/*
+		 * Get the correct path for the given URL. If the URL is absolute, then
+		 * leave it alone. Otherwise prepend it with the load path.
+		 * 
+		 * @param {string} url the url to update
+		 * @return {string} the udpated url
+		 */
+		getPath = function(url) {
+			if (url.substr(0, 4) === 'http') {
+				return url;
+			} else {
+				return hemi.loadPath + url;
+			}
+		};
+		
+	/**
+	 * The relative path from the referencing HTML file to the Kuda directory.
+	 * @type string
+	 * @default ''
+	 */
+	hemi.loadPath = '';
 	
 	hemi.loadCollada = function(url, callback) {
+		url = getPath(url);
+		++taskCount;
+		
 		colladaLoader.load(url, function (collada) {
 			if (callback) {
 				callback(collada);
 			}
+			
+			decrementTaskCount();
 		});
 	};
+	
+	hemi.ready = decrementTaskCount;
 	
 	return hemi;
 })(hemi || {});
