@@ -19,11 +19,11 @@ var hemi = (function(hemi) {
 	
 	hemi.Client = function(renderer) {
 		this.camera = new hemi.Camera();
-		this.light = new THREE.DirectionalLight(0xffffff);
+		//this.light = new THREE.DirectionalLight(0xffffff);
 		this.renderer = renderer;
 		this.scene = new THREE.Scene();
 		this.scene.add(this.camera.light);
-		this.scene.add(this.light);
+		//this.scene.add(this.light);
         hemi.input.init(renderer.domElement);
 	};
 	

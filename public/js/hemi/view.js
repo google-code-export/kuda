@@ -66,7 +66,7 @@ var hemi = (function(hemi) {
             this.cam.add(this.target);
 
 			this.vd = { current: null, last: null };
-			this.light = new THREE.PointLight( 0xffffff, 4 );
+			this.light = new THREE.PointLight( 0xffffff, 1.35 );
             this.maxPan = null;
             this.minPan = null;
             this.maxTilt = null;
