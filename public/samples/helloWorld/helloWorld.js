@@ -22,7 +22,7 @@
  */
 (function() {
 
-    var client;
+	var client;
 	function init() {
 		/**
 		 * It is possible to have multiple clients (i.e. multiple frames
@@ -30,15 +30,13 @@
 		 * 		initialized. In this case, we only want to initialize the
 		 *		first one.
 		 */
-		//hemi.init();
-        client = hemi.makeClients()[0];
+		client = hemi.makeClients()[0];
 		
 		/**
-		 * Set the background color to a light-bluish. The parameter is in
-		 * 		the form [red,blue,green,alpha], with each value on a 
-		 *		scale of 0-1.
+		 * Set the background color to a light-bluish. The parameters are a hex
+		 * 		code for the RGB values and an alpha value between 0 and 1.
 		 */
-		//hemi.setBGColor([0.7, 0.8, 1, 1]);
+		client.setBGColor(0xb2cbff, 1);
 		
 		/**
 		 * Set a prefix for the loader that will allow us to load assets as if

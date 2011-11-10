@@ -5040,6 +5040,10 @@ var hemi = (function(hemi) {
 		
 		onRender: function() {
 			this.renderer.render(this.scene, this.camera.threeCamera);
+		},
+		
+		setBGColor: function(hex, opt_alpha) {
+			this.renderer.setClearColorHex(hex, opt_alpha == null ? 1 : opt_alpha);
 		}
 	};
 	
