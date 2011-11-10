@@ -1813,46 +1813,7 @@ var hemi = (function(hemi) {
 		 *     visible: (boolean) a flag indicating if the tool is visible
 		 * }
 		 */
-		visible: 'hemi.visible',
-		
-		// Wildcard functions
-		/**
-		 * Register the given handler to receive Messages of the specified type
-		 * from any source. This creates a MessageTarget.
-		 * 
-		 * @param {string} type type of Message to handle
-		 * @param {Object} handler either a function or an object
-		 * @param {string} opt_func name of the function to call if handler is
-		 *     an object
-		 * @param {string[]} opt_args optional array of names of arguments to
-		 *     pass to the handler. Otherwise the entire Message is just passed
-		 *     in.
-		 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
-		 */
-		subscribe: function(type, handler, opt_func, opt_args) {
-			return hemi.dispatch.registerTarget(hemi.dispatch.WILDCARD, type,
-				handler, opt_func, opt_args);
-		},
-		
-		/**
-		 * Remove the given MessageTarget for the specified Message type. Note
-		 * that this removes a MessageTarget registered with the wildcard as the
-		 * source id. It does not remove the MessageTarget from any Citizens it
-		 * may be directly registered with.
-		 * 
-		 * @param {hemi.dispatch.MessageTarget} target the MessageTarget to
-		 *     remove from the Dispatch
-		 * @param {string} opt_type Message type the MessageTarget was
-		 *     registered for
-		 * @return {hemi.dispatch.MessageTarget} the removed MessageTarget or
-		 *     null
-		 */
-		unsubscribe: function(target, opt_type) {
-			return hemi.dispatch.removeTarget(target, {
-				src: hemi.dispatch.WILDCARD,
-				msg: opt_type
-			});
-		}
+		visible: 'hemi.visible'
 	};
 
 	return hemi;
@@ -1876,15 +1837,52 @@ var hemi = (function(hemi) {
 
 var hemi = (function(hemi) {
 	
-	var colladaLoader = new THREE.ColladaLoader();
+	var colladaLoader = new THREE.ColladaLoader(),
+		taskCount = 1,
+	
+		decrementTaskCount = function() {
+			if (--taskCount === 0) {
+				taskCount = 1;
+				hemi.send(hemi.msg.ready, {});
+			}
+		},
+		
+		/*
+		 * Get the correct path for the given URL. If the URL is absolute, then
+		 * leave it alone. Otherwise prepend it with the load path.
+		 * 
+		 * @param {string} url the url to update
+		 * @return {string} the udpated url
+		 */
+		getPath = function(url) {
+			if (url.substr(0, 4) === 'http') {
+				return url;
+			} else {
+				return hemi.loadPath + url;
+			}
+		};
+		
+	/**
+	 * The relative path from the referencing HTML file to the Kuda directory.
+	 * @type string
+	 * @default ''
+	 */
+	hemi.loadPath = '';
 	
 	hemi.loadCollada = function(url, callback) {
+		url = getPath(url);
+		++taskCount;
+		
 		colladaLoader.load(url, function (collada) {
 			if (callback) {
 				callback(collada);
 			}
+			
+			decrementTaskCount();
 		});
 	};
+	
+	hemi.ready = decrementTaskCount;
 	
 	return hemi;
 })(hemi || {});
@@ -2583,53 +2581,6 @@ var hemi = (function(hemi) {
 		}
 		
 		return owner;
-	};
-	
-	/**
-	 * Send a Message with the given attributes from the World to any registered
-	 * MessageTargets.
-	 * 
-	 * @param {string} type type of Message
-	 * @param {Object} data container for any and all information relevant to
-	 *     the Message
-	 */
-	hemi.world.send = function(type, data) {
-		hemi.dispatch.postMessage(hemi.world, type, data);
-	};
-	
-	/**
-	 * Register the given handler to receive Messages of the specified type
-	 * from the World. This creates a MessageTarget.
-	 * 
-	 * @param {string} type type of Message to handle
-	 * @param {Object} handler either a function or an object
-	 * @param {string} opt_func name of the function to call if handler is an
-	 *     object
-	 * @param {string[]} opt_args optional array of names of arguments to pass
-	 *     to the handler. Otherwise the entire Message is just passed in.
-	 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
-	 */
-	hemi.world.subscribe = function(type, handler, opt_func, opt_args) {
-		return hemi.dispatch.registerTarget(hemi.world.WORLD_ID, type, handler,
-			opt_func, opt_args);
-	};
-	
-	/**
-	 * Remove the given MessageTarget for Messages of the specified type for the
-	 * World.
-	 * 
-	 * @param {hemi.dispatch.MessageTarget} target the MessageTarget to remove
-	 *     from the Dispatch
-	 * @param {string} opt_type Message type the MessageTarget was registered
-	 *     for
-	 * @return {hemi.dispatch.MessageTarget} the removed MessageTarget or
-	 *     null
-	 */
-	hemi.world.unsubscribe = function(target, opt_type) {
-		return hemi.dispatch.removeTarget(target, {
-			src: hemi.world.WORLD_ID,
-			msg: opt_type
-		});
 	};
 	
 	return hemi;
@@ -3483,6 +3434,63 @@ var hemi = (function(hemi) {
 		}
 		
 		return arguments;
+	};
+
+	// Wildcard functions
+	var anon = {
+		getId: function() {
+			return hemi.dispatch.WILDCARD;
+		}
+	};
+	
+	/**
+	 * Send a Message with the given attributes from an anonymous wildcard
+	 * source to any registered MessageTargets.
+	 * 
+	 * @param {string} type type of Message
+	 * @param {Object} data container for any and all information relevant to
+	 *     the Message
+	 */
+	hemi.send = function(type, data) {
+		hemi.dispatch.postMessage(anon, type, data);
+	};
+	
+	/**
+	 * Register the given handler to receive Messages of the specified type
+	 * from any source. This creates a MessageTarget.
+	 * 
+	 * @param {string} type type of Message to handle
+	 * @param {Object} handler either a function or an object
+	 * @param {string} opt_func name of the function to call if handler is
+	 *     an object
+	 * @param {string[]} opt_args optional array of names of arguments to
+	 *     pass to the handler. Otherwise the entire Message is just passed
+	 *     in.
+	 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
+	 */
+	hemi.subscribe = function(type, handler, opt_func, opt_args) {
+		return hemi.dispatch.registerTarget(hemi.dispatch.WILDCARD, type,
+			handler, opt_func, opt_args);
+	};
+	
+	/**
+	 * Remove the given MessageTarget for the specified Message type. Note
+	 * that this removes a MessageTarget registered with the wildcard as the
+	 * source id. It does not remove the MessageTarget from any Citizens it
+	 * may be directly registered with.
+	 * 
+	 * @param {hemi.dispatch.MessageTarget} target the MessageTarget to
+	 *     remove from the Dispatch
+	 * @param {string} opt_type Message type the MessageTarget was
+	 *     registered for
+	 * @return {hemi.dispatch.MessageTarget} the removed MessageTarget or
+	 *     null
+	 */
+	hemi.unsubscribe = function(target, opt_type) {
+		return hemi.dispatch.removeTarget(target, {
+			src: hemi.dispatch.WILDCARD,
+			msg: opt_type
+		});
 	};
 	
 	return hemi;

@@ -44,7 +44,7 @@
 		 * Set a prefix for the loader that will allow us to load assets as if
 		 * the helloWorld.html file was in the root directory.
 		 */
-		//hemi.loader.loadPath = '../../';
+		hemi.loadPath = '../../';
 		
 		createWorld();
 	}
@@ -57,20 +57,20 @@
 		 *		will begin loading that file.
 		 */
 		var house = new hemi.Model(client);				// Create a new Model
-		house.setFileName('../../assets/house_v12/house_v12.dae', setupScene); // Set the model file
+		house.setFileName('assets/house_v12/house_v12.dae'); // Set the model file
 		
 		/**
-		 * When we call the world's 'ready' function, it will wait for the model
-		 *		to finish loading and then it will send out a Ready message.
-		 *		Here we register a handler, setupScene(), to be run when the
-		 *		message is sent.
+		 * When we call the 'ready' function, it will wait for the model to
+		 *		finish loading and then it will send out a Ready message. Here
+		 *		we register a handler, setupScene(), to be run when the message
+		 *		is sent.
 		 */
-		//hemi.world.subscribe(hemi.msg.ready,
-		//	function(msg) {
-		//		setupScene();
-		//	});
+		hemi.subscribe(hemi.msg.ready,
+			function(msg) {
+				setupScene();
+			});
 		
-		//hemi.world.ready();   // Indicate that we are ready to start our script
+		hemi.ready();   // Indicate that we are ready to start our script
 	}
 
 	function setupScene() {

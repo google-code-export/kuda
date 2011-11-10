@@ -695,52 +695,5 @@ var hemi = (function(hemi) {
 		return owner;
 	};
 	
-	/**
-	 * Send a Message with the given attributes from the World to any registered
-	 * MessageTargets.
-	 * 
-	 * @param {string} type type of Message
-	 * @param {Object} data container for any and all information relevant to
-	 *     the Message
-	 */
-	hemi.world.send = function(type, data) {
-		hemi.dispatch.postMessage(hemi.world, type, data);
-	};
-	
-	/**
-	 * Register the given handler to receive Messages of the specified type
-	 * from the World. This creates a MessageTarget.
-	 * 
-	 * @param {string} type type of Message to handle
-	 * @param {Object} handler either a function or an object
-	 * @param {string} opt_func name of the function to call if handler is an
-	 *     object
-	 * @param {string[]} opt_args optional array of names of arguments to pass
-	 *     to the handler. Otherwise the entire Message is just passed in.
-	 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
-	 */
-	hemi.world.subscribe = function(type, handler, opt_func, opt_args) {
-		return hemi.dispatch.registerTarget(hemi.world.WORLD_ID, type, handler,
-			opt_func, opt_args);
-	};
-	
-	/**
-	 * Remove the given MessageTarget for Messages of the specified type for the
-	 * World.
-	 * 
-	 * @param {hemi.dispatch.MessageTarget} target the MessageTarget to remove
-	 *     from the Dispatch
-	 * @param {string} opt_type Message type the MessageTarget was registered
-	 *     for
-	 * @return {hemi.dispatch.MessageTarget} the removed MessageTarget or
-	 *     null
-	 */
-	hemi.world.unsubscribe = function(target, opt_type) {
-		return hemi.dispatch.removeTarget(target, {
-			src: hemi.world.WORLD_ID,
-			msg: opt_type
-		});
-	};
-	
 	return hemi;
 })(hemi || {});
