@@ -8,3 +8,6 @@ syntax: regexp
 public/js/editor/data/hemi\.json
 public/js/lib/jquery\.dataTables\.js
 public/js/lib/jshashtable\.js
+
+syntax: regexp
+^public/js/threejs$
