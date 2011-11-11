@@ -256,7 +256,7 @@ var hemi = (function(hemi) {
 		 * @return {Vector3} XYZ coordinates of the eye
 		 */
 		getEye : function() {
-			return this.cam.matrixWorld.getPosition();
+			return this.cam.matrixWorld.getPosition().clone();
 		},
 
 		/**
@@ -266,9 +266,9 @@ var hemi = (function(hemi) {
 		 */
 		getTarget : function() {
 			if (this.mode.fixed) {
-				return this.target.matrixWorld.getPosition();
+				return this.target.matrixWorld.getPosition().clone();
 			} else {
-				return this.pan.matrixWorld.getPosition();
+				return this.pan.matrixWorld.getPosition().clone();
 			}
 		},
 		
