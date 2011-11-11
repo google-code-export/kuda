@@ -48,11 +48,6 @@ var hemi = (function(hemi) {
 	 * @extends hemi.world.Citizen
 	 */
 	hemi.CameraBase = function() {
-		    //var tween = hemi.utils.penner.linearTween;
-            //PABNOTE Move back to library code
-            var tween = function(t, b, c, d) {
-                return c*t/d + b;
-            };
             this.pan = new THREE.Object3D();
             this.pan.name = 'pan';
             this.tilt = new THREE.Object3D();
@@ -113,6 +108,7 @@ var hemi = (function(hemi) {
             this.FPS = 24;
             this.threeCamera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 
+            var tween = hemi.utils.penner.linearTween;
 			this.easeFunc = [tween,tween,tween];
 			this.update();
 			this.updateProjection();
@@ -621,18 +617,18 @@ var hemi = (function(hemi) {
 		 * @param {Vector3} target XYZ position of camera target
 		 */
 		setEyeTarget : function(eye,target) {
-			var offset = new THREE.Vector3(eye.x - target.x,eye.y - target.y ,eye.z -target.z),
-				rtp = this.cartesianToSpherical(offset);
+			var offset = [eye.x - target.x, eye.y - target.y, eye.z -target.z],
+				rtp = hemi.utils.cartesianToSpherical(offset);
 
-			this.distance = rtp.x;
+			this.distance = rtp[0];
 
 			this.identity(this.pan);
 			this.pan.position = target;
-            this.pan.rotation.y = rtp.z;
+            this.pan.rotation.y = rtp[2];
             this.pan.updateMatrix();
 
 			this.identity(this.tilt);
-            this.tilt.rotation.x = rtp.y - Math.PI/2;
+            this.tilt.rotation.x = rtp[1] - Math.PI/2;
             this.tilt.updateMatrix();
 			
 			var camPos = new THREE.Vector3(0, 0, this.distance);
@@ -642,53 +638,12 @@ var hemi = (function(hemi) {
 
             this.updateWorldMatrices();
 
-			this.pointZAt(this.cam, camPos, this.pointAsLocal(this.cam,target));
+			hemi.utils.pointZAt(this.cam, camPos, hemi.utils.pointAsLocal(this.cam,target));
 			this.cam.rotation.y = this.cam.rotation.y + Math.PI;
             this.cam.updateMatrix();
 			this.camPan.current = 0;
 			this.camTilt.current = 0;
 		},
-
-        //PABNOTE Move back to library code
-        /**
-         * General function to convert from cartesian to spherical coordinates.
-         *
-         * @param {Vector3} coords XYZ cartesian coordinates
-         * @return {Vector3} Radius, Theta, Phi
-         */
-        cartesianToSpherical : function(coords) {
-            var r = Math.sqrt(coords.x * coords.x + coords.y * coords.y + coords.z * coords.z);
-            var theta = Math.acos(coords.y / r);
-            var phi = Math.atan2(coords.x, coords.z);
-            return new THREE.Vector3(r,theta,phi);
-        },
-
-        //PABNOTE Move back to library code
-        /**
-         * Point the z axis of the given transform/matrix toward the given point.
-         *
-         * @param {Object3D} tran the transform/matrix to rotate
-         * @param {Vector3} eye XYZ point from which to look (may be the origin)
-         * @param {Vector3} target XYZ point at which to aim the z axis
-         * @return {Object3D} the rotated transform/matrix
-         */
-        pointZAt : function(tran, eye, target) {
-            var delta = new THREE.Vector3().sub(target, eye),
-                rotY = Math.atan2(delta.x, delta.z),
-                rotX = -Math.asin(delta.y / delta.length());
-
-
-            tran.rotation.y = tran.rotation.y + rotY;
-            tran.rotation.x = tran.rotation.x + rotX;
-            tran.updateMatrix();
-            return tran;
-        },
-
-        //PABNOTE Move back to library code
-        pointAsLocal : function(transform,point) {
-		    var W = THREE.Matrix4.makeInvert(transform.matrixWorld);
-		    return W.multiplyVector3(point.clone());
-	    },
 		
 		/**
 		 * Set the color of the Camera's light source.
