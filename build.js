@@ -265,7 +265,7 @@ var uglifyHemi = function(src, dst) {
 				'hemi/input.js',
 				'hemi/view.js',
 				'hemi/model.js',
-                'hemi/client.js'
+                'hemi/client.js',
 				//'hemi/animation.js',
 				//'hemi/motion.js',
 				//'hemi/effect.js',
@@ -275,7 +275,7 @@ var uglifyHemi = function(src, dst) {
 				//'hemi/curve.js',
 				//'hemi/sprite.js',
 				//'hemi/shape.js',
-				//'hemi/fx.js',
+				'hemi/fx.js'
 				//'hemi/texture.js',
 				//'hemi/timer.js'
 			]
