@@ -1,0 +1,88 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+o3djs.require('hext.tools.baseController');
+
+var hext = (function(hext) {
+	hext.tools = hext.tools || {};
+	
+	/**
+	 * @class A SmokePufferController handles interactions between the
+	 * SmokePuffer and its views.
+	 * @extends hext.tools.BaseController
+	 */
+	hext.tools.SmokePufferController = hext.tools.BaseController.extend({
+		/**
+		 * Overwrites hemi.world.Citizen.citizenType
+		 */
+		citizenType: 'hext.tools.SmokePufferController',
+		
+		/*
+		 * Not currently supported.
+		 */
+		toOctane: function() {
+		},
+
+		/**
+		 * Connect the SmokePuffer data model to the toolbar view so that they
+		 * respond to each other.
+		 * @see hext.tools.BaseController#setupToolbar
+		 */
+		setupToolbar: function() {
+			var toolModel = this.model;
+			var toolbarView = this.toolbarView;
+			var that = this;
+
+			this.toolbarView.button.bind('click', function(evt) {
+				var enabled = !toolModel.enabled;
+				toolModel.setEnabled(enabled);
+				
+				if (enabled) {
+					hemi.world.setPickGrabber(that);
+				} else {
+				    hemi.world.removePickGrabber();
+				}
+
+				toolbarView.setClickedState(enabled);
+			});
+		},
+
+		/**
+		 * Check the shape from the pick to see if there is an associated
+		 * smoke puff particle Effect. If so, trigger it. Otherwise, generate a
+		 * 'default' puff at the picked world position.
+		 * 
+		 * @param {o3djs.picking.PickInfo} pickInfo pick event information
+		 */
+	    onPick: function(pickInfo) {
+			if (pickInfo && this.model.enabled) {
+				var puff = this.model.pickNames.get(pickInfo.shapeInfo.shape.name);
+
+				if (puff == null) {
+					var wi = pickInfo.worldIntersectionPosition;
+					var ci = hemi.world.camera.getEye();
+					puff = this.model.defaultPuff;
+					puff.params.position = hemi.core.math.lerpVector(ci, wi, 0.9);
+				}
+
+				puff.trigger();
+			}
+		}
+	});
+	
+	return hext;
+})(hext || {});

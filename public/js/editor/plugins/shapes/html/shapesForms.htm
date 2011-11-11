@@ -1,0 +1,99 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+	<h1>Create Shape</h1>
+    <form id="shpForm" method="post" action="">
+        <fieldset id="shpSystemType">
+            <legend>
+                Select Shape Type
+            </legend>
+            <ol>
+                <li>
+                    <select id="shpTypeSelect">
+                        <option value="-1">Select Type</option>
+                        <option value="cube">Cube</option>
+                        <option value="box">Rectangle</option>
+                        <option value="sphere">Sphere</option>
+                        <option value="cone">Cone</option>
+                        <option value="cylinder">Cylinder</option>
+                        <option value="pyramid">Pyramid</option>
+                        <option value="arrow">Arrow</option>
+                        <option value="tetra">Tetrahedron</option>
+                        <option value="octa">Octahedron</option>
+                    </select>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="shpShapeParams">
+            <legend>
+                Set Shape Parameters
+            </legend>
+            <ol>
+                <li>
+                    <label for="shpPosition" class="short">
+                        Position
+                    </label>
+					<div id="shpPositionDiv">
+					</div>
+                </li>
+                <li>
+                    <label id="shpColorLbl" class="short">
+                        Color
+                    </label>
+                </li>
+                <li>
+                    <input type="text" value="" id="shpHeight" class="optional" placeholder="Height" />
+                </li>
+                <li>
+                    <input type="text" value="" id="shpWidth" class="optional" placeholder="Width" />
+                </li>
+                <li>
+                    <input type="text" value="" id="shpDepth" class="optional" placeholder="Depth" />
+                </li>
+                <li>
+                    <input type="text" value="" id="shpRadius" class="optional" placeholder="Radius" />
+                </li>
+                <li>
+                    <input type="text" value="" id="shpSize" class="optional" placeholder="Size" />
+                </li>
+                <li>
+                    <input type="text" value="" id="shpTail" class="optional" placeholder="Tail" />
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="shpSave">
+            <legend>
+                Save Your Shape
+            </legend>
+            <ol>
+                <li>
+                    <input type="text" id="shpName" class="name" autocomplete="off" placeholder="Name" />
+                    <div class="buttons">
+	                    <button id="shpPreviewBtn">
+	                        Preview
+	                    </button>
+                        <button id="shpSaveBtn" disabled="disabled">
+                            Save
+                        </button>
+                        <button id="shpCancelBtn">
+                            Clear
+                        </button>
+                    </div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
