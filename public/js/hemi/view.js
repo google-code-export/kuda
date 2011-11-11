@@ -64,6 +64,12 @@ var hemi = (function(hemi) {
             this.pan.add(this.tilt);
             this.tilt.add(this.cam);
             this.cam.add(this.target);
+            
+            this.target.position.z = -1;
+            this.target.updateMatrix();
+            this.cam.position.z = 1;
+            this.cam.updateMatrix();
+            this.updateWorldMatrices();
 
 			this.vd = { current: null, last: null };
 			this.light = new THREE.PointLight( 0xffffff, 1.35 );
@@ -212,7 +218,7 @@ var hemi = (function(hemi) {
 		 * Attach the light source to the Camera.
 		 */
 		lightOnCam : function() {
-			this.fixedLight = true;
+			this.mode.fixedLight = true;
 			this.update();
 			return this;
 		},
@@ -631,7 +637,7 @@ var hemi = (function(hemi) {
 			
 			var camPos = new THREE.Vector3(0, 0, this.distance);
 			this.identity(this.cam);
-			this.cam.translateZ(this.distance);
+			this.cam.position.z = this.distance;
             this.cam.updateMatrix();
 
             this.updateWorldMatrices();
@@ -762,11 +768,11 @@ var hemi = (function(hemi) {
 		 */
 		truck : function(distance) {
 
-			this.pan.rotation.x = this.pan.rotation.x + this.tilt.rotation.x;
+			this.pan.rotation.x += this.tilt.rotation.x;
             this.pan.updateMatrix();
 			this.pan.translateZ(-distance);
             this.pan.updateMatrix();
-			this.pan.rotate.x = this.pan.rotate.x - this.tilt.rotate.x;
+			this.pan.rotation.x -= this.tilt.rotation.x;
             this.pan.updateMatrix();
 			this.update();
 		},
@@ -840,13 +846,12 @@ var hemi = (function(hemi) {
 					}				
 				}
 			}
-            this.identity(this.target);
-            this.target.translateZ(-this.distance);
+            this.target.position.z = -this.distance;
             this.target.updateMatrix();
             //force an update of the transforms so we can get the correct world matricies
             this.updateWorldMatrices();
-            var camPosition = this.cam.matrixWorld.getPosition();
-            var targetPosition = this.target.matrixWorld.getPosition();
+            var camPosition = this.getEye();
+            var targetPosition = this.getTarget();
             this.threeCamera.position = camPosition;
             this.threeCamera.updateMatrix();
             this.threeCamera.update(null, true, null);
