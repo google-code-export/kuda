@@ -45,7 +45,8 @@ var hemi = (function(hemi) {
 		var data = findData(client),
 			objs = client.scene.__webglObjects.concat(
 				client.scene.__webglObjectsImmediate),
-			mats = [];
+			mats = [],
+			refresh = false;
 		
 		if (!data) {
 			data = {
@@ -60,6 +61,7 @@ var hemi = (function(hemi) {
 			// save the old background color
 			data.oldBGHex = client.renderer.getClearColor().getHex();
 			data.oldBGAlpha = client.renderer.getClearAlpha();
+			refresh = true;
 		}
 		
 		data.fog.color.setHex(color);
@@ -69,37 +71,52 @@ var hemi = (function(hemi) {
 		client.scene.fog = data.fog;
 		client.setBGColor(color, alpha);
 		
-		// go through all the materials and update
-		// first get the materials
-		for (var i = 0, il = objs.length; i < il; i++) {
-			var webglObject = objs[i],
-				object = webglObject.object,
-				opaque = webglObject.opaque,
-				transparent = webglObject.transparent;
+		if (refresh) {
+			// go through all the materials and update
+			// first get the materials
+			for (var i = 0, il = objs.length; i < il; i++) {
+				var webglObject = objs[i], 
+					object = webglObject.object, 
+					opaque = webglObject.opaque, 
+					transparent = webglObject.transparent;
 				
-			for (var j = 0, jl = opaque.count; j < jl; j++) {
-				mats.push({
-					mat: opaque.list[j],
-					obj: object
-				});
-			}	
-			for (var j = 0, jl = transparent.count; j < jl; j++) {
-				mats.push({
-					mat: transparent.list[j],
-					obj: object
-				});
+				for (var j = 0, jl = opaque.count; j < jl; j++) {
+					mats.push({
+						mat: opaque.list[j],
+						obj: object
+					});
+				}
+				for (var j = 0, jl = transparent.count; j < jl; j++) {
+					mats.push({
+						mat: transparent.list[j],
+						obj: object
+					});
+				}
 			}
+		
+			// save the materials for later
+			data.materials = mats;
 		}
 		
 		// now change the materials
-		for (var i = 0, il = mats.length; i < il; i++) {
-			var matData = mats[i];
+		for (var i = 0, il = data.materials.length; i < il; i++) {
+			var matData = data.materials[i],
+				material = matData.mat,
+				object = matData.obj,
+				fog = client.scene.fog;
 			
-			client.renderer.initMaterial(matData.mat, client.scene.lights, client.scene.fog, matData.obj);
+			if (refresh) {
+				client.renderer.initMaterial(material, client.scene.lights, 
+					fog, object);
+			}
+			else {
+				var uniforms = material.uniforms;
+									
+				uniforms.fogColor.value = fog.color;		
+				uniforms.fogNear.value = fog.near;
+				uniforms.fogFar.value = fog.far;
+			}
 		}
-		
-		// save the materials for later
-		data.materials = mats;
 	};
 	
 	/**
