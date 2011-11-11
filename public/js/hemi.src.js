@@ -5049,3 +5049,279 @@ var hemi = (function(hemi) {
 	
 	return hemi;
 })(hemi || {});
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+var hemi = (function(hemi) {
+
+	hemi.fx = hemi.fx || {};
+	
+	var clientData = [];
+	
+	function findData(client) {
+		var retVal = null;
+		for (var i = 0, il = clientData.length; i < il && retVal == null; i++) {
+			if (clientData[i].client === client) {
+				retVal = clientData[i];
+			}
+		}
+		return retVal;
+	};
+
+	/**
+	 * 	{
+	 *		type      : string ->
+	 *			'texture','phong','lambert','basic','custom'
+	 *		color     : float4
+	 * 		color1    : float4
+	 *      color2    : float4
+	 * 		diffuse   : [float4 | url]
+	 *		ambient   : [float4 | url]
+	 *		emissive  : [float4 | url]
+	 *		shader    : [string | url]
+	 *		opacity   : float
+	 *      light     : boolean (light object?)
+	 *		wireframe : boolean
+	 *		specular  : float4
+	 *		shininess : float
+	 *		texture   : url
+	 *		texture1  : url
+	 *		texture2  : url
+	 *      weight    : float
+	 *		normalmap : url
+	 *      fog       : boolean
+	 *	}
+	 *
+	 */
+	
+	/**
+	 * Sets the fog for the given client to the following parameters
+	 * 
+	 * @param {hemi.Client} client the client view to set fog for 
+	 * @param {number} color the hex (begins with 0x) color value
+	 * @param {number} alpha the alpha value of the color between 0 and 1
+	 * @param {number} near the viewing distance where the fog obscuring starts  
+	 * @param {number} far the viewing distance where fog opacity obscures the 
+	 * 		subject
+	 */
+	hemi.fx.setFog = function(client, color, alpha, near, far) {
+		var data = findData(client),
+			objs = client.scene.__webglObjects.concat(
+				client.scene.__webglObjectsImmediate),
+			mats = [];
+		
+		if (!data) {
+			data = {
+				client: client
+			};
+			clientData.push(data);
+		}
+		
+		if (!data.fog) {
+			data.fog = new THREE.Fog();
+			
+			// save the old background color
+			data.oldBGHex = client.renderer.getClearColor().getHex();
+			data.oldBGAlpha = client.renderer.getClearAlpha();
+		}
+		
+		data.fog.color.setHex(color);
+		data.fog.near = near;
+		data.fog.far = far;
+		
+		client.scene.fog = data.fog;
+		client.setBGColor(color, alpha);
+		
+		// go through all the materials and update
+		// first get the materials
+		for (var i = 0, il = objs.length; i < il; i++) {
+			var webglObject = objs[i],
+				object = webglObject.object,
+				opaque = webglObject.opaque,
+				transparent = webglObject.transparent;
+				
+			for (var j = 0, jl = opaque.count; j < jl; j++) {
+				mats.push({
+					mat: opaque.list[j],
+					obj: object
+				});
+			}	
+			for (var j = 0, jl = transparent.count; j < jl; j++) {
+				mats.push({
+					mat: transparent.list[j],
+					obj: object
+				});
+			}
+		}
+		
+		// now change the materials
+		for (var i = 0, il = mats.length; i < il; i++) {
+			var matData = mats[i];
+			
+			client.renderer.initMaterial(matData.mat, client.scene.lights, client.scene.fog, matData.obj);
+		}
+		
+		// save the materials for later
+		data.materials = mats;
+	};
+	
+	/**
+	 * Removes the fog for the given client
+	 * 
+	 * @param {hemi.Client} client the client view to clear fog for
+	 */
+	hemi.fx.clearFog = function(client) {
+		var data = findData(client);
+		
+		if (data && data.fog) {
+			data.fog = client.scene.fog = undefined;
+			client.setBGColor(data.oldBGHex, data.oldBGAlpha);
+			
+			// now change the materials
+			for (var i = 0, il = data.materials.length; i < il; i++) {
+				var matData = data.materials[i];
+				
+				client.renderer.initMaterial(matData.mat, client.scene.lights, client.scene.fog, matData.obj);
+			}
+		}
+	};
+	
+	/**
+	 * Add an opacity parameter to the given Material that will allow
+	 * transparency to be set for it. Transparency ranges from 0.0 to 1.0.
+	 * 
+	 * @param {o3d.Material} material the Material to create opacity for
+	 * @return {o3d.ParamObject} a ParamObject linked to opacity
+	 */
+	hemi.fx.addOpacity = function(material) {
+		// get the source
+		var gl = material.gl,
+			program = material.effect.program_,
+			shad = hemi.utils.getShaders(material),
+			fragShd = shad.fragShd,
+			fragSrc = shad.fragSrc;
+		
+		// modify the pixel shader
+		if (fragSrc.search('opacity') < 0) {
+			var fragHdr = 'uniform float opacity;\n',
+				fragGlob = 'gl_FragColor.a *= opacity;\n';
+			
+			fragSrc = hemi.utils.combineFragSrc(fragSrc, {
+				postHdr: fragHdr,
+				postGlob: fragGlob
+			});
+			gl.detachShader(program, fragShd);
+			material.effect.loadPixelShaderFromString(fragSrc);
+			
+			material.effect.createUniformParameters(material);
+			material.getParam('o3d.drawList').value = hemi.view.viewInfo.zOrderedDrawList;
+		}
+		
+		
+		var opacity = material.getParam('opacity');
+		opacity.value = 1.0;		
+		
+		return opacity;
+	};
+	
+	/*
+	 * The following functions may be out-dated and need some work before using.
+	 */
+	
+	hemi.fx.create = function(spec,callback) {
+		switch (spec.type) {
+			case 'constant':
+				if (spec.texture) {
+					return hemi.fx.createConstantTexture(spec.texture, callback);
+				} else {
+					callback(hemi.core.material.createConstantMaterial(
+						hemi.core.mainPack,
+						hemi.view.viewInfo,
+						spec.color,
+						spec.color[3] < 1));
+					return;
+				}
+				break;
+			case 'basic':
+				if (spec.texture) {
+					return hemi.fx.createBasicTexture(spec.texture, callback);
+				} else {
+					callback(hemi.core.material.createBasicMaterial(
+						hemi.core.mainPack,
+						hemi.view.viewInfo,
+						spec.color,
+						spec.color[3] < 1));
+					return;
+				}
+				break;
+		}
+	};
+	
+	hemi.fx.modify = function(material, spec) {
+		switch (spec.type) {
+			case 'constant':
+				material.effect = null;
+				var diffuseParam = material.getParam('diffuseSampler');
+				if (diffuseParam) {
+					var paramSampler = material.createParam('emissiveSampler', 'ParamSampler');
+					paramSampler.value = diffuseParam.value;
+					material.removeParam(diffuseParam);
+				}
+				o3djs.material.attachStandardEffect(
+					hemi.core.mainPack,
+					material,
+					hemi.view.viewInfo,
+					'constant');
+				return material;
+				break;
+		}
+	};
+	
+	hemi.fx.createConstantTexture = function(path, callback) {
+		var url = o3djs.util.getCurrentURI() + path;
+		var material;
+		hemi.core.io.loadTexture(hemi.core.mainPack,url,function(texture, e) {
+			if (e) {
+				alert(e);
+			} else {
+				material = hemi.core.material.createConstantMaterial(
+					hemi.core.mainPack,
+					hemi.view.viewInfo,
+					texture);
+				callback(material);
+			}
+		});
+	};
+	
+	hemi.fx.createBasicTexture = function(path, callback) {
+		var url = o3djs.util.getCurrentURI() + path;
+		var material;
+		hemi.core.io.loadTexture(hemi.core.mainPack,url,function(texture, e) {
+			if (e) {
+				alert(e);
+			} else {
+				material = hemi.core.material.createBasicMaterial(
+					hemi.core.mainPack,
+					hemi.view.viewInfo,
+					texture);
+				callback(material);
+			}
+		});
+	};
+	
+	return hemi;
+})(hemi || {});
