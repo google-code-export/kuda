@@ -30,6 +30,87 @@ var hemi = (function(hemi) {
 		}
 		return retVal;
 	};
+
+	/*
+	 * The following three functions are exact duplicates of the functions
+	 * in WebGLRenderer. Until those functions are exposed, we have to 
+	 * duplicate them here. 
+	 * 
+	 */
+	
+	function addToFixedArray(where, what) {
+		where.list[ where.count ] = what;
+		where.count += 1;
+	};
+
+	function unrollImmediateBufferMaterials(globject) {
+		var i, l, m, ml, material,
+			object = globject.object,
+			opaque = globject.opaque,
+			transparent = globject.transparent;
+
+		transparent.count = 0;
+		opaque.count = 0;
+
+		for (m = 0, ml = object.materials.length; m < ml; m++) {
+			material = object.materials[ m ];
+			material.transparent ? addToFixedArray(transparent, material) : addToFixedArray(opaque, material);
+
+		}
+
+	};
+
+	function unrollBufferMaterials(globject) {
+		var i, l, m, ml, material, meshMaterial,
+			object = globject.object,
+			buffer = globject.buffer,
+			opaque = globject.opaque,
+			transparent = globject.transparent;
+
+		transparent.count = 0;
+		opaque.count = 0;
+
+		for (m = 0, ml = object.materials.length; m < ml; m++) {
+
+			meshMaterial = object.materials[ m ];
+
+			if (meshMaterial instanceof THREE.MeshFaceMaterial) {
+				for (i = 0, l = buffer.materials.length; i < l; i++) {
+					material = buffer.materials[ i ];
+					if (material) material.transparent ? addToFixedArray(transparent, material) : addToFixedArray(opaque, material);
+
+				}
+			} else {
+				material = meshMaterial;
+				if (material) material.transparent ? addToFixedArray(transparent, material) : addToFixedArray(opaque, material);
+			}
+		}
+	};
+	
+	hemi.fx.cleanup = function() {
+		clientData = [];
+	}
+	
+	/**
+	 * Removes the fog for the given client
+	 * 
+	 * @param {hemi.Client} client the client view to clear fog for
+	 */
+	hemi.fx.clearFog = function(client) {
+		var data = findData(client);
+		
+		if (data && data.fog) {
+			client.scene.fog = undefined;
+			client.setBGColor(data.oldBGHex, data.oldBGAlpha);
+			
+			// now change the materials
+			for (var i = 0, il = data.materials.length; i < il; i++) {
+				var matData = data.materials[i];
+				
+				client.renderer.initMaterial(matData.mat, client.scene.lights, client.scene.fog, matData.obj);
+			}
+		}
+	};
 	
 	/**
 	 * Sets the fog for the given client to the following parameters
@@ -120,23 +201,36 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Removes the fog for the given client
+	 * Sets the opacity for the given material in the given object.
 	 * 
-	 * @param {hemi.Client} client the client view to clear fog for
+	 * @param {hemi.Client} client the client view in which to change opacity
+	 * @param {THREE.Object3d} object the object whose material's opacity we're 
+	 * 		changing
+	 * @param {THREE.Material} material the material to set opacity on
+	 * @param {number} opacity the opacity value between 0 and 1
 	 */
-	hemi.fx.clearFog = function(client) {
-		var data = findData(client);
-		
-		if (data && data.fog) {
-			data.fog = client.scene.fog = undefined;
-			client.setBGColor(data.oldBGHex, data.oldBGAlpha);
-			
-			// now change the materials
-			for (var i = 0, il = data.materials.length; i < il; i++) {
-				var matData = data.materials[i];
+	hemi.fx.setOpacity = function(client, object, material, opacity) {
+		var objs = client.scene.__webglObjects.concat(
+				client.scene.__webglObjectsImmediate),
+			found = null;
 				
-				client.renderer.initMaterial(matData.mat, client.scene.lights, client.scene.fog, matData.obj);
+		for (var i = 0, il = objs.length; i < il && found == null; i++) {
+			var webglObject = objs[i];
+			
+			if (webglObject.object.parent === object || webglObject.object === object) {
+				found = webglObject;
 			}
+		}
+		
+		if (found) {
+			material.transparent = opacity < 1;
+			material.opacity = opacity;
+			
+			// move the material to the transparent list and out of the opaque list
+			found.transparent.list = [];
+			found.opaque.list = [];
+			unrollBufferMaterials(found);
+			unrollImmediateBufferMaterials(found);
 		}
 	};
 	
