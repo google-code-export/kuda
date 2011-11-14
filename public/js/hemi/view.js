@@ -68,10 +68,8 @@ var hemi = (function(hemi) {
 
 			this.vd = { current: null, last: null };
 			this.light = new THREE.PointLight( 0xffffff, 1.35 );
-            this.maxPan = null;
-            this.minPan = null;
-            this.maxTilt = null;
-            this.minTilt = null;
+            this.tiltMax = hemi.viewDefaults.MAX_TILT;
+            this.tiltMin = hemi.viewDefaults.MIN_TILT;
 
 	        this.fov = {
 				current : hemi.viewDefaults.FOV,
@@ -226,8 +224,8 @@ var hemi = (function(hemi) {
 			this.mode.fixed = false;
 			if (!this.mode.projection) {
 				identity(this.cam);
-				cam.translateZ(this.distance);
-                cam.updateMatrix();
+				this.cam.position.z = this.distance;
+				this.cam.updateMatrix();
 			}
 			this.update();
 			return this;
@@ -310,7 +308,7 @@ var hemi = (function(hemi) {
 			this.state.vp = null;
 			this.state.time.end = (opt_time == null) ? 1.0 : (opt_time > 0) ? opt_time : 0.001;
 			this.state.time.current = 0.0;
-			//this.send(hemi.msg.start, { viewdata: this.vd.current });
+			this.send(hemi.msg.start, { viewdata: this.vd.current });
 		},
 		
 		/**
@@ -350,8 +348,8 @@ var hemi = (function(hemi) {
 				var deltaY = hemi.viewDefaults.MOUSE_DELTA * this.distance
 					* (yMovement);
 				this.pan.translateX(-deltaX);
-				this.pan.translateY(deltaY * Math.cos(this.tilt.current));
-				this.pan.translateZ(deltaY * Math.sin(this.tilt.current));
+				this.pan.translateY(deltaY * Math.cos(this.tilt.rotation.x));
+				this.pan.translateZ(deltaY * Math.sin(this.tilt.rotation.x));
                 this.pan.updateMatrix();
 				this.update();
 			} else {
@@ -393,7 +391,7 @@ var hemi = (function(hemi) {
 			this.state.time.end = (t > 0) ? t : 0.001;
 			this.state.time.current = 0.0;
 			this.state.moving = true;
-			//this.send(hemi.msg.start, pkg);
+			this.send(hemi.msg.start, pkg);
 		},
 		
 		/**
@@ -508,31 +506,17 @@ var hemi = (function(hemi) {
 					return;
 				} else {
 					var t = (mouseEvent.deltaY > 0) ? 11/12 : 13/12;
-					this.distance = this.lerpScalar(0, this.distance, t);
+					this.distance = hemi.utils.lerp(0, this.distance, t);
 					if (!this.mode.projection) {
 						this.identity(this.cam);
-						this.cam.translateZ(this.distance);
-                        this.cam.updateMatrix();
+						this.cam.position.z = this.distance;
+						this.cam.updateMatrix();
 					}
 					this.updateProjection();
 					this.state.update = true;
 				}
 			}
 		},
-
-
-        /**
-         * Performs linear interpolation on two scalars.
-         * Given scalars a and b and interpolation coefficient t, returns
-         * (1 - t) * a + t * b.
-         * @param {number} a Operand scalar.
-         * @param {number} b Operand scalar.
-         * @param {number} t Interpolation coefficient.
-         * @return {number} The weighted sum of a and b.
-         */
-        lerpScalar : function(a, b, t) {
-          return (1 - t) * a + t * b;
-        },
 		
 		/**
 		 * Orbit the Camera about the target point it is currently looking at.
@@ -542,14 +526,13 @@ var hemi = (function(hemi) {
 		 */
 		orbit : function(pan,tilt) {
 			if (tilt == null) tilt = 0;
-			var lastTilt = this.tilt.rotation.x;
-            var newPan = this.pan.rotation.y += pan;
-			var newTilt = lastTilt + tilt;
-            newTilt = newTilt >= this.tiltMax ? this.tiltMax : (newTilt <= this.tiltMin ? this.tiltMin : newTilt);
-			this.pan.rotation.setY(newPan);
-			this.tilt.rotation.setX(newTilt);
-            this.pan.updateMatrix();
-            this.tilt.updateMatrix();
+			
+			var newTilt = this.tilt.rotation.x + tilt;
+			
+			this.pan.rotation.y += pan;
+			this.tilt.rotation.x = newTilt >= this.tiltMax ? this.tiltMax : (newTilt <= this.tiltMin ? this.tiltMin : newTilt);
+			this.pan.updateMatrix();
+			this.tilt.updateMatrix();
 			this.update();
 		},
 		
@@ -562,11 +545,12 @@ var hemi = (function(hemi) {
 		 */
 		rotate : function(pan,tilt) {
 			if (tilt == null) tilt = 0;
+			
 			this.camPan.current += pan;
 			this.camTilt.current += tilt;
             this.clampPanTilt();
 			this.identity(this.cam);
-			this.cam.translateZ(this.distance);
+			this.cam.position.z = this.distance;
 			this.cam.rotation.y = this.camPan.current;
 			this.cam.rotation.x = this.camTilt.current;
             this.cam.updateMatrix();
@@ -636,13 +620,13 @@ var hemi = (function(hemi) {
 			this.cam.position.z = this.distance;
             this.cam.updateMatrix();
 
-            this.updateWorldMatrices();
-
 			hemi.utils.pointZAt(this.cam, camPos, hemi.utils.pointAsLocal(this.cam,target));
-			this.cam.rotation.y = this.cam.rotation.y + Math.PI;
+			this.cam.rotation.y += Math.PI;
             this.cam.updateMatrix();
 			this.camPan.current = 0;
 			this.camTilt.current = 0;
+
+            this.updateWorldMatrices();
 		},
 		
 		/**
@@ -722,14 +706,13 @@ var hemi = (function(hemi) {
 		 * @param {number} distance the distance to move the Camera
 		 */
 		truck : function(distance) {
-
 			this.pan.rotation.x += this.tilt.rotation.x;
             this.pan.updateMatrix();
 			this.pan.translateZ(-distance);
             this.pan.updateMatrix();
 			this.pan.rotation.x -= this.tilt.rotation.x;
             this.pan.updateMatrix();
-			this.update();
+            this.update();
 		},
 		
 		/**
@@ -789,10 +772,10 @@ var hemi = (function(hemi) {
 						this.state.curve = null;
 						
 						if (this.state.vp !== null) {
-							//this.send(hemi.msg.stop, { viewpoint:this.state.vp });
+							this.send(hemi.msg.stop, { viewpoint:this.state.vp });
 							this.state.vp = null;
 						} else {
-							//this.send(hemi.msg.stop, { viewdata:this.vd.current });
+							this.send(hemi.msg.stop, { viewdata:this.vd.current });
 						}
 					}
 					time.current += d;
