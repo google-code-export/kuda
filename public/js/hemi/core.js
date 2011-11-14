@@ -58,6 +58,8 @@ if (!window.requestAnimationFrame) {
 var hemi = (function(hemi) {
 	
 	var errCallback = null,
+		fps = 60,
+		hz = 1 / fps,
 	
 		/*
 		 * The time of the last render in seconds.
@@ -67,23 +69,27 @@ var hemi = (function(hemi) {
 	
 		renderListeners = [],
 		
-		render = function() {
+		render = function(update) {
 			requestAnimationFrame(render);
 			
 			var renderTime = new Date().getTime() * 0.001,
-				elapsed = lastRenderTime === 0 ? 0 : renderTime - lastRenderTime,
 				event = {
-					elapsedTime: elapsed
+					elapsedTime: hz
 				};
 			
-			lastRenderTime = renderTime;
-			
-			for (var i = 0; i < hemi.clients.length; ++i) {
-				hemi.clients[i].onRender(event);
+			while (renderTime - lastRenderTime > hz) {
+				update = true;
+				lastRenderTime += hz;
+				
+				for (var i = 0; i < renderListeners.length; ++i) {
+					renderListeners[i].onRender(event);
+				}
 			}
 			
-			for (var i = 0; i < renderListeners.length; ++i) {
-				renderListeners[i].onRender(event);
+			if (update) {
+				for (var i = 0; i < hemi.clients.length; ++i) {
+					hemi.clients[i].onRender(event);
+				}
 			}
 		};
 	
@@ -116,7 +122,8 @@ var hemi = (function(hemi) {
 			}
 		}
 		
-		render();
+		lastRenderTime = new Date().getTime() * 0.001;
+		render(true);
 		return clients;
 	};
 	
@@ -166,6 +173,16 @@ var hemi = (function(hemi) {
 			throw err;
 		}
 	};
+
+	/**
+	 * Get the time that the specified animation frame occurs at.
+	 *
+	 * @param {number} frame frame number to get the time for
+	 * @return {number} time that the frame occurs at
+	 */
+	hemi.getTimeOfFrame = function(frame) {
+		return frame * hz;
+	};
 	
 	/**
 	 * Set the given function as the error handler for Hemi errors.
@@ -174,6 +191,29 @@ var hemi = (function(hemi) {
 	 */
 	hemi.setErrorCallback = function(callback) {
 		errCallback = callback;
+	};
+	
+	/**
+	 * Get the current frames-per-second that will be enforced for rendering.
+	 * 
+	 * @return {number} current frames-per-second
+	 */
+	hemi.getFPS = function() {
+		return fps;
+	};
+
+	/**
+	 * Set the current frames-per-second that will be enforced for rendering.
+	 * 
+	 * @param {number} newFps frames-per-second to enforce
+	 */
+	hemi.setFPS = function(newFps) {
+		fps = newFps;
+		hz = 1/fps;
+		
+		for (var i = 0; i < hemi.clients.length; ++i) {
+			hemi.clients[i].camera.spf = hz;
+		}
 	};
 
 	hemi.init = function() {

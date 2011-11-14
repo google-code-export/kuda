@@ -58,6 +58,8 @@ if (!window.requestAnimationFrame) {
 var hemi = (function(hemi) {
 	
 	var errCallback = null,
+		fps = 60,
+		hz = 1 / fps,
 	
 		/*
 		 * The time of the last render in seconds.
@@ -67,23 +69,27 @@ var hemi = (function(hemi) {
 	
 		renderListeners = [],
 		
-		render = function() {
+		render = function(update) {
 			requestAnimationFrame(render);
 			
 			var renderTime = new Date().getTime() * 0.001,
-				elapsed = lastRenderTime === 0 ? 0 : renderTime - lastRenderTime,
 				event = {
-					elapsedTime: elapsed
+					elapsedTime: hz
 				};
 			
-			lastRenderTime = renderTime;
-			
-			for (var i = 0; i < hemi.clients.length; ++i) {
-				hemi.clients[i].onRender(event);
+			while (renderTime - lastRenderTime > hz) {
+				update = true;
+				lastRenderTime += hz;
+				
+				for (var i = 0; i < renderListeners.length; ++i) {
+					renderListeners[i].onRender(event);
+				}
 			}
 			
-			for (var i = 0; i < renderListeners.length; ++i) {
-				renderListeners[i].onRender(event);
+			if (update) {
+				for (var i = 0; i < hemi.clients.length; ++i) {
+					hemi.clients[i].onRender(event);
+				}
 			}
 		};
 	
@@ -116,7 +122,8 @@ var hemi = (function(hemi) {
 			}
 		}
 		
-		render();
+		lastRenderTime = new Date().getTime() * 0.001;
+		render(true);
 		return clients;
 	};
 	
@@ -166,6 +173,16 @@ var hemi = (function(hemi) {
 			throw err;
 		}
 	};
+
+	/**
+	 * Get the time that the specified animation frame occurs at.
+	 *
+	 * @param {number} frame frame number to get the time for
+	 * @return {number} time that the frame occurs at
+	 */
+	hemi.getTimeOfFrame = function(frame) {
+		return frame * hz;
+	};
 	
 	/**
 	 * Set the given function as the error handler for Hemi errors.
@@ -174,6 +191,29 @@ var hemi = (function(hemi) {
 	 */
 	hemi.setErrorCallback = function(callback) {
 		errCallback = callback;
+	};
+	
+	/**
+	 * Get the current frames-per-second that will be enforced for rendering.
+	 * 
+	 * @return {number} current frames-per-second
+	 */
+	hemi.getFPS = function() {
+		return fps;
+	};
+
+	/**
+	 * Set the current frames-per-second that will be enforced for rendering.
+	 * 
+	 * @param {number} newFps frames-per-second to enforce
+	 */
+	hemi.setFPS = function(newFps) {
+		fps = newFps;
+		hz = 1/fps;
+		
+		for (var i = 0; i < hemi.clients.length; ++i) {
+			hemi.clients[i].camera.spf = hz;
+		}
 	};
 
 	hemi.init = function() {
@@ -660,6 +700,31 @@ var hemi = (function(hemi) {
 			v = A[2][0]*B[0] + A[2][1]*B[1] + A[2][2]*B[2];
 		
 		return [t,u,v];
+	};
+	
+	/**
+	 * Perform linear interpolation on the given values. Values can be numbers
+	 * or arrays or even nested arrays (as long as their lengths match).
+	 * 
+	 * @param {number} a first number (or array of numbers) for interpolation
+	 * @param {number} v second number (or array of numbers) for interpolation
+	 * @param {number} t coefficient for interpolation (usually time)
+	 * @return {number} the interpolated number (or array of numbers)
+	 */
+	hemi.utils.lerp = function(a, b, t) {
+		var ret;
+		
+		if (hemi.utils.isArray(a)) {
+			ret = [];
+			
+			for (var i = 0; i < a.length; ++i) {
+				ret[i] = hemi.utils.lerp(a[i], b[i], t);
+			}
+		} else {
+			ret = a + (b - a) * t;
+		}
+		
+		return ret;
 	};
 	
 	/**
@@ -2931,7 +2996,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the MessageTarget
 		 */
 		toOctane: function() {
-			if (!this.handler.getId) {
+			if (!this.handler._getId) {
 				hemi.console.log('Handler object in MessageTarget can not be saved to Octane', hemi.console.WARN);
 				return null;
 			}
@@ -2939,7 +3004,7 @@ var hemi = (function(hemi) {
 			var names = ['dispatchId', 'name', 'func', 'args'],
 				props = [{
 					name: 'handler',
-					id: this.handler.getId()
+					id: this.handler._getId()
 				}];
 			
 			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
@@ -3343,7 +3408,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.dispatch.postMessage = function(src, msg, data) {
 		var message = new hemi.dispatch.Message(),
-			id = src.getId();
+			id = src._getId();
 		message.src = src;
 		message.msg = msg;
 		message.data = data;
@@ -3428,7 +3493,7 @@ var hemi = (function(hemi) {
 
 	// Wildcard functions
 	var anon = {
-		getId: function() {
+		_getId: function() {
 			return hemi.dispatch.WILDCARD;
 		}
 	};
@@ -3912,10 +3977,8 @@ var hemi = (function(hemi) {
 
 			this.vd = { current: null, last: null };
 			this.light = new THREE.PointLight( 0xffffff, 1.35 );
-            this.maxPan = null;
-            this.minPan = null;
-            this.maxTilt = null;
-            this.minTilt = null;
+            this.tiltMax = hemi.viewDefaults.MAX_TILT;
+            this.tiltMin = hemi.viewDefaults.MIN_TILT;
 
 	        this.fov = {
 				current : hemi.viewDefaults.FOV,
@@ -3949,7 +4012,8 @@ var hemi = (function(hemi) {
 				near : hemi.viewDefaults.NP,
 				far  : hemi.viewDefaults.FP
 			};
-            this.FPS = 24;
+            // Seconds per frame, cached version of 1 / fps
+			this.spf = 1/60;
             this.threeCamera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 
             var tween = hemi.utils.penner.linearTween;
@@ -4070,8 +4134,8 @@ var hemi = (function(hemi) {
 			this.mode.fixed = false;
 			if (!this.mode.projection) {
 				identity(this.cam);
-				cam.translateZ(this.distance);
-                cam.updateMatrix();
+				this.cam.position.z = this.distance;
+				this.cam.updateMatrix();
 			}
 			this.update();
 			return this;
@@ -4154,7 +4218,7 @@ var hemi = (function(hemi) {
 			this.state.vp = null;
 			this.state.time.end = (opt_time == null) ? 1.0 : (opt_time > 0) ? opt_time : 0.001;
 			this.state.time.current = 0.0;
-			//this.send(hemi.msg.start, { viewdata: this.vd.current });
+			this.send(hemi.msg.start, { viewdata: this.vd.current });
 		},
 		
 		/**
@@ -4194,8 +4258,8 @@ var hemi = (function(hemi) {
 				var deltaY = hemi.viewDefaults.MOUSE_DELTA * this.distance
 					* (yMovement);
 				this.pan.translateX(-deltaX);
-				this.pan.translateY(deltaY * Math.cos(this.tilt.current));
-				this.pan.translateZ(deltaY * Math.sin(this.tilt.current));
+				this.pan.translateY(deltaY * Math.cos(this.tilt.rotation.x));
+				this.pan.translateZ(deltaY * Math.sin(this.tilt.rotation.x));
                 this.pan.updateMatrix();
 				this.update();
 			} else {
@@ -4237,7 +4301,7 @@ var hemi = (function(hemi) {
 			this.state.time.end = (t > 0) ? t : 0.001;
 			this.state.time.current = 0.0;
 			this.state.moving = true;
-			//this.send(hemi.msg.start, pkg);
+			this.send(hemi.msg.start, pkg);
 		},
 		
 		/**
@@ -4352,31 +4416,17 @@ var hemi = (function(hemi) {
 					return;
 				} else {
 					var t = (mouseEvent.deltaY > 0) ? 11/12 : 13/12;
-					this.distance = this.lerpScalar(0, this.distance, t);
+					this.distance = hemi.utils.lerp(0, this.distance, t);
 					if (!this.mode.projection) {
 						this.identity(this.cam);
-						this.cam.translateZ(this.distance);
-                        this.cam.updateMatrix();
+						this.cam.position.z = this.distance;
+						this.cam.updateMatrix();
 					}
 					this.updateProjection();
 					this.state.update = true;
 				}
 			}
 		},
-
-
-        /**
-         * Performs linear interpolation on two scalars.
-         * Given scalars a and b and interpolation coefficient t, returns
-         * (1 - t) * a + t * b.
-         * @param {number} a Operand scalar.
-         * @param {number} b Operand scalar.
-         * @param {number} t Interpolation coefficient.
-         * @return {number} The weighted sum of a and b.
-         */
-        lerpScalar : function(a, b, t) {
-          return (1 - t) * a + t * b;
-        },
 		
 		/**
 		 * Orbit the Camera about the target point it is currently looking at.
@@ -4386,14 +4436,13 @@ var hemi = (function(hemi) {
 		 */
 		orbit : function(pan,tilt) {
 			if (tilt == null) tilt = 0;
-			var lastTilt = this.tilt.rotation.x;
-            var newPan = this.pan.rotation.y += pan;
-			var newTilt = lastTilt + tilt;
-            newTilt = newTilt >= this.tiltMax ? this.tiltMax : (newTilt <= this.tiltMin ? this.tiltMin : newTilt);
-			this.pan.rotation.setY(newPan);
-			this.tilt.rotation.setX(newTilt);
-            this.pan.updateMatrix();
-            this.tilt.updateMatrix();
+			
+			var newTilt = this.tilt.rotation.x + tilt;
+			
+			this.pan.rotation.y += pan;
+			this.tilt.rotation.x = newTilt >= this.tiltMax ? this.tiltMax : (newTilt <= this.tiltMin ? this.tiltMin : newTilt);
+			this.pan.updateMatrix();
+			this.tilt.updateMatrix();
 			this.update();
 		},
 		
@@ -4406,11 +4455,12 @@ var hemi = (function(hemi) {
 		 */
 		rotate : function(pan,tilt) {
 			if (tilt == null) tilt = 0;
+			
 			this.camPan.current += pan;
 			this.camTilt.current += tilt;
             this.clampPanTilt();
 			this.identity(this.cam);
-			this.cam.translateZ(this.distance);
+			this.cam.position.z = this.distance;
 			this.cam.rotation.y = this.camPan.current;
 			this.cam.rotation.x = this.camTilt.current;
             this.cam.updateMatrix();
@@ -4480,13 +4530,13 @@ var hemi = (function(hemi) {
 			this.cam.position.z = this.distance;
             this.cam.updateMatrix();
 
-            this.updateWorldMatrices();
-
 			hemi.utils.pointZAt(this.cam, camPos, hemi.utils.pointAsLocal(this.cam,target));
-			this.cam.rotation.y = this.cam.rotation.y + Math.PI;
+			this.cam.rotation.y += Math.PI;
             this.cam.updateMatrix();
 			this.camPan.current = 0;
 			this.camTilt.current = 0;
+
+            this.updateWorldMatrices();
 		},
 		
 		/**
@@ -4566,14 +4616,13 @@ var hemi = (function(hemi) {
 		 * @param {number} distance the distance to move the Camera
 		 */
 		truck : function(distance) {
-
 			this.pan.rotation.x += this.tilt.rotation.x;
             this.pan.updateMatrix();
 			this.pan.translateZ(-distance);
             this.pan.updateMatrix();
 			this.pan.rotation.x -= this.tilt.rotation.x;
             this.pan.updateMatrix();
-			this.update();
+            this.update();
 		},
 		
 		/**
@@ -4627,16 +4676,16 @@ var hemi = (function(hemi) {
 			if (this.state.moving) {
 				this.interpolateView(time.current,time.end);
 				if (delta != undefined) {
-					var d = this.mode.frames ? 1.0/this.FPS : delta;
+					var d = this.mode.frames ? this.spf : delta;
 					if (time.current >= time.end) {
 						this.state.moving = false;
 						this.state.curve = null;
 						
 						if (this.state.vp !== null) {
-							//this.send(hemi.msg.stop, { viewpoint:this.state.vp });
+							this.send(hemi.msg.stop, { viewpoint:this.state.vp });
 							this.state.vp = null;
 						} else {
-							//this.send(hemi.msg.stop, { viewdata:this.vd.current });
+							this.send(hemi.msg.stop, { viewdata:this.vd.current });
 						}
 					}
 					time.current += d;
@@ -4816,16 +4865,6 @@ var hemi = (function(hemi) {
 
 			return octane;
 		}
-	};
-
-	/**
-	 * Get the time that the specified animation frame occurs at.
-	 *
-	 * @param {number} frame frame number to get the time for
-	 * @return {number} time that the frame occurs at
-	 */
-	hemi.getTimeOfFrame = function(frame) {
-		return frame / this.FPS;
 	};
 
 	/**

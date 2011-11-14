@@ -103,7 +103,8 @@ var hemi = (function(hemi) {
 				near : hemi.viewDefaults.NP,
 				far  : hemi.viewDefaults.FP
 			};
-            this.FPS = 24;
+            // Seconds per frame, cached version of 1 / fps
+			this.spf = 1/60;
             this.threeCamera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 
             var tween = hemi.utils.penner.linearTween;
@@ -766,7 +767,7 @@ var hemi = (function(hemi) {
 			if (this.state.moving) {
 				this.interpolateView(time.current,time.end);
 				if (delta != undefined) {
-					var d = this.mode.frames ? 1.0/this.FPS : delta;
+					var d = this.mode.frames ? this.spf : delta;
 					if (time.current >= time.end) {
 						this.state.moving = false;
 						this.state.curve = null;
@@ -955,16 +956,6 @@ var hemi = (function(hemi) {
 
 			return octane;
 		}
-	};
-
-	/**
-	 * Get the time that the specified animation frame occurs at.
-	 *
-	 * @param {number} frame frame number to get the time for
-	 * @return {number} time that the frame occurs at
-	 */
-	hemi.getTimeOfFrame = function(frame) {
-		return frame / this.FPS;
 	};
 
 	/**
