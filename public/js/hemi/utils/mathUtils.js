@@ -122,6 +122,31 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
+	 * Perform linear interpolation on the given values. Values can be numbers
+	 * or arrays or even nested arrays (as long as their lengths match).
+	 * 
+	 * @param {number} a first number (or array of numbers) for interpolation
+	 * @param {number} v second number (or array of numbers) for interpolation
+	 * @param {number} t coefficient for interpolation (usually time)
+	 * @return {number} the interpolated number (or array of numbers)
+	 */
+	hemi.utils.lerp = function(a, b, t) {
+		var ret;
+		
+		if (hemi.utils.isArray(a)) {
+			ret = [];
+			
+			for (var i = 0; i < a.length; ++i) {
+				ret[i] = hemi.utils.lerp(a[i], b[i], t);
+			}
+		} else {
+			ret = a + (b - a) * t;
+		}
+		
+		return ret;
+	};
+	
+	/**
 	 * Convert the given linear interpolated value to a sinusoidal interpolated
 	 * value.
 	 * 
