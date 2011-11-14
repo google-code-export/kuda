@@ -259,7 +259,7 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the MessageTarget
 		 */
 		toOctane: function() {
-			if (!this.handler.getId) {
+			if (!this.handler._getId) {
 				hemi.console.log('Handler object in MessageTarget can not be saved to Octane', hemi.console.WARN);
 				return null;
 			}
@@ -267,7 +267,7 @@ var hemi = (function(hemi) {
 			var names = ['dispatchId', 'name', 'func', 'args'],
 				props = [{
 					name: 'handler',
-					id: this.handler.getId()
+					id: this.handler._getId()
 				}];
 			
 			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
@@ -671,7 +671,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.dispatch.postMessage = function(src, msg, data) {
 		var message = new hemi.dispatch.Message(),
-			id = src.getId();
+			id = src._getId();
 		message.src = src;
 		message.msg = msg;
 		message.data = data;
@@ -756,7 +756,7 @@ var hemi = (function(hemi) {
 
 	// Wildcard functions
 	var anon = {
-		getId: function() {
+		_getId: function() {
 			return hemi.dispatch.WILDCARD;
 		}
 	};
