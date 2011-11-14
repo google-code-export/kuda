@@ -1,0 +1,77 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+	<h1>Create a Viewpoint</h1>
+    <form id="vptForm" method="post" action="">
+        <fieldset id="vptParams">
+            <legend>
+                Camera Information
+            </legend>
+            <ol>
+                <li>
+                    <label for="eyeX" class="short">
+                        Position
+                    </label>
+					<div id="vptCameraDiv"></div>
+                </li>
+                <li>
+                    <label for="targetX" class="short">
+                        Target
+                    </label>
+					<div id="vptTargetDiv"></div>
+                </li>
+                <li>
+					<input type="text" id="vptFov" placeholder="Field of View" />
+                </li>
+                <li>
+					<input type="text" id="vptNearPlane" placeholder="Near Plane" />
+                </li>
+                <li>
+					<input type="text" id="vptFarPlane" placeholder="Far Plane" />
+                </li>
+				<li>
+					<label class="short">
+						Autofill Form
+					</label>
+					<button id="vptAutoFill" title="Fills with current camera position">
+						Use Current Camera
+					</button>
+				</li>
+            </ol>
+        </fieldset>
+        <fieldset id="vptSave">
+            <legend>
+                Save Viewpoint
+            </legend>
+            <ol>
+                <li>
+                    <input type="text" id="vptName" class="name" autocomplete="off" placeholder="Name" />
+					<div class="buttons">
+	                    <button id="vptPreviewBtn" disabled="disabled">
+	                        Preview
+	                    </button>
+	                    <button id="vptSaveBtn" disabled="disabled">
+	                        Save
+	                    </button>
+	                    <button id="vptCancelBtn">
+	                        Clear
+	                    </button>
+					</div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
