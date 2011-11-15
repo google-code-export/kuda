@@ -1,0 +1,389 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+
+/******************************************************************************
+ * 									Panels									  *
+ ******************************************************************************/
+
+.bhvBottomPanel {
+}
+
+/******************************************************************************
+ * 									Widgets									  *
+ ******************************************************************************/
+
+.bhvTopPanel .widget {
+	border-radius: 0 0 6px 6px;
+}
+.bhvBottomPanel .widget {
+	background: none;
+	color: #fff;
+}
+
+/******************************************************************************
+ * 									 Table									  *
+ ******************************************************************************/
+
+.dataTables_wrapper {
+	float: left; 
+}
+.dataTables_wrapper table {
+	float: left;
+	margin: 1.667em -0.833em;
+	clear: both;
+}
+.dataTables_wrapper table tbody tr:nth-child(2n+1) {
+	background: #444;
+}
+.dataTables_wrapper table thead {
+	background: #666;
+	font-weight: bold;
+}
+.dataTables_wrapper table th:not(.editHead) {
+	width: 16.667em;
+	padding: 0.417em 0.833em;
+	text-shadow: 0 -1px 0 #222;
+	border-right: 1px solid #333;
+}
+.dataTables_wrapper table th.sorting_asc:after,
+.dataTables_wrapper table th.sorting_desc:after {
+	content: '';
+	display: block;
+	background-image: url(/images/listOptionsSprite.png);
+	background-position:  -2.8em 0;
+	background-size: 420%;
+	height: 0.667em;
+	width: 0.883em;
+	float: right;
+	margin-top: 3px;
+}
+.dataTables_wrapper table th.sorting_desc:after {
+	background-position: -2.8em -0.667em;
+}
+.dataTables_wrapper table td.editHead {
+	width: 96px;
+}
+.dataTables_wrapper table td {
+	padding: 0.417em 0.833em;
+	white-space: nowrap;
+}
+.dataTables_filter, .dataTables_paginate {
+	float: right;
+}
+.dataTables_length, .dataTables_info {
+	float: left;
+}
+.dataTables_length>span {
+	float: left;
+	line-height: 2em;
+	margin-right: 0.417em;
+}
+.dataTables_length>span:last-child {
+	margin-left: 0.417em;
+}
+.dataTables_info, .dataTables_paginate {
+	margin-bottom: 0.417em;
+}
+.dataTables_info {
+	clear: left;
+}
+.dataTables_paginate .paginate_button,
+.dataTables_paginate .paginate_active {
+	background: #222;
+	margin: 1px;
+	cursor: pointer;
+	padding: 5px;
+	display: block;
+	float: left;
+}
+.dataTables_paginate .paginate_button_disabled {
+	color: #666;
+}
+.dataTables_filter input {
+    background: #555;
+    border: 1px solid #222;
+	box-shadow: 0 1px 0 #444;
+    border-radius: 3px;
+    outline: none;
+    padding: 0.167em 0.417em 0.167em 2em;
+    color: #fff;
+	margin: 0;
+	float: right;
+	height: 1.667em;
+	line-height: 1.667em;
+	-webkit-transition: background 0.15s ease-in-out;
+	-moz-transition: background 0.15s ease-in-out;
+	-o-transition: background 0.15s ease-in-out;
+}
+.dataTables_filter input:focus {
+	background: #666;
+}
+.dataTables_filter label {
+	display: block;
+	text-indent: -9999px;
+	background: url(/images/search.png) no-repeat;
+	height: 1.333em;
+	width: 1.333em;
+	left: 1.667em;
+	top: 0.333em;
+	position: relative;
+	float: left;
+}
+.widget .dataTables_wrapper button,
+.widget .dataTables_wrapper button[disabled] {
+	text-indent: -5000px;
+	height: 24px;
+	width: 24px;
+	border: 1px solid transparent;
+	box-shadow: none;
+	padding: 3px;
+	background: none;
+	border: none;
+}
+.dataTables_wrapper button.uiMenuShown {	
+	background: -moz-linear-gradient(100% 100% 90deg, #111, #222);
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#222), to(#111));
+	border: 1px solid #000;
+}
+.dataTables_wrapper button:before {
+	background: url(/images/listOptionsSprite.png) no-repeat;
+	height: 16px;
+	width: 16px;
+	border: none;
+	padding: 0;
+	content: "";
+	float: left;
+}
+.dataTables_wrapper button:not(.uiMenuShown):hover {
+	background: -moz-linear-gradient(19% 75% 90deg, #888, #999); 
+	background: -webkit-gradient(linear, 0% 0%, 0% 100%, from(#999), to(#888));
+	border-color: #666;
+}
+.dataTables_wrapper button.editBtn:before {
+	background-position: 0 0;
+}
+.dataTables_wrapper button.editBtn:hover:before {
+	background-position: -16px 0;
+}
+.dataTables_wrapper button.removeBtn:before {
+	background-position: 0 -32px;
+}
+.dataTables_wrapper button.removeBtn:hover:before {
+	background-position: -16px -32px;
+}
+.dataTables_wrapper button.cloneBtn:before {
+	background-position: 0 -64px;
+}
+.dataTables_wrapper button.cloneBtn:hover:before {
+	background-position: -16px -64px;
+}
+.dataTables_wrapper button.chainBtn:before {
+	background-position: 0 -48px;
+}
+.dataTables_wrapper button.chainBtn:hover:before {
+	background-position: -16px -48px;
+}
+.dataTables_wrapper button.chainBtn[disabled]:before {
+	background-position: 0 -80px;
+}
+
+/******************************************************************************
+ * 									 Forms									  *
+ ******************************************************************************/
+
+.bhvTopPanel h1 {
+	text-align: center;
+}
+.bhvTopPanel .widgetForm fieldset {
+	float: left;
+	border-bottom: none;
+	border-right: 1px dotted #aaa;
+	width: auto;
+	padding: 0 0.833em;
+}
+.bhvTopPanel .widgetForm fieldset:first-child {
+	padding-left: 0;
+}
+.bhvTopPanel .widgetForm fieldset:last-child {
+	border-right: none;
+	border-left: 1px dotted #aaa;
+}
+.bhvTopPanel .widgetForm fieldset:nth-child(2) {
+	border-right: none;
+}
+.bhvTopPanel .widgetForm input[type=text] {
+	width: 12.5em;
+}
+.bhvTopPanel div.buttons {
+	margin-left: 2px;
+}
+.bhvTopPanel div.buttons button {
+	margin: 0 1px;
+}
+.bhvTopPanel form ol > li {
+	line-height: 208.3%;
+}
+.bhvTopPanel .treeSelector.hasValue input {
+	width: 17.917em;
+}
+form fieldset ol ul>li>label.optional {
+    color: #808080;
+	font-style: italic;
+}
+
+/******************************************************************************
+ * 								  1024 specific								  *
+ ******************************************************************************/
+
+
+
+/******************************************************************************
+ * 								 Object Picker								  *
+ ******************************************************************************/
+
+.objectPicker {
+	float: left;
+}
+
+label.objPkrCitTreeLbl {
+	width: 6.667em;
+}
+form .objectPicker input.treeSelectorIpt {
+	width: 10.667em;
+	float: left;    
+	border-bottom-right-radius: 0;
+    border-top-right-radius: 0;
+}
+
+
+/******************************************************************************
+ * 								  Behavior UI								  *
+ ******************************************************************************/
+
+#behaviorAxnParams li {
+	list-style: none;
+	float: left;
+	clear: both;
+}
+#behaviorAxnParams label {
+	width: 6.667em;
+}
+#behaviorAxnParams input[type=text]:not(.short) {
+	width: 10.417em;
+	float: left;
+	margin-bottom: 2px;
+}
+#behaviorAxnParams input[type=text].vector {
+	width: 3.363em;
+}
+#behaviorMenu {
+	position: absolute;
+	border-radius: 3px;
+	padding: 4px 8px;
+	color: #fff;
+	background: #333;
+	font: bold 12px/18px Helvetica, Verdana, Arial, sans-serif;
+	text-shadow: 0 -1px 0 #000;
+	box-shadow: 2px 3px 4px #222;
+	margin-top: 4px;
+}
+#behaviorMenu ul li {
+	padding: 2px 0;
+}
+#behaviorMenu ul li a {
+	cursor: pointer;
+}
+#behaviorMenu ul li a:hover {
+	text-shadow: 0 0 5px #444;
+	color: #c2dfef;
+}
+.bhvListWrapper {
+	float: left;
+	width: 21.667em;
+	margin: 0 0 0 -2.5em;
+	padding: 1.667em 0.833em 1.25em 2.5em;
+	background: url(/images/patternLinen.png) repeat;
+	box-shadow: inset 0 0 5px #222;
+	font-weight: bold;
+	text-shadow: 0 1px 1px #222;
+	border: 1px solid #313131;
+	border-width: 1px 0;
+}
+ul li .bhvListWrapper {
+	margin: 0 -0.833em;
+	cursor: default;
+}
+ol li .bhvListWrapper {
+	margin: 0 -3em;
+}
+.bhvListArrow {
+	display: block; 
+	position: absolute;
+	top: 33px; 
+	left: 35px; 
+	width: 13px;
+	height: 13px;
+	background: #3b5e77;
+	box-shadow: inset 2px 2px 2px #333;
+	transform: rotate(45deg);
+	-moz-transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
+}
+.bhvListWrapper h2 {
+	float: left;
+	width: 100%;
+}
+.bhvListWrapper .widget {
+	background: transparent;
+}
+.bhvList {
+	float: left;
+	padding: 0 0 0 1.667em;
+	width: 20em;
+}
+.widget:not(.widgetWithForms) .listWidget.bhvList>li {
+	padding: 0;
+	list-style: circle inside;
+	width: 20em;
+	background: none;
+}
+ul.bhvList li:hover {
+	background: none;
+}
+ul.bhvList li > div {	
+	width: 18.333em;
+	float: right;
+}
+ul.bhvList li > div.add {
+	width: 20em;
+}
+ul.bhvList li .buttonContainer {
+	padding-right: 0;
+}
+ul.bhvList li.button {
+	list-style: none;
+}
+.restricted a:not(.restrictedSelectable) {
+	color: #999;
+	background: none;
+	border: none;
+	padding: 0 2px;
+	cursor: default;
+}
+
+
