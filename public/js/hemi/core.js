@@ -91,6 +91,12 @@ var hemi = (function(hemi) {
 					hemi.clients[i].onRender(event);
 				}
 			}
+		},
+		
+		resize = function() {
+			for (var i = 0; i < hemi.clients.length; ++i) {
+				hemi.clients[i].resize();
+			}
 		};
 	
 	/**
@@ -115,13 +121,14 @@ var hemi = (function(hemi) {
 				var renderer = new THREE.WebGLRenderer(),
 					client = new hemi.Client(renderer);
 				
-				renderer.setSize(window.innerWidth, window.innerHeight);
 				element.appendChild(renderer.domElement);
 				hemi.clients.push(client);
 				clients.push(client);
 			}
 		}
 		
+		resize();
+		window.addEventListener('resize', resize, false);
 		lastRenderTime = new Date().getTime() * 0.001;
 		render(true);
 		return clients;

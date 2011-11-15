@@ -653,7 +653,7 @@
 		var fov = hemi.core.math.degToRad(40);
 		var np = 5;
 		var fp = 5000;
-		var defaultViewpoint = hemi.view.createCustomViewpoint("Start", eye, target, hemi.world.camera.up, fov, np, fp);
+		var defaultViewpoint = hemi.view.createCustomViewpoint("Start", eye, target, fov, np, fp);
 		
 		var navTool = new hext.tools.Navigation(hemi.world.camera, defaultViewpoint);
 		navTool.addArea('SO_BA_Shape1', createViewpoint(model, 'camEye_BA', 'camTarget_BA', 43));
@@ -1217,7 +1217,6 @@
 	 */
 	var createViewpoint = function(model, eyeName, targetName, opt_fov) {
 		var viewpoint = null;
-		var up = hemi.world.camera.up;
 		var np = 5;
 		var fp = 5000;
 		opt_fov = hemi.core.math.degToRad(opt_fov) || hemi.core.math.degToRad(40);
@@ -1228,7 +1227,7 @@
 		if (eyeTran != null && targetTran != null) {
 			var eye = hemi.core.math.matrix4.getTranslation(eyeTran.localMatrix);
 			var target = hemi.core.math.matrix4.getTranslation(targetTran.localMatrix);
-			viewpoint = hemi.view.createCustomViewpoint("", eye, target, up, opt_fov, np, fp);
+			viewpoint = hemi.view.createCustomViewpoint("", eye, target, opt_fov, np, fp);
 		}
 		
 		return viewpoint;
