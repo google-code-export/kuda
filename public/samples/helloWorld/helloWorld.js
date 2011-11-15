@@ -88,10 +88,4 @@
 	jQuery(window).load(function() {
 		init();
 	});
-
-	jQuery(window).unload(function() {
-		//if (hemi.core.client) {
-	//		hemi.core.client.cleanup();
-	//	}
-	});
 })();

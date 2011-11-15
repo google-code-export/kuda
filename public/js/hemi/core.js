@@ -58,7 +58,9 @@ if (!window.requestAnimationFrame) {
 var hemi = (function(hemi) {
 	
 	var errCallback = null,
+	
 		fps = 60,
+		
 		hz = 1 / fps,
 	
 		/*
@@ -68,6 +70,32 @@ var hemi = (function(hemi) {
 		lastRenderTime = 0,
 	
 		renderListeners = [],
+		
+		getRenderer = function(element) {
+			var renderer = null;
+			
+			if (Detector.webgl) {
+				renderer = new THREE.WebGLRenderer();
+			} else {
+				if (Detector.canvas) {
+					renderer = new THREE.CanvasRenderer();
+				}
+				
+				Detector.addGetWebGLMessage({
+					id: 'warn_' + element.id,
+					parent: element
+				});
+				
+				(function(elem) {
+					setTimeout(function() {
+						var msg = document.getElementById('warn_' + elem.id);
+						elem.removeChild(msg);
+					}, 5000);
+				})(element);
+			}
+			
+			return renderer;
+		},
 		
 		render = function(update) {
 			requestAnimationFrame(render);
@@ -105,33 +133,50 @@ var hemi = (function(hemi) {
 	 */
 	hemi.version = '1.5.0';
 	
+	/**
+	 * The list of Clients being rendered on the current webpage.
+	 */
 	hemi.clients = [];
 	
+	/**
+	 * Search the webpage for any divs with an ID starting with "kuda" and
+	 * create a Client and canvas within each div that will be rendered to using
+	 * WebGL.
+	 */
 	hemi.makeClients = function() {
 		var elements = document.getElementsByTagName('div'),
 			clients = [];
-		
-		// TODO: test for WebGL and fallback to canvas renderer
-		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
 		
 		for (var i = 0; i < elements.length; ++i) {
 			var element = elements[i];
 			
 			if (element.id && element.id.match(/^kuda/)) {
-				var renderer = new THREE.WebGLRenderer(),
-					client = new hemi.Client(renderer);
+				var renderer = getRenderer(element);
 				
-				element.appendChild(renderer.domElement);
-				hemi.clients.push(client);
-				clients.push(client);
+				if (renderer) {
+					var client = new hemi.Client(renderer);
+					
+					element.appendChild(renderer.domElement);
+					hemi.clients.push(client);
+					clients.push(client);
+				}
 			}
 		}
 		
+		hemi.init();
+		return clients;
+	};
+
+	/**
+	 * Initialize hemi features. This does not need to be called if
+	 * hemi.makeClients() is called, but it can be used on its own if you don't
+	 * want to use hemi's client system.
+	 */
+	hemi.init = function() {
 		resize();
 		window.addEventListener('resize', resize, false);
 		lastRenderTime = new Date().getTime() * 0.001;
 		render(true);
-		return clients;
 	};
 	
 	/**
@@ -217,19 +262,6 @@ var hemi = (function(hemi) {
 	hemi.setFPS = function(newFps) {
 		fps = newFps;
 		hz = 1/fps;
-	};
-
-	hemi.init = function() {
-		hemi.picking.init();
-		hemi.input.init();
-		hemi.view.init();
-		hemi.curve.init();
-		hemi.model.init();
-		hemi.effect.init();
-		hemi.hud.init();
-		hemi.shape.init();
-		hemi.sprite.init();
-		hemi.world.init();
 	};
 	
 	return hemi;
