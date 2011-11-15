@@ -59,6 +59,7 @@ var hemi = (function(hemi) {
             this.cam.updateMatrix();
             this.updateWorldMatrices();
 
+	        this.distance = 1;
 			this.vd = { current: null, last: null };
 			this.light = new THREE.PointLight( 0xffffff, 1.35 );
             this.tiltMax = hemi.viewDefaults.MAX_TILT;
@@ -75,8 +76,6 @@ var hemi = (function(hemi) {
 	        	tiltMax: null,
 	        	tiltMin: null
 	        };
-	        this.distance = 1;
-	        this.up = [0, 1, 0];
 			this.mode = {
 				scroll     : true,
 				scan       : true,
@@ -95,16 +94,15 @@ var hemi = (function(hemi) {
 				update : false,
 				vp     : null
 			};
-			this.clip = {
-				near : hemi.viewDefaults.NP,
-				far  : hemi.viewDefaults.FP
-			};
-            this.threeCamera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
+            this.threeCamera = new THREE.PerspectiveCamera(
+            		this.fov.current * 180 / Math.PI,
+            		window.innerWidth / window.innerHeight,
+            		hemi.viewDefaults.NP,
+            		hemi.viewDefaults.FP);
 
             var tween = hemi.utils.penner.linearTween;
 			this.easeFunc = [tween,tween,tween];
 			this.update();
-			this.updateProjection();
 
             hemi.addRenderListener(this);
 		};
@@ -268,10 +266,9 @@ var hemi = (function(hemi) {
 			this.vd.current = new hemi.ViewData({
 				eye: curve.eye.getEnd(),
 				target: curve.target.getEnd(),
-				up: this.up,
 				fov: this.fov.current,
-				np: this.clip.near,
-				fp: this.clip.far
+				np: this.threeCamera.near,
+				fp: this.threeCamera.far
 			});
 			this.state.curve = curve;
 			this.state.moving = true;
@@ -470,7 +467,8 @@ var hemi = (function(hemi) {
 							this.fov.current = this.fov.max - (this.fov.max - this.fov.current)*11/12;
 						}
 					}
-					this.updateProjection();
+					this.threeCamera.fov = this.fov.current * 180 / Math.PI;
+					this.threeCamera.updateProjectionMatrix();
 					this.state.update = true;
 					return;
 				} else {
@@ -480,7 +478,6 @@ var hemi = (function(hemi) {
 						this.cam.position.z = this.distance;
 						this.cam.updateMatrix();
 					}
-					this.updateProjection();
 					this.state.update = true;
 				}
 			}
@@ -621,7 +618,6 @@ var hemi = (function(hemi) {
 		 */
 		setOrthographic : function(axis) {
 			this.mode.projection = axis;
-			this.updateProjection();
 		},
 		
 		/**
@@ -629,7 +625,6 @@ var hemi = (function(hemi) {
 		 */
 		setPerspective : function() {
 			this.mode.projection = 0;
-			this.updateProjection();
 		},
 		
 		/**
@@ -712,18 +707,19 @@ var hemi = (function(hemi) {
 			}
 			if (cur.fov !== last.fov) {
 				this.fov.current = this.easeFunc[0](current,last.fov,cur.fov-last.fov,end);
+				this.threeCamera.fov = this.fov.current * 180 / Math.PI;
 				upProj = true;
 			}
 			if (cur.np !== last.np) {
-				this.clip.near = this.easeFunc[0](current,last.np,cur.np-last.np,end);
+				this.threeCamera.near = this.easeFunc[0](current,last.np,cur.np-last.np,end);
 				upProj = true;
 			}
 			if (cur.fp !== last.fp) {
-				this.clip.far = this.easeFunc[0](current,last.fp,cur.fp-last.fp,end);
+				this.threeCamera.far = this.easeFunc[0](current,last.fp,cur.fp-last.fp,end);
 				upProj = true;
 			}	
 			if (upProj) {
-				this.updateProjection();
+				this.threeCamera.updateProjectionMatrix();
 			}
 			
 			this.setEyeTarget(eye,target);
@@ -774,21 +770,6 @@ var hemi = (function(hemi) {
                 this.light.scale = this.threeCamera.scale;
                 this.light.updateMatrix();
 			}
-		},
-		
-		/**
-		 * Update the Camera view projection.
-		 */
-		updateProjection : function() {
-			/*var aspect = hemi.view.clientSize.width / hemi.view.clientSize.height;
-			if (this.mode.projection) {
-				var scale = this.distance;
-				hemi.view.viewInfo.drawContext.projection = hemi.core.math.matrix4.orthographic(
-					-scale,scale,-scale/aspect,scale/aspect,0,this.clip.far);			
-			} else {
-				hemi.view.viewInfo.drawContext.projection = hemi.core.math.matrix4.perspective(
-					this.fov.current,aspect,this.clip.near,this.clip.far);
-			}*/
 		},
 
         updateWorldMatrices : function() {
@@ -850,7 +831,6 @@ var hemi = (function(hemi) {
 		var cfg = config || {};
 		this.eye = cfg.eye || new THREE.Vector3(0,0,-1);
 		this.target = cfg.target || new THREE.Vector3(0,0,0);
-		this.up = cfg.up || new THREE.Vector3(0,1,0);
 		this.fov = cfg.fov || hemi.viewDefaults.FOV;
 		this.np = cfg.np || hemi.viewDefaults.NP;
 		this.fp = cfg.fp ||hemi.viewDefaults.FP;
@@ -858,7 +838,7 @@ var hemi = (function(hemi) {
 
 	/**
 	 * @class A Viewpoint describes everything needed for a view - eye, target,
-	 * up axis, field of view, near plane, and far plane.
+	 * field of view, near plane, and far plane.
 	 * @extends hemi.world.Citizen
 	 */
 	hemi.Viewpoint = function(config) {
@@ -866,7 +846,6 @@ var hemi = (function(hemi) {
         this.name = cfg.name || '';
         this.eye = cfg.eye || new THREE.Vector3(0,0,-1);
         this.target = cfg.target || new THREE.Vector3(0,0,0);
-        this.up = cfg.up || new THREE.Vector3(0,1,0);
         this.fov = cfg.fov || hemi.viewDefaults.FOV;
         this.np = cfg.np || hemi.viewDefaults.NP;
         this.fp = cfg.fp ||hemi.viewDefaults.FP;
@@ -890,7 +869,6 @@ var hemi = (function(hemi) {
 		setData: function(viewData) {
 			this.eye = viewData.eye;
 			this.target = viewData.target;
-			this.up = viewData.up;
 			this.fov = viewData.fov;
 			this.np = viewData.np;
 			this.fp = viewData.fp;
@@ -904,7 +882,7 @@ var hemi = (function(hemi) {
 		toOctane: function() {
 			var octane = this._super();
 
-			var names = ['eye', 'target', 'up', 'fov', 'np', 'fp'];
+			var names = ['eye', 'target', 'fov', 'np', 'fp'];
 
 			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
 				var name = names[ndx];
@@ -929,10 +907,9 @@ var hemi = (function(hemi) {
 		return new hemi.ViewData({
 			eye: camera.getEye(),
 			target: camera.getTarget(),
-			up: camera.up,
 			fov: camera.fov.current,
-			np: camera.clip.near,
-			fp: camera.clip.far
+			np: camera.threeCamera.near,
+			fp: camera.threeCamera.far
 		});
 	};
 
@@ -957,17 +934,14 @@ var hemi = (function(hemi) {
 	 * @param {string} name the name of the new Viewpoint
 	 * @param {Vector3} eye the coordinates of the eye
 	 * @param {Vector3} target the coordinates of the target
-	 * @param {Vector3} up the coordinates of the up direction
 	 * @param {number} fov angle of the field-of-view
 	 * @return {hemi.Viewpoint} the newly created Viewpoint
 	 */
-	hemi.createCustomViewpoint = function(name, eye, target, up, fov,
-			np, fp) {
+	hemi.createCustomViewpoint = function(name, eye, target, fov, np, fp) {
 		var viewPoint = new hemi.Viewpoint({
 			name: name,
 			eye: eye,
 			target: target,
-			up: up,
 			fov: fov,
 			np: np,
 			fp: fp

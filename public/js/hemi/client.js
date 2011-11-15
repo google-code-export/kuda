@@ -18,6 +18,8 @@
 var hemi = (function(hemi) {
 	
 	hemi.Client = function(renderer) {
+		renderer.domElement.style.width = "100%";
+		renderer.domElement.style.height = "100%";
 		this.camera = new hemi.Camera();
 		//this.light = new THREE.DirectionalLight(0xffffff);
 		this.renderer = renderer;
@@ -49,6 +51,16 @@ var hemi = (function(hemi) {
 		
 		onRender: function() {
 			this.renderer.render(this.scene, this.camera.threeCamera);
+		},
+		
+		resize: function() {
+			var dom = this.renderer.domElement,
+				width = Math.max(1, dom.clientWidth),
+				height = Math.max(1, dom.clientHeight);
+		
+			this.renderer.setSize(width, height);
+			this.camera.threeCamera.aspect = width / height;
+			this.camera.threeCamera.updateProjectionMatrix();
 		},
 		
 		setBGColor: function(hex, opt_alpha) {
