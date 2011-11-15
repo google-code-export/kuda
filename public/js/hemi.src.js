@@ -3957,20 +3957,13 @@ var hemi = (function(hemi) {
 	 * @extends hemi.world.Citizen
 	 */
 	hemi.CameraBase = function() {
-            this.pan = new THREE.Object3D();
-            this.pan.name = 'pan';
-            this.tilt = new THREE.Object3D();
-            this.tilt.name = 'tilt';
+            this.panTilt = new THREE.Object3D();
+            this.panTilt.name = 'panTilt';
+            this.panTilt.eulerOrder = 'ZYX';
             this.cam = new THREE.Object3D();
             this.cam.name = 'cam';
-            this.target = new THREE.Object3D();
-            this.target.name = 'target';
-            this.pan.add(this.tilt);
-            this.tilt.add(this.cam);
-            this.cam.add(this.target);
+            this.panTilt.add(this.cam);
             
-            this.target.position.z = -1;
-            this.target.updateMatrix();
             this.cam.position.z = 1;
             this.cam.updateMatrix();
             this.updateWorldMatrices();
@@ -3985,8 +3978,12 @@ var hemi = (function(hemi) {
 				min     : hemi.viewDefaults.MIN_FOV,
 				max     : hemi.viewDefaults.MAX_FOV
 			};
-			this.camPan = { current : 0, min: null, max: null };
-			this.camTilt = { current: 0, min: null, max: null };
+	        this.lookLimits = {
+	        	panMax: null,
+	        	panMin: null,
+	        	tiltMax: null,
+	        	tiltMin: null
+	        };
 	        this.distance = 1;
 	        this.up = [0, 1, 0];
 			this.mode = {
@@ -4025,17 +4022,6 @@ var hemi = (function(hemi) {
 		};
 
 	hemi.CameraBase.prototype = {
-		/**
-		 * Clamp the pan and tilt angles to the Camera's limits.
-		 */
-	    clampPanTilt : function() {
-			var p = this.camPan, t = this.camTilt;
-			p.current = ( p.min!=null && p.current<=p.min ) ? p.min : 
-					    ( p.max!=null && p.current>=p.max ) ? p.max : p.current;
-			t.current = ( t.min!=null && t.current<=t.min ) ? t.min : 
-					    ( t.max!=null && t.current>=t.max ) ? t.max : t.current;
-		},
-		
 		/**
 		 * Send a cleanup Message and remove all references in the Camera.
 		 */
@@ -4131,12 +4117,8 @@ var hemi = (function(hemi) {
 		 * Allow the eye to rotate about a fixed target. This is the default mode.
 		 */
 		freeEye : function() {
+			this.setEyeTarget(this.getEye(), this.getTarget());
 			this.mode.fixed = false;
-			if (!this.mode.projection) {
-				identity(this.cam);
-				this.cam.position.z = this.distance;
-				this.cam.updateMatrix();
-			}
 			this.update();
 			return this;
 		},
@@ -4170,9 +4152,13 @@ var hemi = (function(hemi) {
 		 */
 		getTarget : function() {
 			if (this.mode.fixed) {
-				return this.target.matrixWorld.getPosition().clone();
+				// Create a target vector that is transformed by cam's matrix
+				// but adds a negative Z translation of "distance" length
+				var tgt = new THREE.Vector3(0, 0, 1);
+				this.cam.matrixWorld.rotateAxis(tgt).multiplyScalar(-this.distance);
+				return tgt.addSelf(this.cam.matrixWorld.getPosition());
 			} else {
-				return this.pan.matrixWorld.getPosition().clone();
+				return this.panTilt.matrixWorld.getPosition().clone();
 			}
 		},
 		
@@ -4233,14 +4219,14 @@ var hemi = (function(hemi) {
 			switch(this.mode.projection) {
 				case hemi.viewProjection.XY:
 				case hemi.viewProjection.YZ:
-					this.pan.translateX(-xDis);
-                    this.pan.translateY(yDis);
-                    this.pan.updateMatrix();
+					this.panTilt.translateX(-xDis);
+                    this.panTilt.translateY(yDis);
+                    this.panTilt.updateMatrix();
 					break;
 				case hemi.viewProjection.XZ:
-				    this.pan.translateX(xDis);
-                    this.pan.translateZ(yDis);
-                    this.pan.updateMatrix();
+				    this.panTilt.translateX(xDis);
+                    this.panTilt.translateZ(yDis);
+                    this.panTilt.updateMatrix();
 					break;
 			}
 		},
@@ -4257,10 +4243,9 @@ var hemi = (function(hemi) {
 					* (xMovement);
 				var deltaY = hemi.viewDefaults.MOUSE_DELTA * this.distance
 					* (yMovement);
-				this.pan.translateX(-deltaX);
-				this.pan.translateY(deltaY * Math.cos(this.tilt.rotation.x));
-				this.pan.translateZ(deltaY * Math.sin(this.tilt.rotation.x));
-                this.pan.updateMatrix();
+				this.panTilt.translateX(-deltaX);
+				this.panTilt.translateY(deltaY);
+                this.panTilt.updateMatrix();
 				this.update();
 			} else {
 				if (this.mode.fixed) {
@@ -4418,7 +4403,6 @@ var hemi = (function(hemi) {
 					var t = (mouseEvent.deltaY > 0) ? 11/12 : 13/12;
 					this.distance = hemi.utils.lerp(0, this.distance, t);
 					if (!this.mode.projection) {
-						this.identity(this.cam);
 						this.cam.position.z = this.distance;
 						this.cam.updateMatrix();
 					}
@@ -4437,12 +4421,11 @@ var hemi = (function(hemi) {
 		orbit : function(pan,tilt) {
 			if (tilt == null) tilt = 0;
 			
-			var newTilt = this.tilt.rotation.x + tilt;
+			var newTilt = this.panTilt.rotation.x + tilt;
 			
-			this.pan.rotation.y += pan;
-			this.tilt.rotation.x = newTilt >= this.tiltMax ? this.tiltMax : (newTilt <= this.tiltMin ? this.tiltMin : newTilt);
-			this.pan.updateMatrix();
-			this.tilt.updateMatrix();
+			this.panTilt.rotation.y += pan;
+			this.panTilt.rotation.x = newTilt >= this.tiltMax ? this.tiltMax : (newTilt <= this.tiltMin ? this.tiltMin : newTilt);
+			this.panTilt.updateMatrix();
 			this.update();
 		},
 		
@@ -4456,13 +4439,26 @@ var hemi = (function(hemi) {
 		rotate : function(pan,tilt) {
 			if (tilt == null) tilt = 0;
 			
-			this.camPan.current += pan;
-			this.camTilt.current += tilt;
-            this.clampPanTilt();
-			this.identity(this.cam);
-			this.cam.position.z = this.distance;
-			this.cam.rotation.y = this.camPan.current;
-			this.cam.rotation.x = this.camTilt.current;
+			var ll = this.lookLimits,
+				newPan = this.cam.rotation.y + pan,
+				newTilt = this.cam.rotation.x + tilt;
+			
+			if (ll.panMin != null && newPan < ll.panMin) {
+				this.cam.rotation.y = ll.panMin;
+			} else if (ll.panMax != null && newPan > ll.panMax) {
+				this.cam.rotation.y = ll.panMax;
+			} else {
+				this.cam.rotation.y = newPan;
+			}
+
+			if (ll.tiltMin != null && newTilt < ll.tiltMin) {
+				this.cam.rotation.x = ll.tiltMin;
+			} else if (ll.tiltMax != null && newTilt > ll.tiltMax) {
+				this.cam.rotation.x = ll.tiltMax;
+			} else {
+				this.cam.rotation.x = newTilt;
+			}
+			
             this.cam.updateMatrix();
 			this.update();
 		},
@@ -4476,10 +4472,10 @@ var hemi = (function(hemi) {
 		 * @param {number} tiltMax maximum tilt angle (in radians)
 		 */
 		setLookAroundLimits : function(panMin, panMax, tiltMin, tiltMax) {
-			this.camPan.min = panMin;
-			this.camPan.max = panMax;
-			this.camTilt.min = tiltMin;
-			this.camTilt.max = tiltMax;
+			this.lookLimits.panMax = panMax;
+			this.lookLimits.panMin = panMin;
+			this.lookLimits.tiltMax = tiltMax;
+			this.lookLimits.tiltMin = tiltMin;
 			return this;
 		},
 		
@@ -4516,25 +4512,20 @@ var hemi = (function(hemi) {
 
 			this.distance = rtp[0];
 
-			this.identity(this.pan);
-			this.pan.position = target;
-            this.pan.rotation.y = rtp[2];
-            this.pan.updateMatrix();
+			this.panTilt.position = target;
+            this.panTilt.rotation.y = rtp[2];
+            this.panTilt.rotation.x = rtp[1] - Math.PI/2;
+            this.panTilt.updateMatrix();
 
-			this.identity(this.tilt);
-            this.tilt.rotation.x = rtp[1] - Math.PI/2;
-            this.tilt.updateMatrix();
-			
-			var camPos = new THREE.Vector3(0, 0, this.distance);
-			this.identity(this.cam);
+			this.cam.rotation.y = 0;
+			this.cam.rotation.x = 0;
 			this.cam.position.z = this.distance;
             this.cam.updateMatrix();
 
+			var camPos = new THREE.Vector3(0, 0, this.distance);
 			hemi.utils.pointZAt(this.cam, camPos, hemi.utils.pointAsLocal(this.cam,target));
 			this.cam.rotation.y += Math.PI;
             this.cam.updateMatrix();
-			this.camPan.current = 0;
-			this.camTilt.current = 0;
 
             this.updateWorldMatrices();
 		},
@@ -4616,12 +4607,8 @@ var hemi = (function(hemi) {
 		 * @param {number} distance the distance to move the Camera
 		 */
 		truck : function(distance) {
-			this.pan.rotation.x += this.tilt.rotation.x;
-            this.pan.updateMatrix();
-			this.pan.translateZ(-distance);
-            this.pan.updateMatrix();
-			this.pan.rotation.x -= this.tilt.rotation.x;
-            this.pan.updateMatrix();
+			this.panTilt.translateZ(-distance);
+            this.panTilt.updateMatrix();
             this.update();
 		},
 		
@@ -4694,8 +4681,6 @@ var hemi = (function(hemi) {
 					}				
 				}
 			}
-            this.target.position.z = -this.distance;
-            this.target.updateMatrix();
             //force an update of the transforms so we can get the correct world matricies
             this.updateWorldMatrices();
             var camPosition = this.getEye();
@@ -4727,20 +4712,8 @@ var hemi = (function(hemi) {
 			}*/
 		},
 
-        /**
-         * Changes an object's matrix to the identity matrix
-         * This should be moved to Object3D if possible
-         * @param object3D Three>
-         */
-        identity : function(object3D) {
-			object3D.position.set(0, 0, 0);
-			object3D.rotation.set(0, 0, 0);
-			object3D.scale.set(1, 1, 1);
-			object3D.updateMatrix();
-		},
-
         updateWorldMatrices : function() {
-            this.pan.update(null, true, null);
+            this.panTilt.update(null, true, null);
         }
 	};
 
