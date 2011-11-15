@@ -210,10 +210,6 @@ var hemi = (function(hemi) {
 	hemi.setFPS = function(newFps) {
 		fps = newFps;
 		hz = 1/fps;
-		
-		for (var i = 0; i < hemi.clients.length; ++i) {
-			hemi.clients[i].camera.spf = hz;
-		}
 	};
 
 	hemi.init = function() {

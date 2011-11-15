@@ -81,7 +81,6 @@ var hemi = (function(hemi) {
 				scroll     : true,
 				scan       : true,
 				fixed      : false,
-				frames     : true,
 				control    : false,
 				projection : hemi.viewProjection.PERSPECTIVE,
                 fixedLight : true
@@ -100,8 +99,6 @@ var hemi = (function(hemi) {
 				near : hemi.viewDefaults.NP,
 				far  : hemi.viewDefaults.FP
 			};
-            // Seconds per frame, cached version of 1 / fps
-			this.spf = 1/60;
             this.threeCamera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 2000 );
 
             var tween = hemi.utils.penner.linearTween;
@@ -251,20 +248,6 @@ var hemi = (function(hemi) {
 			} else {
 				return this.panTilt.matrixWorld.getPosition().clone();
 			}
-		},
-		
-		/**
-		 * Set the Camera's movement to be measured in frames.
-		 */
-		moveInFrames : function() {
-			this.mode.frames = true;
-		},
-		
-		/**
-		 * Set the Camera's movement to be measured in seconds.
-		 */
-		moveInSeconds : function() {
-			this.mode.frames = false;
 		},
 		
 		/**
@@ -751,10 +734,12 @@ var hemi = (function(hemi) {
 		 */
 		update : function(delta) {
 			var time = this.state.time;
+			
 			if (this.state.moving) {
 				this.interpolateView(time.current,time.end);
+				
 				if (delta != undefined) {
-					var d = this.mode.frames ? this.spf : delta;
+					
 					if (time.current >= time.end) {
 						this.state.moving = false;
 						this.state.curve = null;
@@ -766,12 +751,15 @@ var hemi = (function(hemi) {
 							this.send(hemi.msg.stop, { viewdata:this.vd.current });
 						}
 					}
-					time.current += d;
+					
+					time.current += delta;
+					
 					if (time.current >= time.end) {
 						time.current = time.end;
 					}				
 				}
 			}
+			
             //force an update of the transforms so we can get the correct world matricies
             this.updateWorldMatrices();
             var camPosition = this.getEye();
