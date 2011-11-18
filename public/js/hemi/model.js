@@ -16,32 +16,50 @@
  */
 
 var hemi = (function(hemi) {
-	
+
 	hemi.ModelBase = function(client) {
 		this.client = client;
 		this.fileName = null;
+		this.root = null;
 	};
-	
+
 	hemi.ModelBase.prototype = {
 		load: function(callback) {
 			var that = this;
-			
+
 			hemi.loadCollada(this.fileName, function (collada) {
-				var dae = collada.scene;
-				that.client.scene.add(dae);
-				
+				root = collada.scene;
+				that.client.scene.add(root);
+
 				if (callback) {
-					callback(dae);
+					callback(root);
 				}
 			});
 		},
-		
+
 		setFileName: function(fileName, callback) {
 			this.fileName = fileName;
 			this.load(callback);
+		},
+
+		getObject3Ds: function(name) {
+			var obj3ds = [];
+			this.getObject3DsRecursive(name, root, obj3ds);
+			return obj3ds;
+		},
+
+		getObject3DsRecursive : function(name, obj3d, returnObjs) {
+			for (var i = 0; i < obj3d.children.length; ++i) {
+				var child = obj3d.children[i];
+				if (child.name == name) {
+					returnObjs.push(child);
+				}
+
+				this.getObject3DsRecursive(name, child, returnObjs)
+			}
 		}
 	};
-	
+
 	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
 		msgs: ['hemi.load'],
 		toOctane: ['fileName', 'load']

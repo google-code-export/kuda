@@ -16,7 +16,7 @@
  */
 
 var hemi = (function(hemi) {
-	
+
 	hemi.Client = function(renderer) {
 		renderer.domElement.style.width = "100%";
 		renderer.domElement.style.height = "100%";
@@ -26,9 +26,11 @@ var hemi = (function(hemi) {
 		this.scene = new THREE.Scene();
 		this.scene.add(this.camera.light);
 		//this.scene.add(this.light);
-        hemi.input.init(renderer.domElement);
+		hemi.input.init(renderer.domElement);
+		var dom = this.renderer.domElement;
+		this.picker = new hemi.Picker(this.scene, this.camera, dom.clientWidth, dom.clientHeight);
 	};
-	
+
 	hemi.Client.prototype = {
 		addGrid: function() {
 			var line_material = new THREE.LineBasicMaterial( { color: 0xcccccc, opacity: 0.2 } ),
@@ -48,25 +50,26 @@ var hemi = (function(hemi) {
 			var line = new THREE.Line( geometry, line_material, THREE.LinePieces );
 			this.scene.add(line);
 		},
-		
+
 		onRender: function() {
 			this.renderer.render(this.scene, this.camera.threeCamera);
 		},
-		
+
 		resize: function() {
 			var dom = this.renderer.domElement,
 				width = Math.max(1, dom.clientWidth),
 				height = Math.max(1, dom.clientHeight);
-		
+
 			this.renderer.setSize(width, height);
 			this.camera.threeCamera.aspect = width / height;
 			this.camera.threeCamera.updateProjectionMatrix();
+			this.picker.resize(width, height);
 		},
-		
+
 		setBGColor: function(hex, opt_alpha) {
 			this.renderer.setClearColorHex(hex, opt_alpha == null ? 1 : opt_alpha);
 		}
 	};
-	
+
 	return hemi;
 })(hemi || {});
