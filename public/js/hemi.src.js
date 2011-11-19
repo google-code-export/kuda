@@ -4883,50 +4883,53 @@ var hemi = (function(hemi) {
  */
 
 var hemi = (function(hemi) {
-	
+
+	THREE.Object3D.prototype.pickable = true;
+
+	    
 	hemi.ModelBase = function(client) {
 		this.client = client;
 		this.fileName = null;
-        this.root = null;
+		this.root = null;
 	};
-	
+
 	hemi.ModelBase.prototype = {
 		load: function(callback) {
 			var that = this;
-			
+
 			hemi.loadCollada(this.fileName, function (collada) {
 				root = collada.scene;
 				that.client.scene.add(root);
-				
+
 				if (callback) {
 					callback(root);
 				}
 			});
 		},
-		
+
 		setFileName: function(fileName, callback) {
 			this.fileName = fileName;
 			this.load(callback);
 		},
 
-        getObject3Ds: function(name) {
-            var obj3ds = [];
-            this.getObject3DsRecursive(name, root, obj3ds);
-            return obj3ds;
-        },
+		getObject3Ds: function(name) {
+			var obj3ds = [];
+			this.getObject3DsRecursive(name, root, obj3ds);
+			return obj3ds;
+		},
 
-        getObject3DsRecursive : function(name, obj3d, returnObjs) {
-            for (var i = 0; i < obj3d.children.length; ++i) {
-                var child = obj3d.children[i];
-                if (child.name == name) {
-                    returnObjs.push(child);
-                }
+		getObject3DsRecursive : function(name, obj3d, returnObjs) {
+			for (var i = 0; i < obj3d.children.length; ++i) {
+				var child = obj3d.children[i];
+				if (child.name == name) {
+					returnObjs.push(child);
+				}
 
-                this.getObject3DsRecursive(name, child, returnObjs)
-            }
-        }
+				this.getObject3DsRecursive(name, child, returnObjs)
+			}
+		}
 	};
-	
+
 	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
 		msgs: ['hemi.load'],
 		toOctane: ['fileName', 'load']
@@ -4953,46 +4956,51 @@ var hemi = (function(hemi) {
 
 var hemi = (function(hemi) {
 
-    hemi.Picker = function(scene, camera, width, height) {
-        this.scene = scene;
-        this.camera = camera;
-        this.width = width;
-        this.height = height;
+	hemi.Picker = function(scene, camera, width, height) {
+		this.scene = scene;
+		this.camera = camera;
+		this.width = width;
+		this.height = height;
 
-        this.projector = new THREE.Projector();
+		this.projector = new THREE.Projector();
 
-        hemi.input.addMouseDownListener(this);
-    };
+		hemi.input.addMouseDownListener(this);
+	};
 
-    hemi.Picker.prototype = {
+	hemi.Picker.prototype = {
 		onMouseDown : function(mouseEvent) {
-            var x = (mouseEvent.x / this.width) * 2 - 1;
-            var y = -(mouseEvent.y / this.height) * 2 + 1;
-            var projVector = new THREE.Vector3(x, y, 0.5);
+			var x = (mouseEvent.x / this.width) * 2 - 1;
+			var y = -(mouseEvent.y / this.height) * 2 + 1;
+			var projVector = new THREE.Vector3(x, y, 0.5);
 
-            this.projector.unprojectVector(projVector, this.camera.threeCamera);
-            var ray = new THREE.Ray(this.camera.threeCamera.position, projVector.subSelf(this.camera.threeCamera.position).normalize());
+			this.projector.unprojectVector(projVector, this.camera.threeCamera);
+			var ray = new THREE.Ray(this.camera.threeCamera.position, projVector.subSelf(this.camera.threeCamera.position).normalize());
 
-            var pickedObjs = ray.intersectScene(this.scene);
+			var pickedObjs = ray.intersectScene(this.scene);
 
-            if (pickedObjs.length > 0) {
-                hemi.send(hemi.msg.pick,
-					{
-						mouseEvent: mouseEvent,
-                        //PABNOTE right now return the parent of the picked obj
-                        //due to how the loader works
-						pickedMesh: pickedObjs[0].object.parent
-				    });
-            }
-        },
+			if (pickedObjs.length > 0) {
+				for (var i = 0; i < pickedObjs.length; ++i) {
+					if (pickedObjs[i].object.parent.pickable) {
+						hemi.send(hemi.msg.pick,
+							{
+								mouseEvent: mouseEvent,
+								//PABNOTE right now return the parent of the picked obj
+								//due to how the loader works
+								pickedMesh: pickedObjs[0].object.parent
+							});
+						break;
+					}
+				}
+			}
+		},
 
-        resize : function(width, height) {
-            this.width = width;
-            this.height = height;
-        }
-    };
+		resize : function(width, height) {
+			this.width = width;
+			this.height = height;
+		}
+	};
 
-    return hemi;
+	return hemi;
 })(hemi || {});/* 
  * Kuda includes a library and editor for authoring interactive 3D content for the web.
  * Copyright (C) 2011 SRI International.
@@ -5011,7 +5019,7 @@ var hemi = (function(hemi) {
  */
 
 var hemi = (function(hemi) {
-	
+
 	hemi.Client = function(renderer) {
 		renderer.domElement.style.width = "100%";
 		renderer.domElement.style.height = "100%";
@@ -5021,11 +5029,11 @@ var hemi = (function(hemi) {
 		this.scene = new THREE.Scene();
 		this.scene.add(this.camera.light);
 		//this.scene.add(this.light);
-        hemi.input.init(renderer.domElement);
-        var dom = this.renderer.domElement;
-        this.picker = new hemi.Picker(this.scene, this.camera, dom.clientWidth, dom.clientHeight);
+		hemi.input.init(renderer.domElement);
+		var dom = this.renderer.domElement;
+		this.picker = new hemi.Picker(this.scene, this.camera, dom.clientWidth, dom.clientHeight);
 	};
-	
+
 	hemi.Client.prototype = {
 		addGrid: function() {
 			var line_material = new THREE.LineBasicMaterial( { color: 0xcccccc, opacity: 0.2 } ),
@@ -5045,27 +5053,27 @@ var hemi = (function(hemi) {
 			var line = new THREE.Line( geometry, line_material, THREE.LinePieces );
 			this.scene.add(line);
 		},
-		
+
 		onRender: function() {
 			this.renderer.render(this.scene, this.camera.threeCamera);
 		},
-		
+
 		resize: function() {
 			var dom = this.renderer.domElement,
 				width = Math.max(1, dom.clientWidth),
 				height = Math.max(1, dom.clientHeight);
-		
+
 			this.renderer.setSize(width, height);
 			this.camera.threeCamera.aspect = width / height;
 			this.camera.threeCamera.updateProjectionMatrix();
-            this.picker.resize(width, height);
+			this.picker.resize(width, height);
 		},
-		
+
 		setBGColor: function(hex, opt_alpha) {
 			this.renderer.setClearColorHex(hex, opt_alpha == null ? 1 : opt_alpha);
 		}
 	};
-	
+
 	return hemi;
 })(hemi || {});
 /* 

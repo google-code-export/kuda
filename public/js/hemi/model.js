@@ -17,6 +17,9 @@
 
 var hemi = (function(hemi) {
 
+	THREE.Object3D.prototype.pickable = true;
+
+	    
 	hemi.ModelBase = function(client) {
 		this.client = client;
 		this.fileName = null;
