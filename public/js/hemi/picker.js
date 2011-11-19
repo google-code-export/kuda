@@ -40,13 +40,18 @@ var hemi = (function(hemi) {
 			var pickedObjs = ray.intersectScene(this.scene);
 
 			if (pickedObjs.length > 0) {
-				hemi.send(hemi.msg.pick,
-					{
-						mouseEvent: mouseEvent,
-						//PABNOTE right now return the parent of the picked obj
-						//due to how the loader works
-						pickedMesh: pickedObjs[0].object.parent
-					});
+				for (var i = 0; i < pickedObjs.length; ++i) {
+					if (pickedObjs[i].object.parent.pickable) {
+						hemi.send(hemi.msg.pick,
+							{
+								mouseEvent: mouseEvent,
+								//PABNOTE right now return the parent of the picked obj
+								//due to how the loader works
+								pickedMesh: pickedObjs[0].object.parent
+							});
+						break;
+					}
+				}
 			}
 		},
 
