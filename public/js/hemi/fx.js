@@ -55,7 +55,6 @@ var hemi = (function(hemi) {
 		for (m = 0, ml = object.materials.length; m < ml; m++) {
 			material = object.materials[ m ];
 			material.transparent ? addToFixedArray(transparent, material) : addToFixedArray(opaque, material);
-
 		}
 
 	};
