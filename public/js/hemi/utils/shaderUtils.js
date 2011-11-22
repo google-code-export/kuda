@@ -139,9 +139,9 @@ var hemi = (function(hemi) {
 	 * @param {o3d.Material} material the material to get shaders for
 	 * @return {Object} object containing shaders and source strings
 	 */
-	hemi.utils.getShaders = function(material) {
-		var gl = material.gl,
-			program = material.effect.program_,
+	hemi.utils.getShaders = function(client, material) {
+		var gl = client.renderer.context,
+			program = material.program,
 			shaders = gl.getAttachedShaders(program),
 			source1 = gl.getShaderSource(shaders[0]),
 			source2 = gl.getShaderSource(shaders[1]),
