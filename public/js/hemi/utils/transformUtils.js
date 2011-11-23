@@ -119,11 +119,11 @@ var hemi = (function(hemi) {
 		
 		return tran;
 	};
-	
+
 	/**
 	 * Move all of the children and shapes off of the given foster Transform and
 	 * back to the original parent Transform. Destroy the foster Transform
-	 * 
+	 *
 	 * @param {o3d.Transform} transform the foster Transform previously created
 	 * @return {o3d.Transform} the original parent Transform
 	 */
@@ -131,17 +131,17 @@ var hemi = (function(hemi) {
 		var children = transform.children,
 			shapes = transform.shapes,
 			tParent = transform.parent;
-		
+
 		while (children.length > 0) {
 			children[0].parent = tParent;
 		};
-	
+
 		while (shapes.length > 0) {
 			var shape = shapes[0];
 			tParent.addShape(shape);
 			transform.removeShape(shape);
 		}
-		
+
 		transform.parent = null;
 		hemi.core.mainPack.removeObject(transform);
 		return tParent;
@@ -191,6 +191,13 @@ var hemi = (function(hemi) {
 			lV = m4.transformDirection(iW, v);
 		transform.translate(lV);
 	};
+
+    hemi.utils.identity = function(object3d) {
+        object3d.position = new THREE.Vector3(0, 0, 0);
+        object3d.rotation = new THREE.Vector3(0, 0, 0);
+        object3d.scale = new THREE.Vector3(1, 1, 1);
+        object3d.updateMatrix();
+    }
 	
 	return hemi;
 })(hemi || {});
