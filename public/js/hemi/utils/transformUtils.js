@@ -1,19 +1,22 @@
-/* 
- * Kuda includes a library and editor for authoring interactive 3D content for the web.
- * Copyright (C) 2011 SRI International.
- *
- * This program is free software; you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation; either 
- * version 2 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program; 
- * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
- * Boston, MA 02110-1301 USA.
- */
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 var hemi = (function(hemi) {
 	hemi.utils = hemi.utils || {};
@@ -73,26 +76,28 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Point the y axis of the given transform toward the given point.
+	 * Point the y axis of the given matrix toward the given point.
 	 *
-	 * @param {THREE.Object3D} tran the transform to rotate
-	 * @param {THREE.Vector3} eye XYZ point from which to look (may be the origin)
-	 * @param {THREE.Vector3} target XYZ point at which to aim the y axis
+	 * @param {THREE.Matrix4} matrix the matrix to rotate
+	 * @param {number[]} eye XYZ point from which to look (may be the origin)
+	 * @param {number[]} target XYZ point at which to aim the y axis
 	 * @return {THREE.Object3D} the rotated transform
 	 */
-	hemi.utils.pointYAt = function(tran, eye, target) {
-		var dx = target.x - eye.x,
-			dy = target.y - eye.y,
-			dz = target.z - eye.z,
+	hemi.utils.pointYAt = function(matrix, eye, target) {
+		var dx = target[0] - eye[0],
+			dy = target[1] - eye[1],
+			dz = target[2] - eye[2],
 			dxz = Math.sqrt(dx*dx + dz*dz),
 			rotY = Math.atan2(dx,dz),
 			rotX = Math.atan2(dxz,dy);
 		
-		tran.rotation.y += rotY;
-		tran.rotation.x += rotX;
-		tran.updateMatrix();
+//		tran.rotation.y += rotY;
+//		tran.rotation.x += rotX;
+//		tran.updateMatrix();
+		matrix.rotateX(rotX);
+		matrix.rotateY(rotY);
 		
-		return tran;
+		return matrix;
 	};
 	
 	/**
@@ -114,11 +119,11 @@ var hemi = (function(hemi) {
 		
 		return tran;
 	};
-	
+
 	/**
 	 * Move all of the children and shapes off of the given foster Transform and
 	 * back to the original parent Transform. Destroy the foster Transform
-	 * 
+	 *
 	 * @param {o3d.Transform} transform the foster Transform previously created
 	 * @return {o3d.Transform} the original parent Transform
 	 */
@@ -126,17 +131,17 @@ var hemi = (function(hemi) {
 		var children = transform.children,
 			shapes = transform.shapes,
 			tParent = transform.parent;
-		
+
 		while (children.length > 0) {
 			children[0].parent = tParent;
 		};
-	
+
 		while (shapes.length > 0) {
 			var shape = shapes[0];
 			tParent.addShape(shape);
 			transform.removeShape(shape);
 		}
-		
+
 		transform.parent = null;
 		hemi.core.mainPack.removeObject(transform);
 		return tParent;
@@ -186,6 +191,13 @@ var hemi = (function(hemi) {
 			lV = m4.transformDirection(iW, v);
 		transform.translate(lV);
 	};
+
+    hemi.utils.identity = function(object3d) {
+        object3d.position = new THREE.Vector3(0, 0, 0);
+        object3d.rotation = new THREE.Vector3(0, 0, 0);
+        object3d.scale = new THREE.Vector3(1, 1, 1);
+        object3d.updateMatrix();
+    }
 	
 	return hemi;
 })(hemi || {});
