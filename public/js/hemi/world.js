@@ -37,6 +37,30 @@ var hemi = (function(hemi) {
 			
 			scope[names[il]] = clsCon;
 		},
+        
+		/*
+		 * Get the Citizen's id.
+		 * 
+		 * @return {number} the id
+		 */        
+        _getId = function() {
+        	return this._worldId;
+        },
+		
+		/*
+		 * Set the Citizen's id.
+		 * 
+		 * @param {number} id the id to set
+		 */
+        _setId = function(id) {
+        	var oldId = this._worldId;
+			this._worldId = id;
+			
+			if (oldId !== null) {
+				hemi.world.citizens.remove(oldId);
+				hemi.world.citizens.put(id, this);
+			}
+        },
 	
 		/*
 		 * Send a Message with the given attributes from the Citizen to any
@@ -64,7 +88,7 @@ var hemi = (function(hemi) {
 		 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
 		 */
 		subscribe = function(type, handler, opt_func, opt_args) {
-			return hemi.dispatch.registerTarget(this.worldId, type, handler,
+			return hemi.dispatch.registerTarget(this._worldId, type, handler,
 				opt_func, opt_args);
 		},
 	
@@ -81,7 +105,7 @@ var hemi = (function(hemi) {
 		 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
 		 */
 		subscribeAll = function(handler, opt_func, opt_args) {
-			return hemi.dispatch.registerTarget(this.worldId, hemi.dispatch.WILDCARD,
+			return hemi.dispatch.registerTarget(this._worldId, hemi.dispatch.WILDCARD,
 				handler, opt_func, opt_args);
 		},
 	
@@ -98,7 +122,7 @@ var hemi = (function(hemi) {
 		 */
 		unsubscribe = function(target, opt_type) {
 			return hemi.dispatch.removeTarget(target, {
-				src: this.worldId,
+				src: this._worldId,
 				msg: opt_type
 			});
 		};
@@ -149,30 +173,6 @@ var hemi = (function(hemi) {
 		 */
         Citizen.prototype._msgSent = msgs;
         
-		/*
-		 * Get the Citizen's id.
-		 * 
-		 * @return {number} the id
-		 */        
-        Citizen.prototype._getId = function() {
-        	return this._worldId;
-        };
-		
-		/*
-		 * Set the Citizen's id.
-		 * 
-		 * @param {number} id the id to set
-		 */
-        Citizen.prototype._setId = function(id) {
-        	var oldId = this._worldId;
-			this._worldId = id;
-			
-			if (oldId !== null) {
-				hemi.world.citizens.remove(oldId);
-				hemi.world.citizens.put(id, this);
-			}
-        };
-        
         /*
 		 * Send a cleanup Message and remove the Citizen from the World.
 		 * Base classes should extend this so that it removes all references to
@@ -186,8 +186,10 @@ var hemi = (function(hemi) {
         	}
 
 			hemi.world.removeCitizen(this);
-        };
-        
+		};
+
+        Citizen.prototype._getId = _getId;
+        Citizen.prototype._setId = _setId;
         Citizen.prototype.send = send;
         Citizen.prototype.subscribe = subscribe;
         Citizen.prototype.subscribeAll = subscribeAll;
