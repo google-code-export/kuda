@@ -92,7 +92,7 @@ var hext = (function(hext) {
 		 */
 		onOpening : function(callback) {
 			var that = this;
-			this.translator.subscribe(hemi.start, function(msg) {
+			this.translator.subscribe(hemi.msg.start, function(msg) {
 				if (!that.closed) callback(msg);
 				});
 		},
@@ -103,7 +103,7 @@ var hext = (function(hext) {
 		 */		
 		onOpen : function(callback) {
 			var that = this;
-			this.translator.subscribe(hemi.stop, function(msg) {
+			this.translator.subscribe(hemi.msg.stop, function(msg) {
 				if (!that.closed) callback(msg);
 			});		
 		},
@@ -114,7 +114,7 @@ var hext = (function(hext) {
 		 */		
 		onClosing : function(callback) {
 			var that = this;
-			this.translator.subscribe(hemi.start, function(msg) {
+			this.translator.subscribe(hemi.msg.start, function(msg) {
 				if (that.closed) callback(msg);
 			});	
 		},
@@ -125,7 +125,7 @@ var hext = (function(hext) {
 		 */		
 		onClosed : function(callback) {
 			var that = this;
-			this.translator.subscribe(hemi.stop, function(msg) {
+			this.translator.subscribe(hemi.msg.stop, function(msg) {
 				if (that.closed) callback(msg);
 			});
 		},
