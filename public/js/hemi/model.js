@@ -22,6 +22,17 @@ var hemi = (function(hemi) {
 
 	THREE.Object3D.prototype.pickable = true;
 
+	var getObject3DsRecursive = function(name, obj3d, returnObjs) {
+			for (var i = 0; i < obj3d.children.length; ++i) {
+				var child = obj3d.children[i];
+
+				if (child.name === name) {
+					returnObjs.push(child);
+				}
+
+				getObject3DsRecursive(name, child, returnObjs)
+			}
+		};
 	    
 	hemi.ModelBase = function(client) {
 		this.client = client;
@@ -30,15 +41,21 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.ModelBase.prototype = {
+		getObject3Ds: function(name) {
+			var obj3ds = [];
+			getObject3DsRecursive(name, this.root, obj3ds);
+			return obj3ds;
+		},
+
 		load: function(callback) {
 			var that = this;
 
 			hemi.loadCollada(this.fileName, function (collada) {
-				root = collada.scene;
-				that.client.scene.add(root);
+				that.root = collada.scene;
+				that.client.scene.add(that.root);
 
 				if (callback) {
-					callback(root);
+					callback(that.root);
 				}
 			});
 		},
@@ -46,23 +63,6 @@ var hemi = (function(hemi) {
 		setFileName: function(fileName, callback) {
 			this.fileName = fileName;
 			this.load(callback);
-		},
-
-		getObject3Ds: function(name) {
-			var obj3ds = [];
-			this.getObject3DsRecursive(name, root, obj3ds);
-			return obj3ds;
-		},
-
-		getObject3DsRecursive : function(name, obj3d, returnObjs) {
-			for (var i = 0; i < obj3d.children.length; ++i) {
-				var child = obj3d.children[i];
-				if (child.name == name) {
-					returnObjs.push(child);
-				}
-
-				this.getObject3DsRecursive(name, child, returnObjs)
-			}
 		}
 	};
 
