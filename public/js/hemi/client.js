@@ -24,11 +24,10 @@ var hemi = (function(hemi) {
 		renderer.domElement.style.width = "100%";
 		renderer.domElement.style.height = "100%";
 		this.camera = new hemi.Camera();
-		//this.light = new THREE.DirectionalLight(0xffffff);
 		this.renderer = renderer;
 		this.scene = new THREE.Scene();
 		this.scene.add(this.camera.light);
-		//this.scene.add(this.light);
+		this.lights = [];
 		hemi.input.init(renderer.domElement);
 		var dom = this.renderer.domElement;
 		this.picker = new hemi.Picker(this.scene, this.camera, dom.clientWidth, dom.clientHeight);
@@ -53,9 +52,23 @@ var hemi = (function(hemi) {
 			var line = new THREE.Line( geometry, line_material, THREE.LinePieces );
 			this.scene.add(line);
 		},
+		
+		addLight: function(light) {
+			this.lights.push(light);
+			this.scene.add(light);
+		},
 
 		onRender: function() {
 			this.renderer.render(this.scene, this.camera.threeCamera);
+		},
+		
+		removeLight: function(light) {
+			var ndx = this.lights.indexOf(light);
+			
+			if (ndx > -1) {
+				this.lights.splice(ndx, 1);
+				this.scene.remove(light);
+			}
 		},
 
 		resize: function() {
