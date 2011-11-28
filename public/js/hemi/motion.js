@@ -25,6 +25,244 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 
+    hemi = hemi || {};
+
+    /**
+     * @class A Rotator makes automated rotation easier by allowing simple
+     * calls such as setVel to begin the automated spinning of a Transform.
+     * @extends hemi.world.Citizen
+     *
+     * @param {THREE.Object3d} opt_tran optional transform that will be spinning
+     * @param {Object} opt_config optional configuration for the Rotator
+     */
+    hemi.RotatorBase = function(opt_tran, opt_config) {
+        var cfg = opt_config || {};
+
+        this.accel = cfg.accel || new THREE.Vector3();
+        this.angle = cfg.angle || new THREE.Vector3();
+        this.vel = cfg.vel || new THREE.Vector3();
+
+        this.time = 0;
+        this.stopTime = 0;
+        this.steadyRotate = false;
+        this.mustComplete = false;
+        this.startAngle = this.angle.clone();
+        this.stopAngle = this.angle.clone();
+        this.toLoad = {};
+        this.transformObjs = [];
+
+        if (opt_tran != null) {
+            this.addTransform(opt_tran);
+        }
+
+        this.enable();
+    };
+
+    hemi.RotatorBase.prototype = {
+        /**
+         * Add a Transform to the list of Transforms that will be spinning. A
+         * child Transform is created to allow the Rotator to spin about an
+         * arbitray axis.
+         *
+         * @param {THREE.Object3D} transform the Transform to add
+         */
+        addTransform : function(transform) {
+            this.transformObjs.push(transform);
+            applyRotator.call(this, [transform]);
+        },
+
+        /**
+         * Clear properties like acceleration, velocity, etc.
+         */
+        clear: function() {
+            this.accel = new THREE.Vector3(0,0,0);
+            this.angle =  new THREE.Vector3(0,0,0);
+            this.vel =  new THREE.Vector3(0,0,0);
+        },
+
+        /**
+         * Clear the list of spinning Transforms.
+         */
+        clearTransforms: function() {
+            while (this.transformObjs.length > 0) {
+                removeRotateTransforms.call(this, this.transformObjs[0]);
+            }
+        },
+
+        /**
+         * Disable mouse interaction for the Rotator.
+         */
+        disable: function() {
+            if (this.enabled) {
+                hemi.removeRenderListener(this);
+                this.enabled = false;
+            }
+        },
+
+        /**
+         * Enable mouse interaction for the Rotator.
+         */
+        enable: function() {
+            this.enabled = true;
+            shouldRender.call(this);
+        },
+
+        /**
+         * Get the Transforms that the Rotator currently contains.
+         *
+         * @return {THREE.Object3D[]} array of Transforms
+         */
+        getTransforms: function() {
+            return this.transformObjs.slice();
+        },
+
+        /**
+         * Make the Rotator rotate the specified amount in the specified amount
+         * of time.
+         *
+         * @param {THREE.Vecto3} theta XYZ amounts to rotate (in radians)
+         * @param {number} time number of seconds for the rotation to take
+         * @param {boolean} opt_mustComplete optional flag indicating that no
+         *     other rotations can be started until this one finishes
+         */
+        rotate: function(theta,time,opt_mustComplete) {
+            if (!this.enabled || this.mustComplete) return false;
+            this.time = 0;
+            this.stopTime = time || 0.001;
+            this.steadyRotate = true;
+            this.startAngle = this.angle.clone();
+            this.mustComplete = opt_mustComplete || false;
+            this.stopAngle.add(this.angle, theta);
+            hemi.addRenderListener(this);
+            this.send(hemi.msg.start,{});
+            return true;
+        },
+
+        /**
+         * Render event listener - Perform Newtonian calculations on the
+         * rotating object, starting with the angular velocity.
+         *
+         * @param {o3d.Event} event message describing the render event
+         */
+        onRender: function(event) {
+            if (this.transformObjs.length > 0) {
+                var t = event.elapsedTime;
+                if (this.steadyRotate) {
+                    this.time += t;
+                    if (this.time >= this.stopTime) {
+                        this.time = this.stopTime;
+                        this.steadyRotate = this.mustComplete = false;
+                        hemi.removeRenderListener(this);
+                        this.send(hemi.msg.stop,{});
+                    }
+                    var t1 = this.time/this.stopTime;
+                    var newAngle = hemi.utils.lerp(
+                        [this.startAngle.x, this.startAngle.y, this.startAngle.z],
+                        [this.stopAngle.x, this.stopAngle.y, this.stopAngle.z],
+                        t1);
+                    this.angle.x = newAngle[0];
+					this.angle.y = newAngle[1];
+					this.angle.z = newAngle[2];
+                } else {
+                    this.vel.addSelf(this.accel.clone().multiplyScalar(t));
+                    this.angle.addSelf(this.vel.clone().multiplyScalar(t));
+                }
+
+                applyRotator.call(this);
+            }
+        },
+
+		removeTransforms : function(tranObj) {
+			var ndx = this.transformObjs.indexOf(tranObj);
+
+			if (ndx > -1) {
+				this.transformObjs.splice(ndx, 1);
+			}
+		},
+
+        /**
+         * Set the angular acceleration.
+         *
+         * @param {THREE.Vector3} accel XYZ angular acceleration (in radians)
+         */
+        setAccel: function(accel) {
+            this.accel = accel.clone();
+            shouldRender.call(this);
+        },
+
+        /**
+         * Set the current rotation angle.
+         *
+         * @param {THREE.Vector3} theta XYZ rotation angle (in radians)
+         */
+        setAngle: function(theta) {
+            this.angle = theta.clone();
+            applyRotator.call(this);
+        },
+
+        /**
+         * Set the angular velocity.
+         *
+         * @param {THREE.Vector3} vel XYZ angular velocity (in radians)
+         */
+        setVel: function(vel) {
+            this.vel = vel.clone()
+            shouldRender.call(this);
+        },
+
+        /**
+         * Get the Octane structure for the Rotator.
+         *
+         * @return {Object} the Octane structure representing the Rotator
+         */
+        toOctane: function() {
+            var octane = this._super(),
+                valNames = ['accel', 'angle', 'vel'];
+
+            for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
+                var name = valNames[ndx];
+
+                octane.props.push({
+                    name: name,
+                    val: this[name]
+                });
+            }
+
+            octane.props.push({
+                name: 'setOrigin',
+                arg: [this.origin]
+            });
+
+            // Save the local matrices of the transforms so we can restore them
+            var tranOct = {};
+
+            for (var i = 0, il = this.transformObjs.length; i < il; i++) {
+                var tranObj = this.transformObjs[i],
+                    origTran = tranObj.offTran,
+                    rotTran = tranObj.rotTran;
+
+                // Note: this will break if the Rotator has more than one
+                // transform with the same name
+                tranOct[origTran.name] = [
+                    tranObj.parent.localMatrix,
+                    rotTran.localMatrix,
+                    origTran.localMatrix
+                ];
+            }
+
+            octane.props.push({
+                name: 'toLoad',
+                val: tranOct
+            });
+
+            return octane;
+        }
+    };
+
+    hemi.makeCitizen(hemi.RotatorBase, 'hemi.Rotator', {
+		msgs: ['hemi.start', 'hemi.stop'],
+		toOctane: []
+	});
 	/**
 	 * @class A Translator provides easy setting of linear velocity and
 	 * acceleration of shapes and transforms in the 3d scene.
@@ -118,13 +356,7 @@ var hemi = (function(hemi) {
 		 * @return {THREE.Object3D[]} array of Transforms
 		 */
 		getTransforms: function() {
-			var trans = [];
-
-			for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-				trans.push(this.transformObjs[i]);
-			}
-
-			return trans;
+		    return this.transformObjs.slice();
 		},
 
 		/**
@@ -141,7 +373,7 @@ var hemi = (function(hemi) {
 			this.time = 0;
 			this.stopTime = time || 0.001;
 			this.steadyMove = true;
-			this.startPos = this.pos;
+			this.startPos = this.pos.clone();
 			this.mustComplete = opt_mustComplete || false;
 			this.stopPos.add(this.pos, delta);
 			hemi.addRenderListener(this);
@@ -221,7 +453,6 @@ var hemi = (function(hemi) {
 		}
 	};
 
-
 	hemi.makeCitizen(hemi.TranslatorBase, 'hemi.Translator', {
 		msgs: ['hemi.start', 'hemi.stop'],
 		toOctane: []
@@ -251,7 +482,24 @@ var hemi = (function(hemi) {
 			transform.position = this.pos.clone();
 			transform.updateMatrix();
 		}
+	},
+
+	
+	applyRotator = function(opt_objs) {
+		var objs = this.transformObjs;
+
+		if (opt_objs) {
+			objs = opt_objs;
+		}
+
+		for (var i = 0, il = objs.length; i < il; i++) {
+			var transform = objs[i];
+			hemi.utils.identity(transform);
+			transform.rotation = this.angle.clone();
+			transform.updateMatrix();
+		}
 	};
+
 
 	return hemi;
 })(hemi || {});
