@@ -47,16 +47,13 @@ var hemi = (function(hemi) {
 			return obj3ds;
 		},
 
-		load: function(callback) {
+		load: function() {
 			var that = this;
 
 			hemi.loadCollada(this.fileName, function (collada) {
 				that.root = collada.scene;
 				that.client.scene.add(that.root);
-
-				if (callback) {
-					callback(that.root);
-				}
+				that.send(hemi.msg.load, {});
 			});
 		},
 
@@ -68,7 +65,7 @@ var hemi = (function(hemi) {
 
 	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
 		msgs: ['hemi.load'],
-		toOctane: ['fileName', 'load']
+		toOctane: ['client', 'fileName', 'load']
 	});
 
 	return hemi;

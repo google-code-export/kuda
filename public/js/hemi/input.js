@@ -24,21 +24,19 @@ var hemi = (function(hemi) {
 	 */
 	hemi.input = hemi.input || {};
 	
+	hemi.input.mouseDownListeners = [];
+	hemi.input.mouseUpListeners = [];
+	hemi.input.mouseMoveListeners = [];
+	hemi.input.mouseWheelListeners = [];
+	hemi.input.keyDownListeners = [];
+	hemi.input.keyUpListeners = [];
+	hemi.input.keyPressListeners = [];
+	
 	/**
 	 * Setup the listener lists and register the event handlers.
 	 */
 	hemi.input.init = function(canvas) {
-		hemi.input.mouseDownListeners = [];
-		hemi.input.mouseUpListeners = [];
-		hemi.input.mouseMoveListeners = [];
-		hemi.input.mouseWheelListeners = [];
-        hemi.input.keyDownListeners = [];
-        hemi.input.keyUpListeners = [];
-        hemi.input.keyPressListeners = [];
-
-        this.canvas = canvas;
-
-        canvas.addEventListener('mousedown', function(event) {
+		canvas.addEventListener('mousedown', function(event) {
 			hemi.input.mouseDown(event);
 		}, true);
 		canvas.addEventListener('mousemove', function(event) {
@@ -47,10 +45,10 @@ var hemi = (function(hemi) {
 		canvas.addEventListener('mouseup', function(event) {
 			hemi.input.mouseUp(event);
 		}, true);
-        canvas.addEventListener('mousewheel', function(event) {
+		canvas.addEventListener('mousewheel', function(event) {
 			hemi.input.scroll(event);
 		}, false);
-        canvas.addEventListener('DOMMouseScroll', function(event) {
+		canvas.addEventListener('DOMMouseScroll', function(event) {
 			hemi.input.scroll(event);
 		}, false);
 

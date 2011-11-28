@@ -142,8 +142,10 @@ var hemi = (function(hemi) {
 	hemi.makeCitizen = function(clsCon, clsName, opts) {
 		opts = opts || {};
 		var cleanFunc = opts.cleanup,
-			msgs = opts.msgs || [hemi.msg.cleanup];
+			msgs = opts.msgs || [];
 		
+		msgs.push(hemi.msg.cleanup);
+
 		/*
 		 * A Citizen is a uniquely identifiable member of a World that is
 		 * able to send Messages through the World's dispatch. The Citizen's id is
@@ -277,6 +279,25 @@ var hemi = (function(hemi) {
 		}
 		
 		this.citizens.put(id, citizen);
+	};
+	
+	/**
+	 * Perform cleanup on the World and release all resources. This effectively
+	 * resets the World.
+	 */
+	hemi.world.cleanup = function() {
+		hemi.resetLoadTasks();
+		hemi.send(hemi.msg.cleanup, {});
+		
+		hemi.world.citizens.each(function(key, value) {
+			value.cleanup();
+		});
+		
+		if (hemi.world.citizens.size() > 0) {
+			hemi.console.log('World cleanup did not remove all citizens.', hemi.console.ERR);
+		}
+		
+		nextId = 1;
 	};
 	
 	/**
@@ -698,6 +719,40 @@ var hemi = (function(hemi) {
 		}
 		
 		return owner;
+	};
+	
+	/**
+	 * Get the Octane structure for the World.
+     * 
+	 * @param {function(Citizen): boolean} opt_filter optional filter function
+	 *     that takes a Citizen and returns true if the Citizen should be
+	 *     included in the returned Octane
+     * @return {Object} the Octane structure representing the World
+	 */
+	hemi.world.toOctane = function(opt_filter) {
+		var octane = {
+			version: hemi.version,
+			nextId: nextId,
+			citizens: []
+		};
+		
+		this.citizens.each(function(key, value) {
+			var accept = opt_filter ? opt_filter(value) : true;
+			
+			if (accept) {
+				var oct = value._toOctane();
+				
+				if (oct !== null) {
+					octane.citizens.push(oct);
+				} else {
+					hemi.console.log('Null Octane returned by Citizen with id ' + value.getId(), hemi.console.WARN);
+				}
+			}
+		});
+		
+		octane.dispatch = hemi.dispatch._toOctane();
+		
+		return octane;
 	};
 	
 	return hemi;

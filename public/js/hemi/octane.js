@@ -20,8 +20,34 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 	
-	var isFunction = function(val) {
-			return Object.prototype.toString.call(val) === '[object Function]';
+		/**
+		 * Create an object from the given Octane structure and set its id. No other
+		 * properties will be set yet.
+		 * 
+		 * @param {Object} octane the structure containing information for creating
+		 *     an object
+		 * @return {Object} the newly created object
+		 */
+	var createObject = function(octane) {
+			if (!octane.type) {
+				alert("Unable to process octane: missing type");
+				return null;
+			}
+			
+			var con = constructors[octane.type],
+				object = null;
+
+			if (con) {
+				object = new con();
+
+				if (octane.id !== undefined) {
+					object._setId(octane.id);
+				}
+			} else {
+				hemi.console.log('Cannot find constructor for type: ' + octane.type, hemi.console.ERR);
+			}
+			
+			return object;
 		},
 	
 		parseProps = function(obj, propNames) {
@@ -34,7 +60,7 @@ var hemi = (function(hemi) {
 						name: name	
 					};
 				
-				if (isFunction(prop)) {
+				if (hemi.utils.isFunction(prop)) {
 					entry.arg = [];
 				} else if (prop._getId && prop._worldId) {
 					entry.id = prop._getId();
@@ -48,18 +74,129 @@ var hemi = (function(hemi) {
 			}
 			
 			return oct;
-		};
+		},
+
+		/*
+		 * Iterate through the given Octane structure and set properties for the
+		 * given object. Properties stored by value will be set directly, by Octane
+		 * will be recursively created, by id will be retrieved from the World, and
+		 * by arg will be set by calling the specified function on the object.
+		 * 
+		 * @param {Object} object the object created from the given Octane
+		 * @param {Object} octane the structure containing information about the
+		 *     given object
+		 */
+		setProperties = function(object, octane) {
+			for (var ndx = 0, len = octane.props.length; ndx < len; ndx++) {
+				var property = octane.props[ndx];
+				var name = property.name;
+				
+				if (property.oct !== undefined) {
+					if (property.oct instanceof Array) {
+						value = [];
+						
+						for (var p = 0, pLen = property.oct.length; p < pLen; p++) {
+							var child = createObject(property.oct[p]);
+							setProperties(child, property.oct[p]);
+							value.push(child);
+						}
+					} else {
+						value = createObject(property.oct);
+						setProperties(value, property.oct);
+					}
+					
+					object[name] = value;
+				} else if (property.val !== undefined) {
+					object[name] = property.val;
+				} else if (property.id !== undefined) {
+					var value;
+					
+					if (property.id instanceof Array) {
+						value = [];
+						
+						for (var p = 0, pLen = property.id.length; p < pLen; p++) {
+							value.push(hemi.world.getCitizenById(property.id[p]));
+						}
+					} else {
+						value = hemi.world.getCitizenById(property.id);
+					}
+					
+					object[name] = value;
+				} else if (property.arg !== undefined) {
+					var func = object[name];
+					func.apply(object, property.arg);
+				} else {
+					alert('Unable to process octane for ' + octane.id + ': missing property value');
+				}
+			}
+		},
+
+		constructors = {};
+	
+	/**
+	 * Restore the original object from the given Octane.
+	 * 
+	 * @param {Object} octane the structure containing information for creating
+	 *     the original object
+	 * @return {Object} the created object
+	 */
+	hemi.fromOctane = function(octane) {
+		var created = null;
+
+		if (octane.type) {
+			created = createObject(octane);
+			setProperties(created, octane);
+		} else {
+			hemi.world.cleanup();
+			var citizenCount = octane.citizens.length;
+			// Set the nextId value to a negative number so that we don't have to
+			// worry about overlapping world ids between the constructed Citizens
+			// and their actual ids that are restored from Octane.
+			var fakeId = citizenCount * -2;
+			hemi.world.setNextId(fakeId);
+			
+			// Do the bare minimum: create Citizens and set their ids
+			for (var ndx = 0; ndx < citizenCount; ndx++) {
+				var citOctane = octane.citizens[ndx];
+				createObject(citOctane);
+			}
+			
+			// Now set the World nextId to its proper value.
+			hemi.world.setNextId(octane.nextId);
+			
+			// Next set up the message dispatch
+			var entryOctane = octane.dispatch.ents,
+				entries = [];
+			
+			for (var ndx = 0, len = entryOctane.length; ndx < len; ndx++) {
+				var entry = createObject(entryOctane[ndx]);
+				setProperties(entry, entryOctane[ndx]);
+				entries.push(entry);
+			}
+			
+			hemi.dispatch.loadEntries(entries);
+			hemi.dispatch.setNextId(octane.dispatch.nextId);
+			
+			// Now set Citizen properties and resolve references to other Citizens
+			for (var ndx = 0; ndx < citizenCount; ndx++) {
+				var citOctane = octane.citizens[ndx];
+				setProperties(hemi.world.getCitizenById(citOctane.id), citOctane);
+			}
+		}
+
+		return created;
+	};
 	
 	hemi.makeOctanable = function(clsCon, clsName, octProps) {
 		octProps = octProps || [];
+		
+		constructors[clsName] = clsCon;
 		
 		/*
          * Essentially a class name.
          * @type string
          */
 		clsCon.prototype._citizenType = clsName;
-		
-		//TODO: Register constructor with hemi.octane
 		
 		/*
 	     * Get the Octane structure for the class. The structure returned is:
@@ -76,14 +213,14 @@ var hemi = (function(hemi) {
 		clsCon.prototype._toOctane = function() {
         	var octane = {
 				type: this._citizenType,
-				props: isFunction(octProps) ? octProps.call(this) : parseProps(this, octProps)
+				props: hemi.utils.isFunction(octProps) ? octProps.call(this) : parseProps(this, octProps)
 			};
         	
         	if (this._worldId != null) {
         		octane.id = this._worldId;
         	}
 			
-			if (this.name.length > 0 && !octane.props.name) {
+			if (this.name && this.name.length > 0 && !octane.props.name) {
 	            octane.props.unslice({
 	                name: 'name',
 	                val: this.name

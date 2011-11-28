@@ -20,20 +20,20 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 
-	hemi.Client = function(renderer) {
-		renderer.domElement.style.width = "100%";
-		renderer.domElement.style.height = "100%";
+	hemi.ClientBase = function() {
+		this.bgColor = 0;
+		this.bgAlpha = 1;
 		this.camera = new hemi.Camera();
-		this.renderer = renderer;
 		this.scene = new THREE.Scene();
-		this.scene.add(this.camera.light);
+		this.picker = new hemi.Picker(this.scene, this.camera);
+		this.renderer = null;
 		this.lights = [];
-		hemi.input.init(renderer.domElement);
-		var dom = this.renderer.domElement;
-		this.picker = new hemi.Picker(this.scene, this.camera, dom.clientWidth, dom.clientHeight);
+
+		this.useCameraLight(true);
+		hemi.clients.push(this);
 	};
 
-	hemi.Client.prototype = {
+	hemi.ClientBase.prototype = {
 		addGrid: function() {
 			var line_material = new THREE.LineBasicMaterial( { color: 0xcccccc, opacity: 0.2 } ),
 				geometry = new THREE.Geometry(),
@@ -54,8 +54,12 @@ var hemi = (function(hemi) {
 		},
 		
 		addLight: function(light) {
-			this.lights.push(light);
-			this.scene.add(light);
+			var ndx = this.lights.indexOf(light);
+
+			if (ndx === -1) {
+				this.lights.push(light);
+				this.scene.add(light);
+			}
 		},
 
 		onRender: function() {
@@ -83,9 +87,54 @@ var hemi = (function(hemi) {
 		},
 
 		setBGColor: function(hex, opt_alpha) {
-			this.renderer.setClearColorHex(hex, opt_alpha == null ? 1 : opt_alpha);
+			this.bgColor = hex;
+			this.bgAlpha = opt_alpha == null ? 1 : opt_alpha;
+			this.renderer.setClearColorHex(this.bgColor, this.bgAlpha);
+		},
+
+		setRenderer: function(renderer) {
+			var dom = renderer.domElement;
+			dom.style.width = "100%";
+			dom.style.height = "100%";
+			hemi.input.init(dom);
+
+			renderer.setClearColorHex(this.bgColor, this.bgAlpha);
+			this.renderer = renderer;
+			this.resize();
+		},
+
+		useCameraLight: function(useLight) {
+			if (useLight) {
+				this.addLight(this.camera.light);
+			} else {
+				this.removeLight(this.camera.light);
+			}
 		}
 	};
+
+	hemi.makeCitizen(hemi.ClientBase, 'hemi.Client', {
+		msgs: [],
+		toOctane: function() {
+			return [
+				{
+					name: 'bgColor',
+					val: this.bgColor
+				}, {
+					name: 'bgAlpha',
+					val: this.bgAlpha
+				}, {
+					name: 'useCameraLight',
+					arg: [false]
+				}, {
+					name: 'camera',
+					id: this.camera._getId()
+				}, {
+					name: 'useCameraLight',
+					arg: [true]
+				}
+			];
+		}
+	});
 
 	return hemi;
 })(hemi || {});
