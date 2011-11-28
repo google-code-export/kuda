@@ -112,14 +112,6 @@ var hemi = (function(hemi) {
 
 	hemi.CameraBase.prototype = {
 		/**
-		 * Send a cleanup Message and remove all references in the Camera.
-		 */
-		cleanup: function() {
-			hemi.removeRenderListener(this);
-			this.disableControl();
-		},
-		
-		/**
 		 * Disable control of the Camera through the mouse and keyboard.
 		 */
 		disableControl : function() {
@@ -756,7 +748,12 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.makeCitizen(hemi.CameraBase, 'hemi.Camera', {
-		msgs: ['hemi.start', 'hemi.stop'],
+		cleanup: function() {
+			hemi.removeRenderListener(this);
+			this.disableControl();
+			this.threeCamera = null;
+		},
+		msgs: [hemi.msg.start, hemi.msg.stop],
 		toOctane: function() {
 			var curView = hemi.createViewData(this),
 				oct = [

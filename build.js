@@ -277,9 +277,9 @@ var uglifyHemi = function(src, dst) {
 				'hemi/curve.js',
 				//'hemi/sprite.js',
 				//'hemi/shape.js',
-				'hemi/fx.js'
+				'hemi/fx.js',
 				//'hemi/texture.js',
-				//'hemi/timer.js'
+				'hemi/timer.js'
 			]
 		},
 		header =
