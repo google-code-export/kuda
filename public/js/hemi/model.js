@@ -64,7 +64,12 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
-		msgs: ['hemi.load'],
+		cleanup: function() {
+			this.client.scene.remove(this.root);
+			this.client = null;
+			this.root = null;
+		},
+		msgs: [hemi.msg.load],
 		toOctane: ['client', 'fileName', 'load']
 	});
 
