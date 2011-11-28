@@ -105,6 +105,16 @@ var hemi = (function(hemi) {
 	hemi.utils.isArray = Array.isArray || function(val) {
 		return Object.prototype.toString.call(val) === '[object Array]';
 	};
+
+	/** 
+	 * The "best" way to test if a value is a function or not.
+	 *
+	 * @param {Object} val value to test
+	 * @return {boolean} true if the value is a function
+	 */
+	hemi.utils.isFunction = function(val) {
+		return Object.prototype.toString.call(val) === '[object Function]';
+	};
 	
 	/**
 	 * Merge all of the properties of the given objects into the first object.

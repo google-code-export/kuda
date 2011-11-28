@@ -117,45 +117,6 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the Octane structure for the MessageSpec.
-	     *
-	     * @return {Object} the Octane structure representing the MessageSpec
-		 */
-		toOctane: function() {
-			var targetsOct = [];
-			
-			for (var ndx = 0, len = this.targets.length; ndx < len; ndx++) {
-				var oct = this.targets[ndx].toOctane();
-				
-				if (oct !== null) {
-					targetsOct.push(oct);
-				} else {
-					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.ERR);
-				}
-			}
-			
-			var props = [
-				{
-					name: 'src',
-					val: this.src
-				},{
-					name: 'msg',
-					val: this.msg
-				},{
-					name: 'targets',
-					oct: targetsOct
-				}
-			];
-			
-			var octane = {
-				type: 'hemi.dispatch.MessageSpec',
-				props: props
-			};
-			
-			return octane;
-		},
-		
-		/**
 		 * Register the given MessageTarget with the MessageSpec.
 		 * 
 		 * @param {hemi.dispatch.MessageTarget} target the target to add
@@ -200,6 +161,34 @@ var hemi = (function(hemi) {
 			return this.msg + this.src;
 		}
 	};
+
+	hemi.makeOctanable(hemi.dispatch.MessageSpec, 'hemi.dispatch.MessageSpec',
+		function() {
+			var targetsOct = [];
+			
+			for (var ndx = 0, len = this.targets.length; ndx < len; ndx++) {
+				var oct = this.targets[ndx]._toOctane();
+				
+				if (oct !== null) {
+					targetsOct.push(oct);
+				} else {
+					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.ERR);
+				}
+			}
+			
+			return [
+				{
+					name: 'src',
+					val: this.src
+				},{
+					name: 'msg',
+					val: this.msg
+				},{
+					name: 'targets',
+					oct: targetsOct
+				}
+			];
+		});
 	
 	/**
 	 * @class A MessageTarget registers with a MessageSpec to receive Messages
@@ -218,7 +207,7 @@ var hemi = (function(hemi) {
 		 * The id of the MessageTarget.
 		 * @type number
 		 */
-		this.dispatchId = null;
+		this._dispatchId = null;
 		
 		/**
 		 * The name of the MessageTarget.
@@ -254,42 +243,35 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			this.handler = null;
-		},
-		
-		/**
-		 * Get the Octane structure for the MessageTarget.
-	     *
-	     * @return {Object} the Octane structure representing the MessageTarget
-		 */
-		toOctane: function() {
+		}
+	};
+
+	hemi.makeOctanable(hemi.dispatch.MessageTarget, 'hemi.dispatch.MessageTarget',
+		function() {
 			if (!this.handler._getId) {
 				hemi.console.log('Handler object in MessageTarget can not be saved to Octane', hemi.console.WARN);
 				return null;
 			}
 			
-			var names = ['dispatchId', 'name', 'func', 'args'],
-				props = [{
-					name: 'handler',
-					id: this.handler._getId()
-				}];
+			var names = ['_dispatchId', 'name', 'func', 'args'],
+				oct = [
+					{
+						name: 'handler',
+						id: this.handler._getId()
+					}
+				];
 			
 			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
 				var name = names[ndx];
 				
-				props.push({
+				oct.push({
 					name: name,
 					val: this[name]
 				});
 			}
 			
-			var octane = {
-				type: 'hemi.dispatch.MessageTarget',
-				props: props
-			};
-			
-			return octane;
-		}
-	};
+			return oct;
+		});
 	
 	/* All of the MessageSpecs (and MessageTargets) in the Dispatch */
 	hemi.dispatch.msgSpecs = new hemi.utils.Hashtable();
@@ -351,14 +333,14 @@ var hemi = (function(hemi) {
      *
      * @return {Object} the Octane structure representing the MessageDispatcher
 	 */
-	hemi.dispatch.toOctane = function() {
+	hemi.dispatch._toOctane = function() {
 		var octane = {
 			nextId: nextId,
 			ents: []
 		};
 		
 		this.msgSpecs.each(function(key, value) {
-			var oct = value.toOctane();
+			var oct = value._toOctane();
 			
 			if (oct !== null) {
 				octane.ents.push(oct);
@@ -509,7 +491,7 @@ var hemi = (function(hemi) {
 				var add = true;
 				
 				if (dispatchId !== undefined) {
-					add = result.dispatchId === dispatchId;
+					add = result._dispatchId === dispatchId;
 				}
 				if (add && name !== undefined) {
 					add = result.name === name;
@@ -537,14 +519,14 @@ var hemi = (function(hemi) {
 	 */
 	hemi.dispatch.getTargetSpec = function(target) {
 		var specs = this.getSpecs(),
-			dispatchId = target.dispatchId;
+			dispatchId = target._dispatchId;
 		
 		for (var ndx = 0, len = specs.length; ndx < len; ndx++) {
 			var spec = specs[ndx],
 				targets = spec.targets;
 			
 			for (var t = 0, tLen = targets.length; t < tLen; t++) {
-				if (targets[t].dispatchId === dispatchId) {
+				if (targets[t]._dispatchId === dispatchId) {
 					return spec;
 				}
 			}
@@ -598,7 +580,7 @@ var hemi = (function(hemi) {
 	hemi.dispatch.registerTarget = function(src, msg, handler, opt_func, opt_args) {
 		var spec = this.createSpec(src, msg),
 			msgTarget = new hemi.dispatch.MessageTarget();
-		msgTarget.dispatchId = this.getNextId();
+		msgTarget._dispatchId = this.getNextId();
 		msgTarget.handler = handler;
 		
 		if (opt_func) {

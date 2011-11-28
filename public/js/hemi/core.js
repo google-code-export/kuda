@@ -135,6 +135,7 @@ var hemi = (function(hemi) {
 	 * @constant
 	 */
 	hemi.version = '1.5.0';
+	hemi.console.setEnabled(true);
 	
 	/**
 	 * The list of Clients being rendered on the current webpage.
@@ -148,7 +149,7 @@ var hemi = (function(hemi) {
 	 */
 	hemi.makeClients = function() {
 		var elements = document.getElementsByTagName('div'),
-			clients = [];
+			numClients = hemi.clients.length;
 		
 		for (var i = 0; i < elements.length; ++i) {
 			var element = elements[i];
@@ -157,17 +158,16 @@ var hemi = (function(hemi) {
 				var renderer = getRenderer(element);
 				
 				if (renderer) {
-					var client = new hemi.Client(renderer);
+					var client = i < numClients ? hemi.clients[i] : new hemi.Client();
 					
 					element.appendChild(renderer.domElement);
-					hemi.clients.push(client);
-					clients.push(client);
+					client.setRenderer(renderer);
 				}
 			}
 		}
 		
 		hemi.init();
-		return clients;
+		return hemi.clients;
 	};
 
 	/**
@@ -176,7 +176,6 @@ var hemi = (function(hemi) {
 	 * want to use hemi's client system.
 	 */
 	hemi.init = function() {
-		resize();
 		window.addEventListener('resize', resize, false);
 		lastRenderTime = new Date().getTime() * 0.001;
 		render(true);

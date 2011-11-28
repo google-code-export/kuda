@@ -91,277 +91,6 @@ COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER I
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
-/*
- * Because Internet Explorer does not support Array.indexOf(), we can add
- * it in so that subsequent calls do not break.
- *
- * @param {Object} obj
- */
-if (!Array.indexOf) {
-	Array.prototype.indexOf = function(obj) {
-		for (var i = 0; i < this.length; i++) {
-			if (this[i] == obj) {
-				return i;
-			}
-		}
-		return -1;
-	};
-}
-
-/**
- * Create the requestAnimationFrame function if needed. Each browser implements
- * it as d different name currently. Default to a timeout if not supported.
- * Credit to http://paulirish.com/2011/requestanimationframe-for-smart-animating/
- * and others...
- */
-if (!window.requestAnimationFrame) {
-	window.requestAnimationFrame = (function() {
-		return window.mozRequestAnimationFrame ||
-			window.webkitRequestAnimationFrame ||
-			window.oRequestAnimationFrame      ||
-			window.msRequestAnimationFrame     ||
-			function(callback, element) {
-				window.setTimeout(callback, 1000 / 60);
-			};
-	})();
-}
-
-/**
- * @namespace The core Hemi library used by Kuda.
- * @version 1.5.0
- */
-var hemi = (function(hemi) {
-	
-	var errCallback = null,
-	
-		fps = 60,
-		
-		hz = 1 / fps,
-	
-		/*
-		 * The time of the last render in seconds.
-		 * @type {number}
-		 */
-		lastRenderTime = 0,
-	
-		renderListeners = [],
-		
-		getRenderer = function(element) {
-			var renderer = null;
-			
-			if (Detector.webgl) {
-				renderer = new THREE.WebGLRenderer();
-			} else {
-				if (Detector.canvas) {
-					renderer = new THREE.CanvasRenderer();
-				}
-				
-				Detector.addGetWebGLMessage({
-					id: 'warn_' + element.id,
-					parent: element
-				});
-				
-				(function(elem) {
-					setTimeout(function() {
-						var msg = document.getElementById('warn_' + elem.id);
-						elem.removeChild(msg);
-					}, 5000);
-				})(element);
-			}
-			
-			return renderer;
-		},
-		
-		render = function(update) {
-			requestAnimationFrame(render);
-			
-			var renderTime = new Date().getTime() * 0.001,
-				event = {
-					elapsedTime: hz
-				};
-			
-			while (renderTime - lastRenderTime > hz) {
-				update = true;
-				lastRenderTime += hz;
-				
-				for (var i = 0; i < renderListeners.length; ++i) {
-					renderListeners[i].onRender(event);
-				}
-			}
-			
-			if (update) {
-				for (var i = 0; i < hemi.clients.length; ++i) {
-					hemi.clients[i].onRender(event);
-				}
-			}
-		},
-		
-		resize = function() {
-			for (var i = 0; i < hemi.clients.length; ++i) {
-				hemi.clients[i].resize();
-			}
-		};
-	
-	/**
-	 * The version of Hemi released: 10/11/11
-	 * @constant
-	 */
-	hemi.version = '1.5.0';
-	
-	/**
-	 * The list of Clients being rendered on the current webpage.
-	 */
-	hemi.clients = [];
-	
-	/**
-	 * Search the webpage for any divs with an ID starting with "kuda" and
-	 * create a Client and canvas within each div that will be rendered to using
-	 * WebGL.
-	 */
-	hemi.makeClients = function() {
-		var elements = document.getElementsByTagName('div'),
-			clients = [];
-		
-		for (var i = 0; i < elements.length; ++i) {
-			var element = elements[i];
-			
-			if (element.id && element.id.match(/^kuda/)) {
-				var renderer = getRenderer(element);
-				
-				if (renderer) {
-					var client = new hemi.Client(renderer);
-					
-					element.appendChild(renderer.domElement);
-					hemi.clients.push(client);
-					clients.push(client);
-				}
-			}
-		}
-		
-		hemi.init();
-		return clients;
-	};
-
-	/**
-	 * Initialize hemi features. This does not need to be called if
-	 * hemi.makeClients() is called, but it can be used on its own if you don't
-	 * want to use hemi's client system.
-	 */
-	hemi.init = function() {
-		resize();
-		window.addEventListener('resize', resize, false);
-		lastRenderTime = new Date().getTime() * 0.001;
-		render(true);
-	};
-	
-	/**
-	 * Add the given render listener to hemi. A listener must implement the
-	 * onRender function.
-	 * 
-	 * @param {Object} listener the render listener to add
-	 */
-	hemi.addRenderListener = function(listener) {
-		var ndx = renderListeners.indexOf(listener);
-		
-		if (ndx === -1) {
-			renderListeners.push(listener);
-		}
-	};
-
-	/**
-	 * Remove the given render listener from hemi.
-	 * 
-	 * @param {Object} listener the render listener to remove
-	 * @return {Object} the removed listener if successful or null
-	 */
-	hemi.removeRenderListener = function(listener) {
-		var ndx = renderListeners.indexOf(listener),
-			retVal = null;
-		
-		if (ndx !== -1) {
-			retVal = renderListeners.splice(ndx, 1)[0];
-		}
-
-		return retVal;
-	};
-	
-	/**
-	 * Pass the given error message to the registered error handler or throw an
-	 * Error if no handler is registered.
-	 * 
-	 * @param {string} msg error message
-	 */
-	hemi.error = function(msg) {
-		if (errCallback) {
-			errCallback(msg);
-		} else {
-			var err = new Error(msg);
-			err.name = 'HemiError';
-			throw err;
-		}
-	};
-
-	/**
-	 * Get the time that the specified animation frame occurs at.
-	 *
-	 * @param {number} frame frame number to get the time for
-	 * @return {number} time that the frame occurs at
-	 */
-	hemi.getTimeOfFrame = function(frame) {
-		return frame * hz;
-	};
-	
-	/**
-	 * Set the given function as the error handler for Hemi errors.
-	 * 
-	 * @param {function(string):void} callback error handling function
-	 */
-	hemi.setErrorCallback = function(callback) {
-		errCallback = callback;
-	};
-	
-	/**
-	 * Get the current frames-per-second that will be enforced for rendering.
-	 * 
-	 * @return {number} current frames-per-second
-	 */
-	hemi.getFPS = function() {
-		return fps;
-	};
-
-	/**
-	 * Set the current frames-per-second that will be enforced for rendering.
-	 * 
-	 * @param {number} newFps frames-per-second to enforce
-	 */
-	hemi.setFPS = function(newFps) {
-		fps = newFps;
-		hz = 1/fps;
-	};
-	
-	return hemi;
-})(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
-/*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
 /* Simple JavaScript Inheritance
  * By John Resig http://ejohn.org/
  * MIT Licensed.
@@ -641,6 +370,16 @@ var hemi = (function(hemi) {
 	 */
 	hemi.utils.isArray = Array.isArray || function(val) {
 		return Object.prototype.toString.call(val) === '[object Array]';
+	};
+
+	/** 
+	 * The "best" way to test if a value is a function or not.
+	 *
+	 * @param {Object} val value to test
+	 * @return {boolean} true if the value is a function
+	 */
+	hemi.utils.isFunction = function(val) {
+		return Object.prototype.toString.call(val) === '[object Function]';
 	};
 	
 	/**
@@ -2037,14 +1776,502 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 */
 
 var hemi = (function(hemi) {
+	/**
+	 * @namespace A module for displaying log, warning, and error messages to a
+	 * console element on a webpage.
+	 */
+	hemi.console = hemi.console || {};
+	
+	/**
+	 * The priority level for an error message.
+	 * @type string
+	 * @constant
+	 */
+	hemi.console.ERR = 'ERR';
+	
+	/**
+	 * The priority level for a warning message.
+	 * @type string
+	 * @constant
+	 */
+	hemi.console.WARN = 'WARN';
+	
+	/**
+	 * The priority level for a log message.
+	 * @type string
+	 * @constant
+	 */
+	hemi.console.LOG = 'LOG';
+	
+	/* Flag indicating if the console should display log messages */
+	var enabled = false;
+	/* Flag indicating if timestamps should be added to log messages */
+	var showTime = true;
+	
+	/*
+	 * The actual function for logging a message.
+	 * 
+	 * @param {string} msg the message to log
+	 * @param {string} level the priority level of the message
+	 */
+	var logMessage = function(msg, level) {
+		level = level || hemi.console.LOG;
+		
+		if (testPriority(level)) {
+			var fullMsg = level + ':\t' + msg;
+			
+			if (showTime) {
+				var time = getTime();
+				fullMsg = time + '\t' + fullMsg;
+			}
+			
+			output(fullMsg);
+		}
+	};
+	
+	/*
+	 * The default method for displaying a log message.
+	 * 
+	 * @param {string} msg the full log message to display
+	 */
+	var output = function(msg) {
+		try {
+			console.log(msg);
+		} catch(e) { }
+	};
+	
+	/*
+	 * Get a timestamp for the current time.
+	 * 
+	 * @return {string} the current timestamp
+	 */
+	var getTime = function() {
+		var currentTime = new Date();
+		var hours = currentTime.getHours();
+		hours = hours < 10 ? '0' + hours : '' + hours;
+		var minutes = currentTime.getMinutes();
+		minutes = minutes < 10 ? ':0' + minutes : ':' + minutes;
+		var seconds = currentTime.getSeconds();
+		seconds = seconds < 10 ? ':0' + seconds : ':' + seconds;
+		
+		return hours + minutes + seconds;
+	};
+	
+	/*
+	 * Test if the given priority level for a message is high enough to display
+	 * when the console is set to LOG priority.
+	 * 
+	 * @param {string} level the priority level to check
+	 * @return {boolean} true if the level is high enough to display
+	 */
+	var logTest = function(level) {
+		return level === hemi.console.LOG ||
+		       level === hemi.console.WARN ||
+		       level === hemi.console.ERR;
+	};
+	
+	/*
+	 * Test if the given priority level for a message is high enough to display
+	 * when the console is set to WARN priority.
+	 * 
+	 * @param {string} level the priority level to check
+	 * @return {boolean} true if the level is high enough to display
+	 */
+	var warnTest = function(level) {
+		return level === hemi.console.WARN ||
+		       level === hemi.console.ERR;
+	};
+	
+	/*
+	 * Test if the given priority level for a message is high enough to display
+	 * when the console is set to ERR priority.
+	 * 
+	 * @param {string} level the priority level to check
+	 * @return {boolean} true if the level is high enough to display
+	 */
+	var errTest = function(level) {
+		return level === hemi.console.ERR;
+	};
+	
+	/*
+	 * This function is aliased to the proper test function for the console's
+	 * current priority level.
+	 */
+	var testPriority = logTest;
+	
+	/**
+	 * Log the given message if the console is enabled or ignore the message if
+	 * the console is disabled.
+	 * 
+	 * @param {string} msg the message to display
+	 * @param {string} level the priority level of the message
+	 */
+	hemi.console.log = hemi.utils.noop;
+	
+	/**
+	 * Enable or disable the console to receive log messages.
+	 * 
+	 * @param {boolean} en flag indicating if the console should be enabled
+	 */
+	hemi.console.setEnabled = function(en) {
+		if (en == enabled) {
+			return;
+		}
+		
+		enabled = en;
+		
+		if (enabled) {
+			hemi.console.log = logMessage;
+		} else {
+			hemi.console.log = hemi.utils.noop;
+		}
+	};
+	
+	/**
+	 * Set the function that will be used to display log messages.
+	 * 
+	 * @param {function(string):void} outFunc
+	 */
+	hemi.console.setOutput = function(outFunc) {
+		output = outFunc;
+	};
+	
+	/**
+	 * Set the current priority level of the console. Log messages at the given
+	 * priority level or higher will be displayed. Log messages below the
+	 * priority level will be ignored.
+	 * 
+	 * @param {string} priority the priority level to set the console to
+	 */
+	hemi.console.setPriority = function(priority) {
+		switch (priority) {
+			case hemi.console.LOG:
+				testPriority = logTest;
+				break;
+			case hemi.console.WARN:
+				testPriority = warnTest;
+				break;
+			case hemi.console.ERR:
+				testPriority = errTest;
+				break;
+		}
+	};
+	
+	/**
+	 * Enable or disable timestamping for received log messages.
+	 * 
+	 * @param {boolean} show flag indicating if messages should be timestamped
+	 */
+	hemi.console.setShowTime = function(show) {
+		showTime = show;
+	};
+	
+	return hemi;
+})(hemi || {});/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+
+/*
+ * Because Internet Explorer does not support Array.indexOf(), we can add
+ * it in so that subsequent calls do not break.
+ *
+ * @param {Object} obj
+ */
+if (!Array.indexOf) {
+	Array.prototype.indexOf = function(obj) {
+		for (var i = 0; i < this.length; i++) {
+			if (this[i] == obj) {
+				return i;
+			}
+		}
+		return -1;
+	};
+}
+
+/**
+ * Create the requestAnimationFrame function if needed. Each browser implements
+ * it as d different name currently. Default to a timeout if not supported.
+ * Credit to http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+ * and others...
+ */
+if (!window.requestAnimationFrame) {
+	window.requestAnimationFrame = (function() {
+		return window.mozRequestAnimationFrame ||
+			window.webkitRequestAnimationFrame ||
+			window.oRequestAnimationFrame      ||
+			window.msRequestAnimationFrame     ||
+			function(callback, element) {
+				window.setTimeout(callback, 1000 / 60);
+			};
+	})();
+}
+
+/**
+ * @namespace The core Hemi library used by Kuda.
+ * @version 1.5.0
+ */
+var hemi = (function(hemi) {
+	
+	var errCallback = null,
+	
+		fps = 60,
+		
+		hz = 1 / fps,
+	
+		/*
+		 * The time of the last render in seconds.
+		 * @type {number}
+		 */
+		lastRenderTime = 0,
+	
+		renderListeners = [],
+		
+		getRenderer = function(element) {
+			var renderer = null;
+			
+			if (Detector.webgl) {
+				renderer = new THREE.WebGLRenderer();
+			} else {
+				if (Detector.canvas) {
+					renderer = new THREE.CanvasRenderer();
+				}
+				
+				Detector.addGetWebGLMessage({
+					id: 'warn_' + element.id,
+					parent: element
+				});
+				
+				(function(elem) {
+					setTimeout(function() {
+						var msg = document.getElementById('warn_' + elem.id);
+						elem.removeChild(msg);
+					}, 5000);
+				})(element);
+			}
+			
+			return renderer;
+		},
+		
+		render = function(update) {
+			requestAnimationFrame(render);
+			
+			var renderTime = new Date().getTime() * 0.001,
+				event = {
+					elapsedTime: hz
+				};
+			
+			while (renderTime - lastRenderTime > hz) {
+				update = true;
+				lastRenderTime += hz;
+				
+				for (var i = 0; i < renderListeners.length; ++i) {
+					renderListeners[i].onRender(event);
+				}
+			}
+			
+			if (update) {
+				for (var i = 0; i < hemi.clients.length; ++i) {
+					hemi.clients[i].onRender(event);
+				}
+			}
+		},
+		
+		resize = function() {
+			for (var i = 0; i < hemi.clients.length; ++i) {
+				hemi.clients[i].resize();
+			}
+		};
+	
+	/**
+	 * The version of Hemi released: 10/11/11
+	 * @constant
+	 */
+	hemi.version = '1.5.0';
+	hemi.console.setEnabled(true);
+	
+	/**
+	 * The list of Clients being rendered on the current webpage.
+	 */
+	hemi.clients = [];
+	
+	/**
+	 * Search the webpage for any divs with an ID starting with "kuda" and
+	 * create a Client and canvas within each div that will be rendered to using
+	 * WebGL.
+	 */
+	hemi.makeClients = function() {
+		var elements = document.getElementsByTagName('div'),
+			numClients = hemi.clients.length;
+		
+		for (var i = 0; i < elements.length; ++i) {
+			var element = elements[i];
+			
+			if (element.id && element.id.match(/^kuda/)) {
+				var renderer = getRenderer(element);
+				
+				if (renderer) {
+					var client = i < numClients ? hemi.clients[i] : new hemi.Client();
+					
+					element.appendChild(renderer.domElement);
+					client.setRenderer(renderer);
+				}
+			}
+		}
+		
+		hemi.init();
+		return hemi.clients;
+	};
+
+	/**
+	 * Initialize hemi features. This does not need to be called if
+	 * hemi.makeClients() is called, but it can be used on its own if you don't
+	 * want to use hemi's client system.
+	 */
+	hemi.init = function() {
+		window.addEventListener('resize', resize, false);
+		lastRenderTime = new Date().getTime() * 0.001;
+		render(true);
+	};
+	
+	/**
+	 * Add the given render listener to hemi. A listener must implement the
+	 * onRender function.
+	 * 
+	 * @param {Object} listener the render listener to add
+	 */
+	hemi.addRenderListener = function(listener) {
+		var ndx = renderListeners.indexOf(listener);
+		
+		if (ndx === -1) {
+			renderListeners.push(listener);
+		}
+	};
+
+	/**
+	 * Remove the given render listener from hemi.
+	 * 
+	 * @param {Object} listener the render listener to remove
+	 * @return {Object} the removed listener if successful or null
+	 */
+	hemi.removeRenderListener = function(listener) {
+		var ndx = renderListeners.indexOf(listener),
+			retVal = null;
+		
+		if (ndx !== -1) {
+			retVal = renderListeners.splice(ndx, 1)[0];
+		}
+
+		return retVal;
+	};
+	
+	/**
+	 * Pass the given error message to the registered error handler or throw an
+	 * Error if no handler is registered.
+	 * 
+	 * @param {string} msg error message
+	 */
+	hemi.error = function(msg) {
+		if (errCallback) {
+			errCallback(msg);
+		} else {
+			var err = new Error(msg);
+			err.name = 'HemiError';
+			throw err;
+		}
+	};
+
+	/**
+	 * Get the time that the specified animation frame occurs at.
+	 *
+	 * @param {number} frame frame number to get the time for
+	 * @return {number} time that the frame occurs at
+	 */
+	hemi.getTimeOfFrame = function(frame) {
+		return frame * hz;
+	};
+	
+	/**
+	 * Set the given function as the error handler for Hemi errors.
+	 * 
+	 * @param {function(string):void} callback error handling function
+	 */
+	hemi.setErrorCallback = function(callback) {
+		errCallback = callback;
+	};
+	
+	/**
+	 * Get the current frames-per-second that will be enforced for rendering.
+	 * 
+	 * @return {number} current frames-per-second
+	 */
+	hemi.getFPS = function() {
+		return fps;
+	};
+
+	/**
+	 * Set the current frames-per-second that will be enforced for rendering.
+	 * 
+	 * @param {number} newFps frames-per-second to enforce
+	 */
+	hemi.setFPS = function(newFps) {
+		fps = newFps;
+		hz = 1/fps;
+	};
+	
+	return hemi;
+})(hemi || {});
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+var hemi = (function(hemi) {
 	
 	var colladaLoader = new THREE.ColladaLoader(),
+		resetCB = null,
 		taskCount = 1,
 	
 		decrementTaskCount = function() {
 			if (--taskCount === 0) {
 				taskCount = 1;
 				hemi.send(hemi.msg.ready, {});
+
+				if (resetCB) {
+					resetCB();
+					resetCB = null;
+				}
 			}
 		},
 		
@@ -2082,8 +2309,66 @@ var hemi = (function(hemi) {
 			decrementTaskCount();
 		});
 	};
+
+	/**
+	 * Load the Octane file at the given URL. If an error occurs, an alert is
+	 * thrown. Otherwise the loaded data is decoded into JSON and passed to the
+	 * Octane module. If the Octane is for an object, it is created and passed
+	 * to the given optional callback. If the Octane is for a World, the current
+	 * World is cleaned up and the new World is created. The given optional
+	 * callback is then executed, followed by hemi.world.ready().
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda
+	 *     directory
+	 * @param {function([Object]):void} opt_callback an optional function to
+	 *     either pass the Object created or execute before the created World's
+	 *     ready function is called
+	 */
+	hemi.loadOctane = function(url, opt_callback) {
+		url = getPath(url);
+		++taskCount;
+
+		hemi.utils.get(url, function(data, status) {
+			decrementTaskCount();
+
+			if (data == null) {
+				hemi.error(status);
+			} else {
+				if (typeof data === 'string') {
+					data = JSON.parse(data);
+				}
+
+				var obj = hemi.fromOctane(data);
+				
+				if (!data.type) {
+					hemi.makeClients();
+					hemi.ready();
+				}
+
+				if (opt_callback) {
+					opt_callback(obj);
+				}
+			}
+		});
+	};
 	
+	/**
+	 * Activate the World once all resources are loaded. This function should
+	 * only be called after all scripting and setup is complete.
+	 */
 	hemi.ready = decrementTaskCount;
+
+	/**
+	 * Make sure all outstanding load tasks are completed and then reset the
+	 * load task count.
+	 *
+	 * @param {function():void} opt_callback an optional function to call when
+	 *     the load tasks have been reset
+	 */
+	hemi.resetLoadTasks = function(opt_callback) {
+		resetCB = opt_callback;
+		decrementTaskCount();
+	};
 	
 	return hemi;
 })(hemi || {});
@@ -2231,8 +2516,10 @@ var hemi = (function(hemi) {
 	hemi.makeCitizen = function(clsCon, clsName, opts) {
 		opts = opts || {};
 		var cleanFunc = opts.cleanup,
-			msgs = opts.msgs || [hemi.msg.cleanup];
+			msgs = opts.msgs || [];
 		
+		msgs.push(hemi.msg.cleanup);
+
 		/*
 		 * A Citizen is a uniquely identifiable member of a World that is
 		 * able to send Messages through the World's dispatch. The Citizen's id is
@@ -2366,6 +2653,25 @@ var hemi = (function(hemi) {
 		}
 		
 		this.citizens.put(id, citizen);
+	};
+	
+	/**
+	 * Perform cleanup on the World and release all resources. This effectively
+	 * resets the World.
+	 */
+	hemi.world.cleanup = function() {
+		hemi.resetLoadTasks();
+		hemi.send(hemi.msg.cleanup, {});
+		
+		hemi.world.citizens.each(function(key, value) {
+			value.cleanup();
+		});
+		
+		if (hemi.world.citizens.size() > 0) {
+			hemi.console.log('World cleanup did not remove all citizens.', hemi.console.ERR);
+		}
+		
+		nextId = 1;
 	};
 	
 	/**
@@ -2789,6 +3095,40 @@ var hemi = (function(hemi) {
 		return owner;
 	};
 	
+	/**
+	 * Get the Octane structure for the World.
+     * 
+	 * @param {function(Citizen): boolean} opt_filter optional filter function
+	 *     that takes a Citizen and returns true if the Citizen should be
+	 *     included in the returned Octane
+     * @return {Object} the Octane structure representing the World
+	 */
+	hemi.world.toOctane = function(opt_filter) {
+		var octane = {
+			version: hemi.version,
+			nextId: nextId,
+			citizens: []
+		};
+		
+		this.citizens.each(function(key, value) {
+			var accept = opt_filter ? opt_filter(value) : true;
+			
+			if (accept) {
+				var oct = value._toOctane();
+				
+				if (oct !== null) {
+					octane.citizens.push(oct);
+				} else {
+					hemi.console.log('Null Octane returned by Citizen with id ' + value.getId(), hemi.console.WARN);
+				}
+			}
+		});
+		
+		octane.dispatch = hemi.dispatch._toOctane();
+		
+		return octane;
+	};
+	
 	return hemi;
 })(hemi || {});
 /* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
@@ -2813,8 +3153,34 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 	
-	var isFunction = function(val) {
-			return Object.prototype.toString.call(val) === '[object Function]';
+		/**
+		 * Create an object from the given Octane structure and set its id. No other
+		 * properties will be set yet.
+		 * 
+		 * @param {Object} octane the structure containing information for creating
+		 *     an object
+		 * @return {Object} the newly created object
+		 */
+	var createObject = function(octane) {
+			if (!octane.type) {
+				alert("Unable to process octane: missing type");
+				return null;
+			}
+			
+			var con = constructors[octane.type],
+				object = null;
+
+			if (con) {
+				object = new con();
+
+				if (octane.id !== undefined) {
+					object._setId(octane.id);
+				}
+			} else {
+				hemi.console.log('Cannot find constructor for type: ' + octane.type, hemi.console.ERR);
+			}
+			
+			return object;
 		},
 	
 		parseProps = function(obj, propNames) {
@@ -2827,7 +3193,7 @@ var hemi = (function(hemi) {
 						name: name	
 					};
 				
-				if (isFunction(prop)) {
+				if (hemi.utils.isFunction(prop)) {
 					entry.arg = [];
 				} else if (prop._getId && prop._worldId) {
 					entry.id = prop._getId();
@@ -2841,18 +3207,129 @@ var hemi = (function(hemi) {
 			}
 			
 			return oct;
-		};
+		},
+
+		/*
+		 * Iterate through the given Octane structure and set properties for the
+		 * given object. Properties stored by value will be set directly, by Octane
+		 * will be recursively created, by id will be retrieved from the World, and
+		 * by arg will be set by calling the specified function on the object.
+		 * 
+		 * @param {Object} object the object created from the given Octane
+		 * @param {Object} octane the structure containing information about the
+		 *     given object
+		 */
+		setProperties = function(object, octane) {
+			for (var ndx = 0, len = octane.props.length; ndx < len; ndx++) {
+				var property = octane.props[ndx];
+				var name = property.name;
+				
+				if (property.oct !== undefined) {
+					if (property.oct instanceof Array) {
+						value = [];
+						
+						for (var p = 0, pLen = property.oct.length; p < pLen; p++) {
+							var child = createObject(property.oct[p]);
+							setProperties(child, property.oct[p]);
+							value.push(child);
+						}
+					} else {
+						value = createObject(property.oct);
+						setProperties(value, property.oct);
+					}
+					
+					object[name] = value;
+				} else if (property.val !== undefined) {
+					object[name] = property.val;
+				} else if (property.id !== undefined) {
+					var value;
+					
+					if (property.id instanceof Array) {
+						value = [];
+						
+						for (var p = 0, pLen = property.id.length; p < pLen; p++) {
+							value.push(hemi.world.getCitizenById(property.id[p]));
+						}
+					} else {
+						value = hemi.world.getCitizenById(property.id);
+					}
+					
+					object[name] = value;
+				} else if (property.arg !== undefined) {
+					var func = object[name];
+					func.apply(object, property.arg);
+				} else {
+					alert('Unable to process octane for ' + octane.id + ': missing property value');
+				}
+			}
+		},
+
+		constructors = {};
+	
+	/**
+	 * Restore the original object from the given Octane.
+	 * 
+	 * @param {Object} octane the structure containing information for creating
+	 *     the original object
+	 * @return {Object} the created object
+	 */
+	hemi.fromOctane = function(octane) {
+		var created = null;
+
+		if (octane.type) {
+			created = createObject(octane);
+			setProperties(created, octane);
+		} else {
+			hemi.world.cleanup();
+			var citizenCount = octane.citizens.length;
+			// Set the nextId value to a negative number so that we don't have to
+			// worry about overlapping world ids between the constructed Citizens
+			// and their actual ids that are restored from Octane.
+			var fakeId = citizenCount * -2;
+			hemi.world.setNextId(fakeId);
+			
+			// Do the bare minimum: create Citizens and set their ids
+			for (var ndx = 0; ndx < citizenCount; ndx++) {
+				var citOctane = octane.citizens[ndx];
+				createObject(citOctane);
+			}
+			
+			// Now set the World nextId to its proper value.
+			hemi.world.setNextId(octane.nextId);
+			
+			// Next set up the message dispatch
+			var entryOctane = octane.dispatch.ents,
+				entries = [];
+			
+			for (var ndx = 0, len = entryOctane.length; ndx < len; ndx++) {
+				var entry = createObject(entryOctane[ndx]);
+				setProperties(entry, entryOctane[ndx]);
+				entries.push(entry);
+			}
+			
+			hemi.dispatch.loadEntries(entries);
+			hemi.dispatch.setNextId(octane.dispatch.nextId);
+			
+			// Now set Citizen properties and resolve references to other Citizens
+			for (var ndx = 0; ndx < citizenCount; ndx++) {
+				var citOctane = octane.citizens[ndx];
+				setProperties(hemi.world.getCitizenById(citOctane.id), citOctane);
+			}
+		}
+
+		return created;
+	};
 	
 	hemi.makeOctanable = function(clsCon, clsName, octProps) {
 		octProps = octProps || [];
+		
+		constructors[clsName] = clsCon;
 		
 		/*
          * Essentially a class name.
          * @type string
          */
 		clsCon.prototype._citizenType = clsName;
-		
-		//TODO: Register constructor with hemi.octane
 		
 		/*
 	     * Get the Octane structure for the class. The structure returned is:
@@ -2869,14 +3346,14 @@ var hemi = (function(hemi) {
 		clsCon.prototype._toOctane = function() {
         	var octane = {
 				type: this._citizenType,
-				props: isFunction(octProps) ? octProps.call(this) : parseProps(this, octProps)
+				props: hemi.utils.isFunction(octProps) ? octProps.call(this) : parseProps(this, octProps)
 			};
         	
         	if (this._worldId != null) {
         		octane.id = this._worldId;
         	}
 			
-			if (this.name.length > 0 && !octane.props.name) {
+			if (this.name && this.name.length > 0 && !octane.props.name) {
 	            octane.props.unslice({
 	                name: 'name',
 	                val: this.name
@@ -3008,45 +3485,6 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the Octane structure for the MessageSpec.
-	     *
-	     * @return {Object} the Octane structure representing the MessageSpec
-		 */
-		toOctane: function() {
-			var targetsOct = [];
-			
-			for (var ndx = 0, len = this.targets.length; ndx < len; ndx++) {
-				var oct = this.targets[ndx].toOctane();
-				
-				if (oct !== null) {
-					targetsOct.push(oct);
-				} else {
-					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.ERR);
-				}
-			}
-			
-			var props = [
-				{
-					name: 'src',
-					val: this.src
-				},{
-					name: 'msg',
-					val: this.msg
-				},{
-					name: 'targets',
-					oct: targetsOct
-				}
-			];
-			
-			var octane = {
-				type: 'hemi.dispatch.MessageSpec',
-				props: props
-			};
-			
-			return octane;
-		},
-		
-		/**
 		 * Register the given MessageTarget with the MessageSpec.
 		 * 
 		 * @param {hemi.dispatch.MessageTarget} target the target to add
@@ -3091,6 +3529,34 @@ var hemi = (function(hemi) {
 			return this.msg + this.src;
 		}
 	};
+
+	hemi.makeOctanable(hemi.dispatch.MessageSpec, 'hemi.dispatch.MessageSpec',
+		function() {
+			var targetsOct = [];
+			
+			for (var ndx = 0, len = this.targets.length; ndx < len; ndx++) {
+				var oct = this.targets[ndx]._toOctane();
+				
+				if (oct !== null) {
+					targetsOct.push(oct);
+				} else {
+					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.ERR);
+				}
+			}
+			
+			return [
+				{
+					name: 'src',
+					val: this.src
+				},{
+					name: 'msg',
+					val: this.msg
+				},{
+					name: 'targets',
+					oct: targetsOct
+				}
+			];
+		});
 	
 	/**
 	 * @class A MessageTarget registers with a MessageSpec to receive Messages
@@ -3109,7 +3575,7 @@ var hemi = (function(hemi) {
 		 * The id of the MessageTarget.
 		 * @type number
 		 */
-		this.dispatchId = null;
+		this._dispatchId = null;
 		
 		/**
 		 * The name of the MessageTarget.
@@ -3145,42 +3611,35 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			this.handler = null;
-		},
-		
-		/**
-		 * Get the Octane structure for the MessageTarget.
-	     *
-	     * @return {Object} the Octane structure representing the MessageTarget
-		 */
-		toOctane: function() {
+		}
+	};
+
+	hemi.makeOctanable(hemi.dispatch.MessageTarget, 'hemi.dispatch.MessageTarget',
+		function() {
 			if (!this.handler._getId) {
 				hemi.console.log('Handler object in MessageTarget can not be saved to Octane', hemi.console.WARN);
 				return null;
 			}
 			
-			var names = ['dispatchId', 'name', 'func', 'args'],
-				props = [{
-					name: 'handler',
-					id: this.handler._getId()
-				}];
+			var names = ['_dispatchId', 'name', 'func', 'args'],
+				oct = [
+					{
+						name: 'handler',
+						id: this.handler._getId()
+					}
+				];
 			
 			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
 				var name = names[ndx];
 				
-				props.push({
+				oct.push({
 					name: name,
 					val: this[name]
 				});
 			}
 			
-			var octane = {
-				type: 'hemi.dispatch.MessageTarget',
-				props: props
-			};
-			
-			return octane;
-		}
-	};
+			return oct;
+		});
 	
 	/* All of the MessageSpecs (and MessageTargets) in the Dispatch */
 	hemi.dispatch.msgSpecs = new hemi.utils.Hashtable();
@@ -3242,14 +3701,14 @@ var hemi = (function(hemi) {
      *
      * @return {Object} the Octane structure representing the MessageDispatcher
 	 */
-	hemi.dispatch.toOctane = function() {
+	hemi.dispatch._toOctane = function() {
 		var octane = {
 			nextId: nextId,
 			ents: []
 		};
 		
 		this.msgSpecs.each(function(key, value) {
-			var oct = value.toOctane();
+			var oct = value._toOctane();
 			
 			if (oct !== null) {
 				octane.ents.push(oct);
@@ -3400,7 +3859,7 @@ var hemi = (function(hemi) {
 				var add = true;
 				
 				if (dispatchId !== undefined) {
-					add = result.dispatchId === dispatchId;
+					add = result._dispatchId === dispatchId;
 				}
 				if (add && name !== undefined) {
 					add = result.name === name;
@@ -3428,14 +3887,14 @@ var hemi = (function(hemi) {
 	 */
 	hemi.dispatch.getTargetSpec = function(target) {
 		var specs = this.getSpecs(),
-			dispatchId = target.dispatchId;
+			dispatchId = target._dispatchId;
 		
 		for (var ndx = 0, len = specs.length; ndx < len; ndx++) {
 			var spec = specs[ndx],
 				targets = spec.targets;
 			
 			for (var t = 0, tLen = targets.length; t < tLen; t++) {
-				if (targets[t].dispatchId === dispatchId) {
+				if (targets[t]._dispatchId === dispatchId) {
 					return spec;
 				}
 			}
@@ -3489,7 +3948,7 @@ var hemi = (function(hemi) {
 	hemi.dispatch.registerTarget = function(src, msg, handler, opt_func, opt_args) {
 		var spec = this.createSpec(src, msg),
 			msgTarget = new hemi.dispatch.MessageTarget();
-		msgTarget.dispatchId = this.getNextId();
+		msgTarget._dispatchId = this.getNextId();
 		msgTarget.handler = handler;
 		
 		if (opt_func) {
@@ -3733,21 +4192,19 @@ var hemi = (function(hemi) {
 	 */
 	hemi.input = hemi.input || {};
 	
+	hemi.input.mouseDownListeners = [];
+	hemi.input.mouseUpListeners = [];
+	hemi.input.mouseMoveListeners = [];
+	hemi.input.mouseWheelListeners = [];
+	hemi.input.keyDownListeners = [];
+	hemi.input.keyUpListeners = [];
+	hemi.input.keyPressListeners = [];
+	
 	/**
 	 * Setup the listener lists and register the event handlers.
 	 */
 	hemi.input.init = function(canvas) {
-		hemi.input.mouseDownListeners = [];
-		hemi.input.mouseUpListeners = [];
-		hemi.input.mouseMoveListeners = [];
-		hemi.input.mouseWheelListeners = [];
-        hemi.input.keyDownListeners = [];
-        hemi.input.keyUpListeners = [];
-        hemi.input.keyPressListeners = [];
-
-        this.canvas = canvas;
-
-        canvas.addEventListener('mousedown', function(event) {
+		canvas.addEventListener('mousedown', function(event) {
 			hemi.input.mouseDown(event);
 		}, true);
 		canvas.addEventListener('mousemove', function(event) {
@@ -3756,10 +4213,10 @@ var hemi = (function(hemi) {
 		canvas.addEventListener('mouseup', function(event) {
 			hemi.input.mouseUp(event);
 		}, true);
-        canvas.addEventListener('mousewheel', function(event) {
+		canvas.addEventListener('mousewheel', function(event) {
 			hemi.input.scroll(event);
 		}, false);
-        canvas.addEventListener('DOMMouseScroll', function(event) {
+		canvas.addEventListener('DOMMouseScroll', function(event) {
 			hemi.input.scroll(event);
 		}, false);
 
@@ -4717,31 +5174,6 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the Octane structure for this Camera.
-	     *
-	     * @return {Object} the Octane structure representing this Camera
-		 */
-		toOctane: function() {
-			var octane = this._super(),
-				curView = hemi.createViewData(this);
-			
-			octane.props.push({
-				name: this.mode.control ? 'enableControl' : 'disableControl',
-				arg: []
-			});
-			octane.props.push({
-				name: 'mode',
-				val: this.mode
-			});
-			octane.props.push({
-				name: 'moveToView',
-				arg: [curView, 0]
-			});
-
-			return octane;
-		},
-		
-		/**
 		 * Move the Camera towards or away from its current target point by the
 		 * given distance.
 		 * 
@@ -4849,9 +5281,25 @@ var hemi = (function(hemi) {
         }
 	};
 
-    hemi.makeCitizen(hemi.CameraBase, 'hemi.Camera', {
+	hemi.makeCitizen(hemi.CameraBase, 'hemi.Camera', {
 		msgs: ['hemi.start', 'hemi.stop'],
-		toOctane: []
+		toOctane: function() {
+			var curView = hemi.createViewData(this),
+				oct = [
+					{
+						name: this.mode.control ? 'enableControl' : 'disableControl',
+						arg: []
+					}, {
+						name: 'mode',
+						val: this.mode
+					}, {
+						name: 'moveToView',
+						arg: [curView, 0]
+					}
+				];
+
+			return oct;
+		}
 	});
 	
 	/**
@@ -4888,11 +5336,11 @@ var hemi = (function(hemi) {
 
 			octane.props.push({
 				name: 'eye',
-				oct: this.eye.toOctane()
+				oct: this.eye._toOctane()
 			});
 			octane.props.push({
 				name: 'target',
-				oct: this.target.toOctane()
+				oct: this.target._toOctane()
 			});
 
 			return octane;
@@ -4913,7 +5361,7 @@ var hemi = (function(hemi) {
 	 * field of view, near plane, and far plane.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.Viewpoint = function(config) {
+	hemi.ViewpointBase = function(config) {
         var cfg = config || {};
         this.name = cfg.name || '';
         this.eye = cfg.eye || new THREE.Vector3(0,0,-1);
@@ -4923,7 +5371,7 @@ var hemi = (function(hemi) {
         this.fp = cfg.fp ||hemi.viewDefaults.FP;
     };
 
-    hemi.Viewpoint.prototype = {
+    hemi.ViewpointBase.prototype = {
 		/**
 		 * Get the data contained within the Viewpoint.
 		 *
@@ -4944,30 +5392,12 @@ var hemi = (function(hemi) {
 			this.fov = viewData.fov;
 			this.np = viewData.np;
 			this.fp = viewData.fp;
-		},
-
-		/**
-		 * Get the Octane structure for this Viewpoint.
-	     *
-	     * @return {Object} the Octane structure representing this Viewpoint
-		 */
-		toOctane: function() {
-			var octane = this._super();
-
-			var names = ['eye', 'target', 'fov', 'np', 'fp'];
-
-			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
-				var name = names[ndx];
-
-				octane.props.push({
-					name: name,
-					val: this[name]
-				});
-			}
-
-			return octane;
 		}
 	};
+
+	hemi.makeCitizen(hemi.ViewpointBase, 'hemi.Viewpoint', {
+		toOctane: ['eye', 'target', 'fov', 'np', 'fp']
+	});
 
 	/**
 	 * Create a new ViewData with the given Camera's current viewing parameters.
@@ -5049,6 +5479,17 @@ var hemi = (function(hemi) {
 
 	THREE.Object3D.prototype.pickable = true;
 
+	var getObject3DsRecursive = function(name, obj3d, returnObjs) {
+			for (var i = 0; i < obj3d.children.length; ++i) {
+				var child = obj3d.children[i];
+
+				if (child.name === name) {
+					returnObjs.push(child);
+				}
+
+				getObject3DsRecursive(name, child, returnObjs)
+			}
+		};
 	    
 	hemi.ModelBase = function(client) {
 		this.client = client;
@@ -5057,45 +5498,31 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.ModelBase.prototype = {
-		load: function(callback) {
+		getObject3Ds: function(name) {
+			var obj3ds = [];
+			getObject3DsRecursive(name, this.root, obj3ds);
+			return obj3ds;
+		},
+
+		load: function() {
 			var that = this;
 
 			hemi.loadCollada(this.fileName, function (collada) {
-				root = collada.scene;
-				that.client.scene.add(root);
-
-				if (callback) {
-					callback(root);
-				}
+				that.root = collada.scene;
+				that.client.scene.add(that.root);
+				that.send(hemi.msg.load, {});
 			});
 		},
 
 		setFileName: function(fileName, callback) {
 			this.fileName = fileName;
 			this.load(callback);
-		},
-
-		getObject3Ds: function(name) {
-			var obj3ds = [];
-			this.getObject3DsRecursive(name, root, obj3ds);
-			return obj3ds;
-		},
-
-		getObject3DsRecursive : function(name, obj3d, returnObjs) {
-			for (var i = 0; i < obj3d.children.length; ++i) {
-				var child = obj3d.children[i];
-				if (child.name == name) {
-					returnObjs.push(child);
-				}
-
-				this.getObject3DsRecursive(name, child, returnObjs)
-			}
 		}
 	};
 
 	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
 		msgs: ['hemi.load'],
-		toOctane: ['fileName', 'load']
+		toOctane: ['client', 'fileName', 'load']
 	});
 
 	return hemi;
@@ -5122,11 +5549,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 
-	hemi.Picker = function(scene, camera, width, height) {
+	hemi.Picker = function(scene, camera) {
 		this.scene = scene;
 		this.camera = camera;
-		this.width = width;
-		this.height = height;
+		this.width = 1;
+		this.height = 1;
 
 		this.projector = new THREE.Projector();
 
@@ -5189,21 +5616,20 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 
-	hemi.Client = function(renderer) {
-		renderer.domElement.style.width = "100%";
-		renderer.domElement.style.height = "100%";
+	hemi.ClientBase = function() {
+		this.bgColor = 0;
+		this.bgAlpha = 1;
 		this.camera = new hemi.Camera();
-		//this.light = new THREE.DirectionalLight(0xffffff);
-		this.renderer = renderer;
 		this.scene = new THREE.Scene();
-		this.scene.add(this.camera.light);
-		//this.scene.add(this.light);
-		hemi.input.init(renderer.domElement);
-		var dom = this.renderer.domElement;
-		this.picker = new hemi.Picker(this.scene, this.camera, dom.clientWidth, dom.clientHeight);
+		this.picker = new hemi.Picker(this.scene, this.camera);
+		this.renderer = null;
+		this.lights = [];
+
+		this.useCameraLight(true);
+		hemi.clients.push(this);
 	};
 
-	hemi.Client.prototype = {
+	hemi.ClientBase.prototype = {
 		addGrid: function() {
 			var line_material = new THREE.LineBasicMaterial( { color: 0xcccccc, opacity: 0.2 } ),
 				geometry = new THREE.Geometry(),
@@ -5222,9 +5648,27 @@ var hemi = (function(hemi) {
 			var line = new THREE.Line( geometry, line_material, THREE.LinePieces );
 			this.scene.add(line);
 		},
+		
+		addLight: function(light) {
+			var ndx = this.lights.indexOf(light);
+
+			if (ndx === -1) {
+				this.lights.push(light);
+				this.scene.add(light);
+			}
+		},
 
 		onRender: function() {
 			this.renderer.render(this.scene, this.camera.threeCamera);
+		},
+		
+		removeLight: function(light) {
+			var ndx = this.lights.indexOf(light);
+			
+			if (ndx > -1) {
+				this.lights.splice(ndx, 1);
+				this.scene.remove(light);
+			}
 		},
 
 		resize: function() {
@@ -5239,9 +5683,54 @@ var hemi = (function(hemi) {
 		},
 
 		setBGColor: function(hex, opt_alpha) {
-			this.renderer.setClearColorHex(hex, opt_alpha == null ? 1 : opt_alpha);
+			this.bgColor = hex;
+			this.bgAlpha = opt_alpha == null ? 1 : opt_alpha;
+			this.renderer.setClearColorHex(this.bgColor, this.bgAlpha);
+		},
+
+		setRenderer: function(renderer) {
+			var dom = renderer.domElement;
+			dom.style.width = "100%";
+			dom.style.height = "100%";
+			hemi.input.init(dom);
+
+			renderer.setClearColorHex(this.bgColor, this.bgAlpha);
+			this.renderer = renderer;
+			this.resize();
+		},
+
+		useCameraLight: function(useLight) {
+			if (useLight) {
+				this.addLight(this.camera.light);
+			} else {
+				this.removeLight(this.camera.light);
+			}
 		}
 	};
+
+	hemi.makeCitizen(hemi.ClientBase, 'hemi.Client', {
+		msgs: [],
+		toOctane: function() {
+			return [
+				{
+					name: 'bgColor',
+					val: this.bgColor
+				}, {
+					name: 'bgAlpha',
+					val: this.bgAlpha
+				}, {
+					name: 'useCameraLight',
+					arg: [false]
+				}, {
+					name: 'camera',
+					id: this.camera._getId()
+				}, {
+					name: 'useCameraLight',
+					arg: [true]
+				}
+			];
+		}
+	});
 
 	return hemi;
 })(hemi || {});

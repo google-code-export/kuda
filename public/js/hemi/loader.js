@@ -21,12 +21,18 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 var hemi = (function(hemi) {
 	
 	var colladaLoader = new THREE.ColladaLoader(),
+		resetCB = null,
 		taskCount = 1,
 	
 		decrementTaskCount = function() {
 			if (--taskCount === 0) {
 				taskCount = 1;
 				hemi.send(hemi.msg.ready, {});
+
+				if (resetCB) {
+					resetCB();
+					resetCB = null;
+				}
 			}
 		},
 		
@@ -64,8 +70,66 @@ var hemi = (function(hemi) {
 			decrementTaskCount();
 		});
 	};
+
+	/**
+	 * Load the Octane file at the given URL. If an error occurs, an alert is
+	 * thrown. Otherwise the loaded data is decoded into JSON and passed to the
+	 * Octane module. If the Octane is for an object, it is created and passed
+	 * to the given optional callback. If the Octane is for a World, the current
+	 * World is cleaned up and the new World is created. The given optional
+	 * callback is then executed, followed by hemi.world.ready().
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda
+	 *     directory
+	 * @param {function([Object]):void} opt_callback an optional function to
+	 *     either pass the Object created or execute before the created World's
+	 *     ready function is called
+	 */
+	hemi.loadOctane = function(url, opt_callback) {
+		url = getPath(url);
+		++taskCount;
+
+		hemi.utils.get(url, function(data, status) {
+			decrementTaskCount();
+
+			if (data == null) {
+				hemi.error(status);
+			} else {
+				if (typeof data === 'string') {
+					data = JSON.parse(data);
+				}
+
+				var obj = hemi.fromOctane(data);
+				
+				if (!data.type) {
+					hemi.makeClients();
+					hemi.ready();
+				}
+
+				if (opt_callback) {
+					opt_callback(obj);
+				}
+			}
+		});
+	};
 	
+	/**
+	 * Activate the World once all resources are loaded. This function should
+	 * only be called after all scripting and setup is complete.
+	 */
 	hemi.ready = decrementTaskCount;
+
+	/**
+	 * Make sure all outstanding load tasks are completed and then reset the
+	 * load task count.
+	 *
+	 * @param {function():void} opt_callback an optional function to call when
+	 *     the load tasks have been reset
+	 */
+	hemi.resetLoadTasks = function(opt_callback) {
+		resetCB = opt_callback;
+		decrementTaskCount();
+	};
 	
 	return hemi;
 })(hemi || {});

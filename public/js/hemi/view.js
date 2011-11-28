@@ -648,31 +648,6 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the Octane structure for this Camera.
-	     *
-	     * @return {Object} the Octane structure representing this Camera
-		 */
-		toOctane: function() {
-			var octane = this._super(),
-				curView = hemi.createViewData(this);
-			
-			octane.props.push({
-				name: this.mode.control ? 'enableControl' : 'disableControl',
-				arg: []
-			});
-			octane.props.push({
-				name: 'mode',
-				val: this.mode
-			});
-			octane.props.push({
-				name: 'moveToView',
-				arg: [curView, 0]
-			});
-
-			return octane;
-		},
-		
-		/**
 		 * Move the Camera towards or away from its current target point by the
 		 * given distance.
 		 * 
@@ -780,9 +755,25 @@ var hemi = (function(hemi) {
         }
 	};
 
-    hemi.makeCitizen(hemi.CameraBase, 'hemi.Camera', {
+	hemi.makeCitizen(hemi.CameraBase, 'hemi.Camera', {
 		msgs: ['hemi.start', 'hemi.stop'],
-		toOctane: []
+		toOctane: function() {
+			var curView = hemi.createViewData(this),
+				oct = [
+					{
+						name: this.mode.control ? 'enableControl' : 'disableControl',
+						arg: []
+					}, {
+						name: 'mode',
+						val: this.mode
+					}, {
+						name: 'moveToView',
+						arg: [curView, 0]
+					}
+				];
+
+			return oct;
+		}
 	});
 	
 	/**
@@ -819,11 +810,11 @@ var hemi = (function(hemi) {
 
 			octane.props.push({
 				name: 'eye',
-				oct: this.eye.toOctane()
+				oct: this.eye._toOctane()
 			});
 			octane.props.push({
 				name: 'target',
-				oct: this.target.toOctane()
+				oct: this.target._toOctane()
 			});
 
 			return octane;
@@ -844,7 +835,7 @@ var hemi = (function(hemi) {
 	 * field of view, near plane, and far plane.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.Viewpoint = function(config) {
+	hemi.ViewpointBase = function(config) {
         var cfg = config || {};
         this.name = cfg.name || '';
         this.eye = cfg.eye || new THREE.Vector3(0,0,-1);
@@ -854,7 +845,7 @@ var hemi = (function(hemi) {
         this.fp = cfg.fp ||hemi.viewDefaults.FP;
     };
 
-    hemi.Viewpoint.prototype = {
+    hemi.ViewpointBase.prototype = {
 		/**
 		 * Get the data contained within the Viewpoint.
 		 *
@@ -875,30 +866,12 @@ var hemi = (function(hemi) {
 			this.fov = viewData.fov;
 			this.np = viewData.np;
 			this.fp = viewData.fp;
-		},
-
-		/**
-		 * Get the Octane structure for this Viewpoint.
-	     *
-	     * @return {Object} the Octane structure representing this Viewpoint
-		 */
-		toOctane: function() {
-			var octane = this._super();
-
-			var names = ['eye', 'target', 'fov', 'np', 'fp'];
-
-			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
-				var name = names[ndx];
-
-				octane.props.push({
-					name: name,
-					val: this[name]
-				});
-			}
-
-			return octane;
 		}
 	};
+
+	hemi.makeCitizen(hemi.ViewpointBase, 'hemi.Viewpoint', {
+		toOctane: ['eye', 'target', 'fov', 'np', 'fp']
+	});
 
 	/**
 	 * Create a new ViewData with the given Camera's current viewing parameters.

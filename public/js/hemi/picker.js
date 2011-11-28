@@ -20,11 +20,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 
-	hemi.Picker = function(scene, camera, width, height) {
+	hemi.Picker = function(scene, camera) {
 		this.scene = scene;
 		this.camera = camera;
-		this.width = width;
-		this.height = height;
+		this.width = 1;
+		this.height = 1;
 
 		this.projector = new THREE.Projector();
 
