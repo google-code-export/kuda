@@ -18,15 +18,15 @@
 o3djs.base.o3d = o3d;
 /**
  * @namespace The core Hemi library used by Kuda.
- * @version 1.5.0
+ * @version 1.5.1
  */
 var hemi = (function(hemi) {
 	
 	/**
-	 * The version of Hemi released: 10/11/11
+	 * The version of Hemi released: 11/30/11
 	 * @constant
 	 */
-	hemi.version = '1.5.0';
+	hemi.version = '1.5.1';
 
 	/**
 	 * @namespace A module for handling low level functionality and wrapping
