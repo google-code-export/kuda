@@ -7,36 +7,32 @@ instructions below. As you begin to work with the Hemi library, please refer to
 the API documentation for notes on how to use its different features.
 
 Requirements:
-The Kuda Editor supports Firefox 4, Chrome 10, and IE running Chrome Frame 10
-(http://www.google.com/chromeframe).
-For Windows XP users:
-Chrome and Chrome Frame 10 do not work. You will need to use the version 11 beta
-or use Firefox.
+The Kuda Editor supports Firefox 8+, Chrome 15+, and IE7, 8, and 9 running Chrome
+Frame 15+ (http://www.google.com/chromeframe).
 
 Installation:
 To run the editor and the samples, you'll need to first install node.js. Follow
 the instructions for your platform below.
 
 For Windows:
-1a. Go to http://www.rafaljonca.org/d/nodejs-windows/ and download the latest
-   Windows build of node.js.
-1b. Extract the package to your installation directory. (ex: C:\nodejs)
-2a. In the bin directory, run shell.cmd to open a command line prompt with the
-   proper environment set up for node.js.
-2b. Note that instead of the command "npm" below, use "node npm".
+1. Go to http://nodejs.org/#download and download and run the latest
+   Windows installer.
+2a. Option 1: Create a Windows shortcut to node.exe and add "app" to the
+    "Target:", ex: "C:\Kuda\node.exe app". Change the "Start in:" to the directory
+    with this README, ex: "C:\Kuda". We suggest copying or placing the shortcut on
+    your desktop. Execute the shortcut.
+2b. Option 2: Open a command prompt, cd to Kuda directory with this README, and
+    execute "node app".
 
 For Mac:
-1. Go to https://sites.google.com/site/nodejsmacosx/ and download the latest
-   distribution of node.js. 
-2. Run the package to install.
+1. Go to http://nodejs.org/#download and download and run the latest
+   Mac pkg installer.
+2. Using the terminal application, change your directory to Kuda directory and
+   type "node app.js".
 
-For both OSes:
-3. Open terminal and install the Express web application framework by typing: 
-		npm install express
-4. The Kuda Editor web app also has a few extra dependencies so type the 
-   following to install them:
-		npm install jade
-		npm install sass
+Running the Editor:
+1. Open up your web browser (see supported browsers above) and go to 
+   "http://localhost:3000".
 
 Samples:
 For each sample, open the html file in a browser to view it. You can open the 
@@ -112,17 +108,11 @@ allows you to perform much of the same work in a more visual manner. You can:
 - Save your project as a JSON file
 - Load your saved project from file
 
-Running the Editor:
-1. In the terminal, go to your Kuda directory.
-2. Type node app.js
-3. Open up your web browser (see supported browsers below) and go to 
-   http://localhost:3000/.
-
 Documentation:
 To view documentation for the Hemi library, go to the doc directory and open the
 index.html file.
 
-Directory Listing:
+Directory Listing (Full install):
 assets    -   Your 3D models, images, etc. You should place any assets you 
               create or use in this directory.
 doc       -   API level documentation for the Hemi library
