@@ -1,24 +1,38 @@
-/* 
- * Kuda includes a library and editor for authoring interactive 3D content for the web.
- * Copyright (C) 2011 SRI International.
- *
- * This program is free software; you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation; either 
- * version 2 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program; 
- * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
- * Boston, MA 02110-1301 USA.
- */
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 var hemi = (function(hemi) {
 
 	THREE.Object3D.prototype.pickable = true;
 
+	var getObject3DsRecursive = function(name, obj3d, returnObjs) {
+			for (var i = 0; i < obj3d.children.length; ++i) {
+				var child = obj3d.children[i];
+
+				if (child.name === name) {
+					returnObjs.push(child);
+				}
+
+				getObject3DsRecursive(name, child, returnObjs)
+			}
+		};
 	    
 	hemi.ModelBase = function(client) {
 		this.client = client;
@@ -27,45 +41,36 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.ModelBase.prototype = {
-		load: function(callback) {
+		getObject3Ds: function(name) {
+			var obj3ds = [];
+			getObject3DsRecursive(name, this.root, obj3ds);
+			return obj3ds;
+		},
+
+		load: function() {
 			var that = this;
 
 			hemi.loadCollada(this.fileName, function (collada) {
-				root = collada.scene;
-				that.client.scene.add(root);
-
-				if (callback) {
-					callback(root);
-				}
+				that.root = collada.scene;
+				that.client.scene.add(that.root);
+				that.send(hemi.msg.load, {});
 			});
 		},
 
 		setFileName: function(fileName, callback) {
 			this.fileName = fileName;
 			this.load(callback);
-		},
-
-		getObject3Ds: function(name) {
-			var obj3ds = [];
-			this.getObject3DsRecursive(name, root, obj3ds);
-			return obj3ds;
-		},
-
-		getObject3DsRecursive : function(name, obj3d, returnObjs) {
-			for (var i = 0; i < obj3d.children.length; ++i) {
-				var child = obj3d.children[i];
-				if (child.name == name) {
-					returnObjs.push(child);
-				}
-
-				this.getObject3DsRecursive(name, child, returnObjs)
-			}
 		}
 	};
 
 	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
-		msgs: ['hemi.load'],
-		toOctane: ['fileName', 'load']
+		cleanup: function() {
+			this.client.scene.remove(this.root);
+			this.client = null;
+			this.root = null;
+		},
+		msgs: [hemi.msg.load],
+		toOctane: ['client', 'fileName', 'load']
 	});
 
 	return hemi;

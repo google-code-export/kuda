@@ -1,19 +1,22 @@
-/* 
- * Kuda includes a library and editor for authoring interactive 3D content for the web.
- * Copyright (C) 2011 SRI International.
- *
- * This program is free software; you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation; either 
- * version 2 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program; 
- * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
- * Boston, MA 02110-1301 USA.
- */
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 var hemi = (function(hemi) {
 	/**
@@ -114,45 +117,6 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the Octane structure for the MessageSpec.
-	     *
-	     * @return {Object} the Octane structure representing the MessageSpec
-		 */
-		toOctane: function() {
-			var targetsOct = [];
-			
-			for (var ndx = 0, len = this.targets.length; ndx < len; ndx++) {
-				var oct = this.targets[ndx].toOctane();
-				
-				if (oct !== null) {
-					targetsOct.push(oct);
-				} else {
-					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.ERR);
-				}
-			}
-			
-			var props = [
-				{
-					name: 'src',
-					val: this.src
-				},{
-					name: 'msg',
-					val: this.msg
-				},{
-					name: 'targets',
-					oct: targetsOct
-				}
-			];
-			
-			var octane = {
-				type: 'hemi.dispatch.MessageSpec',
-				props: props
-			};
-			
-			return octane;
-		},
-		
-		/**
 		 * Register the given MessageTarget with the MessageSpec.
 		 * 
 		 * @param {hemi.dispatch.MessageTarget} target the target to add
@@ -197,6 +161,34 @@ var hemi = (function(hemi) {
 			return this.msg + this.src;
 		}
 	};
+
+	hemi.makeOctanable(hemi.dispatch.MessageSpec, 'hemi.dispatch.MessageSpec',
+		function() {
+			var targetsOct = [];
+			
+			for (var ndx = 0, len = this.targets.length; ndx < len; ndx++) {
+				var oct = this.targets[ndx]._toOctane();
+				
+				if (oct !== null) {
+					targetsOct.push(oct);
+				} else {
+					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.ERR);
+				}
+			}
+			
+			return [
+				{
+					name: 'src',
+					val: this.src
+				},{
+					name: 'msg',
+					val: this.msg
+				},{
+					name: 'targets',
+					oct: targetsOct
+				}
+			];
+		});
 	
 	/**
 	 * @class A MessageTarget registers with a MessageSpec to receive Messages
@@ -215,7 +207,7 @@ var hemi = (function(hemi) {
 		 * The id of the MessageTarget.
 		 * @type number
 		 */
-		this.dispatchId = null;
+		this._dispatchId = null;
 		
 		/**
 		 * The name of the MessageTarget.
@@ -251,42 +243,35 @@ var hemi = (function(hemi) {
 		 */
 		cleanup: function() {
 			this.handler = null;
-		},
-		
-		/**
-		 * Get the Octane structure for the MessageTarget.
-	     *
-	     * @return {Object} the Octane structure representing the MessageTarget
-		 */
-		toOctane: function() {
+		}
+	};
+
+	hemi.makeOctanable(hemi.dispatch.MessageTarget, 'hemi.dispatch.MessageTarget',
+		function() {
 			if (!this.handler._getId) {
 				hemi.console.log('Handler object in MessageTarget can not be saved to Octane', hemi.console.WARN);
 				return null;
 			}
 			
-			var names = ['dispatchId', 'name', 'func', 'args'],
-				props = [{
-					name: 'handler',
-					id: this.handler._getId()
-				}];
+			var names = ['_dispatchId', 'name', 'func', 'args'],
+				oct = [
+					{
+						name: 'handler',
+						id: this.handler._getId()
+					}
+				];
 			
 			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
 				var name = names[ndx];
 				
-				props.push({
+				oct.push({
 					name: name,
 					val: this[name]
 				});
 			}
 			
-			var octane = {
-				type: 'hemi.dispatch.MessageTarget',
-				props: props
-			};
-			
-			return octane;
-		}
-	};
+			return oct;
+		});
 	
 	/* All of the MessageSpecs (and MessageTargets) in the Dispatch */
 	hemi.dispatch.msgSpecs = new hemi.utils.Hashtable();
@@ -348,14 +333,14 @@ var hemi = (function(hemi) {
      *
      * @return {Object} the Octane structure representing the MessageDispatcher
 	 */
-	hemi.dispatch.toOctane = function() {
+	hemi.dispatch._toOctane = function() {
 		var octane = {
 			nextId: nextId,
 			ents: []
 		};
 		
 		this.msgSpecs.each(function(key, value) {
-			var oct = value.toOctane();
+			var oct = value._toOctane();
 			
 			if (oct !== null) {
 				octane.ents.push(oct);
@@ -506,7 +491,7 @@ var hemi = (function(hemi) {
 				var add = true;
 				
 				if (dispatchId !== undefined) {
-					add = result.dispatchId === dispatchId;
+					add = result._dispatchId === dispatchId;
 				}
 				if (add && name !== undefined) {
 					add = result.name === name;
@@ -534,14 +519,14 @@ var hemi = (function(hemi) {
 	 */
 	hemi.dispatch.getTargetSpec = function(target) {
 		var specs = this.getSpecs(),
-			dispatchId = target.dispatchId;
+			dispatchId = target._dispatchId;
 		
 		for (var ndx = 0, len = specs.length; ndx < len; ndx++) {
 			var spec = specs[ndx],
 				targets = spec.targets;
 			
 			for (var t = 0, tLen = targets.length; t < tLen; t++) {
-				if (targets[t].dispatchId === dispatchId) {
+				if (targets[t]._dispatchId === dispatchId) {
 					return spec;
 				}
 			}
@@ -595,7 +580,7 @@ var hemi = (function(hemi) {
 	hemi.dispatch.registerTarget = function(src, msg, handler, opt_func, opt_args) {
 		var spec = this.createSpec(src, msg),
 			msgTarget = new hemi.dispatch.MessageTarget();
-		msgTarget.dispatchId = this.getNextId();
+		msgTarget._dispatchId = this.getNextId();
 		msgTarget.handler = handler;
 		
 		if (opt_func) {
