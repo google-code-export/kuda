@@ -203,8 +203,8 @@ var hemi = (function(hemi) {
 		var hdrEnd = src.lastIndexOf(';', src.indexOf('{')) + 1,
 			sprtEnd = src.indexOf('void main', hdrEnd),
 			bodyStart = src.indexOf('{', sprtEnd) + 1,
-			bodyEnd = src.indexOf(global, bodyStart),
-			globEnd = src.lastIndexOf(';') + 1;
+			bodyEnd = src.lastIndexOf(global),
+			globEnd = src.lastIndexOf('}');
 		
 		if (src.charAt(hdrEnd) === '\n') {
 			++hdrEnd;

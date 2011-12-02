@@ -20,35 +20,69 @@
  *		top of the hello world demo.
  */
 (function() {
-	function init(clientElements) {
-		hemi.core.init(clientElements[0]);
-		hemi.view.setBGColor([1, 1, 0.7, 1]);
-		hemi.loader.loadPath = '../../';
+	
+	var client;
+	
+	function init() {
+		/**
+		 * It is possible to have multiple clients (i.e. multiple frames
+		 * 		rendering 3d content) on one page that would have to be
+		 * 		initialized. In this case, we only want to initialize the
+		 *		first one.
+		 */
+		theClient = client = hemi.makeClients()[0];
+		
+		/**
+		 * Set the background color to a light-bluish. The parameters are a hex
+		 * 		code for the RGB values and an alpha value between 0 and 1.
+		 */
+		client.setBGColor(0xffffaa, 1);
+		
+		/**
+		 * Set a prefix for the loader that will allow us to load assets as if
+		 * the helloWorld.html file was in the root directory.
+		 */
+		hemi.loadPath = '../../';
+		
 		createWorld();
-	};
+	}
 	
 	function createWorld() {
-		// instantiate the progress bar
-		var pBar = new hext.progressUI.bar();
-		var house = new hemi.model.Model();				// Create a new Model
-		house.setFileName('assets/house_v12/scene.json'); // Set the model file
+
+		/**
+		 * hemi.world is the default world created to manage all of our models,
+		 *		cameras, effects, etc. When we set the model's file name, it
+		 *		will begin loading that file.
+		 */
+//		var house = new hemi.Model(client);				// Create a new Model
+//		house.setFileName('assets/house_v12/house_v12.dae'); // Set the model file
 		
-		hemi.world.subscribe(hemi.msg.ready,
-			function(msg) {	
-				setupScene(house);
+		/**
+		 * When we call the 'ready' function, it will wait for the model to
+		 *		finish loading and then it will send out a Ready message. Here
+		 *		we register a handler, setupScene(), to be run when the message
+		 *		is sent.
+		 */
+		hemi.subscribe(hemi.msg.ready,
+			function(msg) {
+				setupScene();
 			});
 		
-		hemi.world.ready();
+		hemi.ready();   // Indicate that we are ready to start our script
 	};
-	
-	function setupScene(house) {
-		var vp = new hemi.view.Viewpoint();		// Create a new Viewpoint
-		vp.eye = [-10,800,1800];					// Set viewpoint eye
-		vp.target = [10,250,30];					// Set viewpoint target
-
-		hemi.world.camera.moveToView(vp, 2.5);
 		
-		hemi.world.camera.enableControl();	// Enable camera mouse control
+	function setupScene(house) {
+		var vp = new hemi.Viewpoint();		// Create a new Viewpoint
+		vp.eye = new THREE.Vector3(-10, 800, 1800);					// Set viewpoint eye
+		vp.target = new THREE.Vector3(10, 250,30);					// Set viewpoint targetget
+
+		/**
+		 * Move the camera from it's default position (eye : [0,0,-1],
+		 *		target : [0,0,0]} to the new viewpoint, and take 120
+		 *		render cycles (~2 seconds) to do so.
+		 */
+		client.camera.moveToView(vp, 2.5);
+		client.camera.enableControl();	// Enable camera mouse control
 		
 		/*
 		 * The bounding boxes which the arrows will flow through:
@@ -98,7 +132,7 @@
 		/* Create the particle system with the above config, 
 		 * and make the root transform its parent.
 		 */
-		var particleSystem = hemi.curve.createSystem(systemConfig);
+		var particleSystem = hemi.createCurveSystem(client, systemConfig);
 		var showBoxes = false;		// If boxes are being shown
 		
 		/* Register a keyDown listener:
@@ -155,12 +189,12 @@
 	};
 
 	jQuery(window).load(function() {
-		o3djs.webgl.makeClients(init);
+		init();
 	});
 
 	jQuery(window).unload(function() {
-		if (hemi.core.client) {
-			hemi.core.client.cleanup();
-		}
+		//if (hemi.core.client) {
+	//		hemi.core.client.cleanup();
+	//	}
 	});
 })();
