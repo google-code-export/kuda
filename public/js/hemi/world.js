@@ -1,19 +1,22 @@
-/* 
- * Kuda includes a library and editor for authoring interactive 3D content for the web.
- * Copyright (C) 2011 SRI International.
- *
- * This program is free software; you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation; either 
- * version 2 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program; 
- * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
- * Boston, MA 02110-1301 USA.
- */
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 var hemi = (function(hemi) {
 	
@@ -34,6 +37,30 @@ var hemi = (function(hemi) {
 			
 			scope[names[il]] = clsCon;
 		},
+        
+		/*
+		 * Get the Citizen's id.
+		 * 
+		 * @return {number} the id
+		 */        
+        _getId = function() {
+        	return this._worldId;
+        },
+		
+		/*
+		 * Set the Citizen's id.
+		 * 
+		 * @param {number} id the id to set
+		 */
+        _setId = function(id) {
+        	var oldId = this._worldId;
+			this._worldId = id;
+			
+			if (oldId !== null) {
+				hemi.world.citizens.remove(oldId);
+				hemi.world.citizens.put(id, this);
+			}
+        },
 	
 		/*
 		 * Send a Message with the given attributes from the Citizen to any
@@ -61,7 +88,7 @@ var hemi = (function(hemi) {
 		 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
 		 */
 		subscribe = function(type, handler, opt_func, opt_args) {
-			return hemi.dispatch.registerTarget(this.worldId, type, handler,
+			return hemi.dispatch.registerTarget(this._worldId, type, handler,
 				opt_func, opt_args);
 		},
 	
@@ -78,7 +105,7 @@ var hemi = (function(hemi) {
 		 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
 		 */
 		subscribeAll = function(handler, opt_func, opt_args) {
-			return hemi.dispatch.registerTarget(this.worldId, hemi.dispatch.WILDCARD,
+			return hemi.dispatch.registerTarget(this._worldId, hemi.dispatch.WILDCARD,
 				handler, opt_func, opt_args);
 		},
 	
@@ -95,7 +122,7 @@ var hemi = (function(hemi) {
 		 */
 		unsubscribe = function(target, opt_type) {
 			return hemi.dispatch.removeTarget(target, {
-				src: this.worldId,
+				src: this._worldId,
 				msg: opt_type
 			});
 		};
@@ -115,8 +142,10 @@ var hemi = (function(hemi) {
 	hemi.makeCitizen = function(clsCon, clsName, opts) {
 		opts = opts || {};
 		var cleanFunc = opts.cleanup,
-			msgs = opts.msgs || [hemi.msg.cleanup];
+			msgs = opts.msgs || [];
 		
+		msgs.push(hemi.msg.cleanup);
+
 		/*
 		 * A Citizen is a uniquely identifiable member of a World that is
 		 * able to send Messages through the World's dispatch. The Citizen's id is
@@ -146,30 +175,6 @@ var hemi = (function(hemi) {
 		 */
         Citizen.prototype._msgSent = msgs;
         
-		/*
-		 * Get the Citizen's id.
-		 * 
-		 * @return {number} the id
-		 */        
-        Citizen.prototype._getId = function() {
-        	return this._worldId;
-        };
-		
-		/*
-		 * Set the Citizen's id.
-		 * 
-		 * @param {number} id the id to set
-		 */
-        Citizen.prototype._setId = function(id) {
-        	var oldId = this._worldId;
-			this._worldId = id;
-			
-			if (oldId !== null) {
-				hemi.world.citizens.remove(oldId);
-				hemi.world.citizens.put(id, this);
-			}
-        };
-        
         /*
 		 * Send a cleanup Message and remove the Citizen from the World.
 		 * Base classes should extend this so that it removes all references to
@@ -183,8 +188,10 @@ var hemi = (function(hemi) {
         	}
 
 			hemi.world.removeCitizen(this);
-        };
-        
+		};
+
+        Citizen.prototype._getId = _getId;
+        Citizen.prototype._setId = _setId;
         Citizen.prototype.send = send;
         Citizen.prototype.subscribe = subscribe;
         Citizen.prototype.subscribeAll = subscribeAll;
@@ -272,6 +279,25 @@ var hemi = (function(hemi) {
 		}
 		
 		this.citizens.put(id, citizen);
+	};
+	
+	/**
+	 * Perform cleanup on the World and release all resources. This effectively
+	 * resets the World.
+	 */
+	hemi.world.cleanup = function() {
+		hemi.resetLoadTasks();
+		hemi.send(hemi.msg.cleanup, {});
+		
+		hemi.world.citizens.each(function(key, value) {
+			value.cleanup();
+		});
+		
+		if (hemi.world.citizens.size() > 0) {
+			hemi.console.log('World cleanup did not remove all citizens.', hemi.console.ERR);
+		}
+		
+		nextId = 1;
 	};
 	
 	/**
@@ -693,6 +719,40 @@ var hemi = (function(hemi) {
 		}
 		
 		return owner;
+	};
+	
+	/**
+	 * Get the Octane structure for the World.
+     * 
+	 * @param {function(Citizen): boolean} opt_filter optional filter function
+	 *     that takes a Citizen and returns true if the Citizen should be
+	 *     included in the returned Octane
+     * @return {Object} the Octane structure representing the World
+	 */
+	hemi.world.toOctane = function(opt_filter) {
+		var octane = {
+			version: hemi.version,
+			nextId: nextId,
+			citizens: []
+		};
+		
+		this.citizens.each(function(key, value) {
+			var accept = opt_filter ? opt_filter(value) : true;
+			
+			if (accept) {
+				var oct = value._toOctane();
+				
+				if (oct !== null) {
+					octane.citizens.push(oct);
+				} else {
+					hemi.console.log('Null Octane returned by Citizen with id ' + value.getId(), hemi.console.WARN);
+				}
+			}
+		});
+		
+		octane.dispatch = hemi.dispatch._toOctane();
+		
+		return octane;
 	};
 	
 	return hemi;

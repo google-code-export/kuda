@@ -244,7 +244,8 @@ var uglifyHemi = function(src, dst) {
 		var args = {
 			dist: src,
 			moduleFiles: [
-				'hemi/core.js',
+				'lib/Detector.js',
+				'lib/jshashtable.min.js',
 				'hemi/utils/inheritance.js',
 				'hemi/utils/hashtable.js',
 				'hemi/utils/jsUtils.js',
@@ -253,7 +254,8 @@ var uglifyHemi = function(src, dst) {
 				'hemi/utils/stringUtils.js',
 				'hemi/utils/transformUtils.js',
 				'hemi/msg.js',
-				//'hemi/console.js',
+				'hemi/console.js',
+				'hemi/core.js',
 				'hemi/loader.js',
 				//'hemi/accessibility.js',
 				'hemi/world.js',
@@ -267,7 +269,7 @@ var uglifyHemi = function(src, dst) {
                 'hemi/picker.js',
                 'hemi/client.js',
 				//'hemi/animation.js',
-				//'hemi/motion.js',
+				'hemi/motion.js',
 				//'hemi/effect.js',
 				//'hemi/scene.js',
 				//'hemi/hud.js',
@@ -275,31 +277,33 @@ var uglifyHemi = function(src, dst) {
 				'hemi/curve.js',
 				//'hemi/sprite.js',
 				//'hemi/shape.js',
-				'hemi/fx.js'
+				'hemi/fx.js',
 				//'hemi/texture.js',
-				//'hemi/timer.js'
+				'hemi/timer.js'
 			]
 		},
 		header =
-'/*\n\
- * Kuda includes a library and editor for authoring interactive 3D content for the web.\n\
- * Copyright (C) 2011 SRI International.\n\
- *\n\
- * This program is free software; you can redistribute it and/or modify it under the terms\n\
- * of the GNU General Public License as published by the Free Software Foundation; either\n\
- * version 2 of the License, or (at your option) any later version.\n\
- *\n\
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;\n\
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\
- * See the GNU General Public License for more details.\n\
- *\n\
- * You should have received a copy of the GNU General Public License along with this program;\n\
- * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,\n\
- * Boston, MA 02110-1301 USA.\n\
- */\n';
+'/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */\n\
+/*\n\
+The MIT License (MIT)\n\
+\n\
+Copyright (c) 2011 SRI International\n\
+\n\
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated\n\
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the\n\
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit\n\
+persons to whom the Software is furnished to do so, subject to the following conditions:\n\
+\n\
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the\n\
+Software.\n\
+\n\
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE\n\
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n\
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR\n\
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
+*/\n';
 		catFiles(args);
 		fs.writeFileSync(dst + '/hemi.src.js', args.uglyData);
-		// TODO: Add the GPL header
 		uglifyFile(dst + '/hemi.src.js', header);
 };
 

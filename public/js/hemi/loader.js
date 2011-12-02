@@ -1,29 +1,38 @@
-/* 
- * Kuda includes a library and editor for authoring interactive 3D content for the web.
- * Copyright (C) 2011 SRI International.
- *
- * This program is free software; you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation; either 
- * version 2 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program; 
- * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
- * Boston, MA 02110-1301 USA.
- */
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 var hemi = (function(hemi) {
 	
 	var colladaLoader = new THREE.ColladaLoader(),
+		resetCB = null,
 		taskCount = 1,
 	
 		decrementTaskCount = function() {
 			if (--taskCount === 0) {
 				taskCount = 1;
 				hemi.send(hemi.msg.ready, {});
+
+				if (resetCB) {
+					resetCB();
+					resetCB = null;
+				}
 			}
 		},
 		
@@ -61,8 +70,66 @@ var hemi = (function(hemi) {
 			decrementTaskCount();
 		});
 	};
+
+	/**
+	 * Load the Octane file at the given URL. If an error occurs, an alert is
+	 * thrown. Otherwise the loaded data is decoded into JSON and passed to the
+	 * Octane module. If the Octane is for an object, it is created and passed
+	 * to the given optional callback. If the Octane is for a World, the current
+	 * World is cleaned up and the new World is created. The given optional
+	 * callback is then executed, followed by hemi.world.ready().
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda
+	 *     directory
+	 * @param {function([Object]):void} opt_callback an optional function to
+	 *     either pass the Object created or execute before the created World's
+	 *     ready function is called
+	 */
+	hemi.loadOctane = function(url, opt_callback) {
+		url = getPath(url);
+		++taskCount;
+
+		hemi.utils.get(url, function(data, status) {
+			decrementTaskCount();
+
+			if (data == null) {
+				hemi.error(status);
+			} else {
+				if (typeof data === 'string') {
+					data = JSON.parse(data);
+				}
+
+				var obj = hemi.fromOctane(data);
+				
+				if (!data.type) {
+					hemi.makeClients();
+					hemi.ready();
+				}
+
+				if (opt_callback) {
+					opt_callback(obj);
+				}
+			}
+		});
+	};
 	
+	/**
+	 * Activate the World once all resources are loaded. This function should
+	 * only be called after all scripting and setup is complete.
+	 */
 	hemi.ready = decrementTaskCount;
+
+	/**
+	 * Make sure all outstanding load tasks are completed and then reset the
+	 * load task count.
+	 *
+	 * @param {function():void} opt_callback an optional function to call when
+	 *     the load tasks have been reset
+	 */
+	hemi.resetLoadTasks = function(opt_callback) {
+		resetCB = opt_callback;
+		decrementTaskCount();
+	};
 	
 	return hemi;
 })(hemi || {});

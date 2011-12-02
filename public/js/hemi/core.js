@@ -1,19 +1,22 @@
-/* 
- * Kuda includes a library and editor for authoring interactive 3D content for the web.
- * Copyright (C) 2011 SRI International.
- *
- * This program is free software; you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation; either 
- * version 2 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program; 
- * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
- * Boston, MA 02110-1301 USA.
- */
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 
 /*
@@ -58,7 +61,9 @@ if (!window.requestAnimationFrame) {
 var hemi = (function(hemi) {
 	
 	var errCallback = null,
+	
 		fps = 60,
+		
 		hz = 1 / fps,
 	
 		/*
@@ -68,6 +73,32 @@ var hemi = (function(hemi) {
 		lastRenderTime = 0,
 	
 		renderListeners = [],
+		
+		getRenderer = function(element) {
+			var renderer = null;
+			
+			if (Detector.webgl) {
+				renderer = new THREE.WebGLRenderer();
+			} else {
+				if (Detector.canvas) {
+					renderer = new THREE.CanvasRenderer();
+				}
+				
+				Detector.addGetWebGLMessage({
+					id: 'warn_' + element.id,
+					parent: element
+				});
+				
+				(function(elem) {
+					setTimeout(function() {
+						var msg = document.getElementById('warn_' + elem.id);
+						elem.removeChild(msg);
+					}, 5000);
+				})(element);
+			}
+			
+			return renderer;
+		},
 		
 		render = function(update) {
 			requestAnimationFrame(render);
@@ -104,34 +135,50 @@ var hemi = (function(hemi) {
 	 * @constant
 	 */
 	hemi.version = '1.5.0';
+	hemi.console.setEnabled(true);
 	
+	/**
+	 * The list of Clients being rendered on the current webpage.
+	 */
 	hemi.clients = [];
 	
+	/**
+	 * Search the webpage for any divs with an ID starting with "kuda" and
+	 * create a Client and canvas within each div that will be rendered to using
+	 * WebGL.
+	 */
 	hemi.makeClients = function() {
 		var elements = document.getElementsByTagName('div'),
-			clients = [];
-		
-		// TODO: test for WebGL and fallback to canvas renderer
-		if ( ! Detector.webgl ) Detector.addGetWebGLMessage();
+			numClients = hemi.clients.length;
 		
 		for (var i = 0; i < elements.length; ++i) {
 			var element = elements[i];
 			
 			if (element.id && element.id.match(/^kuda/)) {
-				var renderer = new THREE.WebGLRenderer(),
-					client = new hemi.Client(renderer);
+				var renderer = getRenderer(element);
 				
-				element.appendChild(renderer.domElement);
-				hemi.clients.push(client);
-				clients.push(client);
+				if (renderer) {
+					var client = i < numClients ? hemi.clients[i] : new hemi.Client();
+					
+					element.appendChild(renderer.domElement);
+					client.setRenderer(renderer);
+				}
 			}
 		}
 		
-		resize();
+		hemi.init();
+		return hemi.clients;
+	};
+
+	/**
+	 * Initialize hemi features. This does not need to be called if
+	 * hemi.makeClients() is called, but it can be used on its own if you don't
+	 * want to use hemi's client system.
+	 */
+	hemi.init = function() {
 		window.addEventListener('resize', resize, false);
 		lastRenderTime = new Date().getTime() * 0.001;
 		render(true);
-		return clients;
 	};
 	
 	/**
@@ -217,19 +264,6 @@ var hemi = (function(hemi) {
 	hemi.setFPS = function(newFps) {
 		fps = newFps;
 		hz = 1/fps;
-	};
-
-	hemi.init = function() {
-		hemi.picking.init();
-		hemi.input.init();
-		hemi.view.init();
-		hemi.curve.init();
-		hemi.model.init();
-		hemi.effect.init();
-		hemi.hud.init();
-		hemi.shape.init();
-		hemi.sprite.init();
-		hemi.world.init();
 	};
 	
 	return hemi;

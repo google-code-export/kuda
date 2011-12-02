@@ -1,19 +1,22 @@
-/* 
- * Kuda includes a library and editor for authoring interactive 3D content for the web.
- * Copyright (C) 2011 SRI International.
- *
- * This program is free software; you can redistribute it and/or modify it under the terms
- * of the GNU General Public License as published by the Free Software Foundation; either 
- * version 2 of the License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
- * See the GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License along with this program; 
- * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
- * Boston, MA 02110-1301 USA.
- */
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
 
 /**
  * @fileoverview Classes used for setting viewpoints, controlling the camera,
@@ -108,14 +111,6 @@ var hemi = (function(hemi) {
 		};
 
 	hemi.CameraBase.prototype = {
-		/**
-		 * Send a cleanup Message and remove all references in the Camera.
-		 */
-		cleanup: function() {
-			hemi.removeRenderListener(this);
-			this.disableControl();
-		},
-		
 		/**
 		 * Disable control of the Camera through the mouse and keyboard.
 		 */
@@ -645,31 +640,6 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the Octane structure for this Camera.
-	     *
-	     * @return {Object} the Octane structure representing this Camera
-		 */
-		toOctane: function() {
-			var octane = this._super(),
-				curView = hemi.createViewData(this);
-			
-			octane.props.push({
-				name: this.mode.control ? 'enableControl' : 'disableControl',
-				arg: []
-			});
-			octane.props.push({
-				name: 'mode',
-				val: this.mode
-			});
-			octane.props.push({
-				name: 'moveToView',
-				arg: [curView, 0]
-			});
-
-			return octane;
-		},
-		
-		/**
 		 * Move the Camera towards or away from its current target point by the
 		 * given distance.
 		 * 
@@ -777,9 +747,30 @@ var hemi = (function(hemi) {
         }
 	};
 
-    hemi.makeCitizen(hemi.CameraBase, 'hemi.Camera', {
-		msgs: ['hemi.start', 'hemi.stop'],
-		toOctane: []
+	hemi.makeCitizen(hemi.CameraBase, 'hemi.Camera', {
+		cleanup: function() {
+			hemi.removeRenderListener(this);
+			this.disableControl();
+			this.threeCamera = null;
+		},
+		msgs: [hemi.msg.start, hemi.msg.stop],
+		toOctane: function() {
+			var curView = hemi.createViewData(this),
+				oct = [
+					{
+						name: this.mode.control ? 'enableControl' : 'disableControl',
+						arg: []
+					}, {
+						name: 'mode',
+						val: this.mode
+					}, {
+						name: 'moveToView',
+						arg: [curView, 0]
+					}
+				];
+
+			return oct;
+		}
 	});
 	
 	/**
@@ -816,11 +807,11 @@ var hemi = (function(hemi) {
 
 			octane.props.push({
 				name: 'eye',
-				oct: this.eye.toOctane()
+				oct: this.eye._toOctane()
 			});
 			octane.props.push({
 				name: 'target',
-				oct: this.target.toOctane()
+				oct: this.target._toOctane()
 			});
 
 			return octane;
@@ -841,7 +832,7 @@ var hemi = (function(hemi) {
 	 * field of view, near plane, and far plane.
 	 * @extends hemi.world.Citizen
 	 */
-	hemi.Viewpoint = function(config) {
+	hemi.ViewpointBase = function(config) {
         var cfg = config || {};
         this.name = cfg.name || '';
         this.eye = cfg.eye || new THREE.Vector3(0,0,-1);
@@ -851,7 +842,7 @@ var hemi = (function(hemi) {
         this.fp = cfg.fp ||hemi.viewDefaults.FP;
     };
 
-    hemi.Viewpoint.prototype = {
+    hemi.ViewpointBase.prototype = {
 		/**
 		 * Get the data contained within the Viewpoint.
 		 *
@@ -872,30 +863,12 @@ var hemi = (function(hemi) {
 			this.fov = viewData.fov;
 			this.np = viewData.np;
 			this.fp = viewData.fp;
-		},
-
-		/**
-		 * Get the Octane structure for this Viewpoint.
-	     *
-	     * @return {Object} the Octane structure representing this Viewpoint
-		 */
-		toOctane: function() {
-			var octane = this._super();
-
-			var names = ['eye', 'target', 'fov', 'np', 'fp'];
-
-			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
-				var name = names[ndx];
-
-				octane.props.push({
-					name: name,
-					val: this[name]
-				});
-			}
-
-			return octane;
 		}
 	};
+
+	hemi.makeCitizen(hemi.ViewpointBase, 'hemi.Viewpoint', {
+		toOctane: ['eye', 'target', 'fov', 'np', 'fp']
+	});
 
 	/**
 	 * Create a new ViewData with the given Camera's current viewing parameters.
