@@ -268,7 +268,7 @@ var uglifyHemi = function(src, dst) {
 				'hemi/model.js',
                 'hemi/picker.js',
                 'hemi/client.js',
-				//'hemi/animation.js',
+				'hemi/animationSequence.js',
 				'hemi/motion.js',
 				//'hemi/effect.js',
 				//'hemi/scene.js',

@@ -414,6 +414,15 @@ var hemi = (function(hemi) {
 		var y = (-p[1]+1.0)*0.5*h;
 		return [x,y,p[2]];
 	};
+
+	/**
+	 * Convert an angle from radians to degrees
+	 * @param {number} radians an angle
+	 * @return {number} the angle in degrees
+	 */
+	hemi.utils.radToDeg = function(radians) {
+  		return radians * 180 / Math.PI;
+	};
 	
 	return hemi;
 })(hemi || {});

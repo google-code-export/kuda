@@ -48,9 +48,7 @@ var hemi = (function(hemi) {
 						hemi.send(hemi.msg.pick,
 							{
 								mouseEvent: mouseEvent,
-								//PABNOTE right now return the parent of the picked obj
-								//due to how the loader works
-								pickedMesh: pickedObjs[0].object.parent
+								pickedMesh: pickedObjs[0].object
 							});
 						break;
 					}
