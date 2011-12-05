@@ -732,7 +732,7 @@ var hemi = (function(hemi) {
             var targetPosition = this.getTarget();
             this.threeCamera.position = camPosition;
             this.threeCamera.updateMatrix();
-            this.threeCamera.update(null, true, null);
+            this.threeCamera.updateMatrixWorld(true);
             this.threeCamera.lookAt(targetPosition);
             if (this.mode.fixedLight) {
 				this.light.position = this.threeCamera.position;
@@ -743,7 +743,7 @@ var hemi = (function(hemi) {
 		},
 
         updateWorldMatrices : function() {
-            this.panTilt.update(null, true, null);
+            this.panTilt.updateMatrixWorld(true);
         }
 	};
 
