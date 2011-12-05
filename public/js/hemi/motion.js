@@ -51,7 +51,7 @@ var hemi = (function(hemi) {
         this.toLoad = {};
         this.transformObjs = [];
 
-        if (opt_tran != null) {
+        if (opt_tran !== null) {
             this.addTransform(opt_tran);
         }
 
@@ -206,7 +206,7 @@ var hemi = (function(hemi) {
          * @param {THREE.Vector3} vel XYZ angular velocity (in radians)
          */
         setVel: function(vel) {
-            this.vel = vel.clone()
+            this.vel = vel.clone();
             shouldRender.call(this);
         },
 
@@ -287,7 +287,7 @@ var hemi = (function(hemi) {
 		this.toLoad = {};
 		this.transformObjs = [];
 
-		if (opt_tran != null) {
+		if (opt_tran !== null) {
 			this.addTransform(opt_tran);
 		}
 
@@ -467,7 +467,7 @@ var hemi = (function(hemi) {
 		} else {
 			hemi.addRenderListener(this);
 		}
-	},
+	};
 
 	applyTranslator = function(opt_objs) {
 		var objs = this.transformObjs;
@@ -482,7 +482,7 @@ var hemi = (function(hemi) {
 			transform.position = this.pos.clone();
 			transform.updateMatrix();
 		}
-	},
+	};
 
 	
 	applyRotator = function(opt_objs) {
@@ -495,11 +495,16 @@ var hemi = (function(hemi) {
 		for (var i = 0, il = objs.length; i < il; i++) {
 			var transform = objs[i];
 			hemi.utils.identity(transform);
-			transform.rotation = this.angle.clone();
+			if (transform.useQuaternion) {
+				transform.quaternion.setFromEuler(new THREE.Vector3(
+				 hemi.utils.radToDeg(this.angle.x), hemi.utils.radToDeg(this.angle.y), hemi.utils.radToDeg(this.angle.z)));
+			}
+			else {
+				transform.rotation = this.angle.clone();
+			}
 			transform.updateMatrix();
 		}
 	};
-
 
 	return hemi;
 })(hemi || {});

@@ -30,6 +30,7 @@ var hemi = (function(hemi) {
 		this.lights = [];
 
 		this.useCameraLight(true);
+		this.scene.add(this.camera.threeCamera)
 		hemi.clients.push(this);
 	};
 

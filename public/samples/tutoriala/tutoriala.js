@@ -32,19 +32,20 @@
 	var interval;
 	var enterMoveCamera;
 	var entered = false;
+	var client;
 
-	function init(clientElements) {
+	function init() {
 		bindJavascript();
-		hemi.core.init(clientElements[0]);
-		hemi.view.setBGColor([1, 1, 1, 1]);
-		hemi.loader.loadPath = '../../';
-		house = new hemi.model.Model();
-		house.setFileName('assets/house_v12/scene.json');
-		hemi.world.subscribe(hemi.msg.ready,
+		client = hemi.makeClients()[0];
+		client.setBGColor([1, 1, 1, 1]);
+		hemi.loadPath = '../../';
+		house = new hemi.Model(client);
+		house.setFileName('assets/house_v12/house_v12.dae');
+		hemi.subscribe(hemi.msg.ready,
 			function(msg) {
 				setupScene();
 			});
-		hemi.world.ready();
+		hemi.ready();
 	}
 
 	function bindJavascript() {
@@ -56,28 +57,28 @@
 	}
 
 	function setupScene() {
-		house.setTransformVisible(house.getTransforms('SO_door')[0], false);
-		house.setTransformVisible(house.getTransforms('SO_window1sashLeft')[0], false);
-		house.setTransformVisible(house.getTransforms('SO_window1sashRight')[0], false);
-		house.setTransformVisible(house.getTransforms('camEye_outdoors')[0], false);
-		house.setTransformVisible(house.getTransforms('camEye_indoors')[0], false);
-		house.setTransformVisible(house.getTransforms('camTarget_outdoors')[0], false);
-		house.setTransformVisible(house.getTransforms('camTarget_indoors')[0], false);
-		house.setTransformPickable(house.getTransforms('camEye_outdoors')[0], false);
-		house.setTransformPickable(house.getTransforms('camEye_indoors')[0], false);
-		house.setTransformPickable(house.getTransforms('camTarget_outdoors')[0], false);
-		house.setTransformPickable(house.getTransforms('camTarget_indoors')[0], false);
+		var stuff = house.getObject3Ds('SO_door')[0];
+		house.getObject3Ds('SO_door')[0].visible = false;
+		house.getObject3Ds('SO_window1sashLeft')[0].visible = false;
+		house.getObject3Ds('SO_window1sashRight')[0].visible = false;
+		house.getObject3Ds('camEye_outdoors')[0].visible = false;
+		house.getObject3Ds('camEye_indoors')[0].visible = false;
+		house.getObject3Ds('camTarget_outdoors')[0].visible = false;
+		house.getObject3Ds('camTarget_indoors')[0].visible = false;
+		house.getObject3Ds('camEye_outdoors')[0].isPickable = false;
+		house.getObject3Ds('camEye_indoors')[0].isPickable = false;;
+		house.getObject3Ds('camTarget_outdoors')[0].isPickable = false;;
+		house.getObject3Ds('camTarget_indoors')[0].isPickable = false;;
 
-		var hMath = hemi.core.math;
-		hemi.world.camera.fixEye();
-		hemi.world.camera.setLookAroundLimits(null, null, hemi.core.math.degToRad(-50),
-			hemi.core.math.degToRad(50));
-		hemi.world.camera.enableControl();
+		client.camera.fixEye();
+		client.camera.setLookAroundLimits(null, null, degToRad(-50),
+			degToRad(50));
+		client.camera.enableControl();
 
-		door = new hext.house.Door(house.getTransforms('door')[0]);
+		door = new hext.house.Door(house.getObject3Ds('door')[0]);
 		door.angle = -door.angle;
 		door.onPick(function(msg) {
-			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
+			switch (msg.data.pickedMesh.name) {
 				case 'SO_door':
 				case 'door':
 					door.swing();
@@ -86,9 +87,9 @@
 			}
 		});
 
-		window1Left = new hext.house.Window(house.getTransforms('window1_sashLeft')[0],[0,60,0]);
+		window1Left = new hext.house.Window(house.getObject3Ds('window1_sashLeft')[0],[0,60,0]);
 		window1Left.onPick(function(msg) {
-			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
+			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashLeft':
 				case 'window1_sashLeft':
 					window1Left.slide();
@@ -97,9 +98,9 @@
 			}
 		});
 	
-		window1Right = new hext.house.Window(house.getTransforms('window1_sashRight')[0],[0,60,0]);
+		window1Right = new hext.house.Window(house.getObject3Ds('window1_sashRight')[0],[0,60,0]);
 		window1Right.onPick(function(msg) {
-			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
+			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashRight':
 				case 'window1_sashRight':
 					window1Right.slide();
@@ -108,11 +109,11 @@
 			}
 		});	
 		
-		var viewpoint = new hemi.view.Viewpoint();
-		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_outdoors')[0].localMatrix);
-		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_outdoors')[0].localMatrix);
-		viewpoint.fov = hemi.core.math.degToRad(60);
-		hemi.world.camera.moveToView(viewpoint, 2.5);
+		var viewpoint = new hemi.Viewpoint();
+		viewpoint.eye = house.getObject3Ds('camEye_outdoors')[0].position.clone();
+		viewpoint.target = house.getObject3Ds('camTarget_outdoors')[0].position.clone();
+		viewpoint.fov = degToRad(60);
+		client.camera.moveToView(viewpoint, 2.5);
 		// Use a simple function to track when the windows and door are open to allow entering the house per the script.
 		enterMoveCamera = function() {
 			if (door.closed || window1Right.closed || window1Left.closed || entered) {
@@ -129,18 +130,18 @@
 		} catch(e) { }
 
 		entered = true;
-		var viewpoint = new hemi.view.Viewpoint();
-		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_indoors')[0].localMatrix);
-		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_indoors')[0].localMatrix);
-		viewpoint.fov = hemi.core.math.degToRad(60);
-		hemi.world.camera.subscribe(hemi.msg.stop,
+		var viewpoint = new hemi.Viewpoint();
+		viewpoint.eye = house.getObject3Ds('camEye_indoors')[0].position.clone();
+		viewpoint.target = house.getObject3Ds('camTarget_indoors')[0].position.clone();
+		viewpoint.fov = degToRad(60);
+		client.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
 					lightTheFire();
 				}
 			});
 		enterMoveCamera();
-		hemi.world.camera.moveToView(viewpoint, 2.5);
+		client.camera.moveToView(viewpoint, 2.5);
 	}
 
 	function lightTheFire() {
@@ -148,7 +149,7 @@
 			console.log.apply(console, ["Light the fire"]);
 		} catch(e) { }
 
-		var colorRamp = 
+	/*	var colorRamp = 
 			[1, 1, 0, 0.6,
 			 1, 0, 0, 0.6,
 			 0, 0, 0, 1,
@@ -173,13 +174,13 @@
 			colorRamp,
 			params);
 		fire.transform.translate(0.0, 72.0, -236.0);
-		fire.show();
+		fire.show();*/
 
 		// Per the script start the book animation curve 2 seconds after the fire is lit.
 		setTimeout(function() {
-			var animation = hemi.animation.createModelAnimation(house, 0, 60);
-			var triggerTime = hemi.view.getTimeOfFrame(30);
-			house.subscribe(hemi.msg.animate, function(msg) {
+			var animation = hemi.createModelAnimationSequence(house, 0, 60);
+			var triggerTime = hemi.getTimeOfFrame(30);
+			animation.subscribe(hemi.msg.animate, function(msg) {
 				var time = msg.data.time;
 				var prev = msg.data.previous;
 
@@ -193,13 +194,18 @@
 		}, 2000);
 	}
 
+	function degToRad(degrees) {
+	  return degrees * Math.PI / 180;
+	};
+
+	function radToDeg(radians) {
+	  return radians * 180 / Math.PI;
+	};
+
 	jQuery(window).load(function() {
-		o3djs.webgl.makeClients(init);
+		init();
 	});
 
 	jQuery(window).unload(function() {
-		if (hemi.core.client) {
-			hemi.core.client.cleanup();
-		}
 	});
 })();

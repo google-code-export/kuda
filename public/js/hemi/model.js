@@ -30,7 +30,7 @@ var hemi = (function(hemi) {
 					returnObjs.push(child);
 				}
 
-				getObject3DsRecursive(name, child, returnObjs)
+				getObject3DsRecursive(name, child, returnObjs);
 			}
 		};
 	    
@@ -38,6 +38,7 @@ var hemi = (function(hemi) {
 		this.client = client;
 		this.fileName = null;
 		this.root = null;
+		this.animations = [];
 	};
 
 	hemi.ModelBase.prototype = {
@@ -53,6 +54,15 @@ var hemi = (function(hemi) {
 			hemi.loadCollada(this.fileName, function (collada) {
 				that.root = collada.scene;
 				that.client.scene.add(that.root);
+				var animHandler = THREE.AnimationHandler;
+				for ( var i = 0, il = collada.animations.length; i < il; i++ ) {
+					var anim = collada.animations[i];
+					//Add to the THREE Animation handler to get the benefits of it's
+					animHandler.add(anim);
+					var kfAnim = new THREE.KeyFrameAnimation(anim.node, anim.name);
+					kfAnim.timeScale = 1;
+					that.animations.push(kfAnim);
+				}
 				that.send(hemi.msg.load, {});
 			});
 		},
