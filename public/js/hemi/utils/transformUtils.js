@@ -64,7 +64,7 @@ var hemi = (function(hemi) {
 	 * Interprets a point in world space into local space.
 	 */
 	hemi.utils.pointAsLocal = function(transform, point) {
-		var inv = THREE.Matrix4.makeInvert(transform.matrixWorld);
+		var inv = new THREE.Matrix4().getInverse(transform.matrixWorld);
 	    return inv.multiplyVector3(point.clone());
 	};
 	
