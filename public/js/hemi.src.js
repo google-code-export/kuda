@@ -1410,8 +1410,8 @@ var hemi = (function(hemi) {
 //		tran.rotation.y += rotY;
 //		tran.rotation.x += rotX;
 //		tran.updateMatrix();
-		matrix.rotateX(rotX);
 		matrix.rotateY(rotY);
+		matrix.rotateX(rotX);
 		
 		return matrix;
 	};
