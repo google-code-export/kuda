@@ -111,10 +111,10 @@ var hemi = (function(hemi) {
 			if (cfg.trail) {
 				system = new hemi.GpuParticleTrail(client, cfg);
 			} else {
-				system = new hemi.GpuParticleSystem(client, cfg);
+				system = new hemi.GpuParticleCurveSystem(client, cfg);
 			}
 		} else {
-			system = new hemi.ParticleSystem(client, cfg);
+			system = new hemi.ParticleCurveSystem(client, cfg);
 		}
 		
 		return system;
@@ -747,12 +747,12 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * @class A ParticleSystem manages a set of Particle objects, and fires
+	 * @class A ParticleCurveSystem manages a set of Particle objects, and fires
 	 * them at the appropriate intervals.
 	 * 
 	 * @param {Object} config configuration object describing this system
 	 */
-	hemi.ParticleSystemBase = hemi.Class.extend({
+	hemi.ParticleCurveSystemBase = hemi.Class.extend({
 		init: function(client, config) {
 			this.transform = new THREE.Object3D();
 			config.parent ? config.parent.add(this.transform) : client.scene.add(this.transform);
@@ -780,11 +780,11 @@ var hemi = (function(hemi) {
 			
 			switch (type) {
 				case (hemi.curve.ShapeType.ARROW):
-					var halfSize = size / 2;
-//					this.shapes.push(hemi.core.primitives.createPrism(pack, this.shapeMaterial,
-//						[[0, size], [-size, 0], [-halfSize, 0], [-halfSize, -size],
-//						[halfSize, -size], [halfSize, 0], [size, 0]], size));
-//					break;
+					var halfSize = size / 2,
+						thirdSize = size / 3;
+					this.shapes.push(new THREE.ArrowGeometry(size, 
+						size, halfSize, halfSize, size));
+					break;
 				case (hemi.curve.ShapeType.CUBE):
 					this.shapes.push(new THREE.CubeGeometry(size, size, size));
 					break;
@@ -949,7 +949,11 @@ var hemi = (function(hemi) {
 				
 				switch (shape) {
 					case (hemi.curve.ShapeType.ARROW):
-						var halfSize = size / 2;
+						var halfSize = size / 2,
+							thirdSize = size / 3;
+						this.shapes.push(new THREE.ArrowGeometry(size, 
+							size, halfSize, halfSize, size));
+						break;
 					case (hemi.curve.ShapeType.CUBE):
 						this.shapes.push(new THREE.CubeGeometry(size, size, size));
 						break;
@@ -1004,7 +1008,7 @@ var hemi = (function(hemi) {
 		 * Set the color gradient for this particle system.
 		 * 
 		 * @param {hemi.curve.ColorKey[]} colorKeys array of color key pairs
-		 * @return {hemi.curve.ParticleSystem} this system, for chaining
+		 * @return {hemi.curve.ParticleCurveSystem} this system, for chaining
 		 */
 		setColors : function(colorKeys) {
 			for (var i = 0; i < this.maxParticles; i++) {
@@ -1017,7 +1021,7 @@ var hemi = (function(hemi) {
 		 * Set the scale gradient for this particle system.
 		 * 
 		 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale key pairs
-		 * @return {hemi.curve.ParticleSystem} this system, for chaining
+		 * @return {hemi.curve.ParticleCurveSystem} this system, for chaining
 		 */		
 		setScales : function(scaleKeys) {
 			for (var i = 0; i < this.maxParticles; i++) {
@@ -1253,7 +1257,7 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {Object} opt_cfg optional configuration object for the system
 	 */
-	hemi.GpuParticleSystemBase = hemi.Class.extend({ 
+	hemi.GpuParticleCurveSystemBase = hemi.Class.extend({ 
 		init: function(client, opt_cfg) {
 			this.active = false;
 			this.aim = false;
@@ -1273,7 +1277,6 @@ var hemi = (function(hemi) {
 			this.timeParam = null;
 			this.transform = null;
 			this.client = client;
-			this.dirtyShader = false;
 			this.shaderMaterial = new THREE.ShaderMaterial();
 			
 			if (opt_cfg) {
@@ -1285,7 +1288,7 @@ var hemi = (function(hemi) {
          * Overwrites hemi.world.Citizen.citizenType.
 		 * @type string
          */
-        citizenType: 'hemi.curve.GpuParticleSystem',
+        citizenType: 'hemi.curve.GpuParticleCurveSystem',
 	
 		/**
 		 * Hide the particle system's bounding boxes from view.
@@ -1295,7 +1298,7 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Load the given configuration object and set up the GpuParticleSystem.
+		 * Load the given configuration object and set up the GpuParticleCurveSystem.
 		 * 
 		 * @param {Object} cfg configuration object
 		 */
@@ -1333,10 +1336,6 @@ var hemi = (function(hemi) {
 		 * @param {o3d.RenderEvent} e the render event
 		 */
 		onRender: function(e) {
-			if (this.dirtyShader) {
-				this.setupShaders();
-			}
-			
 			var delta = e.elapsedTime / this.life,
 				newTime = this.timeParam.value + delta;
 			
@@ -1475,14 +1474,18 @@ var hemi = (function(hemi) {
 		setMaterial: function(material) {
 			this.material = material;
 			
-			if (material.program) {
-				var shads = hemi.utils.getShaders(this.client, material);
-				
-				this.materialSrc = {
-					frag: shads.fragSrc,
-					vert: shads.vertSrc
-				};
+			if (!material.program) {
+				var scene = this.client.scene;
+				this.client.renderer.initMaterial(material, scene.lights, 
+					scene.fog, this.transform);
 			}
+			
+			var shads = hemi.utils.getShaders(this.client, material);
+			
+			this.materialSrc = {
+				frag: shads.fragSrc,
+				vert: shads.vertSrc
+			};
 				
 			this.setupShaders();
 		},
@@ -1522,7 +1525,7 @@ var hemi = (function(hemi) {
 		 * 
 		 * @param {hemi.curve.ShapeType} type the type of shape to use
 		 */
-		setParticleShape: function(type) {
+		setParticleShape: function(type) {			
 			this.ptcShape = type;
 			
 			if (this.transform) {
@@ -1533,18 +1536,24 @@ var hemi = (function(hemi) {
 			this.material = this.material || newMaterial();
 			this.particles = this.particles || 1;
 			
+			var size = this.size,
+				mat = this.material;
+			
 			switch (type) {
 				case (hemi.curve.ShapeType.ARROW):
-					var halfSize = this.size / 2;
+					var halfSize = size / 2,
+						thirdSize = size / 3;
+					this.transform = new THREE.Mesh(new THREE.ArrowGeometry(
+						size, size, halfSize, halfSize, size),
+						mat);
+					break;
 				case (hemi.curve.ShapeType.CUBE):
 					this.transform = new THREE.Mesh(
-						new THREE.CubeGeometry(this.size, this.size, this.size),
-						this.material);
+						new THREE.CubeGeometry(size, size, size), mat);
 					break;
 				case (hemi.curve.ShapeType.SPHERE):
 					this.transform = new THREE.Mesh(
-						new THREE.SphereGeometry(this.size, 12, 12),
-						this.material);
+						new THREE.SphereGeometry(size, 12, 12), mat);
 					break;
 			}
 			
@@ -1630,18 +1639,15 @@ var hemi = (function(hemi) {
 		 */
 		setupShaders: function() {
 			if (!this.material || !this.materialSrc || this.boxes.length < 2 || !this.transform) {
-				this.dirtyShader = true;
 				return;
 			}
 			
-			// TODO: test for if this is a program we created so that we can
-			// just modify the existing
 			var gl = this.client.renderer.context,
 				chunksVert = shaderChunks.vert,
 				chunksFrag = shaderChunks.frag,
 				material = this.material,
 				oldProgram = this.material.program,
-				program = material.program = gl.createProgram(),
+				program = material.program = oldProgram.isCurveGen ? oldProgram : gl.createProgram(),
 				fragSrc = this.materialSrc.frag,
 				vertSrc = this.materialSrc.vert,
 				numBoxes = this.boxes.length,
@@ -1675,7 +1681,7 @@ var hemi = (function(hemi) {
 					}
 					
 					delete material.uniforms[name];
-//					delete program.uniforms[name];
+					delete program.uniforms[name];
 				}
 			}
 			
@@ -1790,6 +1796,7 @@ var hemi = (function(hemi) {
 			gl.linkProgram(program);
 			program.uniforms = {};
 			program.attributes = {};
+			program.isCurveGen = true;
 	
 			for (u in material.uniforms) {
 				material.uniformsList.push([material.uniforms[u], u]);
@@ -1839,8 +1846,6 @@ var hemi = (function(hemi) {
 			delete this.transform.geometry.geometryGroups;
 			delete this.transform.geometry.geometryGroupsList;
 			this.client.scene.__objectsAdded.push(this.transform);
-			
-			this.dirtyShader = false;
 		},
 		
 		/**
@@ -1856,9 +1861,6 @@ var hemi = (function(hemi) {
 		 */
 		start: function() {
 			if (!this.active) {
-				if (this.dirtyShader) {
-					this.setMaterial(this.material);
-				}
 				this.active = true;
 				this.timeParam.value = 1.0;
 				this.maxTimeParam.value = 1.0;
@@ -1879,10 +1881,10 @@ var hemi = (function(hemi) {
 		},
 		
 		/**
-		 * Get the Octane structure for the GpuParticleSystem.
+		 * Get the Octane structure for the GpuParticleCurveSystem.
 	     *
 	     * @return {Object} the Octane structure representing the
-	     *     GpuParticleSystem
+	     *     GpuParticleCurveSystem
 		 */
 		toOctane: function(){
 			var octane = this._super();
@@ -1930,11 +1932,11 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * @class A GPU driven particle system that has trailing starts and stops.
-	 * @extends hemi.curve.GpuParticleSystem
+	 * @extends hemi.curve.GpuParticleCurveSystem
 	 * 
 	 * @param {Object} opt_cfg the configuration object for the system
 	 */
-	hemi.GpuParticleTrailBase = hemi.GpuParticleSystemBase.extend({
+	hemi.GpuParticleTrailBase = hemi.GpuParticleCurveSystemBase.extend({
 		init: function(client, opt_cfg) {
 			this._super(client, opt_cfg);
 			
@@ -2002,9 +2004,6 @@ var hemi = (function(hemi) {
 				this.stopping = false;
 			}
 			if (!this.active) {
-				if (this.dirtyShader) {
-					this.setMaterial(this.material);
-				}
 				this.active = true;
 				this.starting = true;
 				this.stopping = false;
@@ -2045,12 +2044,12 @@ var hemi = (function(hemi) {
 		toOctane: []
 	});
 	
-	hemi.makeCitizen(hemi.ParticleSystemBase, 'hemi.ParticleSystem', {
+	hemi.makeCitizen(hemi.ParticleCurveSystemBase, 'hemi.ParticleCurveSystem', {
 		msgs: ['hemi.start', 'hemi.stop'],
 		toOctane: []
 	});
 	
-	hemi.makeCitizen(hemi.GpuParticleSystemBase, 'hemi.GpuParticleSystem', {
+	hemi.makeCitizen(hemi.GpuParticleCurveSystemBase, 'hemi.GpuParticleCurveSystem', {
 		msgs: ['hemi.start', 'hemi.stop'],
 		toOctane: []
 	});
