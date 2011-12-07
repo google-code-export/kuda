@@ -51,7 +51,7 @@ var hemi = (function(hemi) {
         this.toLoad = {};
         this.transformObjs = [];
 
-        if (opt_tran !== null) {
+        if (opt_tran != null) {
             this.addTransform(opt_tran);
         }
 
@@ -287,7 +287,7 @@ var hemi = (function(hemi) {
 		this.toLoad = {};
 		this.transformObjs = [];
 
-		if (opt_tran !== null) {
+		if (opt_tran != null) {
 			this.addTransform(opt_tran);
 		}
 
