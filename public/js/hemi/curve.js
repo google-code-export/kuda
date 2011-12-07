@@ -1073,6 +1073,7 @@ var hemi = (function(hemi) {
 				'uniform float ptcDec; \n' +
 				'uniform float numPtcs; \n' +
 				'uniform float tension; \n' +
+				'uniform mat4 viewIT; \n' +
 				'uniform vec3 minXYZ[NUM_BOXES]; \n' +
 				'uniform vec3 maxXYZ[NUM_BOXES]; \n' +
 				'attribute vec4 idOffset; \n' +
@@ -1231,6 +1232,8 @@ var hemi = (function(hemi) {
 			
 			bodyEnd:
 				'  mat4 ptcWorld = tMat*rMat*sMat; \n' +
+				'  mat4 ptcWorldViewIT = viewIT*tMatIT*rMat*sMat; \n' +
+				'  mat3 ptcNorm = mat3(ptcWorldViewIT[0].xyz, ptcWorldViewIT[1].xyz, ptcWorldViewIT[2].xyz); \n' +
 				'  mat4 ptcWorldView = viewMatrix * ptcWorld; \n'
 		},
 		frag: {
@@ -1275,6 +1278,7 @@ var hemi = (function(hemi) {
 			this.tension = 0;
 			this.texNdx = -1;
 			this.timeParam = null;
+			this.viewITParam = null;
 			this.transform = null;
 			this.client = client;
 			this.shaderMaterial = new THREE.ShaderMaterial();
@@ -1344,7 +1348,8 @@ var hemi = (function(hemi) {
 			}
 			
 			// refresh uniforms
-			this.timeParam.value = newTime;			
+			this.timeParam.value = newTime;
+			this.viewITParam.value.copy(this.client.camera.threeCamera.matrixWorld).transpose();
 		},
 		
 		/**
@@ -1664,7 +1669,7 @@ var hemi = (function(hemi) {
 				time = 1.1,
 				uniforms = ['sysTime', 'ptcMaxTime', 'ptcDec', 'numPtcs',
 					'tension', 'ptcScales', 'ptcScaleKeys', 'minXYZ', 'maxXYZ',
-					'ptcColors', 'ptcColorKeys'];
+					'ptcColors', 'ptcColorKeys', 'viewIT'];
 			
 			// Remove any previously existing uniforms that we created
 			for (var i = 0, il = uniforms.length; i < il; i++) {
@@ -1716,12 +1721,14 @@ var hemi = (function(hemi) {
 				vertPreBody += chunksVert.bodyEnd;
 				var parsedVert = hemi.utils.parseSrc(vertSrc),
 					vertBody = parsedVert.body.replace(/modelViewMatrix/g, 'ptcWorldView')
-						.replace(/objectMatrix/g, 'ptcWorld');
+						.replace(/objectMatrix/g, 'ptcWorld')
+						.replace(/normalMatrix/g, 'ptcNorm');
 								
 				parsedVert.postSprt = vertHdr + vertSprt;
 				parsedVert.preBody = vertPreBody;
 				parsedVert.body = vertBody;
 				vertSrc = material.vertexShader = hemi.utils.buildSrc(parsedVert);
+				console.log(vertSrc);
 				
 				var vShader = gl.createShader(gl.VERTEX_SHADER);
 				gl.shaderSource(vShader, vertSrc);
@@ -1744,9 +1751,8 @@ var hemi = (function(hemi) {
 					} else {
 						parsedFrag.body = parsedFrag.body.replace(/emissive/g, 'ptcColor.rgb');
 					}
-				} //else {
-//					parsedFrag.postGlob = hemi.curve.fragGlobNoColors;
-//				}
+				}
+				parsedFrag.body = parsedFrag.body.replace(/opacity/g, '(opacity * ptcColor.a)');
 				
 				fragSrc = material.fragmentShader = hemi.utils.buildSrc(parsedFrag);
 				
@@ -1768,7 +1774,8 @@ var hemi = (function(hemi) {
 					numPtcs: { type: 'f', value: this.particles },
 					tension: { type: 'f', value: (1 - this.tension) / 2 },
 					minXYZ: { type: 'v3v', value: [] },
-					maxXYZ: { type: 'v3v', value: [] }
+					maxXYZ: { type: 'v3v', value: [] },
+					viewIT: { type: 'm4', value: new THREE.Matrix4() }
 				};
 	
 			if (addColors) {
@@ -1794,6 +1801,15 @@ var hemi = (function(hemi) {
 			material.uniformsList = [];
 			
 			gl.linkProgram(program);
+			
+			if ( !gl.getProgramParameter( program, gl.LINK_STATUS ) ) {
+	
+				console.error( "Could not initialise shader\n" + "VALIDATE_STATUS: " 
+					+ gl.getProgramParameter( program, gl.VALIDATE_STATUS ) 
+					+ ", gl error [" + gl.getError() + "]" );
+	
+			}
+
 			program.uniforms = {};
 			program.attributes = {};
 			program.isCurveGen = true;
@@ -1822,6 +1838,7 @@ var hemi = (function(hemi) {
 			this.decParam = material.uniforms.ptcDec;
 			this.maxTimeParam = material.uniforms.ptcMaxTime;
 			this.timeParam = material.uniforms.sysTime;
+			this.viewITParam = material.uniforms.viewIT;
 			
 			setupBounds(material, this.boxes);
 			
@@ -1978,6 +1995,7 @@ var hemi = (function(hemi) {
 			}
 			
 			this.timeParam.value = newTime;
+			this.viewITParam.value.copy(this.client.camera.threeCamera.matrixWorld).transpose();
 		},
 		
 		/**
