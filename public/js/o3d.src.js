@@ -9225,7 +9225,7 @@ o3d.BoundingBox.prototype.inFrustum =
   var bb_test = 0x3f;
   for (var i = 0; i < corners.length; ++i) {
     var corner = corners[i];
-    var p = o3d.Transform.transformPoint(matrix, corner);
+    var p = o3djs.math.normalize(o3d.Transform.transformPoint(matrix, corner));
     bb_test &= (((p[0] > 1.0) << 0) |
                 ((p[0] < -1.0) << 1) |
                 ((p[1] > 1.0) << 2) |
