@@ -246,6 +246,7 @@ var uglifyHemi = function(src, dst) {
 			moduleFiles: [
 				'lib/Detector.js',
 				'lib/jshashtable.min.js',
+				'hemi/particles.js',
 				'hemi/utils/inheritance.js',
 				'hemi/utils/hashtable.js',
 				'hemi/utils/jsUtils.js',
