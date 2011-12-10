@@ -37,7 +37,7 @@
 	function init() {
 		bindJavascript();
 		client = hemi.makeClients()[0];
-		client.setBGColor([1, 1, 1, 1]);
+		client.setBGColor(0xb2cbff, 1);
 		hemi.loadPath = '../../';
 		house = new hemi.Model(client);
 		house.setFileName('assets/house_v12/house_v12.dae');
@@ -149,7 +149,7 @@
 			console.log.apply(console, ["Light the fire"]);
 		} catch(e) { }
 
-	/*	var colorRamp = 
+		var colorRamp = 
 			[1, 1, 0, 0.6,
 			 1, 0, 0, 0.6,
 			 0, 0, 0, 1,
@@ -169,12 +169,8 @@
 			positionRange : [3.6, 2, 3.4],
 			spinSpeedRange: 4
 		};
-		var fire = hemi.effect.createEmitter(
-			hemi.core.particles.ParticleStateIds.ADD,
-			colorRamp,
-			params);
-		fire.transform.translate(0.0, 72.0, -236.0);
-		fire.show();*/
+		var fire = hemi.createParticleEmitter(client, colorRamp, params);
+		fire.transform.position.set(0.0, 72.0, -236.0);
 
 		// Per the script start the book animation curve 2 seconds after the fire is lit.
 		setTimeout(function() {
@@ -204,8 +200,5 @@
 
 	jQuery(window).load(function() {
 		init();
-	});
-
-	jQuery(window).unload(function() {
 	});
 })();
