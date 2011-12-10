@@ -794,6 +794,7 @@ var hemi = (function(hemi) {
 		* @type {THREE.Mesh}
 		*/
 		this.transform = new THREE.Mesh(emitter.shape, emitter.material);
+		this.transform.doubleSided = true; // turn off face culling
 		this.transform.visible = false;
 
 		if (opt_parent) {
