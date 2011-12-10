@@ -157,7 +157,7 @@ var hemi = (function(hemi) {
 	 * @return {number} the sinusoidal value
 	 */
 	hemi.utils.linearToSine = function(val) {
-		return (Math.sin(Math.PI * val - Math.PI / 2) + 1) / 2;
+		return (Math.sin(Math.PI * val - hemi.HALF_PI) + 1) / 2;
 	};
 	
 	/**
@@ -295,11 +295,11 @@ var hemi = (function(hemi) {
 		},
 		
 		easeInSine : function (t, b, c, d) {
-			return -c * Math.cos(t/d * (Math.PI/2)) + c + b;
+			return -c * Math.cos(t/d * hemi.HALF_PI) + c + b;
 		},
 		
 		easeOutSine : function (t, b, c, d) {
-			return c * Math.sin(t/d * (Math.PI/2)) + b;
+			return c * Math.sin(t/d * hemi.HALF_PI) + b;
 		},
 		
 		easeInOutSine : function (t, b, c, d) {
@@ -413,15 +413,6 @@ var hemi = (function(hemi) {
 		var x = (p[0]+1.0)*0.5*w;
 		var y = (-p[1]+1.0)*0.5*h;
 		return [x,y,p[2]];
-	};
-
-	/**
-	 * Convert an angle from radians to degrees
-	 * @param {number} radians an angle
-	 * @return {number} the angle in degrees
-	 */
-	hemi.utils.radToDeg = function(radians) {
-  		return radians * 180 / Math.PI;
 	};
 	
 	return hemi;

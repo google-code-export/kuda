@@ -265,6 +265,11 @@ var hemi = (function(hemi) {
 		fps = newFps;
 		hz = 1/fps;
 	};
+
+	// Useful constants to cache
+	hemi.DEG_TO_RAD = Math.PI / 180;
+	hemi.HALF_PI = Math.PI / 2;
+	hemi.RAD_TO_DEG = 180 / Math.PI;
 	
 	return hemi;
 })(hemi || {});

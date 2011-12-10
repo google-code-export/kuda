@@ -98,7 +98,7 @@ var hemi = (function(hemi) {
 				vp     : null
 			};
             this.threeCamera = new THREE.PerspectiveCamera(
-            		this.fov.current * 180 / Math.PI,
+            		this.fov.current * hemi.RAD_TO_DEG,
             		window.innerWidth / window.innerHeight,
             		hemi.viewDefaults.NP,
             		hemi.viewDefaults.FP);
@@ -462,7 +462,7 @@ var hemi = (function(hemi) {
 							this.fov.current = this.fov.max - (this.fov.max - this.fov.current)*11/12;
 						}
 					}
-					this.threeCamera.fov = this.fov.current * 180 / Math.PI;
+					this.threeCamera.fov = this.fov.current * hemi.RAD_TO_DEG;
 					this.threeCamera.updateProjectionMatrix();
 					this.state.update = true;
 					return;
@@ -580,7 +580,7 @@ var hemi = (function(hemi) {
 
 			this.panTilt.position = target;
             this.panTilt.rotation.y = rtp[2];
-            this.panTilt.rotation.x = rtp[1] - Math.PI/2;
+            this.panTilt.rotation.x = rtp[1] - hemi.HALF_PI;
             this.panTilt.updateMatrix();
 
 			this.cam.rotation.y = 0;
@@ -591,7 +591,7 @@ var hemi = (function(hemi) {
 			var camPos = new THREE.Vector3(0, 0, this.distance);
 			hemi.utils.pointZAt(this.cam, camPos, hemi.utils.pointAsLocal(this.cam,target));
 			this.cam.rotation.y += Math.PI;
-            this.cam.updateMatrix();
+			this.cam.updateMatrix();
 
             this.updateWorldMatrices();
 		},
@@ -677,7 +677,7 @@ var hemi = (function(hemi) {
 			}
 			if (cur.fov !== last.fov) {
 				this.fov.current = this.easeFunc[0](current,last.fov,cur.fov-last.fov,end);
-				this.threeCamera.fov = this.fov.current * 180 / Math.PI;
+				this.threeCamera.fov = this.fov.current * hemi.RAD_TO_DEG;
 				upProj = true;
 			}
 			if (cur.np !== last.np) {
