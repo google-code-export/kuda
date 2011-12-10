@@ -71,8 +71,8 @@
 		house.getObject3Ds('camTarget_indoors')[0].isPickable = false;;
 
 		client.camera.fixEye();
-		client.camera.setLookAroundLimits(null, null, degToRad(-50),
-			degToRad(50));
+		client.camera.setLookAroundLimits(null, null, -50 * hemi.DEG_TO_RAD,
+			50 * hemi.DEG_TO_RAD);
 		client.camera.enableControl();
 
 		door = new hext.house.Door(house.getObject3Ds('door')[0]);
@@ -112,7 +112,7 @@
 		var viewpoint = new hemi.Viewpoint();
 		viewpoint.eye = house.getObject3Ds('camEye_outdoors')[0].position.clone();
 		viewpoint.target = house.getObject3Ds('camTarget_outdoors')[0].position.clone();
-		viewpoint.fov = degToRad(60);
+		viewpoint.fov = 60 * hemi.DEG_TO_RAD;
 		client.camera.moveToView(viewpoint, 2.5);
 		// Use a simple function to track when the windows and door are open to allow entering the house per the script.
 		enterMoveCamera = function() {
@@ -133,7 +133,7 @@
 		var viewpoint = new hemi.Viewpoint();
 		viewpoint.eye = house.getObject3Ds('camEye_indoors')[0].position.clone();
 		viewpoint.target = house.getObject3Ds('camTarget_indoors')[0].position.clone();
-		viewpoint.fov = degToRad(60);
+		viewpoint.fov = 60 * hemi.DEG_TO_RAD;
 		client.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
@@ -189,14 +189,6 @@
 			animation.start();
 		}, 2000);
 	}
-
-	function degToRad(degrees) {
-	  return degrees * Math.PI / 180;
-	};
-
-	function radToDeg(radians) {
-	  return radians * 180 / Math.PI;
-	};
 
 	jQuery(window).load(function() {
 		init();

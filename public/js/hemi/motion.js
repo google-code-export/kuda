@@ -497,7 +497,7 @@ var hemi = (function(hemi) {
 			hemi.utils.identity(transform);
 			if (transform.useQuaternion) {
 				transform.quaternion.setFromEuler(new THREE.Vector3(
-				 hemi.utils.radToDeg(this.angle.x), hemi.utils.radToDeg(this.angle.y), hemi.utils.radToDeg(this.angle.z)));
+				 this.angle.x * hemi.RAD_TO_DEG, this.angle.y * hemi.RAD_TO_DEG, this.angle.z * hemi.RAD_TO_DEG));
 			}
 			else {
 				transform.rotation = this.angle.clone();

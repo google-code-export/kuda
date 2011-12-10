@@ -2004,7 +2004,7 @@ var hemi = (function(hemi) {
 	 * @return {number} the sinusoidal value
 	 */
 	hemi.utils.linearToSine = function(val) {
-		return (Math.sin(Math.PI * val - Math.PI / 2) + 1) / 2;
+		return (Math.sin(Math.PI * val - hemi.HALF_PI) + 1) / 2;
 	};
 	
 	/**
@@ -2142,11 +2142,11 @@ var hemi = (function(hemi) {
 		},
 		
 		easeInSine : function (t, b, c, d) {
-			return -c * Math.cos(t/d * (Math.PI/2)) + c + b;
+			return -c * Math.cos(t/d * hemi.HALF_PI) + c + b;
 		},
 		
 		easeOutSine : function (t, b, c, d) {
-			return c * Math.sin(t/d * (Math.PI/2)) + b;
+			return c * Math.sin(t/d * hemi.HALF_PI) + b;
 		},
 		
 		easeInOutSine : function (t, b, c, d) {
@@ -2260,15 +2260,6 @@ var hemi = (function(hemi) {
 		var x = (p[0]+1.0)*0.5*w;
 		var y = (-p[1]+1.0)*0.5*h;
 		return [x,y,p[2]];
-	};
-
-	/**
-	 * Convert an angle from radians to degrees
-	 * @param {number} radians an angle
-	 * @return {number} the angle in degrees
-	 */
-	hemi.utils.radToDeg = function(radians) {
-  		return radians * 180 / Math.PI;
 	};
 	
 	return hemi;
@@ -3651,6 +3642,11 @@ var hemi = (function(hemi) {
 		fps = newFps;
 		hz = 1/fps;
 	};
+
+	// Useful constants to cache
+	hemi.DEG_TO_RAD = Math.PI / 180;
+	hemi.HALF_PI = Math.PI / 2;
+	hemi.RAD_TO_DEG = 180 / Math.PI;
 	
 	return hemi;
 })(hemi || {});
@@ -6041,7 +6037,7 @@ var hemi = (function(hemi) {
 				vp     : null
 			};
             this.threeCamera = new THREE.PerspectiveCamera(
-            		this.fov.current * 180 / Math.PI,
+            		this.fov.current * hemi.RAD_TO_DEG,
             		window.innerWidth / window.innerHeight,
             		hemi.viewDefaults.NP,
             		hemi.viewDefaults.FP);
@@ -6405,7 +6401,7 @@ var hemi = (function(hemi) {
 							this.fov.current = this.fov.max - (this.fov.max - this.fov.current)*11/12;
 						}
 					}
-					this.threeCamera.fov = this.fov.current * 180 / Math.PI;
+					this.threeCamera.fov = this.fov.current * hemi.RAD_TO_DEG;
 					this.threeCamera.updateProjectionMatrix();
 					this.state.update = true;
 					return;
@@ -6523,7 +6519,7 @@ var hemi = (function(hemi) {
 
 			this.panTilt.position = target;
             this.panTilt.rotation.y = rtp[2];
-            this.panTilt.rotation.x = rtp[1] - Math.PI/2;
+            this.panTilt.rotation.x = rtp[1] - hemi.HALF_PI;
             this.panTilt.updateMatrix();
 
 			this.cam.rotation.y = 0;
@@ -6534,7 +6530,7 @@ var hemi = (function(hemi) {
 			var camPos = new THREE.Vector3(0, 0, this.distance);
 			hemi.utils.pointZAt(this.cam, camPos, hemi.utils.pointAsLocal(this.cam,target));
 			this.cam.rotation.y += Math.PI;
-            this.cam.updateMatrix();
+			this.cam.updateMatrix();
 
             this.updateWorldMatrices();
 		},
@@ -6620,7 +6616,7 @@ var hemi = (function(hemi) {
 			}
 			if (cur.fov !== last.fov) {
 				this.fov.current = this.easeFunc[0](current,last.fov,cur.fov-last.fov,end);
-				this.threeCamera.fov = this.fov.current * 180 / Math.PI;
+				this.threeCamera.fov = this.fov.current * hemi.RAD_TO_DEG;
 				upProj = true;
 			}
 			if (cur.np !== last.np) {
@@ -7989,7 +7985,7 @@ var hemi = (function(hemi) {
 			hemi.utils.identity(transform);
 			if (transform.useQuaternion) {
 				transform.quaternion.setFromEuler(new THREE.Vector3(
-				 hemi.utils.radToDeg(this.angle.x), hemi.utils.radToDeg(this.angle.y), hemi.utils.radToDeg(this.angle.z)));
+				 this.angle.x * hemi.RAD_TO_DEG, this.angle.y * hemi.RAD_TO_DEG, this.angle.z * hemi.RAD_TO_DEG));
 			}
 			else {
 				transform.rotation = this.angle.clone();
