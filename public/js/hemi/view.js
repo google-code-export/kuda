@@ -56,6 +56,7 @@ var hemi = (function(hemi) {
             this.panTilt.eulerOrder = 'ZYX';
             this.cam = new THREE.Object3D();
             this.cam.name = 'cam';
+            this.cam.eulerOrder = 'ZYX';
             this.panTilt.add(this.cam);
             
             this.cam.position.z = 1;
