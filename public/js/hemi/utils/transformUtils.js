@@ -121,6 +121,37 @@ var hemi = (function(hemi) {
 	};
 
 	/**
+	 * Apply the given transform matrix to the vertices of the given transform's
+	 * geometry as well as the geometry of any child transforms.
+	 * 
+	 * @param {THREE.Object3D} transform the transform to start shifting at
+	 * @param {THREE.Matrix4} matrix the transform matrix to apply
+	 * @param {THREE.Scene} scene the transform's scene
+	 */
+	hemi.utils.shiftGeometry = function(transform, matrix, scene) {
+		var geometry = transform.geometry,
+			children = transform.children;
+
+		if (geometry) {
+			// Shift geometry
+			geometry.applyMatrix(matrix);
+			geometry.computeBoundingBox();
+
+			// Do some magic since Three.js doesn't currently have a way to flush cached vertices
+			geometry.dynamic = true;
+			transform.__webglInit = false;
+			delete geometry.geometryGroupsList[0].__webglVertexBuffer;
+			scene.__objectsAdded.push(transform);
+		}
+
+		// Shift geometry of all children
+		for (var i = 0, il = children.length; i < il; ++i) {
+			var child = children[i];
+			hemi.utils.shiftGeometry(child, matrix, scene);
+		}
+	};
+
+	/**
 	 * Move all of the children and shapes off of the given foster Transform and
 	 * back to the original parent Transform. Destroy the foster Transform
 	 *
