@@ -2836,6 +2836,37 @@ var hemi = (function(hemi) {
 	};
 
 	/**
+	 * Apply the given transform matrix to the vertices of the given transform's
+	 * geometry as well as the geometry of any child transforms.
+	 * 
+	 * @param {THREE.Object3D} transform the transform to start shifting at
+	 * @param {THREE.Matrix4} matrix the transform matrix to apply
+	 * @param {THREE.Scene} scene the transform's scene
+	 */
+	hemi.utils.shiftGeometry = function(transform, matrix, scene) {
+		var geometry = transform.geometry,
+			children = transform.children;
+
+		if (geometry) {
+			// Shift geometry
+			geometry.applyMatrix(matrix);
+			geometry.computeBoundingBox();
+
+			// Do some magic since Three.js doesn't currently have a way to flush cached vertices
+			geometry.dynamic = true;
+			transform.__webglInit = false;
+			delete geometry.geometryGroupsList[0].__webglVertexBuffer;
+			scene.__objectsAdded.push(transform);
+		}
+
+		// Shift geometry of all children
+		for (var i = 0, il = children.length; i < il; ++i) {
+			var child = children[i];
+			hemi.utils.shiftGeometry(child, matrix, scene);
+		}
+	};
+
+	/**
 	 * Move all of the children and shapes off of the given foster Transform and
 	 * back to the original parent Transform. Destroy the foster Transform
 	 *
@@ -7509,7 +7540,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 /**
  * @fileoverview Motion describes classes for automatically translating
- * 		and rotating objects in the scene.
+ * and rotating objects in the scene.
  */
 
 var hemi = (function(hemi) {
@@ -7688,6 +7719,42 @@ var hemi = (function(hemi) {
             this.angle = theta.clone();
             applyRotator.call(this);
         },
+		
+		/**
+		 * Set the origin of the Rotator Transform.
+		 * 
+		 * @param {number[3]} origin XYZ origin
+		 */
+		setOrigin: function(origin) {
+			var originVec = new THREE.Vector3().set(-origin[0], -origin[1], -origin[2]),
+				tranMat = new THREE.Matrix4().setTranslation(-origin[0], -origin[1], -origin[2]);
+
+			for (var i = 0, il = this.transformObjs.length; i < il; ++i) {
+				var transform = this.transformObjs[i],
+					geometry = transform.geometry,
+					scene = transform.parent,
+					world = transform.matrixWorld,
+					delta = new THREE.Vector3().multiply(originVec, transform.scale),
+					dx = delta.x,
+					dy = delta.y,
+					dz = delta.z;
+
+				while (scene.parent != null) {
+					scene = scene.parent;
+				}
+
+				// Re-center geometry around given origin
+				hemi.utils.shiftGeometry(transform, tranMat, scene);
+
+				// Offset local position so geometry's world position doesn't change
+				delta.x = dx * world.n11 + dy * world.n12 + dz * world.n13;
+				delta.y = dx * world.n21 + dy * world.n22 + dz * world.n23;
+				delta.z = dx * world.n31 + dy * world.n32 + dz * world.n33;
+				transform.position.subSelf(delta);
+				transform.updateMatrix();
+				transform.updateMatrixWorld();
+			}
+		},
 
         /**
          * Set the angular velocity.
@@ -7967,9 +8034,10 @@ var hemi = (function(hemi) {
 
 		for (var i = 0, il = objs.length; i < il; i++) {
 			var transform = objs[i];
-			hemi.utils.identity(transform);
+
 			transform.position = this.pos.clone();
 			transform.updateMatrix();
+			transform.updateMatrixWorld();
 		}
 	};
 
@@ -7983,15 +8051,16 @@ var hemi = (function(hemi) {
 
 		for (var i = 0, il = objs.length; i < il; i++) {
 			var transform = objs[i];
-			hemi.utils.identity(transform);
+
 			if (transform.useQuaternion) {
 				transform.quaternion.setFromEuler(new THREE.Vector3(
 				 this.angle.x * hemi.RAD_TO_DEG, this.angle.y * hemi.RAD_TO_DEG, this.angle.z * hemi.RAD_TO_DEG));
+			} else {
+				transform.rotation.copy(this.angle);
 			}
-			else {
-				transform.rotation = this.angle.clone();
-			}
+
 			transform.updateMatrix();
+			transform.updateMatrixWorld();
 		}
 	};
 
