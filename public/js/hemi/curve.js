@@ -192,295 +192,294 @@ var hemi = (function(hemi) {
 	 * @param {hemi.curve.CurveType} opt_type Curve type
 	 * @param {Object} opt_config Configuration object specific to this curve
 	 */
-	hemi.CurveBase = hemi.Class.extend({
-		init: function(points, opt_type, opt_config) {
-			this.count = 0;
-			this.tension = 0;
-			this.type = opt_type;
-			this.weights = [];
-			this.xpts = [];
-			this.xtans = [];
-			this.ypts = [];
-			this.ytans = [];
-			this.zpts = [];
-			this.ztans = [];
-			
-			if (points) {
-				opt_config = opt_config || {};
-				opt_config.points = points;
-				this.loadConfig(opt_config);
-			}
-		},
-		/**
-		 * Get the Octane structure for the Curve.
-	     *
-	     * @return {Object} the Octane structure representing the Curve
-		 */
-		toOctane : function() {
-			var names = ['count', 'tension', 'weights', 'xpts', 'xtans', 'ypts',
-					'ytans', 'zpts', 'ztans'],
-				octane = {
-					type: 'hemi.curve.Curve',
-					props: []
-				};
-			
-			for (var ndx = 0, len = names.length; ndx < len; ndx++) {
-				var name = names[ndx];
-				
-				octane.props.push({
-					name: name,
-					val: this[name]
-				});
-			}
-			
-			octane.props.push({
-				name: 'setType',
-				arg: [this.type]
-			});
-			
-			return octane;
-		},
+	var Curve = function(points, opt_type, opt_config) {
+		this.count = 0;
+		this.tension = 0;
+		this.type = opt_type;
+		this.weights = [];
+		this.xpts = [];
+		this.xtans = [];
+		this.ypts = [];
+		this.ytans = [];
+		this.zpts = [];
+		this.ztans = [];
 		
-		/**
-		 * Load the given configuration options into the Curve.
-		 * 
-		 * @param {Object} cfg configuration options for the Curve
-		 */
-		loadConfig : function(cfg) {
-			var points = cfg.points,
-				type = cfg.type || this.type || hemi.curve.CurveType.Linear;
-			
-			this.setType(type);
-			
-			if (points) {
-				this.count = points.length;
-				
-				for (var i = 0; i < this.count; i++) {
-					this.xpts[i] = points[i][0];
-					this.ypts[i] = points[i][1];
-					this.zpts[i] = points[i][2];
-					this.xtans[i] = 0;
-					this.ytans[i] = 0;
-					this.ztans[i] = 0;
-					this.weights[i] = 1;
-				}
-			}
-			
-			if (cfg.weights) {
-				for (var i = 0; i < this.count; i++) {
-					this.weights[i] = (cfg.weights[i] != null) ? cfg.weights[i] : 1;
-				}
-			}
-			
-			if (cfg.tangents) {
-				for (var i = 0; i < this.count; i++) {
-					if(cfg.tangents[i]) {
-						this.xtans[i] = cfg.tangents[i][0] || 0;
-						this.ytans[i] = cfg.tangents[i][1] || 0;
-						this.ztans[i] = cfg.tangents[i][2] || 0;
-					}	
-				}
-			}
-			
-			if(cfg.tension) {
-				this.tension = cfg.tension;
-			}
-			
-			this.setTangents();
-		},
-		
-		/**
-		 * Base interpolation function for this curve. Usually overwritten.
-		 *
-		 * @param {number} t time, usually between 0 and 1
-		 * @return {number[3]} the position interpolated from the time input
-		 */
-		interpolate : function(t) {
-			return [t,t,t];
-		},
-
-		/**
-		 * The linear interpolation moves on a straight line between waypoints.
-		 *
-		 * @param {number} t time, usually between 0 and 1
-		 * @return {number[3]} the position linearly interpolated from the time
-		 *     input
-		 */
-		linear : function(t) {
-			var n = this.count - 1;
-			var ndx = Math.floor(t*n);
-			if (ndx >= n) ndx = n-1;
-			var tt = (t-ndx/n)/((ndx+1)/n-ndx/n);
-			var x = (1-tt)*this.xpts[ndx] + tt*this.xpts[ndx+1];
-			var y = (1-tt)*this.ypts[ndx] + tt*this.ypts[ndx+1];
-			var z = (1-tt)*this.zpts[ndx] + tt*this.zpts[ndx+1];
-			return [x,y,z];
-		},
-
-		/**
-		 * The bezier interpolation starts at the first waypoint, and ends at
-		 * the last waypoint, and 'bends' toward the intermediate points. These
-		 * points can be weighted for more bending.
-		 *
-		 * @param {number} t time, usually between 0 and 1
-		 * @return {number[3]} the position interpolated from the time input by
-		 *     a bezier function.
-		 */
-		bezier : function(t) {
-			var x = 0;
-			var y = 0;
-			var z = 0;
-			var w = 0;
-			var n = this.count;
-			for(var i = 0; i < n; i++) {
-				var fac = this.weights[i]*
-				          hemi.utils.choose(n-1,i)*
-					      Math.pow(t,i)*
-						  Math.pow((1-t),(n-1-i));
-				x += fac*this.xpts[i];
-				y += fac*this.ypts[i];
-				z += fac*this.zpts[i];
-				w += fac; 
-			}
-			return [x/w,y/w,z/w];
-		},
-
-		/**
-		 * The cubic hermite function interpolates along a line that runs
-		 * through the Curve's waypoints at a predefined tangent slope through
-		 * each one.
-		 *
-		 * @param {number} t time, usually between 0 and 1
-		 * @return {number[3]} the position interpolated from the time input by
-		 *     the cubic hermite function.
-		 */
-		cubicHermite : function(t) {
-			var n = this.count - 1;
-			var ndx = Math.floor(t*n);
-			if (ndx >= n) ndx = n-1;
-			var tt = (t-ndx/n)/((ndx+1)/n-ndx/n);
-			var x = hemi.utils.cubicHermite(tt,this.xpts[ndx],this.xtans[ndx],this.xpts[ndx+1],this.xtans[ndx+1]);
-			var y = hemi.utils.cubicHermite(tt,this.ypts[ndx],this.ytans[ndx],this.ypts[ndx+1],this.ytans[ndx+1]);
-			var z = hemi.utils.cubicHermite(tt,this.zpts[ndx],this.ztans[ndx],this.zpts[ndx+1],this.ztans[ndx+1]);
-			return [x,y,z];
-		},
-		
-		/**
-		 * The normalized linear interpolation moves on a straight line between
-		 * waypoints at a constant velocity.
-		 *
-		 * @param {number} t time, usually between 0 and 1
-		 * @return {number[3]} the position linearly interpolated from the time
-		 *     input, normalized to keep the velocity constant
-		 */
-		linearNorm : function(t) {
-			var d = 0;
-			var dpts = [];
-			dpts[0] = 0;
-			for(var i = 1; i < this.count; i++) {
-				d += hemi.core.math.distance([this.xpts[i-1],this.ypts[i-1],this.zpts[i-1]],
-											 [this.xpts[i],this.ypts[i],this.zpts[i]]);
-				dpts[i] = d;
-			}
-			var tt = t*d;
-			var ndx = 0;
-			for(var i = 0; i < this.count; i++) {
-				if(dpts[i] < tt) ndx = i; 
-			}
-			var lt = (tt - dpts[ndx])/(dpts[ndx+1] - dpts[ndx]);
-			var x = (1-lt)*this.xpts[ndx] + lt*this.xpts[ndx+1];
-			var y = (1-lt)*this.ypts[ndx] + lt*this.ypts[ndx+1];
-			var z = (1-lt)*this.zpts[ndx] + lt*this.zpts[ndx+1];			
-			return [x,y,z];
-		},
-		
-		/**
-		 * Calculate the tangents for a cardinal curve, which is a cubic hermite
-		 * curve where the tangents are defined by a single 'tension' factor.
-		 */
-		setTangents : function() {
-			if (this.type == hemi.curve.CurveType.Cardinal) {
-				var xpts = hemi.utils.clone(this.xpts),
-					ypts = hemi.utils.clone(this.ypts),
-					zpts = hemi.utils.clone(this.zpts);
-				
-				// Copy the first and last points in order to calculate tangents
-				xpts.unshift(xpts[0]);
-				xpts.push(xpts[xpts.length - 1]);
-				ypts.unshift(ypts[0]);
-				ypts.push(ypts[ypts.length - 1]);
-				zpts.unshift(zpts[0]);
-				zpts.push(zpts[zpts.length - 1]);
-				
-				for (var i = 0; i < this.count; i++) {
-					this.xtans[i] = (1-this.tension)*(xpts[i+2]-xpts[i])/2;
-					this.ytans[i] = (1-this.tension)*(ypts[i+2]-ypts[i])/2;
-					this.ztans[i] = (1-this.tension)*(zpts[i+2]-zpts[i])/2;
-				}
-			}
-		},
-		
-		/**
-		 * Set the type of interpolation for the Curve.
-		 * 
-		 * @param {hemi.curve.CurveType} type interpolation type
-		 */
-		setType : function(type) {
-			this.type = type;
-			
-			switch (type) {
-				case hemi.curve.CurveType.Linear:
-					this.interpolate = this.linear;
-					break;
-				case hemi.curve.CurveType.Bezier:
-					this.interpolate = this.bezier;
-					break;
-				case hemi.curve.CurveType.CubicHermite:
-				case hemi.curve.CurveType.Cardinal:
-					this.interpolate = this.cubicHermite;
-					break;
-				case hemi.curve.CurveType.LinearNorm:
-					this.interpolate = this.linearNorm;
-					break;
-				case hemi.curve.CurveType.Custom:
-				default:
-					break;
-			}
-		},
-		
-		/**
-		 * Get the XYZ position of the last waypoint of the Curve.
-		 * 
-		 * @return {number[3]} the position of the last waypoint
-		 */
-		getEnd : function() {
-			var end = this.count - 1;
-			return [this.xpts[end],this.ypts[end],this.zpts[end]];
-		},
-		
-		/**
-		 * Get the XYZ position of the first waypoint of the Curve.
-		 * 
-		 * @return {number[3]} the position of the first waypoint
-		 */
-		getStart : function() {
-			return [this.xpts[0],this.ypts[0],this.zpts[0]];
-		},
-		
-		/**
-		 * Draw the Curve using primitive shapes.
-		 * 
-		 * @param {number} samples the number of samples to use to draw
-		 * @param {Object} config configuration for how the Curve should look
-		 */
-		draw : function(samples, config) {
-			var points = [];
-			for (var i = 0; i < samples+2; i++) {
-				points[i] = this.interpolate(i/(samples+1));
-			}
-			drawCurve(points,config);
+		if (points) {
+			opt_config = opt_config || {};
+			opt_config.points = points;
+			this.loadConfig(opt_config);
 		}
-	});
+	}
+
+//	/**
+//	 * Get the Octane structure for the Curve.
+//     *
+//     * @return {Object} the Octane structure representing the Curve
+//	 */
+//	Curve.prototype.toOctane = function() {
+//		var names = ['count', 'tension', 'weights', 'xpts', 'xtans', 'ypts',
+//				'ytans', 'zpts', 'ztans'],
+//			octane = {
+//				type: 'hemi.curve.Curve',
+//				props: []
+//			};
+//		
+//		for (var ndx = 0, len = names.length; ndx < len; ndx++) {
+//			var name = names[ndx];
+//			
+//			octane.props.push({
+//				name: name,
+//				val: this[name]
+//			});
+//		}
+//		
+//		octane.props.push({
+//			name: 'setType',
+//			arg: [this.type]
+//		});
+//		
+//		return octane;
+//	};
+	
+	/**
+	 * Load the given configuration options into the Curve.
+	 * 
+	 * @param {Object} cfg configuration options for the Curve
+	 */
+	Curve.prototype.loadConfig = function(cfg) {
+		var points = cfg.points,
+			type = cfg.type || this.type || hemi.curve.CurveType.Linear;
+		
+		this.setType(type);
+		
+		if (points) {
+			this.count = points.length;
+			
+			for (var i = 0; i < this.count; i++) {
+				this.xpts[i] = points[i][0];
+				this.ypts[i] = points[i][1];
+				this.zpts[i] = points[i][2];
+				this.xtans[i] = 0;
+				this.ytans[i] = 0;
+				this.ztans[i] = 0;
+				this.weights[i] = 1;
+			}
+		}
+		
+		if (cfg.weights) {
+			for (var i = 0; i < this.count; i++) {
+				this.weights[i] = (cfg.weights[i] != null) ? cfg.weights[i] : 1;
+			}
+		}
+		
+		if (cfg.tangents) {
+			for (var i = 0; i < this.count; i++) {
+				if(cfg.tangents[i]) {
+					this.xtans[i] = cfg.tangents[i][0] || 0;
+					this.ytans[i] = cfg.tangents[i][1] || 0;
+					this.ztans[i] = cfg.tangents[i][2] || 0;
+				}	
+			}
+		}
+		
+		if(cfg.tension) {
+			this.tension = cfg.tension;
+		}
+		
+		this.setTangents();
+	};
+	
+	/**
+	 * Base interpolation function for this curve. Usually overwritten.
+	 *
+	 * @param {number} t time, usually between 0 and 1
+	 * @return {number[3]} the position interpolated from the time input
+	 */
+	Curve.prototype.interpolate = function(t) {
+		return [t,t,t];
+	};
+
+	/**
+	 * The linear interpolation moves on a straight line between waypoints.
+	 *
+	 * @param {number} t time, usually between 0 and 1
+	 * @return {number[3]} the position linearly interpolated from the time
+	 *     input
+	 */
+	Curve.prototype.linear = function(t) {
+		var n = this.count - 1;
+		var ndx = Math.floor(t*n);
+		if (ndx >= n) ndx = n-1;
+		var tt = (t-ndx/n)/((ndx+1)/n-ndx/n);
+		var x = (1-tt)*this.xpts[ndx] + tt*this.xpts[ndx+1];
+		var y = (1-tt)*this.ypts[ndx] + tt*this.ypts[ndx+1];
+		var z = (1-tt)*this.zpts[ndx] + tt*this.zpts[ndx+1];
+		return [x,y,z];
+	};
+
+	/**
+	 * The bezier interpolation starts at the first waypoint, and ends at
+	 * the last waypoint, and 'bends' toward the intermediate points. These
+	 * points can be weighted for more bending.
+	 *
+	 * @param {number} t time, usually between 0 and 1
+	 * @return {number[3]} the position interpolated from the time input by
+	 *     a bezier function.
+	 */
+	Curve.prototype.bezier = function(t) {
+		var x = 0;
+		var y = 0;
+		var z = 0;
+		var w = 0;
+		var n = this.count;
+		for(var i = 0; i < n; i++) {
+			var fac = this.weights[i]*
+			          hemi.utils.choose(n-1,i)*
+				      Math.pow(t,i)*
+					  Math.pow((1-t),(n-1-i));
+			x += fac*this.xpts[i];
+			y += fac*this.ypts[i];
+			z += fac*this.zpts[i];
+			w += fac; 
+		}
+		return [x/w,y/w,z/w];
+	};
+
+	/**
+	 * The cubic hermite function interpolates along a line that runs
+	 * through the Curve's waypoints at a predefined tangent slope through
+	 * each one.
+	 *
+	 * @param {number} t time, usually between 0 and 1
+	 * @return {number[3]} the position interpolated from the time input by
+	 *     the cubic hermite function.
+	 */
+	Curve.prototype.cubicHermite = function(t) {
+		var n = this.count - 1;
+		var ndx = Math.floor(t*n);
+		if (ndx >= n) ndx = n-1;
+		var tt = (t-ndx/n)/((ndx+1)/n-ndx/n);
+		var x = hemi.utils.cubicHermite(tt,this.xpts[ndx],this.xtans[ndx],this.xpts[ndx+1],this.xtans[ndx+1]);
+		var y = hemi.utils.cubicHermite(tt,this.ypts[ndx],this.ytans[ndx],this.ypts[ndx+1],this.ytans[ndx+1]);
+		var z = hemi.utils.cubicHermite(tt,this.zpts[ndx],this.ztans[ndx],this.zpts[ndx+1],this.ztans[ndx+1]);
+		return [x,y,z];
+	};
+	
+	/**
+	 * The normalized linear interpolation moves on a straight line between
+	 * waypoints at a constant velocity.
+	 *
+	 * @param {number} t time, usually between 0 and 1
+	 * @return {number[3]} the position linearly interpolated from the time
+	 *     input, normalized to keep the velocity constant
+	 */
+	Curve.prototype.linearNorm = function(t) {
+		var d = 0;
+		var dpts = [];
+		dpts[0] = 0;
+		for(var i = 1; i < this.count; i++) {
+			d += hemi.core.math.distance([this.xpts[i-1],this.ypts[i-1],this.zpts[i-1]],
+										 [this.xpts[i],this.ypts[i],this.zpts[i]]);
+			dpts[i] = d;
+		}
+		var tt = t*d;
+		var ndx = 0;
+		for(var i = 0; i < this.count; i++) {
+			if(dpts[i] < tt) ndx = i; 
+		}
+		var lt = (tt - dpts[ndx])/(dpts[ndx+1] - dpts[ndx]);
+		var x = (1-lt)*this.xpts[ndx] + lt*this.xpts[ndx+1];
+		var y = (1-lt)*this.ypts[ndx] + lt*this.ypts[ndx+1];
+		var z = (1-lt)*this.zpts[ndx] + lt*this.zpts[ndx+1];			
+		return [x,y,z];
+	};
+	
+	/**
+	 * Calculate the tangents for a cardinal curve, which is a cubic hermite
+	 * curve where the tangents are defined by a single 'tension' factor.
+	 */
+	Curve.prototype.setTangents = function() {
+		if (this.type == hemi.curve.CurveType.Cardinal) {
+			var xpts = hemi.utils.clone(this.xpts),
+				ypts = hemi.utils.clone(this.ypts),
+				zpts = hemi.utils.clone(this.zpts);
+			
+			// Copy the first and last points in order to calculate tangents
+			xpts.unshift(xpts[0]);
+			xpts.push(xpts[xpts.length - 1]);
+			ypts.unshift(ypts[0]);
+			ypts.push(ypts[ypts.length - 1]);
+			zpts.unshift(zpts[0]);
+			zpts.push(zpts[zpts.length - 1]);
+			
+			for (var i = 0; i < this.count; i++) {
+				this.xtans[i] = (1-this.tension)*(xpts[i+2]-xpts[i])/2;
+				this.ytans[i] = (1-this.tension)*(ypts[i+2]-ypts[i])/2;
+				this.ztans[i] = (1-this.tension)*(zpts[i+2]-zpts[i])/2;
+			}
+		}
+	};
+	
+	/**
+	 * Set the type of interpolation for the Curve.
+	 * 
+	 * @param {hemi.curve.CurveType} type interpolation type
+	 */
+	Curve.prototype.setType = function(type) {
+		this.type = type;
+		
+		switch (type) {
+			case hemi.curve.CurveType.Linear:
+				this.interpolate = this.linear;
+				break;
+			case hemi.curve.CurveType.Bezier:
+				this.interpolate = this.bezier;
+				break;
+			case hemi.curve.CurveType.CubicHermite:
+			case hemi.curve.CurveType.Cardinal:
+				this.interpolate = this.cubicHermite;
+				break;
+			case hemi.curve.CurveType.LinearNorm:
+				this.interpolate = this.linearNorm;
+				break;
+			case hemi.curve.CurveType.Custom:
+			default:
+				break;
+		}
+	};
+	
+	/**
+	 * Get the XYZ position of the last waypoint of the Curve.
+	 * 
+	 * @return {number[3]} the position of the last waypoint
+	 */
+	Curve.prototype.getEnd = function() {
+		var end = this.count - 1;
+		return [this.xpts[end],this.ypts[end],this.zpts[end]];
+	};
+	
+	/**
+	 * Get the XYZ position of the first waypoint of the Curve.
+	 * 
+	 * @return {number[3]} the position of the first waypoint
+	 */
+	Curve.prototype.getStart = function() {
+		return [this.xpts[0],this.ypts[0],this.zpts[0]];
+	};
+	
+	/**
+	 * Draw the Curve using primitive shapes.
+	 * 
+	 * @param {number} samples the number of samples to use to draw
+	 * @param {Object} config configuration for how the Curve should look
+	 */
+	Curve.prototype.draw = function(samples, config) {
+		var points = [];
+		for (var i = 0; i < samples+2; i++) {
+			points[i] = this.interpolate(i/(samples+1));
+		}
+		drawCurve(points,config);
+	};
 	
 	/**
 	 * @class A Particle allows a Transform to move along a set of points.
@@ -528,222 +527,220 @@ var hemi = (function(hemi) {
 		this.active = false;
 	};
 	
-	Particle.prototype = {
-		/**
-		 * Start this particle along the curve.
-		 *
-		 * @param {number} loops the number of loops to do
-		 */
-		run : function(loops) {
-			this.loops = loops;
-			this.ready = false;
-			this.active = true;
-		},
+	/**
+	 * Start this particle along the curve.
+	 *
+	 * @param {number} loops the number of loops to do
+	 */
+	Particle.prototype.run = function(loops) {
+		this.loops = loops;
+		this.ready = false;
+		this.active = true;
+	};
+
+	/**
+	 * Add a shape to the particle Transform.
+	 *
+	 * @param {THREE.Geometry} shape the shape to add
+	 */
+	Particle.prototype.addShape = function(shape) {
+		this.transform.add(new THREE.Mesh(shape, this.material));
+	};
 	
-		/**
-		 * Add a shape to the particle Transform.
-		 *
-		 * @param {THREE.Geometry} shape the shape to add
-		 */
-		addShape : function(shape) {
-			this.transform.add(new THREE.Mesh(shape, this.material));
-		},
-		
-		/**
-		 * Remove all shapes from the particle transform.
-		 */
-		removeShapes : function() {
-			for (var i = this.transform.children.length - 1; i >=0; i--) {
-				this.transform.remove(this.transform.children[i]);
-			}
-		},
-		
-		/**
-		 * Set the color gradient of this Particle.
-		 * 
-		 * @param {hemi.curve.ColorKey[]} colorKeys array of color key pairs
-		 */
-		setColors : function(colorKeys) {
-			this.colors = [];
-			if(colorKeys) {
-				this.colorKeys = [];
-				for (var i = 0; i < colorKeys.length; i++) {
-					var p = {};
-					var c = colorKeys[i];
-					p.key = c.key;
-					if (c.range) {
-						p.value = [];
-						if (typeof c.range == 'number') {
-							var offset = (Math.random()-0.5)*2*c.range;
-							for (var j = 0; j < c.value.length; j++) {
-								p.value[j] = c.value[j] + offset;
-							}
-						} else {
-							for (var j = 0; j < c.value.length; j++) {
-								p.value[j] = c.value[j] + (Math.random()-0.5)*2*c.range[j];
-							}
-						}
-					} else {
-						p.value = c.value;
-					}
-					this.colorKeys[i] = p;
-				}
-			} else {
-				this.colorKeys = [
-					{key: 0, value: [0,0,0,1]},
-					{key: 1, value: [0,0,0,1]}
-					];
-			}
-			for (var i = 1; i <= this.lastFrame; i++) {		
-				var time = (i-1)/(this.lastFrame-2);				
-				this.colors[i] = this.lerpValue(time, this.colorKeys);			
-			}
-			return this;
-		},
-		
-		/**
-		 * Set the scale gradient of this particle.
-		 * 
-		 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale key pairs
-		 */
-		setScales : function(scaleKeys) {
-			this.scales = [];
-			if(scaleKeys) {
-				var sKeys = [];
-				for (var i = 0; i < scaleKeys.length; i++) {
-					var p = {};
-					var c = scaleKeys[i];
-					p.key = c.key;
-					if (c.range) {
-						p.value = [];
-						if (typeof c.range == 'number') {
-							var offset = (Math.random()-0.5)*2*c.range;
-							for (var j = 0; j < c.value.length; j++) {
-								p.value[j] = c.value[j] + offset;
-							}
-						} else {
-							for (var j = 0; j < c.value.length; j++) {
-								p.value[j] = c.value[j] + (Math.random()-0.5)*2*c.range[j];
-							}
-						}
-					} else {
-						p.value = c.value;
-					}
-					sKeys[i] = p;
-				}
-			} else {
-				sKeys = [
-					{key: 0, value: [1,1,1]},
-					{key: 1, value: [1,1,1]}
-				];
-			}
-			for (var i = 1; i <= this.lastFrame; i++) {
-				var time = (i-1)/(this.lastFrame-2),
-					scale = this.scales[i] = this.lerpValue(time, sKeys);
-				this.matrices[i] = new THREE.Matrix4().copy(this.lt[i]).scale(
-					new THREE.Vector3(scale[0], scale[1], scale[2]));
-			}
-			return this;
-		},
-	
-		/**
-		 * Translate the Particle transform in local space.
-		 *
-		 * @param {number} x x translation
-		 * @param {number} y y translation
-		 * @param {number} z z translation
-		 */
-		translate : function(x, y, z) {
-			this.transform.translateX(x);
-			this.transform.translateY(y);
-			this.transform.translateZ(z);
-		},
-		
-		/**
-		 * Given a set of key-values, return the interpolated value
-		 *
-		 * @param {number} time time, from 0 to 1
-		 * @param {Object[]} keySet array of key-value pairs
-		 * @return {number[]} the interpolated value
-		 */
-		lerpValue : function(time, keySet) {
-			var ndx = keySet.length - 2;
-			while(keySet[ndx].key > time) {
-				ndx--;
-			}
-			var a = keySet[ndx],
-				b = keySet[ndx+1],
-				t = (time - a.key)/(b.key - a.key),
-				r = [],
-				aLength = a.value.length;
-				
-			for (var i = 0; i < aLength; ++i) {
-				r[i] = (1 - t) * a.value[i] + t * b.value[i];
-			}
-				
-			return r;
-		},
-		
-		/**
-		 * Update the particle (called on each render).
-		 */
-		update : function() {
-			if (!this.active) return;
-			
-			var f = this.frame,
-				c = this.colors[f];
-			this.material.color.setRGB(c[0], c[1], c[2]);
-			this.material.opacity = c[3];
-			this.transform.matrixWorldNeedsUpdate = true;
-			this.transform.matrix = this.matrices[f];
-			this.frame++;
-			this.transform.visible = true;
-			for (var i = 0, il = this.transform.children.length; i < il; i++) {
-				this.transform.children[i].visible = true;
-			}
-			
-			if (this.frame >= this.lastFrame) {
-				this.frame = 1;
-				this.loops--;
-				if (this.loops === 0) this.reset();
-			}
-		},
-		
-		/**
-		 * Destroy this particle and all references to it.
-		 */
-		destroy : function() {
-			if(this.destroyed) return;
-			
-			var t = this.transform,
-				p = t.parent;
-				
-			for(var i = (t.children.length-1); i >= 0; i--) {
-				t.remove(t.children[i]);
-			}
-			
-			if (p) {
-				p.remove(t);
-			}
-			
-			this.transform = null;
-			this.curve = null;
-			this.destroyed = true;
-		},
-		
-		/**
-		 * Reset this particle.
-		 */
-		reset : function() {
-			this.transform.visible = false;
-			for (var i = 0, il = this.transform.children.length; i < il; i++) {
-				this.transform.children[i].visible = false;
-			}
-			this.loops = this.totalLoops;
-			this.destroyed = false;
-			this.active = false;
-			this.ready = true;
+	/**
+	 * Remove all shapes from the particle transform.
+	 */
+	Particle.prototype.removeShapes = function() {
+		for (var i = this.transform.children.length - 1; i >=0; i--) {
+			this.transform.remove(this.transform.children[i]);
 		}
+	};
+	
+	/**
+	 * Set the color gradient of this Particle.
+	 * 
+	 * @param {hemi.curve.ColorKey[]} colorKeys array of color key pairs
+	 */
+	Particle.prototype.setColors = function(colorKeys) {
+		this.colors = [];
+		if(colorKeys) {
+			this.colorKeys = [];
+			for (var i = 0; i < colorKeys.length; i++) {
+				var p = {};
+				var c = colorKeys[i];
+				p.key = c.key;
+				if (c.range) {
+					p.value = [];
+					if (typeof c.range == 'number') {
+						var offset = (Math.random()-0.5)*2*c.range;
+						for (var j = 0; j < c.value.length; j++) {
+							p.value[j] = c.value[j] + offset;
+						}
+					} else {
+						for (var j = 0; j < c.value.length; j++) {
+							p.value[j] = c.value[j] + (Math.random()-0.5)*2*c.range[j];
+						}
+					}
+				} else {
+					p.value = c.value;
+				}
+				this.colorKeys[i] = p;
+			}
+		} else {
+			this.colorKeys = [
+				{key: 0, value: [0,0,0,1]},
+				{key: 1, value: [0,0,0,1]}
+				];
+		}
+		for (var i = 1; i <= this.lastFrame; i++) {		
+			var time = (i-1)/(this.lastFrame-2);				
+			this.colors[i] = this.lerpValue(time, this.colorKeys);			
+		}
+		return this;
+	};
+	
+	/**
+	 * Set the scale gradient of this particle.
+	 * 
+	 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale key pairs
+	 */
+	Particle.prototype.setScales = function(scaleKeys) {
+		this.scales = [];
+		if(scaleKeys) {
+			var sKeys = [];
+			for (var i = 0; i < scaleKeys.length; i++) {
+				var p = {};
+				var c = scaleKeys[i];
+				p.key = c.key;
+				if (c.range) {
+					p.value = [];
+					if (typeof c.range == 'number') {
+						var offset = (Math.random()-0.5)*2*c.range;
+						for (var j = 0; j < c.value.length; j++) {
+							p.value[j] = c.value[j] + offset;
+						}
+					} else {
+						for (var j = 0; j < c.value.length; j++) {
+							p.value[j] = c.value[j] + (Math.random()-0.5)*2*c.range[j];
+						}
+					}
+				} else {
+					p.value = c.value;
+				}
+				sKeys[i] = p;
+			}
+		} else {
+			sKeys = [
+				{key: 0, value: [1,1,1]},
+				{key: 1, value: [1,1,1]}
+			];
+		}
+		for (var i = 1; i <= this.lastFrame; i++) {
+			var time = (i-1)/(this.lastFrame-2),
+				scale = this.scales[i] = this.lerpValue(time, sKeys);
+			this.matrices[i] = new THREE.Matrix4().copy(this.lt[i]).scale(
+				new THREE.Vector3(scale[0], scale[1], scale[2]));
+		}
+		return this;
+	};
+
+	/**
+	 * Translate the Particle transform in local space.
+	 *
+	 * @param {number} x x translation
+	 * @param {number} y y translation
+	 * @param {number} z z translation
+	 */
+	Particle.prototype.translate = function(x, y, z) {
+		this.transform.translateX(x);
+		this.transform.translateY(y);
+		this.transform.translateZ(z);
+	};
+	
+	/**
+	 * Given a set of key-values, return the interpolated value
+	 *
+	 * @param {number} time time, from 0 to 1
+	 * @param {Object[]} keySet array of key-value pairs
+	 * @return {number[]} the interpolated value
+	 */
+	Particle.prototype.lerpValue = function(time, keySet) {
+		var ndx = keySet.length - 2;
+		while(keySet[ndx].key > time) {
+			ndx--;
+		}
+		var a = keySet[ndx],
+			b = keySet[ndx+1],
+			t = (time - a.key)/(b.key - a.key),
+			r = [],
+			aLength = a.value.length;
+			
+		for (var i = 0; i < aLength; ++i) {
+			r[i] = (1 - t) * a.value[i] + t * b.value[i];
+		}
+			
+		return r;
+	};
+	
+	/**
+	 * Update the particle (called on each render).
+	 */
+	Particle.prototype.update = function() {
+		if (!this.active) return;
+		
+		var f = this.frame,
+			c = this.colors[f];
+		this.material.color.setRGB(c[0], c[1], c[2]);
+		this.material.opacity = c[3];
+		this.transform.matrixWorldNeedsUpdate = true;
+		this.transform.matrix = this.matrices[f];
+		this.frame++;
+		this.transform.visible = true;
+		for (var i = 0, il = this.transform.children.length; i < il; i++) {
+			this.transform.children[i].visible = true;
+		}
+		
+		if (this.frame >= this.lastFrame) {
+			this.frame = 1;
+			this.loops--;
+			if (this.loops === 0) this.reset();
+		}
+	};
+	
+	/**
+	 * Destroy this particle and all references to it.
+	 */
+	Particle.prototype.destroy = function() {
+		if(this.destroyed) return;
+		
+		var t = this.transform,
+			p = t.parent;
+			
+		for(var i = (t.children.length-1); i >= 0; i--) {
+			t.remove(t.children[i]);
+		}
+		
+		if (p) {
+			p.remove(t);
+		}
+		
+		this.transform = null;
+		this.curve = null;
+		this.destroyed = true;
+	};
+	
+	/**
+	 * Reset this particle.
+	 */
+	Particle.prototype.reset = function() {
+		this.transform.visible = false;
+		for (var i = 0, il = this.transform.children.length; i < il; i++) {
+			this.transform.children[i].visible = false;
+		}
+		this.loops = this.totalLoops;
+		this.destroyed = false;
+		this.active = false;
+		this.ready = true;
 	};
 	
 	/**
@@ -752,33 +749,201 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {Object} config configuration object describing this system
 	 */
-	hemi.ParticleCurveSystemBase = hemi.Class.extend({
-		init: function(client, config) {
-			this.transform = new THREE.Object3D();
-			config.parent ? config.parent.add(this.transform) : client.scene.add(this.transform);
+	var ParticleCurveSystem = function(client, config) {
+		this.transform = new THREE.Object3D();
+		config.parent ? config.parent.add(this.transform) : client.scene.add(this.transform);
+		
+		this.active = false;
+		this.pLife = config.life || 5;
+		this.boxes = config.boxes;
+		this.maxParticles = config.particleCount || 25;
+		this.maxRate = Math.ceil(this.maxParticles / this.pLife);
+		this.particles = [];
+		this.pRate = this.maxRate;
+		this.pTimer = 0.0;
+		this.pTimerMax = 1.0 / this.pRate;
+		this.pIndex = 0;
 			
-			this.active = false;
-			this.pLife = config.life || 5;
-			this.boxes = config.boxes;
-			this.maxParticles = config.particleCount || 25;
-			this.maxRate = Math.ceil(this.maxParticles / this.pLife);
-			this.particles = [];
-			this.pRate = this.maxRate;
-			this.pTimer = 0.0;
-			this.pTimerMax = 1.0 / this.pRate;
-			this.pIndex = 0;
-				
-			this.shapeMaterial = new THREE.MeshBasicMaterial({
-				color: 0xff0000,
-				transparent: true
-			});
+		this.shapeMaterial = new THREE.MeshBasicMaterial({
+			color: 0xff0000,
+			transparent: true
+		});
+		
+		var type = config.particleShape || hemi.curve.ShapeType.CUBE,
+			size = config.particleSize || 1;
+		this.shapes = [];
+		this.size = size;
+		
+		switch (type) {
+			case (hemi.curve.ShapeType.ARROW):
+				var halfSize = size / 2,
+					thirdSize = size / 3;
+				this.shapes.push(new THREE.ArrowGeometry(size, 
+					size, halfSize, halfSize, size));
+				break;
+			case (hemi.curve.ShapeType.CUBE):
+				this.shapes.push(new THREE.CubeGeometry(size, size, size));
+				break;
+			case (hemi.curve.ShapeType.SPHERE):
+				this.shapes.push(new THREE.SphereGeometry(size, 12, 12));
+				break;
+		}
+		
+		hemi.addRenderListener(this);
+		
+		this.boxesOn = false;
+		
+		this.points = [];
+		this.frames = config.frames || this.pLife*hemi.getFPS();
+		
+		for(var j = 0; j < this.maxParticles; j++) {
+			var curve = this.newCurve(config.tension || 0);
+			this.points[j] = [];
+			for(var i=0; i < this.frames; i++) {
+				this.points[j][i] = curve.interpolate((i)/this.frames);
+			}
+		}
+		
+		var colorKeys = null,
+			scaleKeys = null;
+		
+		if (config.colorKeys) {
+			colorKeys = config.colorKeys;
+		} else if (config.colors) {
+			var len = config.colors.length,
+				step = len === 1 ? 1 : 1 / (len - 1);
 			
-			var type = config.particleShape || hemi.curve.ShapeType.CUBE,
-				size = config.particleSize || 1;
-			this.shapes = [];
-			this.size = size;
+			colorKeys = [];
 			
-			switch (type) {
+			for (var i = 0; i < len; i++) {
+				colorKeys.push({
+					key: i * step,
+					value: config.colors[i]
+				});
+			}
+		}
+		if (config.scaleKeys) {
+			scaleKeys = config.scaleKeys;
+		} else if (config.scales) {
+			var len = config.scales.length,
+				step = len === 1 ? 1 : 1 / (len - 1);
+			
+			scaleKeys = [];
+			
+			for (var i = 0; i < len; i++) {
+				scaleKeys.push({
+					key: i * step,
+					value: config.scales[i]
+				});
+			}
+		}
+		
+		for (i = 0; i < this.maxParticles; i++) {
+			this.particles[i] = new Particle(
+				this.transform,
+				this.points[i],
+				colorKeys,
+				scaleKeys,
+				config.aim);
+			for (var j = 0; j < this.shapes.length; j++) {
+				this.particles[i].addShape(this.shapes[j]);
+			}
+		}
+	};
+		
+	/**
+	 * Start the system.
+	 */
+	ParticleCurveSystem.prototype.start = function() {
+		this.active = true;
+	};
+	
+	/**
+	 * Stop the system.
+	 *
+	 * @param {boolean} opt_hard If true, remove all particles immediately.
+	 *     Otherwise, stop emitting but let existing particles finish.
+	 */
+	ParticleCurveSystem.prototype.stop = function(opt_hard) {
+		this.active = false;
+		if(opt_hard) {
+			// Destroy All Particles
+			for(var i = 0; i < this.maxParticles; i++) {
+				if(this.particles[i] != null) {
+					this.particles[i].reset();
+				}
+			}
+		}
+	};
+	
+	/**
+	 * Update all existing particles on each render and emit new ones if
+	 * needed.
+	 *
+	 * @param {o3d.RenderEvent} event event object describing details of the
+	 *     render loop
+	 */
+	ParticleCurveSystem.prototype.onRender = function(event) {
+		for(var i = 0; i < this.maxParticles; i++) {
+			if(this.particles[i] != null) {
+				this.particles[i].update(event);
+			}
+		}
+		if(!this.active) return;
+		this.pTimer += event.elapsedTime;
+		if(this.pTimer >= this.pTimerMax) {
+			this.pTimer = 0;
+			var p = this.particles[this.pIndex];
+			if (p.ready) p.run(1);
+			this.pIndex++;
+			if(this.pIndex >= this.maxParticles) this.pIndex = 0;
+		}
+	};
+	
+	/**
+	 * Generate a new curve running through the system's bounding boxes.
+	 * 
+	 * @param {number} tension tension parameter for the Curve
+	 * @return {hemi.curve.Curve} the randomly generated Curve
+	 */
+	ParticleCurveSystem.prototype.newCurve = function(tension) {
+		var points = [];
+		var num = this.boxes.length;
+		for (var i = 0; i < num; i++) {
+			var min = this.boxes[i].min;
+			var max = this.boxes[i].max;
+			points[i+1] = randomPoint(min,max);
+		}
+		points[0] = points[1].slice(0,3);
+		points[num+1] = points[num].slice(0,3);
+		var curve = new hemi.Curve(points,
+			hemi.curve.CurveType.Cardinal, {tension: tension});
+		return curve;
+	};
+	
+	/**
+	 * Remove all shapes from all particles in the system.
+	 */
+	ParticleCurveSystem.prototype.removeShapes = function() {
+		for (var i = 0; i < this.maxParticles; i++) {
+			this.particles[i].removeShapes();
+		}
+		this.shapes = [];
+	};
+	
+	/**
+	 * Add a shape which will be added to the Transform of every particle.
+	 *
+	 * @param {number|o3d.Shape} shape either an enum for standard shapes,
+	 *     or a custom	predefined shape to add
+	 */
+	ParticleCurveSystem.prototype.addShape = function(shape) {
+		var pack = hemi.curve.pack;
+		var startndx = this.shapes.length;
+		if (typeof shape == 'string') {
+			var size = this.size;
+			
+			switch (shape) {
 				case (hemi.curve.ShapeType.ARROW):
 					var halfSize = size / 2,
 						thirdSize = size / 3;
@@ -789,274 +954,104 @@ var hemi = (function(hemi) {
 					this.shapes.push(new THREE.CubeGeometry(size, size, size));
 					break;
 				case (hemi.curve.ShapeType.SPHERE):
-					this.shapes.push(new THREE.SphereGeometry(size, 12, 12));
+					this.shapes.push(new THREE.SphereGeometry(size, 24, 12));
 					break;
 			}
-			
-			hemi.addRenderListener(this);
-			
-			this.boxesOn = false;
-			
-			this.points = [];
-			this.frames = config.frames || this.pLife*hemi.getFPS();
-			
-			for(var j = 0; j < this.maxParticles; j++) {
-				var curve = this.newCurve(config.tension || 0);
-				this.points[j] = [];
-				for(var i=0; i < this.frames; i++) {
-					this.points[j][i] = curve.interpolate((i)/this.frames);
-				}
-			}
-			
-			var colorKeys = null,
-				scaleKeys = null;
-			
-			if (config.colorKeys) {
-				colorKeys = config.colorKeys;
-			} else if (config.colors) {
-				var len = config.colors.length,
-					step = len === 1 ? 1 : 1 / (len - 1);
-				
-				colorKeys = [];
-				
-				for (var i = 0; i < len; i++) {
-					colorKeys.push({
-						key: i * step,
-						value: config.colors[i]
-					});
-				}
-			}
-			if (config.scaleKeys) {
-				scaleKeys = config.scaleKeys;
-			} else if (config.scales) {
-				var len = config.scales.length,
-					step = len === 1 ? 1 : 1 / (len - 1);
-				
-				scaleKeys = [];
-				
-				for (var i = 0; i < len; i++) {
-					scaleKeys.push({
-						key: i * step,
-						value: config.scales[i]
-					});
-				}
-			}
-			
-			for (i = 0; i < this.maxParticles; i++) {
-				this.particles[i] = new Particle(
-					this.transform,
-					this.points[i],
-					colorKeys,
-					scaleKeys,
-					config.aim);
-				for (var j = 0; j < this.shapes.length; j++) {
-					this.particles[i].addShape(this.shapes[j]);
-				}
-			}
-		},
-		
-		/**
-		 * Start the system.
-		 */
-		start : function() {
-			this.active = true;
-		},
-		
-		/**
-		 * Stop the system.
-		 *
-		 * @param {boolean} opt_hard If true, remove all particles immediately.
-		 *     Otherwise, stop emitting but let existing particles finish.
-		 */
-		stop : function(opt_hard) {
-			this.active = false;
-			if(opt_hard) {
-				// Destroy All Particles
-				for(var i = 0; i < this.maxParticles; i++) {
-					if(this.particles[i] != null) {
-						this.particles[i].reset();
-					}
-				}
-			}
-		},
-		
-		/**
-		 * Update all existing particles on each render and emit new ones if
-		 * needed.
-		 *
-		 * @param {o3d.RenderEvent} event event object describing details of the
-		 *     render loop
-		 */
-		onRender : function(event) {
-			for(var i = 0; i < this.maxParticles; i++) {
-				if(this.particles[i] != null) {
-					this.particles[i].update(event);
-				}
-			}
-			if(!this.active) return;
-			this.pTimer += event.elapsedTime;
-			if(this.pTimer >= this.pTimerMax) {
-				this.pTimer = 0;
-				var p = this.particles[this.pIndex];
-				if (p.ready) p.run(1);
-				this.pIndex++;
-				if(this.pIndex >= this.maxParticles) this.pIndex = 0;
-			}
-		},
-		
-		/**
-		 * Generate a new curve running through the system's bounding boxes.
-		 * 
-		 * @param {number} tension tension parameter for the Curve
-		 * @return {hemi.curve.Curve} the randomly generated Curve
-		 */
-		newCurve : function(tension) {
-			var points = [];
-			var num = this.boxes.length;
-			for (var i = 0; i < num; i++) {
-				var min = this.boxes[i].min;
-				var max = this.boxes[i].max;
-				points[i+1] = randomPoint(min,max);
-			}
-			points[0] = points[1].slice(0,3);
-			points[num+1] = points[num].slice(0,3);
-			var curve = new hemi.Curve(points,
-				hemi.curve.CurveType.Cardinal, {tension: tension});
-			return curve;
-		},
-		
-		/**
-		 * Remove all shapes from all particles in the system.
-		 */
-		removeShapes : function() {
-			for (var i = 0; i < this.maxParticles; i++) {
-				this.particles[i].removeShapes();
-			}
-			this.shapes = [];
-		},
-		
-		/**
-		 * Add a shape which will be added to the Transform of every particle.
-		 *
-		 * @param {number|o3d.Shape} shape either an enum for standard shapes,
-		 *     or a custom	predefined shape to add
-		 */
-		addShape : function(shape) {
-			var pack = hemi.curve.pack;
-			var startndx = this.shapes.length;
-			if (typeof shape == 'string') {
-				var size = this.size;
-				
-				switch (shape) {
-					case (hemi.curve.ShapeType.ARROW):
-						var halfSize = size / 2,
-							thirdSize = size / 3;
-						this.shapes.push(new THREE.ArrowGeometry(size, 
-							size, halfSize, halfSize, size));
-						break;
-					case (hemi.curve.ShapeType.CUBE):
-						this.shapes.push(new THREE.CubeGeometry(size, size, size));
-						break;
-					case (hemi.curve.ShapeType.SPHERE):
-						this.shapes.push(new THREE.SphereGeometry(size, 24, 12));
-						break;
-				}
-			} else {
-				this.shapes.push(shape);
-			}
-			for (var i = 0; i < this.maxParticles; i++) {
-				for (var j = startndx; j < this.shapes.length; j++) {
-					this.particles[i].addShape(this.shapes[j]);
-				}
-			}
-		},
-		
-		/**
-		 * Change the rate at which particles are emitted.
-		 *
-		 * @param {number} delta the delta by which to change the rate
-		 * @return {number} the new rate
-		 */
-		changeRate : function(delta) {
-			return this.setRate(this.pRate + delta);
-		},
-		
-		/**
-		 * Set the emit rate of the system.
-		 *
-		 * @param {number} rate the rate at which to emit particles
-		 * @return {number} the new rate - may be different because of bounds
-		 */
-		setRate : function(rate) {
-			var newRate = hemi.utils.clamp(rate, 0, this.maxRate);
-			
-			if (newRate === 0) {
-				this.pTimerMax = 0;
-				this.stop();
-			} else {
-				if (this.pRate === 0 && newRate > 0) {
-					this.start();
-				}
-				this.pTimerMax = 1.0 / newRate;
-			}
-			
-			this.pRate = newRate;
-			return newRate;
-		},
-		
-		/**
-		 * Set the color gradient for this particle system.
-		 * 
-		 * @param {hemi.curve.ColorKey[]} colorKeys array of color key pairs
-		 * @return {hemi.curve.ParticleCurveSystem} this system, for chaining
-		 */
-		setColors : function(colorKeys) {
-			for (var i = 0; i < this.maxParticles; i++) {
-				this.particles[i].setColors(colorKeys);
-			}
-			return this;
-		},
-
-		/**
-		 * Set the scale gradient for this particle system.
-		 * 
-		 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale key pairs
-		 * @return {hemi.curve.ParticleCurveSystem} this system, for chaining
-		 */		
-		setScales : function(scaleKeys) {
-			for (var i = 0; i < this.maxParticles; i++) {
-				this.particles[i].setScales(scaleKeys);
-			}
-			return this;
-		},
-		
-		/**
-		 * Render the bounding boxes which the particle system's curves run
-		 * through (helpful for debugging).
-		 */
-		showBoxes : function() {
-			showBoxes.call(this);
-		},
-	
-		/**
-		 * Hide the particle system's bounding boxes from view.
-		 */
-		hideBoxes : function() {
-			hideBoxes.call(this);
-		},
-		
-		/**
-		 * Translate the entire particle system by the given amounts
-		 * 
-		 * @param {number} x amount to translate in the X direction
-		 * @param {number} y amount to translate in the Y direction
-		 * @param {number} z amount to translate in the Z direction
-		 */
-		translate: function(x, y, z) {
-			this.transform.position.addSelf(new THREE.Vector(x, y, z));
-			this.transform.updateMatrix();
+		} else {
+			this.shapes.push(shape);
 		}
-	});
+		for (var i = 0; i < this.maxParticles; i++) {
+			for (var j = startndx; j < this.shapes.length; j++) {
+				this.particles[i].addShape(this.shapes[j]);
+			}
+		}
+	};
+	
+	/**
+	 * Change the rate at which particles are emitted.
+	 *
+	 * @param {number} delta the delta by which to change the rate
+	 * @return {number} the new rate
+	 */
+	ParticleCurveSystem.prototype.changeRate = function(delta) {
+		return this.setRate(this.pRate + delta);
+	};
+	
+	/**
+	 * Set the emit rate of the system.
+	 *
+	 * @param {number} rate the rate at which to emit particles
+	 * @return {number} the new rate - may be different because of bounds
+	 */
+	ParticleCurveSystem.prototype.setRate = function(rate) {
+		var newRate = hemi.utils.clamp(rate, 0, this.maxRate);
+		
+		if (newRate === 0) {
+			this.pTimerMax = 0;
+			this.stop();
+		} else {
+			if (this.pRate === 0 && newRate > 0) {
+				this.start();
+			}
+			this.pTimerMax = 1.0 / newRate;
+		}
+		
+		this.pRate = newRate;
+		return newRate;
+	};
+	
+	/**
+	 * Set the color gradient for this particle system.
+	 * 
+	 * @param {hemi.curve.ColorKey[]} colorKeys array of color key pairs
+	 * @return {hemi.curve.ParticleCurveSystem} this system, for chaining
+	 */
+	ParticleCurveSystem.prototype.setColors = function(colorKeys) {
+		for (var i = 0; i < this.maxParticles; i++) {
+			this.particles[i].setColors(colorKeys);
+		}
+		return this;
+	};
+
+	/**
+	 * Set the scale gradient for this particle system.
+	 * 
+	 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale key pairs
+	 * @return {hemi.curve.ParticleCurveSystem} this system, for chaining
+	 */		
+	ParticleCurveSystem.prototype.setScales = function(scaleKeys) {
+		for (var i = 0; i < this.maxParticles; i++) {
+			this.particles[i].setScales(scaleKeys);
+		}
+		return this;
+	};
+	
+	/**
+	 * Render the bounding boxes which the particle system's curves run
+	 * through (helpful for debugging).
+	 */
+	ParticleCurveSystem.prototype.showBoxes = function() {
+		showBoxes.call(this);
+	};
+
+	/**
+	 * Hide the particle system's bounding boxes from view.
+	 */
+	ParticleCurveSystem.prototype.hideBoxes = function() {
+		hideBoxes.call(this);
+	};
+	
+	/**
+	 * Translate the entire particle system by the given amounts
+	 * 
+	 * @param {number} x amount to translate in the X direction
+	 * @param {number} y amount to translate in the Y direction
+	 * @param {number} z amount to translate in the Z direction
+	 */
+	ParticleCurveSystem.prototype.translate= function(x, y, z) {
+		this.transform.position.addSelf(new THREE.Vector(x, y, z));
+		this.transform.updateMatrix();
+	};
 	
 	// START GPU PARTICLE SYSTEM
 	
@@ -1260,692 +1255,684 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {Object} opt_cfg optional configuration object for the system
 	 */
-	hemi.GpuParticleCurveSystemBase = hemi.Class.extend({ 
-		init: function(client, opt_cfg) {
-			this.active = false;
-			this.aim = false;
-			this.boxes = [];
-			this.colors = [];
-			this.decParam = null;
-			this.life = 0;
-			this.material = null;
-			this.materialSrc = null;
-			this.maxTimeParam = null;
-			this.particles = 0;
-			this.ptcShape = 0;
-			this.scales = [];
-			this.size = 0;
-			this.tension = 0;
-			this.texNdx = -1;
-			this.timeParam = null;
-			this.viewITParam = null;
-			this.transform = null;
-			this.client = client;
-			this.shaderMaterial = new THREE.ShaderMaterial();
-			
-			if (opt_cfg) {
-				this.loadConfig(opt_cfg);
-			}
-		},
-			
-        /**
-         * Overwrites hemi.world.Citizen.citizenType.
-		 * @type string
-         */
-        citizenType: 'hemi.curve.GpuParticleCurveSystem',
-	
-		/**
-		 * Hide the particle system's bounding boxes from view.
-		 */
-		hideBoxes : function() {
-			hideBoxes.call(this);
-		},
+	var GpuParticleCurveSystem = function(client, opt_cfg) {
+		this.active = false;
+		this.aim = false;
+		this.boxes = [];
+		this.colors = [];
+		this.decParam = null;
+		this.life = 0;
+		this.material = null;
+		this.materialSrc = null;
+		this.maxTimeParam = null;
+		this.particles = 0;
+		this.ptcShape = 0;
+		this.scales = [];
+		this.size = 0;
+		this.tension = 0;
+		this.texNdx = -1;
+		this.timeParam = null;
+		this.viewITParam = null;
+		this.transform = null;
+		this.client = client;
+		this.shaderMaterial = new THREE.ShaderMaterial();
 		
-		/**
-		 * Load the given configuration object and set up the GpuParticleCurveSystem.
-		 * 
-		 * @param {Object} cfg configuration object
-		 */
-		loadConfig: function(cfg) {
-			this.aim = cfg.aim == null ? false : cfg.aim;
-			this.boxes = cfg.boxes ? hemi.utils.clone(cfg.boxes) : [];
-			this.life = cfg.life || 5;
-			this.particles = cfg.particleCount || 1;
-			this.size = cfg.particleSize || 1;
-			this.tension = cfg.tension || 0;
-			
-			if (cfg.colorKeys) {
-				this.setColorKeys(cfg.colorKeys);
-			} else if (cfg.colors) {
-				this.setColors(cfg.colors);
-			} else {
-				this.colors = [];
-			}
-			
-			if (cfg.scaleKeys) {
-				this.setScaleKeys(cfg.scaleKeys);
-			} else if (cfg.scales) {
-				this.setScales(cfg.scales);
-			} else {
-				this.scales = [];
-			}
-			
-			this.setMaterial(cfg.material || newMaterial());
-			this.setParticleShape(cfg.particleShape || hemi.curve.ShapeType.CUBE);
-		},
-		
-		/**
-		 * Update the particles on each render.
-		 * 
-		 * @param {o3d.RenderEvent} e the render event
-		 */
-		onRender: function(e) {
-			var delta = e.elapsedTime / this.life,
-				newTime = this.timeParam.value + delta;
-			
-			while (newTime > 1.0) {
-				--newTime;
-			}
-			
-			// refresh uniforms
-			this.timeParam.value = newTime;
-			this.viewITParam.value.copy(this.client.camera.threeCamera.matrixWorld).transpose();
-		},
-		
-		/**
-		 * Pause the particle system.
-		 */
-		pause: function() {
-			if (this.active) {
-				hemi.removeRenderListener(this);
-				this.active = false;
-			}
-		},
-		
-		/**
-		 * Resume the particle system.
-		 */
-		play: function() {
-			if (!this.active) {
-				if (this.maxTimeParam.value === 1.0) {
-					hemi.addRenderListener(this);
-					this.active = true;
-				} else {
-					this.start();
-				}
-			}
-		},
-		
-		/**
-		 * Set whether or not particles should orient themselves along the curve
-		 * they are following.
-		 * 
-		 * @param {boolean} aim flag indicating if particles should aim
-		 */
-		setAim: function(aim) {
-			if (this.aim !== aim) {
-				this.aim = aim;
-				this.setupShaders()
-			}
-		},
-		
-		/**
-		 * Set the bounding boxes that define waypoints for the particle
-		 * system's curves.
-		 * 
-		 * @param {hemi.curve.Box[]} boxes array of boxes defining volumetric
-		 *     waypoints for the particle system
-		 */
-		setBoxes: function(boxes) {
-			var oldLength = this.boxes.length;
-			this.boxes = hemi.utils.clone(boxes);
-			
-			if (this.boxes.length === oldLength) {
-				setupBounds(this.material, this.boxes);
-			} else {
-				this.setupShaders()
-			}
-		},
-		
-		/**
-		 * Set the color ramp for the particles as they travel along the curve.
-		 * 
-		 * @param {number[4][]} colors array of RGBA color values
-		 */
-		setColors: function(colors) {
-			var len = colors.length,
-				step = len === 1 ? 1 : 1 / (len - 1),
-				colorKeys = [];
-			
-			for (var i = 0; i < len; i++) {
-				colorKeys.push({
-					key: i * step,
-					value: colors[i]
-				});
-			}
-			
-			this.setColorKeys(colorKeys);
-		},
-		
-		/**
-		 * Set the color ramp for the particles as they travel along the curve,
-		 * specifying the interpolation times for each color.
-		 * 
-		 * @param {hemi.curve.ColorKey[]} colorKeys array of color keys, sorted
-		 *     into ascending key order
-		 */
-		setColorKeys: function(colorKeys) {
-			var len = colorKeys.length;
-			
-			if (len === 1) {
-				// We need at least two to interpolate
-				var clr = colorKeys[0].value;
-				this.colors = [{
-					key: 0,
-					value: clr
-				}, {
-					key: 1,
-					value: clr
-				}];
-			} else if (len > 1) {
-				// Just make sure the keys run from 0 to 1
-				colorKeys[0].key = 0;
-				colorKeys[colorKeys.length - 1].key = 1;
-				this.colors = colorKeys;
-			} else {
-				this.colors = [];
-			}
-			
-			this.setupShaders()
-		},
-		
-		/**
-		 * Set the lifetime of the particle system.
-		 * 
-		 * @param {number} life the lifetime of the system in seconds
-		 */
-		setLife: function(life) {
-			if (life > 0) {
-				this.life = life;
-			}
-		},
-		
-		/**
-		 * Set the material to use for the particles. Note that the material's
-		 * shader will be modified for the particle system.
-		 * 
-		 * @param {o3d.Material} material the material to use for particles
-		 */
-		setMaterial: function(material) {
-			this.material = material;
-			
-			if (!material.program) {
-				var scene = this.client.scene;
-				this.client.renderer.initMaterial(material, scene.lights, 
-					scene.fog, this.transform);
-			}
-			
-			var shads = hemi.utils.getShaders(this.client, material);
-			
-			this.materialSrc = {
-				frag: shads.fragSrc,
-				vert: shads.vertSrc
-			};
-				
-			this.setupShaders();
-		},
-		
-		/**
-		 * Set the total number of particles for the system to create.
-		 *  
-		 * @param {number} numPtcs number of particles
-		 */
-		setParticleCount: function(numPtcs) {
-			this.particles = numPtcs;
-			
-			if (this.ptcShape) {
-				// Recreate the custom vertex buffers
-				this.setParticleShape(this.ptcShape);
-			}
-		},
-		
-		/**
-		 * Set the size of each individual particle. For example, this would be
-		 * the radius if the particles are spheres.
-		 * 
-		 * @param {number} size size of the particles
-		 */
-		setParticleSize: function(size) {
-			this.size = size;
-			
-			if (this.ptcShape) {
-				// Recreate the custom vertex buffers
-				this.setParticleShape(this.ptcShape);
-			}
-		},
-		
-		/**
-		 * Set the shape of the particles to one of the predefined shapes. This
-		 * may take some time as a new vertex buffer gets created.
-		 * 
-		 * @param {hemi.curve.ShapeType} type the type of shape to use
-		 */
-		setParticleShape: function(type) {			
-			this.ptcShape = type;
-			
-			if (this.transform) {
-				this.transform.parent ? this.client.scene.remove(this.transform) : null;
-				this.transform = null;
-			}
-			
-			this.material = this.material || newMaterial();
-			this.particles = this.particles || 1;
-			
-			var size = this.size,
-				mat = this.material;
-			
-			switch (type) {
-				case (hemi.curve.ShapeType.ARROW):
-					var halfSize = size / 2,
-						thirdSize = size / 3;
-					this.transform = new THREE.Mesh(new THREE.ArrowGeometry(
-						size, size, halfSize, halfSize, size),
-						mat);
-					break;
-				case (hemi.curve.ShapeType.CUBE):
-					this.transform = new THREE.Mesh(
-						new THREE.CubeGeometry(size, size, size), mat);
-					break;
-				case (hemi.curve.ShapeType.SPHERE):
-					this.transform = new THREE.Mesh(
-						new THREE.SphereGeometry(size, 12, 12), mat);
-					break;
-			}
-			
-			this.client.scene.add(this.transform);
-			var retVal = modifyGeometry(this.transform.geometry, this.particles);
-			this.idArray = retVal.ids;
-			this.offsetArray = retVal.offsets;
-			this.idOffsets = retVal.idOffsets;
-			
-			this.setupShaders();
-		},
-		
-		/**
-		 * Set the scale ramp for the particles as they travel along the curve.
-		 * 
-		 * @param {number[3][]} scales array of XYZ scale values
-		 */
-		setScales: function(scales) {
-			var len = scales.length,
-				step = len === 1 ? 1 : 1 / (len - 1),
-				scaleKeys = [];
-			
-			for (var i = 0; i < len; i++) {
-				scaleKeys.push({
-					key: i * step,
-					value: scales[i]
-				});
-			}
-			
-			this.setScaleKeys(scaleKeys);
-		},
-		
-		/**
-		 * Set the scale ramp for the particles as they travel along the curve,
-		 * specifying the interpolation times for each scale.
-		 * 
-		 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale keys, sorted
-		 *     into ascending key order
-		 */
-		setScaleKeys: function(scaleKeys) {
-			var len = scaleKeys.length;
-			
-			if (len === 1) {
-				// We need at least two to interpolate
-				var scl = scaleKeys[0].value;
-				this.scales = [{
-					key: 0,
-					value: scl
-				}, {
-					key: 1,
-					value: scl
-				}];
-			} else if (len > 1) {
-				// Just make sure the keys run from 0 to 1
-				scaleKeys[0].key = 0;
-				scaleKeys[len - 1].key = 1;
-				this.scales = scaleKeys;
-			} else {
-				this.scales = [];
-			}
-			
-			this.setupShaders()
-		},
-		
-		/**
-		 * Set the tension parameter for the curve. This controls how round or
-		 * straight the curve sections are.
-		 * 
-		 * @param {number} tension tension value (typically from -1 to 1)
-		 */
-		setTension: function(tension) {
-			this.tension = tension;
-			
-			if (this.material) {
-				this.material.getParam('tension').value = (1 - this.tension) / 2;
-			}
-		},
-		
-		/**
-		 * Modify the particle material's shaders so that the particle system
-		 * can be rendered using its current configuration. At a minimum, the
-		 * material, custom texture index, and curve boxes need to be defined.
-		 */
-		setupShaders: function() {
-			if (!this.material || !this.materialSrc || this.boxes.length < 2 || !this.transform) {
-				return;
-			}
-			
-			var gl = this.client.renderer.context,
-				chunksVert = shaderChunks.vert,
-				chunksFrag = shaderChunks.frag,
-				material = this.material,
-				oldProgram = this.material.program,
-				program = material.program = oldProgram.isCurveGen ? oldProgram : gl.createProgram(),
-				fragSrc = this.materialSrc.frag,
-				vertSrc = this.materialSrc.vert,
-				numBoxes = this.boxes.length,
-				numColors = this.colors.length,
-				numScales = this.scales.length,
-				texNdx = this.texNdx,
-				addColors = numColors > 1,
-				addScale = numScales > 1,
-				shads = hemi.utils.getShaders(this.client, material),
-				fragShd = shads.fragShd,
-				vertShd = shads.vertShd,
-				dec = 1.0,
-				maxTime = 3.0,
-				time = 1.1,
-				uniforms = ['sysTime', 'ptcMaxTime', 'ptcDec', 'numPtcs',
-					'tension', 'ptcScales', 'ptcScaleKeys', 'minXYZ', 'maxXYZ',
-					'ptcColors', 'ptcColorKeys', 'viewIT'];
-			
-			// Remove any previously existing uniforms that we created
-			for (var i = 0, il = uniforms.length; i < il; i++) {
-				var name = uniforms[i],
-					param = material.uniforms[name];
-				
-				if (param) {
-					if (name === 'ptcDec') {
-						dec = param.value;
-					} else if (name === 'ptcMaxTime') {
-						maxTime = param.value;
-					} else if (name === 'sysTime') {
-						time = param.value;
-					}
-					
-					delete material.uniforms[name];
-					delete program.uniforms[name];
-				}
-			}
-			
-			// modify the vertex shader
-			if (vertSrc.search('ptcInterp') < 0) {
-				var vertHdr = chunksVert.header.replace(/NUM_BOXES/g, numBoxes),
-					vertSprt = chunksVert.support,
-					vertPreBody = chunksVert.bodySetup.replace(/NUM_BOXES/g, numBoxes);
-								
-				if (addColors) {
-					vertHdr += chunksVert.headerColors.replace(/NUM_COLORS/g, numColors);
-					vertSprt += chunksVert.supportColors.replace(/NUM_COLORS/g, numColors);
-				} else {
-					vertSprt += chunksVert.supportNoColors;
-				}
-				
-				if (this.aim) {
-					vertSprt += chunksVert.supportAim;
-					vertPreBody += chunksVert.bodyAim;
-				} else {
-					vertPreBody += chunksVert.bodyNoAim;
-				}
-				
-				if (addScale) {
-					vertHdr += chunksVert.headerScales.replace(/NUM_SCALES/g, numScales);
-					vertSprt += chunksVert.supportScale.replace(/NUM_SCALES/g, numScales);
-					vertPreBody += chunksVert.bodyScale;
-				} else {
-					vertPreBody += chunksVert.bodyNoScale;
-				}
-				
-				vertPreBody += chunksVert.bodyEnd;
-				var parsedVert = hemi.utils.parseSrc(vertSrc),
-					vertBody = parsedVert.body.replace(/modelViewMatrix/g, 'ptcWorldView')
-						.replace(/objectMatrix/g, 'ptcWorld')
-						.replace(/normalMatrix/g, 'ptcNorm');
-								
-				parsedVert.postSprt = vertHdr + vertSprt;
-				parsedVert.preBody = vertPreBody;
-				parsedVert.body = vertBody;
-				vertSrc = material.vertexShader = hemi.utils.buildSrc(parsedVert);
-				console.log(vertSrc);
-				
-				var vShader = gl.createShader(gl.VERTEX_SHADER);
-				gl.shaderSource(vShader, vertSrc);
-				gl.compileShader(vShader);
-				gl.detachShader(program, vertShd);
-				gl.attachShader(program, vShader);
-			}
-			
-			// modify the fragment shader
-			if (fragSrc.search('ptcColor') < 0) {
-				var parsedFrag = hemi.utils.parseSrc(fragSrc, 'gl_FragColor'),
-					fragGlob = parsedFrag.glob;
-				
-				parsedFrag.postSprt = chunksFrag.header;
-				parsedFrag.preBody = chunksFrag.bodySetup;
-				
-				if (addColors) {
-					if (parsedFrag.body.indexOf('diffuse') !== -1) {
-						parsedFrag.body = parsedFrag.body.replace(/diffuse/g, 'ptcColor.rgb');
-					} else {
-						parsedFrag.body = parsedFrag.body.replace(/emissive/g, 'ptcColor.rgb');
-					}
-				}
-				parsedFrag.body = parsedFrag.body.replace(/opacity/g, '(opacity * ptcColor.a)');
-				
-				fragSrc = material.fragmentShader = hemi.utils.buildSrc(parsedFrag);
-				
-				var fShader = gl.createShader(gl.FRAGMENT_SHADER);
-				gl.shaderSource(fShader, fragSrc);
-				gl.compileShader(fShader);
-				gl.detachShader(program, fragShd);
-				gl.attachShader(program, fShader);
-			}
-			
-			// add the attributes and uniforms to the material
-			var attributes = {
-					idOffset: { type: 'v2', value: this.idOffsets, needsUpdate: true },
-				},
-				uniforms = {
-					sysTime: { type: 'f', value: time },
-					ptcMaxTime: { type: 'f', value: maxTime },
-					ptcDec: { type: 'f', value: dec },
-					numPtcs: { type: 'f', value: this.particles },
-					tension: { type: 'f', value: (1 - this.tension) / 2 },
-					minXYZ: { type: 'v3v', value: [] },
-					maxXYZ: { type: 'v3v', value: [] },
-					viewIT: { type: 'm4', value: new THREE.Matrix4() }
-				};
-	
-			if (addColors) {
-				uniforms.ptcColors = {
-					type: 'v4v', value: []
-				};
-				uniforms.ptcColorKeys = {
-					type: 'fv1', value: []
-				};
-			}
-			if (addScale) {
-				uniforms.ptcScales = {
-					type: 'v3v', value: []
-				};
-				uniforms.ptcScaleKeys = {
-					type: 'fv1', value: []
-				};
-			}
-				
-			material.uniforms = THREE.UniformsUtils.merge([material.uniforms, uniforms]);
-			material.attributes = THREE.UniformsUtils.merge([material.attributes, attributes]);
-
-			material.uniformsList = [];
-			
-			gl.linkProgram(program);
-			
-			if ( !gl.getProgramParameter( program, gl.LINK_STATUS ) ) {
-	
-				console.error( "Could not initialise shader\n" + "VALIDATE_STATUS: " 
-					+ gl.getProgramParameter( program, gl.VALIDATE_STATUS ) 
-					+ ", gl error [" + gl.getError() + "]" );
-	
-			}
-
-			program.uniforms = {};
-			program.attributes = {};
-			program.isCurveGen = true;
-	
-			for (u in material.uniforms) {
-				material.uniformsList.push([material.uniforms[u], u]);
-			}
-			
-			// update the program to point to the uniforms and attributes
-			for (var u in oldProgram.uniforms) {
-				var loc = program.uniforms[u] = gl.getUniformLocation(program, u);
-			}
-			for (var u in uniforms) {
-				program.uniforms[u] = gl.getUniformLocation(program, u);
-			}
-			for (var a in oldProgram.attributes) {
-				var loc = program.attributes[a] = gl.getAttribLocation(program, a);
-				gl.enableVertexAttribArray(loc);
-			}
-			for (var a in attributes) {
-				var loc = program.attributes[a] = gl.getAttribLocation(program, a);
-				gl.enableVertexAttribArray(loc);
-			}
-			
-			// setup params
-			this.decParam = material.uniforms.ptcDec;
-			this.maxTimeParam = material.uniforms.ptcMaxTime;
-			this.timeParam = material.uniforms.sysTime;
-			this.viewITParam = material.uniforms.viewIT;
-			
-			setupBounds(material, this.boxes);
-			
-			var needsZ = false;
-			
-			for (var i = 0; i < numColors && !needsZ; i++) {
-				needsZ = this.colors[i].value[3] < 1;
-			}
-			
-			material.transparent = needsZ;
-			
-			if (addColors) {
-				setupColors(material, this.colors);
-			}
-			if (addScale) {
-				setupScales(material, this.scales);
-			}
-				
-			// force rebuild of buffers
-			this.transform.dynamic = true;
-			this.transform.__webglInit = this.transform.__webglActive = false;
-			delete this.transform.geometry.geometryGroups;
-			delete this.transform.geometry.geometryGroupsList;
-			this.client.scene.__objectsAdded.push(this.transform);
-		},
-		
-		/**
-		 * Render the bounding boxes which the particle system's curves run
-		 * through (helpful for debugging).
-		 */
-		showBoxes : function() {
-			showBoxes.call(this);
-		},
-		
-		/**
-		 * Start the particle system.
-		 */
-		start: function() {
-			if (!this.active) {
-				this.active = true;
-				this.timeParam.value = 1.0;
-				this.maxTimeParam.value = 1.0;
-				hemi.addRenderListener(this);
-			}
-		},
-		
-		/**
-		 * Stop the particle system.
-		 */
-		stop: function() {
-			if (this.active) {
-				this.active = false;
-				this.timeParam.value = 1.1;
-				this.maxTimeParam.value = 3.0;
-				hemi.removeRenderListener(this);
-			}
-		},
-		
-		/**
-		 * Get the Octane structure for the GpuParticleCurveSystem.
-	     *
-	     * @return {Object} the Octane structure representing the
-	     *     GpuParticleCurveSystem
-		 */
-		toOctane: function(){
-			var octane = this._super();
-			
-			octane.props.push({
-				name: 'loadConfig',
-				arg: [{
-					aim: this.aim,
-					boxes: this.boxes,
-					colorKeys: this.colors,
-					life: this.life,
-					particleCount: this.particles,
-					particleShape: this.ptcShape,
-					particleSize: this.size,
-					scaleKeys: this.scales,
-					tension: this.tension
-				}]
-			});
-			
-			return octane;
-		},
-		
-		/**
-		 * Translate the entire particle system by the given amounts
-		 * @param {number} x amount to translate in the X direction
-		 * @param {number} y amount to translate in the Y direction
-		 * @param {number} z amount to translate in the Z direction
-		 */
-		translate: function(x, y, z) {
-			for (var i = 0, il = this.boxes.length; i < il; i++) {
-				var box = this.boxes[i],
-					min = box.min,
-					max = box.max;
-				
-				min[0] += x;
-				max[0] += x;
-				min[1] += y;
-				max[1] += y;
-				min[2] += z;
-				max[2] += z;
-			}
-			setupBounds(this.material, this.boxes);
+		if (opt_cfg) {
+			this.loadConfig(opt_cfg);
 		}
-	});
+	};
+		
+	/**
+	 * Hide the particle system's bounding boxes from view.
+	 */
+	GpuParticleCurveSystem.prototype.hideBoxes = function() {
+		hideBoxes.call(this);
+	};
+	
+	/**
+	 * Load the given configuration object and set up the GpuParticleCurveSystem.
+	 * 
+	 * @param {Object} cfg configuration object
+	 */
+	GpuParticleCurveSystem.prototype.loadConfig = function(cfg) {
+		this.aim = cfg.aim == null ? false : cfg.aim;
+		this.boxes = cfg.boxes ? hemi.utils.clone(cfg.boxes) : [];
+		this.life = cfg.life || 5;
+		this.particles = cfg.particleCount || 1;
+		this.size = cfg.particleSize || 1;
+		this.tension = cfg.tension || 0;
+		
+		if (cfg.colorKeys) {
+			this.setColorKeys(cfg.colorKeys);
+		} else if (cfg.colors) {
+			this.setColors(cfg.colors);
+		} else {
+			this.colors = [];
+		}
+		
+		if (cfg.scaleKeys) {
+			this.setScaleKeys(cfg.scaleKeys);
+		} else if (cfg.scales) {
+			this.setScales(cfg.scales);
+		} else {
+			this.scales = [];
+		}
+		
+		this.setMaterial(cfg.material || newMaterial());
+		this.setParticleShape(cfg.particleShape || hemi.curve.ShapeType.CUBE);
+	};
+	
+	/**
+	 * Update the particles on each render.
+	 * 
+	 * @param {o3d.RenderEvent} e the render event
+	 */
+	GpuParticleCurveSystem.prototype.onRender = function(e) {
+		var delta = e.elapsedTime / this.life,
+			newTime = this.timeParam.value + delta;
+		
+		while (newTime > 1.0) {
+			--newTime;
+		}
+		
+		// refresh uniforms
+		this.timeParam.value = newTime;
+		this.viewITParam.value.copy(this.client.camera.threeCamera.matrixWorld).transpose();
+	};
+	
+	/**
+	 * Pause the particle system.
+	 */
+	GpuParticleCurveSystem.prototype.pause = function() {
+		if (this.active) {
+			hemi.removeRenderListener(this);
+			this.active = false;
+		}
+	},
+	
+	/**
+	 * Resume the particle system.
+	 */
+	GpuParticleCurveSystem.prototype.play = function() {
+		if (!this.active) {
+			if (this.maxTimeParam.value === 1.0) {
+				hemi.addRenderListener(this);
+				this.active = true;
+			} else {
+				this.start();
+			}
+		}
+	};
+	
+	/**
+	 * Set whether or not particles should orient themselves along the curve
+	 * they are following.
+	 * 
+	 * @param {boolean} aim flag indicating if particles should aim
+	 */
+	GpuParticleCurveSystem.prototype.setAim = function(aim) {
+		if (this.aim !== aim) {
+			this.aim = aim;
+			this.setupShaders()
+		}
+	};
+	
+	/**
+	 * Set the bounding boxes that define waypoints for the particle
+	 * system's curves.
+	 * 
+	 * @param {hemi.curve.Box[]} boxes array of boxes defining volumetric
+	 *     waypoints for the particle system
+	 */
+	GpuParticleCurveSystem.prototype.setBoxes = function(boxes) {
+		var oldLength = this.boxes.length;
+		this.boxes = hemi.utils.clone(boxes);
+		
+		if (this.boxes.length === oldLength) {
+			setupBounds(this.material, this.boxes);
+		} else {
+			this.setupShaders()
+		}
+	};
+	
+	/**
+	 * Set the color ramp for the particles as they travel along the curve.
+	 * 
+	 * @param {number[4][]} colors array of RGBA color values
+	 */
+	GpuParticleCurveSystem.prototype.setColors = function(colors) {
+		var len = colors.length,
+			step = len === 1 ? 1 : 1 / (len - 1),
+			colorKeys = [];
+		
+		for (var i = 0; i < len; i++) {
+			colorKeys.push({
+				key: i * step,
+				value: colors[i]
+			});
+		}
+		
+		this.setColorKeys(colorKeys);
+	};
+	
+	/**
+	 * Set the color ramp for the particles as they travel along the curve,
+	 * specifying the interpolation times for each color.
+	 * 
+	 * @param {hemi.curve.ColorKey[]} colorKeys array of color keys, sorted
+	 *     into ascending key order
+	 */
+	GpuParticleCurveSystem.prototype.setColorKeys = function(colorKeys) {
+		var len = colorKeys.length;
+		
+		if (len === 1) {
+			// We need at least two to interpolate
+			var clr = colorKeys[0].value;
+			this.colors = [{
+				key: 0,
+				value: clr
+			}, {
+				key: 1,
+				value: clr
+			}];
+		} else if (len > 1) {
+			// Just make sure the keys run from 0 to 1
+			colorKeys[0].key = 0;
+			colorKeys[colorKeys.length - 1].key = 1;
+			this.colors = colorKeys;
+		} else {
+			this.colors = [];
+		}
+		
+		this.setupShaders()
+	};
+	
+	/**
+	 * Set the lifetime of the particle system.
+	 * 
+	 * @param {number} life the lifetime of the system in seconds
+	 */
+	GpuParticleCurveSystem.prototype.setLife = function(life) {
+		if (life > 0) {
+			this.life = life;
+		}
+	};
+	
+	/**
+	 * Set the material to use for the particles. Note that the material's
+	 * shader will be modified for the particle system.
+	 * 
+	 * @param {o3d.Material} material the material to use for particles
+	 */
+	GpuParticleCurveSystem.prototype.setMaterial = function(material) {
+		this.material = material;
+		
+		if (!material.program) {
+			var scene = this.client.scene;
+			this.client.renderer.initMaterial(material, scene.lights, 
+				scene.fog, this.transform);
+		}
+		
+		var shads = hemi.utils.getShaders(this.client, material);
+		
+		this.materialSrc = {
+			frag: shads.fragSrc,
+			vert: shads.vertSrc
+		};
+			
+		this.setupShaders();
+	};
+	
+	/**
+	 * Set the total number of particles for the system to create.
+	 *  
+	 * @param {number} numPtcs number of particles
+	 */
+	GpuParticleCurveSystem.prototype.setParticleCount = function(numPtcs) {
+		this.particles = numPtcs;
+		
+		if (this.ptcShape) {
+			// Recreate the custom vertex buffers
+			this.setParticleShape(this.ptcShape);
+		}
+	};
+	
+	/**
+	 * Set the size of each individual particle. For example, this would be
+	 * the radius if the particles are spheres.
+	 * 
+	 * @param {number} size size of the particles
+	 */
+	GpuParticleCurveSystem.prototype.setParticleSize = function(size) {
+		this.size = size;
+		
+		if (this.ptcShape) {
+			// Recreate the custom vertex buffers
+			this.setParticleShape(this.ptcShape);
+		}
+	};
+	
+	/**
+	 * Set the shape of the particles to one of the predefined shapes. This
+	 * may take some time as a new vertex buffer gets created.
+	 * 
+	 * @param {hemi.curve.ShapeType} type the type of shape to use
+	 */
+	GpuParticleCurveSystem.prototype.setParticleShape = function(type) {			
+		this.ptcShape = type;
+		
+		if (this.transform) {
+			this.transform.parent ? this.client.scene.remove(this.transform) : null;
+			this.transform = null;
+		}
+		
+		this.material = this.material || newMaterial();
+		this.particles = this.particles || 1;
+		
+		var size = this.size,
+			mat = this.material;
+		
+		switch (type) {
+			case (hemi.curve.ShapeType.ARROW):
+				var halfSize = size / 2,
+					thirdSize = size / 3;
+				this.transform = new THREE.Mesh(new THREE.ArrowGeometry(
+					size, size, halfSize, halfSize, size),
+					mat);
+				break;
+			case (hemi.curve.ShapeType.CUBE):
+				this.transform = new THREE.Mesh(
+					new THREE.CubeGeometry(size, size, size), mat);
+				break;
+			case (hemi.curve.ShapeType.SPHERE):
+				this.transform = new THREE.Mesh(
+					new THREE.SphereGeometry(size, 12, 12), mat);
+				break;
+		}
+		
+		this.client.scene.add(this.transform);
+		var retVal = modifyGeometry(this.transform.geometry, this.particles);
+		this.idArray = retVal.ids;
+		this.offsetArray = retVal.offsets;
+		this.idOffsets = retVal.idOffsets;
+		
+		this.setupShaders();
+	};
+	
+	/**
+	 * Set the scale ramp for the particles as they travel along the curve.
+	 * 
+	 * @param {number[3][]} scales array of XYZ scale values
+	 */
+	GpuParticleCurveSystem.prototype.setScales = function(scales) {
+		var len = scales.length,
+			step = len === 1 ? 1 : 1 / (len - 1),
+			scaleKeys = [];
+		
+		for (var i = 0; i < len; i++) {
+			scaleKeys.push({
+				key: i * step,
+				value: scales[i]
+			});
+		}
+		
+		this.setScaleKeys(scaleKeys);
+	};
+	
+	/**
+	 * Set the scale ramp for the particles as they travel along the curve,
+	 * specifying the interpolation times for each scale.
+	 * 
+	 * @param {hemi.curve.ScaleKey[]} scaleKeys array of scale keys, sorted
+	 *     into ascending key order
+	 */
+	GpuParticleCurveSystem.prototype.setScaleKeys = function(scaleKeys) {
+		var len = scaleKeys.length;
+		
+		if (len === 1) {
+			// We need at least two to interpolate
+			var scl = scaleKeys[0].value;
+			this.scales = [{
+				key: 0,
+				value: scl
+			}, {
+				key: 1,
+				value: scl
+			}];
+		} else if (len > 1) {
+			// Just make sure the keys run from 0 to 1
+			scaleKeys[0].key = 0;
+			scaleKeys[len - 1].key = 1;
+			this.scales = scaleKeys;
+		} else {
+			this.scales = [];
+		}
+		
+		this.setupShaders()
+	};
+	
+	/**
+	 * Set the tension parameter for the curve. This controls how round or
+	 * straight the curve sections are.
+	 * 
+	 * @param {number} tension tension value (typically from -1 to 1)
+	 */
+	GpuParticleCurveSystem.prototype.setTension = function(tension) {
+		this.tension = tension;
+		
+		if (this.material) {
+			this.material.getParam('tension').value = (1 - this.tension) / 2;
+		}
+	};
+	
+	/**
+	 * Modify the particle material's shaders so that the particle system
+	 * can be rendered using its current configuration. At a minimum, the
+	 * material, custom texture index, and curve boxes need to be defined.
+	 */
+	GpuParticleCurveSystem.prototype.setupShaders = function() {
+		if (!this.material || !this.materialSrc || this.boxes.length < 2 || !this.transform) {
+			return;
+		}
+		
+		var gl = this.client.renderer.context,
+			chunksVert = shaderChunks.vert,
+			chunksFrag = shaderChunks.frag,
+			material = this.material,
+			oldProgram = this.material.program,
+			program = material.program = oldProgram.isCurveGen ? oldProgram : gl.createProgram(),
+			fragSrc = this.materialSrc.frag,
+			vertSrc = this.materialSrc.vert,
+			numBoxes = this.boxes.length,
+			numColors = this.colors.length,
+			numScales = this.scales.length,
+			texNdx = this.texNdx,
+			addColors = numColors > 1,
+			addScale = numScales > 1,
+			shads = hemi.utils.getShaders(this.client, material),
+			fragShd = shads.fragShd,
+			vertShd = shads.vertShd,
+			dec = 1.0,
+			maxTime = 3.0,
+			time = 1.1,
+			uniforms = ['sysTime', 'ptcMaxTime', 'ptcDec', 'numPtcs',
+				'tension', 'ptcScales', 'ptcScaleKeys', 'minXYZ', 'maxXYZ',
+				'ptcColors', 'ptcColorKeys', 'viewIT'];
+		
+		// Remove any previously existing uniforms that we created
+		for (var i = 0, il = uniforms.length; i < il; i++) {
+			var name = uniforms[i],
+				param = material.uniforms[name];
+			
+			if (param) {
+				if (name === 'ptcDec') {
+					dec = param.value;
+				} else if (name === 'ptcMaxTime') {
+					maxTime = param.value;
+				} else if (name === 'sysTime') {
+					time = param.value;
+				}
+				
+				delete material.uniforms[name];
+				delete program.uniforms[name];
+			}
+		}
+		
+		// modify the vertex shader
+		if (vertSrc.search('ptcInterp') < 0) {
+			var vertHdr = chunksVert.header.replace(/NUM_BOXES/g, numBoxes),
+				vertSprt = chunksVert.support,
+				vertPreBody = chunksVert.bodySetup.replace(/NUM_BOXES/g, numBoxes);
+							
+			if (addColors) {
+				vertHdr += chunksVert.headerColors.replace(/NUM_COLORS/g, numColors);
+				vertSprt += chunksVert.supportColors.replace(/NUM_COLORS/g, numColors);
+			} else {
+				vertSprt += chunksVert.supportNoColors;
+			}
+			
+			if (this.aim) {
+				vertSprt += chunksVert.supportAim;
+				vertPreBody += chunksVert.bodyAim;
+			} else {
+				vertPreBody += chunksVert.bodyNoAim;
+			}
+			
+			if (addScale) {
+				vertHdr += chunksVert.headerScales.replace(/NUM_SCALES/g, numScales);
+				vertSprt += chunksVert.supportScale.replace(/NUM_SCALES/g, numScales);
+				vertPreBody += chunksVert.bodyScale;
+			} else {
+				vertPreBody += chunksVert.bodyNoScale;
+			}
+			
+			vertPreBody += chunksVert.bodyEnd;
+			var parsedVert = hemi.utils.parseSrc(vertSrc),
+				vertBody = parsedVert.body.replace(/modelViewMatrix/g, 'ptcWorldView')
+					.replace(/objectMatrix/g, 'ptcWorld')
+					.replace(/normalMatrix/g, 'ptcNorm');
+							
+			parsedVert.postSprt = vertHdr + vertSprt;
+			parsedVert.preBody = vertPreBody;
+			parsedVert.body = vertBody;
+			vertSrc = material.vertexShader = hemi.utils.buildSrc(parsedVert);
+			console.log(vertSrc);
+			
+			var vShader = gl.createShader(gl.VERTEX_SHADER);
+			gl.shaderSource(vShader, vertSrc);
+			gl.compileShader(vShader);
+			gl.detachShader(program, vertShd);
+			gl.attachShader(program, vShader);
+		}
+		
+		// modify the fragment shader
+		if (fragSrc.search('ptcColor') < 0) {
+			var parsedFrag = hemi.utils.parseSrc(fragSrc, 'gl_FragColor'),
+				fragGlob = parsedFrag.glob;
+			
+			parsedFrag.postSprt = chunksFrag.header;
+			parsedFrag.preBody = chunksFrag.bodySetup;
+			
+			if (addColors) {
+				if (parsedFrag.body.indexOf('diffuse') !== -1) {
+					parsedFrag.body = parsedFrag.body.replace(/diffuse/g, 'ptcColor.rgb');
+				} else {
+					parsedFrag.body = parsedFrag.body.replace(/emissive/g, 'ptcColor.rgb');
+				}
+			}
+			parsedFrag.body = parsedFrag.body.replace(/opacity/g, '(opacity * ptcColor.a)');
+			
+			fragSrc = material.fragmentShader = hemi.utils.buildSrc(parsedFrag);
+			
+			var fShader = gl.createShader(gl.FRAGMENT_SHADER);
+			gl.shaderSource(fShader, fragSrc);
+			gl.compileShader(fShader);
+			gl.detachShader(program, fragShd);
+			gl.attachShader(program, fShader);
+		}
+		
+		// add the attributes and uniforms to the material
+		var attributes = {
+				idOffset: { type: 'v2', value: this.idOffsets, needsUpdate: true },
+			},
+			uniforms = {
+				sysTime: { type: 'f', value: time },
+				ptcMaxTime: { type: 'f', value: maxTime },
+				ptcDec: { type: 'f', value: dec },
+				numPtcs: { type: 'f', value: this.particles },
+				tension: { type: 'f', value: (1 - this.tension) / 2 },
+				minXYZ: { type: 'v3v', value: [] },
+				maxXYZ: { type: 'v3v', value: [] },
+				viewIT: { type: 'm4', value: new THREE.Matrix4() }
+			};
+
+		if (addColors) {
+			uniforms.ptcColors = {
+				type: 'v4v', value: []
+			};
+			uniforms.ptcColorKeys = {
+				type: 'fv1', value: []
+			};
+		}
+		if (addScale) {
+			uniforms.ptcScales = {
+				type: 'v3v', value: []
+			};
+			uniforms.ptcScaleKeys = {
+				type: 'fv1', value: []
+			};
+		}
+			
+		material.uniforms = THREE.UniformsUtils.merge([material.uniforms, uniforms]);
+		material.attributes = THREE.UniformsUtils.merge([material.attributes, attributes]);
+
+		material.uniformsList = [];
+		
+		gl.linkProgram(program);
+		
+		if ( !gl.getProgramParameter( program, gl.LINK_STATUS ) ) {
+
+			console.error( "Could not initialise shader\n" + "VALIDATE_STATUS: " 
+				+ gl.getProgramParameter( program, gl.VALIDATE_STATUS ) 
+				+ ", gl error [" + gl.getError() + "]" );
+
+		}
+
+		program.uniforms = {};
+		program.attributes = {};
+		program.isCurveGen = true;
+
+		for (u in material.uniforms) {
+			material.uniformsList.push([material.uniforms[u], u]);
+		}
+		
+		// update the program to point to the uniforms and attributes
+		for (var u in oldProgram.uniforms) {
+			var loc = program.uniforms[u] = gl.getUniformLocation(program, u);
+		}
+		for (var u in uniforms) {
+			program.uniforms[u] = gl.getUniformLocation(program, u);
+		}
+		for (var a in oldProgram.attributes) {
+			var loc = program.attributes[a] = gl.getAttribLocation(program, a);
+			gl.enableVertexAttribArray(loc);
+		}
+		for (var a in attributes) {
+			var loc = program.attributes[a] = gl.getAttribLocation(program, a);
+			gl.enableVertexAttribArray(loc);
+		}
+		
+		// setup params
+		this.decParam = material.uniforms.ptcDec;
+		this.maxTimeParam = material.uniforms.ptcMaxTime;
+		this.timeParam = material.uniforms.sysTime;
+		this.viewITParam = material.uniforms.viewIT;
+		
+		setupBounds(material, this.boxes);
+		
+		var needsZ = false;
+		
+		for (var i = 0; i < numColors && !needsZ; i++) {
+			needsZ = this.colors[i].value[3] < 1;
+		}
+		
+		material.transparent = needsZ;
+		
+		if (addColors) {
+			setupColors(material, this.colors);
+		}
+		if (addScale) {
+			setupScales(material, this.scales);
+		}
+			
+		// force rebuild of buffers
+		this.transform.dynamic = true;
+		this.transform.__webglInit = this.transform.__webglActive = false;
+		delete this.transform.geometry.geometryGroups;
+		delete this.transform.geometry.geometryGroupsList;
+		this.client.scene.__objectsAdded.push(this.transform);
+	};
+	
+	/**
+	 * Render the bounding boxes which the particle system's curves run
+	 * through (helpful for debugging).
+	 */
+	GpuParticleCurveSystem.prototype.showBoxes = function() {
+		showBoxes.call(this);
+	};
+	
+	/**
+	 * Start the particle system.
+	 */
+	GpuParticleCurveSystem.prototype.start = function() {
+		if (!this.active) {
+			this.active = true;
+			this.timeParam.value = 1.0;
+			this.maxTimeParam.value = 1.0;
+			hemi.addRenderListener(this);
+		}
+	};
+	
+	/**
+	 * Stop the particle system.
+	 */
+	GpuParticleCurveSystem.prototype.stop = function() {
+		if (this.active) {
+			this.active = false;
+			this.timeParam.value = 1.1;
+			this.maxTimeParam.value = 3.0;
+			hemi.removeRenderListener(this);
+		}
+	};
+	
+	/**
+	 * Get the Octane structure for the GpuParticleCurveSystem.
+     *
+     * @return {Object} the Octane structure representing the
+     *     GpuParticleCurveSystem
+	 */
+//	toOctane: function(){
+//		var octane = this._super();
+//		
+//		octane.props.push({
+//			name: 'loadConfig',
+//			arg: [{
+//				aim: this.aim,
+//				boxes: this.boxes,
+//				colorKeys: this.colors,
+//				life: this.life,
+//				particleCount: this.particles,
+//				particleShape: this.ptcShape,
+//				particleSize: this.size,
+//				scaleKeys: this.scales,
+//				tension: this.tension
+//			}]
+//		});
+//		
+//		return octane;
+//	},
+	
+	/**
+	 * Translate the entire particle system by the given amounts
+	 * @param {number} x amount to translate in the X direction
+	 * @param {number} y amount to translate in the Y direction
+	 * @param {number} z amount to translate in the Z direction
+	 */
+	GpuParticleCurveSystem.prototype.translate = function(x, y, z) {
+		for (var i = 0, il = this.boxes.length; i < il; i++) {
+			var box = this.boxes[i],
+				min = box.min,
+				max = box.max;
+			
+			min[0] += x;
+			max[0] += x;
+			min[1] += y;
+			max[1] += y;
+			min[2] += z;
+			max[2] += z;
+		}
+		setupBounds(this.material, this.boxes);
+	};
 	
 	/**
 	 * @class A GPU driven particle system that has trailing starts and stops.
@@ -1953,126 +1940,127 @@ var hemi = (function(hemi) {
 	 * 
 	 * @param {Object} opt_cfg the configuration object for the system
 	 */
-	hemi.GpuParticleTrailBase = hemi.GpuParticleCurveSystemBase.extend({
-		init: function(client, opt_cfg) {
-			this._super(client, opt_cfg);
-			
-			this.endTime = 1.0;
-			this.starting = false;
-			this.stopping = false;
-		},
+	var GpuParticleTrail = function(client, opt_cfg) {
+		GpuParticleCurveSystem.call(this, client, opt_cfg);
 		
-		/**
-		 * Update the particles on each render.
-		 * 
-		 * @param {o3d.RenderEvent} e the render event
-		 */
-		onRender: function(e) {
-			var delta = e.elapsedTime / this.life,
-				newTime = this.timeParam.value + delta;
-			
-			if (newTime > this.endTime) {
-				if (this.stopping) {
-					this.active = false;
-					this.stopping = false;
-					this.maxTimeParam.value = 3.0;
-					hemi.removeRenderListener(this);
-					newTime = 1.1;
-				} else {
-					if (this.starting) {
-						this.starting = false;
-						this.endTime = 1.0;
-						this.decParam.value = 1.0;
-						this.maxTimeParam.value = 1.0;
-					}
-					
-					while (--newTime > this.endTime) {}
-				}
-			}
-			
+		this.endTime = 1.0;
+		this.starting = false;
+		this.stopping = false;
+	};
+	
+	GpuParticleTrail.prototype = new GpuParticleCurveSystem();
+	GpuParticleTrail.prototype.constructor = GpuParticleTrail;
+	
+	/**
+	 * Update the particles on each render.
+	 * 
+	 * @param {o3d.RenderEvent} e the render event
+	 */
+	GpuParticleTrail.prototype.onRender = function(e) {
+		var delta = e.elapsedTime / this.life,
+			newTime = this.timeParam.value + delta;
+		
+		if (newTime > this.endTime) {
 			if (this.stopping) {
-				this.maxTimeParam.value += delta;
-			}
-			
-			this.timeParam.value = newTime;
-			this.viewITParam.value.copy(this.client.camera.threeCamera.matrixWorld).transpose();
-		},
-		
-		/**
-		 * Resume the particle system.
-		 */
-		play: function() {
-			if (!this.active) {
-				if (this.starting || this.stopping || this.maxTimeParam.value === 1.0) {
-					hemi.addRenderListener(this);
-					this.active = true;
-				} else {
-					this.start();
-				}
-			}
-		},
-		
-		/**
-		 * Start the particle system.
-		 */
-		start: function() {
-			if (this.stopping) {
-				hemi.removeRenderListener(this);
 				this.active = false;
 				this.stopping = false;
-			}
-			if (!this.active) {
-				this.active = true;
-				this.starting = true;
-				this.stopping = false;
-				this.endTime = 2.0;
-				this.decParam.value = 2.0;
-				this.maxTimeParam.value = 2.0;
-				this.timeParam.value = 1.0;
-				hemi.addRenderListener(this);
-			}
-		},
-		
-		/**
-		 * Stop the particle system.
-		 * 
-		 * @param {boolean} opt_hard optional flag to indicate a hard stop (all
-		 *     particles disappear at once)
-		 */
-		stop: function(opt_hard) {
-			if (this.active) {
-				if (opt_hard) {
-					this.endTime = -1.0;
-				} else if (!this.stopping) {
-					this.endTime = this.timeParam.value + 1.0;
+				this.maxTimeParam.value = 3.0;
+				hemi.removeRenderListener(this);
+				newTime = 1.1;
+			} else {
+				if (this.starting) {
+					this.starting = false;
+					this.endTime = 1.0;
+					this.decParam.value = 1.0;
+					this.maxTimeParam.value = 1.0;
 				}
 				
-				this.starting = false;
-				this.stopping = true;
+				while (--newTime > this.endTime) {}
 			}
 		}
-	});
+		
+		if (this.stopping) {
+			this.maxTimeParam.value += delta;
+		}
+		
+		this.timeParam.value = newTime;
+		this.viewITParam.value.copy(this.client.camera.threeCamera.matrixWorld).transpose();
+	};
+	
+	/**
+	 * Resume the particle system.
+	 */
+	GpuParticleTrail.prototype.play = function() {
+		if (!this.active) {
+			if (this.starting || this.stopping || this.maxTimeParam.value === 1.0) {
+				hemi.addRenderListener(this);
+				this.active = true;
+			} else {
+				this.start();
+			}
+		}
+	};
+	
+	/**
+	 * Start the particle system.
+	 */
+	GpuParticleTrail.prototype.start = function() {
+		if (this.stopping) {
+			hemi.removeRenderListener(this);
+			this.active = false;
+			this.stopping = false;
+		}
+		if (!this.active) {
+			this.active = true;
+			this.starting = true;
+			this.stopping = false;
+			this.endTime = 2.0;
+			this.decParam.value = 2.0;
+			this.maxTimeParam.value = 2.0;
+			this.timeParam.value = 1.0;
+			hemi.addRenderListener(this);
+		}
+	};
+	
+	/**
+	 * Stop the particle system.
+	 * 
+	 * @param {boolean} opt_hard optional flag to indicate a hard stop (all
+	 *     particles disappear at once)
+	 */
+	GpuParticleTrail.prototype.stop = function(opt_hard) {
+		if (this.active) {
+			if (opt_hard) {
+				this.endTime = -1.0;
+			} else if (!this.stopping) {
+				this.endTime = this.timeParam.value + 1.0;
+			}
+			
+			this.starting = false;
+			this.stopping = true;
+		}
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                             Hemi Citizenship                               //
 ////////////////////////////////////////////////////////////////////////////////   
 
-	hemi.makeCitizen(hemi.CurveBase, 'hemi.Curve', {
+	hemi.makeCitizen(Curve, 'hemi.Curve', {
 		msgs: ['hemi.start', 'hemi.stop'],
 		toOctane: []
 	});
 	
-	hemi.makeCitizen(hemi.ParticleCurveSystemBase, 'hemi.ParticleCurveSystem', {
+	hemi.makeCitizen(ParticleCurveSystem, 'hemi.ParticleCurveSystem', {
 		msgs: ['hemi.start', 'hemi.stop'],
 		toOctane: []
 	});
 	
-	hemi.makeCitizen(hemi.GpuParticleCurveSystemBase, 'hemi.GpuParticleCurveSystem', {
+	hemi.makeCitizen(GpuParticleCurveSystem, 'hemi.GpuParticleCurveSystem', {
 		msgs: ['hemi.start', 'hemi.stop'],
 		toOctane: []
 	});
 
-	hemi.makeCitizen(hemi.GpuParticleTrailBase, 'hemi.GpuParticleTrail', {
+	hemi.makeCitizen(GpuParticleTrail, 'hemi.GpuParticleTrail', {
 		msgs: ['hemi.start', 'hemi.stop'],
 		toOctane: []
 	});
