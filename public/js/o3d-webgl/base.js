@@ -229,7 +229,6 @@ o3d.clone = function(object) {
  * nothing.
  */
 o3d.notImplemented = function() {
-  debugger;
   throw 'Not implemented.';
 };
 
