@@ -205,6 +205,12 @@ var hemi = (function(hemi) {
 				cleanFunc.apply(this, arguments);
 			}
 
+			hemi.dispatch.removeSpecs({
+				src: this._worldId
+			}, true);
+			hemi.dispatch.removeTargets({
+				handler: this
+			}, true);
 			hemi.world.removeCitizen(this);
 		};
 
@@ -763,7 +769,7 @@ var hemi = (function(hemi) {
 				if (oct !== null) {
 					octane.citizens.push(oct);
 				} else {
-					hemi.console.log('Null Octane returned by Citizen with id ' + value.getId(), hemi.console.WARN);
+					hemi.console.log('Null Octane returned by Citizen with id ' + value._getId(), hemi.console.WARN);
 				}
 			}
 		});

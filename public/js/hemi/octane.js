@@ -59,9 +59,31 @@ var hemi = (function(hemi) {
 					entry = {
 						name: name	
 					};
-				
+
 				if (hemi.utils.isFunction(prop)) {
 					entry.arg = [];
+				} else if (hemi.utils.isArray(prop)) {
+					if (prop.length > 0) {
+						var p = prop[0];
+
+						if (p._getId && p._worldId) {
+							entry.id = [];
+
+							for (var j = 0; j < prop.length; ++j) {
+								entry.id[j] = prop[j]._getId();
+							}
+						} else if (prop._toOctane) {
+							entry.oct = [];
+
+							for (var j = 0; j < prop.length; ++j) {
+								entry.oct[j] = prop[j]._toOctane();
+							}
+						} else {
+							entry.val = prop;
+						}
+					} else {
+						entry.val = prop;
+					}
 				} else if (prop._getId && prop._worldId) {
 					entry.id = prop._getId();
 				} else if (prop._toOctane) {
@@ -123,8 +145,10 @@ var hemi = (function(hemi) {
 					
 					object[name] = value;
 				} else if (property.arg !== undefined) {
-					var func = object[name];
-					func.apply(object, property.arg);
+					var func = object[name],
+						args = hemi.dispatch.getArguments(null, property.arg);
+
+					func.apply(object, args);
 				} else {
 					alert('Unable to process octane for ' + octane.id + ': missing property value');
 				}
@@ -211,25 +235,30 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the class
 	     */
 		clsCon.prototype._toOctane = function() {
-        	var octane = {
-				type: this._citizenType,
-				props: hemi.utils.isFunction(octProps) ? octProps.call(this) : parseProps(this, octProps)
-			};
-        	
-        	if (this._worldId != null) {
-        		octane.id = this._worldId;
-        	}
-			
-			if (this.name && this.name.length > 0 && !octane.props.name) {
-	            octane.props.unslice({
-	                name: 'name',
-	                val: this.name
-	            });
+			var props = hemi.utils.isFunction(octProps) ? octProps.call(this) : parseProps(this, octProps),
+				octane = null;
+
+			if (props !== null) {
+				octane = {
+					type: this._citizenType,
+					props: props
+				};
+
+				if (this._worldId != null) {
+					octane.id = this._worldId;
+				}
+
+				if (this.name && this.name.length > 0 && !octane.props.name) {
+					octane.props.unshift({
+						name: 'name',
+						val: this.name
+					});
+				}
 			}
-			
+
 			return octane;
-        };
+		};
 	};
-	
+
 	return hemi;
 })(hemi || {});

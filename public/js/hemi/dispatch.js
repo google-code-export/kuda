@@ -172,7 +172,7 @@ var hemi = (function(hemi) {
 				if (oct !== null) {
 					targetsOct.push(oct);
 				} else {
-					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.ERR);
+					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.WARN);
 				}
 			}
 			
@@ -595,6 +595,31 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
+	 * Remove any MessageSpecs with the given attributes from the dispatch.
+	 * Valid attributes are:
+	 * - src
+	 * - msg
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to
+	 *     search for
+	 * @param {boolean} wildcards flag indicating if wildcard values should be
+	 *     included in the search results (only needed if attributes is set)
+	 * @return {hemi.dispatch.MessageSpec[]} an array of removed MessageSpecs
+	 */
+	hemi.dispatch.removeSpecs = function(attributes, wildcards) {
+		var specs = hemi.dispatch.getSpecs(attributes, wildcards),
+			removed = [],
+			spec;
+
+		for (var i = 0, il = specs.length; i < il; ++i) {
+			spec = this.msgSpecs.remove(specs[i].getHash());
+			if (spec) removed.push(spec);
+		}
+
+		return removed;
+	};
+	
+	/**
 	 * Remove the given MessageTarget from the dispatch.
 	 * 
 	 * @param {hemi.dispatch.MessageTarget} target the MessageTarget to
@@ -621,6 +646,63 @@ var hemi = (function(hemi) {
 		}
 		
 		return removed;
+	};
+	
+	/**
+	 * Remove any MessageTargets registered with the given attributes. If no
+	 * attributes are given, all MessageTargets will be returned. Valid
+	 * attributes are:
+	 * - src
+	 * - msg
+	 * - dispatchId
+	 * - name
+	 * - handler
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to
+	 *     search for
+	 * @param {boolean} wildcards flag indicating if wildcard values should be
+	 *     included in the search results (only needed if attributes is set)
+	 * @return {hemi.dispatch.MessageTarget[]} array of removed MessageTargets
+	 */
+	hemi.dispatch.removeTargets = function(attributes, wildcards) {
+		var specs = this.getSpecs(attributes, wildcards),
+			results = [],
+			dispatchId,
+			name,
+			handler;
+		
+		if (attributes !== undefined) {
+			dispatchId = attributes.dispatchId;
+			name = attributes.name;
+			handler = attributes.handler;
+		}
+		
+		for (var ndx = 0, len = specs.length; ndx < len; ndx++) {
+			var spec = specs[ndx],
+				targets = spec.targets;
+			
+			for (var t = 0, tLen = targets.length; t < tLen; t++) {
+				var result = targets[t],
+					remove = true;
+				
+				if (dispatchId !== undefined) {
+					remove = result._dispatchId === dispatchId;
+				}
+				if (remove && name !== undefined) {
+					remove = result.name === name;
+				}
+				if (remove && handler !== undefined) {
+					remove = result.handler === handler;
+				}
+				
+				if (remove) {
+					spec.removeTarget(result);
+					results.push(result);
+				}
+			}
+		}
+		
+		return results;
 	};
 	
 	/**
@@ -711,16 +793,16 @@ var hemi = (function(hemi) {
 	 * @return {Object[]} array of arguments created
 	 */
 	hemi.dispatch.getArguments = function(message, params) {
-		var arguments = [];
+		var args = [];
 		
 		for (var ndx = 0, len = params.length; ndx < len; ndx++) {
 			var param = params[ndx];
 			
 			if (typeof param != 'string') {
-				arguments[ndx] = param;
+				args[ndx] = param;
 			} else if (param.substring(0,3) === hemi.dispatch.ID_ARG) {
-				var id = parseInt(param.substring(3));
-				arguments.push(hemi.world.getCitizenById(id));
+				var id = parseInt(param.substring(3), 10);
+				args.push(hemi.world.getCitizenById(id));
 			} else if (param.substring(0,4) === hemi.dispatch.MSG_ARG) {
 				param = param.substring(4);
 				var tokens = param.split('.');
@@ -730,13 +812,13 @@ var hemi = (function(hemi) {
 					arg = arg[tokens[aNdx]];
 				}
 				
-				arguments.push(arg);
+				args.push(arg);
 			} else {
-				arguments[ndx] = param;
+				args[ndx] = param;
 			}
 		}
 		
-		return arguments;
+		return args;
 	};
 
 	// Wildcard functions
