@@ -222,13 +222,6 @@ var hemi = (function(hemi) {
 			lV = m4.transformDirection(iW, v);
 		transform.translate(lV);
 	};
-
-    hemi.utils.identity = function(object3d) {
-        object3d.position = new THREE.Vector3(0, 0, 0);
-        object3d.rotation = new THREE.Vector3(0, 0, 0);
-        object3d.scale = new THREE.Vector3(1, 1, 1);
-        object3d.updateMatrix();
-    }
 	
 	return hemi;
 })(hemi || {});

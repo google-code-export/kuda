@@ -39,7 +39,7 @@
 		client = hemi.makeClients()[0];
 		client.setBGColor(0xb2cbff, 1);
 		hemi.loadPath = '../../';
-		house = new hemi.Model(client);
+		house = new hemi.Model(client.scene);
 		house.setFileName('assets/house_v12/house_v12.dae');
 		hemi.subscribe(hemi.msg.ready,
 			function(msg) {
