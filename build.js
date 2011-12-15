@@ -176,6 +176,7 @@ var uglifyHemi = function(src, dst) {
 					//'hemi/audio.js',
 					'hemi/dispatch.js',
 					'hemi/input.js',
+					'hemi/transform.js',
 					'hemi/view.js',
 					'hemi/model.js',
 	                'hemi/picker.js',

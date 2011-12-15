@@ -24,13 +24,12 @@ var hemi = (function(hemi) {
 		this.bgColor = 0;
 		this.bgAlpha = 1;
 		this.camera = new hemi.Camera();
-		this.scene = new THREE.Scene();
+		this.scene = new hemi.Scene();
 		this.picker = new hemi.Picker(this.scene, this.camera);
 		this.renderer = null;
-		this.lights = [];
 
 		this.useCameraLight(true);
-		this.scene.add(this.camera.threeCamera)
+		this.scene.add(this.camera.threeCamera);
 		hemi.clients.push(this);
 	};
 
@@ -53,27 +52,9 @@ var hemi = (function(hemi) {
 			var line = new THREE.Line( geometry, line_material, THREE.LinePieces );
 			this.scene.add(line);
 		},
-		
-		addLight: function(light) {
-			var ndx = this.lights.indexOf(light);
-
-			if (ndx === -1) {
-				this.lights.push(light);
-				this.scene.add(light);
-			}
-		},
 
 		onRender: function() {
 			this.renderer.render(this.scene, this.camera.threeCamera);
-		},
-		
-		removeLight: function(light) {
-			var ndx = this.lights.indexOf(light);
-			
-			if (ndx > -1) {
-				this.lights.splice(ndx, 1);
-				this.scene.remove(light);
-			}
 		},
 
 		resize: function() {
@@ -93,6 +74,16 @@ var hemi = (function(hemi) {
 			this.renderer.setClearColorHex(this.bgColor, this.bgAlpha);
 		},
 
+		setCamera: function(camera) {
+			this.scene.remove(this.camera.threeCamera);
+			this.scene.remove(this.camera.light);
+			this.scene.add(camera.threeCamera);
+			this.scene.add(camera.light);
+			this.camera.cleanup();
+			this.picker.camera = camera;
+			this.camera = camera;
+		},
+
 		setRenderer: function(renderer) {
 			var dom = renderer.domElement;
 			dom.style.width = "100%";
@@ -104,11 +95,21 @@ var hemi = (function(hemi) {
 			this.resize();
 		},
 
+		setScene: function(scene) {
+			this.scene.remove(this.camera.threeCamera);
+			this.scene.remove(this.camera.light);
+			scene.add(this.camera.threeCamera);
+			scene.add(this.camera.light);
+			this.scene.cleanup();
+			this.picker.scene = scene;
+			this.scene = scene;
+		},
+
 		useCameraLight: function(useLight) {
 			if (useLight) {
-				this.addLight(this.camera.light);
+				this.scene.add(this.camera.light);
 			} else {
-				this.removeLight(this.camera.light);
+				this.scene.remove(this.camera.light);
 			}
 		}
 	};
@@ -124,14 +125,11 @@ var hemi = (function(hemi) {
 					name: 'bgAlpha',
 					val: this.bgAlpha
 				}, {
-					name: 'useCameraLight',
-					arg: [false]
+					name: 'setScene',
+					arg: [hemi.dispatch.ID_ARG + this.scene._getId()]
 				}, {
-					name: 'camera',
-					id: this.camera._getId()
-				}, {
-					name: 'useCameraLight',
-					arg: [true]
+					name: 'setCamera',
+					arg: [hemi.dispatch.ID_ARG + this.camera._getId()]
 				}
 			];
 		}

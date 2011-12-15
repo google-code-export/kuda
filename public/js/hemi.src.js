@@ -2937,13 +2937,6 @@ var hemi = (function(hemi) {
 			lV = m4.transformDirection(iW, v);
 		transform.translate(lV);
 	};
-
-    hemi.utils.identity = function(object3d) {
-        object3d.position = new THREE.Vector3(0, 0, 0);
-        object3d.rotation = new THREE.Vector3(0, 0, 0);
-        object3d.scale = new THREE.Vector3(1, 1, 1);
-        object3d.updateMatrix();
-    }
 	
 	return hemi;
 })(hemi || {});
@@ -4023,6 +4016,12 @@ var hemi = (function(hemi) {
 				cleanFunc.apply(this, arguments);
 			}
 
+			hemi.dispatch.removeSpecs({
+				src: this._worldId
+			}, true);
+			hemi.dispatch.removeTargets({
+				handler: this
+			}, true);
 			hemi.world.removeCitizen(this);
 		};
 
@@ -4581,7 +4580,7 @@ var hemi = (function(hemi) {
 				if (oct !== null) {
 					octane.citizens.push(oct);
 				} else {
-					hemi.console.log('Null Octane returned by Citizen with id ' + value.getId(), hemi.console.WARN);
+					hemi.console.log('Null Octane returned by Citizen with id ' + value._getId(), hemi.console.WARN);
 				}
 			}
 		});
@@ -4654,9 +4653,31 @@ var hemi = (function(hemi) {
 					entry = {
 						name: name	
 					};
-				
+
 				if (hemi.utils.isFunction(prop)) {
 					entry.arg = [];
+				} else if (hemi.utils.isArray(prop)) {
+					if (prop.length > 0) {
+						var p = prop[0];
+
+						if (p._getId && p._worldId) {
+							entry.id = [];
+
+							for (var j = 0; j < prop.length; ++j) {
+								entry.id[j] = prop[j]._getId();
+							}
+						} else if (prop._toOctane) {
+							entry.oct = [];
+
+							for (var j = 0; j < prop.length; ++j) {
+								entry.oct[j] = prop[j]._toOctane();
+							}
+						} else {
+							entry.val = prop;
+						}
+					} else {
+						entry.val = prop;
+					}
 				} else if (prop._getId && prop._worldId) {
 					entry.id = prop._getId();
 				} else if (prop._toOctane) {
@@ -4718,8 +4739,10 @@ var hemi = (function(hemi) {
 					
 					object[name] = value;
 				} else if (property.arg !== undefined) {
-					var func = object[name];
-					func.apply(object, property.arg);
+					var func = object[name],
+						args = hemi.dispatch.getArguments(null, property.arg);
+
+					func.apply(object, args);
 				} else {
 					alert('Unable to process octane for ' + octane.id + ': missing property value');
 				}
@@ -4806,26 +4829,31 @@ var hemi = (function(hemi) {
 	     * @return {Object} the Octane structure representing the class
 	     */
 		clsCon.prototype._toOctane = function() {
-        	var octane = {
-				type: this._citizenType,
-				props: hemi.utils.isFunction(octProps) ? octProps.call(this) : parseProps(this, octProps)
-			};
-        	
-        	if (this._worldId != null) {
-        		octane.id = this._worldId;
-        	}
-			
-			if (this.name && this.name.length > 0 && !octane.props.name) {
-	            octane.props.unslice({
-	                name: 'name',
-	                val: this.name
-	            });
+			var props = hemi.utils.isFunction(octProps) ? octProps.call(this) : parseProps(this, octProps),
+				octane = null;
+
+			if (props !== null) {
+				octane = {
+					type: this._citizenType,
+					props: props
+				};
+
+				if (this._worldId != null) {
+					octane.id = this._worldId;
+				}
+
+				if (this.name && this.name.length > 0 && !octane.props.name) {
+					octane.props.unshift({
+						name: 'name',
+						val: this.name
+					});
+				}
 			}
-			
+
 			return octane;
-        };
+		};
 	};
-	
+
 	return hemi;
 })(hemi || {});
 /* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
@@ -5002,7 +5030,7 @@ var hemi = (function(hemi) {
 				if (oct !== null) {
 					targetsOct.push(oct);
 				} else {
-					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.ERR);
+					hemi.console.log('Null Octane returned by MessageTarget', hemi.console.WARN);
 				}
 			}
 			
@@ -5425,6 +5453,31 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
+	 * Remove any MessageSpecs with the given attributes from the dispatch.
+	 * Valid attributes are:
+	 * - src
+	 * - msg
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to
+	 *     search for
+	 * @param {boolean} wildcards flag indicating if wildcard values should be
+	 *     included in the search results (only needed if attributes is set)
+	 * @return {hemi.dispatch.MessageSpec[]} an array of removed MessageSpecs
+	 */
+	hemi.dispatch.removeSpecs = function(attributes, wildcards) {
+		var specs = hemi.dispatch.getSpecs(attributes, wildcards),
+			removed = [],
+			spec;
+
+		for (var i = 0, il = specs.length; i < il; ++i) {
+			spec = this.msgSpecs.remove(specs[i].getHash());
+			if (spec) removed.push(spec);
+		}
+
+		return removed;
+	};
+	
+	/**
 	 * Remove the given MessageTarget from the dispatch.
 	 * 
 	 * @param {hemi.dispatch.MessageTarget} target the MessageTarget to
@@ -5451,6 +5504,63 @@ var hemi = (function(hemi) {
 		}
 		
 		return removed;
+	};
+	
+	/**
+	 * Remove any MessageTargets registered with the given attributes. If no
+	 * attributes are given, all MessageTargets will be returned. Valid
+	 * attributes are:
+	 * - src
+	 * - msg
+	 * - dispatchId
+	 * - name
+	 * - handler
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to
+	 *     search for
+	 * @param {boolean} wildcards flag indicating if wildcard values should be
+	 *     included in the search results (only needed if attributes is set)
+	 * @return {hemi.dispatch.MessageTarget[]} array of removed MessageTargets
+	 */
+	hemi.dispatch.removeTargets = function(attributes, wildcards) {
+		var specs = this.getSpecs(attributes, wildcards),
+			results = [],
+			dispatchId,
+			name,
+			handler;
+		
+		if (attributes !== undefined) {
+			dispatchId = attributes.dispatchId;
+			name = attributes.name;
+			handler = attributes.handler;
+		}
+		
+		for (var ndx = 0, len = specs.length; ndx < len; ndx++) {
+			var spec = specs[ndx],
+				targets = spec.targets;
+			
+			for (var t = 0, tLen = targets.length; t < tLen; t++) {
+				var result = targets[t],
+					remove = true;
+				
+				if (dispatchId !== undefined) {
+					remove = result._dispatchId === dispatchId;
+				}
+				if (remove && name !== undefined) {
+					remove = result.name === name;
+				}
+				if (remove && handler !== undefined) {
+					remove = result.handler === handler;
+				}
+				
+				if (remove) {
+					spec.removeTarget(result);
+					results.push(result);
+				}
+			}
+		}
+		
+		return results;
 	};
 	
 	/**
@@ -5541,16 +5651,16 @@ var hemi = (function(hemi) {
 	 * @return {Object[]} array of arguments created
 	 */
 	hemi.dispatch.getArguments = function(message, params) {
-		var arguments = [];
+		var args = [];
 		
 		for (var ndx = 0, len = params.length; ndx < len; ndx++) {
 			var param = params[ndx];
 			
 			if (typeof param != 'string') {
-				arguments[ndx] = param;
+				args[ndx] = param;
 			} else if (param.substring(0,3) === hemi.dispatch.ID_ARG) {
-				var id = parseInt(param.substring(3));
-				arguments.push(hemi.world.getCitizenById(id));
+				var id = parseInt(param.substring(3), 10);
+				args.push(hemi.world.getCitizenById(id));
 			} else if (param.substring(0,4) === hemi.dispatch.MSG_ARG) {
 				param = param.substring(4);
 				var tokens = param.split('.');
@@ -5560,13 +5670,13 @@ var hemi = (function(hemi) {
 					arg = arg[tokens[aNdx]];
 				}
 				
-				arguments.push(arg);
+				args.push(arg);
 			} else {
-				arguments[ndx] = param;
+				args[ndx] = param;
 			}
 		}
 		
-		return arguments;
+		return args;
 	};
 
 	// Wildcard functions
@@ -5983,6 +6093,175 @@ var hemi = (function(hemi) {
         if (event.preventDefault)
             event.preventDefault();
     };
+
+	return hemi;
+})(hemi || {});
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+var hemi = (function(hemi) {
+		/*
+		 * Perform clean up on the Transform/mesh
+		 */
+	var cleanFunc = function() {
+			this.parent.remove(this);
+
+			for (var i = 0, il = this.children.length; i < il; ++i) {
+				this.children[i].cleanup();
+			}
+		},
+		/*
+		 * Set all transform properties to their identity values.
+		 */
+		identityFunc = function() {
+			this.position.set(0, 0, 0);
+			this.quaternion.set(0, 0, 0, 1);
+			this.rotation.set(0, 0, 0);
+			this.scale.set(1, 1, 1);
+			this.matrix.identity();
+			this.updateMatrixWorld();
+		},
+		/*
+		 * Initialize Transform properties using the given Object3D.
+		 */
+		initFunc = function(obj, toConvert) {
+			var children = this.children;
+			// This is important since THREE.KeyFrameAnimation relies on updating a shared reference
+			// to the matrix.
+			this.matrix = obj.matrix;
+			this.matrixWorld = obj.matrixWorld;
+			this.updateMatrix();
+			this.updateMatrixWorld();
+			this.children = [];
+
+			if (toConvert[obj.id] !== undefined) {
+				toConvert[obj.id] = this;
+			}
+
+			for (var i = 0, il = children.length; i < il; ++i) {
+				var child = children[i],
+					childObj = obj.getChildByName(child.name, false);
+
+				this.add(child);
+				child._init(childObj, toConvert);
+			}
+		},
+		/*
+		 * Shared Octane properties for hemi.Transform and hemi.Mesh.
+		 */
+		octaneProps = ['name', 'children', 'pickable', 'visible', 'position', 'rotation',
+			'quaternion', 'scale', 'useQuaternion'];
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Transform class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A Transform performs hierarchical matrix transformations.
+	 */
+	var Transform = function() {
+		THREE.Object3D.call(this);
+
+		this.pickable = true;
+		// this.opacity?
+	};
+
+	Transform.prototype = new THREE.Object3D();
+	Transform.constructor = Transform;
+
+	Transform.prototype._clean = cleanFunc;
+
+	Transform.prototype._init = initFunc;
+
+	Transform.prototype._octane = octaneProps;
+
+	/**
+	 * Use the given Object3D to initialize properties.
+	 * 
+	 * @param {THREE.Object3D} obj Object3D to use to initialize properties
+	 * @param {Object} toConvert look-up structure to get the Transform equivalent of an Object3D
+	 *     for animations
+	 */
+	Transform.prototype.identity = identityFunc;
+
+	hemi.makeCitizen(Transform, 'hemi.Transform', {
+		cleanup: Transform.prototype._clean,
+		toOctane: Transform.prototype._octane
+	});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Mesh class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A Mesh performs hierarchical matrix transformations and contains geometry and
+	 * rendering materials.
+	 */
+	var Mesh = function() {
+		THREE.Mesh.call(this);
+
+		this.pickable = true;
+		// this.opacity?
+	};
+
+	Mesh.prototype = new THREE.Mesh();
+	Mesh.constructor = Mesh;
+
+	Mesh.prototype._clean = cleanFunc;
+
+	/*
+	 * Use the given Mesh to initialize properties.
+	 * 
+	 * @param {THREE.Mesh} obj Mesh to use to initialize properties
+	 * @param {Object} toConvert look-up structure to get the hemi.Mesh equivalent of a THREE.Mesh
+	 *     for animations
+	 */
+	Mesh.prototype._init = function(obj, toConvert) {
+		this.geometry = obj.geometry;
+		this.material = obj.material;
+		this.boundRadius = obj.boundRadius;
+
+		if (this.geometry.morphTargets.length) {
+			this.morphTargetBase = obj.morphTargetBase;
+			this.morphTargetForcedOrder = obj.morphTargetForcedOrder;
+			this.morphTargetInfluences = obj.morphTargetInfluences;
+			this.morphTargetDictionary = obj.morphTargetDictionary;
+		}
+
+		initFunc.call(this, obj, toConvert);
+	};
+
+	Mesh.prototype._octane = octaneProps;
+
+	Mesh.prototype.identity = identityFunc;
+
+	hemi.makeCitizen(Mesh, 'hemi.Mesh', {
+		cleanup: Mesh.prototype._clean,
+		toOctane: Mesh.prototype._octane
+	});
+
+// No extra functionality, but these are useful as Citizens/Octanable.
+
+	hemi.makeCitizen(THREE.Scene, 'hemi.Scene');
+	hemi.makeOctanable(THREE.Vector3, 'THREE.Vector3', ['x', 'y', 'z']);
+	hemi.makeOctanable(THREE.Quaternion, 'THREE.Quaternion', ['x', 'y', 'z', 'w']);
 
 	return hemi;
 })(hemi || {});
@@ -6937,9 +7216,49 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 
-	THREE.Object3D.prototype.pickable = true;
+	var convertObject3Ds = function(obj, toConvert) {
+			var children = obj.children,
+				newObj;
 
-	var getObject3DsRecursive = function(name, obj3d, returnObjs) {
+			if (obj.geometry) {
+				newObj = new hemi.Mesh();
+				newObj.geometry = obj.geometry;
+				newObj.material = obj.material;
+				newObj.boundRadius = obj.boundRadius;
+
+				if (newObj.geometry.morphTargets.length) {
+					newObj.morphTargetBase = obj.morphTargetBase;
+					newObj.morphTargetForcedOrder = obj.morphTargetForcedOrder;
+					newObj.morphTargetInfluences = obj.morphTargetInfluences;
+					newObj.morphTargetDictionary = obj.morphTargetDictionary;
+				}
+			} else {
+				newObj = new hemi.Transform();
+			}
+
+			newObj.name = obj.name;
+			newObj.visible = obj.visible;
+			newObj.position = obj.position;
+			newObj.rotation = obj.rotation;
+			newObj.quaternion = obj.quaternion;
+			newObj.scale = obj.scale;
+			newObj.useQuaternion = obj.useQuaternion;
+			newObj.matrix = obj.matrix;
+			newObj.matrixWorld = obj.matrixWorld;
+
+			if (toConvert[obj.id] !== undefined) {
+				toConvert[obj.id] = newObj;
+			}
+
+			for (var i = 0; i < children.length; ++i) {
+				var newChild = convertObject3Ds(children[i], toConvert);
+				newObj.add(newChild);
+			}
+
+			return newObj;
+		},
+
+		getObject3DsRecursive = function(name, obj3d, returnObjs) {
 			for (var i = 0; i < obj3d.children.length; ++i) {
 				var child = obj3d.children[i];
 
@@ -6951,8 +7270,8 @@ var hemi = (function(hemi) {
 			}
 		};
 	    
-	hemi.ModelBase = function(client) {
-		this.client = client;
+	hemi.ModelBase = function(scene) {
+		this.scene = scene;
 		this.fileName = null;
 		this.root = null;
 		this.animations = [];
@@ -6969,18 +7288,36 @@ var hemi = (function(hemi) {
 			var that = this;
 
 			hemi.loadCollada(this.fileName, function (collada) {
-				that.root = collada.scene;
-				that.client.scene.add(that.root);
-				var animHandler = THREE.AnimationHandler;
+				var animHandler = THREE.AnimationHandler,
+					animations = collada.animations,
+					toConvert = {};
+
+				for (var i = 0, il = animations.length; i < il; ++i) {
+					var node = animations[i].node;
+					toConvert[node.id] = node;
+				}
+
+				if (that.root === null) {
+					that.root = convertObject3Ds(collada.scene, toConvert);
+				} else {
+					that.root._init(collada.scene, toConvert);
+				}
+
+				that.scene.add(that.root);
+
 				for ( var i = 0, il = collada.animations.length; i < il; i++ ) {
-					var anim = collada.animations[i];
+					var anim = animations[i];
 					//Add to the THREE Animation handler to get the benefits of it's
 					animHandler.add(anim);
-					var kfAnim = new THREE.KeyFrameAnimation(anim.node, anim.name);
+
+					var kfAnim = new THREE.KeyFrameAnimation(toConvert[anim.node.id], anim.name);
 					kfAnim.timeScale = 1;
 					that.animations.push(kfAnim);
 				}
-				that.send(hemi.msg.load, {});
+
+				that.send(hemi.msg.load, {
+					root: collada.scene
+				});
 			});
 		},
 
@@ -6992,12 +7329,12 @@ var hemi = (function(hemi) {
 
 	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
 		cleanup: function() {
-			this.client.scene.remove(this.root);
-			this.client = null;
+			this.root.cleanup();
+			this.scene = null;
 			this.root = null;
 		},
 		msgs: [hemi.msg.load],
-		toOctane: ['client', 'fileName', 'load']
+		toOctane: ['fileName', 'root', 'scene', 'load']
 	});
 
 	return hemi;
@@ -7093,13 +7430,12 @@ var hemi = (function(hemi) {
 		this.bgColor = 0;
 		this.bgAlpha = 1;
 		this.camera = new hemi.Camera();
-		this.scene = new THREE.Scene();
+		this.scene = new hemi.Scene();
 		this.picker = new hemi.Picker(this.scene, this.camera);
 		this.renderer = null;
-		this.lights = [];
 
 		this.useCameraLight(true);
-		this.scene.add(this.camera.threeCamera)
+		this.scene.add(this.camera.threeCamera);
 		hemi.clients.push(this);
 	};
 
@@ -7122,27 +7458,9 @@ var hemi = (function(hemi) {
 			var line = new THREE.Line( geometry, line_material, THREE.LinePieces );
 			this.scene.add(line);
 		},
-		
-		addLight: function(light) {
-			var ndx = this.lights.indexOf(light);
-
-			if (ndx === -1) {
-				this.lights.push(light);
-				this.scene.add(light);
-			}
-		},
 
 		onRender: function() {
 			this.renderer.render(this.scene, this.camera.threeCamera);
-		},
-		
-		removeLight: function(light) {
-			var ndx = this.lights.indexOf(light);
-			
-			if (ndx > -1) {
-				this.lights.splice(ndx, 1);
-				this.scene.remove(light);
-			}
 		},
 
 		resize: function() {
@@ -7162,6 +7480,16 @@ var hemi = (function(hemi) {
 			this.renderer.setClearColorHex(this.bgColor, this.bgAlpha);
 		},
 
+		setCamera: function(camera) {
+			this.scene.remove(this.camera.threeCamera);
+			this.scene.remove(this.camera.light);
+			this.scene.add(camera.threeCamera);
+			this.scene.add(camera.light);
+			this.camera.cleanup();
+			this.picker.camera = camera;
+			this.camera = camera;
+		},
+
 		setRenderer: function(renderer) {
 			var dom = renderer.domElement;
 			dom.style.width = "100%";
@@ -7173,11 +7501,21 @@ var hemi = (function(hemi) {
 			this.resize();
 		},
 
+		setScene: function(scene) {
+			this.scene.remove(this.camera.threeCamera);
+			this.scene.remove(this.camera.light);
+			scene.add(this.camera.threeCamera);
+			scene.add(this.camera.light);
+			this.scene.cleanup();
+			this.picker.scene = scene;
+			this.scene = scene;
+		},
+
 		useCameraLight: function(useLight) {
 			if (useLight) {
-				this.addLight(this.camera.light);
+				this.scene.add(this.camera.light);
 			} else {
-				this.removeLight(this.camera.light);
+				this.scene.remove(this.camera.light);
 			}
 		}
 	};
@@ -7193,14 +7531,11 @@ var hemi = (function(hemi) {
 					name: 'bgAlpha',
 					val: this.bgAlpha
 				}, {
-					name: 'useCameraLight',
-					arg: [false]
+					name: 'setScene',
+					arg: [hemi.dispatch.ID_ARG + this.scene._getId()]
 				}, {
-					name: 'camera',
-					id: this.camera._getId()
-				}, {
-					name: 'useCameraLight',
-					arg: [true]
+					name: 'setCamera',
+					arg: [hemi.dispatch.ID_ARG + this.camera._getId()]
 				}
 			];
 		}
