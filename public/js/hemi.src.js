@@ -10689,7 +10689,6 @@ var hemi = (function(hemi) {
 			parsedVert.preBody = vertPreBody;
 			parsedVert.body = vertBody;
 			vertSrc = material.vertexShader = hemi.utils.buildSrc(parsedVert);
-			console.log(vertSrc);
 			
 			var vShader = gl.createShader(gl.VERTEX_SHADER);
 			gl.shaderSource(vShader, vertSrc);
