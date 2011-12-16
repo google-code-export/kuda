@@ -189,7 +189,7 @@ var uglifyHemi = function(src, dst) {
 					//'hemi/manip.js',
 					'hemi/curve.js',
 					//'hemi/sprite.js',
-					//'hemi/shape.js',
+					'hemi/shape.js',
 					'hemi/fx.js',
 					//'hemi/texture.js',
 					'hemi/timer.js'

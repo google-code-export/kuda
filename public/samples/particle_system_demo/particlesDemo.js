@@ -22,30 +22,6 @@
 (function() {
 	
 	var client;
-	
-	function init() {
-		/**
-		 * It is possible to have multiple clients (i.e. multiple frames
-		 * 		rendering 3d content) on one page that would have to be
-		 * 		initialized. In this case, we only want to initialize the
-		 *		first one.
-		 */
-		client = hemi.makeClients()[0];
-		
-		/**
-		 * Set the background color to a light-bluish. The parameters are a hex
-		 * 		code for the RGB values and an alpha value between 0 and 1.
-		 */
-		client.setBGColor(0xffffaa, 1);
-		
-		/**
-		 * Set a prefix for the loader that will allow us to load assets as if
-		 * the helloWorld.html file was in the root directory.
-		 */
-		hemi.loadPath = '../../';
-		
-		createWorld();
-	}
 		
 	function createWorld() {
 
@@ -171,13 +147,27 @@
 		
 	};
 
-	jQuery(window).load(function() {
-		init();
-	});
-
-	jQuery(window).unload(function() {
-		//if (hemi.core.client) {
-	//		hemi.core.client.cleanup();
-	//	}
-	});
+	window.onload = function() {
+		/**
+		 * It is possible to have multiple clients (i.e. multiple frames
+		 * 		rendering 3d content) on one page that would have to be
+		 * 		initialized. In this case, we only want to initialize the
+		 *		first one.
+		 */
+		client = hemi.makeClients()[0];
+		
+		/**
+		 * Set the background color to a light-bluish. The parameters are a hex
+		 * 		code for the RGB values and an alpha value between 0 and 1.
+		 */
+		client.setBGColor(0xb2cbff, 1);
+		
+		/**
+		 * Set a prefix for the loader that will allow us to load assets as if
+		 * the helloWorld.html file was in the root directory.
+		 */
+		hemi.loadPath = '../../';
+		
+		createWorld();
+	};
 })();

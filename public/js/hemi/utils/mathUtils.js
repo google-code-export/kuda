@@ -415,5 +415,27 @@ var hemi = (function(hemi) {
 		return [x,y,p[2]];
 	};
 	
+	/**
+	 * Computes the normal given three vertices that form a triangle
+	 * 
+	 * @param {THREE.Vertex} a vertex a
+	 * @param {THREE.Vertex} b vertex b
+	 * @param {THREE.Vertex} c vertex c
+	 */
+	hemi.utils.computeNormal = function(a, b, c) {
+		var cb = new THREE.Vector3(), 
+			ab = new THREE.Vector3();
+			
+		cb.sub(c.position, b.position);
+		ab.sub(a.position, b.position);
+		cb.crossSelf(ab);
+
+		if (!cb.isZero()) {
+			cb.normalize();
+		}
+
+		return cb;
+	};
+	
 	return hemi;
 })(hemi || {});
