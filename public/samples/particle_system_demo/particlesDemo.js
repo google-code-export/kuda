@@ -30,7 +30,7 @@
 		 *		cameras, effects, etc. When we set the model's file name, it
 		 *		will begin loading that file.
 		 */
-		var house = new hemi.Model(client);				// Create a new Model
+		var house = new hemi.Model(client.scene);				// Create a new Model
 		house.setFileName('assets/house_v12/house_v12.dae'); // Set the model file
 		
 		/**
@@ -160,7 +160,7 @@
 		 * Set the background color to a light-bluish. The parameters are a hex
 		 * 		code for the RGB values and an alpha value between 0 and 1.
 		 */
-		client.setBGColor(0xb2cbff, 1);
+		client.setBGColor(0xffffaa, 1);
 		
 		/**
 		 * Set a prefix for the loader that will allow us to load assets as if
