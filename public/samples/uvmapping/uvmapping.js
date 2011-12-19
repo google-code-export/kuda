@@ -22,80 +22,59 @@
  */
 (function() {
 
-	var ticker;
 	
-	function init(clientElements) {
-		/**
-		 * It is possible to have multiple clients (i.e. multiple frames
-		 * 		rendering 3d content) on one page that would have to be
-		 * 		initialized. In this case, we only want to initialize the
-		 *		first one.
-		 */
-		hemi.core.init(clientElements[0]);	
-
-		/**
-		 * Set the background color to a light-bluish. The parameter is in
-		 * 		the form [red,blue,green,alpha], with each value on a 
-		 *		scale of 0-1.
-		 */
-		hemi.view.setBGColor([0.7, 0, 0, 1]);
-		hemi.loader.loadPath = '../../';
-		createWorld();
-	}
-
+	var client;
+		
 	function createWorld() {
-	
-		ticker = new hemi.model.Model();				// Create a new Model
-		ticker.setFileName('assets/DigitalDisplay/scene.json');	// Set the model file
-	
+//		ticker = new hemi.Model(client.scene);			// Create a new Model
+//		ticker.setFileName('assets/DigitalDisplay/scene.json');	// Set the model file
 		/**
-		 * When we call the world's 'ready' function, it will wait for the model
-		 *		to finish loading and then it will send out a Ready message.
-		 *		Here we register a handler, setupScene(), to be run when the
-		 *		message is sent.
+		 * When we call the 'ready' function, it will wait for the model to
+		 *		finish loading and then it will send out a Ready message. Here
+		 *		we register a handler, setupScene(), to be run when the message
+		 *		is sent.
 		 */
-		hemi.world.subscribe(hemi.msg.ready,
+		hemi.subscribe(hemi.msg.ready,
 			function(msg) {
 				setupScene();
 			});
 		
-		hemi.world.ready();   // Indicate that we are ready to start our script
-	}
-
-	function setupScene() {
-		var vp = new hemi.view.Viewpoint();		// Create a new Viewpoint
-		vp.eye = [0,0,100];					// Set viewpoint eye
-		vp.target = [0,-25,0];					// Set viewpoint target
+		hemi.ready();   // Indicate that we are ready to start our script
+	};
+	
+	function setupScene(house) {
+		var vp = new hemi.Viewpoint();							// Create a new Viewpoint
+		vp.eye = new THREE.Vector3(0, 0, 100);					// Set viewpoint eye
+		vp.target = new THREE.Vector3(0, -25, 0);				// Set viewpoint targetget
 
 		/**
 		 * Move the camera from it's default position (eye : [0,0,-1],
-		 *		target : [0,0,0]} to the new viewpoint, and take 1
-		 *		second to do so
+		 *		target : [0,0,0]} to the new viewpoint, and take 120
+		 *		render cycles (~2 seconds) to do so.
 		 */
-		hemi.world.camera.moveInSeconds();
-		hemi.world.camera.moveToView(vp,1);
-		hemi.world.camera.enableControl();	// Enable camera mouse control
-		
-		var spriteR = new hemi.sprite.Sprite(40,40);
-		spriteR.addFrame('assets/images/dino.png');
-		spriteR.parent(hemi.core.client.root);
+		client.camera.moveToView(vp, 2.5);
+		client.camera.enableControl();							// Enable camera mouse control
+				
+		var spriteR = new hemi.Sprite(client, {
+			maps: ['../../assets/images/dino.png']
+		});
 		spriteR.run(-1);
-		spriteR.transform.translate(-50,-40,0);
-		var elemR = spriteR.transform.shapes[0].elements[0];
+		spriteR.translateX(200);
+		spriteR.translateY(200);
 
-		var spriteT = new hemi.sprite.Sprite(40,40);
-		spriteT.addFrame('assets/images/dino.png');
-		spriteT.parent(hemi.core.client.root);
+		var spriteT = new hemi.Sprite(client, {
+			maps: ['../../assets/images/dino.png']
+		});
 		spriteT.run(-1);
-		spriteT.transform.translate(0,-40,0);
-		var elemT = spriteT.transform.shapes[0].elements[0];
+		spriteT.translateX(600);
+		spriteT.translateY(200);
 		
-		var spriteS = new hemi.sprite.Sprite(40,40);
-		spriteS.addFrame('assets/images/dino.png');
-		spriteS.parent(hemi.core.client.root);
+		var spriteS = new hemi.Sprite(client, {
+			maps: ['../../assets/images/dino.png']
+		});
 		spriteS.run(-1);
-		spriteS.transform.translate(50,-40,0);
-		var elemS = spriteS.transform.shapes[0].elements[0];
+		spriteS.translateX(1000);
+		spriteS.translateY(200);
 
 		var frame = 0;
 		var tickCounts = [0,0,0,0,0,0,0,0,0,0];
@@ -103,44 +82,61 @@
 		
 		hemi.input.addKeyDownListener({onKeyDown:function(e){
 			if (e.keyCode == 32) {
-				hemi.texture.rotate(elemR,Math.PI/24);
-				hemi.texture.translate(elemT,1/24,1/24);
+				spriteR.rotation += Math.PI/24;
+				spriteT.uvOffset.addSelf(new THREE.Vector2(1/24,1/24));
 				if (frame < 6 || frame >= 18) { 
-					hemi.texture.scale(elemS,7/6,7/6);
+					spriteS.scale.set(7/6,7/6);
 				} else {
-					hemi.texture.scale(elemS,6/7,6/7);
+					spriteS.scale.set(6/7,6/7);
 				}
 				frame++;
-				if (frame == 24) frame = 0;
+				if (frame == 24) {
+					frame = 0;
+					spriteT.uvOffset.set(0, 0);
+				}
 			} else if (e.keyCode == 38) {
-				incrementTicker(0,1);
+//				incrementTicker(0,1);
 			} else if (e.keyCode == 40) {
-				incrementTicker(0,-1);
+//				incrementTicker(0,-1);
 			}
 		}});	
 		
-		function incrementTicker(ndx,tick) {
-			var rollover = false;
-			hemi.texture.translate(ticker.shapes[ndx].elements[0],0.1*tick,0);
-			tickCounts[ndx] = (tickCounts[ndx] + tick)%10;
-			if (tickCounts[ndx] < 0) tickCounts[ndx] = 9;
-			if ((tickCounts[ndx] == 0 && tick == 1) || (tickCounts[ndx] == 9 && tick == -1)) {
-				rollover = true;
-			}
-			if (rollover && ndx < 9) {
-				incrementTicker(tickOrder[ndx],tick);
-			}
-		};
+//		function incrementTicker(ndx,tick) {
+//			var rollover = false;
+//			hemi.texture.translate(ticker.shapes[ndx].elements[0],0.1*tick,0);
+//			tickCounts[ndx] = (tickCounts[ndx] + tick)%10;
+//			if (tickCounts[ndx] < 0) tickCounts[ndx] = 9;
+//			if ((tickCounts[ndx] == 0 && tick == 1) || (tickCounts[ndx] == 9 && tick == -1)) {
+//				rollover = true;
+//			}
+//			if (rollover && ndx < 9) {
+//				incrementTicker(tickOrder[ndx],tick);
+//			}
+//		};
 
 	}
-	
-	jQuery(window).load(function() {
-		o3djs.webgl.makeClients(init);
-	});
 
-	jQuery(window).unload(function() {
-		if (hemi.core.client) {
-			hemi.core.client.cleanup();
-		}
-	});
+	window.onload = function() {
+		/**
+		 * It is possible to have multiple clients (i.e. multiple frames
+		 * 		rendering 3d content) on one page that would have to be
+		 * 		initialized. In this case, we only want to initialize the
+		 *		first one.
+		 */
+		client = hemi.makeClients()[0];
+		
+		/**
+		 * Set the background color to a dark red. The parameters are a hex
+		 * 		code for the RGB values and an alpha value between 0 and 1.
+		 */
+		client.setBGColor(0xbb0000, 1);
+		
+		/**
+		 * Set a prefix for the loader that will allow us to load assets as if
+		 * the helloWorld.html file was in the root directory.
+		 */
+		hemi.loadPath = '../../';
+		
+		createWorld();
+	};
 })();
