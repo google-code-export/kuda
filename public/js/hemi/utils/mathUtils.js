@@ -71,7 +71,7 @@ var hemi = (function(hemi) {
 	 * @param {number[3]} m1 the tangent through the second waypoint
 	 * @return {number[3]} the interpolated point
 	 */
-	hemi.utils.cubicHermite = function(t,p0,m0,p1,m1) {;
+	hemi.utils.cubicHermite = function(t,p0,m0,p1,m1) {
 		var t2 = t*t,
 			t3 = t2*t,
 			tp0 = 2*t3 - 3*t2 + 1,
@@ -104,22 +104,20 @@ var hemi = (function(hemi) {
 	/**
 	 * Calculate the intersection between a ray and a plane.
 	 * 
-	 * @param {o3d.Ray} ray Ray described by a near xyz point and a far xyz point
-	 * @param {number[3][3]} plane Array of 3 xyz coordinates defining a plane
+	 * @param {THREE.Ray} ray Ray described by a near xyz point and a far xyz point
+	 * @param {THREE.Vector3[3]} plane Array of 3 xyz coordinates defining a plane
 	 * @return {number[3]} Array [t: Time value on ray, u: U-coordinate on plane,
 	 *		v: V-coordinate on plane} of intersection point
 	 */
 	hemi.utils.intersect = function(ray, plane) {
-		var P = plane,
-			R = [ray.near,ray.far],
-			A = hemi.core.math.inverse(
-			[[R[0][0]-R[1][0],P[1][0]-P[0][0],P[2][0]-P[0][0]],
-			 [R[0][1]-R[1][1],P[1][1]-P[0][1],P[2][1]-P[0][1]],
-			 [R[0][2]-R[1][2],P[1][2]-P[0][2],P[2][2]-P[0][2]]]),
-			B = [R[0][0]-P[0][0],R[0][1]-P[0][1],R[0][2]-P[0][2]],
-			t = A[0][0]*B[0] + A[0][1]*B[1] + A[0][2]*B[2],
-			u = A[1][0]*B[0] + A[1][1]*B[1] + A[1][2]*B[2],
-			v = A[2][0]*B[0] + A[2][1]*B[1] + A[2][2]*B[2];
+		var A = hemi.utils.inverse(
+			[[ray.direction.x, plane[1].x - plane[0].x, plane[2].x - plane[0].x],
+			 [ray.direction.y, plane[1].y - plane[0].y, plane[2].y - plane[0].y],
+			 [ray.direction.z, plane[1].z - plane[0].z, plane[2].z - plane[0].z]]),
+			B = [ray.origin.x - plane[0].x, ray.origin.y - plane[0].y, ray.origin.z - plane[0].z],
+			t = A[0][0] * B[0] + A[0][1] * B[1] + A[0][2] * B[2],
+			u = A[1][0] * B[0] + A[1][1] * B[1] + A[1][2] * B[2],
+			v = A[2][0] * B[0] + A[2][1] * B[1] + A[2][2] * B[2];
 		
 		return [t,u,v];
 	};
@@ -355,14 +353,13 @@ var hemi = (function(hemi) {
 	 * in 3D space.
 	 * 
 	 * @param {number[2]} uv uv coordinates on a plane
-	 * @param {number[3][3]} plane array of 3 xyz coordinates defining the plane
+	 * @param {THREE.Vector3[3]} plane array of 3 xyz coordinates defining the plane
 	 * @return {number[3]} xyz coordinates of the uv location on the plane
 	 */
 	hemi.utils.uvToXYZ = function(uv, plane) {
-		var hMath = hemi.core.math,
-			uf = hMath.mulScalarVector(uv[0], hMath.subVector(plane[1], plane[0])),
-			vf = hMath.mulScalarVector(uv[1], hMath.subVector(plane[2], plane[0]));
-			pos = hMath.addVector(plane[0], hMath.addVector(uf, vf));
+		var uf = new THREE.Vector3().sub(plane[1], plane[0]).multiplyScalar(uv[0]),
+		vf = new THREE.Vector3().sub(plane[2], plane[0]).multiplyScalar(uv[1]),
+		pos = uf.addSelf(vf).addSelf(plane[0]);
 		return pos;
 	};
 	
@@ -392,29 +389,25 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * Calculate the screen coordinates from a 3d position in the world.
-	 * @param {number[3]} p XYZ point to calculate from
-	 * @return {number[3]} XY screen position of point, plus z-distance,
+	 * @param {hemi.client} The current client
+	 * @param {THREE.Vector3} point XYZ point to calculate from
+	 * @return {THREE.Vector3} XY screen position of point, plus z-distance,
 	 *		where 0.0 = near clip and 1.0 = flar clip
 	 */
-	hemi.utils.worldToScreenFloat = function(p0) {
-		var VM = hemi.view.viewInfo.drawContext.view,
-			PM = hemi.view.viewInfo.drawContext.projection,
-			w = hemi.view.clientSize.width,
-			h = hemi.view.clientSize.height,
-			m4 = hemi.core.math.matrix4,
-			v = m4.transformPoint(VM,p0),
-			z = v[2],
-			p = m4.transformPoint(PM, v);
+	hemi.utils.worldToScreenFloat = function(client, point) {
+		var viewVec = client.camera.threeCamera.matrixWorldInverse.multiplyVector3(point.clone()),
+			projVec = client.camera.threeCamera.projectionMatrix.multiplyVector3(viewVec.clone());
 		
-		if (z > 0) {
-			p[0] = -p[0];
-			p[1] = -p[1];
+		if (viewVec.z > 0) {
+			projVec.x = -projVec.x;
+			projVec.y = -projVec.y;
 		}
-		var x = (p[0]+1.0)*0.5*w;
-		var y = (-p[1]+1.0)*0.5*h;
-		return [x,y,p[2]];
+
+		var x = (projVec.x + 1.0) * 0.5 * client.getWidth();
+		var y = (-projVec.y + 1.0) * 0.5 * client.getHeight();
+		return new THREE.Vector3(x, y, projVec.z);
 	};
-	
+
 	/**
 	 * Computes the normal given three vertices that form a triangle
 	 * 
@@ -436,6 +429,25 @@ var hemi = (function(hemi) {
 
 		return cb;
 	};
+
 	
+	/**
+	 * Computes the inverse of a 3-by-3 matrix.
+	 * @param {number[3][3]} m The matrix.
+	 * @return {number[3][3]} The inverse of m.
+	 */
+	hemi.utils.inverse = function(m) {
+		var t00 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
+		var t10 = m[0][1] * m[2][2] - m[0][2] * m[2][1];
+		var t20 = m[0][1] * m[1][2] - m[0][2] * m[1][1];
+		var d = 1.0 / (m[0][0] * t00 - m[1][0] * t10 + m[2][0] * t20);
+		return [[d * t00, -d * t10, d * t20],
+			  [-d * (m[1][0] * m[2][2] - m[1][2] * m[2][0]),
+				d * (m[0][0] * m[2][2] - m[0][2] * m[2][0]),
+			   -d * (m[0][0] * m[1][2] - m[0][2] * m[1][0])],
+			  [d * (m[1][0] * m[2][1] - m[1][1] * m[2][0]),
+			  -d * (m[0][0] * m[2][1] - m[0][1] * m[2][0]),
+			   d * (m[0][0] * m[1][1] - m[0][1] * m[1][0])]];
+	};
 	return hemi;
 })(hemi || {});
