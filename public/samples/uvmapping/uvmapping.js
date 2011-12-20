@@ -26,8 +26,8 @@
 	var client;
 		
 	function createWorld() {
-//		ticker = new hemi.Model(client.scene);			// Create a new Model
-//		ticker.setFileName('assets/DigitalDisplay/scene.json');	// Set the model file
+		ticker = new hemi.Model(client.scene);			// Create a new Model
+		ticker.setFileName('assets/DigitalDisplay/DigitalDisplay.dae');	// Set the model file
 		/**
 		 * When we call the 'ready' function, it will wait for the model to
 		 *		finish loading and then it will send out a Ready message. Here
@@ -56,51 +56,54 @@
 		client.camera.enableControl();							// Enable camera mouse control
 				
 		var spriteR = new hemi.Sprite(client, {
-			maps: ['../../assets/images/dino.png']
+			maps: ['../../assets/images/dino.png'],
+			useScreenCoordinates: false
 		});
+		spriteR.scale.set(0.15, 0.15);
 		spriteR.run(-1);
-		spriteR.translateX(200);
-		spriteR.translateY(200);
+		spriteR.translateX(-50);
+		spriteR.translateY(-40);
 
 		var spriteT = new hemi.Sprite(client, {
-			maps: ['../../assets/images/dino.png']
+			maps: ['../../assets/images/dino.png'],
+			useScreenCoordinates: false
 		});
+		spriteT.scale.set(0.15, 0.15);
 		spriteT.run(-1);
-		spriteT.translateX(600);
-		spriteT.translateY(200);
+		spriteT.translateY(-40);
 		
 		var spriteS = new hemi.Sprite(client, {
-			maps: ['../../assets/images/dino.png']
+			maps: ['../../assets/images/dino.png'],
+			useScreenCoordinates: false
 		});
+		spriteS.scale.set(0.15, 0.15);
 		spriteS.run(-1);
-		spriteS.translateX(1000);
-		spriteS.translateY(200);
+		spriteS.translateX(50);
+		spriteS.translateY(-40);
 
 		var frame = 0;
 		var tickCounts = [0,0,0,0,0,0,0,0,0,0];
 		var tickOrder = [1,7,5,4,2,8,3,6,9];
 		
-		hemi.input.addKeyDownListener({onKeyDown:function(e){
-			if (e.keyCode == 32) {
-				spriteR.rotation += Math.PI/24;
-				spriteT.uvOffset.addSelf(new THREE.Vector2(1/24,1/24));
-				if (frame < 6 || frame >= 18) { 
-					spriteS.scale.set(7/6,7/6);
-				} else {
-					spriteS.scale.set(6/7,6/7);
-				}
-				frame++;
-				if (frame == 24) {
-					frame = 0;
-					spriteT.uvOffset.set(0, 0);
-				}
-			} else if (e.keyCode == 38) {
+		// all hemi texture related
+//		hemi.input.addKeyDownListener({onKeyDown:function(e){
+//			if (e.keyCode == 32) {
+//				hemi.texture.rotate(elemR,Math.PI/24);
+//				hemi.texture.translate(elemT,1/24,1/24);
+//				if (frame < 6 || frame >= 18) { 
+//					hemi.texture.scale(elemS,7/6,7/6);
+//				} else {
+//					hemi.texture.scale(elemS,6/7,6/7);
+//				}
+//				frame++;
+//				if (frame == 24) frame = 0;
+//			} else if (e.keyCode == 38) {
 //				incrementTicker(0,1);
-			} else if (e.keyCode == 40) {
+//			} else if (e.keyCode == 40) {
 //				incrementTicker(0,-1);
-			}
-		}});	
-		
+//			}
+//		}});	
+//		
 //		function incrementTicker(ndx,tick) {
 //			var rollover = false;
 //			hemi.texture.translate(ticker.shapes[ndx].elements[0],0.1*tick,0);
