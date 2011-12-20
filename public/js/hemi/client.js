@@ -27,6 +27,7 @@ var hemi = (function(hemi) {
 		this.scene = new hemi.Scene();
 		this.picker = new hemi.Picker(this.scene, this.camera);
 		this.renderer = null;
+		this.projector = new THREE.Projector();
 
 		this.useCameraLight(true);
 		this.scene.add(this.camera.threeCamera);
@@ -111,6 +112,24 @@ var hemi = (function(hemi) {
 			} else {
 				this.scene.remove(this.camera.light);
 			}
+		},
+
+		clientPositionToRay: function(clientX, clientY) {
+			var dom = this.renderer.domElement;
+			var x = (clientX / dom.clientWidth) * 2 - 1;
+			var y = -(clientY / dom.clientHeight) * 2 + 1;
+			var projVector = new THREE.Vector3(x, y, 0.5);
+
+			this.projector.unprojectVector(projVector, this.camera.threeCamera);
+			return new THREE.Ray(this.camera.threeCamera.position, projVector.subSelf(this.camera.threeCamera.position).normalize());
+		},
+
+		getWidth: function() {
+			return this.renderer.domElement.clientWidth;
+		},
+
+		getHeight: function() {
+			return this.renderer.domElement.clientHeight;
 		}
 	};
 

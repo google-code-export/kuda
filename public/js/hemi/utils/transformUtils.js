@@ -47,7 +47,7 @@ var hemi = (function(hemi) {
 		
 		while (children.length > 0) {
 			children[0].parent = newTran;
-		};
+		}
 		
 		newTran.parent = transform;
 		
@@ -96,6 +96,7 @@ var hemi = (function(hemi) {
 //		tran.updateMatrix();
 		matrix.rotateY(rotY);
 		matrix.rotateX(rotX);
+
 		
 		return matrix;
 	};
@@ -165,7 +166,7 @@ var hemi = (function(hemi) {
 
 		while (children.length > 0) {
 			children[0].parent = tParent;
-		};
+		}
 
 		while (shapes.length > 0) {
 			var shape = shapes[0];
@@ -181,47 +182,116 @@ var hemi = (function(hemi) {
 	/**
 	 * Rotate the transform by the given angle along the given world space axis.
 	 *
-	 * @param {number[]} axis rotation axis defined as an XYZ vector
+	 * @param {THREE.Vector3} axis rotation axis defined as an XYZ vector
 	 * @param {number} angle amount to rotate by in radians
-	 * @param {o3d.Transform} transform the transform to rotate
+	 * @param {THREE.Object3D} transform the transform to rotate
 	 */
 	hemi.utils.worldRotate = function(axis, angle, transform) {
-		var m4 = hemi.core.math.matrix4,
-			iW = m4.inverse(transform.getUpdatedWorldMatrix()),
-			lA = m4.transformDirection(iW, axis);
-		transform.axisRotate(lA, angle);
+		var iW = new THREE.Matrix4().getInverse(transform.matrixWorld),
+			lA = hemi.utils.transformDirection(iW, axis);
+
+		hemi.utils.axisRotate(lA, angle, transform);
 	};
 	
 	/**
 	 * Scale the transform by the given scale amounts in world space.
 	 *
-	 * @param {number[]} scale scale factors defined as an XYZ vector
-	 * @param {o3d.Transform} transform the transform to scale
+	 * @param {THREE.Vector3} scale scale factors defined as an XYZ vector
+	 * @param {THREE.Object3D} transform the transform to scale
 	 */
 	hemi.utils.worldScale = function(scale, transform) {
-		var m4 = hemi.core.math.matrix4,
-			newMatrix = m4.mul(
-				m4.mul(
-					m4.mul(
-						transform.getUpdatedWorldMatrix(),
-						m4.scaling(scale)),
-					m4.inverse(transform.getUpdatedWorldMatrix())),
-				transform.localMatrix);
-		transform.localMatrix = newMatrix;
+		var matrix3x3 = THREE.Matrix4.makeInvert3x3(transform.parent.matrixWorld);
+		transform.scale.multiplySelf(hemi.utils.multiplyVector3(matrix3x3, scale.clone()));
+		transform.updateMatrix();
 	};
 	
 	/**
 	 * Translate the transform by the given world space vector.
 	 *
-	 * @param {number[]} v XYZ vector to translate by
-	 * @param {o3d.Transform} transform the transform to translate
+	 * @param {THREE.Vector3} v XYZ vector to translate by
+	 * @param {THREE.Object3D} transform the transform to translate
 	 */
 	hemi.utils.worldTranslate = function(v, transform) {
-		var m4 = hemi.core.math.matrix4,
-			iW = m4.inverse(transform.getUpdatedWorldMatrix()),
-			lV = m4.transformDirection(iW, v);
-		transform.translate(lV);
+		var iW = new THREE.Matrix4().getInverse(transform.matrixWorld),
+			lV = hemi.utils.transformDirection(iW, v);
+		
+		transform.translateX(lV.x);
+		transform.translateY(lV.y);
+		transform.translateZ(lV.z);
+		transform.updateMatrix();
 	};
-	
+
+	/**
+	 * @param {THREE.Vector3} axis rotation axis defined as an XYZ vector
+	 * @param {number} angle amount to rotate by in radians
+	 * @param {THREE.Object3D} transform the transform to rotate
+	*/
+	hemi.utils.axisRotate = function(axis, angle, transform) {
+		if (!transform.useQuaternion) {
+			transform.useQuaternion = true;
+			transform.quaternion.setFromEuler(THREE.Vector3(hemi.utils.radToDeg(transform.rotation.x),
+			 hemi.utils.radToDeg(transform.rotation.y),
+			 hemi.utils.radToDeg(transform.rotation.z)));
+		}						
+		transform.quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle).multiplySelf(transform.quaternion);
+		transform.updateMatrix();
+	};
+
+	/**
+	 * Return the Object3D to the identity matrix
+	 *
+	 * @param {THREE.Object3D} object3D the Object3D to modify
+	 */
+    hemi.utils.identity = function(object3d) {
+        object3d.position = new THREE.Vector3(0, 0, 0);
+        object3d.rotation = new THREE.Vector3(0, 0, 0);
+        object3d.scale = new THREE.Vector3(1, 1, 1);
+        object3d.updateMatrix();
+    };
+
+	/**
+	 * Get all of the child Object3Ds of an Object3D
+	 *
+	 * @param {THREE.Object3D} object3D The parent of the Object3Ds to find
+	 * @param {Object3D[]} an array where the child Object3Ds will be placed 
+	 */
+    hemi.utils.getChildren = function(parent, returnObjs) {
+		for (var i = 0; i < parent.children.length; ++i) {
+			var child = parent.children[i];
+			returnObjs.push(child);
+			hemi.utls.getChildren(child, returnObjs);
+		}
+	};
+
+
+	/**
+	 * Takes a 4-by-4 matrix and a vector with 3 entries, interprets the vector as a
+	 * direction, transforms that direction by the matrix, and returns the result;
+	 * assumes the transformation of 3-dimensional space represented by the matrix
+	 * is parallel-preserving, i.e. any combination of rotation, scaling and
+	 * translation, but not a perspective distortion. Returns a vector with 3
+	 * entries.
+	 * @param {THREE.Matrix4} m The matrix.
+	 * @param {THREE.Vector3} v The direction.
+	 * @return {THREE.Vector3} The transformed direction.
+	 */
+	hemi.utils.transformDirection = function(m, v) {
+	  return new THREE.Vector3(v.x * m.n11 + v.y * m.n21 + v.z * m.n31,
+	    v.x * m.n12 + v.y * m.n22 + v.z * m.n32,
+	    v.x * m.n13 + v.y * m.n23 + v.z * m.n33);
+	};
+
+
+	hemi.utils.multiplyVector3 = function (matrix, vector) {
+
+		var vx = vector.x, vy = vector.y, vz = vector.z;
+
+		vector.x = matrix.m[0] * vx + matrix.m[3] * vy + matrix.m[6] * vz;
+		vector.y = matrix.m[1] * vx + matrix.m[4] * vy + matrix.m[7] * vz;
+		vector.z = matrix.m[2] * vx + matrix.m[5] * vy + matrix.m[8] * vz;
+
+		return vector;
+	};
+
 	return hemi;
 })(hemi || {});
