@@ -56,7 +56,7 @@
 		client.camera.enableControl();							// Enable camera mouse control
 				
 		var spriteR = new hemi.Sprite(client, {
-			maps: ['../../assets/images/dino.png'],
+			maps: ['assets/images/dino.png'],
 			useScreenCoordinates: false
 		});
 		spriteR.scale.set(0.15, 0.15);
@@ -65,7 +65,7 @@
 		spriteR.translateY(-40);
 
 		var spriteT = new hemi.Sprite(client, {
-			maps: ['../../assets/images/dino.png'],
+			maps: ['assets/images/dino.png'],
 			useScreenCoordinates: false
 		});
 		spriteT.scale.set(0.15, 0.15);
@@ -73,7 +73,7 @@
 		spriteT.translateY(-40);
 		
 		var spriteS = new hemi.Sprite(client, {
-			maps: ['../../assets/images/dino.png'],
+			maps: ['assets/images/dino.png'],
 			useScreenCoordinates: false
 		});
 		spriteS.scale.set(0.15, 0.15);
