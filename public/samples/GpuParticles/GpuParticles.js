@@ -63,15 +63,15 @@
 		/*
 		 * The bounding boxes which the arrows will flow through:
 		 */
-		var box1 = new hemi.curve.Box([-510,-110,-10],[-490,-90,10]);
-		var box2 = new hemi.curve.Box([-600,400,-200],[-400,600,0]);
-		var box3 = new hemi.curve.Box([-10,790,180],[10,810,200]);
-		var box4 = new hemi.curve.Box([400,450,-300],[600,650,-100]);
-		var box5 = new hemi.curve.Box([490,-110,-110],[510,-90,-90]);
-		var box6 = new hemi.curve.Box([-30,140,-560],[30,260,-440]);
-		var box7 = new hemi.curve.Box([-310,490,-10],[110,510,10]);
-		var box8 = new hemi.curve.Box([90,190,590],[110,210,610]);
-		var box9 = new hemi.curve.Box([-250,-250,270],[-150,-150,330]);
+		var box1 = new hemi.curve.Box(new THREE.Vector3(-510,-110,-10),new THREE.Vector3(-490,-90,10));
+		var box2 = new hemi.curve.Box(new THREE.Vector3(-600,400,-200),new THREE.Vector3(-400,600,0));
+		var box3 = new hemi.curve.Box(new THREE.Vector3(-10,790,180),new THREE.Vector3(10,810,200));
+		var box4 = new hemi.curve.Box(new THREE.Vector3(400,450,-300),new THREE.Vector3(600,650,-100));
+		var box5 = new hemi.curve.Box(new THREE.Vector3(490,-110,-110),new THREE.Vector3(510,-90,-90));
+		var box6 = new hemi.curve.Box(new THREE.Vector3(-30,140,-560),new THREE.Vector3(30,260,-440));
+		var box7 = new hemi.curve.Box(new THREE.Vector3(-310,490,-10),new THREE.Vector3(110,510,10));
+		var box8 = new hemi.curve.Box(new THREE.Vector3(90,190,590),new THREE.Vector3(110,210,610));
+		var box9 = new hemi.curve.Box(new THREE.Vector3(-250,-250,270),new THREE.Vector3(-150,-150,330));
 		
 		/*
 		 * The colors these arrows will be as they move along the curve:
@@ -82,11 +82,11 @@
 		
 		/* How much to scale these arrows as they move along the curve:
 		 */
-		var scaleKey1 = {key: 0, value: [1,1,1]};
-		var scaleKey2 = {key: 0.6, value: [1,1,1]};
-		var scaleKey3 = {key: 0.7, value: [3,3,1]};  // Lengthen as they come over the roof
-		var scaleKey4 = {key: 0.8, value: [1,1,1]};
-		var scaleKey5 = {key: 1, value: [1,1,1]};
+		var scaleKey1 = {key: 0, value: new THREE.Vector3(1,1,1)};
+		var scaleKey2 = {key: 0.6, value: new THREE.Vector3(1,1,1)};
+		var scaleKey3 = {key: 0.7, value: new THREE.Vector3(3,3,1)};  // Lengthen as they come over the roof
+		var scaleKey4 = {key: 0.8, value: new THREE.Vector3(1,1,1)};
+		var scaleKey5 = {key: 1, value: new THREE.Vector3(1,1,1)};
 		
 		/* Create a particle system configuration with the above parameters,
 		 * plus a rate of 20 particles per second, and a lifetime of

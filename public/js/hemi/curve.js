@@ -127,21 +127,21 @@ var hemi = (function(hemi) {
 	/**
 	 * @class A Box is defined by a minimum XYZ point and a maximum XYZ point.
 	 * 
-	 * @param {number[3]} opt_min minimum XYZ point
-	 * @param {number[3]} opt_max maximum XYZ point
+	 * @param {THREE.Vector3} opt_min minimum XYZ point
+	 * @param {THREE.Vector3} opt_max maximum XYZ point
 	 */
 	hemi.curve.Box = function(opt_min, opt_max) {
 		/**
 		 * The minimum XYZ point
-		 * @type number[3]
+		 * @type THREE.Vector3
 		 */
-		this.min = opt_min || [];
+		this.min = opt_min || new THREE.Vector3();
 		
 		/**
 		 * The maximum XYZ point
-		 * @type number[3]
+		 * @type THREE.Vector3
 		 */
-		this.max = opt_max || [];
+		this.max = opt_max || new THREE.Vector3();
 	};
 	
 	/**
@@ -168,7 +168,7 @@ var hemi = (function(hemi) {
 	 * @class A ScaleKey contains a time key and a scale value.
 	 * 
 	 * @param {number} key time value between 0 and 1
-	 * @param {number[3]} scale XYZ scale value
+	 * @param {THREE.Vector3} scale XYZ scale value
 	 */
 	hemi.curve.ScaleKey = function(key, scale) {
 		/**
@@ -179,7 +179,7 @@ var hemi = (function(hemi) {
 		
 		/**
 		 * The scale value for Curve particles.
-		 * @type number[3]
+		 * @type THREE.Vector3
 		 */
 		this.value = scale;
 	};
@@ -188,7 +188,7 @@ var hemi = (function(hemi) {
 	 * @class A Curve is used to represent and calculate different curves
 	 * including: linear, bezier, cardinal, and cubic hermite.
 	 * 
-	 * @param {number[3][]} points List of xyz waypoints 
+	 * @param {THREE.Vector3[]} points List of xyz waypoints 
 	 * @param {hemi.curve.CurveType} opt_type Curve type
 	 * @param {Object} opt_config Configuration object specific to this curve
 	 */
@@ -256,9 +256,9 @@ var hemi = (function(hemi) {
 			this.count = points.length;
 			
 			for (var i = 0; i < this.count; i++) {
-				this.xpts[i] = points[i][0];
-				this.ypts[i] = points[i][1];
-				this.zpts[i] = points[i][2];
+				this.xpts[i] = points[i].x;
+				this.ypts[i] = points[i].y;
+				this.zpts[i] = points[i].z;
 				this.xtans[i] = 0;
 				this.ytans[i] = 0;
 				this.ztans[i] = 0;
@@ -293,17 +293,17 @@ var hemi = (function(hemi) {
 	 * Base interpolation function for this curve. Usually overwritten.
 	 *
 	 * @param {number} t time, usually between 0 and 1
-	 * @return {number[3]} the position interpolated from the time input
+	 * @return {THREE.Vector3} the position interpolated from the time input
 	 */
 	Curve.prototype.interpolate = function(t) {
-		return [t,t,t];
+		return new THREE.Vector3(t,t,t);
 	};
 
 	/**
 	 * The linear interpolation moves on a straight line between waypoints.
 	 *
 	 * @param {number} t time, usually between 0 and 1
-	 * @return {number[3]} the position linearly interpolated from the time
+	 * @return {THREE.Vector3} the position linearly interpolated from the time
 	 *     input
 	 */
 	Curve.prototype.linear = function(t) {
@@ -314,7 +314,7 @@ var hemi = (function(hemi) {
 		var x = (1-tt)*this.xpts[ndx] + tt*this.xpts[ndx+1];
 		var y = (1-tt)*this.ypts[ndx] + tt*this.ypts[ndx+1];
 		var z = (1-tt)*this.zpts[ndx] + tt*this.zpts[ndx+1];
-		return [x,y,z];
+		return new THREE.Vector3(x,y,z);
 	};
 
 	/**
@@ -323,7 +323,7 @@ var hemi = (function(hemi) {
 	 * points can be weighted for more bending.
 	 *
 	 * @param {number} t time, usually between 0 and 1
-	 * @return {number[3]} the position interpolated from the time input by
+	 * @return {THREE.Vector3} the position interpolated from the time input by
 	 *     a bezier function.
 	 */
 	Curve.prototype.bezier = function(t) {
@@ -342,7 +342,7 @@ var hemi = (function(hemi) {
 			z += fac*this.zpts[i];
 			w += fac; 
 		}
-		return [x/w,y/w,z/w];
+		return new THREE.Vector3(x/w,y/w,z/w);
 	};
 
 	/**
@@ -351,7 +351,7 @@ var hemi = (function(hemi) {
 	 * each one.
 	 *
 	 * @param {number} t time, usually between 0 and 1
-	 * @return {number[3]} the position interpolated from the time input by
+	 * @return {THREE.Vector3} the position interpolated from the time input by
 	 *     the cubic hermite function.
 	 */
 	Curve.prototype.cubicHermite = function(t) {
@@ -362,7 +362,7 @@ var hemi = (function(hemi) {
 		var x = hemi.utils.cubicHermite(tt,this.xpts[ndx],this.xtans[ndx],this.xpts[ndx+1],this.xtans[ndx+1]);
 		var y = hemi.utils.cubicHermite(tt,this.ypts[ndx],this.ytans[ndx],this.ypts[ndx+1],this.ytans[ndx+1]);
 		var z = hemi.utils.cubicHermite(tt,this.zpts[ndx],this.ztans[ndx],this.zpts[ndx+1],this.ztans[ndx+1]);
-		return [x,y,z];
+		return new THREE.Vector3(x,y,z);
 	};
 	
 	/**
@@ -370,7 +370,7 @@ var hemi = (function(hemi) {
 	 * waypoints at a constant velocity.
 	 *
 	 * @param {number} t time, usually between 0 and 1
-	 * @return {number[3]} the position linearly interpolated from the time
+	 * @return {THREE.Vector3} the position linearly interpolated from the time
 	 *     input, normalized to keep the velocity constant
 	 */
 	Curve.prototype.linearNorm = function(t) {
@@ -391,7 +391,7 @@ var hemi = (function(hemi) {
 		var x = (1-lt)*this.xpts[ndx] + lt*this.xpts[ndx+1];
 		var y = (1-lt)*this.ypts[ndx] + lt*this.ypts[ndx+1];
 		var z = (1-lt)*this.zpts[ndx] + lt*this.zpts[ndx+1];			
-		return [x,y,z];
+		return new THREE.Vector3(x,y,z);
 	};
 	
 	/**
@@ -451,20 +451,20 @@ var hemi = (function(hemi) {
 	/**
 	 * Get the XYZ position of the last waypoint of the Curve.
 	 * 
-	 * @return {number[3]} the position of the last waypoint
+	 * @return {THREE.Vector3} the position of the last waypoint
 	 */
 	Curve.prototype.getEnd = function() {
 		var end = this.count - 1;
-		return [this.xpts[end],this.ypts[end],this.zpts[end]];
+		return new THREE.Vector3(this.xpts[end],this.ypts[end],this.zpts[end]);
 	};
 	
 	/**
 	 * Get the XYZ position of the first waypoint of the Curve.
 	 * 
-	 * @return {number[3]} the position of the first waypoint
+	 * @return {THREE.Vector3} the position of the first waypoint
 	 */
 	Curve.prototype.getStart = function() {
-		return [this.xpts[0],this.ypts[0],this.zpts[0]];
+		return new THREE.Vector3(this.xpts[0],this.ypts[0],this.zpts[0]);
 	};
 	
 	/**
@@ -485,7 +485,7 @@ var hemi = (function(hemi) {
 	 * @class A Particle allows a Transform to move along a set of points.
 	 * 
 	 * @param {o3d.Transform} trans the transform to move along the curve
-	 * @param {number[3][]} points the array of points to travel through
+	 * @param {THREE.Vector3[]} points the array of points to travel through
 	 * @param {hemi.curve.ColorKey[]} colorKeys array of key-values for the 
 	 *		color of the default material
 	 * @param {hemi.curve.ScaleKey[]} scaleKeys array of key-values for the 
@@ -514,7 +514,7 @@ var hemi = (function(hemi) {
 			var L = new THREE.Matrix4(),
 				p = points[i];
 			
-			L.setTranslation(p[0], p[1], p[2]);
+			L.setTranslation(p.x, p.y, p.z);
 			
 			if (rotate) {
 				hemi.utils.pointYAt(L, points[i-1], points[i+1]);
@@ -616,13 +616,12 @@ var hemi = (function(hemi) {
 					p.value = [];
 					if (typeof c.range == 'number') {
 						var offset = (Math.random()-0.5)*2*c.range;
-						for (var j = 0; j < c.value.length; j++) {
-							p.value[j] = c.value[j] + offset;
-						}
+						p.value = new THREE.Vector3(c.value.x + offset, c.value.y + offset, 
+							c.value.z + offset);
 					} else {
-						for (var j = 0; j < c.value.length; j++) {
-							p.value[j] = c.value[j] + (Math.random()-0.5)*2*c.range[j];
-						}
+						p.value = new THREE.Vector3(c.value.x + (Math.random()-0.5)*2*c.range.x, 
+							c.value.y + (Math.random()-0.5)*2*c.range.y, 
+							c.value.z + (Math.random()-0.5)*2*c.rang.z);
 					}
 				} else {
 					p.value = c.value;
@@ -631,15 +630,14 @@ var hemi = (function(hemi) {
 			}
 		} else {
 			sKeys = [
-				{key: 0, value: [1,1,1]},
-				{key: 1, value: [1,1,1]}
+				{key: 0, value: new THREE.Vector3(1, 1, 1)},
+				{key: 1, value: new THREE.Vector3(1, 1, 1)}
 			];
 		}
 		for (var i = 1; i <= this.lastFrame; i++) {
 			var time = (i-1)/(this.lastFrame-2),
 				scale = this.scales[i] = this.lerpValue(time, sKeys);
-			this.matrices[i] = new THREE.Matrix4().copy(this.lt[i]).scale(
-				new THREE.Vector3(scale[0], scale[1], scale[2]));
+			this.matrices[i] = new THREE.Matrix4().copy(this.lt[i]).scale(scale);
 		}
 		return this;
 	};
@@ -662,7 +660,8 @@ var hemi = (function(hemi) {
 	 *
 	 * @param {number} time time, from 0 to 1
 	 * @param {Object[]} keySet array of key-value pairs
-	 * @return {number[]} the interpolated value
+	 * @return {Object} the interpolated value as either an array of numbers or a THREE.Vector3
+	 * 		depending on the array of key-value pairs passed in
 	 */
 	Particle.prototype.lerpValue = function(time, keySet) {
 		var ndx = keySet.length - 2;
@@ -672,11 +671,19 @@ var hemi = (function(hemi) {
 		var a = keySet[ndx],
 			b = keySet[ndx+1],
 			t = (time - a.key)/(b.key - a.key),
+			i = (1 - t),
 			r = [],
 			aLength = a.value.length;
-			
-		for (var i = 0; i < aLength; ++i) {
-			r[i] = (1 - t) * a.value[i] + t * b.value[i];
+		
+		if (a.value instanceof THREE.Vector3) {		
+			r = new THREE.Vector3(i * a.value.x + t * b.value.x,
+				i * a.value.y + t * b.value.y,
+				i * a.value.z + t * b.value.z);
+		}
+		else {
+			for (var i = 0; i < aLength; ++i) {
+				r[i] = (1 - t) * a.value[i] + t * b.value[i];
+			}
 		}
 			
 		return r;
@@ -914,8 +921,8 @@ var hemi = (function(hemi) {
 			var max = this.boxes[i].max;
 			points[i+1] = randomPoint(min,max);
 		}
-		points[0] = points[1].slice(0,3);
-		points[num+1] = points[num].slice(0,3);
+		points[0] = points[1].clone();
+		points[num+1] = points[num].clone();
 		var curve = new hemi.Curve(points,
 			hemi.curve.CurveType.Cardinal, {tension: tension});
 		return curve;
@@ -1562,7 +1569,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Set the scale ramp for the particles as they travel along the curve.
 	 * 
-	 * @param {number[3][]} scales array of XYZ scale values
+	 * @param {THREE.Vector3[]} scales array of XYZ scale values
 	 */
 	GpuParticleCurveSystem.prototype.setScales = function(scales) {
 		var len = scales.length,
@@ -2079,12 +2086,12 @@ var hemi = (function(hemi) {
 		
 		for (var i = 0; i < this.boxes.length; i++) {
 			var b = this.boxes[i],
-				w = b.max[0] - b.min[0],
-				h = b.max[1] - b.min[1],
-				d = b.max[2] - b.min[2],
-				x = b.min[0] + w/2,
-				y = b.min[1] + h/2,
-				z = b.min[2] + d/2,
+				w = b.max.x - b.min.x,
+				h = b.max.y - b.min.y,
+				d = b.max.z - b.min.z,
+				x = b.min.x + w/2,
+				y = b.min.y + h/2,
+				z = b.min.z + d/2,
 				box = new THREE.CubeGeometry(w, h, d),
 				mesh = new THREE.Mesh(box, dbBoxMat);
 			
@@ -2122,7 +2129,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Render a 3D representation of a curve.
 	 *
-	 * @param {number[3][]} points array of points (not waypoints)
+	 * @param {THREE.Vector3[]} points array of points (not waypoints)
 	 * @param {Object} config configuration describing how the curve should look
 	 */
 	function drawCurve(points, config) {
@@ -2338,18 +2345,18 @@ var hemi = (function(hemi) {
 	/**
 	 * Generate a random point within a bounding box
 	 *
-	 * @param {number[]} min Minimum point of the bounding box
-	 * @param {number[]} max Maximum point of the bounding box
-	 * @return {number[]} Randomly generated point
+	 * @param {THREE.Vector3} min Minimum point of the bounding box
+	 * @param {THREE.Vector3} max Maximum point of the bounding box
+	 * @return {THREE.Vector3} Randomly generated point
 	 */
 	function randomPoint(min, max) {
 		var xi = Math.random();
 		var yi = Math.random();
 		var zi = Math.random();
-		var x = xi*min[0] + (1-xi)*max[0];
-		var y = yi*min[1] + (1-yi)*max[1];
-		var z = zi*min[2] + (1-zi)*max[2];
-		return [x,y,z];
+		var x = xi*min.x + (1-xi)*max.x;
+		var y = yi*min.y + (1-yi)*max.y;
+		var z = zi*min.z + (1-zi)*max.z;
+		return new THREE.Vector3(x, y, z);
 	};
 	
 	/*
@@ -2367,12 +2374,10 @@ var hemi = (function(hemi) {
 		maxParam._array = new Float32Array(3 * boxes.length);
 				
 		for (var i = 0, il = boxes.length; i < il; ++i) {
-			var box = boxes[i],
-				min = box.min,
-				max = box.max;
+			var box = boxes[i];
 						
-			minParam.value[i] = new THREE.Vector3(min[0], min[1], min[2]);
-			maxParam.value[i] = new THREE.Vector3(max[0], max[1], max[2]);
+			minParam.value[i] = box.min;
+			maxParam.value[i] = box.max;
 		}
 	};
 	
@@ -2415,8 +2420,7 @@ var hemi = (function(hemi) {
 		for (var i = 0, il = scales.length; i < il; ++i) {
 			var obj = scales[i];
 			
-			sclParam.value[i] = new THREE.Vector3(obj.value[0], obj.value[1], 
-				obj.value[2]);
+			sclParam.value[i] = obj.value;
 			keyParam.value[i] = obj.key;
 		}
 	};

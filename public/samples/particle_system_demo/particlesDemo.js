@@ -67,11 +67,11 @@
 		 * box in the upper right, then converge on a small box in the
 		 * bottom right.
 		 */
-		var box1 = new hemi.curve.Box([-510,-110,-10],[-490,-90,10]);
-		var box2 = new hemi.curve.Box([-600,400,-200],[-400,600,0]);
-		var box3 = new hemi.curve.Box([-10,790,180],[10,810,200]);
-		var box4 = new hemi.curve.Box([400,450,-300],[600,650,-100]);
-		var box5 = new hemi.curve.Box([490,-110,-10],[510,-90,10]);
+		var box1 = new hemi.curve.Box(new THREE.Vector3(-510,-110,-10),new THREE.Vector3(-490,-90,10));
+		var box2 = new hemi.curve.Box(new THREE.Vector3(-600,400,-200),new THREE.Vector3(-400,600,0));
+		var box3 = new hemi.curve.Box(new THREE.Vector3(-10,790,180),new THREE.Vector3(10,810,200));
+		var box4 = new hemi.curve.Box(new THREE.Vector3(400,450,-300),new THREE.Vector3(600,650,-100));
+		var box5 = new hemi.curve.Box(new THREE.Vector3(490,-110,-10),new THREE.Vector3(510,-90,10));
 		
 		/* The colors these arrows will be as they move through:
 		 * Start out yellow and transparent, then turn red and opaque,
@@ -86,9 +86,9 @@
 		 * Start out infinitesimal, then grow to a decent size,
 		 * kind of stretched out, then shrink away again.
 		 */
-		var scale1 = [1,1,1];
-		var scale2 = [4,8,4];
-		var scale3 = [1,1,1];
+		var scale1 = new THREE.Vector3(1,1,1);
+		var scale2 = new THREE.Vector3(4,8,4);
+		var scale3 = new THREE.Vector3(1,1,1);
 		
 		/* Create a particle system configuration with the above parameters,
 		 * plus a rate of 20 particles per second, and a lifetime of
