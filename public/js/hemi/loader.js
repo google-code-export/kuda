@@ -19,11 +19,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 */
 
 var hemi = (function(hemi) {
-	
+
 	var colladaLoader = new THREE.ColladaLoader(),
 		resetCB = null,
 		taskCount = 1,
-	
+
 		decrementTaskCount = function() {
 			if (--taskCount === 0) {
 				taskCount = 1;
@@ -34,41 +34,74 @@ var hemi = (function(hemi) {
 					resetCB = null;
 				}
 			}
-		},
-		
-		/*
-		 * Get the correct path for the given URL. If the URL is absolute, then
-		 * leave it alone. Otherwise prepend it with the load path.
-		 * 
-		 * @param {string} url the url to update
-		 * @return {string} the udpated url
-		 */
-		getPath = function(url) {
-			if (url.substr(0, 4) === 'http') {
-				return url;
-			} else {
-				return hemi.loadPath + url;
-			}
 		};
-		
+
 	/**
 	 * The relative path from the referencing HTML file to the Kuda directory.
 	 * @type string
 	 * @default ''
 	 */
 	hemi.loadPath = '';
-	
+
+	/*
+	 * Get the correct path for the given URL. If the URL is absolute, then leave it alone.
+	 * Otherwise prepend it with the load path.
+	 * 
+	 * @param {string} url the url to update
+	 * @return {string} the udpated url
+	 */
+	hemi.getLoadPath = function(url) {
+		if (url.substr(0, 4) === 'http') {
+			return url;
+		} else {
+			return hemi.loadPath + url;
+		}
+	};
+
+	/**
+	 * Load the COLLADA file at the given url and pass it to the given callback
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function(Object):void} callback a function to pass the loaded COLLADA data
+	 */
 	hemi.loadCollada = function(url, callback) {
-		url = getPath(url);
+		url = hemi.getLoadPath(url);
 		++taskCount;
-		
+
 		colladaLoader.load(url, function (collada) {
 			if (callback) {
 				callback(collada);
 			}
-			
+
 			decrementTaskCount();
 		});
+	};
+
+	/**
+	 * Load the image file at the given URL. If an error occurs, it is logged. Otherwise the given
+	 * callback is executed and passed the loaded image.
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function(Image):void} callback a function to pass the loaded image
+	 */
+	hemi.loadImage = function(url, callback) {
+		var img = new Image();
+		++taskCount;
+
+		img.onabort = function() {
+			hemi.error('Aborted loading: ' + url);
+			decrementTaskCount();
+		};
+		img.onerror = function() {
+			hemi.error('Error loading: ' + url);
+			decrementTaskCount();
+		};
+		img.onload = function() {
+			callback(img);
+			decrementTaskCount();
+		};
+
+		img.src = hemi.getLoadPath(url);
 	};
 
 	/**
@@ -86,13 +119,13 @@ var hemi = (function(hemi) {
 	 *     ready function is called
 	 */
 	hemi.loadOctane = function(url, opt_callback) {
-		url = getPath(url);
+		url = hemi.getLoadPath(url);
 		++taskCount;
 
 		hemi.utils.get(url, function(data, status) {
 			decrementTaskCount();
 
-			if (data == null) {
+			if (data === null) {
 				hemi.error(status);
 			} else {
 				if (typeof data === 'string') {
@@ -100,7 +133,7 @@ var hemi = (function(hemi) {
 				}
 
 				var obj = hemi.fromOctane(data);
-				
+
 				if (!data.type) {
 					hemi.makeClients();
 					hemi.ready();
@@ -112,7 +145,7 @@ var hemi = (function(hemi) {
 			}
 		});
 	};
-	
+
 	/**
 	 * Activate the World once all resources are loaded. This function should
 	 * only be called after all scripting and setup is complete.
@@ -130,6 +163,6 @@ var hemi = (function(hemi) {
 		resetCB = opt_callback;
 		decrementTaskCount();
 	};
-	
+
 	return hemi;
 })(hemi || {});
