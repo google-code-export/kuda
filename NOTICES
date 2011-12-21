@@ -2,10 +2,6 @@ Kuda includes a library and editor for authoring interactive 3D content for the
 web.
 Copyright (C) 2011 SRI International.
 
-This software uses the O3D plugin and JavaScript library.  The original software
-is available from http://code.google.com/apis/o3d/, code samples are licensed
-under the BSD License.
-
 This software uses JigLibJS found at http://www.jiglibjs.org, code is licensed
 BSD indicated here http://www.nlnet.nl/project/jiglibjs/.
 
@@ -24,7 +20,3 @@ at http://plugins.jquery.com.
 This software uses jshashtable a JavaScript library.  The original software is
 available from http://www.timdown.co.uk/jshashtable/, code is licensed Apache
 license.
-
-This software uses JSON and JSONError JavaScript libraries.  The original
-software is available from http://www.3site.eu, code licensed Andrea
-Giammarchi - www.3site.eu.
