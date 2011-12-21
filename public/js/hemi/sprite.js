@@ -35,14 +35,19 @@
 	var Sprite = function(client, parameters) {
 		// before super(), set up all the maps and then assign the first in the series as the map
 		var maps = parameters.maps, 
-			i, il, map;
+			i, il, map, count = 0;
 			
 		this.maps = [];
 		
 		for (i = 0, il = maps.length; i < il; i++) {
 			map = maps[i];
 			this.maps.push((parameters.map instanceof THREE.Texture) ? map : 
-				THREE.ImageUtils.loadTexture(map));
+				THREE.ImageUtils.loadTexture(hemi.loadPath + map, null, function() {
+					count++;
+					if (count >= il) {
+						parameters.callback();
+					}
+				}));
 		}
 		
 		parameters.map = this.maps[0];
@@ -71,7 +76,7 @@
 	 * @param {string} path the path to the image source
 	 */
 	Sprite.prototype.addFrame = function(path, opt_callback) {
-		this.maps.push(THREE.ImageUtils.loadTexture(path));
+		this.maps.push(THREE.ImageUtils.loadTexture(hemi.loadPath + path, null, opt_callback));
 	};
 
 	/**

@@ -79,14 +79,14 @@ var hemi = (function(hemi) {
 	 * Point the y axis of the given matrix toward the given point.
 	 *
 	 * @param {THREE.Matrix4} matrix the matrix to rotate
-	 * @param {number[]} eye XYZ point from which to look (may be the origin)
-	 * @param {number[]} target XYZ point at which to aim the y axis
+	 * @param {THREE.Vector3} eye XYZ point from which to look (may be the origin)
+	 * @param {THREE.Vector3} target XYZ point at which to aim the y axis
 	 * @return {THREE.Object3D} the rotated transform
 	 */
 	hemi.utils.pointYAt = function(matrix, eye, target) {
-		var dx = target[0] - eye[0],
-			dy = target[1] - eye[1],
-			dz = target[2] - eye[2],
+		var dx = target.x - eye.x,
+			dy = target.y - eye.y,
+			dz = target.z - eye.z,
 			dxz = Math.sqrt(dx*dx + dz*dz),
 			rotY = Math.atan2(dx,dz),
 			rotX = Math.atan2(dxz,dy);
