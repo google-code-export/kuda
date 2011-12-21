@@ -503,12 +503,11 @@ function req2ContentType(urlLessQueryString) {
     case '.js':
         contentType = 'text/javascript';
         break;
+    case '.htm':
     case '.html':
         contentType = HTMLt;
         break;
-    case '.htm':
-        contentType = HTMLt;
-        break;
+    case '.fx':
     case '.txt':
         contentType = PLAINt;
         break;
@@ -519,8 +518,6 @@ function req2ContentType(urlLessQueryString) {
         contentType = 'image/png';
         break;
     case '.jpeg':
-        contentType = 'image/jpeg';
-        break;
     case '.jpg':
         contentType = 'image/jpeg';
         break;
@@ -530,11 +527,18 @@ function req2ContentType(urlLessQueryString) {
     case '.ico':
         contentType = 'image/x-icon';
         break;
-    case '.fx':
-        contentType = PLAINt;
-        break;
     case '.woff':
         contentType = 'application/octet-stream';
+        break;
+    case '.mp4':
+        contentType = 'video/mp4';
+        break;
+    case '.ogg':
+    case '.ogv':
+        contentType = 'video/ogg';
+        break;
+    case '.webm':
+        contentType = 'video/webm';
         break;
     default:
         log('unknown content type for ' + fileType);
