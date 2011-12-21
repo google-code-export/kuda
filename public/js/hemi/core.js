@@ -162,6 +162,7 @@ var hemi = (function(hemi) {
 					
 					element.appendChild(renderer.domElement);
 					client.setRenderer(renderer);
+					hemi.hudManager.addClient(client);
 				}
 			}
 		}

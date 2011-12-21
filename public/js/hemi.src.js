@@ -1918,7 +1918,7 @@ var hemi = (function(hemi) {
 	 * @param {number[3]} m1 the tangent through the second waypoint
 	 * @return {number[3]} the interpolated point
 	 */
-	hemi.utils.cubicHermite = function(t,p0,m0,p1,m1) {;
+	hemi.utils.cubicHermite = function(t,p0,m0,p1,m1) {
 		var t2 = t*t,
 			t3 = t2*t,
 			tp0 = 2*t3 - 3*t2 + 1,
@@ -1951,22 +1951,20 @@ var hemi = (function(hemi) {
 	/**
 	 * Calculate the intersection between a ray and a plane.
 	 * 
-	 * @param {o3d.Ray} ray Ray described by a near xyz point and a far xyz point
-	 * @param {number[3][3]} plane Array of 3 xyz coordinates defining a plane
+	 * @param {THREE.Ray} ray Ray described by a near xyz point and a far xyz point
+	 * @param {THREE.Vector3[3]} plane Array of 3 xyz coordinates defining a plane
 	 * @return {number[3]} Array [t: Time value on ray, u: U-coordinate on plane,
 	 *		v: V-coordinate on plane} of intersection point
 	 */
 	hemi.utils.intersect = function(ray, plane) {
-		var P = plane,
-			R = [ray.near,ray.far],
-			A = hemi.core.math.inverse(
-			[[R[0][0]-R[1][0],P[1][0]-P[0][0],P[2][0]-P[0][0]],
-			 [R[0][1]-R[1][1],P[1][1]-P[0][1],P[2][1]-P[0][1]],
-			 [R[0][2]-R[1][2],P[1][2]-P[0][2],P[2][2]-P[0][2]]]),
-			B = [R[0][0]-P[0][0],R[0][1]-P[0][1],R[0][2]-P[0][2]],
-			t = A[0][0]*B[0] + A[0][1]*B[1] + A[0][2]*B[2],
-			u = A[1][0]*B[0] + A[1][1]*B[1] + A[1][2]*B[2],
-			v = A[2][0]*B[0] + A[2][1]*B[1] + A[2][2]*B[2];
+		var A = hemi.utils.inverse(
+			[[ray.direction.x, plane[1].x - plane[0].x, plane[2].x - plane[0].x],
+			 [ray.direction.y, plane[1].y - plane[0].y, plane[2].y - plane[0].y],
+			 [ray.direction.z, plane[1].z - plane[0].z, plane[2].z - plane[0].z]]),
+			B = [ray.origin.x - plane[0].x, ray.origin.y - plane[0].y, ray.origin.z - plane[0].z],
+			t = A[0][0] * B[0] + A[0][1] * B[1] + A[0][2] * B[2],
+			u = A[1][0] * B[0] + A[1][1] * B[1] + A[1][2] * B[2],
+			v = A[2][0] * B[0] + A[2][1] * B[1] + A[2][2] * B[2];
 		
 		return [t,u,v];
 	};
@@ -2202,14 +2200,13 @@ var hemi = (function(hemi) {
 	 * in 3D space.
 	 * 
 	 * @param {number[2]} uv uv coordinates on a plane
-	 * @param {number[3][3]} plane array of 3 xyz coordinates defining the plane
+	 * @param {THREE.Vector3[3]} plane array of 3 xyz coordinates defining the plane
 	 * @return {number[3]} xyz coordinates of the uv location on the plane
 	 */
 	hemi.utils.uvToXYZ = function(uv, plane) {
-		var hMath = hemi.core.math,
-			uf = hMath.mulScalarVector(uv[0], hMath.subVector(plane[1], plane[0])),
-			vf = hMath.mulScalarVector(uv[1], hMath.subVector(plane[2], plane[0]));
-			pos = hMath.addVector(plane[0], hMath.addVector(uf, vf));
+		var uf = new THREE.Vector3().sub(plane[1], plane[0]).multiplyScalar(uv[0]),
+		vf = new THREE.Vector3().sub(plane[2], plane[0]).multiplyScalar(uv[1]),
+		pos = uf.addSelf(vf).addSelf(plane[0]);
 		return pos;
 	};
 	
@@ -2239,29 +2236,25 @@ var hemi = (function(hemi) {
 	
 	/**
 	 * Calculate the screen coordinates from a 3d position in the world.
-	 * @param {number[3]} p XYZ point to calculate from
-	 * @return {number[3]} XY screen position of point, plus z-distance,
+	 * @param {hemi.client} The current client
+	 * @param {THREE.Vector3} point XYZ point to calculate from
+	 * @return {THREE.Vector3} XY screen position of point, plus z-distance,
 	 *		where 0.0 = near clip and 1.0 = flar clip
 	 */
-	hemi.utils.worldToScreenFloat = function(p0) {
-		var VM = hemi.view.viewInfo.drawContext.view,
-			PM = hemi.view.viewInfo.drawContext.projection,
-			w = hemi.view.clientSize.width,
-			h = hemi.view.clientSize.height,
-			m4 = hemi.core.math.matrix4,
-			v = m4.transformPoint(VM,p0),
-			z = v[2],
-			p = m4.transformPoint(PM, v);
+	hemi.utils.worldToScreenFloat = function(client, point) {
+		var viewVec = client.camera.threeCamera.matrixWorldInverse.multiplyVector3(point.clone()),
+			projVec = client.camera.threeCamera.projectionMatrix.multiplyVector3(viewVec.clone());
 		
-		if (z > 0) {
-			p[0] = -p[0];
-			p[1] = -p[1];
+		if (viewVec.z > 0) {
+			projVec.x = -projVec.x;
+			projVec.y = -projVec.y;
 		}
-		var x = (p[0]+1.0)*0.5*w;
-		var y = (-p[1]+1.0)*0.5*h;
-		return [x,y,p[2]];
+
+		var x = (projVec.x + 1.0) * 0.5 * client.getWidth();
+		var y = (-projVec.y + 1.0) * 0.5 * client.getHeight();
+		return new THREE.Vector3(x, y, projVec.z);
 	};
-	
+
 	/**
 	 * Computes the normal given three vertices that form a triangle
 	 * 
@@ -2283,7 +2276,26 @@ var hemi = (function(hemi) {
 
 		return cb;
 	};
+
 	
+	/**
+	 * Computes the inverse of a 3-by-3 matrix.
+	 * @param {number[3][3]} m The matrix.
+	 * @return {number[3][3]} The inverse of m.
+	 */
+	hemi.utils.inverse = function(m) {
+		var t00 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
+		var t10 = m[0][1] * m[2][2] - m[0][2] * m[2][1];
+		var t20 = m[0][1] * m[1][2] - m[0][2] * m[1][1];
+		var d = 1.0 / (m[0][0] * t00 - m[1][0] * t10 + m[2][0] * t20);
+		return [[d * t00, -d * t10, d * t20],
+			  [-d * (m[1][0] * m[2][2] - m[1][2] * m[2][0]),
+				d * (m[0][0] * m[2][2] - m[0][2] * m[2][0]),
+			   -d * (m[0][0] * m[1][2] - m[0][2] * m[1][0])],
+			  [d * (m[1][0] * m[2][1] - m[1][1] * m[2][0]),
+			  -d * (m[0][0] * m[2][1] - m[0][1] * m[2][0]),
+			   d * (m[0][0] * m[1][1] - m[0][1] * m[1][0])]];
+	};
 	return hemi;
 })(hemi || {});
 /* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
@@ -2784,7 +2796,7 @@ var hemi = (function(hemi) {
 		
 		while (children.length > 0) {
 			children[0].parent = newTran;
-		};
+		}
 		
 		newTran.parent = transform;
 		
@@ -2833,6 +2845,7 @@ var hemi = (function(hemi) {
 //		tran.updateMatrix();
 		matrix.rotateY(rotY);
 		matrix.rotateX(rotX);
+
 		
 		return matrix;
 	};
@@ -2902,7 +2915,7 @@ var hemi = (function(hemi) {
 
 		while (children.length > 0) {
 			children[0].parent = tParent;
-		};
+		}
 
 		while (shapes.length > 0) {
 			var shape = shapes[0];
@@ -2918,48 +2931,117 @@ var hemi = (function(hemi) {
 	/**
 	 * Rotate the transform by the given angle along the given world space axis.
 	 *
-	 * @param {number[]} axis rotation axis defined as an XYZ vector
+	 * @param {THREE.Vector3} axis rotation axis defined as an XYZ vector
 	 * @param {number} angle amount to rotate by in radians
-	 * @param {o3d.Transform} transform the transform to rotate
+	 * @param {THREE.Object3D} transform the transform to rotate
 	 */
 	hemi.utils.worldRotate = function(axis, angle, transform) {
-		var m4 = hemi.core.math.matrix4,
-			iW = m4.inverse(transform.getUpdatedWorldMatrix()),
-			lA = m4.transformDirection(iW, axis);
-		transform.axisRotate(lA, angle);
+		var iW = new THREE.Matrix4().getInverse(transform.matrixWorld),
+			lA = hemi.utils.transformDirection(iW, axis);
+
+		hemi.utils.axisRotate(lA, angle, transform);
 	};
 	
 	/**
 	 * Scale the transform by the given scale amounts in world space.
 	 *
-	 * @param {number[]} scale scale factors defined as an XYZ vector
-	 * @param {o3d.Transform} transform the transform to scale
+	 * @param {THREE.Vector3} scale scale factors defined as an XYZ vector
+	 * @param {THREE.Object3D} transform the transform to scale
 	 */
 	hemi.utils.worldScale = function(scale, transform) {
-		var m4 = hemi.core.math.matrix4,
-			newMatrix = m4.mul(
-				m4.mul(
-					m4.mul(
-						transform.getUpdatedWorldMatrix(),
-						m4.scaling(scale)),
-					m4.inverse(transform.getUpdatedWorldMatrix())),
-				transform.localMatrix);
-		transform.localMatrix = newMatrix;
+		var matrix3x3 = THREE.Matrix4.makeInvert3x3(transform.parent.matrixWorld);
+		transform.scale.multiplySelf(hemi.utils.multiplyVector3(matrix3x3, scale.clone()));
+		transform.updateMatrix();
 	};
 	
 	/**
 	 * Translate the transform by the given world space vector.
 	 *
-	 * @param {number[]} v XYZ vector to translate by
-	 * @param {o3d.Transform} transform the transform to translate
+	 * @param {THREE.Vector3} v XYZ vector to translate by
+	 * @param {THREE.Object3D} transform the transform to translate
 	 */
 	hemi.utils.worldTranslate = function(v, transform) {
-		var m4 = hemi.core.math.matrix4,
-			iW = m4.inverse(transform.getUpdatedWorldMatrix()),
-			lV = m4.transformDirection(iW, v);
-		transform.translate(lV);
+		var iW = new THREE.Matrix4().getInverse(transform.matrixWorld),
+			lV = hemi.utils.transformDirection(iW, v);
+		
+		transform.translateX(lV.x);
+		transform.translateY(lV.y);
+		transform.translateZ(lV.z);
+		transform.updateMatrix();
 	};
-	
+
+	/**
+	 * @param {THREE.Vector3} axis rotation axis defined as an XYZ vector
+	 * @param {number} angle amount to rotate by in radians
+	 * @param {THREE.Object3D} transform the transform to rotate
+	*/
+	hemi.utils.axisRotate = function(axis, angle, transform) {
+		if (!transform.useQuaternion) {
+			transform.useQuaternion = true;
+			transform.quaternion.setFromEuler(THREE.Vector3(hemi.utils.radToDeg(transform.rotation.x),
+			 hemi.utils.radToDeg(transform.rotation.y),
+			 hemi.utils.radToDeg(transform.rotation.z)));
+		}						
+		transform.quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle).multiplySelf(transform.quaternion);
+		transform.updateMatrix();
+	};
+
+	/**
+	 * Return the Object3D to the identity matrix
+	 *
+	 * @param {THREE.Object3D} object3D the Object3D to modify
+	 */
+    hemi.utils.identity = function(object3d) {
+        object3d.position = new THREE.Vector3(0, 0, 0);
+        object3d.rotation = new THREE.Vector3(0, 0, 0);
+        object3d.scale = new THREE.Vector3(1, 1, 1);
+        object3d.updateMatrix();
+    };
+
+	/**
+	 * Get all of the child Object3Ds of an Object3D
+	 *
+	 * @param {THREE.Object3D} object3D The parent of the Object3Ds to find
+	 * @param {Object3D[]} an array where the child Object3Ds will be placed 
+	 */
+    hemi.utils.getChildren = function(parent, returnObjs) {
+		for (var i = 0; i < parent.children.length; ++i) {
+			var child = parent.children[i];
+			returnObjs.push(child);
+			hemi.utls.getChildren(child, returnObjs);
+		}
+	};
+
+
+	/**
+	 * Takes a 4-by-4 matrix and a vector with 3 entries, interprets the vector as a
+	 * direction, transforms that direction by the matrix, and returns the result;
+	 * assumes the transformation of 3-dimensional space represented by the matrix
+	 * is parallel-preserving, i.e. any combination of rotation, scaling and
+	 * translation, but not a perspective distortion. Returns a vector with 3
+	 * entries.
+	 * @param {THREE.Matrix4} m The matrix.
+	 * @param {THREE.Vector3} v The direction.
+	 * @return {THREE.Vector3} The transformed direction.
+	 */
+	hemi.utils.transformDirection = function(m, v) {
+	  return new THREE.Vector3(v.x * m.n11 + v.y * m.n21 + v.z * m.n31,
+	    v.x * m.n12 + v.y * m.n22 + v.z * m.n32,
+	    v.x * m.n13 + v.y * m.n23 + v.z * m.n33);
+	};
+
+
+	hemi.utils.multiplyVector3 = function (matrix, vector) {
+
+		var vx = vector.x, vy = vector.y, vz = vector.z;
+
+		vector.x = matrix.m[0] * vx + matrix.m[3] * vy + matrix.m[6] * vz;
+		vector.y = matrix.m[1] * vx + matrix.m[4] * vy + matrix.m[7] * vz;
+		vector.z = matrix.m[2] * vx + matrix.m[5] * vy + matrix.m[8] * vz;
+
+		return vector;
+	};
+
 	return hemi;
 })(hemi || {});
 /* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
@@ -3585,6 +3667,7 @@ var hemi = (function(hemi) {
 					
 					element.appendChild(renderer.domElement);
 					client.setRenderer(renderer);
+					hemi.hudManager.addClient(client);
 				}
 			}
 		}
@@ -3717,11 +3800,11 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 */
 
 var hemi = (function(hemi) {
-	
+
 	var colladaLoader = new THREE.ColladaLoader(),
 		resetCB = null,
 		taskCount = 1,
-	
+
 		decrementTaskCount = function() {
 			if (--taskCount === 0) {
 				taskCount = 1;
@@ -3732,41 +3815,74 @@ var hemi = (function(hemi) {
 					resetCB = null;
 				}
 			}
-		},
-		
-		/*
-		 * Get the correct path for the given URL. If the URL is absolute, then
-		 * leave it alone. Otherwise prepend it with the load path.
-		 * 
-		 * @param {string} url the url to update
-		 * @return {string} the udpated url
-		 */
-		getPath = function(url) {
-			if (url.substr(0, 4) === 'http') {
-				return url;
-			} else {
-				return hemi.loadPath + url;
-			}
 		};
-		
+
 	/**
 	 * The relative path from the referencing HTML file to the Kuda directory.
 	 * @type string
 	 * @default ''
 	 */
 	hemi.loadPath = '';
-	
+
+	/*
+	 * Get the correct path for the given URL. If the URL is absolute, then leave it alone.
+	 * Otherwise prepend it with the load path.
+	 * 
+	 * @param {string} url the url to update
+	 * @return {string} the udpated url
+	 */
+	hemi.getLoadPath = function(url) {
+		if (url.substr(0, 4) === 'http') {
+			return url;
+		} else {
+			return hemi.loadPath + url;
+		}
+	};
+
+	/**
+	 * Load the COLLADA file at the given url and pass it to the given callback
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function(Object):void} callback a function to pass the loaded COLLADA data
+	 */
 	hemi.loadCollada = function(url, callback) {
-		url = getPath(url);
+		url = hemi.getLoadPath(url);
 		++taskCount;
-		
+
 		colladaLoader.load(url, function (collada) {
 			if (callback) {
 				callback(collada);
 			}
-			
+
 			decrementTaskCount();
 		});
+	};
+
+	/**
+	 * Load the image file at the given URL. If an error occurs, it is logged. Otherwise the given
+	 * callback is executed and passed the loaded image.
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function(Image):void} callback a function to pass the loaded image
+	 */
+	hemi.loadImage = function(url, callback) {
+		var img = new Image();
+		++taskCount;
+
+		img.onabort = function() {
+			hemi.error('Aborted loading: ' + url);
+			decrementTaskCount();
+		};
+		img.onerror = function() {
+			hemi.error('Error loading: ' + url);
+			decrementTaskCount();
+		};
+		img.onload = function() {
+			callback(img);
+			decrementTaskCount();
+		};
+
+		img.src = hemi.getLoadPath(url);
 	};
 
 	/**
@@ -3784,13 +3900,13 @@ var hemi = (function(hemi) {
 	 *     ready function is called
 	 */
 	hemi.loadOctane = function(url, opt_callback) {
-		url = getPath(url);
+		url = hemi.getLoadPath(url);
 		++taskCount;
 
 		hemi.utils.get(url, function(data, status) {
 			decrementTaskCount();
 
-			if (data == null) {
+			if (data === null) {
 				hemi.error(status);
 			} else {
 				if (typeof data === 'string') {
@@ -3798,7 +3914,7 @@ var hemi = (function(hemi) {
 				}
 
 				var obj = hemi.fromOctane(data);
-				
+
 				if (!data.type) {
 					hemi.makeClients();
 					hemi.ready();
@@ -3810,7 +3926,7 @@ var hemi = (function(hemi) {
 			}
 		});
 	};
-	
+
 	/**
 	 * Activate the World once all resources are loaded. This function should
 	 * only be called after all scripting and setup is complete.
@@ -3828,7 +3944,7 @@ var hemi = (function(hemi) {
 		resetCB = opt_callback;
 		decrementTaskCount();
 	};
-	
+
 	return hemi;
 })(hemi || {});
 /* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
@@ -7455,6 +7571,7 @@ var hemi = (function(hemi) {
 		this.scene = new hemi.Scene();
 		this.picker = new hemi.Picker(this.scene, this.camera);
 		this.renderer = null;
+		this.projector = new THREE.Projector();
 
 		this.useCameraLight(true);
 		this.scene.add(this.camera.threeCamera);
@@ -7539,6 +7656,24 @@ var hemi = (function(hemi) {
 			} else {
 				this.scene.remove(this.camera.light);
 			}
+		},
+
+		clientPositionToRay: function(clientX, clientY) {
+			var dom = this.renderer.domElement;
+			var x = (clientX / dom.clientWidth) * 2 - 1;
+			var y = -(clientY / dom.clientHeight) * 2 + 1;
+			var projVector = new THREE.Vector3(x, y, 0.5);
+
+			this.projector.unprojectVector(projVector, this.camera.threeCamera);
+			return new THREE.Ray(this.camera.threeCamera.position, projVector.subSelf(this.camera.threeCamera.position).normalize());
+		},
+
+		getWidth: function() {
+			return this.renderer.domElement.clientWidth;
+		},
+
+		getHeight: function() {
+			return this.renderer.domElement.clientHeight;
 		}
 	};
 
@@ -8972,6 +9107,2708 @@ var hemi = (function(hemi) {
 	return hemi;
 })(hemi || {});
 /* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+var hemi = (function(hemi) {
+		/*
+		 * Get the CSS RGBA string for the given color array in 0-1 format.
+		 * @param {number[4]} col color array
+		 * @return {string} the equivalent RGBA string
+		 */
+	var getRgba = function(col) {
+			return 'rgba(' + Math.round(col[0]*255) + ',' + Math.round(col[1]*255) + ',' +
+				Math.round(col[2]*255) + ',' + col[3] + ')';
+		},
+		/**
+		 * Set the painting properties for the given 2D canvas context.
+		 * 
+		 * @param {Object} context the 2D canvas context
+		 * @param {Object} options the options for painting
+		 */
+		setPaintProperties = function(context, options) {
+			var font = options.textStyle == null ? '' : options.textStyle + ' ';
+
+			if (options.textSize != null) {
+				font += options.textSize + 'px ';
+			} else {
+				font += '12px ';
+			}
+			if (options.textTypeface != null) {
+				font += '"' + options.textTypeface + '"';
+			} else {
+				font += 'helvetica';
+			}
+
+			context.font = font;
+
+			if (options.textAlign != null) {
+				context.textAlign = options.textAlign;
+			}
+			if (options.color != null) {
+				context.fillStyle = getRgba(options.color);
+			}
+			if (options.outline != null) {
+				context.strokeStyle = getRgba(options.outline);
+				// If there is an outline, cancel the shadow.
+				context.shadowColor = 'rgba(0,0,0,0)';
+			} else if (options.shadow != null) {
+				var shad = options.shadow;
+				context.shadowBlur = shad.radius;
+				context.shadowColor = getRgba(shad.color);
+				context.shadowOffsetX = shad.offsetX;
+				context.shadowOffsetY = shad.offsetY;
+			} else {
+				context.shadowColor = 'rgba(0,0,0,0)';
+			}
+		};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// HudTheme class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A HudTheme contains configuration options for displaying HUD elements like pages and
+	 * text.
+	 */
+	var HudTheme = function() {
+		/**
+		 * Configuration options for an image foreground overlay.
+		 * @type Object
+		 */
+		this.image = {
+			/**
+			 * Options for a blur shadow effect on the image. Set radius to 0 to cancel.
+			 * @type Object
+			 */
+			shadow: {
+				radius: 0,
+				offsetY: 0,
+				offsetX: 0,
+				color: [0, 0, 0, 1]
+			}
+		};
+
+		/**
+		 * Configuration options for a rectangular background overlay.
+		 * @type Object
+		 */
+		this.page = {
+			/**
+			 * The color and opacity of the rectangular overlay in RGBA format.
+			 * @type number[4]
+			 * @default [0, 0, 0, 0.45]
+			 */
+			color: [0, 0, 0, 0.45],
+
+			/**
+			 * The amount of curving to apply to the corners of the page. Range is from 0.0 to 1.0
+			 * where 0 is a plain rectangle and 1 is an oval.
+			 * @type number
+			 * @default 0
+			 */
+			curve: 0,
+
+			/**
+			 * Options for a blur shadow effect on the page. This is mutually exclusive to outline.
+			 * Set radius to 0 to cancel.
+			 * @type Object
+			 */
+			shadow: {
+				radius: 0,
+				offsetY: 0,
+				offsetX: 0,
+				color: [0, 0, 0, 0]
+			},
+
+			/**
+			 * Optional outline for the page in RGBA format. This is mutually exclusive to shadow.
+			 * Set to null to cancel.
+			 * @type number[4]
+			 */
+			outline: null
+		};
+
+		/**
+		 * Configuration options for a textual foreground overlay.
+		 * @type Object
+		 */
+		this.text = {
+			/**
+			 * The font size of the text.
+			 * @type number
+			 * @default 12
+			 */
+			textSize: 12,
+
+			/**
+			 * The name of the font to use to paint the text.
+			 * @type string
+			 * @default 'helvetica'
+			 */
+			textTypeface: 'helvetica',
+
+			/**
+			 * The horizontal alignment of the text.
+			 * @type string
+			 * @default 'center'
+			 */
+			textAlign: 'center',
+
+			/**
+			 * Additional styling for the text (normal, bold, italics)
+			 * @type string
+			 * @default 'bold'
+			 */
+			textStyle: 'bold',
+
+			/**
+			 * Flag to indicate if the HudManager should perform strict text wrapping.
+			 * @type boolean
+			 * @default true
+			 */
+			strictWrapping: true,
+
+			/**
+			 * Number of pixels to place between lines of text.
+			 * @type number
+			 * @default 5
+			 */
+			lineMargin: 5,
+
+			/**
+			 * The color and opacity of the text in RGBA format.
+			 * @type number[4]
+			 * @default [1, 1, 0.6, 1]
+			 */
+			color: [1, 1, 0.6, 1],
+
+			/**
+			 * Options for a blur shadow effect on the text. This is mutually exclusive to outline.
+			 * Set radius to 0 to cancel.
+			 * @type Object
+			 */
+			shadow: {
+				radius: 0.5,
+				offsetY: 1,
+				offsetX: 1,
+				color: [0, 0, 0, 1]
+			},
+
+			/**
+			 * Optional outline for the text in RGBA format. This is mutually exclusive to shadow.
+			 * Set to null to cancel.
+			 * @type number[4]
+			 */
+			outline: null
+		};
+
+		/**
+		 * Configuration options for a video foreground overlay.
+		 * @type Object
+		 */
+		this.video = {
+			/**
+			 * Options for a blur shadow effect on the video. Set radius to 0 to cancel.
+			 * @type Object
+			 */
+			shadow: {
+				radius: 0,
+				offsetY: 0,
+				offsetX: 0,
+				color: [0, 0, 0, 1]
+			}
+		};
+	};
+
+	/*
+	 * Octane properties for the HudTheme.
+	 */
+	HudTheme.prototype._octane = ['image', 'page', 'text', 'load'];
+
+	/**
+	 * Set the HudTheme as the current theme for HUD displays.
+	 */
+	HudTheme.prototype.load = function() {
+		hemi.setHudTheme(this);
+	};
+
+	hemi.HudTheme = HudTheme;
+	hemi.makeOctanable(hemi.HudTheme, 'hemi.HudTheme', hemi.HudTheme.prototype._octane);
+
+	/*
+	 * The current HUD theme being used for default properties.
+	 */
+	var currentTheme = new hemi.HudTheme();
+	currentTheme.name = 'Default';
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// HudElement class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * @class A HudElement contains the basics of any element to be drawn on the canvas.
+	 */
+	var HudElement = function() {
+		/*
+		 * The y-value of the lower boundary of the HudElement. This value should be calculated at
+		 * draw time rather than set directly.
+		 * @type number 
+		 */
+		this._bottom = 0;
+
+		/*
+		 * The x-value of the left boundary of the HudElement. This value should be calculated at
+		 * draw time rather than set directly.
+		 * @type number 
+		 */
+		this._left = 0;
+
+		/*
+		 * The x-value of the right boundary of the HudElement. This value should be calculated at
+		 * draw time rather than set directly.
+		 * @type number 
+		 */
+		this._right = 0;
+
+		/*
+		 * The y-value of the upper boundary of the HudElement. This value should be calculated at
+		 * draw time rather than set directly.
+		 * @type number 
+		 */
+		this._top = 0;
+
+		/**
+		 * Unique display options for the HudElement. All other display options will be derived from
+		 * the current theme.
+		 * @type {Object}
+		 */
+		this.config = {};
+
+		/**
+		 * The handler function for mouse down events that occur within the bounds of the
+		 * HudElement.
+		 * @type function(o3d.Event): void
+		 */
+		this.mouseDown = null;
+
+		/**
+		 * The handler function for mouse up events that occur within the bounds of the HudElement.
+		 * @type function(o3d.Event): void
+		 */
+		this.mouseUp = null;
+
+		/**
+		 * The handler function for mouse move events. It takes the Event and a boolean indicating
+		 * if the Event occurred within the bounds of the HudElement.
+		 * @type function(o3d.Event, boolean): void
+		 */
+		this.mouseMove = null;
+
+		/**
+		 * Allows the element to be drawn or not.
+		 * @type boolean
+		 */
+		this.visible = true;
+	};
+
+	/*
+	 * Check if the given Event occurred within the bounds of the HudElement.
+	 * 
+	 * @param {Object} event the event that occurred
+	 * @return {boolean} true if the event occurred within the bounds of the HudElement, otherwise
+	 *     false
+	 */
+	HudElement.prototype._checkEvent = function(event) {
+		return event.x <= this._right &&
+			event.x >= this._left &&
+			event.y <= this._bottom &&
+			event.y >= this._top;
+	};
+
+	/*
+	 * Octane properties for the HudElement.
+	 */
+	HudElement.prototype._octane = ['_bottom', '_left', '_right', '_top', 'config'];
+
+	/**
+	 * Remove all references in the HudElement.
+	 */
+	HudElement.prototype.cleanup = function() {
+		this.mouseDown = null;
+		this.mouseUp = null;
+		this.mouseMove = null;
+		this.config = {};
+	};
+
+	/**
+	 * If the given Event occurred within the bounds of this HudElement, call the HudElement's mouse
+	 * down handler function (if one was set).
+	 * 
+	 * @param {Object} event the event that occurred
+	 * @return {boolean} true if the event occurred within the bounds of this HudElement, otherwise
+	 *     false
+	 */
+	HudElement.prototype.onMouseDown = function(event) {
+		var intersected = this._checkEvent(event);
+
+		if (intersected && this.mouseDown) {
+			this.mouseDown(event);
+		}
+
+		return intersected;
+	};
+
+	/**
+	 * If the HudElement's mouse move handler function is set, pass it the given Event and if it
+	 * occurred within the bounds of this HudElement.
+	 * 
+	 * @param {Object} event the event that occurred
+	 */
+	HudElement.prototype.onMouseMove = function(event) {
+		if (this.mouseMove) {
+			var intersected = this._checkEvent(event);
+			this.mouseMove(event, intersected);
+		}
+	};
+
+	/**
+	 * If the given Event occurred within the bounds of this HudElement, call the HudElement's mouse
+	 * up handler function (if one was set).
+	 * 
+	 * @param {Object} event the event that occurred
+	 * @return {boolean} true if the event occurred within the bounds of this HudElement, otherwise
+	 *     false
+	 */
+	HudElement.prototype.onMouseUp = function(event) {
+		var intersected = this._checkEvent(event);
+
+		if (intersected && this.mouseUp) {
+			this.mouseUp(event);
+		}
+
+		return intersected;
+	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// HudText class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A HudText contains formated text and display options for a single area of text on the
+	 * HUD.
+	 * @extends HudElement
+	 */
+	var HudText = function() {
+		HudElement.call(this);
+
+		/*
+		 * The original text before it is wrapped to fit into the given width. It should typically
+		 * not be set directly.
+		 * @type string[]
+		 */
+		this._text = [];
+
+		/*
+		 * The maximum width that the text should span before being wrapped. It should typically not
+		 * be set directly.
+		 * @type number
+		 */
+		this._width = 0;
+
+		/*
+		 * The height of the formatted text. This property is calculated whenever the text, config,
+		 * or width are set. It should typically not be set directly.
+		 * @type number
+		 */
+		this._wrappedHeight = 0;
+
+		/*
+		 * The formatted text that is actually drawn on screen. This property is created whenever
+		 * the text, config, or width are set. It should typically not be set directly.
+		 * @type string[]
+		 */
+		this._wrappedText = [];
+
+		/*
+		 * The width of the formatted text. This property is calculated whenever the text, config,
+		 * or width are set. It should typically not be set directly.
+		 * @type number
+		 */
+		this._wrappedWidth = 0;
+
+		/**
+		 * The x-coordinate of the HudText. The actual on screen location will depend on the
+		 * horizontal alignment of the text.
+		 * @type number
+		 * @default 0
+		 */
+		this.x = 0;
+
+		/**
+		 * The y-coordinate of the top of the HudText.
+		 * @type number
+		 * @default 0
+		 */
+		this.y = 0;
+	};
+
+	HudText.prototype = new HudElement();
+	HudText.constructor = HudText;
+
+	/*
+	 * Octane properties for the HudText.
+	 */
+	HudText.prototype._octane = HudElement.prototype._octane.concat([
+		'_text', '_width', 'x', 'y', 'wrapText']);
+
+	/**
+	 * Calculate the bounds of the formatted text.
+	 */
+	HudText.prototype.calculateBounds = function() {
+		var align;
+
+		if (this.config.textAlign != null) {
+			align = this.config.textAlign.toLowerCase();
+		} else {
+			align = currentTheme.text.textAlign.toLowerCase();
+		}
+
+		this._top = this.y;
+		this._bottom = this._top + this._wrappedHeight;
+
+		switch (align) {
+			case 'left':
+				this._left = this.x;
+				this._right = this._left + this._wrappedWidth;
+				break;
+			case 'right':
+				this._right = this.x;
+				this._left = this._right - this._wrappedWidth;
+				break;
+			default: // center
+				var offset = this._wrappedWidth / 2;
+				this._left = this.x - offset;
+				this._right = this.x + offset;
+				break;
+		}
+	};
+
+	/**
+	 * Draw the formatted text.
+	 */
+	HudText.prototype.draw = function() {
+		hemi.hudManager.createTextOverlay(this, this.config);
+	};
+
+	/**
+	 * Set unique display options for the HudText and perform text wrapping for the new options.
+	 * 
+	 * @param {Object} config configuration options
+	 */
+	HudText.prototype.setConfig = function(config) {
+		this.config = config;
+		this.wrapText();
+	};
+
+	/**
+	 * Set the text to display for this HudText. Perform text wrapping for the new text.
+	 * 
+	 * @param {string} text a string or array of strings to display
+	 */
+	HudText.prototype.setText = function(text) {
+		this._text = hemi.utils.isArray(text) ? text : [text];
+		this.wrapText();
+	};
+
+	/**
+	 * Set the desired width for the HudText. Perform text wrapping for the new width.
+	 * 
+	 * @param {number} width desired width for the HudText
+	 */
+	HudText.prototype.setWidth = function(width) {
+		this._width = width;
+		this.wrapText();
+	};
+
+	/**
+	 * Perform text wrapping on the HudText's text. This sets the wrapped text, width, and height
+	 * properties.
+	 */
+	HudText.prototype.wrapText = function() {
+		if (this._width <= 0 || this._text.length === 0) {
+			return;
+		}
+
+		var width = 0,
+			height = 0,
+			wrappedText = [];
+
+		for (var i = 0, il = this._text.length; i < il; ++i) {
+			var textObj = hemi.hudManager.doTextWrapping(this._text[i], this._width, this.config);
+
+			if (textObj.width > width) {
+				width = textObj.width;
+			}
+
+			height += textObj.height;
+			wrappedText = wrappedText.concat(textObj.text);
+		}
+
+		this._wrappedWidth = width;
+		this._wrappedHeight = height;
+		this._wrappedText = wrappedText;
+	};
+
+	hemi.HudText = HudText;
+	hemi.makeOctanable(hemi.HudText, 'hemi.HudText', hemi.HudText.prototype._octane);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// HudImage class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A HudImage contains a texture and display options for a single image on the HUD.
+	 * @extends HudElement
+	 */
+	var HudImage = function() {
+		HudElement.call(this);
+
+		/*
+		 * The height of the image. This property is calculated when the image URL is loaded. It
+		 * should typically not be set directly.
+		 * @type number
+		 */
+		this._height = 0;
+
+		/*
+		 * The loaded image data.
+		 * @type Image
+		 */
+		this._image = null;
+
+		/*
+		 * The width of the image. This property is calculated when the image URL is loaded. It
+		 * should typically not be set directly.
+		 * @type number
+		 */
+		this._width = 0;
+
+		/**
+		 * The x-coordinate of the source image to pull image data from.
+		 * @type number
+		 * @default 0
+		 */
+		this.srcX = 0;
+
+		/**
+		 * The y-coordinate of the source image to pull image data from.
+		 * @type number
+		 * @default 0
+		 */
+		this.srcY = 0;
+
+		/**
+		 * The URL of the image file.
+		 * @type string
+		 */
+		this.url = null;
+
+		/**
+		 * The x-coordinate of the left side of the HudImage.
+		 * @type number
+		 * @default 0
+		 */
+		this.x = 0;
+
+		/**
+		 * The y-coordinate of the top of the HudImage.
+		 * @type number
+		 * @default 0
+		 */
+		this.y = 0;
+	};
+
+	HudImage.prototype = new HudElement();
+	HudImage.constructor = HudImage;
+
+	/*
+	 * Octane properties for the HudImage.
+	 */
+	HudImage.prototype._octane = HudElement.prototype._octane.concat([
+		'srcX', 'srcY', 'url', 'x', 'y', 'loadImage']);
+
+	/**
+	 * Calculate the bounds of the image.
+	 */
+	HudImage.prototype.calculateBounds = function() {
+		this._top = this.y;
+		this._bottom = this._top + this._height;
+		this._left = this.x;
+		this._right = this._left + this._width;
+	};
+
+	/**
+	 * Remove all references in the HudImage.
+	 */
+	HudImage.prototype.cleanup = function() {
+		HudElement.prototype.cleanup.call(this);
+		this._image = null;
+	};
+
+	/**
+	 * Draw the image texture.
+	 */
+	HudImage.prototype.draw = function() {
+		hemi.hudManager.createImageOverlay(this, this.config);
+	};
+
+	/**
+	 * Load the image from the image url into a texture for the HudManager to paint. This sets the
+	 * texture, height, and width properties.
+	 */
+	HudImage.prototype.loadImage = function() {
+		var that = this;
+
+		hemi.loadImage(this.url, function(image) {
+				that._image = image;
+				that._height = image.height;
+				that._width = image.width;
+			});
+	};
+
+	/**
+	 * Set the URL of the image file to load and begin loading it.
+	 * 
+	 * @param {string} url the URL of the image file
+	 */
+	HudImage.prototype.setUrl = function(url) {
+		this.url = url;
+		this.loadImage();
+	};
+
+	hemi.HudImage = HudImage;
+	hemi.makeOctanable(hemi.HudImage, 'hemi.HudImage', hemi.HudImage.prototype._octane);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// HudButton class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A HudButton uses different images based on if the button is enabled or if a mouse is
+	 * hovering over it, etc.
+	 * @extends HudElement
+	 */
+	var HudButton = function() {
+		HudElement.call(this);
+
+		/**
+		 * The HudImage to use for the HudButton when it is disabled.
+		 * @type hemi.HudImage
+		 */
+		this.disabledImg = null;
+
+		/**
+		 * Flag indicating if the HudButton is enabled.
+		 * @type boolean
+		 * @default true
+		 */
+		this.enabled = true;
+
+		/**
+		 * The HudImage to use for the HudButton when it is enabled.
+		 * @type hemi.HudImage
+		 */
+		this.enabledImg = null;
+
+		/**
+		 * Flag indicating if the mouse cursor is hovering over the HudButton.
+		 * @type boolean
+		 * @default false
+		 */
+		this.hovering = false;
+
+		/**
+		 * The HudImage to use for the HudButton when it is enabled and the mouse cursor is
+		 * hovering.
+		 * @type hemi.HudImage
+		 */
+		this.hoverImg = null;
+
+		/**
+		 * Flag indicating if the HudButton is selected.
+		 * @type boolean
+		 * @default false
+		 */
+		this.selected = false;
+
+		/**
+		 * The HudImage to use for the HudButton when it is selected.
+		 * @type hemi.HudImage
+		 */
+		this.selectedImg = null;
+
+		/**
+		 * The x-coordinate of the left side of the HudButton.
+		 * @type number
+		 * @default 0
+		 */
+		this.x = 0;
+
+		/**
+		 * The y-coordinate of the top of the HudButton.
+		 * @type number
+		 * @default 0
+		 */
+		this.y = 0;
+
+		var that = this;
+
+		/**
+		 * The built-in mouse move handler for a HudButton. If the mouse move occurred within the
+		 * button's bounds, set it's hovering flag and redraw the button.
+		 * 
+		 * @param {Object} event the mouse move event
+		 * @param {boolean} intersected true if the event occurred within the HudButton's bounds
+		 */
+		this.mouseMove = function(event, intersected) {
+			if (!that.enabled || that.selected)
+				return;
+			if (intersected) {
+				if (!that.hovering) {
+					that.hovering = true;
+					that.draw();
+				}
+			} else if (that.hovering) {
+				that.hovering = false;
+				that.draw();
+			}
+		};
+	};
+
+	HudButton.prototype = new HudElement();
+	HudButton.constructor = HudButton;
+
+	/*
+	 * Octane properties for the HudButton.
+	 */
+	HudButton.prototype._octane = HudElement.prototype._octane.concat([
+		'disabledImg', 'enabledImg', 'hoverImg', 'selectedImg', 'x', 'y']);
+
+	/**
+	 * Calculate the bounds of the button.
+	 */
+	HudButton.prototype.calculateBounds = function() {
+		var img = this.getImage();
+		this._top = this.y;
+		this._bottom = this._top + img._height;
+		this._left = this.x;
+		this._right = this._left + img._width;
+	};
+
+	/**
+	 * Remove all references in the HudButton.
+	 */
+	HudButton.prototype.cleanup = function() {
+		HudElement.prototype.cleanup.call(this);
+		this.mouseMove = null;
+
+		if (this.enabledImg) {
+			this.enabledImg.cleanup();
+			this.enabledImg = null;
+		}
+		if (this.disabledImg) {
+			this.disabledImg.cleanup();
+			this.disabledImg = null;
+		}
+		if (this.selectedImg) {
+			this.selectedImg.cleanup();
+			this.selectedImg = null;
+		}
+		if (this.hoverImg) {
+			this.hoverImg.cleanup();
+			this.hoverImg = null;
+		}
+	};
+
+	/**
+	 * Set the HudButton's image based on its flags and then draw it.
+	 */
+	HudButton.prototype.draw = function() {		
+		var img = this.getImage();
+		img.x = this.x;
+		img.y = this.y;
+		img.draw();
+	};
+
+	/**
+	 * Get the image that represents the HudButton in its current state.
+	 * 
+	 * @return {hemi.HudImage} the image to draw for the HudButton
+	 */
+	HudButton.prototype.getImage = function() {
+		var img = this.enabledImg;
+
+		if (!this.enabled) {
+			if (this.disabledImg) {
+				img = this.disabledImg;
+			}
+		} else if (this.selected) {
+			if (this.selectedImg) {
+				img = this.selectedImg;
+			}
+		} else if (this.hovering) {
+			if (this.hoverImg) {
+				img = this.hoverImg;
+			}
+		}
+
+		return img;
+	};
+
+	/**
+	 * Set whether the HudButton is selected or not and then draw it.
+	 * 
+	 * @param {boolean} selected if the button is selected
+	 */
+	HudButton.prototype.select = function(isSelected) {
+		this.selected = isSelected;
+		this.draw();
+	};
+
+	/**
+	 * Set the source x and y coordinates for the HudButton's images.
+	 * 
+	 * @param {Object} coords structure with optional coordinates for different images
+	 */
+	HudButton.prototype.setSrcCoords = function(coords) {
+		var disabledCoords = coords.disabled,
+			enabledCoords = coords.enabled,
+			hoverCoords = coords.hover,
+			selectedCoords = coords.selected;
+
+		if (enabledCoords != null) {
+			if (this.enabledImg === null) {
+				this.enabledImg = new hemi.HudImage();
+			}
+
+			this.enabledImg.srcX = enabledCoords[0];
+			this.enabledImg.srcY = enabledCoords[1];
+		}
+		if (disabledCoords != null) {
+			if (this.disabledImg === null) {
+				this.disabledImg = new hemi.HudImage();
+			}
+
+			this.disabledImg.srcX = disabledCoords[0];
+			this.disabledImg.srcY = disabledCoords[1];
+		}
+		if (hoverCoords != null) {
+			if (this.hoverImg === null) {
+				this.hoverImg = new hemi.HudImage();
+			}
+
+			this.hoverImg.srcX = hoverCoords[0];
+			this.hoverImg.srcY = hoverCoords[1];
+		}
+		if (selectedCoords != null) {
+			if (this.selectedImg === null) {
+				this.selectedImg = new hemi.HudImage();
+			}
+
+			this.selectedImg.srcX = selectedCoords[0];
+			this.selectedImg.srcY = selectedCoords[1];
+		}
+	};
+
+	/**
+	 * Set the image urls for the HudButton's images.
+	 * 
+	 * @param {Object} urls structure with optional urls for different images
+	 */
+	HudButton.prototype.setUrls = function(urls) {
+		var disabledUrl = urls.disabled,
+			enabledUrl = urls.enabled,
+			hoverUrl = urls.hover,
+			selectedUrl = urls.selected;
+		
+		if (disabledUrl != null) {
+			this.disabledImg = new hemi.HudImage();
+			this.disabledImg.setUrl(disabledUrl);
+		}
+		if (enabledUrl != null) {
+			this.enabledImg =  new hemi.HudImage();
+			this.enabledImg.setUrl(enabledUrl);
+		}
+		if (hoverUrl != null) {
+			this.hoverImg = new hemi.HudImage();
+			this.hoverImg.setUrl(hoverUrl);
+		}
+		if (selectedUrl != null) {
+			this.selectedImg = new hemi.HudImage();
+			this.selectedImg.setUrl(selectedUrl);
+		}
+	};
+
+	hemi.HudButton = HudButton;
+	hemi.makeOctanable(hemi.HudButton, 'hemi.HudButton', hemi.HudButton.prototype._octane);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// HudVideo class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A HudVideo contains video data and display options for a single video on the HUD.
+	 * @extends hemi.HudElement
+	 */
+	var HudVideo = function() {
+		HudElement.call(this);
+
+		/*
+		 * The height of the video. Call setHeight to change.
+		 * @type number
+		 */
+		this._height = 0;
+
+		/*
+		 * The URLs of video files to try to load.
+		 * @type string[]
+		 */
+		this._urls = [];
+
+		/*
+		 * The video DOM element.
+		 */
+		this._video = document.createElement('video');
+
+		/*
+		 * The width of the video. Call setWidth to change.
+		 * @type number
+		 */
+		this._width = 0;
+
+		/**
+		 * The x-coordinate of the left side of the HudVideo.
+		 * @type number
+		 * @default 0
+		 */
+		this.x = 0;
+
+		/**
+		 * The y-coordinate of the top of the HudVideo.
+		 * @type number
+		 * @default 0
+		 */
+		this.y = 0;
+
+		var vid = this._video,
+			that = this;
+		
+		this._video.onloadeddata = function() {
+			if (that._height === 0) {
+				that._height = vid.videoHeight;
+			} else {
+				vid.setAttribute('height', '' + that._height);
+			}
+			if (that._width === 0) {
+				that._width = vid.videoWidth;
+			} else {
+				vid.setAttribute('width', '' + that._width);
+			}
+		};
+	};
+
+	HudVideo.prototype = new HudElement();
+	HudVideo.constructor = HudVideo;
+
+	/*
+	 * Get the Octane properties for the HudVideo.
+	 * 
+	 * @return {Object[]} array of Octane properties
+	 */
+	HudVideo.prototype._octane = function() {
+		var octane = HudElement.protothype._octane.concat(['x', 'y']);
+
+		for (var i = 0, il = this._urls.length; i < il; ++i) {
+			var urlObj = this._urls[i];
+
+			octane.push({
+				name: 'addUrl',
+				arg: [urlObj.url, urlObj.type]
+			});
+		}
+
+		return octane;
+	};
+
+	/**
+	 * Add the given URL as a source for the video file to load.
+	 * 
+	 * @param {string} url the URL of the video file
+	 * @param {string} type the type of the video file (ogv, mp4, etc)
+	 */
+	HudVideo.prototype.addUrl = function(url, type) {
+		var src = document.createElement('source'),
+			loadUrl = hemi.getLoadPath(url);
+		
+		src.setAttribute('src', loadUrl);
+		src.setAttribute('type', 'video/' + type);
+		this._video.appendChild(src);
+		this._urls.push({
+			url: url,
+			type: type,
+			node: src
+		});
+	};
+
+	/**
+	 * Calculate the bounds of the video.
+	 */
+	HudVideo.prototype.calculateBounds = function() {
+		this._top = this.y;
+		this._bottom = this._top + this._height;
+		this._left = this.x;
+		this._right = this._left + this._width;
+	};
+
+	/**
+	 * Remove all references in the HudElement.
+	 */
+	HudVideo.prototype.cleanup = function() {
+		HudElement.prototype.cleanup.call(this);
+		this._video = null;
+		this._urls = [];
+	};
+
+	/**
+	 * Draw the video's current image.
+	 */
+	HudVideo.prototype.draw = function() {
+		hemi.hudManager.createVideoOverlay(this, this.config);
+	};
+
+	/**
+	 * Remove the given URL as a source for the video file to load.
+	 * 
+	 * @param {string} url the URL to remove
+	 */
+	HudVideo.prototype.removeUrl = function(url) {
+		for (var i = 0, il = this._urls.length; i < il; ++i) {
+			var urlObj = this._urls[i];
+
+			if (urlObj.url === url) {
+				this._video.removeChild(urlObj.node);
+				this._urls.splice(i, 1);
+				break;
+			}
+		}
+	};
+
+	/**
+	 * Set the height for the video to be displayed at.
+	 * 
+	 * @param {number} height the height to set for the video
+	 */
+	HudVideo.prototype.setHeight = function(height) {
+		this._height = height;
+		if (this._video !== null) {
+			this._video.setAttribute('height', '' + height);
+		}
+	};
+
+	/**
+	 * Set the width for the video to be displayed at.
+	 * 
+	 * @param {number} width the width to set for the video
+	 */
+	HudVideo.prototype.setWidth = function(width) {
+		this._width = width;
+		if (this._video !== null) {
+			this._video.setAttribute('width', '' + width);
+		}
+	};
+
+	hemi.HudVideo = HudVideo;
+	hemi.makeOctanable(hemi.HudVideo, 'hemi.HudVideo', hemi.HudVideo.prototype._octane);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// HudPage class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A HudPage contains other HudElements and display options for  drawing a single page on
+	 * the HUD.
+	 * @extends hemi.HudElement
+	 */
+	var HudPage = function() {
+		HudElement.call(this);
+
+		/**
+		 * Flag indicating if the HudPage should automatically set its size to contain all of its
+		 * elements.
+		 * @type boolean
+		 * @default true
+		 */
+		this.auto = true;
+
+		/**
+		 * Flag indicating if a background rectangle should be drawn for the HudPage.
+		 * @type boolean
+		 * @default true
+		 */
+		this.drawBackground = true;
+
+		/**
+		 * The number of pixels to add as padding around the bounds of the HudPage's elements when
+		 * drawing the background rectangle.
+		 * @type number
+		 * @default 5
+		 */
+		this.margin = 5;
+
+		this.elements = [];
+	};
+
+	HudPage.prototype = new HudElement();
+	HudPage.constructor = HudPage;
+
+	/*
+	 * Octane properties for the HudPage.
+	 */
+	HudPage.prototype._octane = HudElement.prototype._octane.concat([
+		'auto', 'drawBackground', 'elements', 'margin']);
+
+	/**
+	 * Add the given HudElement to the HudPage for displaying.
+	 * 
+	 * @param {hemi.HudElement} element element to add
+	 */
+	HudPage.prototype.add = function(element) {
+		if (this.elements.indexOf(element) === -1) {
+			this.elements.push(element);
+		}
+	};
+
+	/**
+	 * Calculate the bounds of the HudElements of the HudPage.
+	 */
+	HudPage.prototype.calculateBounds = function() {
+		var ndx, len = this.elements.length;
+
+		if (len === 0) {
+			this._top = 0;
+			this._bottom = 0;
+			this._left = 0;
+			this._right = 0;
+			return;
+		}
+
+		for (ndx = 0; ndx < len; ndx++) {
+			this.elements[ndx].calculateBounds();
+		}
+
+		if (this.auto) {
+			var element = this.elements[0];
+			this._top = element._top;
+			this._bottom = element._bottom;
+			this._left = element._left;
+			this._right = element._right;
+
+			for (ndx = 1; ndx < len; ndx++) {
+				element = this.elements[ndx];
+
+				if (element._top < this._top) {
+					this._top = element._top;
+				}
+				if (element._bottom > this._bottom) {
+					this._bottom = element._bottom;
+				}
+				if (element._left < this._left) {
+					this._left = element._left;
+				}
+				if (element._right > this._right) {
+					this._right = element._right;
+				}
+			}
+
+			this._top -= this.margin;
+			this._bottom += this.margin;
+			this._left -= this.margin;
+			this._right += this.margin;
+		}
+	};
+
+	/**
+	 * Remove all references in the HudPage.
+	 */
+	HudPage.prototype.cleanup = function() {
+		HudElement.prototype.cleanup.call(this);
+
+		for (var i = 0, il = this.elements.length; i < il; ++i) {
+			this.elements[i].cleanup();
+		}
+
+		this.elements = [];
+	};
+
+	/**
+	 * Remove all HudElements from the HudPage.
+	 */
+	HudPage.prototype.clear = function() {
+		this.elements = [];
+	};
+
+	/**
+	 * Draw the background (if any) and HudElements of the HudPage.
+	 */
+	HudPage.prototype.draw = function() {
+		this.calculateBounds();
+
+		if (this.drawBackground) {				
+			hemi.hudManager.createRectangleOverlay(this, this.config);
+		}
+
+		for (var i = 0, il = this.elements.length; i < il; ++i) {
+			if (this.elements[i].visible)
+				this.elements[i].draw();
+		}
+	};
+
+	/**
+	 * Check if the given event occurred within the bounds of any of the HudElements of the HudPage.
+	 * If it did, pass the Event to that HudElement. If not, call the HudPage's mouse down handler
+	 * function (if one was set).
+	 * 
+	 * @param {Object} event the event that occurred
+	 * @return {boolean} true if the event occurred within the bounds of the HudPage, otherwise
+	 *     false
+	 */
+	HudPage.prototype.onMouseDown = function(event) {
+		if (!this.visible)
+			return false;
+
+		var intersected = this._checkEvent(event);
+
+		if (intersected || !this.auto) {
+			var caught = false;
+
+			for (var i = 0, il = this.elements.length; i < il && !caught; ++i) {
+				if (this.elements[i].visible)
+					caught = this.elements[i].onMouseDown(event);
+			}
+
+			if (intersected && !caught && this.mouseDown) {
+				this.mouseDown(event);
+			}
+		}
+
+		return intersected;
+	};
+
+	/**
+	 * Pass the given Event to all of the HudPage's HudElements. If the HudPage's mouse move handler
+	 * function is set, pass it the Event and if it occurred within the bounds of the HudPage.
+	 * 
+	 * @param {Object} event the event that occurred
+	 */
+	HudPage.prototype.onMouseMove = function(event) {
+		if (!this.visible)
+			return;
+
+		for (var i = 0, il = this.elements.length; i < il; ++i) {
+			if (this.elements[i].visible)
+				this.elements[i].onMouseMove(event);
+		}
+
+		if (this.mouseMove) {
+			var intersected = this._checkEvent(event);
+			this.mouseMove(event, intersected);
+		}
+	};
+
+	/**
+	 * Check if the given event occurred within the bounds of any of the HudElements of the HudPage.
+	 * If it did, pass the Event to that HudElement. If not, call the HudPage's mouse up handler
+	 * function (if one was set).
+	 * 
+	 * @param {Object} event the event that occurred
+	 * @return {boolean} true if the event occurred within the bounds of the HudPage, otherwise
+	 *     false
+	 */
+	HudPage.prototype.onMouseUp = function(event) {
+		var intersected = this._checkEvent(event);
+
+		if (intersected || !this.auto) {
+			var caught = false;
+			var len = this.elements.length;
+
+			for (var i = 0, il = this.elements.length; i < il && !caught; ++i) {
+				caught = this.elements[i].onMouseUp(event);
+			}
+
+			if (intersected && !caught && this.mouseUp) {
+				this.mouseUp(event);
+			}
+		}
+
+		return intersected;
+	};
+
+	/**
+	 * Remove the specified HudElement from the HudPage.
+	 * 
+	 * @param {hemi.HudElement} element element to remove
+	 * @return {hemi.HudElement} the removed element or null
+	 */
+	HudPage.prototype.remove = function(element) {
+		var ndx = this.elements.indexOf(element),
+			found = null;
+
+		if (ndx !== -1) {
+			found = this.elements.splice(ndx, 1)[0];
+		}
+
+		return found;
+	};
+
+	/**
+	 * Manually set the size of the HudPage. This will prevent it from  autosizing itself to fit all
+	 * of the HudElements added to it.
+	 * 
+	 * @param {number} top the y coordinate of the top
+	 * @param {number} bottom the y coordinate of the bottom
+	 * @param {number} left the x coordinate of the left
+	 * @param {number} right the x coordinate of the right
+	 */
+	HudPage.prototype.setSize = function(top, bottom, left, right) {
+		this._top = top;
+		this._bottom = bottom;
+		this._left = left;
+		this._right = right;
+		this.auto = false;
+	};
+
+	hemi.HudPage = HudPage;
+	hemi.makeOctanable(hemi.HudPage, 'hemi.HudPage', hemi.HudPage.prototype._octane);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// HudDisplay class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A HudDisplay contains one or more HudPages to display sequentially.
+	 * 
+	 * @param {hemi.Client} opt_client optional client for the HudDisplay to draw to
+	 */
+	var HudDisplay = function(opt_client) {
+		/*
+		 * Flag indicating if HudDisplay is visible. This should not be set directly.
+		 * @type boolean
+		 * @default false
+		 */
+		this._visible = false;
+		this.client = opt_client;
+		this.currentPage = 0;
+		this.pages = [];
+	};
+
+	/*
+	 * Remove all references in the HudDisplay.
+	 */
+	HudDisplay.prototype._clean = function() {
+		for (var i = 0, il = this.pages.length; i < il; ++i) {
+			this.pages[i].cleanup();
+		}
+
+		this.pages = [];
+	};
+
+	/*
+	 * Array of Hemi Messages that the Citizen is known to send.
+	 * @type string[]
+	 */
+	HudDisplay.prototype._msgSent = [hemi.msg.visible];
+
+	/*
+	 * Octane properties for the HudDisplay.
+	 */
+	HudDisplay.prototype._octane = ['client', 'pages'];
+
+	/**
+	 * Add the given HudPage to the HudDisplay.
+	 * 
+	 * @param {hemi.HudPage} page page to add
+	 */
+	HudDisplay.prototype.add = function(page) {
+		if (this.pages.indexOf(page) === -1) {
+			this.pages.push(page);
+		}
+	};
+
+	/**
+	 * Remove all HudPages from the HudDisplay.
+	 */
+	HudDisplay.prototype.clear = function() {
+		if (this._visible) {
+			this.hide();
+		}
+
+		this.pages = [];
+	};
+
+	/**
+	 * Get the currently displayed HudPage.
+	 * 
+	 * @return {hemi.HudPage} currently displayed page
+	 */
+	HudDisplay.prototype.getCurrentPage = function() {
+		return this.currentPage < this.pages.length ? this.pages[this.currentPage] : null;
+	};
+
+	/**
+	 * Get the number of HudPages in the HudDisplay.
+	 * 
+	 * @return {number} the number of HudPages
+	 */
+	HudDisplay.prototype.getNumberOfPages = function() {
+		return this.pages.length;
+	};
+
+	/**
+	 * Hide the HudDisplay and unregister its key and mouse handlers.
+	 */
+	HudDisplay.prototype.hide = function() {
+		if (this._visible) {
+			hemi.input.removeMouseMoveListener(this);
+			hemi.input.removeMouseUpListener(this);
+			hemi.input.removeMouseDownListener(this);
+			hemi.hudManager.clearDisplay();
+			this._visible = false;
+			this.currentPage = 0;
+
+			this.send(hemi.msg.visible,
+				{
+					page: 0
+				});
+		}
+	};
+
+	/**
+	 * Pass the given mouse down Event to the currently displayed HudPage (if there is one).
+	 * 
+	 * @param {Object} event the event that occurred
+	 * @return {boolean} true if the event occurred within the bounds of a HudPage, otherwise false
+	 */
+	HudDisplay.prototype.onMouseDown = function(event) {
+		var page = this.getCurrentPage(),
+			intersected = false;
+
+		if (page) {
+			intersected = page.onMouseDown(event);
+		}
+
+		return intersected;
+	};
+
+	/**
+	 * Pass the given mouse move Event to the currently displayed HudPage (if there is one).
+	 * 
+	 * @param {Object} event the event that occurred
+	 */
+	HudDisplay.prototype.onMouseMove = function(event) {
+		var page = this.getCurrentPage();
+
+		if (page) {
+			page.onMouseMove(event);
+		}
+	};
+
+	/**
+	 * Pass the given mouse up Event to the currently displayed HudPage (if there is one).
+	 * 
+	 * @param {Object} event the event that occurred
+	 * @return {boolean} true if the event occurred within the bounds of a HudPage, otherwise false
+	 */
+	HudDisplay.prototype.onMouseUp = function(event) {
+		var page = this.getCurrentPage(),
+			intersected = false;
+
+		if (page) {
+			intersected = page.onMouseUp(event);
+		}
+
+		return intersected;
+	};
+
+	/**
+	 * Display the next HudPage in the HudDisplay.
+	 */
+	HudDisplay.prototype.nextPage = function() {
+		var numPages = this.pages.length;
+		this.currentPage++;
+		
+		if (this.currentPage >= numPages) {
+			this.currentPage = numPages - 1;
+		} else {
+			this.showPage();
+		}
+	};
+
+	/**
+	 * Display the previous HudPage in the HudDisplay.
+	 */
+	HudDisplay.prototype.previousPage = function() {
+		this.currentPage--;
+		
+		if (this.currentPage < 0) {
+			this.currentPage = 0;
+		} else {
+			this.showPage();
+		}
+	};
+
+	/**
+	 * Remove the specified HudPage from the HudDisplay.
+	 * 
+	 * @param {hemi.HudPage} page page to remove
+	 * @return {hemi.HudPage} the removed page or null
+	 */
+	HudDisplay.prototype.remove = function(page) {
+		var ndx = this.pages.indexOf(page),
+			found = null;
+
+		if (ndx !== -1) {
+			if (this._visible && ndx === this.currentPage) {
+				if (ndx !== 0) {
+					this.previousPage();
+				} else if (this.pages.length > 1) {
+					this.nextPage();
+				} else  {
+					this.hide();
+				}
+			}
+
+			found = this.pages.splice(ndx, 1)[0];
+		}
+
+		return found;
+	};
+
+	/**
+	 * Show the first HudPage of the HudDisplay and bind the mouse handlers for interaction.
+	 */
+	HudDisplay.prototype.show = function() {
+		if (!this._visible) {
+			this._visible = true;
+			this.showPage();
+			hemi.input.addMouseDownListener(this);
+			hemi.input.addMouseUpListener(this);
+			hemi.input.addMouseMoveListener(this);
+		}
+	};
+
+	/**
+	 * Show the current page of the HudDisplay.
+	 */
+	HudDisplay.prototype.showPage = function() {
+		if (!this.client) return;
+
+		hemi.hudManager.setClient(this.client);
+		hemi.hudManager.clearDisplay();
+		var page = this.getCurrentPage();
+		page.draw();
+
+		this.send(hemi.msg.visible,
+			{
+				page: this.currentPage + 1
+			});
+	};
+
+	hemi.makeCitizen(HudDisplay, 'hemi.HudDisplay', {
+		cleanup: HudDisplay.prototype._clean,
+		toOctane: HudDisplay.prototype._octane
+	});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// HudManager class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A HudManager creates the appropriate view components for  rendering a HUD.
+	 */
+	var HudManager = function(clients) {
+		/*
+		 * 2D canvas contexts for the Clients the HudManager is managing.
+		 */
+		this._contexts = {};
+
+		/*
+		 * Videos that are currently playing on a HUD.
+		 */
+		this._videos = [];
+
+		/**
+		 * The current 2D canvas context that the HudManager is drawing to.
+		 */
+		this.currentContext = null;
+
+		hemi.addRenderListener(this);
+	};
+
+	/**
+	 * Set up a 2D canvas for the given Client and add it to the list of Clients that the HudManager
+	 * draws to.
+	 * 
+	 * @param {hemi.Client} client the Client to start managing
+	 */
+	HudManager.prototype.addClient = function(client) {
+		var canvas = client.renderer.domElement,
+			container = canvas.parentNode,
+			hudCan = document.createElement('canvas'),
+			style = hudCan.style;
+
+		style.left = canvas.offsetLeft + 'px';
+		style.position = 'absolute';
+		style.top = canvas.offsetTop + 'px';
+		style.zIndex = '10';
+
+		hudCan.height = canvas.height;
+		hudCan.width = canvas.width;
+		// Since the HUD canvas obscures the WebGL canvas, pass mouse events through to Hemi.
+		hudCan.addEventListener('DOMMouseScroll', hemi.input.scroll, true);
+		hudCan.addEventListener('mousewheel', hemi.input.scroll, true);
+		hudCan.addEventListener('mousedown', hemi.input.mouseDown, true);
+		hudCan.addEventListener('mousemove', hemi.input.mouseMove, true);
+		hudCan.addEventListener('mouseup', hemi.input.mouseUp, true);
+		container.appendChild(hudCan);
+
+		var context = hudCan.getContext('2d');
+		// In our coordinate system, y indicates the top of the first line of text, so set the
+		// canvas baseline to match.
+		context.textBaseline = 'top';
+		this._contexts[client._getId()] = context;
+		this.currentContext = context;
+	};
+
+	/**
+	 * Clear the current overlays from the HUD.
+	 */
+	HudManager.prototype.clearDisplay = function() {
+		var context = this.currentContext,
+			canvas = context.canvas,
+			vids = this._videos;
+
+		this._videos = [];
+
+		for (var i = 0, il = vids.length; i < il; ++i) {
+			vids[i].video.pause();
+		}
+
+		context.clearRect(0, 0, canvas.width, canvas.height);
+		context.beginPath();
+	};
+
+	/**
+	 * Create a rectangular overlay from the given HudElement.
+	 *
+	 * @param {hemi.HudElement} element element with a bounding box to display
+	 * @param {Object} boxConfig unique configuration options for the rectangular overlay
+	 */
+	HudManager.prototype.createRectangleOverlay = function(element, boxConfig) {
+		var config = hemi.utils.join({}, currentTheme.page, boxConfig),
+			context = this.currentContext;
+
+		context.save();
+		setPaintProperties(context, config);
+
+		if (config.curve > 0) {
+			var curve = config.curve <= 1 ? config.curve / 2.0 : 0.5;
+			this.drawRoundRect(element, curve, true);
+
+			if (config.outline != null) {
+				this.drawRoundRect(element, curve, false);
+			}
+		} else {
+			var x = element._left,
+				y = element._top,
+				width = element._right - x,
+				height = element._bottom - y;
+
+			context.fillRect(x, y, width, height);
+
+			if (config.outline != null) {
+				context.strokeRect(x, y, width, height);
+			}
+		}
+
+		context.restore();
+	};
+
+	/**
+	 * Create a text overlay.
+	 *
+	 * @param {hemi.HudText} text the HudText to display
+	 * @param {Object} textConfig unique configuration options for the text overlay
+	 */
+	HudManager.prototype.createTextOverlay = function(text, textConfig) {
+		var config = hemi.utils.join({}, currentTheme.text, textConfig),
+			lineHeight = config.textSize + config.lineMargin,
+			context = this.currentContext,
+			textLines = text._wrappedText,
+			x = text.x,
+			y = text.y;
+
+		context.save();
+		setPaintProperties(context, config);
+
+		for (var i = 0, il = textLines.length; i < il; ++i) {
+			var line = textLines[i];
+			context.fillText(line, x, y);
+
+			if (config.outline != null) {
+				context.strokeText(line, x, y);
+			}
+
+			y += lineHeight;
+		}
+
+		context.restore();
+	};
+
+	/**
+	 * Create an image overlay.
+	 *
+	 * @param {hemi.HudImage} image the HudImage to display
+	 * @param {Object} imgConfig unique configuration options for the image overlay
+	 */
+	HudManager.prototype.createImageOverlay = function(image, imgConfig) {
+		var config = hemi.utils.join({}, currentTheme.image, imgConfig),
+			context = this.currentContext,
+			imageData = image._image;
+
+		context.save();
+		setPaintProperties(context, config);
+
+		if (image._width !== imageData.width || image._height !== imageData.height ||
+				image.srcX !== 0 || image.srcY !== 0) {
+			context.drawImage(imageData, image.srcX, image.srcY, image._width, image._height,
+				image.x, image.y, image._width, image._height);
+		} else {
+			context.drawImage(imageData, image.x, image.y);
+		}
+
+		context.restore();
+	};
+
+	/**
+	 * Create a video overlay.
+	 *
+	 * @param {hemi.HudVideo} video the HudVideo to display
+	 * @param {Object} vidConfig unique configuration options for the video overlay
+	 */
+	HudManager.prototype.createVideoOverlay = function(video, vidConfig) {
+		var config = hemi.utils.join({}, currentTheme.video, vidConfig),
+			videoData = video._video;
+
+		this._videos.push({
+			video: videoData,
+			config: config,
+			context: this.currentContext,
+			x: video.x,
+			y: video.y,
+			width: video._width || videoData.videoWidth,
+			height: video._height || videoData.videoHeight
+		});
+		videoData.play();
+	};
+
+	/**
+	 * Calculate text wrapping and format the given string.
+	 * 
+	 * @param {string} text the text to display
+	 * @param {number} width the maximum line width before wrapping
+	 * @param {Object} textOptions unique configuration options for the text overlay
+	 * @return {Object} wrapped text object
+	 */
+	HudManager.prototype.doTextWrapping = function(text, width, textOptions) {
+		var config = hemi.utils.join({}, currentTheme.text, textOptions),
+			context = this.currentContext,
+			wrappedText;
+
+		context.save();
+		setPaintProperties(context, config);
+
+		if (config.strictWrapping) {
+			wrappedText = hemi.utils.wrapTextStrict(text, width, context);
+		} else {
+			var metric = context.measureText(text),
+				charWidth = metric.width / text.length;
+			wrappedText = hemi.utils.wrapText(text, width, charWidth);
+		}
+
+		var height = wrappedText.length * (config.textSize + config.lineMargin),
+			longestWidth = 0;
+
+		for (var i = 0, il = wrappedText.length; i < il; ++i) {
+			var metric = context.measureText(wrappedText[i]);
+
+			if (longestWidth < metric.width) {
+				longestWidth = metric.width;
+			}
+		}
+
+		context.restore();
+
+		return {
+			text: wrappedText,
+			height: height,
+			width: longestWidth
+		};
+	};
+
+	/**
+	 * Draw a rectangular overlay that has rounded corners from the given HudElement.
+	 *
+	 * @param {hemi.HudElement} element element with a bounding box to create the rectangle from
+	 * @param {number} curveFactor amount of curving on the corners (between 0 and 0.5)
+	 * @param {boolean} fill flag indicating whether to fill or stroke
+	 */
+	HudManager.prototype.drawRoundRect = function(element, curveFactor, fill) {
+		var context = this.currentContext,
+			lt = element._left,
+			rt = element._right,
+			tp = element._top,
+			bm = element._bottom,
+			wide = rt - lt,
+			high = bm - tp,
+			inc = high > wide ? wide * curveFactor : high * curveFactor,
+			// Positions on a clock in radians :)
+			hour12 = 270 * hemi.DEG_TO_RAD,
+			hour3 = 0,
+			hour6 = 90 * hemi.DEG_TO_RAD,
+			hour9 = 180 * hemi.DEG_TO_RAD;
+
+		context.beginPath();
+		context.moveTo(lt, tp + inc);
+		context.lineTo(lt, bm - inc);
+		context.arc(lt + inc, bm - inc, inc, hour9, hour6, true);
+		context.lineTo(rt - inc, bm);
+		context.arc(rt - inc, bm - inc, inc, hour6, hour3, true);
+		context.lineTo(rt, tp + inc);
+		context.arc(rt - inc, tp + inc, inc, hour3, hour12, true);
+		context.lineTo(lt + inc, tp);
+		context.arc(lt + inc, tp + inc, inc, hour12, hour9, true);
+		context.closePath();
+
+		if (fill) {
+			context.fill();
+		} else {
+			context.stroke();
+		}
+	};
+
+	/**
+	 * Copy the current image from any video elements onto the canvas on each render.
+	 * 
+	 * @param {Object} renderEvent event containing render info
+	 */
+	HudManager.prototype.onRender = function(renderEvent) {
+		var vids = this._videos;
+		
+		for (var i = 0, il = vids.length; i < il; ++i) {
+			var vid = vids[i],
+				context = vid.context;
+
+			context.save();
+			setPaintProperties(context, vid.config);
+			context.drawImage(vid.video, vid.x, vid.y, vid.width, vid.height);
+			context.restore();
+		}
+	};
+
+	/**
+	 * Set the current client for the HudManager to draw to.
+	 * 
+	 * @param {hemi.Client} client the client to draw to
+	 */
+	HudManager.prototype.setClient = function(client) {
+		this.currentContext = this._contexts[client._getId()];
+	};
+
+	/**
+	 * Set the current theme for HUD displays.
+	 * 
+	 * @param {hemi.HudTheme} theme display options for HUD elements
+	 */
+	hemi.setHudTheme = function(theme) {
+		currentTheme = theme;
+	};
+
+	/**
+	 * The HUD manager responsible for drawing all HUD displays, elements, etc.
+	 */
+	hemi.hudManager = new HudManager();
+
+	return hemi;
+})(hemi || {});
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+var hemi = (function(hemi) {
+	/**
+	 * @namespace A module for defining draggable objects.
+	 */
+	hemi = hemi|| {};
+
+	hemi.Plane = {
+		XY : 'xy',
+		XZ : 'xz',
+		YZ : 'yz'
+	};
+	
+	hemi.Axis = {
+		X : 'x',
+		Y : 'y',
+		Z : 'z'
+	};
+
+	var ManipulatorBase = function(client) {
+		this.client = client;
+		this.transformObjs = [];
+		this.local = false;
+		this.enabled = false;
+		this.msgHandler = null;
+		this.activeTransform = null;
+	};
+
+	/**
+	 * Add a Transform to the list of Manipulator Transforms.
+	 *
+	 * @param {THREE.Object3D} transform the transform to add
+	 */
+	ManipulatorBase.prototype.addTransform = function(transform) {
+		this.transformObjs.push(transform);
+	};
+
+	/**
+	 * Clear the list of Manipulator Transforms.
+	 */
+	ManipulatorBase.prototype.clearTransforms = function() {
+		this.transformObjs.length = 0;
+	};
+
+	/**
+	 * Check if a given Transform is contained within the children of the
+	 * Transforms acted upon by this Manipulator.
+	 *
+	 * @param {THREE.Object3D} transform transform to check against
+	 * @return {boolean} true if the Transform is found
+	 */
+	ManipulatorBase.prototype.containsTransform = function(transform) {
+		for (var i = 0; i < this.transformObjs.length; i++) {
+			var children = [];
+			hemi.utils.getChildren(this.transformObjs[i], children);
+			for (var j = 0; j < children.length; j++) {
+				if (transform.id === children[j].id) {
+					return true;
+				}
+			}
+		}
+		return false;
+	};
+
+	/**
+	 * Disable mouse interaction for the Manipulator. 
+	 */
+	ManipulatorBase.prototype.disable = function() {
+		if (this.enabled) {
+			hemi.unsubscribe(this.msgHandler, hemi.msg.pick);
+			hemi.input.removeMouseMoveListener(this);
+			hemi.input.removeMouseUpListener(this);
+			this.enabled = false;
+		}
+	};
+
+	/**
+	 * Enable mouse interaction for the Manipulator. 
+	*/
+	ManipulatorBase.prototype.enable = function() {
+		if (!this.enabled) {
+			this.msgHandler = hemi.subscribe(
+				hemi.msg.pick,
+				this,
+				'onPick',
+				[hemi.dispatch.MSG_ARG + 'data.pickedMesh', 
+				 hemi.dispatch.MSG_ARG + 'data.mouseEvent']);
+			hemi.input.addMouseMoveListener(this);
+			hemi.input.addMouseUpListener(this);
+			this.enabled = true;
+		}
+	};
+
+	/**
+	 * Get the Transforms that the Manipulator currently contains.
+	 * 
+	 * @return {THREE.Object3D[]} array of Transforms
+	 */
+	ManipulatorBase.prototype.getTransforms = function() {
+		return this.transformObjs.slice(0);
+	};
+
+	/**
+	 * Remove Transforms 
+	 * 
+	 * @param {THREE.Object3D} tranObj The transform to remove
+	*/
+	ManipulatorBase.prototype.removeTransforms = function(tranObj) {
+		var ndx = this.transformObjs.indexOf(tranObj);
+
+		if (ndx > -1) {
+			this.transformObjs.splice(ndx, 1);
+		}
+	};
+
+	/**
+	 * Set the Draggable to operate in the local space of the transform it
+	 * is translating.
+	 */
+	ManipulatorBase.prototype.setToLocal = function() {
+		this.local = true;
+	};
+	
+	/**
+	 * Set the Draggable to operate in world space.
+	 */
+	ManipulatorBase.prototype.setToWorld = function() {
+		this.local = false;
+	};
+		
+	//common funcs
+	/**
+	 * @class A Draggable allows a 3d object to be dragged around the scene
+	 * with the mouse, constrained to a defined 2d plane.
+	 * @extends hemi.Citizen
+	 * 
+	 * @param {hemi.client} client the client that this draggable exists in
+	 * @param {number[3][3]} opt_plane Array of 3 xyz points defining a plane
+	 * @param {number[4]} opt_limits An array containing 
+	 *	   [min on u, max on u, min on v, max on v]
+	 * @param {number[2]} opt_startUV Draggable's starting uv coordinate, if
+	 *		not [0,0]
+	 */
+	var Draggable = function(client, opt_plane, opt_limits, opt_startUV) {
+		ManipulatorBase.call(this, client);
+		this.dragUV = null;
+		this.plane = null;
+		this.umin = null;
+		this.umax = null;
+		this.uv = opt_startUV == null ? [0,0] : opt_startUV;
+		this.vmin = null;
+		this.vmax = null;
+		
+		if (opt_plane != null) {
+			this.setPlane(opt_plane);
+		}
+		if (opt_limits != null) {
+			this.setLimits(opt_limits);
+		}
+		
+		this.enable();
+	};
+
+	Draggable.prototype = new ManipulatorBase();
+	Draggable.constructor = Draggable;
+
+	/**
+	 * Get the Octane structure for the Draggable.
+     *
+     * @return {Object} the Octane structure representing the Draggable
+	 */
+	Draggable.prototype.toOctane = function(){
+		var octane = this._super(),
+			valNames = ['local', 'plane', 'umin', 'umax', 'vmin', 'vmax'];
+		
+		for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
+			var name = valNames[ndx];
+			
+			octane.props.push({
+				name: name,
+				val: this[name]
+			});
+		}
+		
+		return octane;
+	};
+
+	/**
+	 * Add the given UV delta to the current UV coordinates and clamp the
+	 * results.
+	 *
+	 * @param {number[2]} delta the uv change to add before clamping
+	 * @return {number[2]} the actual change in uv after clamping
+	 */
+	Draggable.prototype.clamp = function(delta) {
+		var u = this.uv[0] + delta[0],
+			v = this.uv[1] + delta[1];
+		
+		if (this.umin != null && u < this.umin) {
+			u = this.umin;
+		}
+		if (this.umax != null && u > this.umax) {
+			u = this.umax;
+		}
+		if (this.vmin != null && v < this.vmin) {
+			v = this.vmin;
+		}
+		if (this.vmax != null && v > this.vmax) {
+			v = this.vmax;
+		}
+		
+		delta = [u - this.uv[0], v - this.uv[1]];
+		this.uv = [u, v];
+		
+		return delta;
+	};
+		
+	/**
+	 * Remove any previously set limits from the draggable.
+	 */
+	Draggable.prototype.clearLimits = function() {
+		this.umin = null;
+		this.umax = null;
+		this.vmin = null;
+		this.vmax = null;
+	};
+	
+	/**
+	 * Get the two dimensional plane that the Draggable will translate its
+	 * active Transform along.
+	 * 
+	 * @return {THREE.Vector3[3]} the current drag plane defined as 3 XYZ points
+	 */
+	Draggable.prototype.getPlane = function() {
+		if (this.activeTransform === null) {
+			return null;
+		}
+		
+		var plane;
+		
+		if (this.local) {
+			var u = hemi.utils;
+			plane = [u.pointAsWorld(this.activeTransform, this.plane[0]),
+					 u.pointAsWorld(this.activeTransform, this.plane[1]),
+					 u.pointAsWorld(this.activeTransform, this.plane[2])];
+		} else {
+			var translation = this.activeTransform.matrixWorld.getPosition();
+			
+			plane = [new THREE.Vector3().add(this.plane[0], translation),
+					 new THREE.Vector3().add(this.plane[1], translation),
+					 new THREE.Vector3().add(this.plane[2], translation)];
+		}
+		
+		return plane;
+	};
+		
+	/**
+	 * Convert the given screen coordinates into UV coordinates on the
+	 * current dragging plane.
+	 * 
+	 * @param {number} x x screen coordinate
+	 * @param {number} y y screen coordinate
+	 * @return {number[2]} equivalent UV coordinates
+	 */
+	Draggable.prototype.getUV = function(x,y) {
+		var ray = this.client.clientPositionToRay(x, y),
+			plane = this.getPlane(),
+			tuv = hemi.utils.intersect(ray, plane);
+		
+		return [tuv[1], tuv[2]];
+	};
+
+	/**
+	 * Mouse movement event listener, calculates mouse point intersection 
+	 * with this Draggable's plane, and then translates the dragging object 
+	 * accordingly.
+	 *
+	 * @param {Event} event message describing how the mouse has moved
+	 */
+	Draggable.prototype.onMouseMove = function(event) {
+		if (this.dragUV === null) {
+			return;
+		}
+		
+		var uv = this.getUV(event.x, event.y),
+			delta = [uv[0] - this.dragUV[0], uv[1] - this.dragUV[1]],
+			plane = this.getPlane();
+		
+		delta = this.clamp(delta);
+		
+		var localDelta = hemi.utils.uvToXYZ(delta, plane),
+			xyzOrigin = hemi.utils.uvToXYZ([0, 0], plane),
+			xyzDelta = new THREE.Vector3().sub(localDelta, xyzOrigin);
+		
+		for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
+			var tran = this.transformObjs[ndx];
+			hemi.utils.worldTranslate(xyzDelta, tran);
+		}
+		
+		this.send(hemi.msg.drag, { drag: xyzDelta });
+	};
+
+	/**
+	 * Mouse-up event listener, stops dragging.
+	 *
+	 * @param {o3d.Event} event message describing the mouse behavior
+	 */
+	Draggable.prototype.onMouseUp = function(event) {
+		this.activeTransform = null;
+		this.dragUV = null;
+	};
+
+	/**
+	 * Pick event listener; checks in-scene intersections, and allows 
+	 * dragging.
+	 *
+	 * @param {THREE.Object3D} pickedMesh pick event information that
+	 *		contains information on the shape and transformation picked.
+	 * @param {o3d.Event} mouseEvent message describing mouse behavior
+	 */
+	Draggable.prototype.onPick = function(pickedMesh, mouseEvent) {
+		for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
+			if (this.transformObjs[ndx].id == pickedMesh.id) {
+				this.activeTransform = pickedMesh;
+				this.dragUV = this.getUV(mouseEvent.x, mouseEvent.y);
+				break;
+			}
+		}
+	};
+
+	/**
+	 * Set the relative uv limits in which this Draggable can move.
+	 *
+	 * @param {number[2][2]} coords min and max uv points on the current
+	 *     plane
+	 */
+	Draggable.prototype.setLimits = function(coords) {
+		this.umin = coords[0][0];
+		this.umax = coords[1][0];
+		this.vmin = coords[0][1];
+		this.vmax = coords[1][1];
+	};
+
+	/**
+	 * Set the 2d plane on which this Draggable is bound.
+	 *
+	 * @param {Vector3[3]} plane array of three XYZ coordinates defining a
+	 *     plane
+	 */
+	Draggable.prototype.setPlane = function(plane) {
+		switch (plane) {
+			case (hemi.Plane.XY):
+				this.plane = [new THREE.Vector3(0,0,0), new THREE.Vector3(1,0,0), new THREE.Vector3(0,1,0)];
+				break;
+			case (hemi.Plane.XZ):
+				this.plane = [new THREE.Vector3(0,0,0), new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,1)];
+				break;
+			case (hemi.Plane.YZ):
+				this.plane = [new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,1), new THREE.Vector3(0,1,0)];
+				break;
+			default:
+				this.plane = plane;
+		}
+	};
+
+	hemi.makeCitizen(Draggable, 'hemi.Draggable', {
+		cleanup: function() {
+			this.disable();
+			this.clearTransforms();
+			this.msgHandler = null;
+		},
+		msgs: [hemi.msg.drag],
+		toOctane: []
+	});
+
+
+	/**
+	 * @class A Turnable allows a Transform to be turned about an axis by the
+	 *     user clicking and dragging with the mouse.
+	 * @extends hemi.world.Citizen
+	 * 
+	 * @param {hemi.Axis} opt_axis axis to rotate about
+	 * @param {number[2]} opt_limits minimum and maximum angle limits (in radians)
+	 * @param {number} opt_startAngle starting angle (in radians, default is 0)
+	 */
+	var Turnable = function(client, opt_axis, opt_limits, opt_startAngle) {	
+		ManipulatorBase.call(this, client);
+		this.angle = opt_startAngle == null ? 0 : opt_startAngle;
+		this.axis = null;
+		this.dragAngle = null;
+		this.min = null;
+		this.max = null;
+		this.msgHandler = null;
+		this.plane = null;
+		
+		if (opt_axis != null) {
+			this.setAxis(opt_axis);
+		}
+		if (opt_limits != null) {
+			this.setLimits(opt_limits);
+		}
+		
+		this.enable();
+	};
+
+	Turnable.prototype = new ManipulatorBase();
+	Turnable.constructor = Turnable;
+
+	/**
+	 * Send a cleanup Message and remove all references in the Turnable.
+	 */
+	Turnable.prototype.cleanup = function() {
+		this.disable();
+		this._super();
+		this.clearTransforms();
+		this.msgHandler = null;
+	};
+		
+	/**
+	 * Get the Octane structure for the Turnable.
+     *
+     * @return {Object} the Octane structure representing the Turnable
+	 */
+	Turnable.prototype.toOctane = function(){
+		var octane = this._super(),
+			valNames = ['min', 'max'];
+		
+		for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
+			var name = valNames[ndx];
+			
+			octane.props.push({
+				name: name,
+				val: this[name]
+			});
+		}
+		
+		octane.props.push({
+			name: 'setAxis',
+			arg: [this.axis]
+		});
+		
+		return octane;
+	};
+		
+	/**
+	 * Remove any previously set limits from the Turnable.
+	 */
+	Turnable.prototype.clearLimits = function() {
+		this.min = null;
+		this.max = null;
+	};
+		
+	/**
+	 * Get the relative angle of a mouse click's interception with the
+	 * active plane to the origin of that plane.
+	 * 
+	 * @param {number} x screen x-position of the mouse click event
+	 * @param {number} y screen y-position of the mouse click event
+	 * @return {number} relative angle of mouse click position on the
+	 *     Turnable's current active plane
+	 */
+	Turnable.prototype.getAngle = function(x,y) {
+		var plane;
+		
+		if (this.local) {
+			var u = hemi.utils;
+			plane = [u.pointAsWorld(this.activeTransform, this.plane[0]),
+					 u.pointAsWorld(this.activeTransform, this.plane[1]),
+					 u.pointAsWorld(this.activeTransform, this.plane[2])];
+		} else {
+			var translation = this.activeTransform.matrixWorld.getPosition();
+			
+			plane = [new THREE.Vector3().add(this.plane[0], translation),
+					 new THREE.Vector3().add(this.plane[1], translation),
+					 new THREE.Vector3().add(this.plane[2], translation)];
+		}
+		var ray = this.client.clientPositionToRay(x, y),
+		tuv = hemi.utils.intersect(ray, plane);
+		return Math.atan2(tuv[2],tuv[1]);
+	};
+		
+	/**
+	 * On mouse move, if the shape has been clicked and is being dragged, 
+	 * calculate intersection points with the active plane and turn the
+	 * Transform to match.
+	 * 
+	 * @param {Event} event message describing the mouse position, etc.
+	 */
+	Turnable.prototype.onMouseMove = function(event) {
+		if (this.dragAngle === null) {
+			return;
+		}
+		
+		var delta = this.getAngle(event.x,event.y) - this.dragAngle,
+			axis;
+		
+		if (this.max != null && this.angle + delta >= this.max) {
+			delta = this.max - this.angle;
+		}
+		if (this.min != null && this.angle + delta <= this.min) {
+			delta = this.min - this.angle;
+		}
+		
+		this.angle += delta;
+		
+		if (!this.local) {
+			this.dragAngle += delta;
+		}
+		
+		switch(this.axis) {
+			case hemi.Axis.X:
+				axis = new THREE.Vector3(-1,0,0);
+				break;
+			case hemi.Axis.Y:
+				axis = new THREE.Vector3(0,-1,0);
+				break;
+			case hemi.Axis.Z:
+				axis = new THREE.Vector3(0,0,1);
+				break;
+		}
+		
+		for (var i = 0; i < this.transformObjs.length; i++) {
+			var tran = this.transformObjs[i];
+			
+			if (this.local) {
+				hemi.utils.axisRotate(axis, delta, tran);
+			} else {
+				hemi.utils.worldRotate(axis, delta, tran);
+			}
+		}
+	};
+		
+	/**
+	 * On mouse up, deactivate turning.
+	 * 
+	 * @param {o3d.Event} event message describing mouse position, etc.
+	 */
+	Turnable.prototype.onMouseUp = function(event) {
+		this.dragAngle = null;
+	};
+		
+	/**
+	 * On a pick message, if it applies to this Turnable, set turning to
+	 * true and calculate the relative angle.
+	 * 
+	 * @param {THREE.Object3D} pickedMesh information about the pick event
+	 * @param {oEvent} event message describing mouse position, etc.
+	 */
+	Turnable.prototype.onPick = function(pickedMesh, event) {
+		for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
+			if (this.transformObjs[ndx].id == pickedMesh.id) {
+				this.activeTransform = pickedMesh;
+				this.dragAngle = this.getAngle(event.x,event.y);
+				break;
+			}
+		}
+	};
+
+		
+	/**
+	 * Set the axis to which this Turnable is bound.
+	 * 
+	 * @param {hemi.Axis} axis axis to rotate about - x, y, or z
+	 */
+	Turnable.prototype.setAxis = function(axis) {
+		this.axis = axis;
+		
+		switch(axis) {
+			case hemi.Axis.X:
+				this.plane = [new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,1), new THREE.Vector3(0,1,0)];
+				break;
+			case hemi.Axis.Y:
+				this.plane = [new THREE.Vector3(0,0,0), new THREE.Vector3(1,0,0), new THREE.Vector3(0,0,1)];
+				break;
+			case hemi.Axis.Z:
+				this.plane = [new THREE.Vector3(0,0,0), new THREE.Vector3(1,0,0), new THREE.Vector3(0,1,0)];
+				break;
+		}
+	};
+		
+	/**
+	 * Set the limits to which this Turnable can rotate.
+	 * 
+	 * @param {number[2]} limits minimum and maximum angle limits (in radians)
+	 */
+	Turnable.prototype.setLimits = function(limits) {
+		if (limits[0] != null) {
+			this.min = limits[0];
+		} else {
+			this.min = null;
+		}
+		
+		if (limits[1] != null) {
+			this.max = limits[1];
+		} else {
+			this.max = null;
+		}
+	};
+
+	hemi.makeCitizen(Turnable, 'hemi.Turnable', {
+		cleanup: function() {
+			this.disable();
+			this.clearTransforms();
+			this.msgHandler = null;
+		},
+		msgs: [],
+		toOctane: []
+	});
+
+
+	var Scalable = function(client, axis) {
+		ManipulatorBase.call(this, client);
+		this.axis = null;
+		this.dragAxis = null;
+		this.dragOrigin = null;
+		this.scale = null;
+		
+		this.setAxis(axis);
+		this.enable();
+	};
+
+	Scalable.prototype = new ManipulatorBase();
+	Scalable.constructor = Scalable;
+		
+	Scalable.prototype.getScale = function(x, y) {
+		var offset = new THREE.Vector2(x - this.dragOrigin.x, y - this.dragOrigin.y),
+		scale = Math.abs(this.dragAxis.dot(offset));
+		return scale;
+	};
+
+	Scalable.prototype.onMouseMove = function(event) {
+		if (this.dragAxis === null) {
+			return;
+		}
+		
+		var scale = this.getScale(event.x, event.y),
+			f = scale/this.scale,
+			axis = new THREE.Vector3(
+				this.axis.x ? f : 1,
+				this.axis.y ? f : 1,
+				this.axis.z ? f : 1
+			);
+		
+		for (var i = 0; i < this.transformObjs.length; i++) {
+			var tran = this.transformObjs[i];
+			
+			if (this.local) {
+				tran.scale.multiplySelf(axis);
+				tran.updateMatrix();
+			} else {
+				hemi.utils.worldScale(axis, tran);
+			}
+		}
+		
+		this.scale = scale;
+		
+		this.send(hemi.msg.scale, { scale: scale });
+	};
+		
+	Scalable.prototype.onMouseUp = function() {
+		this.dragAxis = null;
+		this.dragOrigin = null;
+		this.scale = null;
+	};
+
+	Scalable.prototype.onPick = function(pickedMesh, event) {
+		for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
+			if (this.transformObjs[ndx].id == pickedMesh.id) {
+				this.activeTransform = pickedMesh;
+				var axis2d = this.xyPoint(this.axis);
+				this.dragOrigin = this.xyPoint(new THREE.Vector3(0,0,0));
+				this.dragAxis = new THREE.Vector2(axis2d.x - this.dragOrigin.x, axis2d.y - this.dragOrigin.y).normalize();
+				this.scale = this.getScale(event.x, event.y);
+				break;
+			}
+		}
+	};
+
+	Scalable.prototype.setAxis = function(axis) {
+		switch(axis) {
+			case hemi.Axis.X:
+				this.axis = new THREE.Vector3(1,0,0);
+				break;
+			case hemi.Axis.Y:
+				this.axis = new THREE.Vector3(0,1,0);
+				break;
+			case hemi.Axis.Z:
+				this.axis = new THREE.Vector3(0,0,1);
+				break;
+			default:
+				this.axis = new THREE.Vector3(0,0,0);
+		}
+	};
+
+
+	Scalable.prototype.xyPoint = function(plane) {
+		if (this.activeTransform === null) {
+			return null;
+		}
+		
+		var point;
+		
+		if (this.local) {
+			point = hemi.utils.pointAsWorld(this.activeTransform, plane);
+		} else {
+			point = new THREE.Vector3().add(plane, this.activeTransform.position);
+		}
+		
+		return hemi.utils.worldToScreenFloat(this.client, point);
+	};
+
+	hemi.makeCitizen(Scalable, 'hemi.Scalable', {
+		cleanup: function() {
+			this.disable();
+			this.clearTransforms();
+			this.msgHandler = null;
+		},
+		msgs: [hemi.msg.scale],
+		toOctane: []
+	});
+	
+	return hemi;
+})(hemi || {});/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
 The MIT License (MIT)
 
