@@ -23,11 +23,15 @@
 (function() {
 
 	
-	var client;
+	var client,
+		spriteRMat;
 		
 	function createWorld() {
 		ticker = new hemi.Model(client.scene);			// Create a new Model
 		ticker.setFileName('assets/DigitalDisplay/DigitalDisplay.dae');	// Set the model file
+		hemi.loadTexture('assets/images/dino.png', function(texture) {
+			spriteRMat = new THREE.MeshBasicMaterial({ map: texture });
+		});
 		/**
 		 * When we call the 'ready' function, it will wait for the model to
 		 *		finish loading and then it will send out a Ready message. Here
@@ -54,13 +58,14 @@
 		 */
 		client.camera.moveToView(vp, 2.5);
 		client.camera.enableControl();							// Enable camera mouse control
-				
-		var spriteR = new hemi.Sprite(client, {
-			maps: ['assets/images/dino.png'],
-			useScreenCoordinates: false
-		});
-		spriteR.scale.set(0.15, 0.15);
-		spriteR.run(-1);
+
+		var spriteR = hemi.shape.create(client, {
+			shape: 'plane',
+			mat: spriteRMat,
+			height: 29,
+			width: 29 });
+		spriteRMat.map.wrapS = spriteRMat.map.wrapT = THREE.RepeatWrapping;
+		spriteR.rotation.x = Math.PI / -16;
 		spriteR.translateX(-50);
 		spriteR.translateY(-40);
 
@@ -68,6 +73,7 @@
 			maps: ['assets/images/dino.png'],
 			useScreenCoordinates: false
 		});
+		spriteT.map.wrapS = spriteT.map.wrapT = THREE.RepeatWrapping;
 		spriteT.scale.set(0.15, 0.15);
 		spriteT.run(-1);
 		spriteT.translateY(-40);
@@ -76,6 +82,7 @@
 			maps: ['assets/images/dino.png'],
 			useScreenCoordinates: false
 		});
+		spriteS.map.wrapS = spriteS.map.wrapT = THREE.RepeatWrapping;
 		spriteS.scale.set(0.15, 0.15);
 		spriteS.run(-1);
 		spriteS.translateX(50);
@@ -84,38 +91,42 @@
 		var frame = 0;
 		var tickCounts = [0,0,0,0,0,0,0,0,0,0];
 		var tickOrder = [1,7,5,4,2,8,3,6,9];
-		
-		// all hemi texture related
-//		hemi.input.addKeyDownListener({onKeyDown:function(e){
-//			if (e.keyCode == 32) {
-//				hemi.texture.rotate(elemR,Math.PI/24);
-//				hemi.texture.translate(elemT,1/24,1/24);
-//				if (frame < 6 || frame >= 18) { 
-//					hemi.texture.scale(elemS,7/6,7/6);
-//				} else {
-//					hemi.texture.scale(elemS,6/7,6/7);
-//				}
-//				frame++;
-//				if (frame == 24) frame = 0;
-//			} else if (e.keyCode == 38) {
-//				incrementTicker(0,1);
-//			} else if (e.keyCode == 40) {
-//				incrementTicker(0,-1);
-//			}
-//		}});	
-//		
-//		function incrementTicker(ndx,tick) {
-//			var rollover = false;
-//			hemi.texture.translate(ticker.shapes[ndx].elements[0],0.1*tick,0);
-//			tickCounts[ndx] = (tickCounts[ndx] + tick)%10;
-//			if (tickCounts[ndx] < 0) tickCounts[ndx] = 9;
-//			if ((tickCounts[ndx] == 0 && tick == 1) || (tickCounts[ndx] == 9 && tick == -1)) {
-//				rollover = true;
-//			}
-//			if (rollover && ndx < 9) {
-//				incrementTicker(tickOrder[ndx],tick);
-//			}
-//		};
+
+		hemi.input.addKeyDownListener({
+			onKeyDown: function(e) {
+				if (e.keyCode === 32) {
+					hemi.utils.rotateUVs(spriteR.geometry, Math.PI/24);
+					spriteT.uvOffset.x = spriteT.uvOffset.y += 1/24;
+					if (frame < 6 || frame >= 18) {
+						spriteS.uvScale.multiplyScalar(7/6);
+					} else {
+						spriteS.uvScale.multiplyScalar(6/7);
+					}
+					if (++frame === 24) frame = 0;
+				} else if (e.keyCode === 38) {
+					incrementTicker(0, 1);
+				} else if (e.keyCode === 40) {
+					incrementTicker(0, -1);
+				}
+			}
+		});
+
+		function incrementTicker(ndx, tick) {
+			var rollover = false;
+
+			hemi.utils.translateUVs(ticker.geometries[ndx], tick * 0.1, 0);
+			tickCounts[ndx] = (tickCounts[ndx] + tick) % 10;
+
+			if (tickCounts[ndx] < 0) {
+				tickCounts[ndx] = 9;
+			}
+			if ((tickCounts[ndx] === 0 && tick === 1) || (tickCounts[ndx] === 9 && tick === -1)) {
+				rollover = true;
+			}
+			if (rollover && ndx < 9) {
+				incrementTicker(tickOrder[ndx], tick);
+			}
+		};
 
 	}
 

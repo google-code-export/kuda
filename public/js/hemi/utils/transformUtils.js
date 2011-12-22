@@ -122,6 +122,73 @@ var hemi = (function(hemi) {
 	};
 
 	/**
+	 * Rotate the texture UV coordinates of the given Geometry.
+	 * 
+	 * @param {THREE.Geometry} geometry the Geometry to translate the texture for
+	 * @param {number} theta amount to rotate the UV coordinates (in radians)
+	 */
+	hemi.utils.rotateUVs = function(geometry, theta) {
+		var uvSet = geometry.faceVertexUvs[0],
+			cosT = Math.cos(theta),
+			sinT = Math.sin(theta);
+
+		for (var i = 0, il = uvSet.length; i < il; ++i) {
+			var uvs = uvSet[i];
+
+			for (var j = 0, jl = uvs.length; j < jl; ++j) {
+				var uv = uvs[j],
+					u = uv.u,
+					v = uv.v;
+
+				uv.u = u * cosT - v * sinT;
+				uv.v = u * sinT + v * cosT;
+			}
+		}
+
+		// Magic to get the WebGLRenderer to update the vertex buffer
+		for (var i = 0, il = geometry.geometryGroupsList.length; i < il; ++i) {
+			var group = geometry.geometryGroupsList[i],
+				verts = group.faces3.length * 3 + group.faces4.length * 4;
+
+			group.__uvArray = new Float32Array(verts * 2);
+			group.__inittedArrays = true;
+		}
+
+		geometry.__dirtyUvs = true;
+	};
+
+	/**
+	 * Scale the texture UV coordinates of the given Geometry.
+	 * 
+	 * @param {THREE.Geometry} geometry the Geometry to translate the texture for
+	 * @param {number} uScale amount to scale the U coordinate
+	 * @param {number} vScale amount to scale the V coordinate
+	 */
+	hemi.utils.scaleUVs = function(geometry, uScale, vScale) {
+		var uvSet = geometry.faceVertexUvs[0];
+
+		for (var i = 0, il = uvSet.length; i < il; ++i) {
+			var uvs = uvSet[i];
+
+			for (var j = 0, jl = uvs.length; j < jl; ++j) {
+				uvs[j].u *= uScale;
+				uvs[j].v *= vScale;
+			}
+		}
+
+		// Magic to get the WebGLRenderer to update the vertex buffer
+		for (var i = 0, il = geometry.geometryGroupsList.length; i < il; ++i) {
+			var group = geometry.geometryGroupsList[i],
+				verts = group.faces3.length * 3 + group.faces4.length * 4;
+
+			group.__uvArray = new Float32Array(verts * 2);
+			group.__inittedArrays = true;
+		}
+
+		geometry.__dirtyUvs = true;
+	};
+
+	/**
 	 * Apply the given transform matrix to the vertices of the given transform's
 	 * geometry as well as the geometry of any child transforms.
 	 * 
@@ -150,6 +217,37 @@ var hemi = (function(hemi) {
 			var child = children[i];
 			hemi.utils.shiftGeometry(child, matrix, scene);
 		}
+	};
+
+	/**
+	 * Translate the texture UV coordinates of the given Geometry.
+	 * 
+	 * @param {THREE.Geometry} geometry the Geometry to translate the texture for
+	 * @param {number} uDelta amount to translate the U coordinate
+	 * @param {number} vDelta amount to translate the V coordinate
+	 */
+	hemi.utils.translateUVs = function(geometry, uDelta, vDelta) {
+		var uvSet = geometry.faceVertexUvs[0];
+
+		for (var i = 0, il = uvSet.length; i < il; ++i) {
+			var uvs = uvSet[i];
+
+			for (var j = 0, jl = uvs.length; j < jl; ++j) {
+				uvs[j].u += uDelta;
+				uvs[j].v += vDelta;
+			}
+		}
+
+		// Magic to get the WebGLRenderer to update the vertex buffer
+		for (var i = 0, il = geometry.geometryGroupsList.length; i < il; ++i) {
+			var group = geometry.geometryGroupsList[i],
+				verts = group.faces3.length * 3 + group.faces4.length * 4;
+
+			group.__uvArray = new Float32Array(verts * 2);
+			group.__inittedArrays = true;
+		}
+
+		geometry.__dirtyUvs = true;
 	};
 
 	/**
