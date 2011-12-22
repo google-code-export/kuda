@@ -40,6 +40,20 @@ js file to see how the world was created and scripted. If you are using the
 default configuration for Express, a typical address will be:
 http://localhost:3000/samples/helloWorld/helloWorld.html
 
+Running samples locally
+You may want to create a separate browser profile / shortcutused just for local
+development to be safe.
+
+Google Chrome
+    Use a command line flag. On Windows you can create a shortcut that uses the flag
+    Ex. chrome --allow-file-access-from-files
+
+Mozilla Firefox
+Change local files security policy
+    Go to about:config
+    Set the config parameter security.fileuri.strict_origin_policy to false
+
+
 helloWorld  -   This is a simple hello world sample. It shows how to set up a
                 simple world, load a model, and move the camera to a viewpoint.
                 It also shows setting up a message handler.
