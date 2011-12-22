@@ -533,6 +533,9 @@ function req2ContentType(urlLessQueryString) {
     case '.mp4':
         contentType = 'video/mp4';
         break;
+    case '.mp3':
+        contentType = 'audio/mpeg';
+        break;
     case '.ogg':
     case '.ogv':
         contentType = 'video/ogg';

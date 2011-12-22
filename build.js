@@ -173,7 +173,7 @@ var uglifyHemi = function(src, dst) {
 					'hemi/world.js',
 					'hemi/octane.js',
 					//'hemi/handlers/valueCheck.js',
-					//'hemi/audio.js',
+					'hemi/audio.js',
 					'hemi/dispatch.js',
 					'hemi/input.js',
 					'hemi/transform.js',
