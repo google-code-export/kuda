@@ -3886,18 +3886,15 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Load the Octane file at the given URL. If an error occurs, an alert is
-	 * thrown. Otherwise the loaded data is decoded into JSON and passed to the
-	 * Octane module. If the Octane is for an object, it is created and passed
-	 * to the given optional callback. If the Octane is for a World, the current
-	 * World is cleaned up and the new World is created. The given optional
-	 * callback is then executed, followed by hemi.world.ready().
+	 * Load the Octane file at the given URL. If an error occurs, an alert is  thrown. Otherwise the
+	 * loaded data is decoded into JSON and passed to the Octane module. If the Octane is for an
+	 * object, it is created and passed to the given optional callback. If the Octane is for a
+	 * World, the current World is cleaned up and the new World is created. The given optional
+	 * callback is then executed after hemi.ready().
 	 * 
-	 * @param {string} url the url of the file to load relative to the Kuda
-	 *     directory
-	 * @param {function([Object]):void} opt_callback an optional function to
-	 *     either pass the Object created or execute before the created World's
-	 *     ready function is called
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function([Object]):void} opt_callback an optional function to either pass the Object
+	 *     created or execute after the created World's ready function is called
 	 */
 	hemi.loadOctane = function(url, opt_callback) {
 		url = hemi.getLoadPath(url);
@@ -3924,6 +3921,21 @@ var hemi = (function(hemi) {
 					opt_callback(obj);
 				}
 			}
+		});
+	};
+
+	/**
+	 * Load the texture at the given URL. If an error occurs, an alert is thrown. Otherwise the
+	 * given callback is executed and passed the texture.
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function(THREE.Texture):void} callback a function to pass the loaded texture
+	 */
+	hemi.loadTexture = function(url, callback) {
+		hemi.loadImage(url, function(image) {
+			var texture = new THREE.Texture(image);
+			texture.needsUpdate = true;
+			callback(texture);
 		});
 	};
 
@@ -7630,49 +7642,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 
-	var convertObject3Ds = function(obj, toConvert) {
-			var children = obj.children,
-				newObj;
-
-			if (obj.geometry) {
-				newObj = new hemi.Mesh();
-				newObj.geometry = obj.geometry;
-				newObj.material = obj.material;
-				newObj.boundRadius = obj.boundRadius;
-
-				if (newObj.geometry.morphTargets.length) {
-					newObj.morphTargetBase = obj.morphTargetBase;
-					newObj.morphTargetForcedOrder = obj.morphTargetForcedOrder;
-					newObj.morphTargetInfluences = obj.morphTargetInfluences;
-					newObj.morphTargetDictionary = obj.morphTargetDictionary;
-				}
-			} else {
-				newObj = new hemi.Transform();
-			}
-
-			newObj.name = obj.name;
-			newObj.visible = obj.visible;
-			newObj.position = obj.position;
-			newObj.rotation = obj.rotation;
-			newObj.quaternion = obj.quaternion;
-			newObj.scale = obj.scale;
-			newObj.useQuaternion = obj.useQuaternion;
-			newObj.matrix = obj.matrix;
-			newObj.matrixWorld = obj.matrixWorld;
-
-			if (toConvert[obj.id] !== undefined) {
-				toConvert[obj.id] = newObj;
-			}
-
-			for (var i = 0; i < children.length; ++i) {
-				var newChild = convertObject3Ds(children[i], toConvert);
-				newObj.add(newChild);
-			}
-
-			return newObj;
-		},
-
-		getObject3DsRecursive = function(name, obj3d, returnObjs) {
+	var getObject3DsRecursive = function(name, obj3d, returnObjs) {
 			for (var i = 0; i < obj3d.children.length; ++i) {
 				var child = obj3d.children[i];
 
@@ -7689,6 +7659,7 @@ var hemi = (function(hemi) {
 		this.fileName = null;
 		this.root = null;
 		this.animations = [];
+		this.materials = [];
 	};
 
 	hemi.ModelBase.prototype = {
@@ -7712,7 +7683,7 @@ var hemi = (function(hemi) {
 				}
 
 				if (that.root === null) {
-					that.root = convertObject3Ds(collada.scene, toConvert);
+					that.root = convertObject3Ds.call(that, collada.scene, toConvert);
 				} else {
 					that.root._init(collada.scene, toConvert);
 				}
@@ -7741,11 +7712,60 @@ var hemi = (function(hemi) {
 		}
 	};
 
+	// Private functions for Model
+	var convertObject3Ds = function(obj, toConvert) {
+			var children = obj.children,
+				newObj;
+
+			if (obj.geometry) {
+				newObj = new hemi.Mesh();
+				newObj.geometry = obj.geometry;
+				newObj.material = obj.material;
+				newObj.boundRadius = obj.boundRadius;
+
+				if (newObj.geometry.morphTargets.length) {
+					newObj.morphTargetBase = obj.morphTargetBase;
+					newObj.morphTargetForcedOrder = obj.morphTargetForcedOrder;
+					newObj.morphTargetInfluences = obj.morphTargetInfluences;
+					newObj.morphTargetDictionary = obj.morphTargetDictionary;
+				}
+
+				if (this.materials.indexOf(obj.material) === -1) {
+					this.materials.push(obj.material);
+				}
+			} else {
+				newObj = new hemi.Transform();
+			}
+
+			newObj.name = obj.name;
+			newObj.visible = obj.visible;
+			newObj.position = obj.position;
+			newObj.rotation = obj.rotation;
+			newObj.quaternion = obj.quaternion;
+			newObj.scale = obj.scale;
+			newObj.useQuaternion = obj.useQuaternion;
+			newObj.matrix = obj.matrix;
+			newObj.matrixWorld = obj.matrixWorld;
+
+			if (toConvert[obj.id] !== undefined) {
+				toConvert[obj.id] = newObj;
+			}
+
+			for (var i = 0; i < children.length; ++i) {
+				var newChild = convertObject3Ds.call(this, children[i], toConvert);
+				newObj.add(newChild);
+			}
+
+			return newObj;
+		};
+
 	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
 		cleanup: function() {
 			this.root.cleanup();
 			this.scene = null;
 			this.root = null;
+			this.animations = [];
+			this.materials = [];
 		},
 		msgs: [hemi.msg.load],
 		toOctane: ['fileName', 'root', 'scene', 'load']
@@ -15732,6 +15752,182 @@ var hemi = (function(hemi) {
 	
 	return hemi;
 })(hemi || {});/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+var hemi = (function(hemi) {
+
+	/**
+	 * @class A TextureSet can manage Textures that are part of a set as defined by the user. It
+	 * will handle loading them and notify the author upon completion.
+	 * 
+	 * @param {Object} opt_urls optional object map of Texture names to urls to load
+	 * @param {function(Object):void} opt_callback function to receive loaded Textures
+	 */
+	var TextureSet = function(opt_urls, opt_callback) {
+		/*
+		 * The function to pass the loaded Textures once they are all ready.
+		 * @type function(Object):void
+		 */
+		this._callback = opt_callback || null;
+		/**
+		 * The total number of loaded and not-yet-loaded Textures in the TextureSet.
+		 * @type number
+		 * @default 0
+		 */
+		this.count = 0;
+		/*
+		 * The number of loaded/ready Textures in the TextureSet.
+		 * @type number
+		 */
+		this.loaded = 0;
+		/**
+		 * An object that maps a given name for a Texture to its instance for easy access.
+		 * @type Object
+		 */
+		this.textures = {};
+
+		if (opt_urls) {
+			for (var name in opt_urls) {
+				this.addTexture(name, opt_urls[name]);
+			}
+		}
+	};
+
+	/**
+	 * Add the given Texture to the TextureSet.
+	 *
+	 * @param {string} name the name of the Texture
+	 * @param {THREE.Texture} texture the Texture
+	 */
+	TextureSet.prototype.addLoadedTexture = function(name, texture) {
+		this.count++;
+		this.loaded++;
+		this.textures[name] = texture;
+	};
+
+	/**
+	 * Load a Texture from the given file url into the TextureSet.
+	 *
+	 * @param {string} name the name for the texture
+	 * @param {string} url the url of the image
+	 */
+	TextureSet.prototype.addTexture = function(name, url) {
+		var that = this;
+		this.count++;
+
+		hemi.loadTexture(url, function(texture) {
+				that.textures[name] = texture;
+				that.loaded++;
+
+				if (that.loaded === that.count && that._callback) {
+					that._callback(that.textures);
+				}
+			});
+	};
+
+	/**
+	 * Get the Texture with the given name in the TextureSet.
+	 *
+	 * @param {string} name the name the Texture was given when added
+	 * @return {THREE.Texture} the Texture
+	 */
+	TextureSet.prototype.getTexture = function(name) {
+		return this.textures[name];
+	};
+
+	hemi.TextureSet = TextureSet;
+
+	/**
+	 * Get the texture uv coordinates of the given element.
+	 * 
+	 * @param {o3d.Element} element The element from which to extract uv
+	 *     coordinates
+	 * @return {Object} {field: Field object used to reapply coordinates,
+	 *				     uv: Float array of uv coordinates}
+	 */
+	// hemi.texture.getUV = function(element) {
+	// 	var stream = element.streamBank.getVertexStream(hemi.core.o3d.Stream.TEXCOORD,0);
+	// 	return stream?{field:stream.field,
+	// 				   uv:stream.field.getAt(0,element.numberVertices)}:null;
+	// };
+	
+	// hemi.texture.reportUV = function(element) {
+	// 	var uv = hemi.texture.getUV(element).uv;
+	// 	console.log(element);
+	// 	for (var i = 0; i < uv.length; i+=3) {
+	// 		console.log(uv[i] + ',' + uv[i+1] + ',' + uv[i+2]);
+	// 	}
+	// };
+	
+	/**
+	 * Scale the texture uv coordinates of the given element.
+	 * 
+	 * @param {o3d.Element} element The element to scale the texture on
+	 * @param {number} x Amount to scale by along x-axis
+	 * @param {number} y Amoung to scale by along y-axis
+	 */
+	// hemi.texture.scale = function(element,x,y) {
+	// 	var set = hemi.texture.getUV(element);
+	// 	for (var i = 0; i < set.uv.length; i+=set.field.numComponents) {
+	// 		set.uv[i] *= x;
+	// 		set.uv[i+1] *= y;
+	// 	}
+	// 	set.field.setAt(0,set.uv);
+	// };
+
+	/**
+	 * Translate the texture uv coordinates of the given element.
+	 * 
+	 * @param {o3d.Element} element The element to translate the texture on
+	 * @param {number} x Distance to translate along x-axis
+	 * @param {number} y Distance to translate along y-axis
+	 */	
+	// hemi.texture.translate = function(element,x,y) {
+	// 	var set = hemi.texture.getUV(element);
+	// 	for (var i = 0; i < set.uv.length; i+=set.field.numComponents) {
+	// 		set.uv[i] += x;
+	// 		set.uv[i+1] += y;
+	// 	}	
+	// 	set.field.setAt(0,set.uv);
+	// };
+
+	/**
+	 * Rotate the texture uv coordinates of the given element.
+	 * 
+	 * @param {o3d.Element} element The element to rotate the texture on
+	 * @param {number} theta Radians to rotate texture, counter-clockwise
+	 */	
+	// hemi.texture.rotate = function(element,theta) {
+	// 	var set = hemi.texture.getUV(element);
+	// 	for (var i = 0; i < set.uv.length; i+=set.field.numComponents) {
+	// 		var x = set.uv[i];
+	// 		var y = set.uv[i+1];
+	// 		set.uv[i] = x*Math.cos(theta) - y*Math.sin(theta);
+	// 		set.uv[i+1] = x*Math.sin(theta) + y*Math.cos(theta);
+	// 	}	
+	// 	set.field.setAt(0,set.uv);	
+	// };
+
+	return hemi;
+})(hemi || {});
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
 The MIT License (MIT)
 

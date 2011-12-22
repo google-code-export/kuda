@@ -20,49 +20,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 var hemi = (function(hemi) {
 
-	var convertObject3Ds = function(obj, toConvert) {
-			var children = obj.children,
-				newObj;
-
-			if (obj.geometry) {
-				newObj = new hemi.Mesh();
-				newObj.geometry = obj.geometry;
-				newObj.material = obj.material;
-				newObj.boundRadius = obj.boundRadius;
-
-				if (newObj.geometry.morphTargets.length) {
-					newObj.morphTargetBase = obj.morphTargetBase;
-					newObj.morphTargetForcedOrder = obj.morphTargetForcedOrder;
-					newObj.morphTargetInfluences = obj.morphTargetInfluences;
-					newObj.morphTargetDictionary = obj.morphTargetDictionary;
-				}
-			} else {
-				newObj = new hemi.Transform();
-			}
-
-			newObj.name = obj.name;
-			newObj.visible = obj.visible;
-			newObj.position = obj.position;
-			newObj.rotation = obj.rotation;
-			newObj.quaternion = obj.quaternion;
-			newObj.scale = obj.scale;
-			newObj.useQuaternion = obj.useQuaternion;
-			newObj.matrix = obj.matrix;
-			newObj.matrixWorld = obj.matrixWorld;
-
-			if (toConvert[obj.id] !== undefined) {
-				toConvert[obj.id] = newObj;
-			}
-
-			for (var i = 0; i < children.length; ++i) {
-				var newChild = convertObject3Ds(children[i], toConvert);
-				newObj.add(newChild);
-			}
-
-			return newObj;
-		},
-
-		getObject3DsRecursive = function(name, obj3d, returnObjs) {
+	var getObject3DsRecursive = function(name, obj3d, returnObjs) {
 			for (var i = 0; i < obj3d.children.length; ++i) {
 				var child = obj3d.children[i];
 
@@ -79,6 +37,7 @@ var hemi = (function(hemi) {
 		this.fileName = null;
 		this.root = null;
 		this.animations = [];
+		this.materials = [];
 	};
 
 	hemi.ModelBase.prototype = {
@@ -102,7 +61,7 @@ var hemi = (function(hemi) {
 				}
 
 				if (that.root === null) {
-					that.root = convertObject3Ds(collada.scene, toConvert);
+					that.root = convertObject3Ds.call(that, collada.scene, toConvert);
 				} else {
 					that.root._init(collada.scene, toConvert);
 				}
@@ -131,11 +90,60 @@ var hemi = (function(hemi) {
 		}
 	};
 
+	// Private functions for Model
+	var convertObject3Ds = function(obj, toConvert) {
+			var children = obj.children,
+				newObj;
+
+			if (obj.geometry) {
+				newObj = new hemi.Mesh();
+				newObj.geometry = obj.geometry;
+				newObj.material = obj.material;
+				newObj.boundRadius = obj.boundRadius;
+
+				if (newObj.geometry.morphTargets.length) {
+					newObj.morphTargetBase = obj.morphTargetBase;
+					newObj.morphTargetForcedOrder = obj.morphTargetForcedOrder;
+					newObj.morphTargetInfluences = obj.morphTargetInfluences;
+					newObj.morphTargetDictionary = obj.morphTargetDictionary;
+				}
+
+				if (this.materials.indexOf(obj.material) === -1) {
+					this.materials.push(obj.material);
+				}
+			} else {
+				newObj = new hemi.Transform();
+			}
+
+			newObj.name = obj.name;
+			newObj.visible = obj.visible;
+			newObj.position = obj.position;
+			newObj.rotation = obj.rotation;
+			newObj.quaternion = obj.quaternion;
+			newObj.scale = obj.scale;
+			newObj.useQuaternion = obj.useQuaternion;
+			newObj.matrix = obj.matrix;
+			newObj.matrixWorld = obj.matrixWorld;
+
+			if (toConvert[obj.id] !== undefined) {
+				toConvert[obj.id] = newObj;
+			}
+
+			for (var i = 0; i < children.length; ++i) {
+				var newChild = convertObject3Ds.call(this, children[i], toConvert);
+				newObj.add(newChild);
+			}
+
+			return newObj;
+		};
+
 	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
 		cleanup: function() {
 			this.root.cleanup();
 			this.scene = null;
 			this.root = null;
+			this.animations = [];
+			this.materials = [];
 		},
 		msgs: [hemi.msg.load],
 		toOctane: ['fileName', 'root', 'scene', 'load']

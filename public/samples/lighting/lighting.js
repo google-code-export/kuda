@@ -20,10 +20,9 @@
  */
 
 (function() {
-	var	houseModel,
-		loadTask = 'LoadTextures',
+	var	client,
 		loadProg = 0,
-		emissiveSamplers = {},
+		materials = {},
 		skin = {},
 		maps = [{
 			kitchen: 'assets/images/TimeMaps/Kitchen_0800.jpg',
@@ -103,134 +102,126 @@
 		}],
 	numAssets = (maps.length * 14) + 1; // textures and the model file
 
-	function initStep(clientElements) {
-		bindJavaScript();
-		hemi.core.init(clientElements[0]);
-		hemi.view.setBGColor([1, 1, 1, 1]);
-		hemi.loader.loadPath = '../../';
-		
+	function createWorld() {
 		// Check if we should display one load bar for all loading
-		var full = getParam('fullProgress').toLowerCase() == 'true';
-		
-		if (full) {
-			// instantiate the progress bar to receive our progress updates
-			pbar = new hext.progressUI.bar(loadTask);
-			hemi.loader.createTask(loadTask, null);
+		var full = getParam('fullProgress').toLowerCase() === 'true',
+			loadTask = 'LoadTextures',
+			houseModel = new hemi.Model(client.scene);
+
+		// if (full) {
+		// 	// instantiate the progress bar to receive our progress updates
+		// 	pbar = new hext.progressUI.bar(loadTask);
+		// 	hemi.loader.createTask(loadTask, null);
 			
-			hemi.world.subscribe(hemi.msg.progress, function(msg) {
-				if (!msg.data.isTotal && msg.data.task !== loadTask) {
-					var pct = msg.data.percent / numAssets;
-					hemi.loader.updateTask(loadTask, loadProg + pct);
+		// 	hemi.world.subscribe(hemi.msg.progress, function(msg) {
+		// 		if (!msg.data.isTotal && msg.data.task !== loadTask) {
+		// 			var pct = msg.data.percent / numAssets;
+		// 			hemi.loader.updateTask(loadTask, loadProg + pct);
 					
-					if (msg.data.percent === 100) {
-						loadProg += pct;
-					}
-				}
+		// 			if (msg.data.percent === 100) {
+		// 				loadProg += pct;
+		// 			}
+		// 		}
+		// 	});
+		// } else {
+		// 	// instantiate the progress bar to receive total progress updates
+		// 	pbar = new hext.progressUI.bar();
+		// }
+
+		houseModel.setFileName('assets/LightingHouse_v082/LightingHouse_v082.dae');
+
+		hemi.subscribe(hemi.msg.ready, function(msg) {
+				setupScene(houseModel);
 			});
-		} else {
-			// instantiate the progress bar to receive total progress updates
-			pbar = new hext.progressUI.bar();
+
+		hemi.ready();
+	}
+
+	function setupScene(houseModel) {
+		for (var i = 0, il = houseModel.materials.length; i < il; ++i) {
+			var mat = houseModel.materials[i],
+				name = mat.map.image.src,
+				start = name.lastIndexOf('/')
+				stop = name.indexOf('.', start);
+
+			materials[name.substring(start + 1, stop)] = mat;
+			// Temporary fix for bug in Three.js colladaloader (ignores emission)
+			mat.color.setRGB(1,1,1);
 		}
-		
-		houseModel = new hemi.model.Model();
-		houseModel.setFileName('assets/LightingHouse_v082/scene.json');
-		
-		hemi.world.subscribe(hemi.msg.ready,
-			function(msg) {
-				setupScene();
+
+		var viewpoint = new hemi.Viewpoint();
+		viewpoint.eye.set(160, 1500, 1500);
+		viewpoint.target.set(160, 100, 0);
+
+		client.camera.enableControl();
+		client.camera.subscribe(hemi.msg.stop, function(msg) {
+				jQuery('div.loadedTextureSets').append('Loading 5 texture sets...<br/>');
+				loadTextures(maps.shift());
 			});
-		hemi.world.ready();
+		client.camera.moveToView(viewpoint, 1);
+	}
+
+	function changeModelTextures(textures) {
+		materials.Walls.map = textures.walls;
+		materials.Logs.map = textures.logs;
+		materials.Kitchen.map = textures.kitchen;
+		materials.Ceiling.map = textures.ceiling;
+		materials.BA.map = textures.ba;
+		materials.B1.map = textures.b1;
+		materials.B2.map = textures.b2;
+		materials.Floor.map = textures.floor;
+		materials.Window_South.map = textures.window_south;
+		materials.Window_LR3.map = textures.window_lr3;
+		materials.Window_B2.map = textures.window_b2;
+		materials.Window_B1.map = textures.window_b1;
+		materials.Window_KI.map = textures.window_ki;
+		materials.Window_LR4.map = textures.window_lr4;
+	}
+
+	function loadTextures(map) {
+		if (!map) return;
+
+		var textureSet = new hemi.TextureSet(map, function(textures) {
+				var set = 'set' + map.kitchen.slice(-8, -4);
+				skin[set] = textures;
+				jQuery('#' + set).removeAttr('disabled');
+				jQuery('div.loadedTextureSets').append(set + ' loaded<br/>');
+				loadTextures(maps.shift());
+			});
 	}
 
 	function bindJavaScript() {
 		jQuery(':button').attr('disabled', 'disabled');
 		jQuery('#set0800').click(function() {
-			changeModelSamplers(skin.set0800);
+			changeModelTextures(skin.set0800);
 		});
 		jQuery('#set1000').click(function() {
-			changeModelSamplers(skin.set1000);
+			changeModelTextures(skin.set1000);
 		});
 		jQuery('#set1200').click(function() {
-			changeModelSamplers(skin.set1200);
+			changeModelTextures(skin.set1200);
 		});
 		jQuery('#set1500').click(function() {
-			changeModelSamplers(skin.set1500);
+			changeModelTextures(skin.set1500);
 		});
 		jQuery('#set1725').click(function() {
-			changeModelSamplers(skin.set1725);
+			changeModelTextures(skin.set1725);
 		});
 	}
 
-	function setupScene() {
-		for (var i = 0, materials = houseModel.materials; i < materials.length; i++) {
-			emissiveSamplers[materials[i].name] = materials[i].getParam("emissiveSampler");
-		}
-
-		hemi.world.camera.enableControl();
-		var viewpoint = new hemi.view.Viewpoint();
-		viewpoint.eye = [160.0, 1500.0, 1500.0];
-		viewpoint.target = [160.0, 100.0, 0.0];
-		hemi.world.camera.moveToView(viewpoint, 1);
-		hemi.world.camera.subscribe(hemi.msg.stop,
-			function() {
-				jQuery('div.loadedTextureSets').append('Loading 5 texture sets...<br/>');
-				loadTextures(maps.shift());
-			});
-	}
-
-	function changeModelSamplers(samplers) {
-		// Note: value of a "Sampler", or "Sampler2D", the "emmissiveSampler" is write only.
-		emissiveSamplers.Walls_S.value = samplers.walls.value;
-		emissiveSamplers.Logs_S.value = samplers.logs.value;
-		emissiveSamplers.Kitchen_S.value = samplers.kitchen.value;
-		emissiveSamplers.Ceiling_S.value = samplers.ceiling.value;
-		emissiveSamplers.Bath_S.value = samplers.ba.value;
-		emissiveSamplers.B1_S.value = samplers.b1.value;
-		emissiveSamplers.B2_S.value = samplers.b2.value;
-		emissiveSamplers.Floor_S.value = samplers.floor.value;
-		emissiveSamplers.Win_South_S.value = samplers.window_south.value;
-		emissiveSamplers.Win_LR3_S.value = samplers.window_lr3.value;
-		emissiveSamplers.Win_B2_S.value = samplers.window_b2.value;
-		emissiveSamplers.Win_B1_S.value = samplers.window_b1.value;
-		emissiveSamplers.Win_KI_S.value = samplers.window_ki.value;
-		emissiveSamplers.Win_LR4_S.value = samplers.window_lr4.value;
-	}
-
-	function onTextureSet(map, samplers) {
-		var set = 'set' + map.kitchen.slice(-8, -4);
-		skin[set] = samplers;
-		jQuery('#' + set).removeAttr('disabled');
-		jQuery('div.loadedTextureSets').append(set + ' loaded<br/>');
-	}
-
-	function loadTextures(map) {
-		if (map) {
-			hemi.texture.createTextureSet(map,
-				function(samplers) {
-					onTextureSet(map, samplers);
-					loadTextures(maps.shift());
-				});
-		}
-	}
-	
 	function getParam(name) {
 		name = name.replace(/[\[]/,"\\\[").replace(/[\]]/,"\\\]");
-		var regexS = "[\\?&]"+name+"=([^&#]*)";
-		var regex = new RegExp( regexS );
-		var results = regex.exec( window.location.href );
-		if( results == null )
-			return "";
-		else
-			return results[1];
+		var regex = new RegExp('[\\?&]' + name + '=([^&#]*)'),
+			results = regex.exec(window.location.href);
+
+		return results === null ? "" : results[1];
 	}
 
-	jQuery(window).load(function() {
-		o3djs.webgl.makeClients(initStep);
-	});
-
-	jQuery(window).unload(function() {
-		if (hemi.core.client) {
-			hemi.core.client.cleanup();
-		}
-	});
+	window.onload = function() {
+		client = hemi.makeClients()[0];
+		client.setBGColor(0xffffff, 1);
+		hemi.loadPath = '../../';
+		bindJavaScript();
+		createWorld();
+	};
 })();
