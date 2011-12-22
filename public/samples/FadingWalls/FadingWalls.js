@@ -21,36 +21,7 @@
  *		has loaded.
  */
 (function() {
-	
-	function initStep1() {
-		o3djs.webgl.makeClients(initStep2);
-	};
-	
-	function initStep2 (clientElements) {
-		
-		/*
-		 * It is possible to have multiple clients (i.e. multiple frames
-		 * 		rendering 3d content) on one page that would have to be
-		 * 		initialized. In this case, we only want to initialize the
-		 *		first one.
-		 */
-		hemi.core.init(clientElements[0]);	
-		
-		/*
-		 * Set the background color to a light-bluish. The parameter is in
-		 * 		the form [red,blue,green,alpha], with each value on a 
-		 *		scale of 0-1.
-		 */
-		hemi.view.setBGColor([0.7, 0.8, 1, 1]);
-		hemi.loader.loadPath = '../../';
-		createWorld();
-	};
-	
-	function uninit() {
-		if (hemi.core.client) {
-			hemi.core.client.cleanup();
-		}
-	};
+	var client;
 	
 	function createWorld() {
 	
@@ -61,8 +32,8 @@
 		 */
 		var world = hemi.world;
 		
-		var house = new hemi.model.Model();				// Create a new Model
-		house.setFileName('assets/house_v12/scene.json');	// Set the model file
+		var house = new hemi.Model(client.scene);				// Create a new Model
+		house.setFileName('assets/house_v12/house_v12.dae');	// Set the model file
 
 		/*
 		 * When the file name for the house model was set, it began loading.
@@ -77,53 +48,70 @@
 	};
 	
 	function setUpScene(house) {
-		var vp1 = new hemi.view.Viewpoint();		// Create a new Viewpoint
-		vp1.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_outdoors')[0].localMatrix);
-		vp1.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_outdoors')[0].localMatrix);
+		var vp1 = new hemi.Viewpoint();		// Create a new Viewpoint
+		vp1.eye = house.getObject3Ds('camEye_outdoors')[0].position.clone();
+		vp1.target = house.getObject3Ds('camTarget_outdoors')[0].position.clone();
 
 		/*
 		 * Move the camera from it's default position (eye : [0,0,-1],
 		 * target : [0,0,0]} to the new viewpoint, and take 5 seconds to do so.
 		 */
-		hemi.world.camera.moveToView(vp1, 5);
-		hemi.world.camera.enableControl();
+		client.camera.moveToView(vp1, 2);
+		client.camera.enableControl();
 		
-		var count = 0;			// Counter to keep track of wall opacity
+		var cnt = 0;			// Counter to keep track of wall opacity
 		var dir = 1;			// Whether wall is becoming more or less opaque
 		
 		/* Get the material used on the walls, add an opacity variable to its
 		 * shader, and get the parameter that controls that opacity.
 		 */
-		var wallT = house.getTransforms('wallFront')[0],		
+		var wallT = house.getObject3Ds('wallFront')[0],		
 			opacity = 1.0;
 		
-		house.setTransformOpacity(wallT, opacity);
+		hemi.fx.setOpacity(client, wallT, wallT.material, opacity);
 		
 		/* On any keyDown, begin the fading. Reverse the direction each time */
 		hemi.input.addKeyDownListener({
 			onKeyDown : function(e) {
-				if (count == 0) {
-					count = 30;
+				if (cnt == 0) {
+					cnt = 30;
 					dir = -dir;
 				} 
 			}});
 			
 		/* Fade the wall a little more on each frame, between 1 and 0.4 */
-		hemi.view.addRenderListener({
+		hemi.addRenderListener({
 			onRender : function(e) {
-				if (count > 0) {
+				if (cnt > 0) {
 					opacity += dir*0.02;
-					house.setTransformOpacity(wallT, opacity);
-					count--;
+					hemi.fx.setOpacity(client, wallT, wallT.material, opacity);
+					cnt--;
 				}
 			}});
 		
 	};
-	
+
 	window.onload = function() {
-		initStep1();
-	};
-	window.onunload = function() {
-		uninit();
+		/**
+		 * It is possible to have multiple clients (i.e. multiple frames
+		 * 		rendering 3d content) on one page that would have to be
+		 * 		initialized. In this case, we only want to initialize the
+		 *		first one.
+		 */
+		client = hemi.makeClients()[0];
+		
+		/**
+		 * Set the background color to a light-bluish. The parameters are a hex
+		 * 		code for the RGB values and an alpha value between 0 and 1.
+		 */
+		client.setBGColor(0xbbccff, 1);
+		
+		/**
+		 * Set a prefix for the loader that will allow us to load assets as if
+		 * the helloWorld.html file was in the root directory.
+		 */
+		hemi.loadPath = '../../';
+		
+		createWorld();
 	};
 })();
