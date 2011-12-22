@@ -32,20 +32,21 @@
 	var enterMoveCamera;
 	var entered = false;
 	var audio;
+	var client;
 
 	function init(clientElements) {
 		bindJavascript();
-		hemi.core.init(clientElements[0]);
-		hemi.view.setBGColor([1, 1, 1, 1]);
-		hemi.loader.loadPath = '../../';
-		house = new hemi.model.Model();
-		house.setFileName('assets/house_v12/scene.json');
+		client = hemi.makeClients()[0];
+		client.setBGColor(0xb2cbff, 1);
+		hemi.loadPath = '../../';
+		house = new hemi.Model(client.scene);
+		house.setFileName('assets/house_v12/house_v12.dae');
 		
 		audio = {
-			door: new hemi.audio.Audio(),
-			fireplace: new hemi.audio.Audio(),
-			winLeft: new hemi.audio.Audio(),
-			winRight: new hemi.audio.Audio(),
+			door: new hemi.Audio(),
+			fireplace: new hemi.Audio(),
+			winLeft: new hemi.Audio(),
+			winRight: new hemi.Audio(),
 			init: function() {
 				// Since browsers don't all support the same formats, we add a
 				// URL for both an MP3 and an OGG version of each audio.
@@ -62,11 +63,11 @@
 		}.init();
 		this.audio = audio;
 		
-		hemi.world.subscribe(hemi.msg.ready,
+		hemi.subscribe(hemi.msg.ready,
 			function(msg) {
 				setupScene();
 			});
-		hemi.world.ready();
+		hemi.ready();
 	}
 
 	function bindJavascript() {
@@ -78,23 +79,23 @@
 	}
 
 	function setupScene() {
-		house.setTransformVisible(house.getTransforms('SO_door')[0], false);
-		house.setTransformVisible(house.getTransforms('SO_window1sashLeft')[0], false);
-		house.setTransformVisible(house.getTransforms('SO_window1sashRight')[0], false);
-		house.setTransformVisible(house.getTransforms('camEye_outdoors')[0], false);
-		house.setTransformVisible(house.getTransforms('camEye_indoors')[0], false);
-		house.setTransformVisible(house.getTransforms('camTarget_outdoors')[0], false);
-		house.setTransformVisible(house.getTransforms('camTarget_indoors')[0], false);
-		house.setTransformPickable(house.getTransforms('camEye_outdoors')[0], false);
-		house.setTransformPickable(house.getTransforms('camEye_indoors')[0], false);
-		house.setTransformPickable(house.getTransforms('camTarget_outdoors')[0], false);
-		house.setTransformPickable(house.getTransforms('camTarget_indoors')[0], false);
+		var stuff = house.getObject3Ds('SO_door')[0];
+		house.getObject3Ds('SO_door')[0].visible = false;
+		house.getObject3Ds('SO_window1sashLeft')[0].visible = false;
+		house.getObject3Ds('SO_window1sashRight')[0].visible = false;
+		house.getObject3Ds('camEye_outdoors')[0].visible = false;
+		house.getObject3Ds('camEye_indoors')[0].visible = false;
+		house.getObject3Ds('camTarget_outdoors')[0].visible = false;
+		house.getObject3Ds('camTarget_indoors')[0].visible = false;
+		house.getObject3Ds('camEye_outdoors')[0].isPickable = false;
+		house.getObject3Ds('camEye_indoors')[0].isPickable = false;
+		house.getObject3Ds('camTarget_outdoors')[0].isPickable = false;
+		house.getObject3Ds('camTarget_indoors')[0].isPickable = false;
 
-		var hMath = hemi.core.math;
-		hemi.world.camera.fixEye();
-		hemi.world.camera.setLookAroundLimits(null, null, hMath.degToRad(-50),
-			hMath.degToRad(50));
-		hemi.world.camera.enableControl();
+		client.camera.fixEye();
+		client.camera.setLookAroundLimits(null, null, -50 * hemi.DEG_TO_RAD,
+			50 * hemi.DEG_TO_RAD);
+		client.camera.enableControl();
 		
 		var colorRamp = 
 			[1, 1, 0, 0.6,
@@ -116,17 +117,13 @@
 			positionRange : [3.6, 2, 3.4],
 			spinSpeedRange: 4
 		};
-		var fire = hemi.effect.createEmitter(
-			hemi.core.particles.ParticleStateIds.ADD,
-			colorRamp,
-			params);
-		fire.transform.translate(0.0, 72.0, -236.0);
-		fire.show();
+		var fire = hemi.createParticleEmitter(client, colorRamp, params);
+		fire.transform.position.set(0.0, 72.0, -236.0);
 
-		door = new hext.house.Door(house.getTransforms('door')[0]);
+		door = new hext.house.Door(house.getObject3Ds('door')[0]);
 		door.angle = -door.angle;
 		door.onPick(function(msg) {
-			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
+			switch (msg.data.pickedMesh.name) {
 				case 'SO_door':
 				case 'door':
 					door.swing();
@@ -157,9 +154,9 @@
 			}, 200);
 		});
 		
-		window1Left = new hext.house.Window(house.getTransforms('window1_sashLeft')[0],[0,60,0]);
+		window1Left = new hext.house.Window(house.getObject3Ds('window1_sashLeft')[0],[0,60,0]);
 		window1Left.onPick(function(msg) {
-			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
+			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashLeft':
 				case 'window1_sashLeft':
 					window1Left.slide();
@@ -186,16 +183,16 @@
 			audio.winLeft.pause();
 		});
 	
-		window1Right = new hext.house.Window(house.getTransforms('window1_sashRight')[0],[0,60,0]);
+		window1Right = new hext.house.Window(house.getObject3Ds('window1_sashRight')[0],[0,60,0]);
 		window1Right.onPick(function(msg) {
-			switch (msg.data.pickInfo.shapeInfo.parent.transform.name) {
+			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashRight':
 				case 'window1_sashRight':
 					window1Right.slide();
 					enterMoveCamera();
 				break;
 			}
-		});	
+		});
 		window1Right.onClosing(function() {
 			audio.winRight.seek(0.7);
 			audio.winRight.play();
@@ -215,11 +212,11 @@
 			audio.winRight.pause();
 		});
 		
-		var viewpoint = new hemi.view.Viewpoint();
-		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_outdoors')[0].localMatrix);
-		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_outdoors')[0].localMatrix);
-		viewpoint.fov = hemi.core.math.degToRad(60);
-		hemi.world.camera.moveToView(viewpoint, 2.5);
+		var viewpoint = new hemi.Viewpoint();
+		viewpoint.eye = house.getObject3Ds('camEye_outdoors')[0].position.clone();
+		viewpoint.target = house.getObject3Ds('camTarget_outdoors')[0].position.clone();
+		viewpoint.fov = 60 * hemi.DEG_TO_RAD;
+		client.camera.moveToView(viewpoint, 2.5);
 		// Use a simple function to track when the windows and door are open to allow entering the house per the script.
 		enterMoveCamera = function() {
 			if (door.closed || window1Right.closed || window1Left.closed || entered) {
@@ -257,33 +254,21 @@
 
 	function enter() {
 		entered = true;
-		var viewpoint = new hemi.view.Viewpoint();
-		viewpoint.eye = hemi.core.math.matrix4.getTranslation(house.getTransforms('camEye_indoors')[0].localMatrix);
-		viewpoint.target = hemi.core.math.matrix4.getTranslation(house.getTransforms('camTarget_indoors')[0].localMatrix);
-		viewpoint.fov = hemi.core.math.degToRad(60);
-		hemi.world.camera.subscribe(hemi.msg.stop,
-			function(msg) {
-				if (msg.data.viewpoint === viewpoint) {
-					floatBook();
-				}
-			});
+		var viewpoint = new hemi.Viewpoint();
+		viewpoint.eye = house.getObject3Ds('camEye_indoors')[0].position.clone();
+		viewpoint.target = house.getObject3Ds('camTarget_indoors')[0].position.clone();
+		viewpoint.fov = 60 * hemi.DEG_TO_RAD;
 		enterMoveCamera();
-		hemi.world.camera.moveToView(viewpoint, 2.5);
+		client.camera.moveToView(viewpoint, 2.5);
 		setFireVolume();
 	}
 
 	function floatBook() {
-		var animation = hemi.animation.createModelAnimation(house, 0, 60);
+		var animation = hemi.createModelAnimationSequence(house, 0, 60);
 		animation.start();
 	}
 
 	jQuery(window).load(function() {
-		o3djs.webgl.makeClients(init);
-	});
-
-	jQuery(window).unload(function() {
-		if (hemi.core.client) {
-			hemi.core.client.cleanup();
-		}
+		init();
 	});
 })();
