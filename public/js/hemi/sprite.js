@@ -44,7 +44,7 @@
 			this.maps.push((parameters.map instanceof THREE.Texture) ? map : 
 				THREE.ImageUtils.loadTexture(hemi.loadPath + map, null, function() {
 					count++;
-					if (count >= il) {
+					if (count >= il && parameters.callback) {
 						parameters.callback();
 					}
 				}));
