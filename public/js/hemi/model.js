@@ -37,6 +37,7 @@ var hemi = (function(hemi) {
 		this.fileName = null;
 		this.root = null;
 		this.animations = [];
+		this.geometries = [];
 		this.materials = [];
 	};
 
@@ -107,9 +108,11 @@ var hemi = (function(hemi) {
 					newObj.morphTargetInfluences = obj.morphTargetInfluences;
 					newObj.morphTargetDictionary = obj.morphTargetDictionary;
 				}
-
 				if (this.materials.indexOf(obj.material) === -1) {
 					this.materials.push(obj.material);
+				}
+				if (this.geometries.indexOf(obj.geometry) === -1) {
+					this.geometries.push(obj.geometry);
 				}
 			} else {
 				newObj = new hemi.Transform();
@@ -143,6 +146,7 @@ var hemi = (function(hemi) {
 			this.scene = null;
 			this.root = null;
 			this.animations = [];
+			this.geometries = [];
 			this.materials = [];
 		},
 		msgs: [hemi.msg.load],

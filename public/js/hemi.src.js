@@ -2871,6 +2871,73 @@ var hemi = (function(hemi) {
 	};
 
 	/**
+	 * Rotate the texture UV coordinates of the given Geometry.
+	 * 
+	 * @param {THREE.Geometry} geometry the Geometry to translate the texture for
+	 * @param {number} theta amount to rotate the UV coordinates (in radians)
+	 */
+	hemi.utils.rotateUVs = function(geometry, theta) {
+		var uvSet = geometry.faceVertexUvs[0],
+			cosT = Math.cos(theta),
+			sinT = Math.sin(theta);
+
+		for (var i = 0, il = uvSet.length; i < il; ++i) {
+			var uvs = uvSet[i];
+
+			for (var j = 0, jl = uvs.length; j < jl; ++j) {
+				var uv = uvs[j],
+					u = uv.u,
+					v = uv.v;
+
+				uv.u = u * cosT - v * sinT;
+				uv.v = u * sinT + v * cosT;
+			}
+		}
+
+		// Magic to get the WebGLRenderer to update the vertex buffer
+		for (var i = 0, il = geometry.geometryGroupsList.length; i < il; ++i) {
+			var group = geometry.geometryGroupsList[i],
+				verts = group.faces3.length * 3 + group.faces4.length * 4;
+
+			group.__uvArray = new Float32Array(verts * 2);
+			group.__inittedArrays = true;
+		}
+
+		geometry.__dirtyUvs = true;
+	};
+
+	/**
+	 * Scale the texture UV coordinates of the given Geometry.
+	 * 
+	 * @param {THREE.Geometry} geometry the Geometry to translate the texture for
+	 * @param {number} uScale amount to scale the U coordinate
+	 * @param {number} vScale amount to scale the V coordinate
+	 */
+	hemi.utils.scaleUVs = function(geometry, uScale, vScale) {
+		var uvSet = geometry.faceVertexUvs[0];
+
+		for (var i = 0, il = uvSet.length; i < il; ++i) {
+			var uvs = uvSet[i];
+
+			for (var j = 0, jl = uvs.length; j < jl; ++j) {
+				uvs[j].u *= uScale;
+				uvs[j].v *= vScale;
+			}
+		}
+
+		// Magic to get the WebGLRenderer to update the vertex buffer
+		for (var i = 0, il = geometry.geometryGroupsList.length; i < il; ++i) {
+			var group = geometry.geometryGroupsList[i],
+				verts = group.faces3.length * 3 + group.faces4.length * 4;
+
+			group.__uvArray = new Float32Array(verts * 2);
+			group.__inittedArrays = true;
+		}
+
+		geometry.__dirtyUvs = true;
+	};
+
+	/**
 	 * Apply the given transform matrix to the vertices of the given transform's
 	 * geometry as well as the geometry of any child transforms.
 	 * 
@@ -2899,6 +2966,37 @@ var hemi = (function(hemi) {
 			var child = children[i];
 			hemi.utils.shiftGeometry(child, matrix, scene);
 		}
+	};
+
+	/**
+	 * Translate the texture UV coordinates of the given Geometry.
+	 * 
+	 * @param {THREE.Geometry} geometry the Geometry to translate the texture for
+	 * @param {number} uDelta amount to translate the U coordinate
+	 * @param {number} vDelta amount to translate the V coordinate
+	 */
+	hemi.utils.translateUVs = function(geometry, uDelta, vDelta) {
+		var uvSet = geometry.faceVertexUvs[0];
+
+		for (var i = 0, il = uvSet.length; i < il; ++i) {
+			var uvs = uvSet[i];
+
+			for (var j = 0, jl = uvs.length; j < jl; ++j) {
+				uvs[j].u += uDelta;
+				uvs[j].v += vDelta;
+			}
+		}
+
+		// Magic to get the WebGLRenderer to update the vertex buffer
+		for (var i = 0, il = geometry.geometryGroupsList.length; i < il; ++i) {
+			var group = geometry.geometryGroupsList[i],
+				verts = group.faces3.length * 3 + group.faces4.length * 4;
+
+			group.__uvArray = new Float32Array(verts * 2);
+			group.__inittedArrays = true;
+		}
+
+		geometry.__dirtyUvs = true;
 	};
 
 	/**
@@ -7659,6 +7757,7 @@ var hemi = (function(hemi) {
 		this.fileName = null;
 		this.root = null;
 		this.animations = [];
+		this.geometries = [];
 		this.materials = [];
 	};
 
@@ -7729,9 +7828,11 @@ var hemi = (function(hemi) {
 					newObj.morphTargetInfluences = obj.morphTargetInfluences;
 					newObj.morphTargetDictionary = obj.morphTargetDictionary;
 				}
-
 				if (this.materials.indexOf(obj.material) === -1) {
 					this.materials.push(obj.material);
+				}
+				if (this.geometries.indexOf(obj.geometry) === -1) {
+					this.geometries.push(obj.geometry);
 				}
 			} else {
 				newObj = new hemi.Transform();
@@ -7765,6 +7866,7 @@ var hemi = (function(hemi) {
 			this.scene = null;
 			this.root = null;
 			this.animations = [];
+			this.geometries = [];
 			this.materials = [];
 		},
 		msgs: [hemi.msg.load],
@@ -14724,6 +14826,7 @@ var hemi = (function(hemi) {
 	hemi.shape.SPHERE = 'sphere';
 	hemi.shape.CYLINDER = 'cylinder';
 	hemi.shape.CONE = 'cone';
+	hemi.shape.PLANE = 'plane';
 	hemi.shape.ARROW = 'arrow';
 	hemi.shape.TETRA = 'tetra';
 	hemi.shape.OCTA = 'octa';
@@ -15212,6 +15315,15 @@ var hemi = (function(hemi) {
 						shapeInfo.h != null ? shapeInfo.h : 1,
 					material);
 				break;
+			case hemi.shape.PLANE:
+				transform = hemi.shape.createPlane(
+					client,
+					shapeInfo.height != null ? shapeInfo.height :
+						shapeInfo.h != null ? shapeInfo.h : 1,
+					shapeInfo.width != null ? shapeInfo.width :
+						shapeInfo.w != null ? shapeInfo.w : 1,
+					material);
+				break;
 			case hemi.shape.ARROW:
 				transform = hemi.shape.createArrow(
 					client,
@@ -15339,6 +15451,25 @@ var hemi = (function(hemi) {
 		return transform;
 	};
 	
+	/**
+	 * Create a plane.
+	 * 
+	 * @param {hemi.Client} client the client to add the shape to
+	 * @param {number} h height (along y-axis)
+	 * @param {number} w width (along x-axis)
+	 * @param {THREE.Material} material material to use on plane
+	 * 
+	 * @return {THREE.Mesh} the Transform containing the created plane
+	 */
+	hemi.shape.createPlane = function(client, h, w, material) {
+		var transform = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
+
+		checkClient(client);
+		rootTransform.add(transform);
+
+		return transform;
+	};
+
 	/**
 	 * Create a sphere.
 	 * 
@@ -15853,77 +15984,6 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.TextureSet = TextureSet;
-
-	/**
-	 * Get the texture uv coordinates of the given element.
-	 * 
-	 * @param {o3d.Element} element The element from which to extract uv
-	 *     coordinates
-	 * @return {Object} {field: Field object used to reapply coordinates,
-	 *				     uv: Float array of uv coordinates}
-	 */
-	// hemi.texture.getUV = function(element) {
-	// 	var stream = element.streamBank.getVertexStream(hemi.core.o3d.Stream.TEXCOORD,0);
-	// 	return stream?{field:stream.field,
-	// 				   uv:stream.field.getAt(0,element.numberVertices)}:null;
-	// };
-	
-	// hemi.texture.reportUV = function(element) {
-	// 	var uv = hemi.texture.getUV(element).uv;
-	// 	console.log(element);
-	// 	for (var i = 0; i < uv.length; i+=3) {
-	// 		console.log(uv[i] + ',' + uv[i+1] + ',' + uv[i+2]);
-	// 	}
-	// };
-	
-	/**
-	 * Scale the texture uv coordinates of the given element.
-	 * 
-	 * @param {o3d.Element} element The element to scale the texture on
-	 * @param {number} x Amount to scale by along x-axis
-	 * @param {number} y Amoung to scale by along y-axis
-	 */
-	// hemi.texture.scale = function(element,x,y) {
-	// 	var set = hemi.texture.getUV(element);
-	// 	for (var i = 0; i < set.uv.length; i+=set.field.numComponents) {
-	// 		set.uv[i] *= x;
-	// 		set.uv[i+1] *= y;
-	// 	}
-	// 	set.field.setAt(0,set.uv);
-	// };
-
-	/**
-	 * Translate the texture uv coordinates of the given element.
-	 * 
-	 * @param {o3d.Element} element The element to translate the texture on
-	 * @param {number} x Distance to translate along x-axis
-	 * @param {number} y Distance to translate along y-axis
-	 */	
-	// hemi.texture.translate = function(element,x,y) {
-	// 	var set = hemi.texture.getUV(element);
-	// 	for (var i = 0; i < set.uv.length; i+=set.field.numComponents) {
-	// 		set.uv[i] += x;
-	// 		set.uv[i+1] += y;
-	// 	}	
-	// 	set.field.setAt(0,set.uv);
-	// };
-
-	/**
-	 * Rotate the texture uv coordinates of the given element.
-	 * 
-	 * @param {o3d.Element} element The element to rotate the texture on
-	 * @param {number} theta Radians to rotate texture, counter-clockwise
-	 */	
-	// hemi.texture.rotate = function(element,theta) {
-	// 	var set = hemi.texture.getUV(element);
-	// 	for (var i = 0; i < set.uv.length; i+=set.field.numComponents) {
-	// 		var x = set.uv[i];
-	// 		var y = set.uv[i+1];
-	// 		set.uv[i] = x*Math.cos(theta) - y*Math.sin(theta);
-	// 		set.uv[i+1] = x*Math.sin(theta) + y*Math.cos(theta);
-	// 	}	
-	// 	set.field.setAt(0,set.uv);	
-	// };
 
 	return hemi;
 })(hemi || {});

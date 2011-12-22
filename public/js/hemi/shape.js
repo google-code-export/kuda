@@ -31,6 +31,7 @@
 	hemi.shape.SPHERE = 'sphere';
 	hemi.shape.CYLINDER = 'cylinder';
 	hemi.shape.CONE = 'cone';
+	hemi.shape.PLANE = 'plane';
 	hemi.shape.ARROW = 'arrow';
 	hemi.shape.TETRA = 'tetra';
 	hemi.shape.OCTA = 'octa';
@@ -519,6 +520,15 @@
 						shapeInfo.h != null ? shapeInfo.h : 1,
 					material);
 				break;
+			case hemi.shape.PLANE:
+				transform = hemi.shape.createPlane(
+					client,
+					shapeInfo.height != null ? shapeInfo.height :
+						shapeInfo.h != null ? shapeInfo.h : 1,
+					shapeInfo.width != null ? shapeInfo.width :
+						shapeInfo.w != null ? shapeInfo.w : 1,
+					material);
+				break;
 			case hemi.shape.ARROW:
 				transform = hemi.shape.createArrow(
 					client,
@@ -646,6 +656,25 @@
 		return transform;
 	};
 	
+	/**
+	 * Create a plane.
+	 * 
+	 * @param {hemi.Client} client the client to add the shape to
+	 * @param {number} h height (along y-axis)
+	 * @param {number} w width (along x-axis)
+	 * @param {THREE.Material} material material to use on plane
+	 * 
+	 * @return {THREE.Mesh} the Transform containing the created plane
+	 */
+	hemi.shape.createPlane = function(client, h, w, material) {
+		var transform = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
+
+		checkClient(client);
+		rootTransform.add(transform);
+
+		return transform;
+	};
+
 	/**
 	 * Create a sphere.
 	 * 
