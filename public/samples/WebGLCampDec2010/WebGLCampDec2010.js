@@ -179,9 +179,7 @@
 		makeCubeStack3([-600, -170, 8300]);
 
 		digDisp.root.scale.set(2, 2, 2);
-		digDisp.root.translateX(164);
-		digDisp.root.translateY(120);
-		digDisp.root.translateZ(SLIDE_1Z / 2 + 495);
+		digDisp.root.position.set(328, 240, SLIDE_1Z + 990);
 		updateDigDisp(0, 1);
 
 		// vp.eye = SLIDE1_EYE;
@@ -227,15 +225,15 @@
 	}
 
 	function updateDigDisp(ndx, upOrDown) {
-//		hemi.texture.translate(digDisp.shapes[ndx].elements[0], 0.1 * upOrDown, 0);
-//		dispDigits[ndx] = (dispDigits[ndx] + upOrDown) % 10;
-//		if (dispDigits[ndx] < 0) dispDigits[ndx] = 9;
-//
-//		if ((dispDigits[ndx] == 0 && upOrDown == 1) || (dispDigits[ndx] == 9 && upOrDown == -1)) {
-//			if (ndx < 9) updateDigDisp(shapeNdx[ndx], upOrDown);
-//		} else {
-//			digDisp.root.translate(0, 0, -500 * upOrDown);
-//		}
+		hemi.utils.translateUVs(digDisp.geometries[ndx], 0.1 * upOrDown, 0);
+		dispDigits[ndx] = (dispDigits[ndx] + upOrDown) % 10;
+		if (dispDigits[ndx] < 0) dispDigits[ndx] = 9;
+
+		if ((dispDigits[ndx] == 0 && upOrDown == 1) || (dispDigits[ndx] == 9 && upOrDown == -1)) {
+			if (ndx < 9) updateDigDisp(shapeNdx[ndx], upOrDown);
+		} else {
+			digDisp.root.position.z -= 1000 * upOrDown;
+		}
 	}
 
 	function moveOnRails() {
