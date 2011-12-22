@@ -105,18 +105,15 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Load the Octane file at the given URL. If an error occurs, an alert is
-	 * thrown. Otherwise the loaded data is decoded into JSON and passed to the
-	 * Octane module. If the Octane is for an object, it is created and passed
-	 * to the given optional callback. If the Octane is for a World, the current
-	 * World is cleaned up and the new World is created. The given optional
-	 * callback is then executed, followed by hemi.world.ready().
+	 * Load the Octane file at the given URL. If an error occurs, an alert is  thrown. Otherwise the
+	 * loaded data is decoded into JSON and passed to the Octane module. If the Octane is for an
+	 * object, it is created and passed to the given optional callback. If the Octane is for a
+	 * World, the current World is cleaned up and the new World is created. The given optional
+	 * callback is then executed after hemi.ready().
 	 * 
-	 * @param {string} url the url of the file to load relative to the Kuda
-	 *     directory
-	 * @param {function([Object]):void} opt_callback an optional function to
-	 *     either pass the Object created or execute before the created World's
-	 *     ready function is called
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function([Object]):void} opt_callback an optional function to either pass the Object
+	 *     created or execute after the created World's ready function is called
 	 */
 	hemi.loadOctane = function(url, opt_callback) {
 		url = hemi.getLoadPath(url);
@@ -143,6 +140,21 @@ var hemi = (function(hemi) {
 					opt_callback(obj);
 				}
 			}
+		});
+	};
+
+	/**
+	 * Load the texture at the given URL. If an error occurs, an alert is thrown. Otherwise the
+	 * given callback is executed and passed the texture.
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function(THREE.Texture):void} callback a function to pass the loaded texture
+	 */
+	hemi.loadTexture = function(url, callback) {
+		hemi.loadImage(url, function(image) {
+			var texture = new THREE.Texture(image);
+			texture.needsUpdate = true;
+			callback(texture);
 		});
 	};
 
