@@ -171,7 +171,7 @@
 		 * 		initialized. In this case, we only want to initialize the
 		 *		first one.
 		 */
-		theClient = client = hemi.makeClients()[0];
+		client = hemi.makeClients()[0];
 		
 		/**
 		 * Set the background color to a light-bluish. The parameters are a hex

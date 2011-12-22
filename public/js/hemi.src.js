@@ -15691,45 +15691,51 @@ var hemi = (function(hemi) {
 		where.count += 1;
 	};
 
-	function unrollImmediateBufferMaterials(globject) {
-		var i, l, m, ml, material,
-			object = globject.object,
-			opaque = globject.opaque,
-			transparent = globject.transparent;
+	function unrollImmediateBufferMaterial(globject) {
+		var object = globject.object,
+			material = object.material;
 
-		transparent.count = 0;
-		opaque.count = 0;
-
-		for (m = 0, ml = object.materials.length; m < ml; m++) {
-			material = object.materials[ m ];
-			material.transparent ? addToFixedArray(transparent, material) : addToFixedArray(opaque, material);
+		if (material.transparent) {
+			globject.transparent = material;
+			globject.opaque = null;
+		} else {
+			globject.opaque = material;
+			globject.transparent = null;
 		}
-
 	};
 
-	function unrollBufferMaterials(globject) {
-		var i, l, m, ml, material, meshMaterial,
-			object = globject.object,
+	function unrollBufferMaterial(globject) {
+		var object = globject.object,
 			buffer = globject.buffer,
-			opaque = globject.opaque,
-			transparent = globject.transparent;
+			material, materialIndex, meshMaterial;
 
-		transparent.count = 0;
-		opaque.count = 0;
+		meshMaterial = object.material;
 
-		for (m = 0, ml = object.materials.length; m < ml; m++) {
+		if (meshMaterial instanceof THREE.MeshFaceMaterial) {
+			materialIndex = buffer.materialIndex;
 
-			meshMaterial = object.materials[ m ];
+			if (materialIndex >= 0) {
+				material = object.geometry.materials[materialIndex];
 
-			if (meshMaterial instanceof THREE.MeshFaceMaterial) {
-				for (i = 0, l = buffer.materials.length; i < l; i++) {
-					material = buffer.materials[ i ];
-					if (material) material.transparent ? addToFixedArray(transparent, material) : addToFixedArray(opaque, material);
-
+				if (material.transparent) {
+					globject.transparent = material;
+					globject.opaque = null;
+				} else {
+					globject.opaque = material;
+					globject.transparent = null;
 				}
-			} else {
-				material = meshMaterial;
-				if (material) material.transparent ? addToFixedArray(transparent, material) : addToFixedArray(opaque, material);
+			}
+		} else {
+			material = meshMaterial;
+
+			if (material) {
+				if (material.transparent) {
+					globject.transparent = material;
+					globject.opaque = null;
+				} else {
+					globject.opaque = material;
+					globject.transparent = null;
+				}
 			}
 		}
 	};
@@ -15874,10 +15880,10 @@ var hemi = (function(hemi) {
 			material.opacity = opacity;
 			
 			// move the material to the transparent list and out of the opaque list
-			found.transparent.list = [];
-			found.opaque.list = [];
-			unrollBufferMaterials(found);
-			unrollImmediateBufferMaterials(found);
+			found.transparent && (found.transparent.list = []);
+			found.opaque && (found.opaque.list = []);
+			unrollBufferMaterial(found);
+			unrollImmediateBufferMaterial(found);
 		}
 	};
 	
