@@ -181,7 +181,7 @@ var uglifyHemi = function(src, dst) {
 					'hemi/model.js',
 	                'hemi/picker.js',
 	                'hemi/client.js',
-					'hemi/animationSequence.js',
+					'hemi/animationGroup.js',
 					'hemi/motion.js',
 					'hemi/effect.js',
 					//'hemi/scene.js',
@@ -196,25 +196,27 @@ var uglifyHemi = function(src, dst) {
 				]
 			},
 			header =
-'/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */\n\
-/*\n\
-The MIT License (MIT)\n\
-\n\
-Copyright (c) 2011 SRI International\n\
-\n\
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated\n\
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the\n\
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit\n\
-persons to whom the Software is furnished to do so, subject to the following conditions:\n\
-\n\
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the\n\
-Software.\n\
-\n\
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE\n\
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR\n\
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR\n\
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
-*/\n';
+'/*\n\
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php\n\
+ * The MIT License (MIT)\n\
+ * \n\
+ * Copyright (c) 2011 SRI International\n\
+ * \n\
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and\n\
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,\n\
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,\n\
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is\n\
+ * furnished to do so, subject to the following conditions:\n\
+ * \n\
+ * The above copyright notice and this permission notice shall be included in all copies or\n\
+ * substantial portions of the  Software.\n\
+ * \n\
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT\n\
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND\n\
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,\n\
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
+ */\n';
 		catFiles(args);
 		fs.writeFileSync(dst + '/hemi.src.js', args.libData + args.moduleData);
 
