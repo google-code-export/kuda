@@ -264,7 +264,7 @@
 	}
 
 	function floatBook() {
-		var animation = hemi.createModelAnimationSequence(house, 0, 60);
+		var animation = new hemi.AnimationGroup(0, 60, house);
 		animation.start();
 	}
 
