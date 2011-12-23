@@ -3389,178 +3389,171 @@ var hemi = (function(hemi) {
 
 	return hemi;
 })(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
+
 	/**
-	 * @namespace A module for displaying log, warning, and error messages to a
-	 * console element on a webpage.
+	 * @namespace A module for displaying log, warning, and error messages to a console element on a
+	 * webpage.
 	 */
 	hemi.console = hemi.console || {};
-	
+
+		/*
+		 * Get a timestamp for the current time.
+		 * 
+		 * @return {string} the current timestamp
+		 */
+	var getTime = function() {
+			var currentTime = new Date(),
+				hours = currentTime.getHours(),
+				minutes = currentTime.getMinutes(),
+				seconds = currentTime.getSeconds();
+
+			hours = hours < 10 ? '0' + hours : '' + hours;
+			minutes = minutes < 10 ? ':0' + minutes : ':' + minutes;
+			seconds = seconds < 10 ? ':0' + seconds : ':' + seconds;
+
+			return hours + minutes + seconds;
+		},
+		/*
+		 * The actual function for logging a message.
+		 * 
+		 * @param {string} msg the message to log
+		 * @param {string} level the priority level of the message
+		 */
+		logMessage = function(msg, level) {
+			level = level || hemi.console.LOG;
+
+			if (testPriority(level)) {
+				var fullMsg = level + ':\t' + msg;
+
+				if (showTime) {
+					fullMsg = getTime() + '\t' + fullMsg;
+				}
+
+				output(fullMsg);
+			}
+		},
+		/*
+		 * The default method for displaying a log message.
+		 * 
+		 * @param {string} msg the full log message to display
+		 */
+		output = function(msg) {
+			try {
+				console.log(msg);
+			} catch(e) { }
+		},
+		/*
+		 * Test if the given priority level for a message is high enough to display when the console
+		 * is set to LOG priority.
+		 * 
+		 * @param {string} level the priority level to check
+		 * @return {boolean} true if the level is high enough to display
+		 */
+		logTest = function(level) {
+			return level === hemi.console.LOG ||
+			       level === hemi.console.WARN ||
+			       level === hemi.console.ERR;
+		},
+		/*
+		 * Test if the given priority level for a message is high enough to display when the console
+		 * is set to WARN priority.
+		 * 
+		 * @param {string} level the priority level to check
+		 * @return {boolean} true if the level is high enough to display
+		 */
+		warnTest = function(level) {
+			return level === hemi.console.WARN ||
+			       level === hemi.console.ERR;
+		},
+		/*
+		 * Test if the given priority level for a message is high enough to display when the console
+		 * is set to ERR priority.
+		 * 
+		 * @param {string} level the priority level to check
+		 * @return {boolean} true if the level is high enough to display
+		 */
+		errTest = function(level) {
+			return level === hemi.console.ERR;
+		},	
+		/*
+		 * This function is aliased to the proper test function for the console's
+		 * current priority level.
+		 */
+		testPriority = logTest,
+		/*
+		 * Flag indicating if the console should display log messages.
+		 * @type boolean
+		 */
+		enabled = false,
+		/*
+		 * Flag indicating if timestamps should be added to log messages.
+		 * @type boolean
+		 */
+		showTime = true;
+
 	/**
 	 * The priority level for an error message.
 	 * @type string
 	 * @constant
 	 */
 	hemi.console.ERR = 'ERR';
-	
+
 	/**
 	 * The priority level for a warning message.
 	 * @type string
 	 * @constant
 	 */
 	hemi.console.WARN = 'WARN';
-	
+
 	/**
 	 * The priority level for a log message.
 	 * @type string
 	 * @constant
 	 */
 	hemi.console.LOG = 'LOG';
-	
-	/* Flag indicating if the console should display log messages */
-	var enabled = false;
-	/* Flag indicating if timestamps should be added to log messages */
-	var showTime = true;
-	
-	/*
-	 * The actual function for logging a message.
-	 * 
-	 * @param {string} msg the message to log
-	 * @param {string} level the priority level of the message
-	 */
-	var logMessage = function(msg, level) {
-		level = level || hemi.console.LOG;
-		
-		if (testPriority(level)) {
-			var fullMsg = level + ':\t' + msg;
-			
-			if (showTime) {
-				var time = getTime();
-				fullMsg = time + '\t' + fullMsg;
-			}
-			
-			output(fullMsg);
-		}
-	};
-	
-	/*
-	 * The default method for displaying a log message.
-	 * 
-	 * @param {string} msg the full log message to display
-	 */
-	var output = function(msg) {
-		try {
-			console.log(msg);
-		} catch(e) { }
-	};
-	
-	/*
-	 * Get a timestamp for the current time.
-	 * 
-	 * @return {string} the current timestamp
-	 */
-	var getTime = function() {
-		var currentTime = new Date();
-		var hours = currentTime.getHours();
-		hours = hours < 10 ? '0' + hours : '' + hours;
-		var minutes = currentTime.getMinutes();
-		minutes = minutes < 10 ? ':0' + minutes : ':' + minutes;
-		var seconds = currentTime.getSeconds();
-		seconds = seconds < 10 ? ':0' + seconds : ':' + seconds;
-		
-		return hours + minutes + seconds;
-	};
-	
-	/*
-	 * Test if the given priority level for a message is high enough to display
-	 * when the console is set to LOG priority.
-	 * 
-	 * @param {string} level the priority level to check
-	 * @return {boolean} true if the level is high enough to display
-	 */
-	var logTest = function(level) {
-		return level === hemi.console.LOG ||
-		       level === hemi.console.WARN ||
-		       level === hemi.console.ERR;
-	};
-	
-	/*
-	 * Test if the given priority level for a message is high enough to display
-	 * when the console is set to WARN priority.
-	 * 
-	 * @param {string} level the priority level to check
-	 * @return {boolean} true if the level is high enough to display
-	 */
-	var warnTest = function(level) {
-		return level === hemi.console.WARN ||
-		       level === hemi.console.ERR;
-	};
-	
-	/*
-	 * Test if the given priority level for a message is high enough to display
-	 * when the console is set to ERR priority.
-	 * 
-	 * @param {string} level the priority level to check
-	 * @return {boolean} true if the level is high enough to display
-	 */
-	var errTest = function(level) {
-		return level === hemi.console.ERR;
-	};
-	
-	/*
-	 * This function is aliased to the proper test function for the console's
-	 * current priority level.
-	 */
-	var testPriority = logTest;
-	
+
 	/**
-	 * Log the given message if the console is enabled or ignore the message if
-	 * the console is disabled.
+	 * Log the given message if the console is enabled or ignore the message if the console is
+	 * disabled.
 	 * 
 	 * @param {string} msg the message to display
 	 * @param {string} level the priority level of the message
 	 */
 	hemi.console.log = hemi.utils.noop;
-	
+
 	/**
 	 * Enable or disable the console to receive log messages.
 	 * 
 	 * @param {boolean} en flag indicating if the console should be enabled
 	 */
 	hemi.console.setEnabled = function(en) {
-		if (en == enabled) {
-			return;
-		}
-		
 		enabled = en;
-		
-		if (enabled) {
-			hemi.console.log = logMessage;
-		} else {
-			hemi.console.log = hemi.utils.noop;
-		}
+		hemi.console.log = enabled ? logMessage : hemi.utils.noop;
 	};
-	
+
 	/**
 	 * Set the function that will be used to display log messages.
 	 * 
@@ -3569,11 +3562,10 @@ var hemi = (function(hemi) {
 	hemi.console.setOutput = function(outFunc) {
 		output = outFunc;
 	};
-	
+
 	/**
-	 * Set the current priority level of the console. Log messages at the given
-	 * priority level or higher will be displayed. Log messages below the
-	 * priority level will be ignored.
+	 * Set the current priority level of the console. Log messages at the given priority level or
+	 * higher will be displayed. Log messages below the priority level will be ignored.
 	 * 
 	 * @param {string} priority the priority level to set the console to
 	 */
@@ -3590,7 +3582,7 @@ var hemi = (function(hemi) {
 				break;
 		}
 	};
-	
+
 	/**
 	 * Enable or disable timestamping for received log messages.
 	 * 
@@ -3599,50 +3591,35 @@ var hemi = (function(hemi) {
 	hemi.console.setShowTime = function(show) {
 		showTime = show;
 	};
-	
+
 	return hemi;
-})(hemi || {});/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+})(hemi || {});
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-
-/*
- * Because Internet Explorer does not support Array.indexOf(), we can add
- * it in so that subsequent calls do not break.
- *
- * @param {Object} obj
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-if (!Array.indexOf) {
-	Array.prototype.indexOf = function(obj) {
-		for (var i = 0; i < this.length; i++) {
-			if (this[i] == obj) {
-				return i;
-			}
-		}
-		return -1;
-	};
-}
 
 /**
- * Create the requestAnimationFrame function if needed. Each browser implements
- * it as d different name currently. Default to a timeout if not supported.
- * Credit to http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+ * Create the requestAnimationFrame function if needed. Each browser implements it as a different
+ * name currently. Default to a timeout if not supported. Credit to
+ * http://paulirish.com/2011/requestanimationframe-for-smart-animating/
  * and others...
  */
 if (!window.requestAnimationFrame) {
@@ -3659,39 +3636,32 @@ if (!window.requestAnimationFrame) {
 
 /**
  * @namespace The core Hemi library used by Kuda.
- * @version 1.5.0
+ * @version 2.0.0-beta
  */
 var hemi = (function(hemi) {
-	
-	var errCallback = null,
-	
-		fps = 60,
-		
-		hz = 1 / fps,
-	
+
 		/*
-		 * The time of the last render in seconds.
-		 * @type {number}
+		 * Get the supported renderer for the browser (WebGL or canvas) If WebGL is not supported,
+		 * display a warning message.
+		 * 
+		 * @param {Object} element DOM element to add warning message to if necessary
+		 * @return {THREE.WebGLRenderer} the supported renderer or null
 		 */
-		lastRenderTime = 0,
-	
-		renderListeners = [],
-		
-		getRenderer = function(element) {
+	var getRenderer = function(element) {
 			var renderer = null;
-			
+
 			if (Detector.webgl) {
 				renderer = new THREE.WebGLRenderer();
 			} else {
 				if (Detector.canvas) {
 					renderer = new THREE.CanvasRenderer();
 				}
-				
+
 				Detector.addGetWebGLMessage({
 					id: 'warn_' + element.id,
 					parent: element
 				});
-				
+
 				(function(elem) {
 					setTimeout(function() {
 						var msg = document.getElementById('warn_' + elem.id);
@@ -3699,126 +3669,127 @@ var hemi = (function(hemi) {
 					}, 5000);
 				})(element);
 			}
-			
+
 			return renderer;
 		},
-		
+		/*
+		 * The render function to be executed on each animation frame. Calls onRender for each
+		 * render listener and then for each Client.
+		 * 
+		 * @param {boolean} update flag to force Clients to render
+		 */
 		render = function(update) {
 			requestAnimationFrame(render);
-			
-			var renderTime = new Date().getTime() * 0.001,
+
+			var renderTime = new Date().getTime(),
 				event = {
 					elapsedTime: hz
 				};
-			
-			while (renderTime - lastRenderTime > hz) {
+
+			while (renderTime - lastRenderTime > hzMS) {
 				update = true;
-				lastRenderTime += hz;
-				
-				for (var i = 0; i < renderListeners.length; ++i) {
+				lastRenderTime += hzMS;
+
+				for (var i = 0, il = renderListeners.length; i < il; ++i) {
 					renderListeners[i].onRender(event);
 				}
 			}
-			
+
 			if (update) {
-				for (var i = 0; i < hemi.clients.length; ++i) {
+				for (var i = 0, il = hemi.clients.length; i < il; ++i) {
 					hemi.clients[i].onRender(event);
 				}
 			}
 		},
-		
+		/*
+		 * Window resize handler function.
+		 */
 		resize = function() {
 			for (var i = 0; i < hemi.clients.length; ++i) {
 				hemi.clients[i]._resize();
 			}
-		};
-	
+		},
+		/*
+		 * The function to pass errors thrown using hemi.error. Default is to throw a new Error.
+		 * @type function(string):void
+		 */
+		errCallback = null,
+		/*
+		 * The current frames per second that are enforced by Hemi.
+		 * @type number
+		 * @default 60
+		 */
+		fps = 60,
+		/*
+		 * Cached inverse of the frames per second.
+		 * @type number
+		 */
+		hz = 1 / fps,
+		/*
+		 * Cached inverse of the frames per millisecond. (Internal time is in milliseconds)
+		 * @type number
+		 */
+		hzMS = hz * 1000,
+		/*
+		 * The time of the last render in milliseconds.
+		 * @type {number}
+		 */
+		lastRenderTime = 0,
+		/*
+		 * Array of render listener objects that all have an onRender function.
+		 * @type Object[]
+		 */
+		renderListeners = [];
+
+	// Useful constants to cache
+
 	/**
-	 * The version of Hemi released: 10/11/11
+	 * Conversion factor for degrees to radians.
+	 * @type number
+	 * @default Math.PI / 180
+	 */
+	hemi.DEG_TO_RAD = Math.PI / 180;
+
+	/**
+	 * Half of Pi
+	 * @type number
+	 * @default Math.PI / 2
+	 */
+	hemi.HALF_PI = Math.PI / 2;
+
+	/**
+	 * Conversion factor for radians to degrees.
+	 * @type number
+	 * @default 180 / Math.PI
+	 */
+	hemi.RAD_TO_DEG = 180 / Math.PI;
+
+	/**
+	 * The version of Hemi released: TBD
 	 * @constant
 	 */
-	hemi.version = '1.5.0';
+	hemi.version = '2.0.0-beta';
 	hemi.console.setEnabled(true);
-	
+
 	/**
 	 * The list of Clients being rendered on the current webpage.
 	 */
 	hemi.clients = [];
-	
-	/**
-	 * Search the webpage for any divs with an ID starting with "kuda" and
-	 * create a Client and canvas within each div that will be rendered to using
-	 * WebGL.
-	 */
-	hemi.makeClients = function() {
-		var elements = document.getElementsByTagName('div'),
-			numClients = hemi.clients.length;
-		
-		for (var i = 0; i < elements.length; ++i) {
-			var element = elements[i];
-			
-			if (element.id && element.id.match(/^kuda/)) {
-				var renderer = getRenderer(element);
-				
-				if (renderer) {
-					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true);
-					
-					element.appendChild(renderer.domElement);
-					client.setRenderer(renderer);
-					hemi.hudManager.addClient(client);
-				}
-			}
-		}
-		
-		hemi.init();
-		return hemi.clients;
-	};
 
 	/**
-	 * Initialize hemi features. This does not need to be called if
-	 * hemi.makeClients() is called, but it can be used on its own if you don't
-	 * want to use hemi's client system.
-	 */
-	hemi.init = function() {
-		window.addEventListener('resize', resize, false);
-		lastRenderTime = new Date().getTime() * 0.001;
-		render(true);
-	};
-	
-	/**
-	 * Add the given render listener to hemi. A listener must implement the
-	 * onRender function.
+	 * Add the given render listener to hemi. A listener must implement the onRender function.
 	 * 
 	 * @param {Object} listener the render listener to add
 	 */
 	hemi.addRenderListener = function(listener) {
-		var ndx = renderListeners.indexOf(listener);
-		
-		if (ndx === -1) {
+		if (renderListeners.indexOf(listener) === -1) {
 			renderListeners.push(listener);
 		}
 	};
 
 	/**
-	 * Remove the given render listener from hemi.
-	 * 
-	 * @param {Object} listener the render listener to remove
-	 * @return {Object} the removed listener if successful or null
-	 */
-	hemi.removeRenderListener = function(listener) {
-		var ndx = renderListeners.indexOf(listener),
-			retVal = null;
-		
-		if (ndx !== -1) {
-			retVal = renderListeners.splice(ndx, 1)[0];
-		}
-
-		return retVal;
-	};
-	
-	/**
-	 * Pass the given error message to the registered error handler or throw an
-	 * Error if no handler is registered.
+	 * Pass the given error message to the registered error handler or throw an Error if no handler
+	 * is registered.
 	 * 
 	 * @param {string} msg error message
 	 */
@@ -3833,15 +3804,79 @@ var hemi = (function(hemi) {
 	};
 
 	/**
+	 * Get the current frames-per-second that will be enforced for rendering.
+	 * 
+	 * @return {number} current frames-per-second
+	 */
+	hemi.getFPS = function() {
+		return fps;
+	};
+
+	/**
 	 * Get the time that the specified animation frame occurs at.
 	 *
 	 * @param {number} frame frame number to get the time for
-	 * @return {number} time that the frame occurs at
+	 * @return {number} time that the frame occurs at in seconds
 	 */
 	hemi.getTimeOfFrame = function(frame) {
 		return frame * hz;
 	};
-	
+
+	/**
+	 * Initialize hemi features. This does not need to be called if hemi.makeClients() is called,
+	 * but it can be used on its own if you don't want to use hemi's client system.
+	 */
+	hemi.init = function() {
+		window.addEventListener('resize', resize, false);
+		lastRenderTime = new Date().getTime();
+		render(true);
+	};
+
+	/**
+	 * Search the webpage for any divs with an ID starting with "kuda" and create a Client and
+	 * canvas within each div that will be rendered to using WebGL.
+	 */
+	hemi.makeClients = function() {
+		var elements = document.getElementsByTagName('div'),
+			numClients = hemi.clients.length;
+		
+		for (var i = 0, il = elements.length; i < il; ++i) {
+			var element = elements[i];
+
+			if (element.id && element.id.match(/^kuda/)) {
+				var renderer = getRenderer(element);
+
+				if (renderer) {
+					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true);
+
+					element.appendChild(renderer.domElement);
+					client.setRenderer(renderer);
+					hemi.hudManager.addClient(client);
+				}
+			}
+		}
+
+		hemi.init();
+		return hemi.clients;
+	};
+
+	/**
+	 * Remove the given render listener from hemi.
+	 * 
+	 * @param {Object} listener the render listener to remove
+	 * @return {Object} the removed listener if successful or null
+	 */
+	hemi.removeRenderListener = function(listener) {
+		var ndx = renderListeners.indexOf(listener),
+			retVal = null;
+
+		if (ndx !== -1) {
+			retVal = renderListeners.splice(ndx, 1)[0];
+		}
+
+		return retVal;
+	};
+
 	/**
 	 * Set the given function as the error handler for Hemi errors.
 	 * 
@@ -3849,15 +3884,6 @@ var hemi = (function(hemi) {
 	 */
 	hemi.setErrorCallback = function(callback) {
 		errCallback = callback;
-	};
-	
-	/**
-	 * Get the current frames-per-second that will be enforced for rendering.
-	 * 
-	 * @return {number} current frames-per-second
-	 */
-	hemi.getFPS = function() {
-		return fps;
 	};
 
 	/**
@@ -3868,13 +3894,9 @@ var hemi = (function(hemi) {
 	hemi.setFPS = function(newFps) {
 		fps = newFps;
 		hz = 1/fps;
+		hzMS = hz * 1000;
 	};
 
-	// Useful constants to cache
-	hemi.DEG_TO_RAD = Math.PI / 180;
-	hemi.HALF_PI = Math.PI / 2;
-	hemi.RAD_TO_DEG = 180 / Math.PI;
-	
 	return hemi;
 })(hemi || {});
 /* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
@@ -8032,6 +8054,10 @@ var hemi = (function(hemi) {
 		hemi.clients.push(this);
 	};
 
+	/*
+	 * Octane properties for Client.
+	 * @type string[]
+	 */
 	Client.prototype._octane = function() {
 		return [
 			{
@@ -8050,7 +8076,7 @@ var hemi = (function(hemi) {
 		];
 	};
 
-	/**
+	/*
 	 * Update the Client's renderer, Camera, and Picker with the current size of the viewport.
 	 */
 	Client.prototype._resize = function() {
