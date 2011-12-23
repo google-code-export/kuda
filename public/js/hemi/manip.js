@@ -282,7 +282,7 @@ var hemi = (function(hemi) {
 	 * @return {number[2]} equivalent UV coordinates
 	 */
 	Draggable.prototype.getUV = function(x,y) {
-		var ray = this.client.clientPositionToRay(x, y),
+		var ray = this.client.castRay(x, y),
 			plane = this.getPlane(),
 			tuv = hemi.utils.intersect(ray, plane);
 		
@@ -493,7 +493,7 @@ var hemi = (function(hemi) {
 					 new THREE.Vector3().add(this.plane[1], translation),
 					 new THREE.Vector3().add(this.plane[2], translation)];
 		}
-		var ray = this.client.clientPositionToRay(x, y),
+		var ray = this.client.castRay(x, y),
 		tuv = hemi.utils.intersect(ray, plane);
 		return Math.atan2(tuv[2],tuv[1]);
 	};

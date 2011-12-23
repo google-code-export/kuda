@@ -126,7 +126,7 @@ var hemi = (function(hemi) {
 		
 		resize = function() {
 			for (var i = 0; i < hemi.clients.length; ++i) {
-				hemi.clients[i].resize();
+				hemi.clients[i]._resize();
 			}
 		};
 	
@@ -158,7 +158,7 @@ var hemi = (function(hemi) {
 				var renderer = getRenderer(element);
 				
 				if (renderer) {
-					var client = i < numClients ? hemi.clients[i] : new hemi.Client();
+					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true);
 					
 					element.appendChild(renderer.domElement);
 					client.setRenderer(renderer);

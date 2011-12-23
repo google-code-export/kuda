@@ -30,14 +30,14 @@ var hemi = (function(hemi) {
 	 * @class An Audio contains an audio DOM element that can be played, paused, etc.
 	 */
 	var Audio = function() {
-		/**
+		/*
 		 * Flag indicating if a seek operation is currently happening.
 		 * @type boolean
 		 * @default false
 		 */
 		this._seeking = false;
 
-		/**
+		/*
 		 * Flag indicating if the Audio should start playing when the current seek operation
 		 * finishes.
 		 * @type boolean
@@ -45,7 +45,7 @@ var hemi = (function(hemi) {
 		 */
 		this._startPlay = false;
 
-		/**
+		/*
 		 * Array of objects containing source URLs, types, and DOM elements.
 		 */
 		this._urls = [];
