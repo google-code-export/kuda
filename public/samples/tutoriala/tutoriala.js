@@ -174,7 +174,7 @@
 
 		// Per the script start the book animation curve 2 seconds after the fire is lit.
 		setTimeout(function() {
-			var animation = hemi.createModelAnimationSequence(house, 0, 60);
+			var animation = new hemi.AnimationGroup(0, 60, house);
 			var triggerTime = hemi.getTimeOfFrame(30);
 			animation.subscribe(hemi.msg.animate, function(msg) {
 				var time = msg.data.time;
