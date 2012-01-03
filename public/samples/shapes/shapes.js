@@ -112,7 +112,7 @@
 		hemi.shape.create(client, {
 			shape: 'arrow',
 			color: 0xff0088,
-			size: 5, tail: 5 }).translateX(90);
+			size: 5, tail: 5, depth: 5 }).translateX(90);
 	}
 
 	window.onload = function() {
