@@ -94,10 +94,12 @@ var hemi = (function(hemi) {
 				update = true;
 				lastRenderTime += hzMS;
 
-				for (var i = 0, il = renderListeners.length; i < il; ++i) {
-					renderListeners[i].onRender(event);
+				for (renderNdx = 0; renderNdx < renderListeners.length; ++renderNdx) {
+					renderListeners[renderNdx].onRender(event);
 				}
 			}
+
+			renderNdx = -1;
 
 			if (update) {
 				for (var i = 0, il = hemi.clients.length; i < il; ++i) {
@@ -143,7 +145,12 @@ var hemi = (function(hemi) {
 		 * Array of render listener objects that all have an onRender function.
 		 * @type Object[]
 		 */
-		renderListeners = [];
+		renderListeners = [],
+		/*
+		 * The index of the render listener currently running onRender().
+		 * @type number
+		 */
+		renderNdx = -1;
 
 	// Useful constants to cache
 
@@ -276,6 +283,11 @@ var hemi = (function(hemi) {
 
 		if (ndx !== -1) {
 			retVal = renderListeners.splice(ndx, 1)[0];
+
+			if (ndx <= renderNdx) {
+				// Adjust so that the next render listener will not get skipped.
+				renderNdx--;
+			}
 		}
 
 		return retVal;
