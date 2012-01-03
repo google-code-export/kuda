@@ -457,9 +457,7 @@
 			shapeType = shapeInfo.shape,
 			color = null,
 			material;
-			
-		checkClient(client);
-		
+					
 		if (shapeInfo.mat != null) {
 			material = shapeInfo.mat;
 		} else {
@@ -534,6 +532,7 @@
 					client,
 					shapeInfo.size != null ? shapeInfo.size : 1,
 					shapeInfo.tail != null ? shapeInfo.tail : 1,
+					shapeInfo.depth != null ? shapeInfo.depth : 1,
 					material);
 				break;
 			case hemi.shape.TETRA:
@@ -590,8 +589,7 @@
 		var transform = new THREE.Mesh(new THREE.CubeGeometry(w, h, d), 
 			material);
 			
-		checkClient(client);
-		rootTransform.add(transform);
+		addToRoot(client, transform);
 		
 		return transform;
 	};
@@ -609,8 +607,7 @@
 		var transform = new THREE.Mesh(new THREE.CubeGeometry(size, size, size), 
 			material);
 		
-		checkClient(client);
-		rootTransform.add(transform);
+		addToRoot(client, transform);
 		
 		return transform;
 	};
@@ -630,8 +627,7 @@
 		var transform = new THREE.Mesh(new THREE.CylinderGeometry(r1, r2, h, 24), 
 			material);
 		
-		checkClient(client);
-		rootTransform.add(transform);
+		addToRoot(client, transform);
 		
 		return transform;
 	};
@@ -650,8 +646,7 @@
 		var transform = new THREE.Mesh(new THREE.CylinderGeometry(0, r, h, 24), 
 			material);
 		
-		checkClient(client);
-		rootTransform.add(transform);
+		addToRoot(client, transform);
 		
 		return transform;
 	};
@@ -669,8 +664,7 @@
 	hemi.shape.createPlane = function(client, h, w, material) {
 		var transform = new THREE.Mesh(new THREE.PlaneGeometry(w, h), material);
 
-		checkClient(client);
-		rootTransform.add(transform);
+		addToRoot(client, transform);
 
 		return transform;
 	};
@@ -687,8 +681,7 @@
 	hemi.shape.createSphere = function(client, r, material) {
 		var transform = new THREE.Mesh(new THREE.SphereGeometry(r, 24, 12), material);
 		
-		checkClient(client);
-		rootTransform.add(transform);
+		addToRoot(client, transform);
 		
 		return transform;
 	};
@@ -699,16 +692,36 @@
 	 * @param {hemi.Client} client the client to add the shape to
 	 * @param {number} size the scale of the arrow head on each axis
 	 * @param {number} tail the length of the arrow tail
+	 * @param {number} depth the depth to extrude the arrow
 	 * @param {THREE.Material} material material to use on arrow
 	 * 
 	 * @return {THREE.Mesh} the Transform containing the created sphere
 	 */
-	hemi.shape.createArrow = function(client, size, tail, material) {
-		var transform = new THREE.Mesh(new THREE.ArrowGeometry(size, size, tail, 
-			size/2, size/2), material);
+	hemi.shape.createArrow = function(client, size, tail, depth, material) {
+		// create the shape
+		var totalWidth = size + tail,
+			halfSize = size / 2,
+			halfWidth = totalWidth / 2,
+			heightDif = (size - halfSize) / 2,
+			curX = 0,
+			curY = halfWidth,
+			points = [
+				new THREE.Vector2(curX, curY),
+				new THREE.Vector2(curX += halfSize, curY -= size),
+				new THREE.Vector2(curX -= heightDif, curY),
+				new THREE.Vector2(curX, curY -= tail),
+				new THREE.Vector2(curX -= halfSize, curY),
+				new THREE.Vector2(curX, curY += tail),
+				new THREE.Vector2(curX -= heightDif, curY),
+				new THREE.Vector2(curX += halfSize, curY += size)
+			],
+			transform,
+			shape;
+					
+		shape = new THREE.Shape(points);
+		transform = new THREE.Mesh(shape.extrude({ amount: depth, bevelEnabled: false }), material);
 		
-		checkClient(client);
-		rootTransform.add(transform);
+		addToRoot(client, transform);
 		
 		return transform;
 	};
@@ -752,8 +765,7 @@
 	hemi.shape.createOcta = function(client, size, material) {
 		var transform = new THREE.Mesh(new THREE.OctahedronGeometry(size/2, 0), material);
 		
-		checkClient(client);
-		rootTransform.add(transform);
+		addToRoot(client, transform);
 		
 		return transform;
 	};
@@ -811,7 +823,6 @@
 		var transform, i, il, face, normal,
 			geo = new THREE.Geometry();
 			
-		checkClient(client);
 		geo.vertices = verts;	
 		geo.faces = faces;
 		geo.faceVertexUvs[0] = faceUvs;
@@ -827,7 +838,7 @@
 		geo.mergeVertices();
 		
 		transform = new THREE.Mesh(geo, material);
-		rootTransform.add(transform);
+		addToRoot(client, transform);
 		
 		return transform;
 	};
@@ -837,15 +848,25 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////  
 	
 	/*
-	 * Checks if the client's scene has rootTransform added to it and if not, adds it.
+	 * Adds the given transform to the root transform. Checks if the client's scene has 
+	 * rootTransform added to it and if not, adds it.
 	 *   
 	 * @param {hemi.Client} client the client to check for rootTransform
+	 * @param {THREE.Mesh} transform the transform to add to root
+	 * 
+	 * @return true if able to add the transform to root, false otherwise
 	 */
-	function checkClient(client) {	
+	function addToRoot(client, transform) {
+		if (client == null) {
+			return false;
+		}	
+		
 		if (!clients[client]) {
 			client.scene.add(rootTransform);
 			clients[client] = true;
 		}
+		rootTransform.add(transform);
+		return true;
 	}
 	
 })(hemi);

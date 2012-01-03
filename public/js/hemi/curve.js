@@ -1543,9 +1543,7 @@ var hemi = (function(hemi) {
 			case (hemi.curve.ShapeType.ARROW):
 				var halfSize = size / 2,
 					thirdSize = size / 3;
-				this.transform = new THREE.Mesh(new THREE.ArrowGeometry(
-					size, size, halfSize, halfSize, size),
-					mat);
+				this.transform = hemi.shape.createArrow(null, size, halfSize, size, mat);
 				break;
 			case (hemi.curve.ShapeType.CUBE):
 				this.transform = new THREE.Mesh(
