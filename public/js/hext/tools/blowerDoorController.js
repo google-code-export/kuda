@@ -15,9 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hext.msg');
-o3djs.require('hext.tools.baseController');
-
 var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
@@ -26,71 +23,74 @@ var hext = (function(hext) {
 	 * BlowerDoor and its views.
 	 * @extends hext.tools.BaseController
 	 */
-	hext.tools.BlowerDoorController = hext.tools.BaseController.extend({
-		/**
-		 * Overwrites hemi.world.Citizen.citizenType
-		 */
-		citizenType: 'hext.tools.BlowerDoorController',
+	var BlowerDoorController = function() {};
+
+	BlowerDoorController.prototype = new hext.tools.BaseController();
+	BlowerDoorController.prototype.constructor = BlowerDoorController;
+
+	/**
+	 * Send a cleanup Message and remove all references in the
+	 * BlowerDoorController.
+	 */
+	BlowerDoorController.prototype.cleanup = function() {
+		hext.tools.BaseController.cleanup.call(this);
+		jQuery('body').unbind('mouseup');
+	};
+
+	/*
+	 * Not currently supported.
+	 */
+	BlowerDoorController.prototype.toOctane = function() {
 		
-		/**
-		 * Send a cleanup Message and remove all references in the
-		 * BlowerDoorController.
-		 */
-		cleanup: function() {
-			this._super();
-			jQuery('body').unbind('mouseup');
-		},
+	};
 
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			
-		},
-
-		/**
-		 * Connect the BlowerDoor data model to the knob HTML view so that they
-		 * respond to each other.
-		 * @see hext.tools.BaseController#setupView
-		 */
-		setupView: function() {
-			this._super();
+	/**
+	 * Connect the BlowerDoor data model to the knob HTML view so that they
+	 * respond to each other.
+	 * @see hext.tools.BaseController#setupView
+	 */
+	BlowerDoorController.prototype.setupView = function() {
+		hext.tools.BaseController.prototype.setupView.call(this);
+	
+		this.model.subscribe(hext.msg.speed,
+			this.view,
+			'rotateKnob',
+			[hemi.dispatch.MSG_ARG + 'data.speed']);
 		
-			this.model.subscribe(hext.msg.speed,
-				this.view,
-				'rotateKnob',
-				[hemi.dispatch.MSG_ARG + 'data.speed']);
-			
-			var toolModel = this.model;
-			var toolView = this.view;
-			var lastX = 0;
+		var toolModel = this.model;
+		var toolView = this.view;
+		var lastX = 0;
 
-			this.view.addLoadCallback(function() {
-				toolView.knob.rotate({
-					maxAngle: toolModel.max,
-					minAngle: toolModel.min,
-					bind: [{
-						'mousedown': function(event) {
+		this.view.addLoadCallback(function() {
+			toolView.knob.rotate({
+				maxAngle: toolModel.max,
+				minAngle: toolModel.min,
+				bind: [{
+					'mousedown': function(event) {
+						lastX = event.pageX;
+						toolView.canvasKnob = jQuery(this);
+						jQuery('body').bind('mousemove', function(event) {
+							var deltaX = (lastX - event.pageX) * -2;
+							var newValue = toolModel.currentSpeed + deltaX;
+							if (newValue >= 0 && newValue <= toolModel.max) {
+								toolModel.setFanSpeed(newValue);
+							}
 							lastX = event.pageX;
-							toolView.canvasKnob = jQuery(this);
-							jQuery('body').bind('mousemove', function(event) {
-								var deltaX = (lastX - event.pageX) * -2;
-								var newValue = toolModel.currentSpeed + deltaX;
-								if (newValue >= 0 && newValue <= toolModel.max) {
-									toolModel.setFanSpeed(newValue);
-								}
-								lastX = event.pageX;
-							});
-						}
-					}]
-				});
+						});
+					}
+				}]
 			});
-			
-			// Should this be added to the bind in the load callback above?
-			jQuery('body').bind('mouseup', function(event) {
-				jQuery(this).unbind('mousemove');
-			});
-		}
+		});
+		
+		// Should this be added to the bind in the load callback above?
+		jQuery('body').bind('mouseup', function(event) {
+			jQuery(this).unbind('mousemove');
+		});
+	};
+
+	hemi.makeCitizen(BlowerDoorController, 'hext.tools.BlowerDoorController', {
+		msgs: [],
+		toOctane: []
 	});
 
 	return hext;

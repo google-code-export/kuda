@@ -2955,10 +2955,12 @@ var hemi = (function(hemi) {
 			geometry.computeBoundingBox();
 
 			// Do some magic since Three.js doesn't currently have a way to flush cached vertices
-			geometry.dynamic = true;
-			transform.__webglInit = false;
-			delete geometry.geometryGroupsList[0].__webglVertexBuffer;
-			scene.__objectsAdded.push(transform);
+			if (transform.__webglInit) {
+				geometry.dynamic = true;
+				transform.__webglInit = false;
+				delete geometry.geometryGroupsList[0].__webglVertexBuffer;
+				scene.__objectsAdded.push(transform);
+			}
 		}
 
 		// Shift geometry of all children
@@ -3690,10 +3692,12 @@ var hemi = (function(hemi) {
 				update = true;
 				lastRenderTime += hzMS;
 
-				for (var i = 0, il = renderListeners.length; i < il; ++i) {
-					renderListeners[i].onRender(event);
+				for (renderNdx = 0; renderNdx < renderListeners.length; ++renderNdx) {
+					renderListeners[renderNdx].onRender(event);
 				}
 			}
+
+			renderNdx = -1;
 
 			if (update) {
 				for (var i = 0, il = hemi.clients.length; i < il; ++i) {
@@ -3739,7 +3743,12 @@ var hemi = (function(hemi) {
 		 * Array of render listener objects that all have an onRender function.
 		 * @type Object[]
 		 */
-		renderListeners = [];
+		renderListeners = [],
+		/*
+		 * The index of the render listener currently running onRender().
+		 * @type number
+		 */
+		renderNdx = -1;
 
 	// Useful constants to cache
 
@@ -3872,6 +3881,11 @@ var hemi = (function(hemi) {
 
 		if (ndx !== -1) {
 			retVal = renderListeners.splice(ndx, 1)[0];
+
+			if (ndx <= renderNdx) {
+				// Adjust so that the next render listener will not get skipped.
+				renderNdx--;
+			}
 		}
 
 		return retVal;
@@ -4056,6 +4070,19 @@ var hemi = (function(hemi) {
 			var texture = new THREE.Texture(image);
 			texture.needsUpdate = true;
 			callback(texture);
+		});
+	};
+
+
+	hemi.loadHtml = function(url, callback) {
+		url = hemi.getLoadPath(url);
+		
+		hemi.utils.get(url, function(data, status) {
+			if (data == null) {
+				hemi.core.error(status);
+			} else {
+				callback(data);
+			}
 		});
 	};
 
@@ -9050,10 +9077,11 @@ var hemi = (function(hemi) {
 			var transform = objs[i];
 
 			if (transform.useQuaternion) {
-				transform.quaternion.setFromEuler(new THREE.Vector3(
+				var quat = new THREE.Quaternion().setFromEuler(new THREE.Vector3(
 				 this.angle.x * hemi.RAD_TO_DEG, this.angle.y * hemi.RAD_TO_DEG, this.angle.z * hemi.RAD_TO_DEG));
+				transform.quaternion.multiply(transform.quaternion, quat);
 			} else {
-				transform.rotation.copy(this.angle);
+				transform.rotation.addSelf(this.angle);
 			}
 
 			transform.updateMatrix();

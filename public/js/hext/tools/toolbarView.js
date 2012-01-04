@@ -25,71 +25,68 @@ var hext = (function(hext) {
 	 * 
 	 * @param {Object} config configuration options
 	 */
-	hext.tools.ToolbarView = hemi.world.Citizen.extend({
-		init: function(config) {
-			this._super();
-			this.config = hemi.utils.join({
-				containerId: 'toolbarView',
-				clickClass: 'clicked'
-			}, config);
-			
-			/**
-			 * The container for all HTML content.
-			 * @type jQuery
-			 */
-			this.container = jQuery('<div id="' + this.config.containerId + '"></div>');
-			
-			this.layoutView();
-		},
-		
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.ToolbarView',
+	var ToolbarView = function(config) {
+		this.config = hemi.utils.join({
+			containerId: 'toolbarView',
+			clickClass: 'clicked'
+		}, config);
 		
 		/**
-		 * Send a cleanup Message and remove all references in the ToolbarView.
+		 * The container for all HTML content.
+		 * @type jQuery
 		 */
-		cleanup: function() {
-			this._super();
-			this.config = null;
-			this.container = null;
-		},
+		this.container = jQuery('<div id="' + this.config.containerId + '"></div>');
 		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			var octane = {
-				wi: this.getId(),
-				vt: this.type,
-				ci: this.config.containerId
-			};
-			
-			return octane;
-		},
+		this.layoutView();
+	};
 		
-		/**
-		 * Currently empty. Subclasses should override this to layout their
-		 * components.
-		 */
-		layoutView: function() {
-			
-		},
+	/**
+	 * Send a cleanup Message and remove all references in the ToolbarView.
+	 */
+	ToolbarView.prototype.cleanup = function() {
+		this._super();
+		this.config = null;
+		this.container = null;
+	};
 		
-		/**
-		 * Add or remove the clicked CSS class to the ToolbarView.
-		 * 
-		 * @param {boolean} clicked flag indicating if the ToolbarView was
-		 *     clicked
-		 */
-		setClickedState: function(clicked) {
-			if (clicked) {
-				this.container.addClass(this.config.clickClass);
-			} else {
-				this.container.removeClass(this.config.clickClass);
-			}
+	/*
+	 * Not currently supported.
+	 */
+	ToolbarView.prototype.toOctane = function() {
+		var octane = {
+			wi: this.getId(),
+			vt: this.type,
+			ci: this.config.containerId
+		};
+		
+		return octane;
+	};
+		
+	/**
+	 * Currently empty. Subclasses should override this to layout their
+	 * components.
+	 */
+	ToolbarView.prototype.layoutView = function() {
+		
+	};
+		
+	/**
+	 * Add or remove the clicked CSS class to the ToolbarView.
+	 * 
+	 * @param {boolean} clicked flag indicating if the ToolbarView was
+	 *     clicked
+	 */
+	ToolbarView.prototype.setClickedState = function(clicked) {
+		if (clicked) {
+			this.container.addClass(this.config.clickClass);
+		} else {
+			this.container.removeClass(this.config.clickClass);
 		}
+	};
+
+	hemi.makeCitizen(ToolbarView, 'hext.tools.ToolbarView', {
+		msgs: [],
+		toOctane: []
 	});
 	
 	return hext;

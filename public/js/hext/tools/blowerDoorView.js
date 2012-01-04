@@ -15,9 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hext.tools.htmlView');
-o3djs.require('hext.tools.toolbarView');
-
 var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
@@ -27,60 +24,60 @@ var hext = (function(hext) {
 	 * 
 	 * @param {Object} config configuration options
 	 */
-	hext.tools.BlowerDoorView = hext.tools.HtmlView.extend({
-		init: function(config) {
-			this._super(hemi.utils.join({
-				contentFileName: 'js/hext/tools/assets/blowerDoorDisplay.htm',
-				blowerDoorKnobId: 'blowerDoorKnob'
-			}, config));
-			
-			this.knob = null;
-			this.canvasKnob = null;
-			
-			var that = this;
-			
-			this.addLoadCallback(function () {
-				that.knob = that.getElement(that.config.blowerDoorKnobId);
-			});
-		},
+	var BlowerDoorView = function(config) {
+		hext.tools.HtmlView.call(this, hemi.utils.join({
+			contentFileName: 'js/hext/tools/assets/blowerDoorDisplay.htm',
+			blowerDoorKnobId: 'blowerDoorKnob'
+		}, config));
 		
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.BlowerDoorView',
+		this.knob = null;
+		this.canvasKnob = null;
 		
-		/**
-		 * Send a cleanup Message and remove all references in the
-		 * BlowerDoorView.
-		 */
-		cleanup: function() {
-			this._super();
-			
-			if (this.knob && this.knob.rotate) {
-				this.knob.rotate.unbind();
-			}
-			
-			this.knob = null;
-			this.canvasKnob = null;
-		},
+		var that = this;
 		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			
-		},
+		this.addLoadCallback(function () {
+			that.knob = that.getElement(that.config.blowerDoorKnobId);
+		});
+	};
+
+	BlowerDoorView.prototype = new hext.tools.HtmlView();
+	BlowerDoorView.prototype.constructor = BlowerDoorView;
 		
-		/**
-		 * Rotate the knob widget by the specified value.
-		 * 
-		 * @param {number} value the amount to rotate the knob widget
-		 */
-		rotateKnob: function(value) {
-			if (this.canvasKnob) {
-				this.canvasKnob.rotateAnimation(value);
-			}
+	/**
+	 * Send a cleanup Message and remove all references in the
+	 * BlowerDoorView.
+	 */
+	BlowerDoorView.prototype.cleanup = function() {
+		hext.tools.HtmlView.prototype.cleanup.call(this);
+		if (this.knob && this.knob.rotate) {
+			this.knob.rotate.unbind();
 		}
+		
+		this.knob = null;
+		this.canvasKnob = null;
+	};
+		
+	/*
+	 * Not currently supported.
+	 */
+	BlowerDoorView.prototype.toOctane = function() {
+		
+	};
+		
+	/**
+	 * Rotate the knob widget by the specified value.
+	 * 
+	 * @param {number} value the amount to rotate the knob widget
+	 */
+	BlowerDoorView.prototype.rotateKnob = function(value) {
+		if (this.canvasKnob) {
+			this.canvasKnob.rotateAnimation(value);
+		}
+	};
+
+	hemi.makeCitizen(BlowerDoorView, 'hext.tools.BlowerDoorView', {
+		msgs: [],
+		toOctane: []
 	});
 	
 	/**
@@ -89,50 +86,51 @@ var hext = (function(hext) {
 	 * 
 	 * @param {Object} config configuration options
 	 */
-	hext.tools.BlowerDoorToolbarView = hext.tools.ToolbarView.extend({
-		init: function(config) {
+	 var BlowerDoorToolbarView = function(config) {
+		this.button = null;
+        config = hemi.utils.join({
+        	containerId: 'blowerDoorToolbarView',
+			buttonId: 'blowerDoorButtonId'
+        }, config);
+        hext.tools.ToolbarView.call(this, config);
+	};
+
+	BlowerDoorToolbarView.prototype = new hext.tools.ToolbarView();
+	BlowerDoorToolbarView.prototype.constructor = BlowerDoorToolbarView;
+		
+	/**
+	 * Send a cleanup Message and remove all references in the
+	 * BlowerDoorToolbarView.
+	 */
+	BlowerDoorToolbarView.prototype.cleanup = function() {
+		hext.tools.ToolbarView.prototype.cleanup.call(this);
+		
+		if (this.button) {
+			this.button.unbind();
 			this.button = null;
-	        config = hemi.utils.join({
-	        	containerId: 'blowerDoorToolbarView',
-				buttonId: 'blowerDoorButtonId'
-	        }, config);
-	        this._super(config);
-		},
-		
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.BlowerDoorToolbarView',
-		
-		/**
-		 * Send a cleanup Message and remove all references in the
-		 * BlowerDoorToolbarView.
-		 */
-		cleanup: function() {
-			this._super();
-			
-			if (this.button) {
-				this.button.unbind();
-				this.button = null;
-			}
-		},
-		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			
-	    },
-		
-    	/**
-		 * Create the actual toolbar button element for the
-		 * BlowerDoorToolbarView.
-		 */
-	    layoutView: function() {
-	        this.button = jQuery('<button id="' + this.config.buttonId + '" title="Blower Door Tool">Blower Door</button>');
-			this.container.append(this.button);
 		}
-    });
+	};
+		
+	/*
+	 * Not currently supported.
+	 */
+	BlowerDoorToolbarView.prototype.toOctane = function() {
+		
+    };
+		
+	/**
+	 * Create the actual toolbar button element for the
+	 * BlowerDoorToolbarView.
+	 */
+    BlowerDoorToolbarView.prototype.layoutView = function() {
+        this.button = jQuery('<button id="' + this.config.buttonId + '" title="Blower Door Tool">Blower Door</button>');
+		this.container.append(this.button);
+	};
+
+	hemi.makeCitizen(BlowerDoorToolbarView, 'hext.tools.BlowerDoorToolbarView', {
+		msgs: [],
+		toOctane: []
+	});
 	
 	return hext;
 })(hext || {});

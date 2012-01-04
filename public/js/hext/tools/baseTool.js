@@ -28,81 +28,73 @@ var hext = (function(hext) {
 	 * all tools. It can be visible or not and enabled or not.
 	 * @extends hemi.world.Citizen
 	 */
-	hext.tools.BaseTool = hemi.world.Citizen.extend({
-		init: function() {
-			this._super();
-			
-			/**
-			 * Flag indicating if the BaseTool is enabled.
-			 * @type boolean
-			 * @default false
-			 */
-			this.enabled = false;
-			
-			/**
-			 * Flag indicating if the BaseTool is visible.
-			 * @type boolean
-			 * @default false
-			 */
-			this.visible = false;
-		},
-		
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.BaseTool',
-		
-		/*
-		 * Not currently supported.
+	var BaseTool = function() {
+		/**
+		 * Flag indicating if the BaseTool is enabled.
+		 * @type boolean
+		 * @default false
 		 */
-		toOctane: function() {
-			var octane = {
-				wi: this.getId(),
-				tt: this.type
-			};
-			
-			return octane;
-		},
+		this.enabled = false;
 		
 		/**
-		 * Set the enabled flag for the BaseTool and send a notification
-		 * Message.
-		 * 
-		 * @param {boolean} enabled flag to indicate if the BaseTool is enabled
+		 * Flag indicating if the BaseTool is visible.
+		 * @type boolean
+		 * @default false
 		 */
-		setEnabled: function(enabled) {
-			if (this.enabled != enabled) {
-				this.enabled = enabled;
-				
-				this.send(hemi.msg.enable,
-				{
-					enabled: this.enabled
-				});
-			}
-		},
+		this.visible = false;
+	};
 		
-		/**
-		 * Set the visible flag for the BaseTool and send a notification
-		 * Message.
-		 * 
-		 * @param {boolean} visible flag to indicate if the BaseTool is visible
-		 */
-		setVisible: function(visible) {
-			if (this.visible != visible) {
-				this.visible = visible;
-				
-				this.send(hemi.msg.visible,
-					{
-						visible: this.visible
-					});
-			}
+		
+	/*
+	 * Not currently supported.
+	 */
+	BaseTool.prototype.toOctane = function() {
+		var octane = {
+			wi: this.getId(),
+			tt: this.type
+		};
+		
+		return octane;
+	};
+		
+	/**
+	 * Set the enabled flag for the BaseTool and send a notification
+	 * Message.
+	 * 
+	 * @param {boolean} enabled flag to indicate if the BaseTool is enabled
+	 */
+	BaseTool.prototype.setEnabled = function(enabled) {
+		if (this.enabled != enabled) {
+			this.enabled = enabled;
+			
+			this.send(hemi.msg.enable,
+			{
+				enabled: this.enabled
+			});
 		}
+	};
+		
+	/**
+	 * Set the visible flag for the BaseTool and send a notification
+	 * Message.
+	 * 
+	 * @param {boolean} visible flag to indicate if the BaseTool is visible
+	 */
+	BaseTool.prototype.setVisible = function(visible) {
+		if (this.visible != visible) {
+			this.visible = visible;
+			
+			this.send(hemi.msg.visible,
+				{
+					visible: this.visible
+				});
+		}
+	};
+
+	hemi.makeCitizen(BaseTool, 'hext.tools.BaseTool', {
+		msgs: [hemi.msg.enable, hemi.msg.visible],
+		toOctane: []
 	});
-	
-	hext.tools.BaseTool.prototype.msgSent =
-		hext.tools.BaseTool.prototype.msgSent.concat([
-			hemi.msg.enable,
-			hemi.msg.visible]);
 	
 	return hext;
 })(hext || {});

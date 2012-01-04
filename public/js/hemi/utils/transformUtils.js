@@ -206,10 +206,12 @@ var hemi = (function(hemi) {
 			geometry.computeBoundingBox();
 
 			// Do some magic since Three.js doesn't currently have a way to flush cached vertices
-			geometry.dynamic = true;
-			transform.__webglInit = false;
-			delete geometry.geometryGroupsList[0].__webglVertexBuffer;
-			scene.__objectsAdded.push(transform);
+			if (transform.__webglInit) {
+				geometry.dynamic = true;
+				transform.__webglInit = false;
+				delete geometry.geometryGroupsList[0].__webglVertexBuffer;
+				scene.__objectsAdded.push(transform);
+			}
 		}
 
 		// Shift geometry of all children

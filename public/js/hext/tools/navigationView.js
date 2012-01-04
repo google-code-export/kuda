@@ -27,73 +27,74 @@ var hext = (function(hext) {
 	 * 
 	 * @param {Object} config configuration options
 	 */
-	hext.tools.NavigationToolbarView = hext.tools.ToolbarView.extend({
-		init: function(config) {
+	var NavigationToolbarView = function(config) {
+		this.zoomInBtn = null;
+		this.zoomOutBtn = null;
+		config = hemi.utils.join({
+			containerId: 'navigateToolbarView',
+			zoomInButtonId: 'zoomInButtonId',
+			zoomOutButtonId: 'zoomOutButtonId'
+		}, config);
+		
+		hext.tools.ToolbarView.call(this, config);
+	};
+
+	NavigationToolbarView.prototype = new hext.tools.ToolbarView();
+	NavigationToolbarView.prototype.constructor = NavigationToolbarView;
+		
+	/**
+	 * Send a cleanup Message and remove all references in the
+	 * NavigationToolbarView.
+	 */
+	NavigationToolbarView.prototype.cleanup = function() {
+		hext.tools.ToolbarView.cleanup(this);
+		
+		if (this.zoomInBtn) {
+			this.zoomInBtn.unbind();
 			this.zoomInBtn = null;
-			this.zoomOutBtn = null;
-			config = hemi.utils.join({
-				containerId: 'navigateToolbarView',
-				zoomInButtonId: 'zoomInButtonId',
-				zoomOutButtonId: 'zoomOutButtonId'
-			}, config);
-			
-			this._super(config);
-		},
-		
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.NavigationToolbarView',
-		
-		/**
-		 * Send a cleanup Message and remove all references in the
-		 * NavigationToolbarView.
-		 */
-		cleanup: function() {
-			this._super();
-			
-			if (this.zoomInBtn) {
-				this.zoomInBtn.unbind();
-				this.zoomInBtn = null;
-			}
-			if (this.zoomOutBtn) {
-				this.zoomOutBtn.unbind();
-				this.zoomOutBtn = null;
-			}
-		},
-		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			
-	    },
-		
-    	/**
-		 * Create the actual toolbar button elements for the
-		 * NavigationToolbarView.
-		 */
-		layoutView: function() {
-			this.zoomInBtn = jQuery('<button id="' + this.config.zoomInButtonId + '" title="Zoom In">Zoom In</button>');
-			this.zoomOutBtn = jQuery('<button id="' + this.config.zoomOutButtonId + '" title="Zoom Out">Zoom Out</button>');
-			this.container.append(this.zoomInBtn);
-			this.container.append(this.zoomOutBtn);
-		},
-		
-		/**
-		 * Add or remove the clicked CSS class to the 'zoom in' button.
-		 * 
-		 * @param {boolean} clicked flag indicating if the
-		 *     NavigationToolbarView was clicked
-		 */
-		setClickedState: function(clicked) {
-			if (clicked) {
-				this.zoomInBtn.addClass(this.config.clickClass);
-			}
-			else {
-				this.zoomInBtn.removeClass(this.config.clickClass);
-			}
 		}
+		if (this.zoomOutBtn) {
+			this.zoomOutBtn.unbind();
+			this.zoomOutBtn = null;
+		}
+	};
+		
+	/*
+	 * Not currently supported.
+	 */
+	NavigationToolbarView.prototype.toOctane = function() {
+		
+    };
+		
+	/**
+	 * Create the actual toolbar button elements for the
+	 * NavigationToolbarView.
+	 */
+	NavigationToolbarView.prototype.layoutView = function() {
+		this.zoomInBtn = jQuery('<button id="' + this.config.zoomInButtonId + '" title="Zoom In">Zoom In</button>');
+		this.zoomOutBtn = jQuery('<button id="' + this.config.zoomOutButtonId + '" title="Zoom Out">Zoom Out</button>');
+		this.container.append(this.zoomInBtn);
+		this.container.append(this.zoomOutBtn);
+	};
+		
+	/**
+	 * Add or remove the clicked CSS class to the 'zoom in' button.
+	 * 
+	 * @param {boolean} clicked flag indicating if the
+	 *     NavigationToolbarView was clicked
+	 */
+	NavigationToolbarView.prototype.setClickedState = function(clicked) {
+		if (clicked) {
+			this.zoomInBtn.addClass(this.config.clickClass);
+		}
+		else {
+			this.zoomInBtn.removeClass(this.config.clickClass);
+		}
+	};
+
+	hemi.makeCitizen(NavigationToolbarView, 'hext.tools.NavigationToolbarView', {
+		msgs: [],
+		toOctane: []
 	});
 	
 	return hext;

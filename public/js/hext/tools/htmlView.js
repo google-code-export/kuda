@@ -26,140 +26,135 @@ var hext = (function(hext) {
 	 * 
 	 * @param {Object} config configuration options
 	 */
-	hext.tools.HtmlView = hemi.world.Citizen.extend({
-		init: function(config) {
-			this._super();
-			
-			/**
-			 * The container for all HTML content.
-			 * @type jQuery
-			 */
-	        this.container = jQuery('<div></div>');
-			
-			/**
-			 * Flag indicating if the HtmlView is visible.
-			 * @type boolean
-			 * @default false
-			 */
-			this.visible = false;
-			
-			this.config = hemi.utils.join({
-				contentFileName: ''
-			}, config);
-			this.callbacks = [];
-		},
-		
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.HtmlView',
+	var HtmlView = function(config) {
+		/**
+		 * The container for all HTML content.
+		 * @type jQuery
+		 */
+        this.container = jQuery('<div></div>');
 		
 		/**
-		 * Send a cleanup Message and remove all references in the HtmlView.
+		 * Flag indicating if the HtmlView is visible.
+		 * @type boolean
+		 * @default false
 		 */
-		cleanup: function() {
-			this._super();
-			this.config = null;
-			this.callbacks = [];
-			
-			if (this.container) {
-				this.container.unbind();
-				this.container = null;
-			}
-		},
+		this.visible = false;
 		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			var octane = {
-				
-			};
-			
-			return octane;
-		},
+		this.config = hemi.utils.join({
+			contentFileName: ''
+		}, config);
+		this.callbacks = [];
+	};
 		
-		/**
-		 * Add the given callback function to the list of functions to execute
-		 * once the HTML content has been loaded.
-		 * 
-		 * @param {function(): void} callback callback function to execute
-		 */
-		addLoadCallback: function(callback) {
-			this.callbacks.push(callback);
-		},
+	/**
+	 * Send a cleanup Message and remove all references in the HtmlView.
+	 */
+	HtmlView.prototype.cleanup = function() {
+		this.config = null;
+		this.callbacks = [];
 		
-		/**
-		 * Load the HTML content from the file specified by the config.
-		 */
-		loadConfig: function() {
-			var that = this;
-			
-			if (this.config.contentFileName != '') {
-				hemi.loader.loadHtml(
-					this.config.contentFileName,
-					function(data) {
-						that.container.html(data);
-						
-						if (!that.visible) {
-							that.container.hide();
-						}
-						
-						for (var ndx = 0, len = that.callbacks.length; ndx < len; ndx++) {
-			                that.callbacks[ndx]();
-			            }
-					});
-			}
-		},
-		
-		/**
-		 * Remove the current HTML content from the HtmlView.
-		 * 
-		 * @return {jQuery} the old HTML content
-		 */
-		removeContent: function() {
-			var oldContent = this.container;
+		if (this.container) {
+			this.container.unbind();
 			this.container = null;
-			oldContent.remove();
-			return oldContent;
-		},
+		}
+	};
 		
-		/**
-		 * Get the HTML element in the HtmlView's container with the given id.
-		 * 
-		 * @param {string} elementId id of the element to find
-		 * @return {jQuery} the found HTML element or null
-		 */
-		getElement: function(elementId) {
-			var element = null;
+	/*
+	 * Not currently supported.
+	 */
+	HtmlView.prototype.toOctane = function() {
+		var octane = {
+			
+		};
+		
+		return octane;
+	};
+		
+	/**
+	 * Add the given callback function to the list of functions to execute
+	 * once the HTML content has been loaded.
+	 * 
+	 * @param {function(): void} callback callback function to execute
+	 */
+	HtmlView.prototype.addLoadCallback = function(callback) {
+		this.callbacks.push(callback);
+	};
+		
+	/**
+	 * Load the HTML content from the file specified by the config.
+	 */
+	HtmlView.prototype.loadConfig = function() {
+		var that = this;
+		
+		if (this.config.contentFileName != '') {
+			hemi.loadHtml(
+				this.config.contentFileName,
+				function(data) {
+					that.container.html(data);
+					
+					if (!that.visible) {
+						that.container.hide();
+					}
+					
+					for (var ndx = 0, len = that.callbacks.length; ndx < len; ndx++) {
+		                that.callbacks[ndx]();
+		            }
+				});
+		}
+	};
+		
+	/**
+	 * Remove the current HTML content from the HtmlView.
+	 * 
+	 * @return {jQuery} the old HTML content
+	 */
+	HtmlView.prototype.removeContent = function() {
+		var oldContent = this.container;
+		this.container = null;
+		oldContent.remove();
+		return oldContent;
+	};
+		
+	/**
+	 * Get the HTML element in the HtmlView's container with the given id.
+	 * 
+	 * @param {string} elementId id of the element to find
+	 * @return {jQuery} the found HTML element or null
+	 */
+	HtmlView.prototype.getElement = function(elementId) {
+		var element = null;
+		
+		if (this.container) {
+			element = this.container.find('#' + elementId);
+		}
+		
+		return element;
+	};
+		
+	/**
+	 * Set the visible property for the HtmlView and hide/show its HTML
+	 * content.
+	 * 
+	 * @param {boolean} visible flag indicating if the HtmlView should be
+	 *     visible
+	 */
+	HtmlView.prototype.setVisible = function(visible) {
+		if (this.visible != visible) {
+			this.visible = visible;
 			
 			if (this.container) {
-				element = this.container.find('#' + elementId);
-			}
-			
-			return element;
-		},
-		
-		/**
-		 * Set the visible property for the HtmlView and hide/show its HTML
-		 * content.
-		 * 
-		 * @param {boolean} visible flag indicating if the HtmlView should be
-		 *     visible
-		 */
-		setVisible: function(visible) {
-			if (this.visible != visible) {
-				this.visible = visible;
-				
-				if (this.container) {
-					if (visible) {
-						this.container.show();
-					} else {
-	                    this.container.hide();
-					}
+				if (visible) {
+					this.container.show();
+				} else {
+                    this.container.hide();
 				}
 			}
 		}
+	};
+
+	hemi.makeCitizen(HtmlView, 'hext.tools.HtmlView', {
+		msgs: [],
+		toOctane: []
 	});
 	
 	return hext;

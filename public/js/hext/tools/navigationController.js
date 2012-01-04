@@ -15,8 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hext.tools.baseController');
-
 var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
@@ -25,73 +23,77 @@ var hext = (function(hext) {
 	 * Navigation tool and its views.
 	 * @extends hext.tools.BaseController
 	 */
-	hext.tools.NavigationController = hext.tools.BaseController.extend({
-		/**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.NavigationController',
+	var NavigationController = function() {
+	};
+
+	NavigationController.prototype = new hext.tools.BaseController();
+	NavigationController.prototype.constructor = NavigationController;
 		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			
-		},
+	/*
+	 * Not currently supported.
+	 */
+	NavigationController.prototype.toOctane = function() {
 		
-		/**
-		 * Connect the Navigation data model to the toolbar view so that they
-		 * respond to each other.
-		 * @see hext.tools.BaseController#setupToolbar
-		 */
-		setupToolbar: function() {
-			var toolModel = this.model;
-			var toolbarView = this.toolbarView;
-			var that = this;
-			
-			toolbarView.zoomInBtn.bind('click', function(evt) {
-				// change the cursor
-				// change the mode by setting the pickgrabber
-				if (!toolModel.picking) {
-					document.getElementById('o3d').style.cursor = 'pointer';
-					hemi.world.setPickGrabber(that);
-					toolModel.setPicking(true);
-					toolbarView.setClickedState(true);
-				}
-				else {
-					that.cleanupAfterPick();
-				}
-			});
-			
-			toolbarView.zoomOutBtn.bind('click', function(evt) {
-				toolModel.zoomOut();
-				toolbarView.zoomInBtn.removeAttr('disabled');
-			});
-		},
+	};
 		
-		/**
-		 * Check the shape from the pick to see if there is an associated
-		 * Viewpoint to zoom to.
-		 * 
-		 * @param {o3djs.picking.PickInfo} pickInfo pick event information
-		 */
-		onPick: function(pickInfo) {
-			var shapeName = pickInfo.shapeInfo.shape.name;
-			
-			if (this.model.zoomIn(shapeName)) {
-				this.cleanupAfterPick();
-	            this.toolbarView.zoomInBtn.attr('disabled', 'disabled');
+	/**
+	 * Connect the Navigation data model to the toolbar view so that they
+	 * respond to each other.
+	 * @see hext.tools.BaseController#setupToolbar
+	 */
+	NavigationController.prototype.setupToolbar = function() {
+		var toolModel = this.model;
+		var toolbarView = this.toolbarView;
+		var that = this;
+		
+		toolbarView.zoomInBtn.bind('click', function(evt) {
+			// change the cursor
+			// change the mode by setting the pickgrabber
+			if (!toolModel.picking) {
+				document.getElementById('kuda').style.cursor = 'pointer';
+				hemi.setPickGrabber(that);
+				toolModel.setPicking(true);
+				toolbarView.setClickedState(true);
 			}
-		},
+			else {
+				that.cleanupAfterPick();
+			}
+		});
 		
-		/**
-		 * Clean up pick Message interception and view styling.
-		 */
-		cleanupAfterPick: function() {
-			document.getElementById('o3d').style.cursor = 'default';
-			hemi.world.removePickGrabber();
-			this.model.setPicking(false);
-			this.toolbarView.setClickedState(false);
+		toolbarView.zoomOutBtn.bind('click', function(evt) {
+			toolModel.zoomOut();
+			toolbarView.zoomInBtn.removeAttr('disabled');
+		});
+	};
+		
+	/**
+	 * Check the shape from the pick to see if there is an associated
+	 * Viewpoint to zoom to.
+	 * 
+	 * @param {picking.PickInfo} pickInfo pick event information
+	 */
+	NavigationController.prototype.onPick = function(pickInfo) {
+		var shapeName = pickInfo.pickedMesh.name;
+		
+		if (this.model.zoomIn(shapeName)) {
+			this.cleanupAfterPick();
+            this.toolbarView.zoomInBtn.attr('disabled', 'disabled');
 		}
+	};
+	
+	/**
+	 * Clean up pick Message interception and view styling.
+	 */
+	NavigationController.prototype.cleanupAfterPick = function() {
+		document.getElementById('kuda').style.cursor = 'default';
+		hemi.world.removePickGrabber();
+		this.model.setPicking(false);
+		this.toolbarView.setClickedState(false);
+	};
+
+	hemi.makeCitizen(NavigationController, 'hext.tools.NavigationController', {
+		msgs: [],
+		toOctane: []
 	});
 	
 	return hext;
