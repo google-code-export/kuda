@@ -533,10 +533,11 @@ var hemi = (function(hemi) {
 			var transform = objs[i];
 
 			if (transform.useQuaternion) {
-				transform.quaternion.setFromEuler(new THREE.Vector3(
+				var quat = new THREE.Quaternion().setFromEuler(new THREE.Vector3(
 				 this.angle.x * hemi.RAD_TO_DEG, this.angle.y * hemi.RAD_TO_DEG, this.angle.z * hemi.RAD_TO_DEG));
+				transform.quaternion.multiply(transform.quaternion, quat);
 			} else {
-				transform.rotation.copy(this.angle);
+				transform.rotation.addSelf(this.angle);
 			}
 
 			transform.updateMatrix();

@@ -158,6 +158,19 @@ var hemi = (function(hemi) {
 		});
 	};
 
+
+	hemi.loadHtml = function(url, callback) {
+		url = hemi.getLoadPath(url);
+		
+		hemi.utils.get(url, function(data, status) {
+			if (data == null) {
+				hemi.core.error(status);
+			} else {
+				callback(data);
+			}
+		});
+	};
+
 	/**
 	 * Activate the World once all resources are loaded. This function should
 	 * only be called after all scripting and setup is complete.

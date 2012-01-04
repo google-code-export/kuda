@@ -23,82 +23,80 @@ var hext = (function(hext) {
 	 * for all tools.
 	 * @extends hemi.world.Citizen
 	 */
-	hext.tools.ShapeView = hemi.world.Citizen.extend({
-		init: function() {
-			this._super();
+	var ShapeView = function() {
+		this._super();
+		
+        this.transforms = [];
+	};
+		
+	/**
+	 * Send a cleanup Message and remove all references in the ShapeView.
+	 */
+	ShapeView.prototype.cleanup = function() {
+		this._super();
+		this.transforms = [];
+	};
+		
+	/*
+	 * Not currently supported.
+	 */
+	ShapeView.prototype.toOctane = function() {
+		var octane = {
 			
-	        this.transforms = [];
-		},
+		};
 		
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.ShapeView',
-		
-		/**
-		 * Send a cleanup Message and remove all references in the ShapeView.
-		 */
-		cleanup: function() {
-			this._super();
-			this.transforms = [];
-		},
-		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			var octane = {
-				
-			};
-			
-			for (var ndx = 0, len = this.transforms.length; ndx < len; ndx++) {
-				octane.ts.push(this.transforms[ndx]);
-			}
-			
-			return octane;
-		},
-		
-		/**
-		 * Add the given Transform to the ShapeView's list of Transforms.
-		 * 
-		 * @param {o3d.Tranform} transform the Transform to add
-		 */
-		addTransform: function(transform) {
-			this.transforms.push(transform);
-		},
-		
-		/**
-		 * Remove the given Transform from the ShapeView's list of Transforms.
-		 * 
-		 * @param {o3d.Transform} transform the Transform to remove
-		 * @return {boolean} true if the Transform was removed
-		 */
-		removeTransform: function(transform) {
-            var ndx = this.transforms.indexOf(transform);
-			var removed = false;
-            
-            if (ndx != -1) {
-                this.transforms.splice(ndx, 1);
-				removed = true;
-            }
-			
-			return removed;
-		},
-		
-		/**
-		 * Set the visibility (and pickability) for all of the ShapeView's
-		 * Transforms.
-		 * 
-		 * @param {boolean} visible flag indicating if the Transforms should be
-		 *     visible
-		 */
-		setVisible: function(visible) {
-			for (var ndx = 0, len = this.transforms.length; ndx < len; ndx++) {
-				var transform = this.transforms[ndx];
-				transform.visible = visible;
-				hemi.picking.setPickable(transform, visible, true);
-			}
+		for (var ndx = 0, len = this.transforms.length; ndx < len; ndx++) {
+			octane.ts.push(this.transforms[ndx]);
 		}
+		
+		return octane;
+	};
+		
+	/**
+	 * Add the given Transform to the ShapeView's list of Transforms.
+	 * 
+	 * @param {THREE.Object3D} transform the Transform to add
+	 */
+	ShapeView.prototype.addTransform = function(transform) {
+		this.transforms.push(transform);
+	};
+		
+	/**
+	 * Remove the given Transform from the ShapeView's list of Transforms.
+	 * 
+	 * @param {THREE.Object3D} transform the Transform to remove
+	 * @return {boolean} true if the Transform was removed
+	 */
+	ShapeView.prototype.removeTransform = function(transform) {
+        var ndx = this.transforms.indexOf(transform);
+		var removed = false;
+        
+        if (ndx != -1) {
+            this.transforms.splice(ndx, 1);
+			removed = true;
+        }
+		
+		return removed;
+	};
+		
+	/**
+	 * Set the visibility (and pickability) for all of the ShapeView's
+	 * Transforms.
+	 * 
+	 * @param {boolean} visible flag indicating if the Transforms should be
+	 *     visible
+	 */
+	ShapeView.prototype.setVisible = function(visible) {
+		for (var ndx = 0, len = this.transforms.length; ndx < len; ndx++) {
+			var transform = this.transforms[ndx];
+			transform.visible = visible;
+			transform.pickable = visible;
+		}
+	};
+
+	hemi.makeCitizen(ShapeView, 'hext.tools.ShapeView', {
+		msgs: [],
+		toOctane: []
 	});
 	
 	return hext;
