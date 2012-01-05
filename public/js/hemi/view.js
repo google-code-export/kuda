@@ -779,8 +779,8 @@ var hemi = (function(hemi) {
 	 * allow a Camera to follow a smooth path through several waypoints.
 	 * @extends hemi.world.Citizen
 	 * 
-	 * @param {hemi.curve.Curve} eye Curve for camera eye to follow
-	 * @param {hemi.curve.Curve} target Curve for camera target to follow
+	 * @param {hemi.Curve} eye Curve for camera eye to follow
+	 * @param {hemi.Curve} target Curve for camera target to follow
 	 */
 	hemi.CameraCurve = function(eye, target) {
 			this.eye = eye;

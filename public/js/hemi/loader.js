@@ -164,7 +164,7 @@ var hemi = (function(hemi) {
 		
 		hemi.utils.get(url, function(data, status) {
 			if (data == null) {
-				hemi.core.error(status);
+				hemi.error(status);
 			} else {
 				callback(data);
 			}

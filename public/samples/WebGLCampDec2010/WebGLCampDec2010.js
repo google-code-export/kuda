@@ -253,8 +253,8 @@
 				eyes[5], eyes[6],
 				eyes[7], SLIDE1_TARGET
 			],
-			curveEye = new hemi.Curve(eyes, hemi.curve.CurveType.Cardinal),
-			curveTarget = new hemi.Curve(targets, hemi.curve.CurveType.Cardinal),
+			curveEye = new hemi.Curve(eyes, hemi.CurveType.Cardinal),
+			curveTarget = new hemi.Curve(targets, hemi.CurveType.Cardinal),
 			camCurve = new hemi.CameraCurve(curveEye, curveTarget);
 			// curveEye.draw(50, { jointSize: 4 });
 		camera.moveOnCurve(camCurve, 25);
@@ -282,8 +282,8 @@
 				targets = [
 					new THREE.Vector3(0, 0, Zt), 
 					new THREE.Vector3(0, 0, Zt)],
-			curveEye = new hemi.Curve(eyes, hemi.curve.CurveType.CubicHermite, { tangents: tangents }),
-			curveTarget = new hemi.Curve(targets, hemi.curve.CurveType.Linear),
+			curveEye = new hemi.Curve(eyes, hemi.CurveType.CubicHermite, { tangents: tangents }),
+			curveTarget = new hemi.Curve(targets, hemi.CurveType.Linear),
 			camCurve = new hemi.CameraCurve(curveEye, curveTarget);
 			// curveEye.draw(50, { jointSize: 4 });
 			camera.moveOnCurve(camCurve, 1.2);
