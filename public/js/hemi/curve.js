@@ -219,44 +219,6 @@ var hemi = (function(hemi) {
 		}
 	};
 
-////////////////////////////////////////////////////////////////////////////////
-//                             Global Methods                                 //
-////////////////////////////////////////////////////////////////////////////////  
-	
-	/**
-	 * Create a curve particle system with the given configuration.
-	 * 
-	 * @param {hemi.Client} the client to create the system in
-	 * @param {Object} cfg configuration options:
-	 *     aim: flag to indicate particles should orient with curve
-	 *     boxes: array of bounding boxes for particle curves to pass through
-	 *     colors: array of values for particle color ramp (use this or colorKeys)
-	 *     colorKeys: array of time keys and values for particle color ramp
-	 *     life: lifetime of particle system (in seconds)
-	 *     particleCount: number of particles to allocate for system
-	 *     particleShape: mesh containg shape geometry to use for particles
-	 *     scales: array of values for particle scale ramp (use this or scaleKeys)
-	 *     scaleKeys: array of time keys and values for particle size ramp
-	 *     tension: tension parameter for the curve (typically from -1 to 1)
-	 *     trail: flag to indicate system should have trailing start and stop
-	 * @return {Object} the created particle system
-	 */
-	hemi.createCurveSystem = function(client, cfg) {
-		var system;
-		
-		if (cfg.fast) {
-			if (cfg.trail) {
-				system = new hemi.GpuParticleTrail(client, cfg);
-			} else {
-				system = new hemi.GpuParticleCurveSystem(client, cfg);
-			}
-		} else {
-			system = new hemi.ParticleCurveSystem(client, cfg);
-		}
-		
-		return system;
-	};
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -623,7 +585,18 @@ var hemi = (function(hemi) {
 	 * @class A ParticleCurve is a particle system that uses volumetric waypoints (boxes) to create
 	 * curved paths for particles to follow.
 	 * 
-	 * @param {Object} opt_cfg optional configuration object for the ParticleCurve
+	 * @param {Object} opt_cfg optional configuration object for the ParticleCurve:
+	 *     aim: flag to indicate particles should orient with curve
+	 *     boxes: array of bounding boxes for particle curves to pass through
+	 *     colors: array of values for particle color ramp (use this or colorKeys)
+	 *     colorKeys: array of time keys and values for particle color ramp
+	 *     life: lifetime of particle system (in seconds)
+	 *     particleCount: number of particles to allocate for system
+	 *     particleShape: mesh containg shape geometry to use for particles
+	 *     scales: array of values for particle scale ramp (use this or scaleKeys)
+	 *     scaleKeys: array of time keys and values for particle size ramp
+	 *     tension: tension parameter for the curve (typically from -1 to 1)
+	 *     trail: flag to indicate system should have trailing start and stop
 	 */
 	var ParticleCurve = function(client, opt_cfg) {
 		this._aim = false;
@@ -707,7 +680,18 @@ var hemi = (function(hemi) {
 	/**
 	 * Load the given configuration object and set up the ParticleCurve.
 	 * 
-	 * @param {Object} cfg configuration object
+	 * @param {Object} cfg configuration options:
+	 *     aim: flag to indicate particles should orient with curve
+	 *     boxes: array of bounding boxes for particle curves to pass through
+	 *     colors: array of values for particle color ramp (use this or colorKeys)
+	 *     colorKeys: array of time keys and values for particle color ramp
+	 *     life: lifetime of particle system (in seconds)
+	 *     particleCount: number of particles to allocate for system
+	 *     particleShape: mesh containg shape geometry to use for particles
+	 *     scales: array of values for particle scale ramp (use this or scaleKeys)
+	 *     scaleKeys: array of time keys and values for particle size ramp
+	 *     tension: tension parameter for the curve (typically from -1 to 1)
+	 *     trail: flag to indicate system should have trailing start and stop
 	 */
 	ParticleCurve.prototype.loadConfig = function(cfg) {
 		this._aim = cfg.aim === undefined ? false : cfg.aim;
