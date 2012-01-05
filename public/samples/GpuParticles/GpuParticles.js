@@ -63,15 +63,15 @@
 		/*
 		 * The bounding boxes which the arrows will flow through:
 		 */
-		var box1 = new hemi.curve.Box(new THREE.Vector3(-510,-110,-10),new THREE.Vector3(-490,-90,10));
-		var box2 = new hemi.curve.Box(new THREE.Vector3(-600,400,-200),new THREE.Vector3(-400,600,0));
-		var box3 = new hemi.curve.Box(new THREE.Vector3(-10,790,180),new THREE.Vector3(10,810,200));
-		var box4 = new hemi.curve.Box(new THREE.Vector3(400,450,-300),new THREE.Vector3(600,650,-100));
-		var box5 = new hemi.curve.Box(new THREE.Vector3(490,-110,-110),new THREE.Vector3(510,-90,-90));
-		var box6 = new hemi.curve.Box(new THREE.Vector3(-30,140,-560),new THREE.Vector3(30,260,-440));
-		var box7 = new hemi.curve.Box(new THREE.Vector3(-310,490,-10),new THREE.Vector3(110,510,10));
-		var box8 = new hemi.curve.Box(new THREE.Vector3(90,190,590),new THREE.Vector3(110,210,610));
-		var box9 = new hemi.curve.Box(new THREE.Vector3(-250,-250,270),new THREE.Vector3(-150,-150,330));
+		var box1 = new hemi.BoundingBox(new THREE.Vector3(-510,-110,-10),new THREE.Vector3(-490,-90,10));
+		var box2 = new hemi.BoundingBox(new THREE.Vector3(-600,400,-200),new THREE.Vector3(-400,600,0));
+		var box3 = new hemi.BoundingBox(new THREE.Vector3(-10,790,180),new THREE.Vector3(10,810,200));
+		var box4 = new hemi.BoundingBox(new THREE.Vector3(400,450,-300),new THREE.Vector3(600,650,-100));
+		var box5 = new hemi.BoundingBox(new THREE.Vector3(490,-110,-110),new THREE.Vector3(510,-90,-90));
+		var box6 = new hemi.BoundingBox(new THREE.Vector3(-30,140,-560),new THREE.Vector3(30,260,-440));
+		var box7 = new hemi.BoundingBox(new THREE.Vector3(-310,490,-10),new THREE.Vector3(110,510,10));
+		var box8 = new hemi.BoundingBox(new THREE.Vector3(90,190,590),new THREE.Vector3(110,210,610));
+		var box9 = new hemi.BoundingBox(new THREE.Vector3(-250,-250,270),new THREE.Vector3(-150,-150,330));
 		
 		/*
 		 * The colors these arrows will be as they move along the curve:
@@ -93,22 +93,19 @@
 		 * 5 seconds. Specify the shapes are arrows.
 		 */
 		var systemConfig = {
-			fast: true,
 			aim: true,
-			trail: true,
 			particleCount: 500,
 			life: 12,
 			boxes: [box1,box2,box3,box4,box5,box6,box7,box8,box9,box1],
-			particleShape: hemi.curve.ShapeType.ARROW,
+			particleShape: hemi.shape.createArrow(null, 10, 5, 10, null),
 			colors: [blue,green,red,blue],
-			scaleKeys: [scaleKey1,scaleKey2,scaleKey3,scaleKey4,scaleKey5],
-			particleSize: 10
+			scaleKeys: [scaleKey1,scaleKey2,scaleKey3,scaleKey4,scaleKey5]
 		};
 		
 		/* Create the particle system with the above config, 
 		 * and make the root transform its parent.
 		 */
-		var particleSystem = hemi.createCurveSystem(client, systemConfig);
+		var particleSystem = new hemi.ParticleCurveTrail(client, systemConfig);
 		var showBoxes = false;		// If boxes are being shown
 		
 		/* Register a keyDown listener:
@@ -133,7 +130,7 @@
 						var newLife = particleSystem.life - 1;
 						
 						if (newLife > 0) {
-							particleSystem.setLife(newLife);
+							particleSystem.life = newLife;
 						}
 						break;
 					case (80):
@@ -154,7 +151,7 @@
 						var newLife = particleSystem.life + 1;
 						
 						if (newLife < 30) {
-							particleSystem.setLife(newLife);
+							particleSystem.life = newLife;
 						}
 						break;
 					default:

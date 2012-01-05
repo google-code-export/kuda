@@ -115,13 +115,13 @@ var hemi = (function(hemi) {
 		for (var i = 0, il = this._urls.length; i < il; ++i) {
 			var urlObj = this._urls[i];
 
-			octane.props.push({
+			props.push({
 				name: 'addUrl',
 				arg: [urlObj.url, urlObj.type]
 			});
 		}
 
-		return octane;
+		return props;
 	};
 
 	/**
