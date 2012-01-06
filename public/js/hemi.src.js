@@ -3913,43 +3913,37 @@ var hemi = (function(hemi) {
 
 	return hemi;
 })(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
 
 	var colladaLoader = new THREE.ColladaLoader(),
 		resetCB = null,
-		taskCount = 1,
+		taskCount = 1;
 
-		decrementTaskCount = function() {
-			if (--taskCount === 0) {
-				taskCount = 1;
-				hemi.send(hemi.msg.ready, {});
-
-				if (resetCB) {
-					resetCB();
-					resetCB = null;
-				}
-			}
-		};
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Constants
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * The relative path from the referencing HTML file to the Kuda directory.
@@ -3957,6 +3951,10 @@ var hemi = (function(hemi) {
 	 * @default ''
 	 */
 	hemi.loadPath = '';
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/*
 	 * Get the correct path for the given URL. If the URL is absolute, then leave it alone.
@@ -3971,6 +3969,24 @@ var hemi = (function(hemi) {
 		} else {
 			return hemi.loadPath + url;
 		}
+	};
+
+	/**
+	 * Load the HTML file at the given url and pass it to the given callback
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function(string):void} callback a function to pass the loaded HTML data
+	 */
+	hemi.loadHtml = function(url, callback) {
+		url = hemi.getLoadPath(url);
+
+		hemi.utils.get(url, function(data, status) {
+			if (data === null) {
+				hemi.error(status);
+			} else {
+				callback(data);
+			}
+		});
 	};
 
 	/**
@@ -4073,19 +4089,6 @@ var hemi = (function(hemi) {
 		});
 	};
 
-
-	hemi.loadHtml = function(url, callback) {
-		url = hemi.getLoadPath(url);
-		
-		hemi.utils.get(url, function(data, status) {
-			if (data == null) {
-				hemi.error(status);
-			} else {
-				callback(data);
-			}
-		});
-	};
-
 	/**
 	 * Activate the World once all resources are loaded. This function should
 	 * only be called after all scripting and setup is complete.
@@ -4103,6 +4106,22 @@ var hemi = (function(hemi) {
 		resetCB = opt_callback;
 		decrementTaskCount();
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function decrementTaskCount() {
+		if (--taskCount === 0) {
+			taskCount = 1;
+			hemi.send(hemi.msg.ready, {});
+
+			if (resetCB) {
+				resetCB();
+				resetCB = null;
+			}
+		}
+	}
 
 	return hemi;
 })(hemi || {});
@@ -6331,40 +6350,46 @@ var hemi = (function(hemi) {
 
 	return hemi;
 })(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {	
 	/**
 	 * @namespace A module for handling all keyboard and mouse input.
 	 */
 	hemi.input = hemi.input || {};
-	
-	hemi.input.mouseDownListeners = [];
-	hemi.input.mouseUpListeners = [];
-	hemi.input.mouseMoveListeners = [];
-	hemi.input.mouseWheelListeners = [];
-	hemi.input.keyDownListeners = [];
-	hemi.input.keyUpListeners = [];
-	hemi.input.keyPressListeners = [];
-	
+
+	var mouseDownListeners = [],
+		mouseUpListeners = [],
+		mouseMoveListeners = [],
+		mouseWheelListeners = [],
+		keyDownListeners = [],
+		keyUpListeners = [],
+		keyPressListeners = [];
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	 * Setup the listener lists and register the event handlers.
 	 */
@@ -6395,70 +6420,70 @@ var hemi = (function(hemi) {
 			hemi.input.keyUp(event);
 		}, true);
 	};
-	
+
 	/**
 	 * Register the given listener as a "mouse down" listener.
 	 *  
 	 * @param {Object} listener an object that implements onMouseDown()
 	 */
 	hemi.input.addMouseDownListener = function(listener) {
-		addListener(hemi.input.mouseDownListeners, listener);
+		addListener(mouseDownListeners, listener);
 	};
-	
+
 	/**
 	 * Register the given listener as a "mouse up" listener.
 	 *  
 	 * @param {Object} listener an object that implements onMouseUp()
 	 */
 	hemi.input.addMouseUpListener = function(listener) {
-		addListener(hemi.input.mouseUpListeners, listener);
+		addListener(mouseUpListeners, listener);
 	};
-	
+
 	/**
 	 * Register the given listener as a "mouse move" listener.
 	 *  
 	 * @param {Object} listener an object that implements onMouseMove()
 	 */
 	hemi.input.addMouseMoveListener = function(listener) {
-		addListener(hemi.input.mouseMoveListeners, listener);
+		addListener(mouseMoveListeners, listener);
 	};
-	
+
 	/**
 	 * Register the given listener as a "mouse wheel" listener.
 	 *  
 	 * @param {Object} listener an object that implements onScroll()
 	 */
 	hemi.input.addMouseWheelListener = function(listener) {
-		addListener(hemi.input.mouseWheelListeners, listener);
+		addListener(mouseWheelListeners, listener);
 	};
-    
+   
 	/**
 	 * Register the given listener as a "key down" listener.
 	 *  
 	 * @param {Object} listener an object that implements onKeyDown()
 	 */
     hemi.input.addKeyDownListener = function(listener) {
-		addListener(hemi.input.keyDownListeners, listener);
+		addListener(keyDownListeners, listener);
     };
-    
+
 	/**
 	 * Register the given listener as a "key up" listener.
 	 *  
 	 * @param {Object} listener an object that implements onKeyUp()
 	 */
     hemi.input.addKeyUpListener = function(listener) {
-		addListener(hemi.input.keyUpListeners, listener);
+		addListener(keyUpListeners, listener);
     };
-    
+
 	/**
 	 * Register the given listener as a "key press" listener.
 	 *  
 	 * @param {Object} listener an object that implements onKeyPress()
 	 */
     hemi.input.addKeyPressListener = function(listener) {
-		addListener(hemi.input.keyPressListeners, listener);
+		addListener(keyPressListeners, listener);
     };
-	
+
 	/**
 	 * Remove the given listener from the list of "mouse down" listeners.
 	 * 
@@ -6466,9 +6491,9 @@ var hemi = (function(hemi) {
 	 * @return {Object} the removed listener if successful or null
 	 */
 	hemi.input.removeMouseDownListener = function(listener) {
-		return removeListener(hemi.input.mouseDownListeners, listener);
+		return removeListener(mouseDownListeners, listener);
 	};
-	
+
 	/**
 	 * Remove the given listener from the list of "mouse up" listeners.
 	 * 
@@ -6476,9 +6501,9 @@ var hemi = (function(hemi) {
 	 * @return {Object} the removed listener if successful or null
 	 */
 	hemi.input.removeMouseUpListener = function(listener) {
-		return removeListener(hemi.input.mouseUpListeners, listener);
+		return removeListener(mouseUpListeners, listener);
 	};
-	
+
 	/**
 	 * Remove the given listener from the list of "mouse move" listeners.
 	 * 
@@ -6486,9 +6511,9 @@ var hemi = (function(hemi) {
 	 * @return {Object} the removed listener if successful or null
 	 */
 	hemi.input.removeMouseMoveListener = function(listener) {
-		return removeListener(hemi.input.mouseMoveListeners, listener);
+		return removeListener(mouseMoveListeners, listener);
 	};
-	
+
 	/**
 	 * Remove the given listener from the list of "mouse wheel" listeners.
 	 * 
@@ -6496,9 +6521,9 @@ var hemi = (function(hemi) {
 	 * @return {Object} the removed listener if successful or null
 	 */
 	hemi.input.removeMouseWheelListener = function(listener) {
-		return removeListener(hemi.input.mouseWheelListeners, listener);
+		return removeListener(mouseWheelListeners, listener);
 	};
-    
+
 	/**
 	 * Remove the given listener from the list of "key down" listeners.
 	 * 
@@ -6506,9 +6531,9 @@ var hemi = (function(hemi) {
 	 * @return {Object} the removed listener if successful or null
 	 */
     hemi.input.removeKeyDownListener = function(listener) {
-		return removeListener(hemi.input.keyDownListeners, listener);
+		return removeListener(keyDownListeners, listener);
     };
-    
+
 	/**
 	 * Remove the given listener from the list of "key up" listeners.
 	 * 
@@ -6516,9 +6541,9 @@ var hemi = (function(hemi) {
 	 * @return {Object} the removed listener if successful or null
 	 */
     hemi.input.removeKeyUpListener = function(listener) {
-		return removeListener(hemi.input.keyUpListeners, listener);
+		return removeListener(keyUpListeners, listener);
     };
-    
+
 	/**
 	 * Remove the given listener from the list of "key press" listeners.
 	 * 
@@ -6526,112 +6551,113 @@ var hemi = (function(hemi) {
 	 * @return {Object} the removed listener if successful or null
 	 */
     hemi.input.removeKeyPressListener = function(listener) {
-		return removeListener(hemi.input.keyPressListeners, listener);
+		return removeListener(keyPressListeners, listener);
     };
-	
+
 	/**
 	 * Handle the event generated by the user pressing a mouse button down.
 	 * 
-	 * @param {o3d.Event} event information about the event which is passed on
-	 *                    to registered "mouse down" listeners
+	 * @param {Object} event information about the event which is passed on to registered "mouse
+	 *     down" listeners
 	 */
 	hemi.input.mouseDown = function(event) {
         var newEvent = getRelativeEvent(event);
-		for (var ndx = 0; ndx < hemi.input.mouseDownListeners.length; ndx++) {
-			hemi.input.mouseDownListeners[ndx].onMouseDown(newEvent);
+		for (var ndx = 0; ndx < mouseDownListeners.length; ndx++) {
+			mouseDownListeners[ndx].onMouseDown(newEvent);
 		}
 	};
-	
+
 	/**
 	 * Handle the event generated by the user releasing a pressed mouse button.
 	 * 
-	 * @param {o3d.Event} event information about the event which is passed on
-	 *                    to registered "mouse up" listeners
+	 * @param {Object} event information about the event which is passed on to registered "mouse up"
+	 *     listeners
 	 */
 	hemi.input.mouseUp = function(event) {
         var newEvent = getRelativeEvent(event);
-		for (var ndx = 0; ndx < hemi.input.mouseUpListeners.length; ndx++) {
-			hemi.input.mouseUpListeners[ndx].onMouseUp(newEvent);
+		for (var ndx = 0; ndx < mouseUpListeners.length; ndx++) {
+			mouseUpListeners[ndx].onMouseUp(newEvent);
 		}
 	};
-	
+
 	/**
 	 * Handle the event generated by the user moving the mouse.
 	 * 
-	 * @param {o3d.Event} event information about the event which is passed on
-	 *                    to registered "mouse move" listeners
+	 * @param {Object} event information about the event which is passed on to registered "mouse
+	 *     move" listeners
 	 */
 	hemi.input.mouseMove = function(event) {
         var newEvent = getRelativeEvent(event);
-		for (var ndx = 0; ndx < hemi.input.mouseMoveListeners.length; ndx++) {
-			hemi.input.mouseMoveListeners[ndx].onMouseMove(newEvent);
+		for (var ndx = 0; ndx < mouseMoveListeners.length; ndx++) {
+			mouseMoveListeners[ndx].onMouseMove(newEvent);
 		}
 	};
-	
+
 	/**
 	 * Handle the event generated by the user scrolling a mouse wheel.
 	 * 
-	 * @param {o3d.Event} event information about the event which is passed on
-	 *                    to registered "mouse wheel" listeners
+	 * @param {Object} event information about the event which is passed on to registered "mouse
+	 *     wheel" listeners
 	 */
 	hemi.input.scroll = function(event) {
         var newEvent = getRelativeEvent(event);
         newEvent.deltaY = event.detail ? -event.detail : event.wheelDelta;
         cancelEvent(event);
-		for (var ndx = 0; ndx < hemi.input.mouseWheelListeners.length; ndx++) {
-			hemi.input.mouseWheelListeners[ndx].onScroll(newEvent);
+		for (var ndx = 0; ndx < mouseWheelListeners.length; ndx++) {
+			mouseWheelListeners[ndx].onScroll(newEvent);
 		}
 	};
-    
+
 	/**
 	 * Handle the event generated by the user pressing a key down.
 	 * 
-	 * @param {o3d.Event} event information about the event which is passed on
-	 *                    to registered "key down" listeners
+	 * @param {Object} event information about the event which is passed on to registered "key down"
+	 *     listeners
 	 */
     hemi.input.keyDown = function(event) {
-        for (var ndx = 0; ndx < hemi.input.keyDownListeners.length; ndx++) {
-            hemi.input.keyDownListeners[ndx].onKeyDown(event);
+        for (var ndx = 0; ndx < keyDownListeners.length; ndx++) {
+            keyDownListeners[ndx].onKeyDown(event);
         }
     };
-    
+
 	/**
 	 * Handle the event generated by the user releasing a pressed key.
 	 * 
-	 * @param {o3d.Event} event information about the event which is passed on
-	 *                    to registered "key up" listeners
+	 * @param {Object} event information about the event which is passed on to registered "key up"
+	 *     listeners
 	 */
     hemi.input.keyUp = function(event) {
-        for (var ndx = 0; ndx < hemi.input.keyUpListeners.length; ndx++) {
-            hemi.input.keyUpListeners[ndx].onKeyUp(event);
+        for (var ndx = 0; ndx < keyUpListeners.length; ndx++) {
+            keyUpListeners[ndx].onKeyUp(event);
         }
     };
-    
+
 	/**
-	 * Handle the event generated by the user pressing a key down and releasing
-	 * it.
+	 * Handle the event generated by the user pressing a key down and releasing it.
 	 * 
-	 * @param {o3d.Event} event information about the event which is passed on
-	 *                    to registered "key press" listeners
+	 * @param {Object} event information about the event which is passed on to registered "key
+	 *     press" listeners
 	 */
     hemi.input.keyPress = function(event) {
-        for (var ndx = 0; ndx < hemi.input.keyPressListeners.length; ndx++) {
-            hemi.input.keyPressListeners[ndx].onKeyPress(event);
+        for (var ndx = 0; ndx < keyPressListeners.length; ndx++) {
+            keyPressListeners[ndx].onKeyPress(event);
         }
     };
-	
-	// Internal functions
-	
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/*
 	 * Add the given listener to the given set of listeners.
 	 * 
 	 * @param {Object[]} listenerSet list to add to
 	 * @param {Object} listener object to add
 	 */
-	var addListener = function(listenerSet, listener) {
+	function addListener(listenerSet, listener) {
 		listenerSet.push(listener);
-	};
-	
+	}
+
 	/*
 	 * Remove the given listener from the given set of listeners.
 	 * 
@@ -6639,53 +6665,50 @@ var hemi = (function(hemi) {
 	 * @param {Object} listener object to remove
 	 * @return {Object} the removed listener if successful or null 
 	 */
-	var removeListener = function(listenerSet, listener) {
-        var found = null;
-		var ndx = listenerSet.indexOf(listener);
-		
-		if (ndx != -1) {
-			var spliced = listenerSet.splice(ndx, 1);
-			
-			if (spliced.length == 1) {
-				found = spliced[0];
-			}
+	function removeListener(listenerSet, listener) {
+		var ndx = listenerSet.indexOf(listener),
+			found = null;
+
+		if (ndx !== -1) {
+			found = listenerSet.splice(ndx, 1)[0];
 		}
-        
-        return found;
-	};
 
-    var getRelativeXY = function(event) {
-        var element = event.target ? event.target : event.srcElement;
-        var xy = {x: 0, y: 0};
-        for (var e = element; e; e = e.offsetParent) {
-            xy.x += e.offsetLeft;
-            xy.y += e.offsetTop;
-        }
+		return found;
+	}
 
-        xy.x = event.pageX - xy.x;
-        xy.y = event.pageY - xy.y;
+	function getRelativeXY(event) {
+		var element = event.target ? event.target : event.srcElement,
+			xy = {x: 0, y: 0};
 
-        return xy;
-    };
+		for (var e = element; e; e = e.offsetParent) {
+			xy.x += e.offsetLeft;
+			xy.y += e.offsetTop;
+		}
 
-    var getRelativeEvent = function(event) {
-        var newEvent = hemi.utils.clone(event, false);
-        var xy = getRelativeXY(newEvent);
-        newEvent.x = xy.x;
-        newEvent.y = xy.y;
+		xy.x = event.pageX - xy.x;
+		xy.y = event.pageY - xy.y;
 
-        return newEvent;
-    };
+		return xy;
+	}
 
-    var cancelEvent = function(event) {
-        if (!event)
-            event = window.event;
-        event.cancelBubble = true;
-        if (event.stopPropagation)
-            event.stopPropagation();
-        if (event.preventDefault)
-            event.preventDefault();
-    };
+	function getRelativeEvent(event) {
+		var newEvent = hemi.utils.clone(event, false),
+			xy = getRelativeXY(newEvent);
+
+		newEvent.x = xy.x;
+		newEvent.y = xy.y;
+
+		return newEvent;
+	}
+
+	function cancelEvent(event) {
+		if (!event) event = window.event;
+
+		event.cancelBubble = true;
+
+		if (event.stopPropagation) event.stopPropagation();
+		if (event.preventDefault) event.preventDefault();
+	}
 
 	return hemi;
 })(hemi || {});
@@ -9677,78 +9700,29 @@ var hemi = (function(hemi) {
 
 	return hemi;
 })(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
-		/*
-		 * Get the CSS RGBA string for the given color array in 0-1 format.
-		 * @param {number[4]} col color array
-		 * @return {string} the equivalent RGBA string
-		 */
-	var getRgba = function(col) {
-			return 'rgba(' + Math.round(col[0]*255) + ',' + Math.round(col[1]*255) + ',' +
-				Math.round(col[2]*255) + ',' + col[3] + ')';
-		},
-		/**
-		 * Set the painting properties for the given 2D canvas context.
-		 * 
-		 * @param {Object} context the 2D canvas context
-		 * @param {Object} options the options for painting
-		 */
-		setPaintProperties = function(context, options) {
-			var font = options.textStyle == null ? '' : options.textStyle + ' ';
-
-			if (options.textSize != null) {
-				font += options.textSize + 'px ';
-			} else {
-				font += '12px ';
-			}
-			if (options.textTypeface != null) {
-				font += '"' + options.textTypeface + '"';
-			} else {
-				font += 'helvetica';
-			}
-
-			context.font = font;
-
-			if (options.textAlign != null) {
-				context.textAlign = options.textAlign;
-			}
-			if (options.color != null) {
-				context.fillStyle = getRgba(options.color);
-			}
-			if (options.outline != null) {
-				context.strokeStyle = getRgba(options.outline);
-				// If there is an outline, cancel the shadow.
-				context.shadowColor = 'rgba(0,0,0,0)';
-			} else if (options.shadow != null) {
-				var shad = options.shadow;
-				context.shadowBlur = shad.radius;
-				context.shadowColor = getRgba(shad.color);
-				context.shadowOffsetX = shad.offsetX;
-				context.shadowOffsetY = shad.offsetY;
-			} else {
-				context.shadowColor = 'rgba(0,0,0,0)';
-			}
-		};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // HudTheme class
@@ -9922,12 +9896,6 @@ var hemi = (function(hemi) {
 
 	hemi.HudTheme = HudTheme;
 	hemi.makeOctanable(hemi.HudTheme, 'hemi.HudTheme', hemi.HudTheme.prototype._octane);
-
-	/*
-	 * The current HUD theme being used for default properties.
-	 */
-	var currentTheme = new hemi.HudTheme();
-	currentTheme.name = 'Default';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // HudElement class
@@ -11622,6 +11590,10 @@ var hemi = (function(hemi) {
 		this.currentContext = this._contexts[client._getId()];
 	};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	 * Set the current theme for HUD displays.
 	 * 
@@ -11631,10 +11603,73 @@ var hemi = (function(hemi) {
 		currentTheme = theme;
 	};
 
+	/*
+	 * The current HUD theme being used for default properties.
+	 */
+	var currentTheme = new hemi.HudTheme();
+	currentTheme.name = 'Default';
+
 	/**
 	 * The HUD manager responsible for drawing all HUD displays, elements, etc.
 	 */
 	hemi.hudManager = new HudManager();
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Get the CSS RGBA string for the given color array in 0-1 format.
+	 * @param {number[4]} col color array
+	 * @return {string} the equivalent RGBA string
+	 */
+	function getRgba(col) {
+		return 'rgba(' + Math.round(col[0]*255) + ',' + Math.round(col[1]*255) + ',' +
+			Math.round(col[2]*255) + ',' + col[3] + ')';
+	}
+
+	/*
+	 * Set the painting properties for the given 2D canvas context.
+	 * 
+	 * @param {Object} context the 2D canvas context
+	 * @param {Object} options the options for painting
+	 */
+	function setPaintProperties(context, options) {
+		var font = options.textStyle == null ? '' : options.textStyle + ' ';
+
+		if (options.textSize != null) {
+			font += options.textSize + 'px ';
+		} else {
+			font += '12px ';
+		}
+		if (options.textTypeface != null) {
+			font += '"' + options.textTypeface + '"';
+		} else {
+			font += 'helvetica';
+		}
+
+		context.font = font;
+
+		if (options.textAlign != null) {
+			context.textAlign = options.textAlign;
+		}
+		if (options.color != null) {
+			context.fillStyle = getRgba(options.color);
+		}
+		if (options.outline != null) {
+			context.strokeStyle = getRgba(options.outline);
+			// If there is an outline, cancel the shadow.
+			context.shadowColor = 'rgba(0,0,0,0)';
+		} else if (options.shadow != null) {
+			var shad = options.shadow;
+			context.shadowBlur = shad.radius;
+			context.shadowColor = getRgba(shad.color);
+			context.shadowOffsetX = shad.offsetX;
+			context.shadowOffsetY = shad.offsetY;
+		} else {
+			context.shadowColor = 'rgba(0,0,0,0)';
+		}
+	}
 
 	return hemi;
 })(hemi || {});
@@ -15089,53 +15124,203 @@ var hemi = (function(hemi) {
 		return true;
 	}
 	
-})(hemi);/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
-/*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+})(hemi);/*
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
 
 	hemi.fx = hemi.fx || {};
-	
+
 	var clientData = [];
-	
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	hemi.fx.cleanup = function() {
+		clientData = [];
+	};
+
+	/**
+	 * Removes the fog for the given client
+	 * 
+	 * @param {hemi.Client} client the client view to clear fog for
+	 */
+	hemi.fx.clearFog = function(client) {
+		var data = findData(client);
+
+		if (data && data.fog) {
+			client.scene.fog = undefined;
+			client.setBGColor(data.oldBGHex, data.oldBGAlpha);
+
+			// now change the materials
+			for (var i = 0, il = data.materials.length; i < il; i++) {
+				var matData = data.materials[i];
+
+				client.renderer.initMaterial(matData.mat, client.scene.lights, client.scene.fog, matData.obj);
+			}
+		}
+	};
+
+	/**
+	 * Sets the fog for the given client to the following parameters
+	 * 
+	 * @param {hemi.Client} client the client view to set fog for 
+	 * @param {number} color the hex (begins with 0x) color value
+	 * @param {number} alpha the alpha value of the color between 0 and 1
+	 * @param {number} near the viewing distance where the fog obscuring starts  
+	 * @param {number} far the viewing distance where fog opacity obscures the subject
+	 */
+	hemi.fx.setFog = function(client, color, alpha, near, far) {
+		var data = findData(client),
+			objs = client.scene.__webglObjects.concat(client.scene.__webglObjectsImmediate),
+			mats = [],
+			refresh = false;
+
+		if (!data) {
+			data = {
+				client: client
+			};
+			clientData.push(data);
+		}
+
+		if (!data.fog) {
+			data.fog = new THREE.Fog();
+
+			// save the old background color
+			data.oldBGHex = client.renderer.getClearColor().getHex();
+			data.oldBGAlpha = client.renderer.getClearAlpha();
+			refresh = true;
+		}
+
+		data.fog.color.setHex(color);
+		data.fog.near = near;
+		data.fog.far = far;
+
+		client.scene.fog = data.fog;
+		client.setBGColor(color, alpha);
+
+		if (refresh) {
+			// go through all the materials and update
+			// first get the materials
+			for (var i = 0, il = objs.length; i < il; i++) {
+				var webglObject = objs[i], 
+					object = webglObject.object, 
+					opaque = webglObject.opaque, 
+					transparent = webglObject.transparent;
+
+				for (var j = 0, jl = opaque.count; j < jl; j++) {
+					mats.push({
+						mat: opaque.list[j],
+						obj: object
+					});
+				}
+				for (var j = 0, jl = transparent.count; j < jl; j++) {
+					mats.push({
+						mat: transparent.list[j],
+						obj: object
+					});
+				}
+			}
+
+			// save the materials for later
+			data.materials = mats;
+		}
+
+		// now change the materials
+		for (var i = 0, il = data.materials.length; i < il; i++) {
+			var matData = data.materials[i],
+				material = matData.mat,
+				object = matData.obj,
+				fog = client.scene.fog;
+
+			if (refresh) {
+				client.renderer.initMaterial(material, client.scene.lights, 
+					fog, object);
+			}
+			else {
+				var uniforms = material.uniforms;
+				
+				uniforms.fogColor.value = fog.color;		
+				uniforms.fogNear.value = fog.near;
+				uniforms.fogFar.value = fog.far;
+			}
+		}
+	};
+
+	/**
+	 * Sets the opacity for the given material in the given object.
+	 * 
+	 * @param {hemi.Client} client the client view in which to change opacity
+	 * @param {THREE.Object3d} object the object whose material's opacity we're changing
+	 * @param {THREE.Material} material the material to set opacity on
+	 * @param {number} opacity the opacity value between 0 and 1
+	 */
+	hemi.fx.setOpacity = function(client, object, material, opacity) {
+		var objs = client.scene.__webglObjects.concat(client.scene.__webglObjectsImmediate),
+			found = null;
+
+		for (var i = 0, il = objs.length; i < il && found === null; i++) {
+			var webglObject = objs[i];
+
+			if (webglObject.object.parent === object || webglObject.object === object) {
+				found = webglObject;
+			}
+		}
+
+		if (found) {
+			material.transparent = opacity < 1;
+			material.opacity = opacity;
+
+			// move the material to the transparent list and out of the opaque list
+			found.transparent && (found.transparent.list = []);
+			found.opaque && (found.opaque.list = []);
+			unrollBufferMaterial(found);
+			unrollImmediateBufferMaterial(found);
+		}
+	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	function findData(client) {
 		var retVal = null;
-		for (var i = 0, il = clientData.length; i < il && retVal == null; i++) {
+		for (var i = 0, il = clientData.length; i < il && retVal === null; i++) {
 			if (clientData[i].client === client) {
 				retVal = clientData[i];
 			}
 		}
 		return retVal;
-	};
+	}
 
 	/*
-	 * The following three functions are exact duplicates of the functions
-	 * in WebGLRenderer. Until those functions are exposed, we have to 
-	 * duplicate them here. 
-	 * 
+	 * The following three functions are exact duplicates of the functions in WebGLRenderer. Until
+	 * those functions are exposed, we have to duplicate them here.
 	 */
-	
 	function addToFixedArray(where, what) {
 		where.list[ where.count ] = what;
 		where.count += 1;
-	};
+	}
 
 	function unrollImmediateBufferMaterial(globject) {
 		var object = globject.object,
@@ -15148,7 +15333,7 @@ var hemi = (function(hemi) {
 			globject.opaque = material;
 			globject.transparent = null;
 		}
-	};
+	}
 
 	function unrollBufferMaterial(globject) {
 		var object = globject.object,
@@ -15184,157 +15369,11 @@ var hemi = (function(hemi) {
 				}
 			}
 		}
-	};
-	
-	hemi.fx.cleanup = function() {
-		clientData = [];
 	}
-	
-	/**
-	 * Removes the fog for the given client
-	 * 
-	 * @param {hemi.Client} client the client view to clear fog for
-	 */
-	hemi.fx.clearFog = function(client) {
-		var data = findData(client);
-		
-		if (data && data.fog) {
-			client.scene.fog = undefined;
-			client.setBGColor(data.oldBGHex, data.oldBGAlpha);
-			
-			// now change the materials
-			for (var i = 0, il = data.materials.length; i < il; i++) {
-				var matData = data.materials[i];
-				
-				client.renderer.initMaterial(matData.mat, client.scene.lights, client.scene.fog, matData.obj);
-			}
-		}
-	};
-	
-	/**
-	 * Sets the fog for the given client to the following parameters
-	 * 
-	 * @param {hemi.Client} client the client view to set fog for 
-	 * @param {number} color the hex (begins with 0x) color value
-	 * @param {number} alpha the alpha value of the color between 0 and 1
-	 * @param {number} near the viewing distance where the fog obscuring starts  
-	 * @param {number} far the viewing distance where fog opacity obscures the 
-	 * 		subject
-	 */
-	hemi.fx.setFog = function(client, color, alpha, near, far) {
-		var data = findData(client),
-			objs = client.scene.__webglObjects.concat(
-				client.scene.__webglObjectsImmediate),
-			mats = [],
-			refresh = false;
-		
-		if (!data) {
-			data = {
-				client: client
-			};
-			clientData.push(data);
-		}
-		
-		if (!data.fog) {
-			data.fog = new THREE.Fog();
-			
-			// save the old background color
-			data.oldBGHex = client.renderer.getClearColor().getHex();
-			data.oldBGAlpha = client.renderer.getClearAlpha();
-			refresh = true;
-		}
-		
-		data.fog.color.setHex(color);
-		data.fog.near = near;
-		data.fog.far = far;
-		
-		client.scene.fog = data.fog;
-		client.setBGColor(color, alpha);
-		
-		if (refresh) {
-			// go through all the materials and update
-			// first get the materials
-			for (var i = 0, il = objs.length; i < il; i++) {
-				var webglObject = objs[i], 
-					object = webglObject.object, 
-					opaque = webglObject.opaque, 
-					transparent = webglObject.transparent;
-				
-				for (var j = 0, jl = opaque.count; j < jl; j++) {
-					mats.push({
-						mat: opaque.list[j],
-						obj: object
-					});
-				}
-				for (var j = 0, jl = transparent.count; j < jl; j++) {
-					mats.push({
-						mat: transparent.list[j],
-						obj: object
-					});
-				}
-			}
-		
-			// save the materials for later
-			data.materials = mats;
-		}
-		
-		// now change the materials
-		for (var i = 0, il = data.materials.length; i < il; i++) {
-			var matData = data.materials[i],
-				material = matData.mat,
-				object = matData.obj,
-				fog = client.scene.fog;
-			
-			if (refresh) {
-				client.renderer.initMaterial(material, client.scene.lights, 
-					fog, object);
-			}
-			else {
-				var uniforms = material.uniforms;
-									
-				uniforms.fogColor.value = fog.color;		
-				uniforms.fogNear.value = fog.near;
-				uniforms.fogFar.value = fog.far;
-			}
-		}
-	};
-	
-	/**
-	 * Sets the opacity for the given material in the given object.
-	 * 
-	 * @param {hemi.Client} client the client view in which to change opacity
-	 * @param {THREE.Object3d} object the object whose material's opacity we're 
-	 * 		changing
-	 * @param {THREE.Material} material the material to set opacity on
-	 * @param {number} opacity the opacity value between 0 and 1
-	 */
-	hemi.fx.setOpacity = function(client, object, material, opacity) {
-		var objs = client.scene.__webglObjects.concat(
-				client.scene.__webglObjectsImmediate),
-			found = null;
-				
-		for (var i = 0, il = objs.length; i < il && found == null; i++) {
-			var webglObject = objs[i];
-			
-			if (webglObject.object.parent === object || webglObject.object === object) {
-				found = webglObject;
-			}
-		}
-		
-		if (found) {
-			material.transparent = opacity < 1;
-			material.opacity = opacity;
-			
-			// move the material to the transparent list and out of the opaque list
-			found.transparent && (found.transparent.list = []);
-			found.opaque && (found.opaque.list = []);
-			unrollBufferMaterial(found);
-			unrollImmediateBufferMaterial(found);
-		}
-	};
-	
+
 	return hemi;
-})(hemi || {});/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+})(hemi || {});
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
 The MIT License (MIT)
 

@@ -1,75 +1,26 @@
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
-		/*
-		 * Get the CSS RGBA string for the given color array in 0-1 format.
-		 * @param {number[4]} col color array
-		 * @return {string} the equivalent RGBA string
-		 */
-	var getRgba = function(col) {
-			return 'rgba(' + Math.round(col[0]*255) + ',' + Math.round(col[1]*255) + ',' +
-				Math.round(col[2]*255) + ',' + col[3] + ')';
-		},
-		/**
-		 * Set the painting properties for the given 2D canvas context.
-		 * 
-		 * @param {Object} context the 2D canvas context
-		 * @param {Object} options the options for painting
-		 */
-		setPaintProperties = function(context, options) {
-			var font = options.textStyle == null ? '' : options.textStyle + ' ';
-
-			if (options.textSize != null) {
-				font += options.textSize + 'px ';
-			} else {
-				font += '12px ';
-			}
-			if (options.textTypeface != null) {
-				font += '"' + options.textTypeface + '"';
-			} else {
-				font += 'helvetica';
-			}
-
-			context.font = font;
-
-			if (options.textAlign != null) {
-				context.textAlign = options.textAlign;
-			}
-			if (options.color != null) {
-				context.fillStyle = getRgba(options.color);
-			}
-			if (options.outline != null) {
-				context.strokeStyle = getRgba(options.outline);
-				// If there is an outline, cancel the shadow.
-				context.shadowColor = 'rgba(0,0,0,0)';
-			} else if (options.shadow != null) {
-				var shad = options.shadow;
-				context.shadowBlur = shad.radius;
-				context.shadowColor = getRgba(shad.color);
-				context.shadowOffsetX = shad.offsetX;
-				context.shadowOffsetY = shad.offsetY;
-			} else {
-				context.shadowColor = 'rgba(0,0,0,0)';
-			}
-		};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // HudTheme class
@@ -243,12 +194,6 @@ var hemi = (function(hemi) {
 
 	hemi.HudTheme = HudTheme;
 	hemi.makeOctanable(hemi.HudTheme, 'hemi.HudTheme', hemi.HudTheme.prototype._octane);
-
-	/*
-	 * The current HUD theme being used for default properties.
-	 */
-	var currentTheme = new hemi.HudTheme();
-	currentTheme.name = 'Default';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // HudElement class
@@ -1943,6 +1888,10 @@ var hemi = (function(hemi) {
 		this.currentContext = this._contexts[client._getId()];
 	};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	 * Set the current theme for HUD displays.
 	 * 
@@ -1952,10 +1901,73 @@ var hemi = (function(hemi) {
 		currentTheme = theme;
 	};
 
+	/*
+	 * The current HUD theme being used for default properties.
+	 */
+	var currentTheme = new hemi.HudTheme();
+	currentTheme.name = 'Default';
+
 	/**
 	 * The HUD manager responsible for drawing all HUD displays, elements, etc.
 	 */
 	hemi.hudManager = new HudManager();
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Get the CSS RGBA string for the given color array in 0-1 format.
+	 * @param {number[4]} col color array
+	 * @return {string} the equivalent RGBA string
+	 */
+	function getRgba(col) {
+		return 'rgba(' + Math.round(col[0]*255) + ',' + Math.round(col[1]*255) + ',' +
+			Math.round(col[2]*255) + ',' + col[3] + ')';
+	}
+
+	/*
+	 * Set the painting properties for the given 2D canvas context.
+	 * 
+	 * @param {Object} context the 2D canvas context
+	 * @param {Object} options the options for painting
+	 */
+	function setPaintProperties(context, options) {
+		var font = options.textStyle == null ? '' : options.textStyle + ' ';
+
+		if (options.textSize != null) {
+			font += options.textSize + 'px ';
+		} else {
+			font += '12px ';
+		}
+		if (options.textTypeface != null) {
+			font += '"' + options.textTypeface + '"';
+		} else {
+			font += 'helvetica';
+		}
+
+		context.font = font;
+
+		if (options.textAlign != null) {
+			context.textAlign = options.textAlign;
+		}
+		if (options.color != null) {
+			context.fillStyle = getRgba(options.color);
+		}
+		if (options.outline != null) {
+			context.strokeStyle = getRgba(options.outline);
+			// If there is an outline, cancel the shadow.
+			context.shadowColor = 'rgba(0,0,0,0)';
+		} else if (options.shadow != null) {
+			var shad = options.shadow;
+			context.shadowBlur = shad.radius;
+			context.shadowColor = getRgba(shad.color);
+			context.shadowOffsetX = shad.offsetX;
+			context.shadowOffsetY = shad.offsetY;
+		} else {
+			context.shadowColor = 'rgba(0,0,0,0)';
+		}
+	}
 
 	return hemi;
 })(hemi || {});
