@@ -106,7 +106,7 @@
 		// Check if we should display one load bar for all loading
 		var full = getParam('fullProgress').toLowerCase() === 'true',
 			loadTask = 'LoadTextures',
-			houseModel = new hemi.Model(client.scene);
+			houseModel = new hemi.Model(client);
 
 		// if (full) {
 		// 	// instantiate the progress bar to receive our progress updates

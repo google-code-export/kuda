@@ -39,7 +39,7 @@
 		client = hemi.makeClients()[0];
 		client.setBGColor(0xb2cbff, 1);
 		hemi.loadPath = '../../';
-		house = new hemi.Model(client.scene);
+		house = new hemi.Model(client);
 		house.setFileName('assets/house_v12/house_v12.dae');
 		
 		audio = {
@@ -79,18 +79,18 @@
 	}
 
 	function setupScene() {
-		var stuff = house.getObject3Ds('SO_door')[0];
-		house.getObject3Ds('SO_door')[0].visible = false;
-		house.getObject3Ds('SO_window1sashLeft')[0].visible = false;
-		house.getObject3Ds('SO_window1sashRight')[0].visible = false;
-		house.getObject3Ds('camEye_outdoors')[0].visible = false;
-		house.getObject3Ds('camEye_indoors')[0].visible = false;
-		house.getObject3Ds('camTarget_outdoors')[0].visible = false;
-		house.getObject3Ds('camTarget_indoors')[0].visible = false;
-		house.getObject3Ds('camEye_outdoors')[0].isPickable = false;
-		house.getObject3Ds('camEye_indoors')[0].isPickable = false;
-		house.getObject3Ds('camTarget_outdoors')[0].isPickable = false;
-		house.getObject3Ds('camTarget_indoors')[0].isPickable = false;
+		var stuff = house.getTransforms('SO_door')[0];
+		house.getTransforms('SO_door')[0].visible = false;
+		house.getTransforms('SO_window1sashLeft')[0].visible = false;
+		house.getTransforms('SO_window1sashRight')[0].visible = false;
+		house.getTransforms('camEye_outdoors')[0].visible = false;
+		house.getTransforms('camEye_indoors')[0].visible = false;
+		house.getTransforms('camTarget_outdoors')[0].visible = false;
+		house.getTransforms('camTarget_indoors')[0].visible = false;
+		house.getTransforms('camEye_outdoors')[0].isPickable = false;
+		house.getTransforms('camEye_indoors')[0].isPickable = false;
+		house.getTransforms('camTarget_outdoors')[0].isPickable = false;
+		house.getTransforms('camTarget_indoors')[0].isPickable = false;
 
 		client.camera.fixEye();
 		client.camera.setLookAroundLimits(null, null, -50 * hemi.DEG_TO_RAD,
@@ -120,7 +120,7 @@
 		var fire = hemi.createParticleEmitter(client, colorRamp, params);
 		fire.transform.position.set(0.0, 72.0, -236.0);
 
-		door = new hext.house.Door(house.getObject3Ds('door')[0]);
+		door = new hext.house.Door(house.getTransforms('door')[0]);
 		door.angle = -door.angle;
 		door.onPick(function(msg) {
 			switch (msg.data.pickedMesh.name) {
@@ -154,7 +154,7 @@
 			}, 200);
 		});
 		
-		window1Left = new hext.house.Window(house.getObject3Ds('window1_sashLeft')[0],[0,60,0]);
+		window1Left = new hext.house.Window(house.getTransforms('window1_sashLeft')[0],[0,60,0]);
 		window1Left.onPick(function(msg) {
 			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashLeft':
@@ -183,7 +183,7 @@
 			audio.winLeft.pause();
 		});
 	
-		window1Right = new hext.house.Window(house.getObject3Ds('window1_sashRight')[0],[0,60,0]);
+		window1Right = new hext.house.Window(house.getTransforms('window1_sashRight')[0],[0,60,0]);
 		window1Right.onPick(function(msg) {
 			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashRight':
@@ -213,8 +213,8 @@
 		});
 		
 		var viewpoint = new hemi.Viewpoint();
-		viewpoint.eye = house.getObject3Ds('camEye_outdoors')[0].position.clone();
-		viewpoint.target = house.getObject3Ds('camTarget_outdoors')[0].position.clone();
+		viewpoint.eye = house.getTransforms('camEye_outdoors')[0].position.clone();
+		viewpoint.target = house.getTransforms('camTarget_outdoors')[0].position.clone();
 		viewpoint.fov = 60 * hemi.DEG_TO_RAD;
 		client.camera.moveToView(viewpoint, 2.5);
 		// Use a simple function to track when the windows and door are open to allow entering the house per the script.
@@ -255,8 +255,8 @@
 	function enter() {
 		entered = true;
 		var viewpoint = new hemi.Viewpoint();
-		viewpoint.eye = house.getObject3Ds('camEye_indoors')[0].position.clone();
-		viewpoint.target = house.getObject3Ds('camTarget_indoors')[0].position.clone();
+		viewpoint.eye = house.getTransforms('camEye_indoors')[0].position.clone();
+		viewpoint.target = house.getTransforms('camTarget_indoors')[0].position.clone();
 		viewpoint.fov = 60 * hemi.DEG_TO_RAD;
 		enterMoveCamera();
 		client.camera.moveToView(viewpoint, 2.5);

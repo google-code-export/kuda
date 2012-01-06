@@ -32,7 +32,7 @@
 		 */
 		var world = hemi.world;
 		
-		var house = new hemi.Model(client.scene);				// Create a new Model
+		var house = new hemi.Model(client);				// Create a new Model
 		house.setFileName('assets/house_v12/house_v12.dae');	// Set the model file
 
 		/*
@@ -49,8 +49,8 @@
 	
 	function setUpScene(house) {
 		var vp1 = new hemi.Viewpoint();		// Create a new Viewpoint
-		vp1.eye = house.getObject3Ds('camEye_outdoors')[0].position.clone();
-		vp1.target = house.getObject3Ds('camTarget_outdoors')[0].position.clone();
+		vp1.eye = house.getTransforms('camEye_outdoors')[0].position.clone();
+		vp1.target = house.getTransforms('camTarget_outdoors')[0].position.clone();
 
 		/*
 		 * Move the camera from it's default position (eye : [0,0,-1],
@@ -65,7 +65,7 @@
 		/* Get the material used on the walls, add an opacity variable to its
 		 * shader, and get the parameter that controls that opacity.
 		 */
-		var wallT = house.getObject3Ds('wallFront')[0],		
+		var wallT = house.getTransforms('wallFront')[0],		
 			opacity = 1.0;
 		
 		hemi.fx.setOpacity(client, wallT, wallT.material, opacity);

@@ -25,7 +25,7 @@
 	function createWorld() {
 		createHudDisplay();
 
-		var house = new hemi.Model(client.scene);
+		var house = new hemi.Model(client);
 		house.setFileName('assets/house_v12/house_v12.dae');
 
 		// Create an initial viewpoint

@@ -102,7 +102,7 @@
 		camera = null;
 		
 	function createWorld() {
-		digDisp = new hemi.Model(client.scene);
+		digDisp = new hemi.Model(client);
 		digDisp.setFileName('assets/DigitalDisplay/DigitalDisplay.dae');	// Set the model file
 		/**
 		 * When we call the 'ready' function, it will wait for the model to
