@@ -1,22 +1,24 @@
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
 	/**
@@ -24,17 +26,25 @@ var hemi = (function(hemi) {
 	 */
 	hemi = hemi|| {};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Constants
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	hemi.Plane = {
 		XY : 'xy',
 		XZ : 'xz',
 		YZ : 'yz'
 	};
-	
+
 	hemi.Axis = {
 		X : 'x',
 		Y : 'y',
 		Z : 'z'
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// ManipulatorBase class
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var ManipulatorBase = function(client) {
 		this.client = client;
@@ -43,6 +53,15 @@ var hemi = (function(hemi) {
 		this.enabled = false;
 		this.msgHandler = null;
 		this.activeTransform = null;
+	};
+
+	/**
+	 * Remove all references in the Manipulator
+	 */
+	ManipulatorBase.prototype._clean = function() {
+		this.disable();
+		this.clearTransforms();
+		this.msgHandler = null;
 	};
 
 	/**
@@ -139,19 +158,21 @@ var hemi = (function(hemi) {
 	ManipulatorBase.prototype.setToLocal = function() {
 		this.local = true;
 	};
-	
+
 	/**
 	 * Set the Draggable to operate in world space.
 	 */
 	ManipulatorBase.prototype.setToWorld = function() {
 		this.local = false;
 	};
-		
-	//common funcs
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Draggable class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
-	 * @class A Draggable allows a 3d object to be dragged around the scene
-	 * with the mouse, constrained to a defined 2d plane.
-	 * @extends hemi.Citizen
+	 * @class A Draggable allows a 3d object to be dragged around the scene with the mouse,
+	 * constrained to a defined 2d plane.
 	 * 
 	 * @param {hemi.client} client the client that this draggable exists in
 	 * @param {number[3][3]} opt_plane Array of 3 xyz points defining a plane
@@ -169,44 +190,34 @@ var hemi = (function(hemi) {
 		this.uv = opt_startUV == null ? [0,0] : opt_startUV;
 		this.vmin = null;
 		this.vmax = null;
-		
+
 		if (opt_plane != null) {
 			this.setPlane(opt_plane);
 		}
 		if (opt_limits != null) {
 			this.setLimits(opt_limits);
 		}
-		
+
 		this.enable();
 	};
 
 	Draggable.prototype = new ManipulatorBase();
 	Draggable.constructor = Draggable;
 
-	/**
-	 * Get the Octane structure for the Draggable.
-     *
-     * @return {Object} the Octane structure representing the Draggable
+	/*
+	 * Array of Hemi Messages that Draggable is known to send.
+	 * @type string[]
 	 */
-	Draggable.prototype.toOctane = function(){
-		var octane = this._super(),
-			valNames = ['local', 'plane', 'umin', 'umax', 'vmin', 'vmax'];
-		
-		for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
-			var name = valNames[ndx];
-			
-			octane.props.push({
-				name: name,
-				val: this[name]
-			});
-		}
-		
-		return octane;
-	};
+	Draggable.prototype._msgSent = [hemi.msg.drag];
+
+	/*
+	 * Octane properties for Draggable.
+	 * @type string[]
+	 */
+	Draggable.prototype._octane = ['local', 'plane', 'umin', 'umax', 'vmin', 'vmax'];
 
 	/**
-	 * Add the given UV delta to the current UV coordinates and clamp the
-	 * results.
+	 * Add the given UV delta to the current UV coordinates and clamp the results.
 	 *
 	 * @param {number[2]} delta the uv change to add before clamping
 	 * @return {number[2]} the actual change in uv after clamping
@@ -214,26 +225,26 @@ var hemi = (function(hemi) {
 	Draggable.prototype.clamp = function(delta) {
 		var u = this.uv[0] + delta[0],
 			v = this.uv[1] + delta[1];
-		
-		if (this.umin != null && u < this.umin) {
+
+		if (this.umin !== null && u < this.umin) {
 			u = this.umin;
 		}
-		if (this.umax != null && u > this.umax) {
+		if (this.umax !== null && u > this.umax) {
 			u = this.umax;
 		}
-		if (this.vmin != null && v < this.vmin) {
+		if (this.vmin !== null && v < this.vmin) {
 			v = this.vmin;
 		}
-		if (this.vmax != null && v > this.vmax) {
+		if (this.vmax !== null && v > this.vmax) {
 			v = this.vmax;
 		}
-		
+
 		delta = [u - this.uv[0], v - this.uv[1]];
 		this.uv = [u, v];
-		
+
 		return delta;
 	};
-		
+
 	/**
 	 * Remove any previously set limits from the draggable.
 	 */
@@ -243,10 +254,9 @@ var hemi = (function(hemi) {
 		this.vmin = null;
 		this.vmax = null;
 	};
-	
+
 	/**
-	 * Get the two dimensional plane that the Draggable will translate its
-	 * active Transform along.
+	 * Get the two dimensional plane that the Draggable will translate its active Transform along.
 	 * 
 	 * @return {THREE.Vector3[3]} the current drag plane defined as 3 XYZ points
 	 */
@@ -254,9 +264,9 @@ var hemi = (function(hemi) {
 		if (this.activeTransform === null) {
 			return null;
 		}
-		
+
 		var plane;
-		
+
 		if (this.local) {
 			var u = hemi.utils;
 			plane = [u.pointAsWorld(this.activeTransform, this.plane[0]),
@@ -264,18 +274,17 @@ var hemi = (function(hemi) {
 					 u.pointAsWorld(this.activeTransform, this.plane[2])];
 		} else {
 			var translation = this.activeTransform.matrixWorld.getPosition();
-			
+
 			plane = [new THREE.Vector3().add(this.plane[0], translation),
 					 new THREE.Vector3().add(this.plane[1], translation),
 					 new THREE.Vector3().add(this.plane[2], translation)];
 		}
-		
+
 		return plane;
 	};
-		
+
 	/**
-	 * Convert the given screen coordinates into UV coordinates on the
-	 * current dragging plane.
+	 * Convert the given screen coordinates into UV coordinates on the current dragging plane.
 	 * 
 	 * @param {number} x x screen coordinate
 	 * @param {number} y y screen coordinate
@@ -285,37 +294,36 @@ var hemi = (function(hemi) {
 		var ray = this.client.castRay(x, y),
 			plane = this.getPlane(),
 			tuv = hemi.utils.intersect(ray, plane);
-		
+
 		return [tuv[1], tuv[2]];
 	};
 
 	/**
-	 * Mouse movement event listener, calculates mouse point intersection 
-	 * with this Draggable's plane, and then translates the dragging object 
-	 * accordingly.
+	 * Mouse movement event listener, calculates mouse point intersection with this Draggable's
+	 * plane, and then translates the dragging object accordingly.
 	 *
-	 * @param {Event} event message describing how the mouse has moved
+	 * @param {Object} event message describing how the mouse has moved
 	 */
 	Draggable.prototype.onMouseMove = function(event) {
 		if (this.dragUV === null) {
 			return;
 		}
-		
+
 		var uv = this.getUV(event.x, event.y),
 			delta = [uv[0] - this.dragUV[0], uv[1] - this.dragUV[1]],
 			plane = this.getPlane();
-		
+
 		delta = this.clamp(delta);
-		
+
 		var localDelta = hemi.utils.uvToXYZ(delta, plane),
 			xyzOrigin = hemi.utils.uvToXYZ([0, 0], plane),
 			xyzDelta = new THREE.Vector3().sub(localDelta, xyzOrigin);
-		
+
 		for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
 			var tran = this.transformObjs[ndx];
 			hemi.utils.worldTranslate(xyzDelta, tran);
 		}
-		
+
 		this.send(hemi.msg.drag, { drag: xyzDelta });
 	};
 
@@ -330,12 +338,11 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Pick event listener; checks in-scene intersections, and allows 
-	 * dragging.
+	 * Pick event listener; checks in-scene intersections, and allows dragging.
 	 *
-	 * @param {THREE.Object3D} pickedMesh pick event information that
-	 *		contains information on the shape and transformation picked.
-	 * @param {o3d.Event} mouseEvent message describing mouse behavior
+	 * @param {THREE.Object3D} pickedMesh pick event information that contains information on the
+	 *     shape and transformation picked.
+	 * @param {Object} mouseEvent message describing mouse behavior
 	 */
 	Draggable.prototype.onPick = function(pickedMesh, mouseEvent) {
 		for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
@@ -350,8 +357,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Set the relative uv limits in which this Draggable can move.
 	 *
-	 * @param {number[2][2]} coords min and max uv points on the current
-	 *     plane
+	 * @param {number[2][2]} coords min and max uv points on the current plane
 	 */
 	Draggable.prototype.setLimits = function(coords) {
 		this.umin = coords[0][0];
@@ -363,8 +369,7 @@ var hemi = (function(hemi) {
 	/**
 	 * Set the 2d plane on which this Draggable is bound.
 	 *
-	 * @param {Vector3[3]} plane array of three XYZ coordinates defining a
-	 *     plane
+	 * @param {Vector3[3]} plane array of three XYZ coordinates defining a plane
 	 */
 	Draggable.prototype.setPlane = function(plane) {
 		switch (plane) {
@@ -383,20 +388,17 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.makeCitizen(Draggable, 'hemi.Draggable', {
-		cleanup: function() {
-			this.disable();
-			this.clearTransforms();
-			this.msgHandler = null;
-		},
-		msgs: [hemi.msg.drag],
-		toOctane: []
+		cleanup: ManipulatorBase.prototype._clean,
+		toOctane: Draggable.prototype._octane
 	});
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Turnable class
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * @class A Turnable allows a Transform to be turned about an axis by the
-	 *     user clicking and dragging with the mouse.
-	 * @extends hemi.world.Citizen
+	 * @class A Turnable allows a Transform to be turned about an axis by the user clicking and
+	 * dragging with the mouse.
 	 * 
 	 * @param {hemi.Axis} opt_axis axis to rotate about
 	 * @param {number[2]} opt_limits minimum and maximum angle limits (in radians)
@@ -425,42 +427,30 @@ var hemi = (function(hemi) {
 	Turnable.prototype = new ManipulatorBase();
 	Turnable.constructor = Turnable;
 
-	/**
-	 * Send a cleanup Message and remove all references in the Turnable.
+	/*
+	 * Octane properties for Turnable.
 	 */
-	Turnable.prototype.cleanup = function() {
-		this.disable();
-		this._super();
-		this.clearTransforms();
-		this.msgHandler = null;
-	};
-		
-	/**
-	 * Get the Octane structure for the Turnable.
-     *
-     * @return {Object} the Octane structure representing the Turnable
-	 */
-	Turnable.prototype.toOctane = function(){
-		var octane = this._super(),
-			valNames = ['min', 'max'];
-		
+	Turnable.prototype._octane = function(){
+		var valNames = ['min', 'max'],
+			props = [];
+
 		for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
 			var name = valNames[ndx];
-			
-			octane.props.push({
+
+			props.push({
 				name: name,
 				val: this[name]
 			});
 		}
-		
-		octane.props.push({
+
+		props.push({
 			name: 'setAxis',
 			arg: [this.axis]
 		});
-		
-		return octane;
+
+		return props;
 	};
-		
+
 	/**
 	 * Remove any previously set limits from the Turnable.
 	 */
@@ -468,19 +458,19 @@ var hemi = (function(hemi) {
 		this.min = null;
 		this.max = null;
 	};
-		
+
 	/**
-	 * Get the relative angle of a mouse click's interception with the
-	 * active plane to the origin of that plane.
+	 * Get the relative angle of a mouse click's interception with the active plane to the origin of
+	 * that plane.
 	 * 
 	 * @param {number} x screen x-position of the mouse click event
 	 * @param {number} y screen y-position of the mouse click event
-	 * @return {number} relative angle of mouse click position on the
-	 *     Turnable's current active plane
+	 * @return {number} relative angle of mouse click position on the Turnable's current active
+	 *     plane
 	 */
 	Turnable.prototype.getAngle = function(x,y) {
 		var plane;
-		
+
 		if (this.local) {
 			var u = hemi.utils;
 			plane = [u.pointAsWorld(this.activeTransform, this.plane[0]),
@@ -497,35 +487,34 @@ var hemi = (function(hemi) {
 		tuv = hemi.utils.intersect(ray, plane);
 		return Math.atan2(tuv[2],tuv[1]);
 	};
-		
+
 	/**
-	 * On mouse move, if the shape has been clicked and is being dragged, 
-	 * calculate intersection points with the active plane and turn the
-	 * Transform to match.
+	 * On mouse move, if the shape has been clicked and is being dragged, calculate intersection
+	 * points with the active plane and turn the Transform to match.
 	 * 
-	 * @param {Event} event message describing the mouse position, etc.
+	 * @param {Object} event message describing the mouse position, etc.
 	 */
 	Turnable.prototype.onMouseMove = function(event) {
 		if (this.dragAngle === null) {
 			return;
 		}
-		
+
 		var delta = this.getAngle(event.x,event.y) - this.dragAngle,
 			axis;
-		
-		if (this.max != null && this.angle + delta >= this.max) {
+
+		if (this.max !== null && this.angle + delta >= this.max) {
 			delta = this.max - this.angle;
 		}
-		if (this.min != null && this.angle + delta <= this.min) {
+		if (this.min !== null && this.angle + delta <= this.min) {
 			delta = this.min - this.angle;
 		}
-		
+
 		this.angle += delta;
-		
+
 		if (!this.local) {
 			this.dragAngle += delta;
 		}
-		
+
 		switch(this.axis) {
 			case hemi.Axis.X:
 				axis = new THREE.Vector3(-1,0,0);
@@ -537,7 +526,7 @@ var hemi = (function(hemi) {
 				axis = new THREE.Vector3(0,0,1);
 				break;
 		}
-		
+
 		for (var i = 0; i < this.transformObjs.length; i++) {
 			var tran = this.transformObjs[i];
 			
@@ -548,22 +537,22 @@ var hemi = (function(hemi) {
 			}
 		}
 	};
-		
+
 	/**
 	 * On mouse up, deactivate turning.
 	 * 
-	 * @param {o3d.Event} event message describing mouse position, etc.
+	 * @param {Object} event message describing mouse position, etc.
 	 */
 	Turnable.prototype.onMouseUp = function(event) {
 		this.dragAngle = null;
 	};
-		
+
 	/**
-	 * On a pick message, if it applies to this Turnable, set turning to
-	 * true and calculate the relative angle.
+	 * On a pick message, if it applies to this Turnable, set turning to true and calculate the
+	 * relative angle.
 	 * 
 	 * @param {THREE.Object3D} pickedMesh information about the pick event
-	 * @param {oEvent} event message describing mouse position, etc.
+	 * @param {Object} event message describing mouse position, etc.
 	 */
 	Turnable.prototype.onPick = function(pickedMesh, event) {
 		for (var ndx = 0, len = this.transformObjs.length; ndx < len; ndx++) {
@@ -575,7 +564,6 @@ var hemi = (function(hemi) {
 		}
 	};
 
-		
 	/**
 	 * Set the axis to which this Turnable is bound.
 	 * 
@@ -583,7 +571,7 @@ var hemi = (function(hemi) {
 	 */
 	Turnable.prototype.setAxis = function(axis) {
 		this.axis = axis;
-		
+
 		switch(axis) {
 			case hemi.Axis.X:
 				this.plane = [new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,1), new THREE.Vector3(0,1,0)];
@@ -596,7 +584,7 @@ var hemi = (function(hemi) {
 				break;
 		}
 	};
-		
+
 	/**
 	 * Set the limits to which this Turnable can rotate.
 	 * 
@@ -617,15 +605,13 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.makeCitizen(Turnable, 'hemi.Turnable', {
-		cleanup: function() {
-			this.disable();
-			this.clearTransforms();
-			this.msgHandler = null;
-		},
-		msgs: [],
-		toOctane: []
+		cleanup: ManipulatorBase.prototype._clean,
+		toOctane: Turnable.prototype._octane
 	});
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Scalable class
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var Scalable = function(client, axis) {
 		ManipulatorBase.call(this, client);
@@ -633,14 +619,20 @@ var hemi = (function(hemi) {
 		this.dragAxis = null;
 		this.dragOrigin = null;
 		this.scale = null;
-		
+
 		this.setAxis(axis);
 		this.enable();
 	};
 
 	Scalable.prototype = new ManipulatorBase();
 	Scalable.constructor = Scalable;
-		
+
+	/*
+	 * Array of Hemi Messages that Scalable is known to send.
+	 * @type string[]
+	 */
+	Scalable.prototype._msgSent = [hemi.msg.scale];
+
 	Scalable.prototype.getScale = function(x, y) {
 		var offset = new THREE.Vector2(x - this.dragOrigin.x, y - this.dragOrigin.y),
 		scale = Math.abs(this.dragAxis.dot(offset));
@@ -651,7 +643,7 @@ var hemi = (function(hemi) {
 		if (this.dragAxis === null) {
 			return;
 		}
-		
+
 		var scale = this.getScale(event.x, event.y),
 			f = scale/this.scale,
 			axis = new THREE.Vector3(
@@ -659,10 +651,10 @@ var hemi = (function(hemi) {
 				this.axis.y ? f : 1,
 				this.axis.z ? f : 1
 			);
-		
+
 		for (var i = 0; i < this.transformObjs.length; i++) {
 			var tran = this.transformObjs[i];
-			
+
 			if (this.local) {
 				tran.scale.multiplySelf(axis);
 				tran.updateMatrix();
@@ -670,12 +662,12 @@ var hemi = (function(hemi) {
 				hemi.utils.worldScale(axis, tran);
 			}
 		}
-		
+
 		this.scale = scale;
-		
+
 		this.send(hemi.msg.scale, { scale: scale });
 	};
-		
+
 	Scalable.prototype.onMouseUp = function() {
 		this.dragAxis = null;
 		this.dragOrigin = null;
@@ -711,7 +703,6 @@ var hemi = (function(hemi) {
 		}
 	};
 
-
 	Scalable.prototype.xyPoint = function(plane) {
 		if (this.activeTransform === null) {
 			return null;
@@ -729,14 +720,9 @@ var hemi = (function(hemi) {
 	};
 
 	hemi.makeCitizen(Scalable, 'hemi.Scalable', {
-		cleanup: function() {
-			this.disable();
-			this.clearTransforms();
-			this.msgHandler = null;
-		},
-		msgs: [hemi.msg.scale],
+		cleanup: ManipulatorBase.prototype._clean,
 		toOctane: []
 	});
-	
+
 	return hemi;
 })(hemi || {});
