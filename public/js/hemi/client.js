@@ -119,7 +119,8 @@ var hemi = (function(hemi) {
 		this.renderer.setSize(width, height);
 		this.camera.threeCamera.aspect = width / height;
 		this.camera.threeCamera.updateProjectionMatrix();
-		this.picker.resize(width, height);
+		this.picker.width = width;
+		this.picker.height = height;
 	};
 
 	/**
