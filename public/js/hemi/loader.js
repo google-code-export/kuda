@@ -1,40 +1,34 @@
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
 
 	var colladaLoader = new THREE.ColladaLoader(),
 		resetCB = null,
-		taskCount = 1,
+		taskCount = 1;
 
-		decrementTaskCount = function() {
-			if (--taskCount === 0) {
-				taskCount = 1;
-				hemi.send(hemi.msg.ready, {});
-
-				if (resetCB) {
-					resetCB();
-					resetCB = null;
-				}
-			}
-		};
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Constants
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * The relative path from the referencing HTML file to the Kuda directory.
@@ -42,6 +36,10 @@ var hemi = (function(hemi) {
 	 * @default ''
 	 */
 	hemi.loadPath = '';
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/*
 	 * Get the correct path for the given URL. If the URL is absolute, then leave it alone.
@@ -56,6 +54,24 @@ var hemi = (function(hemi) {
 		} else {
 			return hemi.loadPath + url;
 		}
+	};
+
+	/**
+	 * Load the HTML file at the given url and pass it to the given callback
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function(string):void} callback a function to pass the loaded HTML data
+	 */
+	hemi.loadHtml = function(url, callback) {
+		url = hemi.getLoadPath(url);
+
+		hemi.utils.get(url, function(data, status) {
+			if (data === null) {
+				hemi.error(status);
+			} else {
+				callback(data);
+			}
+		});
 	};
 
 	/**
@@ -158,19 +174,6 @@ var hemi = (function(hemi) {
 		});
 	};
 
-
-	hemi.loadHtml = function(url, callback) {
-		url = hemi.getLoadPath(url);
-		
-		hemi.utils.get(url, function(data, status) {
-			if (data == null) {
-				hemi.error(status);
-			} else {
-				callback(data);
-			}
-		});
-	};
-
 	/**
 	 * Activate the World once all resources are loaded. This function should
 	 * only be called after all scripting and setup is complete.
@@ -188,6 +191,22 @@ var hemi = (function(hemi) {
 		resetCB = opt_callback;
 		decrementTaskCount();
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function decrementTaskCount() {
+		if (--taskCount === 0) {
+			taskCount = 1;
+			hemi.send(hemi.msg.ready, {});
+
+			if (resetCB) {
+				resetCB();
+				resetCB = null;
+			}
+		}
+	}
 
 	return hemi;
 })(hemi || {});
