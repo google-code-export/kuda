@@ -78,8 +78,11 @@ var hemi = (function(hemi) {
 		 */
 		this.renderer = null;
 
-		this.useCameraLight(true);
-		this.scene.add(this.camera.threeCamera);
+		if (opt_init) {
+			this.useCameraLight(true);
+			this.scene.add(this.camera.threeCamera);
+		}
+
 		hemi.clients.push(this);
 	};
 
@@ -202,8 +205,11 @@ var hemi = (function(hemi) {
 	 */
 	Client.prototype.setCamera = function(camera) {
 		if (this.scene) {
-			this.scene.remove(this.camera.threeCamera);
-			this.scene.remove(this.camera.light);
+			if (this.camera) {
+				this.scene.remove(this.camera.threeCamera);
+				this.scene.remove(this.camera.light);
+			}
+
 			this.scene.add(camera.threeCamera);
 			this.scene.add(camera.light);
 		}
@@ -238,8 +244,11 @@ var hemi = (function(hemi) {
 	 */
 	Client.prototype.setScene = function(scene) {
 		if (this.scene) {
-			this.scene.remove(this.camera.threeCamera);
-			this.scene.remove(this.camera.light);
+			if (this.camera) {
+				this.scene.remove(this.camera.threeCamera);
+				this.scene.remove(this.camera.light);
+			}
+
 			this.scene.cleanup();
 		}
 		if (this.camera) {

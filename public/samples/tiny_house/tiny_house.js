@@ -31,7 +31,7 @@
 		client.setBGColor(0xb2cbff, 1);
 		hemi.loadPath = '../../';
 		
-		house = new hemi.Model(client.scene);
+		house = new hemi.Model(client);
 		house.setFileName('assets/TinyHouse_v07/TinyHouse_v07.dae');
 		
 		hemi.subscribe(hemi.msg.ready,
@@ -43,11 +43,11 @@
 	}
 
 	function setupScene() {
-		house.getObject3Ds('spinDisk')[0].visible = false;
-		house.getObject3Ds('fan_ring1')[0].visible = false;
-		house.getObject3Ds('cam_Eye')[0].visible = false;
-		house.getObject3Ds('cam_Target')[0].visible = false;
-		house.getObject3Ds('SO_window')[0].visible = false;
+		house.getTransforms('spinDisk')[0].visible = false;
+		house.getTransforms('fan_ring1')[0].visible = false;
+		house.getTransforms('cam_Eye')[0].visible = false;
+		house.getTransforms('cam_Target')[0].visible = false;
+		house.getTransforms('SO_window')[0].visible = false;
 
 		var winWidth = 16; // Typical window width
 		var engine = new hext.engines.PressureEngine();
@@ -56,7 +56,7 @@
 		var outside = hext.engines.createOutsideLocation();
 
 		blowerFan = {
-			rotator: new hemi.Rotator(house.getObject3Ds('fan_blades')[0]),
+			rotator: new hemi.Rotator(house.getTransforms('fan_blades')[0]),
 			msgHandler: function(msg) {
 				blowerFan.rotator.setVel(new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
 			},
@@ -78,7 +78,7 @@
 		}.init();
 
 		houseWindow = {
-			transform: house.getObject3Ds('SO_window')[0],
+			transform: house.getTransforms('SO_window')[0],
 			// Y always maps to the V coordinate, so this defines a Draggable on
 			// the YZ plane that can be dragged from 0 to 0 on the Z plane and 0
 			// to 55 on the Y plane.
@@ -97,7 +97,7 @@
 				//var pickMat = hemi.core.material.createBasicMaterial(pack, hemi.view.viewInfo, [0, 0, 0, 0], true);
 				//var pickBox = hemi.core.primitives.createBox(pack, pickMat, 10, 60, 80);
 				this.draggable.addTransform(this.transform);
-				this.draggable.addTransform(house.getObject3Ds('tinyHouseWindow_sash')[0]);
+				this.draggable.addTransform(house.getTransforms('tinyHouseWindow_sash')[0]);
 				this.draggable.subscribe(hemi.msg.drag, this.msgHandler);
 				return this;
 			}

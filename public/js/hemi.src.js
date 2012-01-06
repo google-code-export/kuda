@@ -3144,39 +3144,41 @@ var hemi = (function(hemi) {
 
 	return hemi;
 })(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
 	/**
 	 * @namespace A module for managing the string literals for Message types.
 	 * @example
-	 * The documentation for each Message type has an example of a typical
-	 * Message body for that type (the 'data' property of a Message).
+	 * The documentation for each Message type has an example of a typical Message body for that
+	 * type (the 'data' property of a Message).
 	 */
 	hemi.msg = {
 		/**
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.model.Model - the Model's animation time changes
+		 * hemi.Model - the Model's animation time changes
 		 * data = {
 		 *     previous: (number) the previous animation time for the Model
 		 *     time: (number) the new animation time for the Model
@@ -3187,9 +3189,9 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.effect.Burst - the Burst effect is triggered
+		 * hemi.ParticleBurst - the ParticleBurst effect is triggered
 		 * data = {
-		 *     position: (number[3]) the XYZ position the Burst was triggered at
+		 *     position: (number[3]) the XYZ position the ParticleBurst was triggered at
 		 * }
 		 */
 		burst: 'hemi.burst',
@@ -3197,10 +3199,10 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.world - the World is being cleaned up and emptied
+		 * hemi - the World is being cleaned up and emptied
 		 * data = { }
 		 * @example
-		 * hemi.world.Citizen - the Citizen is being removed from the World
+		 * hemi.Citizen - the Citizen is being removed from the World
 		 * data = { }
 		 */
 		cleanup: 'hemi.cleanup',
@@ -3208,7 +3210,7 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.manip.Draggable - the Draggable has been dragged
+		 * hemi.Draggable - the Draggable has been dragged
 		 * data = {
 		 *     drag: (number[3]) the change in XYZ position caused by the drag
 		 * }
@@ -3228,23 +3230,23 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.audio.Audio - the Audio's media content is loaded
+		 * hemi.Audio - the Audio's media content is loaded
 		 * data = {
 		 *     src: (string) the URL of the audio file loaded
 		 * }
 		 * @example
-		 * hemi.hud.HudImage - the HudImage's image data is loaded
+		 * hemi.HudImage - the HudImage's image data is loaded
 		 * data = { }
 		 * @example
-		 * hemi.hud.HudVideo - the HudVideo's media content is loaded
+		 * hemi.HudVideo - the HudVideo's media content is loaded
 		 * data = {
 		 *     src: (string) the URL of the video file loaded
 		 * }
 		 * @example
-		 * hemi.model.Model - the Model's 3D data is loaded
+		 * hemi.Model - the Model's 3D data is loaded
 		 * data = { }
 		 * @example
-		 * hemi.scene.Scene - the Scene is set as the "current" Scene
+		 * hemi.State - the State is set as the "current" State
 		 * data = { }
 		 */
 		load: 'hemi.load',
@@ -3252,7 +3254,7 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.world - a shape is picked by a mouse click
+		 * hemi - a shape is picked by a mouse click
 		 * data = {
 		 *     mouseEvent: (o3d.Event) the event generated by the mouse click
 		 *     pickInfo: (o3djs.picking.PickInfo) the info generated by the pick
@@ -3263,10 +3265,10 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.world - a task's progress data has been updated
+		 * hemi - a task's progress data has been updated
 		 * data = {
-		 *     isTotal: (boolean) a flag indicating if percent is for a specific
-		 *                        task or a total of all current tasks
+		 *     isTotal: (boolean) a flag indicating if percent is for a specific task or a total of
+		 *                        all current tasks
 		 *     percent: (number) the task's percentage complete, 0-100
 		 *     task: (string) an id for the task, ex: url of a file being loaded
 		 * }
@@ -3276,7 +3278,7 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.world - the World's resources are loaded and ready
+		 * hemi - the World's resources are loaded and ready
 		 * data = { }
 		 */
         ready: 'hemi.ready',
@@ -3284,7 +3286,7 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.manip.Scalable - the Scalable has been scaled
+		 * hemi.Scalable - the Scalable has been scaled
 		 * data = {
 		 *     scale: (number) the new scale
 		 * }
@@ -3294,30 +3296,29 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.animation.Animation - the Animation starts
+		 * hemi.AnimationGroup - the AnimationGroup starts
 		 * data = { }
 		 * @example
-		 * hemi.audio.Audio - the Audio starts playing
+		 * hemi.Audio - the Audio starts playing
 		 * data = { }
 		 * @example
-		 * hemi.effect.Trail - the Trail effect starts generating particles
+		 * hemi.ParticleTrail - the ParticleTrail effect starts generating particles
 		 * data = { }
 		 * @example
-		 * hemi.motion.Rotator - the Rotator starts rotating
+		 * hemi.Rotator - the Rotator starts rotating
 		 * data = { }
 		 * @example
-		 * hemi.motion.Translator - the Translator starts translating
+		 * hemi.Translator - the Translator starts translating
 		 * data = { }
 		 * @example
-		 * hemi.time.Timer - the Timer starts counting down
+		 * hemi.Timer - the Timer starts counting down
 		 * data = {
 		 *     time: (number) the milliseconds the Timer will count down for
 		 * }
 		 * @example
-		 * hemi.view.Camera - the Camera starts moving to a Viewpoint
+		 * hemi.Camera - the Camera starts moving to a Viewpoint
 		 * data = {
-		 *     viewpoint: (hemi.view.Viewpoint) the Viewpoint the Camera is
-		 *                                      moving to
+		 *     viewpoint: (hemi.view.Viewpoint) the Viewpoint the Camera is moving to
 		 * }
 		 */
 		start: 'hemi.start',
@@ -3325,30 +3326,29 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.animation.Animation - the Animation finishes or is stopped
+		 * hemi.AnimationGroup - the AnimationGroup finishes or is stopped
 		 * data = { }
 		 * @example
-		 * hemi.audio.Audio - the Audio finishes playing
+		 * hemi.Audio - the Audio finishes playing
 		 * data = { }
 		 * @example
-		 * hemi.effect.Trail - the Trail effect stops generating particles
+		 * hemi.ParticleTrail - the ParticleTrail effect stops generating particles
 		 * data = { }
 		 * @example
-		 * hemi.motion.Rotator - the Rotator stops rotating
+		 * hemi.Rotator - the Rotator stops rotating
 		 * data = { }
 		 * @example
-		 * hemi.motion.Translator - the Translator stops translating
+		 * hemi.Translator - the Translator stops translating
 		 * data = { }
 		 * @example
-		 * hemi.time.Timer - the Timer stops counting down
+		 * hemi.Timer - the Timer stops counting down
 		 * data = {
 		 *     time: (number) the milliseconds the Timer counted down
 		 * }
 		 * @example
-		 * hemi.view.Camera - the Camera arrives at a Viewpoint
+		 * hemi.Camera - the Camera arrives at a Viewpoint
 		 * data = {
-		 *     viewpoint: (hemi.view.Viewpoint) the Viewpoint the Camera moved
-		 *                                      to
+		 *     viewpoint: (hemi.view.Viewpoint) the Viewpoint the Camera moved to
 		 * }
 		 */
 		stop: 'hemi.stop',
@@ -3356,13 +3356,13 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.audio.Audio - the Audio's media content is unloaded
+		 * hemi.Audio - the Audio's media content is unloaded
 		 * data = { }
 		 * @example
-		 * hemi.model.Model - the Model's 3D data is unloaded
+		 * hemi.Model - the Model's 3D data is unloaded
 		 * data = { }
 		 * @example
-		 * hemi.scene.Scene - the Scene is set to not be the "current" Scene
+		 * hemi.State - the State is set to not be the "current" State
 		 * data = { }
 		 */
 		unload: 'hemi.unload',
@@ -3370,15 +3370,14 @@ var hemi = (function(hemi) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi.effect.Emitter - the Emitter is shown or hidden
+		 * hemi.ParticleEmitter - the ParticleEmitter is shown or hidden
 		 * data = {
 		 *     visible: (boolean) a flag indicating if the Emitter is visible
 		 * }
 		 * @example
-		 * hemi.hud.HudDisplay - the HudDisplay shows a page or is hidden
+		 * hemi.HudDisplay - the HudDisplay shows a page or is hidden
 		 * data = {
-		 *     page: (number) the page number being shown or 0 if the HudDisplay
-		 *                    is hidden
+		 *     page: (number) the page number being shown or 0 if the HudDisplay is hidden
 		 * }
 		 * @example
 		 * hext.tools.BaseTool - the tool is shown or hidden
@@ -4908,170 +4907,43 @@ var hemi = (function(hemi) {
 
 	return hemi;
 })(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
-	
-		/**
-		 * Create an object from the given Octane structure and set its id. No other
-		 * properties will be set yet.
-		 * 
-		 * @param {Object} octane the structure containing information for creating
-		 *     an object
-		 * @return {Object} the newly created object
-		 */
-	var createObject = function(octane) {
-			if (!octane.type) {
-				alert("Unable to process octane: missing type");
-				return null;
-			}
-			
-			var con = constructors[octane.type],
-				object = null;
 
-			if (con) {
-				object = new con();
+	/*
+	 * Map of class names to stored class constructor functions.
+	 */
+	var constructors = {};
 
-				if (octane.id !== undefined) {
-					object._setId(octane.id);
-				}
-			} else {
-				hemi.console.log('Cannot find constructor for type: ' + octane.type, hemi.console.ERR);
-			}
-			
-			return object;
-		},
-	
-		parseProps = function(obj, propNames) {
-			var oct = [];
-			
-			for (var i = 0; i < propNames.length; ++i) {
-				var name = propNames[i],
-					prop = obj[name],
-					entry = {
-						name: name	
-					};
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-				if (hemi.utils.isFunction(prop)) {
-					entry.arg = [];
-				} else if (hemi.utils.isArray(prop)) {
-					if (prop.length > 0) {
-						var p = prop[0];
-
-						if (p._getId && p._worldId) {
-							entry.id = [];
-
-							for (var j = 0; j < prop.length; ++j) {
-								entry.id[j] = prop[j]._getId();
-							}
-						} else if (prop._toOctane) {
-							entry.oct = [];
-
-							for (var j = 0; j < prop.length; ++j) {
-								entry.oct[j] = prop[j]._toOctane();
-							}
-						} else {
-							entry.val = prop;
-						}
-					} else {
-						entry.val = prop;
-					}
-				} else if (prop._getId && prop._worldId) {
-					entry.id = prop._getId();
-				} else if (prop._toOctane) {
-					entry.oct = prop._toOctane();
-				} else {
-					entry.val = prop;
-				}
-				
-				oct.push(entry);
-			}
-			
-			return oct;
-		},
-
-		/*
-		 * Iterate through the given Octane structure and set properties for the
-		 * given object. Properties stored by value will be set directly, by Octane
-		 * will be recursively created, by id will be retrieved from the World, and
-		 * by arg will be set by calling the specified function on the object.
-		 * 
-		 * @param {Object} object the object created from the given Octane
-		 * @param {Object} octane the structure containing information about the
-		 *     given object
-		 */
-		setProperties = function(object, octane) {
-			for (var ndx = 0, len = octane.props.length; ndx < len; ndx++) {
-				var property = octane.props[ndx];
-				var name = property.name;
-				
-				if (property.oct !== undefined) {
-					if (property.oct instanceof Array) {
-						value = [];
-						
-						for (var p = 0, pLen = property.oct.length; p < pLen; p++) {
-							var child = createObject(property.oct[p]);
-							setProperties(child, property.oct[p]);
-							value.push(child);
-						}
-					} else {
-						value = createObject(property.oct);
-						setProperties(value, property.oct);
-					}
-					
-					object[name] = value;
-				} else if (property.val !== undefined) {
-					object[name] = property.val;
-				} else if (property.id !== undefined) {
-					var value;
-					
-					if (property.id instanceof Array) {
-						value = [];
-						
-						for (var p = 0, pLen = property.id.length; p < pLen; p++) {
-							value.push(hemi.world.getCitizenById(property.id[p]));
-						}
-					} else {
-						value = hemi.world.getCitizenById(property.id);
-					}
-					
-					object[name] = value;
-				} else if (property.arg !== undefined) {
-					var func = object[name],
-						args = hemi.dispatch.getArguments(null, property.arg);
-
-					func.apply(object, args);
-				} else {
-					alert('Unable to process octane for ' + octane.id + ': missing property value');
-				}
-			}
-		},
-
-		constructors = {};
-	
 	/**
 	 * Restore the original object from the given Octane.
 	 * 
-	 * @param {Object} octane the structure containing information for creating
-	 *     the original object
+	 * @param {Object} octane the structure containing information for creating the original object
 	 * @return {Object} the created object
 	 */
 	hemi.fromOctane = function(octane) {
@@ -5082,66 +4954,74 @@ var hemi = (function(hemi) {
 			setProperties(created, octane);
 		} else {
 			hemi.world.cleanup();
+
 			var citizenCount = octane.citizens.length;
-			// Set the nextId value to a negative number so that we don't have to
-			// worry about overlapping world ids between the constructed Citizens
-			// and their actual ids that are restored from Octane.
-			var fakeId = citizenCount * -2;
-			hemi.world.setNextId(fakeId);
-			
+
+			// Set the nextId value to a negative number so that we don't have to worry about
+			// overlapping world ids between the constructed Citizens and their actual ids that are
+			// restored from Octane.
+			hemi.world.setNextId(citizenCount * -2);
+
 			// Do the bare minimum: create Citizens and set their ids
-			for (var ndx = 0; ndx < citizenCount; ndx++) {
-				var citOctane = octane.citizens[ndx];
-				createObject(citOctane);
+			for (var i = 0; i < citizenCount; ++i) {
+				createObject(octane.citizens[i]);
 			}
-			
+
 			// Now set the World nextId to its proper value.
 			hemi.world.setNextId(octane.nextId);
-			
+
 			// Next set up the message dispatch
 			var entryOctane = octane.dispatch.ents,
 				entries = [];
-			
-			for (var ndx = 0, len = entryOctane.length; ndx < len; ndx++) {
-				var entry = createObject(entryOctane[ndx]);
-				setProperties(entry, entryOctane[ndx]);
+
+			for (var i = 0, il = entryOctane.length; i < il; ++i) {
+				var entry = createObject(entryOctane[i]);
+				setProperties(entry, entryOctane[i]);
 				entries.push(entry);
 			}
-			
+
 			hemi.dispatch.loadEntries(entries);
 			hemi.dispatch.setNextId(octane.dispatch.nextId);
-			
+
 			// Now set Citizen properties and resolve references to other Citizens
-			for (var ndx = 0; ndx < citizenCount; ndx++) {
-				var citOctane = octane.citizens[ndx];
+			for (var i = 0; i < citizenCount; ++i) {
+				var citOctane = octane.citizens[i];
 				setProperties(hemi.world.getCitizenById(citOctane.id), citOctane);
 			}
 		}
 
 		return created;
 	};
-	
+
+	/**
+	 * Make the given class Octanable. This both enables it to be serialized and stores its
+	 * constructor so it can be deserialized.
+	 * 
+	 * @param {function():void} clsCon the constructor function for the class
+	 * @param {string} clsName the name of the class
+	 * @param {Object} octProps either an array of names of properties to be saved to Octane or a
+	 *     function that returns an array of Octane properties
+	 */
 	hemi.makeOctanable = function(clsCon, clsName, octProps) {
 		octProps = octProps || [];
-		
 		constructors[clsName] = clsCon;
-		
+
 		/*
          * Essentially a class name.
          * @type string
          */
 		clsCon.prototype._citizenType = clsName;
-		
+
 		/*
 	     * Get the Octane structure for the class. The structure returned is:
 	     * <pre>
 	     * {
-	     *     id: the Citizen's world id (optional)
+	     *     id: the Object's world id (optional)
 	     *     type: the class name
 	     *     props: the class properties (name and id/value) 
 	     * }
 	     * </pre>
-	     *
+	     * 
 	     * @return {Object} the Octane structure representing the class
 	     */
 		clsCon.prototype._toOctane = function() {
@@ -5154,7 +5034,7 @@ var hemi = (function(hemi) {
 					props: props
 				};
 
-				if (this._worldId != null) {
+				if (this._worldId !== undefined) {
 					octane.id = this._worldId;
 				}
 
@@ -5169,6 +5049,150 @@ var hemi = (function(hemi) {
 			return octane;
 		};
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Create an object from the given Octane structure and set its id. No other properties will be
+	 * set yet.
+	 * 
+	 * @param {Object} octane the structure containing information for creating an object
+	 * @return {Object} the newly created object
+	 */
+	function createObject(octane) {
+		if (!octane.type) {
+			alert("Unable to process octane: missing type");
+			return null;
+		}
+
+		var con = constructors[octane.type],
+			object = null;
+
+		if (con) {
+			object = new con();
+
+			if (octane.id !== undefined) {
+				object._setId(octane.id);
+			}
+		} else {
+			hemi.console.log('Cannot find constructor for type: ' + octane.type, hemi.console.ERR);
+		}
+
+		return object;
+	}
+
+	/**
+	 * Use the given list of property names to parse Octane properties from the given object.
+	 * 
+	 * @param {Object} obj the object to parse from
+	 * @param {string[]} propNames array of property names
+	 * @return {Object[]} array of parsed Octane properties
+	 */
+	function parseProps(obj, propNames) {
+		var oct = [];
+
+		for (var i = 0, il = propNames.length; i < il; ++i) {
+			var name = propNames[i],
+				prop = obj[name],
+				entry = {
+					name: name	
+				};
+
+			if (hemi.utils.isFunction(prop)) {
+				entry.arg = [];
+			} else if (hemi.utils.isArray(prop)) {
+				if (prop.length > 0) {
+					var p = prop[0];
+
+					if (p._getId && p._worldId) {
+						entry.id = [];
+
+						for (var j = 0; j < prop.length; ++j) {
+							entry.id[j] = prop[j]._getId();
+						}
+					} else if (p._toOctane) {
+						entry.oct = [];
+
+						for (var j = 0; j < prop.length; ++j) {
+							entry.oct[j] = prop[j]._toOctane();
+						}
+					} else {
+						entry.val = prop;
+					}
+				} else {
+					entry.val = prop;
+				}
+			} else if (prop._getId && prop._worldId) {
+				entry.id = prop._getId();
+			} else if (prop._toOctane) {
+				entry.oct = prop._toOctane();
+			} else {
+				entry.val = prop;
+			}
+
+			oct.push(entry);
+		}
+
+		return oct;
+	}
+
+	/*
+	 * Iterate through the given Octane structure and set properties for the given object.
+	 * Properties stored by value will be set directly, by Octane will be recursively created, by id
+	 * will be retrieved from the World, and by arg will be set by calling the specified function on
+	 * the object.
+	 * 
+	 * @param {Object} object the object created from the given Octane
+	 * @param {Object} octane the structure containing information about the given object
+	 */
+	function setProperties(object, octane) {
+		for (var i = 0, il = octane.props.length; i < il; ++i) {
+			var property = octane.props[i],
+				name = property.name;
+
+			if (property.oct !== undefined) {
+				if (property.oct instanceof Array) {
+					value = [];
+
+					for (var j = 0, jl = property.oct.length; j < j; ++j) {
+						var child = createObject(property.oct[j]);
+						setProperties(child, property.oct[j]);
+						value.push(child);
+					}
+				} else {
+					value = createObject(property.oct);
+					setProperties(value, property.oct);
+				}
+
+				object[name] = value;
+			} else if (property.val !== undefined) {
+				object[name] = property.val;
+			} else if (property.id !== undefined) {
+				var value;
+
+				if (property.id instanceof Array) {
+					value = [];
+
+					for (var j = 0, jl = property.id.length; j < jl; ++j) {
+						value.push(hemi.world.getCitizenById(property.id[j]));
+					}
+				} else {
+					value = hemi.world.getCitizenById(property.id);
+				}
+
+				object[name] = value;
+			} else if (property.arg !== undefined) {
+				var func = object[name],
+					args = hemi.dispatch.getArguments(null, property.arg);
+
+				func.apply(object, args);
+			} else {
+				alert('Unable to process octane for ' + octane.id + ': missing property value');
+			}
+		}
+	}
 
 	return hemi;
 })(hemi || {});
@@ -7810,160 +7834,297 @@ var hemi = (function(hemi) {
 	return hemi;
 
 })(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
 
-	var getObject3DsRecursive = function(name, obj3d, returnObjs) {
-			for (var i = 0; i < obj3d.children.length; ++i) {
-				var child = obj3d.children[i];
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Model class
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-				if (child.name === name) {
-					returnObjs.push(child);
-				}
+	/**
+	 * @class A Model represents a hierarchical set of transforms, geometry, and animations that
+	 * make up a 3D object.
+	 */
+	var Model = function(client) {
+		/*
+		 * The name of the file to load the Model's assets from.
+		 * @type string
+		 */
+		this._fileName = null;
+		/*
+		 * Flag indicating if the Model's assets are loaded.
+		 * @type boolean
+		 * @default false
+		 */
+		this._loaded = false;
 
-				getObject3DsRecursive(name, child, returnObjs);
-			}
-		};
-	    
-	hemi.ModelBase = function(scene) {
-		this.scene = scene;
-		this.fileName = null;
+		/**
+		 * Array of KeyFrameAnimations that the Model contains.
+		 * @type THREE.KeyFrameAnimation[]
+		 */
+		this.animations = [];
+		/**
+		 * Flag indicating if the Model should load its assets when its file name is set.
+		 * @type boolean
+		 * @default true
+		 */
+		this.autoLoad = true;
+		/**
+		 * The Client that the Model is being rendered by.
+		 * @type hemi.Client
+		 */
+		this.client = client;
+		/**
+		 * Array of Geometries that the Model contains.
+		 * @type THREE.Geometry[]
+		 */
+		this.geometries = [];
+		/**
+		 * Array of Materials that the Model contains.
+		 * @type THREE.Material[]
+		 */
+		this.materials = [];
+		/**
+		 * The root Transform of the Model
+		 * @type hemi.Transform
+		 */
 		this.root = null;
+	};
+
+	/*
+	 * Remove all references in the Model.
+	 */
+	Model.prototype._clean = function() {
+		this.unload();
+		this.client = null;
+	};
+
+	/*
+	 * Array of Hemi Messages that Model is known to send.
+	 * @type string[]
+	 */
+	Model.prototype._msgSent = [hemi.msg.load, hemi.msg.unload];
+
+	/*
+	 * Octane properties for Model.
+	 * 
+	 * @return {Object[]} array of Octane properties
+	 */
+	Model.prototype._octane = function() {
+		var names = ['autoLoad', 'client', 'root'],
+			props = [];
+
+		for (var i = 0, il = names.length; i < il; ++i) {
+			var name = names[i];
+
+			props.push({
+				name: name,
+				val: this[name]
+			});
+		}
+
+		props.push({
+			name: 'setFileName',
+			arg: [this._fileName]
+		});
+
+		return props;
+	};
+
+	/**
+	 * Get any Transforms with the given name in the Model.
+	 * 
+	 * @return {hemi.Transform[]} array of matching Transforms
+	 */
+	Model.prototype.getTransforms = function(name) {
+		var trans = [];
+		getTransformsRecursive(name, this.root, trans);
+		return trans;
+	};
+
+	/**
+	 * Load the Model's assets from its file.
+	 */
+	Model.prototype.load = function() {
+		var that = this;
+
+		if (this._loaded) this.unload();
+
+		hemi.loadCollada(this._fileName, function (collada) {
+			var animHandler = THREE.AnimationHandler,
+				animations = collada.animations,
+				toConvert = {};
+
+			that._loaded = true;
+
+			for (var i = 0, il = animations.length; i < il; ++i) {
+				var node = animations[i].node;
+				toConvert[node.id] = node;
+			}
+
+			if (that.root === null) {
+				that.root = convertObject3Ds.call(that, collada.scene, toConvert);
+			} else {
+				that.root._init(collada.scene, toConvert);
+			}
+
+			that.client.scene.add(that.root);
+
+			for ( var i = 0, il = collada.animations.length; i < il; i++ ) {
+				var anim = animations[i];
+				//Add to the THREE Animation handler to get the benefits of it's
+				animHandler.add(anim);
+
+				var kfAnim = new THREE.KeyFrameAnimation(toConvert[anim.node.id], anim.name);
+				kfAnim.timeScale = 1;
+				that.animations.push(kfAnim);
+			}
+
+			that.send(hemi.msg.load, {
+				root: collada.scene
+			});
+		});
+	};
+
+	/**
+	 * Set the given file name as the Model's file to load. If the autoLoad flag is set, load the
+	 * Model now.
+	 * 
+	 * @param {string} the name of the file to load (relative to hemi.loadPath)
+	 */
+	Model.prototype.setFileName = function(fileName) {
+		this._fileName = fileName;
+
+		if (this.autoLoad) this.load();
+	};
+
+	/**
+	 * Unload all of the Model's loaded transforms, geometries, etc.
+	 */
+	Model.prototype.unload = function() {
+		this.send(hemi.msg.unload, {
+			root: this.root
+		});
+
+		if (this.root) {
+			this.root.cleanup();
+			this.root = null;
+		}
+
+
+		this._loaded = false;
 		this.animations = [];
 		this.geometries = [];
 		this.materials = [];
 	};
 
-	hemi.ModelBase.prototype = {
-		getObject3Ds: function(name) {
-			var obj3ds = [];
-			getObject3DsRecursive(name, this.root, obj3ds);
-			return obj3ds;
-		},
+// Private functions for Model
 
-		load: function() {
-			var that = this;
+	/*
+	 * Convert the loaded THREE.Object3Ds to hemi.Transforms so that they can be Citizens.
+	 * 
+	 * @param {THREE.Object3D} obj the root Object3D to start converting at
+	 * @param {Object} toConvert mapping of Object3D id's to matching Transforms for animations to
+	 *     use to connect with the newly created Transforms
+	 * @return {hemi.Transform} the converted root Transform
+	 */
+	function convertObject3Ds(obj, toConvert) {
+		var children = obj.children,
+			newObj;
 
-			hemi.loadCollada(this.fileName, function (collada) {
-				var animHandler = THREE.AnimationHandler,
-					animations = collada.animations,
-					toConvert = {};
+		if (obj.geometry) {
+			newObj = new hemi.Mesh();
+			newObj.geometry = obj.geometry;
+			newObj.material = obj.material;
+			newObj.boundRadius = obj.boundRadius;
 
-				for (var i = 0, il = animations.length; i < il; ++i) {
-					var node = animations[i].node;
-					toConvert[node.id] = node;
-				}
-
-				if (that.root === null) {
-					that.root = convertObject3Ds.call(that, collada.scene, toConvert);
-				} else {
-					that.root._init(collada.scene, toConvert);
-				}
-
-				that.scene.add(that.root);
-
-				for ( var i = 0, il = collada.animations.length; i < il; i++ ) {
-					var anim = animations[i];
-					//Add to the THREE Animation handler to get the benefits of it's
-					animHandler.add(anim);
-
-					var kfAnim = new THREE.KeyFrameAnimation(toConvert[anim.node.id], anim.name);
-					kfAnim.timeScale = 1;
-					that.animations.push(kfAnim);
-				}
-
-				that.send(hemi.msg.load, {
-					root: collada.scene
-				});
-			});
-		},
-
-		setFileName: function(fileName, callback) {
-			this.fileName = fileName;
-			this.load(callback);
+			if (newObj.geometry.morphTargets.length) {
+				newObj.morphTargetBase = obj.morphTargetBase;
+				newObj.morphTargetForcedOrder = obj.morphTargetForcedOrder;
+				newObj.morphTargetInfluences = obj.morphTargetInfluences;
+				newObj.morphTargetDictionary = obj.morphTargetDictionary;
+			}
+			if (this.materials.indexOf(obj.material) === -1) {
+				this.materials.push(obj.material);
+			}
+			if (this.geometries.indexOf(obj.geometry) === -1) {
+				this.geometries.push(obj.geometry);
+			}
+		} else {
+			newObj = new hemi.Transform();
 		}
-	};
 
-	// Private functions for Model
-	var convertObject3Ds = function(obj, toConvert) {
-			var children = obj.children,
-				newObj;
+		newObj.name = obj.name;
+		newObj.visible = obj.visible;
+		newObj.position = obj.position;
+		newObj.rotation = obj.rotation;
+		newObj.quaternion = obj.quaternion;
+		newObj.scale = obj.scale;
+		newObj.useQuaternion = obj.useQuaternion;
+		newObj.matrix = obj.matrix;
+		newObj.matrixWorld = obj.matrixWorld;
 
-			if (obj.geometry) {
-				newObj = new hemi.Mesh();
-				newObj.geometry = obj.geometry;
-				newObj.material = obj.material;
-				newObj.boundRadius = obj.boundRadius;
+		if (toConvert[obj.id] !== undefined) {
+			toConvert[obj.id] = newObj;
+		}
 
-				if (newObj.geometry.morphTargets.length) {
-					newObj.morphTargetBase = obj.morphTargetBase;
-					newObj.morphTargetForcedOrder = obj.morphTargetForcedOrder;
-					newObj.morphTargetInfluences = obj.morphTargetInfluences;
-					newObj.morphTargetDictionary = obj.morphTargetDictionary;
-				}
-				if (this.materials.indexOf(obj.material) === -1) {
-					this.materials.push(obj.material);
-				}
-				if (this.geometries.indexOf(obj.geometry) === -1) {
-					this.geometries.push(obj.geometry);
-				}
-			} else {
-				newObj = new hemi.Transform();
-			}
+		for (var i = 0; i < children.length; ++i) {
+			var newChild = convertObject3Ds.call(this, children[i], toConvert);
+			newObj.add(newChild);
+		}
 
-			newObj.name = obj.name;
-			newObj.visible = obj.visible;
-			newObj.position = obj.position;
-			newObj.rotation = obj.rotation;
-			newObj.quaternion = obj.quaternion;
-			newObj.scale = obj.scale;
-			newObj.useQuaternion = obj.useQuaternion;
-			newObj.matrix = obj.matrix;
-			newObj.matrixWorld = obj.matrixWorld;
+		return newObj;
+	}
 
-			if (toConvert[obj.id] !== undefined) {
-				toConvert[obj.id] = newObj;
-			}
-
-			for (var i = 0; i < children.length; ++i) {
-				var newChild = convertObject3Ds.call(this, children[i], toConvert);
-				newObj.add(newChild);
-			}
-
-			return newObj;
-		};
-
-	hemi.makeCitizen(hemi.ModelBase, 'hemi.Model', {
-		cleanup: function() {
-			this.root.cleanup();
-			this.scene = null;
-			this.root = null;
-			this.animations = [];
-			this.geometries = [];
-			this.materials = [];
-		},
-		msgs: [hemi.msg.load],
-		toOctane: ['fileName', 'root', 'scene', 'load']
+	hemi.makeCitizen(Model, 'hemi.Model', {
+		cleanup: Model.prototype._clean,
+		toOctane: Model.prototype._octane
 	});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Recursive function to search through all Transform children for any Transforms with the given
+	 * name.
+	 * 
+	 * @param {string} name the name to search for
+	 * @param {hemi.Transform} transform the transform with children to check
+	 * @param {hemi.Transform[]} returnTrans array of matching Transforms that is being populated
+	 */
+	function getTransformsRecursive(name, transform, returnTrans) {
+		for (var i = 0; i < transform.children.length; ++i) {
+			var child = transform.children[i];
+
+			if (child.name === name) {
+				returnTrans.push(child);
+			}
+
+			getTransformsRecursive(name, child, returnTrans);
+		}
+	}
 
 	return hemi;
 })(hemi || {});
@@ -8112,8 +8273,11 @@ var hemi = (function(hemi) {
 		 */
 		this.renderer = null;
 
-		this.useCameraLight(true);
-		this.scene.add(this.camera.threeCamera);
+		if (opt_init) {
+			this.useCameraLight(true);
+			this.scene.add(this.camera.threeCamera);
+		}
+
 		hemi.clients.push(this);
 	};
 
@@ -8236,8 +8400,11 @@ var hemi = (function(hemi) {
 	 */
 	Client.prototype.setCamera = function(camera) {
 		if (this.scene) {
-			this.scene.remove(this.camera.threeCamera);
-			this.scene.remove(this.camera.light);
+			if (this.camera) {
+				this.scene.remove(this.camera.threeCamera);
+				this.scene.remove(this.camera.light);
+			}
+
 			this.scene.add(camera.threeCamera);
 			this.scene.add(camera.light);
 		}
@@ -8272,8 +8439,11 @@ var hemi = (function(hemi) {
 	 */
 	Client.prototype.setScene = function(scene) {
 		if (this.scene) {
-			this.scene.remove(this.camera.threeCamera);
-			this.scene.remove(this.camera.light);
+			if (this.camera) {
+				this.scene.remove(this.camera.threeCamera);
+				this.scene.remove(this.camera.light);
+			}
+
 			this.scene.cleanup();
 		}
 		if (this.camera) {
