@@ -15,8 +15,8 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	module.ui = module.ui || {};
+(function(editor) {
+	editor.ui = editor.ui || {};
 	
 	var vertShaderVars = "varying float v_alpha;\n" +
 			"varying vec4 v_orig_position;\n\n",
@@ -46,63 +46,62 @@ var editor = (function(module) {
 		fragShaderCall = "  gl_FragColor = vec4(gl_FragColor.rgb, v_alpha * gl_FragColor.a);\n" +
 			"  checkAxis(v_orig_position);\n";
 	
-	module.ui.GridPlane = module.Class.extend({
-		init: function(extent, fidelity) {
-			this.extent = extent;
-			this.fidelity = fidelity;
-				
-			this.createShape();	
-			this.modifyShader();	
-		},
-		
-		createShape: function() {
-			var mat = hemi.core.material.createConstantMaterial(
-					hemi.core.mainPack, 
-					hemi.view.viewInfo, 
-					[0.6, 0.6, 0.6, 0.4],
-					true),
-				markerMat = hemi.core.material.createConstantMaterial(
-					hemi.core.mainPack, 
-					hemi.view.viewInfo, 
-					[0.5, 0.5, 0.5, 0.8],
-					true),
-				division = this.extent / this.fidelity,
-				fullExtent = this.extent * 2,
-				marker = this.fidelity * 5,
-				markerDivision = this.extent / marker; 		
-		
-			// Setup a state to bring the lines forward.
-			var state = hemi.core.mainPack.createObject('State');
-			state.getStateParam('PolygonOffset2').value = -1.0;
-			state.getStateParam('FillMode').value = hemi.core.o3d.State.WIREFRAME;
+	editor.ui.GridPlane = function(extent, fidelity) {
+		this.extent = extent;
+		this.fidelity = fidelity;
 			
-			mat.state = state;
-			
-			// create the actual shape
-			this.transform = hemi.core.mainPack.createObject('Transform');
-			this.transform.addShape(createPlane(fullExtent, fullExtent, division, 
-				division, mat, hemi.core.mainPack));
-			this.transform.addShape(createPlane(fullExtent, fullExtent, 
-				markerDivision, markerDivision, markerMat, hemi.core.mainPack, 0.01));
-			
-			this.material = mat;
-			this.markerMaterial = markerMat;
-			this.transform.parent = hemi.core.client.root;
-		},
+		this.createShape();	
+		this.modifyShader();	
+	};
 		
-		modifyShader: function() {
-			modifyMaterial(this.material, this.extent, this.fidelity * 5.0);	
-			modifyMaterial(this.markerMaterial, this.extent, this.fidelity * 5.0);
-			
-			this.markerMaterial.getParam('xAxisColor').value = [1.0, 0.0, 0.0, 1.0];
-			this.markerMaterial.getParam('zAxisColor').value = [0.0, 0.0, 1.0, 1.0];
-		},
+	editor.ui.GridPlane.prototype.createShape = function() {
+		var mat = new THREE.ShaderMaterial({
+				blending: THREE.BillboardBlending,
+				color: 0x666666,
+				lighting: false,
+				opacity: 0.4,
+				wireframe: true
+			}),
+			markerMat = new THREE.ShaderMaterial({
+				blending: THREE.BillboardBlending,
+				color: 0x444444,
+				lighting: false,
+				opacity: 0.8,
+				wireframe: true
+			}),
+			division = this.extent / this.fidelity,
+			fullExtent = this.extent * 2,
+			marker = this.fidelity * 5,
+			markerDivision = this.extent / marker;
 		
-		setVisible: function(visible) {
-			this.transform.visible = visible;
-		}
-	});
+		// create the actual shape
+		var mainPlane = new THREE.Mesh(new THREE.Plane(fullExtent, fullExtent, division, division), 
+				mat),
+			markerPlane = new THREE.Mesh(new THREE.Plane(fullExtent, fullExtent, markerDivision,
+				markerDivision), markerMat);
+//		this.transform = hemi.core.mainPack.createObject('Transform');
+//		this.transform.addShape(createPlane(fullExtent, fullExtent, division, 
+//			division, mat, hemi.core.mainPack));
+//		this.transform.addShape(createPlane(fullExtent, fullExtent, 
+//			markerDivision, markerDivision, markerMat, hemi.core.mainPack, 0.01));
+		
+		this.material = mat;
+		this.markerMaterial = markerMat;
+		this.transform.parent = hemi.core.client.root;
+	};
 	
+	editor.ui.GridPlane.prototype.modifyShader = function() {
+		modifyMaterial(this.material, this.extent, this.fidelity * 5.0);	
+		modifyMaterial(this.markerMaterial, this.extent, this.fidelity * 5.0);
+		
+		this.markerMaterial.getParam('xAxisColor').value = [1.0, 0.0, 0.0, 1.0];
+		this.markerMaterial.getParam('zAxisColor').value = [0.0, 0.0, 1.0, 1.0];
+	};
+	
+	editor.ui.GridPlane.prototype.setVisible = function(visible) {
+		this.transform.visible = visible;
+	};
+
 	var modifyMaterial = function(material, extent, marker) {
 		var gl = material.gl,
 			program = material.effect.program_,
@@ -182,5 +181,4 @@ var editor = (function(module) {
 			o3djs.base.o3d.Primitive.LINELIST);
 	};
 	
-	return module;
-})(editor || {});
+})(editor);

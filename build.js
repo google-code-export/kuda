@@ -225,6 +225,45 @@ var uglifyHemi = function(src, dst) {
 		fs.writeSync(outFile, args.libMinData + header + uglyData);
 };
 
+var uglifyEditor = function(src, dst) {
+		var args = {
+				dist: src,
+				libFiles: [],
+				libMinFiles: [],
+				moduleFiles: [
+					'editor/editor.js',
+					'editor/events.js',
+    				'editor/utils/listener.js',
+					'editor/utils/misc.js',
+					'editor/utils/dependency.js',
+					'editor/data/metadata.js',
+				    'editor/ui/components/component.js',
+					'editor/ui/components/input.js',
+				    'editor/ui/components/menu.js',
+					'editor/ui/components/colorpicker.js',
+					'editor/ui/components/vector.js',
+					'editor/ui/components/treeSelector.js',
+					'editor/ui/components/tooltip.js',
+					'editor/ui/components/validator.js',	
+					'editor/ui/components/list.js',
+					'editor/ui/core/view.js',
+					'editor/ui/core/progress.js',
+					'editor/ui/core/transformHandles.js',
+					'editor/ui/core/gridPlane.js',
+				    'editor/ui/core/dialogs.js',
+					'editor/tools.js',
+					'editor/project.js',
+					'editor/pluginManager.js'
+				]
+			};
+		catFiles(args);
+		fs.writeFileSync(dst + '/editor.src.js', args.libData + args.moduleData);
+
+		var uglyData = uglifyMe(args.moduleData),
+			outFile = fs.openSync(dst + '/editor.min.js', 'w+');
+		fs.writeSync(outFile, args.libMinData + uglyData);
+}
+
 var checkForToDir = function(toDir) {
 	if (path.existsSync(toDir)) {
 		process.stdout.write('Cannot write to ' + toDir + ': already exists\n');
@@ -279,6 +318,8 @@ if (process.argv.length > 3) {
 		uglifyO3d('./public/js', toDir);
 	} else if (type == 'uglifyHemi') {
 		uglifyHemi('./public/js', toDir);
+	} else if (type == 'uglifyEditor') {
+		uglifyEditor('./public/js', toDir);
 	} else {
 		checkForToDir(toDir);
 
@@ -307,5 +348,5 @@ if (process.argv.length > 3) {
 } else {
 	process.stdout.write('Usage: node build.js [options] [type] [toDir]\n' +
 		'Valid options are: --no-doc, --zip\n' +
-		'Valid types are: core, editor, full, uglifyHemi, uglifyO3d, ugly\n');
+		'Valid types are: core, editor, full, uglifyHemi, `uglifyO3d, ugly\n');
 }

@@ -15,13 +15,14 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function(editor) {
+	"use strict";
 	
 	editor.ui = editor.ui || {};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                                Input                                       //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                				Input	                                          //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var InputDefaults =  {
 		container: null,
@@ -32,109 +33,110 @@ var editor = (function(editor) {
 		validator: null
 	};
 			
-	editor.ui.Input = editor.ui.Component.extend({
-		init: function(options) {
-			var newOpts = jQuery.extend({}, InputDefaults, options);
-			this.value = null;
-			this._super(newOpts);
-		},
+	var Input = editor.ui.Input = function(options) {
+		var newOpts = jQuery.extend({}, InputDefaults, options);
+		this.value = null;
+		editor.ui.Component.call(this, newOpts);
+	};
 		
-		layout: function() {
-			var wgt = this;
+	Input.prototype = new editor.ui.Component();
+	Input.prototype.constructor = Input;
+		
+	Input.prototype.layout = function() {
+		var wgt = this;
+		
+		if (this.config.container) {
+			this.container = this.config.container;
 			
-			if (this.config.container) {
-				this.container = this.config.container;
-				
-				if (!this.config.placeHolder) {
-					this.config.placeHolder = this.container.attr('placeholder');
-				}
-			} else {
-				switch (this.config.type) {
-					case 'boolean':
-						this.container = jQuery('<input type="checkbox" />');
-						break;
-					default:
-						this.container = jQuery('<input type="text" />');
-						break;
-				}
+			if (!this.config.placeHolder) {
+				this.config.placeHolder = this.container.attr('placeholder');
 			}
-			
-			if (this.config.placeHolder) {
-				this.container.attr('placeholder', this.config.placeHolder);
-			}
-			if (this.config.inputClass) {
-				this.container.attr('class', this.config.inputClass);
-			}
-			if (this.config.validator) {
-				this.config.validator.setElements(this.container);
-			}
-			
-			this.container.bind('blur', function(evt) {
-				var val = getContainerValue.call(wgt);
-				wgt.setValue(val);
-				
-				if (wgt.config.onBlur) {
-					wgt.config.onBlur(wgt, evt);
-				}
-			})
-			.bind('focus', function(evt) {
-				setContainerValue.call(wgt, wgt.value);
-			});
-		},
-		
-		getValue: function() {
-			if (this.container.is(':focus') || this.config.type === 'boolean') {
-				return getContainerValue.call(this);
-			} else {
-				return this.value;
-			}
-		},
-		
-		reset: function() {
-			this.value = null;
-			setContainerValue.call(this, null);
-		},
-		
-		setName: function(name) {
-			this.config.placeHolder = name;
-			this.container.attr('placeholder', name);
-			this.setValue(this.value);
-		},
-		
-		setType: function(type) {
-			this.config.type = type;
-		},
-		
-		setValue: function(value) {
-			if (value == null) {
-				this.reset();
-			} else {
-				this.value = value;
-				
-				switch (this.config.type) {
-					case 'boolean':
-						this.container.prop('checked', value);
-						break;
-					case 'angle':
-						value = hemi.core.math.radToDeg(value);
-					default:
-						if (this.config.placeHolder) {
-							this.container.val(this.config.placeHolder + ': ' + value);
-						} else {
-							this.container.val(value);
-						}
-						
-						break;
-				}
+		} else {
+			switch (this.config.type) {
+				case 'boolean':
+					this.container = jQuery('<input type="checkbox" />');
+					break;
+				default:
+					this.container = jQuery('<input type="text" />');
+					break;
 			}
 		}
-	});
+		
+		if (this.config.placeHolder) {
+			this.container.attr('placeholder', this.config.placeHolder);
+		}
+		if (this.config.inputClass) {
+			this.container.attr('class', this.config.inputClass);
+		}
+		if (this.config.validator) {
+			this.config.validator.setElements(this.container);
+		}
+		
+		this.container.bind('blur', function(evt) {
+			var val = getContainerValue.call(wgt);
+			wgt.setValue(val);
+			
+			if (wgt.config.onBlur) {
+				wgt.config.onBlur(wgt, evt);
+			}
+		})
+		.bind('focus', function(evt) {
+			setContainerValue.call(wgt, wgt.value);
+		});
+	};
 	
-////////////////////////////////////////////////////////////////////////////////
-//								Private Methods								  //
-////////////////////////////////////////////////////////////////////////////////
+	Input.prototype.getValue = function() {
+		if (this.container.is(':focus') || this.config.type === 'boolean') {
+			return getContainerValue.call(this);
+		} else {
+			return this.value;
+		}
+	};
 	
-	var getContainerValue = function() {
+	Input.prototype.reset = function() {
+		this.value = null;
+		setContainerValue.call(this, null);
+	};
+	
+	Input.prototype.setName = function(name) {
+		this.config.placeHolder = name;
+		this.container.attr('placeholder', name);
+		this.setValue(this.value);
+	};
+	
+	Input.prototype.setType = function(type) {
+		this.config.type = type;
+	};
+	
+	Input.prototype.setValue = function(value) {
+		if (value == null) {
+			this.reset();
+		} else {
+			this.value = value;
+			
+			switch (this.config.type) {
+				case 'boolean':
+					this.container.prop('checked', value);
+					break;
+				case 'angle':
+					value = hemi.core.math.radToDeg(value);
+				default:
+					if (this.config.placeHolder) {
+						this.container.val(this.config.placeHolder + ': ' + value);
+					} else {
+						this.container.val(value);
+					}
+					
+					break;
+			}
+		}
+	};
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//											Private Methods										  //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	function getContainerValue() {
 		var val;
 		
 		switch (this.config.type) {
@@ -173,9 +175,9 @@ var editor = (function(editor) {
 		}
 		
 		return val;
-	},
+	};
 	
-	setContainerValue = function(value) {
+	function setContainerValue(value) {
 		if (value == null) {
 			switch (this.config.type) {
 				case 'boolean':
@@ -201,5 +203,4 @@ var editor = (function(editor) {
 		}
 	};
 	
-	return editor;
-})(editor || {});
+})(editor);

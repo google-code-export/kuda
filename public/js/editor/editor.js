@@ -15,13 +15,10 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = {
-		// Keep a copy of the Hemi Class for inheritnace
-		Class: hemi.Class
-	};
+var editor = {};
 
 (function() {
-	o3djs.require('editor.requires');
+	"use strict";
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                               Dispatch Proxy                               //
@@ -100,30 +97,30 @@ var editor = {
 ////////////////////////////////////////////////////////////////////////////////
 		
 		
-	var initViewerStep1 = function() {						
-			o3djs.webgl.makeClients(function(clientElements) {
-				setupWorldMessages();
-				editor.ui.initializeView(clientElements);
-				editor.projects.init();
-				editor.plugins.init();
-			});
-		},
+	function initViewer() {
+		editor.client = hemi.makeClients()[0];
+								
+		setupWorldMessages();
+		editor.ui.initializeView(editor.client);
+		editor.projects.init();
+		editor.plugins.init();
+	};
 		
-		setupWorldMessages = function() {			
-			hemi.world.subscribe(hemi.msg.cleanup, function() {
-				editor.notifyListeners(editor.events.WorldCleaned);
-			});
-			hemi.world.subscribe(hemi.msg.ready, function() {
-				editor.notifyListeners(editor.events.WorldLoaded);
-				editor.projects.loadingDone();
-			});
-		},
-		
-		uninitViewer = function() {
-			if (hemi.core.client) {
-				hemi.core.client.cleanup();
-			}
-		};
+	function setupWorldMessages() {			
+		hemi.subscribe(hemi.msg.cleanup, function() {
+			editor.notifyListeners(editor.events.WorldCleaned);
+		});
+		hemi.subscribe(hemi.msg.ready, function() {
+			editor.notifyListeners(editor.events.WorldLoaded);
+			editor.projects.loadingDone();
+		});
+	};
+	
+	function uninitViewer() {
+		if (hemi.core.client) {
+			hemi.core.client.cleanup();
+		}
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                             Editor Utilities                               //
@@ -200,10 +197,10 @@ var editor = {
 	};
 	
 	window.onload = function() {	
-		initViewerStep1();
+		initViewer();
 	};
 	
-	window.onunload = function() {
-		uninitViewer();
-	};
+//	window.onunload = function() {
+//		uninitViewer();
+//	};
 })();

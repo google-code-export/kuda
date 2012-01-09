@@ -15,112 +15,113 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
+(function(editor) {
+	"use strict";
 	
-	module.ui = module.ui || {};
+	editor.ui = editor.ui || {};
 	
-	var ProgressIndicator = module.ui.Component.extend({
-		init: function() {		
-			this._super();	
-			this.progress = -1;
-		},
+	var ProgressIndicator = function() {		
+		editor.ui.Component.call(this);	
+		this.progress = -1;
+	};
 		
-		layout: function() {
-			this.container = jQuery('<div id="progressIndicator"></div>');
-			this.text = jQuery('<span class="prgBarText">Loading...</span>');
-			this.barWrapper = jQuery('<div class="prgBarContainer"></div>');
-			this.indicator = jQuery('<div class="prgBarIndicator"></div>');
+	ProgressIndicator.prototype = new editor.ui.Component();
+	ProgressIndicator.prototype.constructor = ProgressIndicator;
 		
-			this.barWrapper.append(this.indicator);
-			this.container.append(this.text).append(this.barWrapper);
-			
-			this.container.css('zIndex', editor.ui.Layer.DIALOG);
-			// immediately update
-			this.update(0);
-			hemi.world.subscribe(hemi.msg.progress, this, 'msgUpdate');
-		},
+	ProgressIndicator.prototype.layout = function() {
+		this.container = jQuery('<div id="progressIndicator"></div>');
+		this.text = jQuery('<span class="prgBarText">Loading...</span>');
+		this.barWrapper = jQuery('<div class="prgBarContainer"></div>');
+		this.indicator = jQuery('<div class="prgBarIndicator"></div>');
+	
+		this.barWrapper.append(this.indicator);
+		this.container.append(this.text).append(this.barWrapper);
 		
-		/**
-		 * Callback for the hemi.msg.progress message type.  Only listens for
-		 * the total progress information and updates the progress bar UI 
-		 * accordingly.
-		 * 
-		 * @param {Object} progressMsg the message data received from the 
-		 * 				   message dispatcher.
-		 */
-		msgUpdate: function(progressMsg) {
-			var progressInfo = progressMsg.data,
-				percent = this.progress;
-			
-			if (progressInfo.isTotal) {
-				percent = progressInfo.percent;
-				this.update(percent);
+		this.container.css('zIndex', editor.ui.Layer.DIALOG);
+		// immediately update
+		this.update(0);
+		hemi.subscribe(hemi.msg.progress, this, 'msgUpdate');
+	};
+	
+	/**
+	 * Callback for the hemi.msg.progress message type.  Only listens for
+	 * the total progress information and updates the progress bar UI 
+	 * accordingly.
+	 * 
+	 * @param {Object} progressMsg the message data received from the 
+	 * 				   message dispatcher.
+	 */
+	ProgressIndicator.prototype.msgUpdate = function(progressMsg) {
+		var progressInfo = progressMsg.data,
+			percent = this.progress;
+		
+		if (progressInfo.isTotal) {
+			percent = progressInfo.percent;
+			this.update(percent);
+		}
+	};
+	
+	ProgressIndicator.prototype.setVisible = function(visible) {
+		var ctn = this.container;
+		
+		if (visible) {
+			var	windowHeight = jQuery(window).height(),
+				windowWidth = window.innerWidth ? window.innerWidth 
+					: document.documentElement.offsetWidth,
+				top = windowHeight - ctn.height(),
+				left = (windowWidth - ctn.width())/2;
+							
+			ctn.show().css({
+				top: top + 20 + 'px',
+				left: left + 'px',
+				opacity: 0,
+				position: 'absolute'
+			}).animate({
+				opacity: 1,
+				top: '-=20'
+			}, 300);
+		}
+		else {
+			ctn.animate({
+				opacity: 0,
+				top: '+=20'
+			}, 400, function(){
+				ctn.hide();
+			});
+		}
+	};
+	
+	/**
+	 * Updates the progress bar with the given progress.
+	 * 
+	 * @param {number} progress the progress in percent.
+	 */
+	ProgressIndicator.prototype.update = function(progress) {
+		if (this.progress !== progress) {
+			if (!this.isVisible()) {
+				this.setVisible(true);
 			}
-		},
-		
-		setVisible: function(visible) {
-			var ctn = this.container;
+			var wgt = this;
+			this.progress = progress;
 			
-			if (visible) {
-				var	windowHeight = jQuery(window).height(),
-					windowWidth = window.innerWidth ? window.innerWidth 
-						: document.documentElement.offsetWidth,
-					top = windowHeight - ctn.height(),
-					left = (windowWidth - ctn.width())/2;
-								
-				ctn.show().css({
-					top: top + 20 + 'px',
-					left: left + 'px',
-					opacity: 0,
-					position: 'absolute'
-				}).animate({
-					opacity: 1,
-					top: '-=20'
-				}, 300);
-			}
-			else {
-				ctn.animate({
-					opacity: 0,
-					top: '+=20'
-				}, 400, function(){
-					ctn.hide();
-				});
-			}
-		},
-		
-		/**
-		 * Updates the progress bar with the given progress.
-		 * 
-		 * @param {number} progress the progress in percent.
-		 */
-		update: function(progress) {
-			if (this.progress !== progress) {
-				if (!this.isVisible()) {
-					this.setVisible(true);
-				}
-				var wgt = this;
-				this.progress = progress;
-				
-				// update the ui
-				this.indicator.width(this.barWrapper.width() * progress/100);
-				
-				// if percent is 100, stop drawing this
-				if (this.progress >= 99.9) {
-					setTimeout(function() {
-						wgt.progress = -1;
-						wgt.setVisible(false);
-					}, 100);
-				}
+			// update the ui
+			this.indicator.width(this.barWrapper.width() * progress/100);
+			
+			// if percent is 100, stop drawing this
+			if (this.progress >= 99.9) {
+				setTimeout(function() {
+					wgt.progress = -1;
+					wgt.setVisible(false);
+				}, 100);
 			}
 		}
-	});
-	
-	module.ui.progressUI = new ProgressIndicator();
+	};
+
+	editor.ui.progressUI = new ProgressIndicator();
 	
 	jQuery(document).bind('ready', function() {
-		jQuery('body').append(module.ui.progressUI.getUI());
-		module.ui.progressUI.container.hide();
+		jQuery('body').append(editor.ui.progressUI.getUI());
+		editor.ui.progressUI.container.hide();
 	});
 	
-	return module;
-})(editor || {});
+})(editor);

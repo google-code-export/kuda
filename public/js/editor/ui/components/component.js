@@ -15,81 +15,83 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	module.ui = module.ui || {};
+(function(editor) {
+	"use strict";
 	
-	module.ui.ComponentDefaults = {
+	editor.ui = editor.ui || {};
+	
+	editor.ui.ComponentDefaults = {
 		uiFile: null,
 		showOptions: null,
 		hideOptions: null
 	};
 	
-	module.ui.Component = module.utils.Listenable.extend({
-		init: function(options) {
-			this._super();
-			
-	        this.config = jQuery.extend({}, module.ui.ComponentDefaults, options);
-			this.container = null;
-			
-			if (this.visible === undefined) {
-				this.visible = false;
-			}
-			
-			if (this.config.uiFile && this.config.uiFile !== '') {
-				this.load();
-			}
-			else {
-				this.layout();
-				this.finishLayout();
-				this.notifyListeners(editor.events.Loaded);
-			}
-		},
+	var Component = editor.ui.Component = function(options) {
+		editor.utils.Listenable.call(this);
 		
-		layout: function() {
-			// Place DOM elements
-		},
+        this.config = jQuery.extend({}, editor.ui.ComponentDefaults, options);
+		this.container = null;
 		
-		finishLayout: function() {
-			// Do any final styling or event binding
-		},
-		
-		load: function() {
-			var cmp = this;
-			this.container = jQuery('<div></div>');
-
-			if (this.config.uiFile && this.config.uiFile !== '') {
-				hemi.loader.loadHtml(this.config.uiFile, function(data) {
-					// clean the string of html comments
-					var cleaned = data.replace(/<!--(.|\s)*?-->/, '');
-					cmp.container.append(jQuery(cleaned));
-					cmp.layout();
-					cmp.finishLayout();
-					cmp.notifyListeners(editor.events.Loaded);
-				});
-			}
-		},
-		
-		getUI: function() {
-			return this.container;
-		},
-		
-		setVisible: function(visible) {
-			if (visible) {
-				this.container.show(this.config.showOptions);
-			}
-			else {
-				this.container.hide(this.config.hideOptions);
-			}
-		},
-		
-		isVisible: function() {
-			return this.container.is(':visible');
-		},
-		
-		find: function(query) {
-			return this.container.find(query);
+		if (this.visible === undefined) {
+			this.visible = false;
 		}
-	});
+		
+		if (this.config.uiFile && this.config.uiFile !== '') {
+			this.load();
+		}
+		else {
+			this.layout();
+			this.finishLayout();
+			this.notifyListeners(editor.events.Loaded);
+		}
+	};
+
+	Component.prototype = new editor.utils.Listenable();
+	Component.prototype.constructor = Component;
+		
+	Component.prototype.layout = function() {
+		// Place DOM elements
+	};
 	
-	return module;
-})(editor || {});
+	Component.prototype.finishLayout = function() {
+		// Do any final styling or event binding
+	};
+	
+	Component.prototype.load = function() {
+		var cmp = this;
+		this.container = jQuery('<div></div>');
+
+		if (this.config.uiFile && this.config.uiFile !== '') {
+			hemi.loader.loadHtml(this.config.uiFile, function(data) {
+				// clean the string of html comments
+				var cleaned = data.replace(/<!--(.|\s)*?-->/, '');
+				cmp.container.append(jQuery(cleaned));
+				cmp.layout();
+				cmp.finishLayout();
+				cmp.notifyListeners(editor.events.Loaded);
+			});
+		}
+	};
+	
+	Component.prototype.getUI = function() {
+		return this.container;
+	};
+	
+	Component.prototype.setVisible = function(visible) {
+		if (visible) {
+			this.container.show(this.config.showOptions);
+		}
+		else {
+			this.container.hide(this.config.hideOptions);
+		}
+	};
+	
+	Component.prototype.isVisible = function() {
+		return this.container.is(':visible');
+	};
+	
+	Component.prototype.find = function(query) {
+		return this.container.find(query);
+	};
+	
+})(editor);

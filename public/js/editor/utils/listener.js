@@ -15,94 +15,94 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function(editor) {
+	"use strict";
+	
 	editor.utils = editor.utils || {};
 			
     /**
      * The Listenable ...
      */
-	editor.utils.Listenable = editor.Class.extend({
-		init: function() {
-			this.listeners = new Hashtable();
-		},
+	var Listenable = editor.utils.Listenable = function() {
+		this.listeners = new Hashtable();
+	};
 		
-		/**
-		 * Adds a listener that listens for the event type given.
-		 * 
-		 * @param {string} eventType the event this listener is interested in
-		 * @param {function(Object):void or Object that contains notify()} 
-		 *        listener the listener to add
-		 */        
-        addListener: function(eventType, listener) {
-			var list = this.listeners.get(eventType);
-			
-			if (!list) {
-				list = [];
-			}
-			
-            var ndx = list.indexOf(listener);
-            
-            if (ndx == -1) {
-                list.push(listener);
-            }
-			
-			this.listeners.put(eventType, list);
-        },
+	/**
+	 * Adds a listener that listens for the event type given.
+	 * 
+	 * @param {string} eventType the event this listener is interested in
+	 * @param {function(Object):void or Object that contains notify()} 
+	 *        listener the listener to add
+	 */        
+    Listenable.prototype.addListener = function(eventType, listener) {
+		var list = this.listeners.get(eventType);
+		
+		if (!list) {
+			list = [];
+		}
+		
+        var ndx = list.indexOf(listener);
         
-		/**
-		 * Removes the given listener from this object's internal list of 
-		 * listeners.
-		 * 
-		 * @param {function(Object):void or Object that contains notify()} 
-		 *        listener the listener to remove.
-		 */
-        removeListener: function(listener) {
-            var found = null;
+        if (ndx == -1) {
+            list.push(listener);
+        }
+		
+		this.listeners.put(eventType, list);
+    };
+    
+	/**
+	 * Removes the given listener from this object's internal list of 
+	 * listeners.
+	 * 
+	 * @param {function(Object):void or Object that contains notify()} 
+	 *        listener the listener to remove.
+	 */
+    Listenable.prototype.removeListener = function(listener) {
+        var found = null;
+		
+		if (this.listeners.containsValue(listener)) {
+			var keys = this.listeners.keys();
 			
-			if (this.listeners.containsValue(listener)) {
-				var keys = this.listeners.keys();
-				
-				for (var ki = 0, kl = keys.length; ki < kl && !found; ki++) {
-					var list = this.listeners.get(keys[ki]);
-	                var ndx = list.indexOf(listener);
-	                
-	                if (ndx != -1) {
-	                    var spliced = list.splice(ndx, 1);
-	                    
-	                    if (spliced.length == 1) {
-	                        found = spliced[0];
-	                    }
-	                }
-				}
-			}
-			
-            return found;
-        },
-        
-		/**
-		 * Notifies listeners interested in the given event type.
-		 * 
-		 * @param {string} eventType the event to notify about
-		 * @param {Object} value the data to give to the interested listeners.
-		 */
-        notifyListeners: function(eventType, value) {
-			var list = this.listeners.get(eventType);
-			
-            if (list) {
-                for (var ndx = 0, len = list.length; ndx < len; ndx++) {
-                    var listener = list[ndx];
-                    var isFnc = jQuery.isFunction(listener);
+			for (var ki = 0, kl = keys.length; ki < kl && !found; ki++) {
+				var list = this.listeners.get(keys[ki]);
+                var ndx = list.indexOf(listener);
+                
+                if (ndx != -1) {
+                    var spliced = list.splice(ndx, 1);
                     
-                    if (isFnc) {
-                        listener(value);
+                    if (spliced.length == 1) {
+                        found = spliced[0];
                     }
-                    else {
-                        listener.notify(eventType, value);
-                    }
+                }
+			}
+		}
+		
+        return found;
+    };
+    
+	/**
+	 * Notifies listeners interested in the given event type.
+	 * 
+	 * @param {string} eventType the event to notify about
+	 * @param {Object} value the data to give to the interested listeners.
+	 */
+    Listenable.prototype.notifyListeners = function(eventType, value) {
+		var list = this.listeners.get(eventType);
+		
+        if (list) {
+            for (var ndx = 0, len = list.length; ndx < len; ndx++) {
+                var listener = list[ndx];
+                var isFnc = jQuery.isFunction(listener);
+                
+                if (isFnc) {
+                    listener(value);
+                }
+                else {
+                    listener.notify(eventType, value);
                 }
             }
         }
-	});
+    };
 	
 	// make the editor a listener
 	var notifier = new editor.utils.Listenable();
@@ -119,5 +119,4 @@ var editor = (function(editor) {
 		notifier.removeListener(listener);
 	};			
 	
-	return editor;
-})(editor || {});
+})(editor);
