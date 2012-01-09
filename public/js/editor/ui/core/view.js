@@ -995,7 +995,7 @@
 		
 		// create and size the webgl client
 		// create the grid plane
-//		grid = new editor.ui.GridPlane(EXTENT, FIDELITY);
+		var grid = new editor.ui.GridPlane(client, EXTENT, FIDELITY);
 		// create the plugin panel
 		navBar = new NavBar();
 			
