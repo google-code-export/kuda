@@ -175,6 +175,39 @@ var hemi = (function(hemi) {
 	};
 
 	/**
+	 * Load the texture at the given URL. If an error occurs, an alert is thrown. Otherwise the
+	 * given callback is executed and passed the texture. This function return a created (but not
+	 * yet loaded) texture synchronously.
+	 * 
+	 * @param {string} url the url of the file to load relative to the Kuda directory
+	 * @param {function(THREE.Texture):void} callback a function to pass the loaded texture
+	 * @return {THREE.Texture} the created (but not yet loaded) texture
+	 */
+	hemi.loadTextureSync = function(url, callback) {
+		var img = new Image(),
+			texture = new THREE.Texture(img);
+
+		++taskCount;
+
+		img.onabort = function() {
+			hemi.error('Aborted loading: ' + url);
+			decrementTaskCount();
+		};
+		img.onerror = function() {
+			hemi.error('Error loading: ' + url);
+			decrementTaskCount();
+		};
+		img.onload = function() {
+			texture.needsUpdate = true;
+			callback(texture);
+			decrementTaskCount();
+		};
+
+		img.src = hemi.getLoadPath(url);
+		return texture;
+	};
+
+	/**
 	 * Activate the World once all resources are loaded. This function should
 	 * only be called after all scripting and setup is complete.
 	 */
