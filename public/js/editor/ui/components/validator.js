@@ -15,89 +15,101 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function(editor) {
+	"use strict";
+	
 	editor.ui = editor.ui || {};
 	
 	var tooltip = new editor.ui.createTooltip({
 			cls: 'errorWrapper'
 		});
 	
-	editor.ui.Validator = editor.utils.Listenable.extend({
-		init: function(opt_elements, checkFunction) {
-			this._super();
-			this.checkFunction = checkFunction;
-			this.containerClass = 'errorWrapper';
-			
-			if (opt_elements != null) {			
-				this.setElements(opt_elements);
-			}
-		},
-		
-		setElements: function(elements) {	
-			var vld = this;
-					
-			elements.bind('change.errEvt', function(evt) {
-				var elem = jQuery(this),
-					msg = null;
-								
-				msg = vld.checkFunction(elem);
-				
-				if (msg) {
-					tooltip.show(elem, msg, 2000);
-					elem.addClass('error');
-				}
-				else {
-					tooltip.hide();	
-					elem.removeClass('error');
-				}
-			});
-		}
-	});
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                			  Validator	                                          //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	editor.ui.VectorValidator = editor.utils.Listenable.extend({
-		init: function(vector) {
-			this._super();
-			this.containerClass = 'errorWrapper';
-			this.timeoutId = null;
-			this.vector = vector;
-			
-			var vecInputs = vector.find('.' + vector.config.type),
-				that = this;
-			
-			vecInputs.bind('focus', function(evt) {
-				if (that.timeoutId) {
-					clearTimeout(that.timeoutId);
-					that.timeoutId = null;
-				}
-			})
-			.bind('blur', function(evt) {
-				var inputs = that.vector.inputs,
-					firstVal = inputs[0].elem.getValue(),
-					isNull = firstVal === '' || firstVal === null,
-					msg = null;
-				
-				for (var i = 1, il = inputs.length; i < il && !msg; i++) {
-					var val = inputs[i].elem.getValue(),
-						check = val === '' || val === null;
-					
-					if (check !== isNull) {
-						msg = 'must fill out all values';
-					}
-				}
-				
-				if (msg) {
-					that.timeoutId = setTimeout(function() {
-						that.timeoutId = null;
-						tooltip.show(that.vector.getUI(), msg, 3000);
-						vecInputs.addClass('error');
-					}, 1500);
-				} else {
-					tooltip.hide();	
-					vecInputs.removeClass('error');
-				}
-			});
+	var Validator = editor.ui.Validator = function(opt_elements, checkFunction) {
+		editor.utils.Listenable.call(this);
+		this.checkFunction = checkFunction;
+		this.containerClass = 'errorWrapper';
+		
+		if (opt_elements != null) {			
+			this.setElements(opt_elements);
 		}
-	});
+	};
+		
+	Validator.prototype = new editor.utils.Listenable();
+	Validator.prototype.constructor = Validator;
+		
+	Validator.prototype.setElements = function(elements) {	
+		var vld = this;
+				
+		elements.bind('change.errEvt', function(evt) {
+			var elem = jQuery(this),
+				msg = null;
+							
+			msg = vld.checkFunction(elem);
+			
+			if (msg) {
+				tooltip.show(elem, msg, 2000);
+				elem.addClass('error');
+			}
+			else {
+				tooltip.hide();	
+				elem.removeClass('error');
+			}
+		});
+	};
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                		  Vector Validator                                        //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	var VectorValidator = editor.ui.VectorValidator = function(vector) {
+		editor.utils.Listenable.call(this);
+		this.containerClass = 'errorWrapper';
+		this.timeoutId = null;
+		this.vector = vector;
+		
+		var vecInputs = vector.find('.' + vector.config.type),
+			that = this;
+		
+		vecInputs.bind('focus', function(evt) {
+			if (that.timeoutId) {
+				clearTimeout(that.timeoutId);
+				that.timeoutId = null;
+			}
+		})
+		.bind('blur', function(evt) {
+			var inputs = that.vector.inputs,
+				firstVal = inputs[0].elem.getValue(),
+				isNull = firstVal === '' || firstVal === null,
+				msg = null;
+			
+			for (var i = 1, il = inputs.length; i < il && !msg; i++) {
+				var val = inputs[i].elem.getValue(),
+					check = val === '' || val === null;
+				
+				if (check !== isNull) {
+					msg = 'must fill out all values';
+				}
+			}
+			
+			if (msg) {
+				that.timeoutId = setTimeout(function() {
+					that.timeoutId = null;
+					tooltip.show(that.vector.getUI(), msg, 3000);
+					vecInputs.addClass('error');
+				}, 1500);
+			} else {
+				tooltip.hide();	
+				vecInputs.removeClass('error');
+			}
+		});
+	};
+		
+	VectorValidator.prototype = new editor.utils.Listenable();
+	VectorValidator.prototype.constructor = VectorValidator;
 	
 	editor.ui.createDefaultValidator = function(opt_min, opt_max) {
 		var validator = new editor.ui.Validator(null, function(elem) {
@@ -124,11 +136,11 @@ var editor = (function(editor) {
 		return validator;	
 	};
 	
-	var checkNumber = function(val) {	
+	function checkNumber(val) {	
 		return val === '' || hemi.utils.isNumeric(val);
 	};
 		
-	var checkRange = function(val, min, max) {
+	function checkRange(val, min, max) {
 		var num = parseFloat(val);					
 		return val === '' || (min != null && max != null 
 			? num >= min && num <= max 

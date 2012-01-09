@@ -15,7 +15,8 @@
  * Boston, MA 02110-1301 USA.
  */
 
-(function() {
+(function(editor) {
+	"use strict";
 	
 ////////////////////////////////////////////////////////////////////////////////
 //								Initialization  		                      //
@@ -108,307 +109,299 @@
 //                                   Model                                    //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var PluginMgrModel = editor.ToolModel.extend({
-		init: function() {
-			this._super('pluginManager');
-			this.activePlugins = [];
-			this.loadedPlugins = [];
-			this.plugins = [];
-			this.callbacks = [];
-			this.scripts = new Hashtable();
-			this.models = new Hashtable();
-			this.views = new Hashtable();
-			this.initComplete = false;
-			
-			editor.addListener(editor.events.ScriptLoadStart, this);
-			editor.addListener(editor.events.ScriptLoaded, this);
-			editor.addListener(editor.events.ModelAdded, this);
-			editor.addListener(editor.events.ViewAdded, this);
-		},
+	var PluginMgrModel = function() {
+		editor.ToolModel.call(this, 'pluginManager');
+		this.activePlugins = [];
+		this.loadedPlugins = [];
+		this.plugins = [];
+		this.callbacks = [];
+		this.scripts = new Hashtable();
+		this.models = new Hashtable();
+		this.views = new Hashtable();
+		this.initComplete = false;
 		
-		loadingComplete: function() {
-			var vals = this.scripts.values(),
-				complete = true;
-			
-			for (var i = 0, il = vals.length; i < il && complete; i++) {
-				complete &= vals[i];
-			}
-			
-			if (complete) {
-				for (var i = 0, il = this.callbacks.length; i < il; i++) {
-					var obj = this.callbacks[i];
-					obj.callback.apply(this, obj.params);
-				}
-				
-				this.currentPlugin = null;
-								
-				var mdls = editor.getModels();
-					
-//				for (var i = 0, il = mdls.length; i < il; i++) {
-//					var mdl = mdls[i];
-//					
-//					if (!mdl.hasWorldListeners) {
-//						editor.addListener(editor.events.WorldCleaned, mdl);
-//						editor.addListener(editor.events.WorldLoaded, mdl);
-//					}	
-//					
-//					mdl.hasWorldListeners = true;
-//				}
-				
-				this.initComplete = true;
-				this.callbacks = [];
-			}			
-		},
-		
-		addPlugin: function(pluginName) {
-			if (this.plugins.indexOf(pluginName) === -1) {
-				this.plugins.push(pluginName);
-				this.notifyListeners(shorthand.events.PluginAdded, pluginName);
-			}
-		},
-		
-		loadPlugin: function(pluginName) {
-			var mdl = this;
-			
-			if (this.loadedPlugins.indexOf(pluginName) === -1) {
-				// Initialize the plugin's namespace
-				editor.tools[pluginName] = {};
-				editor.getScript('js/editor/plugins/' + pluginName + '/' + pluginName + '.js');
-				
-				this.callbacks.push({
-					callback: function(name){
-						mdl.currentPlugin = name;
-						editor.tools[name].init();
-						editor.notifyListeners(editor.events.PluginLoaded, name);
-						mdl.activePlugins.push(name);
-						mdl.loadedPlugins.push(name);
-						if (mdl.plugins.indexOf(name) === -1) {
-							mdl.plugins.push(name);
-							mdl.notifyListeners(editor.events.PluginLoaded, name);
-						}
-						
-						mdl.updatePluginList();
-						mdl.notifyListeners(shorthand.events.PluginActive, {
-							plugin: name,
-							active: true
-						});
-					},
-					params: [pluginName]
-				});
-			}
-			else if (this.activePlugins.indexOf(pluginName) === -1) {
-				this.activePlugins.push(pluginName);
-				// now notify that the plugin is active again
-				var views = this.views.get(pluginName);
-				
-				for (var i = 0, il = views.length; i < il; i++) {
-					views[i].setEnabled(true);
-				}
-				
-				this.updatePluginList();
-				this.notifyListeners(shorthand.events.PluginActive, {
-					plugin: pluginName,
-					active: true
-				});
-			}
-		},
-		
-		notify: function(eventType, value) {
-			switch(eventType) {
-				case editor.events.ScriptLoadStart:	
-					this.scripts.put(value, false);
-					break;
-				case editor.events.ScriptLoaded:
-					this.scripts.put(value, true);
-					this.loadingComplete();
-					break;
-				case editor.events.ModelAdded:
-					if (this.currentPlugin != null) {
-						var models = this.models.get(this.currentPlugin);
-						if (models == null) {
-							models = [value.model];
-						}
-						this.models.put(this.currentPlugin, models);
-					}
-					break;
-				case editor.events.ViewAdded:
-					if (this.currentPlugin != null) {
-						var views = this.views.get(this.currentPlugin);
-						if (views == null) {
-							views = [value.view];
-						}
-						this.views.put(this.currentPlugin, views);
-					}
-					break;
-			}			
-		},
+		editor.addListener(editor.events.ScriptLoadStart, this);
+		editor.addListener(editor.events.ScriptLoaded, this);
+		editor.addListener(editor.events.ModelAdded, this);
+		editor.addListener(editor.events.ViewAdded, this);
+	};
 	
-		removePlugin: function(pluginName) {
-			this.activePlugins.splice(this.activePlugins.indexOf(pluginName), 1);
+	PluginMgrModel.prototype = new editor.ToolModel();
+	PluginMgrModel.prototype.constructor = PluginMgrModel;
+		
+	PluginMgrModel.prototype.loadingComplete = function() {
+		var vals = this.scripts.values(),
+			complete = true;
+		
+		for (var i = 0, il = vals.length; i < il && complete; i++) {
+			complete &= vals[i];
+		}
+		
+		if (complete) {
+			for (var i = 0, il = this.callbacks.length; i < il; i++) {
+				var obj = this.callbacks[i];
+				obj.callback.apply(this, obj.params);
+			}
 			
-			// get views and disable them
+			this.currentPlugin = null;
+			this.initComplete = true;
+			this.callbacks = [];
+		}			
+	};
+	
+	PluginMgrModel.prototype.addPlugin = function(pluginName) {
+		if (this.plugins.indexOf(pluginName) === -1) {
+			this.plugins.push(pluginName);
+			this.notifyListeners(shorthand.events.PluginAdded, pluginName);
+		}
+	};
+	
+	PluginMgrModel.prototype.loadPlugin = function(pluginName) {
+		var mdl = this;
+		
+		if (this.loadedPlugins.indexOf(pluginName) === -1) {
+			// Initialize the plugin's namespace
+			editor.tools[pluginName] = {};
+			editor.getScript('js/editor/plugins/' + pluginName + '/' + pluginName + '.js');
+			
+			this.callbacks.push({
+				callback: function(name){
+					mdl.currentPlugin = name;
+					editor.tools[name].init();
+					editor.notifyListeners(editor.events.PluginLoaded, name);
+					mdl.activePlugins.push(name);
+					mdl.loadedPlugins.push(name);
+					if (mdl.plugins.indexOf(name) === -1) {
+						mdl.plugins.push(name);
+						mdl.notifyListeners(editor.events.PluginLoaded, name);
+					}
+					
+					mdl.updatePluginList();
+					mdl.notifyListeners(shorthand.events.PluginActive, {
+						plugin: name,
+						active: true
+					});
+				},
+				params: [pluginName]
+			});
+		}
+		else if (this.activePlugins.indexOf(pluginName) === -1) {
+			this.activePlugins.push(pluginName);
+			// now notify that the plugin is active again
 			var views = this.views.get(pluginName);
 			
 			for (var i = 0, il = views.length; i < il; i++) {
-				views[i].setEnabled(false);
+				views[i].setEnabled(true);
 			}
-			
-			this.notifyListeners(shorthand.events.PluginActive, {
-				plugin: pluginName,
-				active: false
-			});
 			
 			this.updatePluginList();
-		},
-		
-		updatePluginList: function() {
-			if (this.initComplete) {
-				var mdl = this,
-					plugsData = {
-						plugins: mdl.activePlugins
-					},
-					data = {
-						plugins: JSON.stringify(plugsData)
-					};
-				
-				jQuery.post('/plugins', data, 'json')
-				.success(function(data, status, xhr) {
-					// No feedback expected
-				})
-				.error(function(xhr, status, err) {
-					// No feedback expected
-				});
-			}
+			this.notifyListeners(shorthand.events.PluginActive, {
+				plugin: pluginName,
+				active: true
+			});
 		}
-	});
+	};
+	
+	PluginMgrModel.prototype.notify = function(eventType, value) {
+		switch(eventType) {
+			case editor.events.ScriptLoadStart:	
+				this.scripts.put(value, false);
+				break;
+			case editor.events.ScriptLoaded:
+				this.scripts.put(value, true);
+				this.loadingComplete();
+				break;
+			case editor.events.ModelAdded:
+				if (this.currentPlugin != null) {
+					var models = this.models.get(this.currentPlugin);
+					if (models == null) {
+						models = [value.model];
+					}
+					this.models.put(this.currentPlugin, models);
+				}
+				break;
+			case editor.events.ViewAdded:
+				if (this.currentPlugin != null) {
+					var views = this.views.get(this.currentPlugin);
+					if (views == null) {
+						views = [value.view];
+					}
+					this.views.put(this.currentPlugin, views);
+				}
+				break;
+		}			
+	};
+
+	PluginMgrModel.prototype.removePlugin = function(pluginName) {
+		this.activePlugins.splice(this.activePlugins.indexOf(pluginName), 1);
+		
+		// get views and disable them
+		var views = this.views.get(pluginName);
+		
+		for (var i = 0, il = views.length; i < il; i++) {
+			views[i].setEnabled(false);
+		}
+		
+		this.notifyListeners(shorthand.events.PluginActive, {
+			plugin: pluginName,
+			active: false
+		});
+		
+		this.updatePluginList();
+	};
+	
+	PluginMgrModel.prototype.updatePluginList = function() {
+		if (this.initComplete) {
+			var mdl = this,
+				plugsData = {
+					plugins: mdl.activePlugins
+				},
+				data = {
+					plugins: JSON.stringify(plugsData)
+				};
+			
+			jQuery.post('/plugins', data, 'json')
+			.success(function(data, status, xhr) {
+				// No feedback expected
+			})
+			.error(function(xhr, status, err) {
+				// No feedback expected
+			});
+		}
+	};
 		
 ////////////////////////////////////////////////////////////////////////////////
 //                             Custom List Item                               //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var CheckableListItem = editor.ui.ListItem.extend({
-		init: function() {
-			this._super();
-		},
+	var CheckableListItem = function() {
+		editor.ui.ListItem.call(this);
+	};
+	var liSuper = editor.ui.ListItem.prototype;
+	
+	CheckableListItem.prototype = new editor.ui.ListItem();
+	CheckableListItem.prototype.constructor = CheckableListItem;
 						
-		layout: function() {
-			this._super();
-			
-			var wgt = this;
-			
-			this.title = jQuery('<label></label>');
-			this.checkbox = jQuery('<input type="checkbox" />');
-			this.container.append(this.checkbox).append(this.title);
-			
-			this.checkbox.bind('change', function() {
-				wgt.notifyListeners(shorthand.events.Checked, {
-					plugin: wgt.title.text(),
-					checked: wgt.checkbox.prop('checked')
-				});
+	CheckableListItem.prototype.layout = function() {
+		liSuper.layout.call(this);
+		
+		var wgt = this;
+		
+		this.title = jQuery('<label></label>');
+		this.checkbox = jQuery('<input type="checkbox" />');
+		this.container.append(this.checkbox).append(this.title);
+		
+		this.checkbox.bind('change', function() {
+			wgt.notifyListeners(shorthand.events.Checked, {
+				plugin: wgt.title.text(),
+				checked: wgt.checkbox.prop('checked')
 			});
-			this.container.bind('click', function(evt) {
-				var isCheckbox = evt.target.tagName === 'INPUT',
-					isLabel = evt.target.tagName === 'LABEL';
-				
-				if (!isCheckbox && !isLabel) {
-					wgt.checkbox.click();
-				}
-			});			
-		},
-		
-		setChecked: function(checked) {
-			this.checkbox.prop('checked', checked);
-		},
-		
-		setText: function(text) {
-			var id = 'plg_li_' + text;
+		});
+		this.container.bind('click', function(evt) {
+			var isCheckbox = evt.target.tagName === 'INPUT',
+				isLabel = evt.target.tagName === 'LABEL';
 			
-			this.title.text(text).attr('for', id);
-			this.checkbox.attr('id', id);
-		}
-	});
+			if (!isCheckbox && !isLabel) {
+				wgt.checkbox.click();
+			}
+		});			
+	};
+	
+	CheckableListItem.prototype.setChecked = function(checked) {
+		this.checkbox.prop('checked', checked);
+	};
+	
+	CheckableListItem.prototype.setText = function(text) {
+		var id = 'plg_li_' + text;
+		
+		this.title.text(text).attr('for', id);
+		this.checkbox.attr('id', id);
+	};
 		
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
 ////////////////////////////////////////////////////////////////////////////////   
 
-	var PluginMgrView = editor.ToolView.extend({
-		init: function() {
-			this._super({
-				id: 'pluginManager',
-				toolName: 'Manage Plugins',
-				toolTip: ''
-			});
-			
-			this.listitems = new Hashtable();
-		},
+	var PluginMgrView = function() {
+		editor.ToolView.call(this, {
+			id: 'pluginManager',
+			toolName: 'Manage Plugins',
+			toolTip: ''
+		});
 		
-		add: function(pluginName) {
-			var li = new CheckableListItem(),
-				view = this;
-			li.setText(pluginName);
-			
-			li.addListener(shorthand.events.Checked, function(data) {
-				view.notifyListeners(shorthand.events.Checked, data);
-			});
-			
-			this.list.add(li);
-			this.listitems.put(pluginName, li);
-		},
+		this.listitems = new Hashtable();
+	};
+	
+	PluginMgrView.prototype = new editor.ToolView();
+	PluginMgrView.prototype.constructor = PluginMgrView;
 		
-		layoutToolBarContainer: function() {			
-			var ctn = this.toolbarContainer = jQuery('<div id="' 
-				+ this.id + '"> </div>');
-				
-			this.list = new editor.ui.List();			
-			ctn.append(this.list.getUI());
-		},
+	PluginMgrView.prototype.add = function(pluginName) {
+		var li = new CheckableListItem(),
+			view = this;
+		li.setText(pluginName);
 		
-		setActive: function(pluginName, active) {
-			this.listitems.get(pluginName).setChecked(active);
-		}
-	});
+		li.addListener(shorthand.events.Checked, function(data) {
+			view.notifyListeners(shorthand.events.Checked, data);
+		});
+		
+		this.list.add(li);
+		this.listitems.put(pluginName, li);
+	};
+	
+	PluginMgrView.prototype.layoutToolBarContainer = function() {			
+		var ctn = this.toolbarContainer = jQuery('<div id="' 
+			+ this.id + '"> </div>');
+			
+		this.list = new editor.ui.List();			
+		ctn.append(this.list.getUI());
+	};
+	
+	PluginMgrView.prototype.setActive = function(pluginName, active) {
+		this.listitems.get(pluginName).setChecked(active);
+	};
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                                Controller                                  //
 ////////////////////////////////////////////////////////////////////////////////
 	
-	var PluginMgrController = editor.ToolController.extend({
-		init: function() {
-			this._super();
-		},
-    
-		/**
-	     * Binds event and message handlers to the view and model this object 
-	     * references.  
-	     */        
-		bindEvents: function() {
-			this._super();
-			
-			var model = this.model,
-				view = this.view;
-			
-			// view specific
-			view.addListener(shorthand.events.Checked, function(data) {
-				if (data.checked) {
-					model.loadPlugin(data.plugin);
-				}
-				else {
-					model.removePlugin(data.plugin);
-				}
-			});
-			
-			// model specific
-			model.addListener(editor.events.PluginLoaded, function(pluginName) {
-				view.add(pluginName);
-			});
-			model.addListener(shorthand.events.PluginActive, function(data) {
-				view.setActive(data.plugin, data.active);
-			});
-			model.addListener(shorthand.events.PluginAdded, function(pluginName) {
-				view.add(pluginName);
-			});
-		}
-	});
+	var PluginMgrController = function() {
+		editor.ToolController.call(this);
+	};
+	var ctrSuper = editor.ToolController.prototype;
 	
-})();
+	PluginMgrController.prototype = new editor.ToolController();
+	PluginMgrController.prototype.constructor = PluginMgrController;
+    
+	/**
+     * Binds event and message handlers to the view and model this object 
+     * references.  
+     */        
+	PluginMgrController.prototype.bindEvents = function() {
+		ctrSuper.bindEvents.call(this);
+		
+		var model = this.model,
+			view = this.view;
+		
+		// view specific
+		view.addListener(shorthand.events.Checked, function(data) {
+			if (data.checked) {
+				model.loadPlugin(data.plugin);
+			}
+			else {
+				model.removePlugin(data.plugin);
+			}
+		});
+		
+		// model specific
+		model.addListener(editor.events.PluginLoaded, function(pluginName) {
+			view.add(pluginName);
+		});
+		model.addListener(shorthand.events.PluginActive, function(data) {
+			view.setActive(data.plugin, data.active);
+		});
+		model.addListener(shorthand.events.PluginAdded, function(pluginName) {
+			view.add(pluginName);
+		});
+	};
+	
+})(editor);

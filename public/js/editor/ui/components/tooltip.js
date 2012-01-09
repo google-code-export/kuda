@@ -15,191 +15,193 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function(editor) {
+	"use strict";
+	
 	editor.ui = editor.ui || {};
 	
 	// internal.  no one else can see or use
-	var Tooltip = editor.ui.Component.extend({
-		init: function(options) {
-			var newOpts = jQuery.extend({
-				cls: '',
-				mouseHide: true
-			}, options);
-			
-			this._super(newOpts);
-			this.id = 0;
-			this.currentElement = null;
-		},
+	var Tooltip = function(options) {
+		var newOpts = jQuery.extend({
+			cls: '',
+			mouseHide: true
+		}, options);
 		
-		layout : function() {
-			var wgt = this,
-				hideFromMouse = function() {
-					if (!wgt.isAnimating) {
-						wgt.hide(0);
+		editor.ui.Component.call(this, newOpts);
+		this.id = 0;
+		this.currentElement = null;
+	};
+		
+	Tooltip.prototype = new editor.ui.Component();
+	Tooltip.prototype.constructor = Tooltip;
+		
+	Tooltip.prototype.layout = function() {
+		var wgt = this,
+			hideFromMouse = function() {
+				if (!wgt.isAnimating) {
+					wgt.hide(0);
+				}
+			};
+		
+		this.container = jQuery('<div class="tooltip ' + this.config.cls + '"></div>');
+		this.msg = jQuery('<div class="content"></div>');
+		this.arrow = jQuery('<div class="arrow"></div>');
+		
+		// attach to the main body and bind mouse handler
+		this.container.append(this.msg);
+		
+		if (this.config.mouseHide) {
+			this.container.bind('mouseenter', hideFromMouse)
+			.bind('mouseleave', hideFromMouse);
+		}
+		
+		// detect border
+		if (this.msg.css('borderLeftWidth') !== 0) {
+			this.arrow.addClass('outer');
+			this.innerArrow = jQuery('<div class="innerArrow"></div>');
+			this.msg.before(this.arrow);
+			this.container.append(this.innerArrow);
+		}
+		else {
+			this.container.append(this.arrow);
+		}
+		
+		// hide
+		this.container.hide();
+		this.isVisible = false;
+	};
+	
+	Tooltip.prototype.show = function(element, content, opt_autohide, opt_offset) {
+		var ctn = this.container,
+			wgt = this,
+			off = jQuery.extend({ top: 0, left: 0 }, opt_offset);
+		
+		this.currentElement = element;
+		
+		if (this.container.parents().size() === 0) {
+			jQuery('body').append(this.container);
+		}
+		
+		if (jQuery.type(content) == 'string') {
+			this.msg.text(content);
+		}
+		else {
+			this.msg.empty().append(content);
+		}
+		ctn.show();
+		
+		var	offset = element.offset(),
+			height = ctn.outerHeight(true),
+			width = ctn.outerWidth(true),
+			center = element.width() / 2,
+			elemHeight = element.height(),
+			atTop = offset.top - height < 0,
+			arrowHeight = this.arrow.outerHeight(),
+			arrowCenter = this.arrow.outerWidth() / 2,
+			arrowLeft = arrowCenter > center ? 5 : center - arrowCenter,
+			windowWidth = window.innerWidth ? window.innerWidth 
+				: document.documentElement.offsetWidth,
+			windowHeight = jQuery(window).height(),
+			difference = width + offset.left > windowWidth 
+				? offset.left - (windowWidth - width) : 0,
+			top = atTop ? offset.top + elemHeight + arrowHeight  + off.top
+				: offset.top - height - off.top,
+			bottom = atTop ? windowHeight - (offset.top + elemHeight 
+				+ arrowHeight + off.top + height) 
+				: windowHeight - (offset.top - off.top);
+		
+		// position this
+		ctn.css({
+			bottom: bottom - 20,
+			left: offset.left - difference
+		});
+		
+		if (atTop) {
+			this.innerArrow.addClass('top');
+			this.arrow.addClass('top');
+		}
+		else {
+			this.innerArrow.removeClass('top');
+			this.arrow.removeClass('top');
+		}			
+		
+		// position the arrow
+		this.innerArrow.css({
+			left: arrowLeft 
+		});
+		this.arrow.css({
+			left: arrowLeft
+		});
+		
+		if (!this.isAnimating) {
+			var doc = jQuery(document),
+				checkMouse = function(evt) {
+					// Make sure the mouse is still over the correct element
+					if (wgt.currentElement) {
+						var ce = wgt.currentElement[0],
+							et = evt.target,
+							ep = jQuery(et).parent()[0];
+						
+						if (et !== ce && ep !== ce) {
+							wgt.hide(0);
+						}
 					}
+					doc.unbind('mousemove', checkMouse);
 				};
 			
-			this.container = jQuery('<div class="tooltip ' + this.config.cls + '"></div>');
-			this.msg = jQuery('<div class="content"></div>');
-			this.arrow = jQuery('<div class="arrow"></div>');
-			
-			// attach to the main body and bind mouse handler
-			this.container.append(this.msg);
-			
-			if (this.config.mouseHide) {
-				this.container.bind('mouseenter', hideFromMouse)
-				.bind('mouseleave', hideFromMouse);
-			}
-			
-			// detect border
-			if (this.msg.css('borderLeftWidth') !== 0) {
-				this.arrow.addClass('outer');
-				this.innerArrow = jQuery('<div class="innerArrow"></div>');
-				this.msg.before(this.arrow);
-				this.container.append(this.innerArrow);
-			}
-			else {
-				this.container.append(this.arrow);
-			}
-			
-			// hide
-			this.container.hide();
-			this.isVisible = false;
-		},
-		
-		show: function(element, content, opt_autohide, opt_offset) {
-			var ctn = this.container,
-				wgt = this,
-				off = jQuery.extend({ top: 0, left: 0 }, opt_offset);
-			
-			this.currentElement = element;
-			
-			if (this.container.parents().size() === 0) {
-				jQuery('body').append(this.container);
-			}
-			
-			if (jQuery.type(content) == 'string') {
-				this.msg.text(content);
-			}
-			else {
-				this.msg.empty().append(content);
-			}
-			ctn.show();
-			
-			var	offset = element.offset(),
-				height = ctn.outerHeight(true),
-				width = ctn.outerWidth(true),
-				center = element.width() / 2,
-				elemHeight = element.height(),
-				atTop = offset.top - height < 0,
-				arrowHeight = this.arrow.outerHeight(),
-				arrowCenter = this.arrow.outerWidth() / 2,
-				arrowLeft = arrowCenter > center ? 5 : center - arrowCenter,
-				windowWidth = window.innerWidth ? window.innerWidth 
-					: document.documentElement.offsetWidth,
-				windowHeight = jQuery(window).height(),
-				difference = width + offset.left > windowWidth 
-					? offset.left - (windowWidth - width) : 0,
-				top = atTop ? offset.top + elemHeight + arrowHeight  + off.top
-					: offset.top - height - off.top,
-				bottom = atTop ? windowHeight - (offset.top + elemHeight 
-					+ arrowHeight + off.top + height) 
-					: windowHeight - (offset.top - off.top);
-			
-			// position this
-			ctn.css({
-				bottom: bottom - 20,
-				left: offset.left - difference
+			this.isAnimating = true;				
+			ctn.css('opacity', 0).animate({
+				opacity: 1,
+				bottom: '+=20'
+			}, 200, function(){
+				wgt.isAnimating = false;
+				wgt.isVisible = true;
+				doc.bind('mousemove', checkMouse);
 			});
-			
-			if (atTop) {
-				this.innerArrow.addClass('top');
-				this.arrow.addClass('top');
-			}
-			else {
-				this.innerArrow.removeClass('top');
-				this.arrow.removeClass('top');
-			}			
-			
-			// position the arrow
-			this.innerArrow.css({
-				left: arrowLeft 
-			});
-			this.arrow.css({
-				left: arrowLeft
-			});
-			
-			if (!this.isAnimating) {
-				var doc = jQuery(document),
-					checkMouse = function(evt) {
-						// Make sure the mouse is still over the correct element
-						if (wgt.currentElement) {
-							var ce = wgt.currentElement[0],
-								et = evt.target,
-								ep = jQuery(et).parent()[0];
-							
-							if (et !== ce && ep !== ce) {
-								wgt.hide(0);
-							}
-						}
-						doc.unbind('mousemove', checkMouse);
-					};
-				
-				this.isAnimating = true;				
-				ctn.css('opacity', 0).animate({
-					opacity: 1,
-					bottom: '+=20'
-				}, 200, function(){
-					wgt.isAnimating = false;
-					wgt.isVisible = true;
-					doc.bind('mousemove', checkMouse);
-				});
-			}
-			
-			// auto hide the message
-			if (opt_autohide != null) {
-				this.hideTimer(true, opt_autohide);
-			}
-		},
-		
-		hide: function(opt_time) {
-			this.hideTimer(false, opt_time);
-		},
-		
-		hideTimer: function(resetTimer, opt_time) {
-			var wgt = this,
-				id = this.id,
-				time = opt_time == null ? 2000 : opt_time;
-			
-			if (resetTimer) {
-				id = this.id += 1;
-			}
-			
-			setTimeout(function() {
-				wgt.hideMessage(id);
-			}, time);
-		},
-		
-		hideMessage: function(id) {
-			if (this.id === id) {
-				var ctn = this.container,
-					wgt = this;
-				
-				ctn.animate({
-					opacity: 0,
-					bottom: '+=20'
-				}, 200, function(){
-					ctn.hide();
-					wgt.isVisible = false;
-					wgt.currentElement = null;
-				});
-			}
 		}
-	});
+		
+		// auto hide the message
+		if (opt_autohide != null) {
+			this.hideTimer(true, opt_autohide);
+		}
+	};
+	
+	Tooltip.prototype.hide = function(opt_time) {
+		this.hideTimer(false, opt_time);
+	};
+	
+	Tooltip.prototype.hideTimer = function(resetTimer, opt_time) {
+		var wgt = this,
+			id = this.id,
+			time = opt_time == null ? 2000 : opt_time;
+		
+		if (resetTimer) {
+			id = this.id += 1;
+		}
+		
+		setTimeout(function() {
+			wgt.hideMessage(id);
+		}, time);
+	};
+	
+	Tooltip.prototype.hideMessage = function(id) {
+		if (this.id === id) {
+			var ctn = this.container,
+				wgt = this;
+			
+			ctn.animate({
+				opacity: 0,
+				bottom: '+=20'
+			}, 200, function(){
+				ctn.hide();
+				wgt.isVisible = false;
+				wgt.currentElement = null;
+			});
+		}
+	};
 	
 	editor.ui.createTooltip = function(opts) {		
 		return new Tooltip(opts);
 	};
 	
-	return editor;
-})(editor || {}, jQuery);
+})(editor);

@@ -15,7 +15,9 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function(editor) {
+	"use strict";
+	
 	editor.utils = editor.utils || {};
 	
 	editor.utils.roundNumber = function(num, dec) {
@@ -32,5 +34,4 @@ var editor = (function(editor) {
 		return func.toString().match(/\((.*?)\)/)[1].match(/[\w]+/g) || [];
     };
 	
-	return editor;
-})(editor || {}, jQuery);
+})(editor);

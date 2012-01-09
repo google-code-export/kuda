@@ -15,162 +15,164 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	module.ui = module.ui || {};
+(function(editor) {
+	"use strict";
+	
+	editor.ui = editor.ui || {};
 	
 	var eventNdx = 0;
 	
-	module.ui.TreeSelectorDefaults = {
+	editor.ui.TreeSelectorDefaults = {
 		containerClass: '',
 		panelHeight: 400,
 		tree: null,
 		select: null
 	};
 	
-	module.ui.TreeSelector = module.ui.Component.extend({
-		init: function(options) {
-			var newOpts =  jQuery.extend({}, module.ui.TreeSelectorDefaults, 
-				options);
-			this.eventName = 'click.treeSelector' + eventNdx;
-			this.buttonId = 'treeSelectorBtn' + eventNdx;
-			this.inputId = 'treeSelectorIpt' + eventNdx;
-			this.panelId = 'treeSelectorPnl' + eventNdx++;
-			this._super(newOpts);
-		},
+	var TreeSelector = editor.ui.TreeSelector = function(options) {
+		var newOpts =  jQuery.extend({}, editor.ui.TreeSelectorDefaults, 
+			options);
+		this.eventName = 'click.treeSelector' + eventNdx;
+		this.buttonId = 'treeSelectorBtn' + eventNdx;
+		this.inputId = 'treeSelectorIpt' + eventNdx;
+		this.panelId = 'treeSelectorPnl' + eventNdx++;
+		editor.ui.Component.call(this, newOpts);
+	};
 		
-		layout: function() {			
-			var wgt = this,
+	TreeSelector.prototype = new editor.ui.Component();
+	TreeSelector.prototype.constructor = TreeSelector;
+		
+	TreeSelector.prototype.layout = function() {			
+		var wgt = this,
+			
+			toggleFcn = function(evt) {
+				var ipt = wgt.input,
+					btn = wgt.picker,
+					pnl = wgt.panel;
 				
-				toggleFcn = function(evt) {
-					var ipt = wgt.input,
-						btn = wgt.picker,
-						pnl = wgt.panel;
+				if (pnl.is(':visible')) {
+					wgt.hidePanel();
 					
-					if (pnl.is(':visible')) {
-						wgt.hidePanel();
-						
-						jQuery(document).unbind(wgt.eventName);
-						pnl.data('docBound', false);
-						btn.removeClass('open');
-						ipt.removeClass('open');
-					}
-					else {
-						var isDocBound = pnl.data('docBound');
-						ipt.addClass('open');
-						btn.addClass('open');
-						width = ipt.outerWidth() + btn.outerWidth() -
-							wgt.treeBorder - wgt.treePadding;
-						
-						wgt.showPanel(width);
-											
-						if (!isDocBound) {
-							jQuery(document).bind(wgt.eventName, function(evt){
-								var target = jQuery(evt.target),
-									parent = target.parents('#' + wgt.panelId),
-									id = target.attr('id');
-								
-								if (parent.size() == 0 
-										&& id != wgt.panelId
-										&& id != wgt.inputId
-										&& id != wgt.buttonId) {
-									wgt.hidePanel();
-								}
-							});
-							pnl.data('docBound', true);
-						}
-					}
-				};
-			
-			// initialize container
-			this.container = jQuery('<div class="treeSelector"></div>');
-			this.input = jQuery('<input type="text" id="' + this.inputId + '" class="treeSelectorIpt" readonly="readonly" placeholder="Select an item" />');
-			this.picker = jQuery('<button id="' + this.buttonId + '" class="treeSelectorBtn">Selector</button>');
-			var pnl = this.panel = jQuery('<div id="' + this.panelId + '" class="treeSelectorPnl"></div>');
-
-			this.treeBorder = Math.ceil(parseFloat(pnl.css('borderRightWidth'))) 
-				+ Math.ceil(parseFloat(pnl.css('borderLeftWidth')));
-			this.treePadding = Math.ceil(parseFloat(pnl.css('paddingLeft'))) 
-				+ Math.ceil(parseFloat(pnl.css('paddingRight')));
-			
-			this.selFcn = function(evt, data){
-				if (wgt.config.select) {
-					if (wgt.config.select(data, wgt)) {
-						wgt.picker.removeClass('selected');
-						wgt.hidePanel();
-					}
+					jQuery(document).unbind(wgt.eventName);
+					pnl.data('docBound', false);
+					btn.removeClass('open');
+					ipt.removeClass('open');
 				}
 				else {
-					var elem = data.rslt.obj, 
-						val = elem.find('a').text();
+					var isDocBound = pnl.data('docBound');
+					ipt.addClass('open');
+					btn.addClass('open');
+					width = ipt.outerWidth() + btn.outerWidth() -
+						wgt.treeBorder - wgt.treePadding;
 					
-					wgt.input.val(val);
-					wgt.hidePanel();
-					wgt.picker.removeClass('selected');
-					wgt.setSelection(val);
+					wgt.showPanel(width);
+										
+					if (!isDocBound) {
+						jQuery(document).bind(wgt.eventName, function(evt){
+							var target = jQuery(evt.target),
+								parent = target.parents('#' + wgt.panelId),
+								id = target.attr('id');
+							
+							if (parent.size() == 0 
+									&& id != wgt.panelId
+									&& id != wgt.inputId
+									&& id != wgt.buttonId) {
+								wgt.hidePanel();
+							}
+						});
+						pnl.data('docBound', true);
+					}
 				}
 			};
-			
-			if (this.config.tree) {
-				this.setTree(this.config.tree);
+		
+		// initialize container
+		this.container = jQuery('<div class="treeSelector"></div>');
+		this.input = jQuery('<input type="text" id="' + this.inputId + '" class="treeSelectorIpt" readonly="readonly" placeholder="Select an item" />');
+		this.picker = jQuery('<button id="' + this.buttonId + '" class="treeSelectorBtn">Selector</button>');
+		var pnl = this.panel = jQuery('<div id="' + this.panelId + '" class="treeSelectorPnl"></div>');
+
+		this.treeBorder = Math.ceil(parseFloat(pnl.css('borderRightWidth'))) 
+			+ Math.ceil(parseFloat(pnl.css('borderLeftWidth')));
+		this.treePadding = Math.ceil(parseFloat(pnl.css('paddingLeft'))) 
+			+ Math.ceil(parseFloat(pnl.css('paddingRight')));
+		
+		this.selFcn = function(evt, data){
+			if (wgt.config.select) {
+				if (wgt.config.select(data, wgt)) {
+					wgt.picker.removeClass('selected');
+					wgt.hidePanel();
+				}
 			}
 			else {
-				this.input.attr('placeholder', 'No items to select');
-			}		
-			this.container.addClass(this.config.containerClass);
-			
-			jQuery('body').append(this.panel);
-			this.container.append(this.input).append(this.picker);
-			this.panel.css({
-				maxHeight: this.config.panelHeight,
-				position: 'absolute'
-			}).hide();
-			
-			this.input.bind('click', toggleFcn);
-			this.picker.bind('click', toggleFcn);
-		},
+				var elem = data.rslt.obj, 
+					val = elem.find('a').text();
+				
+				wgt.input.val(val);
+				wgt.hidePanel();
+				wgt.picker.removeClass('selected');
+				wgt.setSelection(val);
+			}
+		};
 		
-		getSelection: function() {
-			return this.input.data('selectObj');
-		},
-		
-		hidePanel: function() {
-			this.panel.slideUp(200);
-			this.input.removeClass('open');
-			this.picker.removeClass('open');
-		},
-		
-		reset: function() {
-			this.input.val('');
-			this.input.removeData('selectObj');
-			this.tree.jstree('deselect_all');
-		},
-	
-		select: function(nodeId) {
-			var elem = jQuery('#' + nodeId);
-			this.tree.jstree('select_node', elem);
-		},
-		
-		setSelection: function(obj) {
-			this.input.data('selectObj', obj);
-		},
-		
-		setTree: function(tree) {			
-			this.tree = tree; 
-			tree.bind('select_node.jstree', this.selFcn).addClass('treeSelectorTree');	
-			this.panel.append(tree);
-		},
-		
-		showPanel: function(width) {
-			var position = this.input.offset(),
-				width = width || this.container.width();
-			
-			position.top += this.input.outerHeight();
-			this.panel.css({
-				top: position.top,
-				left: position.left
-			}).width(width).slideDown(200);
+		if (this.config.tree) {
+			this.setTree(this.config.tree);
 		}
-	});
+		else {
+			this.input.attr('placeholder', 'No items to select');
+		}		
+		this.container.addClass(this.config.containerClass);
+		
+		jQuery('body').append(this.panel);
+		this.container.append(this.input).append(this.picker);
+		this.panel.css({
+			maxHeight: this.config.panelHeight,
+			position: 'absolute'
+		}).hide();
+		
+		this.input.bind('click', toggleFcn);
+		this.picker.bind('click', toggleFcn);
+	};
 	
-	return module;
-})(editor || {});
+	TreeSelector.prototype.getSelection = function() {
+		return this.input.data('selectObj');
+	};
+	
+	TreeSelector.prototype.hidePanel = function() {
+		this.panel.slideUp(200);
+		this.input.removeClass('open');
+		this.picker.removeClass('open');
+	};
+	
+	TreeSelector.prototype.reset = function() {
+		this.input.val('');
+		this.input.removeData('selectObj');
+		this.tree.jstree('deselect_all');
+	};
+
+	TreeSelector.prototype.select = function(nodeId) {
+		var elem = jQuery('#' + nodeId);
+		this.tree.jstree('select_node', elem);
+	};
+	
+	TreeSelector.prototype.setSelection = function(obj) {
+		this.input.data('selectObj', obj);
+	};
+	
+	TreeSelector.prototype.setTree = function(tree) {			
+		this.tree = tree; 
+		tree.bind('select_node.jstree', this.selFcn).addClass('treeSelectorTree');	
+		this.panel.append(tree);
+	};
+	
+	TreeSelector.prototype.showPanel = function(width) {
+		var position = this.input.offset(),
+			width = width || this.container.width();
+		
+		position.top += this.input.outerHeight();
+		this.panel.css({
+			top: position.top,
+			left: position.left
+		}).width(width).slideDown(200);
+	};
+	
+})(editor);

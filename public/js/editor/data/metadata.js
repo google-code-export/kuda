@@ -15,185 +15,182 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(module) {
-	module.data = module.data || {};
+(function(editor) {
+	editor.data = editor.data || {};
 	
-	var MetaData = module.Class.extend({
-		init: function() {
-			loadJSON.call(this);
-		},
+	var MetaData =  function() {
+		loadJSON.call(this);
+	};
 		
-		getDescription: function(objType, opt_fnc, opt_param) {
-			var parent = this.getParent(objType),
-				args = [];
-			
-			for (var i = 0, il = arguments.length; i < il; ++i) {
-				args[i] = arguments[i];
-			}
-			
-			var retVal = retrieve.call(this, args);
-			
-			while (retVal == null && parent != null) {
-				args[0] = parent;
-				parent = this.getParent(parent);
-				retVal = retrieve.call(this, args);
-			}
-			
-			return retVal == null ? null : retVal.description;
-		},
+	getDescription = function(objType, opt_fnc, opt_param) {
+		var parent = this.getParent(objType),
+			args = [];
 		
-		getMsgDescription: function(objType, msgName) {
-			var parent = this.getParent(objType),
-				retVal = this.messages.get(objType + '.' + msgName);
-			
-			while (retVal == null && parent != null) {
-				retVal = this.messages.get(parent + '.' + msgName);
-				parent = this.getParent(parent);
-			}
-			
-			return retVal;
-		},
-		
-		getMethods: function(objType) {
-			var methods = [];
-			
-			while (objType != null) {
-				var data = this.types.get(objType);
-				
-				if (data) {
-					methods = methods.concat(data.methods);
-					objType = data.parent;
-				} else {
-					objType = null;
-				}
-			}
-			
-			return methods;
-		},
-		
-		getParameters: function(objType, fnc) {
-			var data = this.functions.get(objType + '.' + fnc),
-				parent = this.getParent(objType);
-			
-			while (data == null && parent != null) {
-				data = this.functions.get(parent + '.' + fnc);
-				parent = this.getParent(parent);
-			}
-			
-			return data ? data.parameters : null;
-		},
-		
-		getParent: function(objType) {
-			var data = this.types.get(objType);
-			return data ? data.parent : null;
-		},
-		
-		getType: function(objType, opt_fnc, opt_param) {
-			var parent = this.getParent(objType),
-				args = [];
-			
-			for (var i = 0, il = arguments.length; i < il; ++i) {
-				args[i] = arguments[i];
-			}
-			
-			var retVal = retrieve.call(this, args);
-			
-			while (retVal == null && parent != null) {
-				args[0] = parent;
-				parent = this.getParent(parent);
-				retVal = retrieve.call(this, args);
-			}
-			
-			return retVal == null ? null : retVal.type;
+		for (var i = 0, il = arguments.length; i < il; ++i) {
+			args[i] = arguments[i];
 		}
-	});
+		
+		var retVal = retrieve.call(this, args);
+		
+		while (retVal == null && parent != null) {
+			args[0] = parent;
+			parent = this.getParent(parent);
+			retVal = retrieve.call(this, args);
+		}
+		
+		return retVal == null ? null : retVal.description;
+	};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                              Private Methods                               //
-////////////////////////////////////////////////////////////////////////////////	
-
-	var loadJSON = function() {
-			var that = this;
-			this.types = new Hashtable();
-			this.functions = new Hashtable();
-			this.parameters = new Hashtable();
-			this.messages = new Hashtable();
+	getMsgDescription = function(objType, msgName) {
+		var parent = this.getParent(objType),
+			retVal = this.messages.get(objType + '.' + msgName);
+		
+		while (retVal == null && parent != null) {
+			retVal = this.messages.get(parent + '.' + msgName);
+			parent = this.getParent(parent);
+		}
+		
+		return retVal;
+	};
+	
+	getMethods = function(objType) {
+		var methods = [];
+		
+		while (objType != null) {
+			var data = this.types.get(objType);
 			
-			try {
-				hemi.loader.loadHtml('js/editor/data/hemi.json', function(data) {
-					var json = JSON.parse(data);
-				
-					for (var i = 0, il = json.length; i < il; i++) {
-						var type = json[i],
-							tname = type.name,
-							funcs = type.funcs,
-							msgs = type.msgs,
-							tdata = {
-								description: type.desc,
-								methods: [],
-								parent: type.parent
+			if (data) {
+				methods = methods.concat(data.methods);
+				objType = data.parent;
+			} else {
+				objType = null;
+			}
+		}
+		
+		return methods;
+	};
+	
+	getParameters = function(objType, fnc) {
+		var data = this.functions.get(objType + '.' + fnc),
+			parent = this.getParent(objType);
+		
+		while (data == null && parent != null) {
+			data = this.functions.get(parent + '.' + fnc);
+			parent = this.getParent(parent);
+		}
+		
+		return data ? data.parameters : null;
+	};
+	
+	getParent = function(objType) {
+		var data = this.types.get(objType);
+		return data ? data.parent : null;
+	};
+	
+	getType = function(objType, opt_fnc, opt_param) {
+		var parent = this.getParent(objType),
+			args = [];
+		
+		for (var i = 0, il = arguments.length; i < il; ++i) {
+			args[i] = arguments[i];
+		}
+		
+		var retVal = retrieve.call(this, args);
+		
+		while (retVal == null && parent != null) {
+			args[0] = parent;
+			parent = this.getParent(parent);
+			retVal = retrieve.call(this, args);
+		}
+		
+		return retVal == null ? null : retVal.type;
+	};
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                              			Private Methods			                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function loadJSON() {
+		var that = this;
+		this.types = new Hashtable();
+		this.functions = new Hashtable();
+		this.parameters = new Hashtable();
+		this.messages = new Hashtable();
+		
+		try {
+			hemi.loader.loadHtml('js/editor/data/hemi.json', function(data) {
+				var json = JSON.parse(data);
+			
+				for (var i = 0, il = json.length; i < il; i++) {
+					var type = json[i],
+						tname = type.name,
+						funcs = type.funcs,
+						msgs = type.msgs,
+						tdata = {
+							description: type.desc,
+							methods: [],
+							parent: type.parent
+						};
+						
+					that.types.put(tname, tdata);
+						
+					for (var j = 0, jl = funcs.length; j < jl; j++) {
+						var func = funcs[j],
+							fname = func.name,
+							params = func.params,
+							fdata = {
+								description: func.desc,
+								parameters: []
 							};
 							
-						that.types.put(tname, tdata);
-							
-						for (var j = 0, jl = funcs.length; j < jl; j++) {
-							var func = funcs[j],
-								fname = func.name,
-								params = func.params,
-								fdata = {
-									description: func.desc,
-									parameters: []
-								};
-								
-							tdata.methods.push(fname);				
-							that.functions.put(tname + '.' + fname, fdata);
-							
-							for (var k = 0, kl = params.length; k < kl; k++) {
-								var param = params[k],
-									pname = param.name;
-								
-								fdata.parameters.push(pname);
-								that.parameters.put(tname + '.' + fname + '.' + pname, {
-									description: param.desc,
-									type: param.type
-								});
-							}
-						}
+						tdata.methods.push(fname);				
+						that.functions.put(tname + '.' + fname, fdata);
 						
-						for (var j = 0, jl = msgs.length; j < jl; ++j) {
-							var msg = msgs[j];
-							that.messages.put(tname + '.' + msg.name, msg.desc);
+						for (var k = 0, kl = params.length; k < kl; k++) {
+							var param = params[k],
+								pname = param.name;
+							
+							fdata.parameters.push(pname);
+							that.parameters.put(tname + '.' + fname + '.' + pname, {
+								description: param.desc,
+								type: param.type
+							});
 						}
 					}
-				});
-			} catch (err) {
-				hemi.console.log(err);
-			}
-		},
-		
-		retrieve = function(names) {			
-			var name = names.join('.'),
-				retVal = this.types.get(name);
-			
-			if (retVal == null) {
-				retVal = this.functions.get(name);
-			}
-			if (retVal == null) {
-				retVal = this.parameters.get(name);
-			}
-			
-			return retVal;
-		};
+					
+					for (var j = 0, jl = msgs.length; j < jl; ++j) {
+						var msg = msgs[j];
+						that.messages.put(tname + '.' + msg.name, msg.desc);
+					}
+				}
+			});
+		} catch (err) {
+			hemi.console.log(err);
+		}
+	};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                                	   Setup	                              //
-////////////////////////////////////////////////////////////////////////////////
+	function retrieve(names) {			
+		var name = names.join('.'),
+			retVal = this.types.get(name);
+		
+		if (retVal == null) {
+			retVal = this.functions.get(name);
+		}
+		if (retVal == null) {
+			retVal = this.parameters.get(name);
+		}
+		
+		return retVal;
+	};
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                	   			Setup				                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var metadata = new MetaData();	
 	
-	module.data.getMetaData = function() {
+	editor.data.getMetaData = function() {
 		return metadata;
 	};
 	
-	return module;
-})(editor || {});
+})(editor);

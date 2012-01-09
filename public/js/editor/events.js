@@ -15,7 +15,7 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function(editor) {
 	/**
 	 * @namespace A module for managing the string literals for event types.
 	 * @example
@@ -77,6 +77,4 @@ var editor = (function(editor) {
 		
 		WorldLoaded: 'editor.WorldLoaded'
 	};
-
-	return editor;
-})(editor || {});
+})(editor);

@@ -15,105 +15,105 @@
  * Boston, MA 02110-1301 USA.
  */
 
-var editor = (function(editor) {
+(function(editor) {
+	"use strict";
+	
 	editor.depends = editor.depends || {};
 	
-	var DependencyManager = editor.Class.extend({
-		init: function() {
-			this.depends = new Hashtable();
-		},
+	var DependencyManager =function() {
+		this.depends = new Hashtable();
+	};
 		
-		addDependency: function(child, parent) {
-			var children = this.getDependencies(parent);
-			
-			if (children.indexOf(child) === -1) {
-				children.push(child);
-			}
-			
-			this.depends.put(parent.getId(), children);
-		},
+	DependencyManager.prototype.addDependency = function(child, parent) {
+		var children = this.getDependencies(parent);
 		
-		clearDependencies: function(citizen) {
-			if (citizen.getId) {
-				this.depends.remove(citizen.getId());
-			}
-		},
+		if (children.indexOf(child) === -1) {
+			children.push(child);
+		}
 		
-		getDependencies: function(citizen, getAll) {
-			var children = this.depends.get(citizen.getId()) || [];
-			
-			if (getAll) {
-				for (var i = 0; i < children.length; ++i) {
-					var child = children[i];
+		this.depends.put(parent.getId(), children);
+	};
+	
+	DependencyManager.prototype.clearDependencies = function(citizen) {
+		if (citizen.getId) {
+			this.depends.remove(citizen.getId());
+		}
+	};
+	
+	DependencyManager.prototype.getDependencies = function(citizen, getAll) {
+		var children = this.depends.get(citizen.getId()) || [];
+		
+		if (getAll) {
+			for (var i = 0; i < children.length; ++i) {
+				var child = children[i];
+				
+				if (child.getId) {
+					var grandChildren = this.depends.get(child.getId()) || [];
 					
-					if (child.getId) {
-						var grandChildren = this.depends.get(child.getId()) || [];
+					for (var j = 0, jl = grandChildren.length; j < jl; ++j) {
+						gc = grandChildren[j];
 						
-						for (var j = 0, jl = grandChildren.length; j < jl; ++j) {
-							gc = grandChildren[j];
-							
-							if (children.indexOf(gc) === -1) {
-								children.push(gc);
-							}
+						if (children.indexOf(gc) === -1) {
+							children.push(gc);
 						}
 					}
 				}
 			}
-			
-			return children;
-		},
+		}
 		
-		removeDependency: function(child, parent) {
-			var children = this.getDependencies(parent),
-				ndx = children.indexOf(child);
+		return children;
+	};
+	
+	DependencyManager.prototype.removeDependency = function(child, parent) {
+		var children = this.getDependencies(parent),
+			ndx = children.indexOf(child);
+		
+		if (ndx !== -1) {
+			children.splice(ndx, 1);
+		}
+	};
+	
+	DependencyManager.prototype.resetDependencies = function(child) {
+		this.depends.each(function(key, value) {
+			var ndx = value.indexOf(child);
 			
 			if (ndx !== -1) {
-				children.splice(ndx, 1);
+				value.splice(ndx, 1);
 			}
-		},
-		
-		resetDependencies: function(child) {
-			this.depends.each(function(key, value) {
-				var ndx = value.indexOf(child);
-				
-				if (ndx !== -1) {
-					value.splice(ndx, 1);
-				}
-			});
-		}
-	});
+		});
+	};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                              Private Methods                               //
-////////////////////////////////////////////////////////////////////////////////	
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                              			  Private Methods		                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////	
 
-	var createDependencyString = function(cits) {			
-			var str = '';
+	function createDependencyString(cits) {			
+		var str = '';
+		
+		for (var i = 0, il = cits.length; i < il; ++i) {
+			var cit = cits[i],
+				name = cit.name,
+				type;
 			
-			for (var i = 0, il = cits.length; i < il; ++i) {
-				var cit = cits[i],
-					name = cit.name,
-					type;
-				
-				if (cit.getCitizenType) {
-					type = cit.getCitizenType().split('.').pop();
-				} else {
-					type = 'Behavior';
-				}
-				
-				if (i !== 0) {
-					str += ', <br>';
-				}
-				
-				str += name + ' (' + type + ')';
+			if (cit.getCitizenType) {
+				type = cit.getCitizenType().split('.').pop();
+			} else {
+				type = 'Behavior';
 			}
 			
-			return str;
-		};
+			if (i !== 0) {
+				str += ', <br>';
+			}
+			
+			str += name + ' (' + type + ')';
+		}
+		
+		return str;
+	};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                                	   Setup	                              //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                	   			Setup				                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var mgr = new DependencyManager();
 	
