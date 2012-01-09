@@ -59,15 +59,16 @@
 		client.camera.moveToView(vp, 2.5);
 		client.camera.enableControl();							// Enable camera mouse control
 
-		var spriteR = hemi.shape.create(client, {
+		var spriteR = hemi.createShape({
 			shape: 'plane',
-			mat: spriteRMat,
+			material: spriteRMat,
 			height: 29,
 			width: 29 });
 		spriteRMat.map.wrapS = spriteRMat.map.wrapT = THREE.RepeatWrapping;
 		spriteR.rotation.x = Math.PI / -16;
-		spriteR.translateX(-50);
-		spriteR.translateY(-40);
+		spriteR.position.x -= 50;
+		spriteR.position.y -= 40;
+		client.scene.add(spriteR);
 
 		var spriteT = new hemi.Sprite(client, {
 			maps: ['assets/images/dino.png'],
