@@ -224,7 +224,7 @@ var hemi = (function(hemi) {
         // Enforce the constructor to be what we expect
         Citizen.constructor = Citizen;
 
-        hemi.makeOctanable(Citizen, clsName, opts.toOctane);
+        hemi.makeOctanable(Citizen, clsName, opts.toOctane || []);
         createClass(Citizen, clsName);
 
         return Citizen;
