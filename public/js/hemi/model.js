@@ -29,6 +29,8 @@ var hemi = (function(hemi) {
 	/**
 	 * @class A Model represents a hierarchical set of transforms, geometry, and animations that
 	 * make up a 3D object.
+	 * 
+	 * @param {hemi.Client} client the Client that will render the Model
 	 */
 	var Model = function(client) {
 		/*

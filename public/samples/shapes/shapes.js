@@ -36,7 +36,7 @@
 	
 	function setupScene(house) {
 		var vp = new hemi.Viewpoint();		// Create a new Viewpoint
-		vp.eye = new THREE.Vector3(0, 40, 100);					// Set viewpoint eye
+		vp.eye = new THREE.Vector3(0, 40, 150);					// Set viewpoint eye
 		vp.target = new THREE.Vector3(0, 0, 0);					// Set viewpoint targetget
 
 		/**
@@ -48,55 +48,80 @@
 		client.camera.enableControl();	// Enable camera mouse control
 		
 		/* Create a cube, size 10  */
-		hemi.shape.create(client, {
-			shape: 'cube',
-			color: 0xff0000,
-			size: 10 }).translateX(-90);
-			
+		var cube = hemi.createShape({
+				shape: 'cube',
+				color: 0xff0000,
+				size: 10
+			});
+
+		cube.position.x -= 90;
+		client.scene.add(cube);
+
 		/* Create a 5x5x20 box */
-		hemi.shape.create(client, {
+		var box = hemi.createShape({
 			shape: 'box',
 			color: 0xff8800,
-			h: 20, w: 5, d: 5 }).translateX(-70);
+			h: 20, w: 5, d: 5 });
+
+		box.position.x -= 70;
+		client.scene.add(box);
 			
 		/* Create a sphere of radius 10 */
-		hemi.shape.create(client, {
+		var sphere = hemi.createShape({
 			shape: 'sphere',
 			color: 0xffff00,
-			radius: 10 }).translateX(-50);
+			radius: 10 });
+
+		sphere.position.x -= 50;
+		client.scene.add(sphere);
 			
 		/* Create a cylinder, radius 5, height 10 */
-		hemi.shape.create(client, {
+		var cylinder = hemi.createShape({
 			shape: 'cylinder',
 			color: 0x88ff00,
-			r: 5, h: 10 }).translateX(-30);
+			r: 5, h: 10 });
+
+		cylinder.position.x -= 30;
+		client.scene.add(cylinder);
 			
 		/* Create a cone, base radius 5, height 10 */
-		hemi.shape.create(client, {
+		var cone = hemi.createShape({
 			shape: 'cone',
 			color: 0x00ff00,
-			r: 5, h: 10 }).translateX(-10);
+			r: 5, h: 10 });
+
+		cone.position.x -= 10;
+		client.scene.add(cone);
 			
 		/* Create a tetrahedron of size 10 */
-		hemi.shape.create(client, {
+		var tetra = hemi.createShape({
 			shape: 'tetra',
 			color: 0x00ffff,
-			size: 10 }).translateX(10);
+			size: 10 });
+
+		tetra.position.x += 10;
+		client.scene.add(tetra);
 			
 		/* Create a stellated octahedron, size 10 */
-		hemi.shape.create(client, {
+		var octa = hemi.createShape({
 			shape: 'octa',
 			color: 0x0000ff,
-			size: 10 }).translateX(30);
+			size: 10 });
+
+		octa.position.x += 30;
+		client.scene.add(octa);
 			
 		/* Create a 5x10x15 pyramid */
-		hemi.shape.create(client, {
+		var pyramid = hemi.createShape({
 			shape: 'pyramid',
 			color: 0x8800ff,
-			h: 15, w: 5, d: 10 }).translateX(50);
+			h: 15, w: 5, d: 10 });
+
+		pyramid.position.x += 50;
+		client.scene.add(pyramid);
 			
 		/* Create a custom shape from vertices */
-		hemi.shape.create(client, {
+		var custom = hemi.createShape({
 			shape: 'custom',
 			color: 0xff00ff,
 			vertices: [new THREE.Vertex(new THREE.Vector3(-10, 0, 0)),
@@ -106,13 +131,19 @@
 				new THREE.Face3(0, 2, 1)],				
 			faceVertexUvs: [[new THREE.UV(0, 0), new THREE.UV(0, 1), new THREE.UV(1, 0)],
 			  	[new THREE.UV(0, 0), new THREE.UV(0, 1), new THREE.UV(1, 0)]]
-		}).translateX(70);
+		});
+
+		custom.position.x += 70;
+		client.scene.add(custom);
 		
 		/* Create an arrow */
-		hemi.shape.create(client, {
+		var arrow = hemi.createShape({
 			shape: 'arrow',
 			color: 0xff0088,
-			size: 5, tail: 5, depth: 5 }).translateX(90);
+			size: 5, tail: 5, depth: 5 });
+
+		arrow.position.x += 90;
+		client.scene.add(arrow);
 	}
 
 	window.onload = function() {

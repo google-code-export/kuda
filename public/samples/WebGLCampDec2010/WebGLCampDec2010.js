@@ -162,21 +162,21 @@
 		transform.translateY(-270);
 		transform.rotation.x = -Math.PI/2;
 
-		makeOcta([1700, -120, 8000], 300);
-		makeOcta([-900, -120, 0], 200);
-		makePyramid([-3200, 480, -7400]);
-		makeCylinder([-4200, 330, 7500 ]);
-		makeGiantCube([-6400, 1730, -5000]);
-		makeGiantCube([5000, 1730, -4000]);
-		makeGiantCube([5600, 1730, 5000]);
-		makeBigCube([2000, 230, 4000]);
-		makeBigCube([-3000, 230, -2000]);
-		makeBigCube([-6000, 230, 6000]);
-		makeBigBox([1500, -145, 0]);
-		makeBigBox([-2000, -145, 7500]);
-		makeCubeStack3([-2200, -170, 300]);
-		makeCubeStack3([-3500, -170, 4100]);
-		makeCubeStack3([-600, -170, 8300]);
+		makeOcta(new THREE.Vector3(1700, -120, 8000), 300);
+		makeOcta(new THREE.Vector3(-900, -120, 0), 200);
+		makePyramid(new THREE.Vector3(-3200, 480, -7400));
+		makeCylinder(new THREE.Vector3(-4200, 330, 7500 ));
+		makeGiantCube(new THREE.Vector3(-6400, 1730, -5000));
+		makeGiantCube(new THREE.Vector3(5000, 1730, -4000));
+		makeGiantCube(new THREE.Vector3(5600, 1730, 5000));
+		makeBigCube(new THREE.Vector3(2000, 230, 4000));
+		makeBigCube(new THREE.Vector3(-3000, 230, -2000));
+		makeBigCube(new THREE.Vector3(-6000, 230, 6000));
+		makeBigBox(new THREE.Vector3(1500, -145, 0));
+		makeBigBox(new THREE.Vector3(-2000, -145, 7500));
+		makeCubeStack3(new THREE.Vector3(-2200, -170, 300));
+		makeCubeStack3(new THREE.Vector3(-3500, -170, 4100));
+		makeCubeStack3(new THREE.Vector3(-600, -170, 8300));
 
 		digDisp.root.scale.set(2, 2, 2);
 		digDisp.root.position.set(328, 240, SLIDE_1Z + 990);
@@ -291,94 +291,94 @@
 	}
 
 	function makeOcta(vector, size) {
-		var shape = hemi.shape.create(client, {
+		var shape = hemi.createShape({
 			shape: 'octa',
 			color: randomColor(),
 			size: size});
-		shape.translateX(vector[0]);
-		shape.translateY(vector[1]);
-		shape.translateZ(vector[2]);
+
+		shape.position.addSelf(vector);
+		client.scene.add(shape);
 	}
 
 	function makePyramid(vector) {
-		var pyr = hemi.shape.create(client, {
+		var pyr = hemi.createShape({
 			shape: 'pyramid',
 			color: randomColor(),
 			h: 1500, w: 2000, d: 2000});
-		pyr.translateX(vector[0]);
-		pyr.translateY(vector[1]);
-		pyr.translateZ(vector[2]);
+
 		pyr.rotation.y += sixty;
+		pyr.position.addSelf(vector);
+		client.scene.add(pyr);
 	}
 
 	function makeCylinder(vector) {
-		var shape = hemi.shape.create(client, {
+		var shape = hemi.createShape({
 			shape: 'cylinder',
 			color: randomColor(),
 			r: 500, h: 1200});
-		shape.translateX(vector[0]);
-		shape.translateY(vector[1]);
-		shape.translateZ(vector[2]);
+
+		shape.position.addSelf(vector);
+		client.scene.add(shape);
 	}
 
 	function makeGiantCube(vector) {
-		var cube = hemi.shape.create(client, { 
+		var cube = hemi.createShape({
 			shape: 'cube', 
 			color: randomColor(), 
 			size: 4000 });
-		cube.translateX(vector[0]);
-		cube.translateY(vector[1]);
-		cube.translateZ(vector[2]);
+
 		cube.rotation.y += thirty;
+		cube.position.addSelf(vector);
+		client.scene.add(cube);
 	}
 
 	function makeBigCube(vector) {
-		var cube = hemi.shape.create(client, { 
+		var cube = hemi.createShape({
 			shape: 'cube', 
 			color: randomColor(), 
 			size: 1000 });
-		cube.translateX(vector[0]);
-		cube.translateY(vector[1]);
-		cube.translateZ(vector[2]);
+
 		cube.rotation.y += sixty;
+		cube.position.addSelf(vector);
+		client.scene.add(cube);
 	}
 
 	function makeBigBox(vector) {
-		var box = hemi.shape.create(client, {
+		var box = hemi.createShape({
 			shape: 'box',
 			color: randomColor(),
 			h: 250, w: 1500, d: 500 });
-		box.translateX(vector[0]);
-		box.translateY(vector[1]);
-		box.translateZ(vector[2]);
+
 		box.rotation.y += thirty;
+		box.position.addSelf(vector);
+		client.scene.add(box);
 	}
 
 	function makeCubeStack3(vector) {
-		var cubea = hemi.shape.create(client, { 
+		var cubea = hemi.createShape({
 				shape: 'cube', 
 				color: randomColor(), 
 				size: 200 }),
-			cubeb = hemi.shape.create(client, { 
+			cubeb = hemi.createShape({
 				shape: 'cube', 
 				color: randomColor(), 
 				size: 100 }),
-			cubec = hemi.shape.create(client, { 
+			cubec = hemi.createShape({
 				shape: 'cube', 
 				color: randomColor(), 
 				size: 50 });
-		cubea.add(cubeb);
-		cubeb.add(cubec);
-		cubea.translateX(vector[0]);
-		cubea.translateY(vector[1]);
-		cubea.translateZ(vector[2]);
+
 		cubea.rotation.y += thirty;
-		cubeb.translateX(20);
-		cubeb.translateY(150);
+		cubea.position.addSelf(vector);
+		client.scene.add(cubea);
+
 		cubeb.rotation.y += thirty;
-		cubec.translateY(75);
-		cubec.translateZ(10);
+		cubeb.position.addSelf(new THREE.Vector3(20, 150, 0));
+		cubea.add(cubeb);
+
 		cubec.rotation.y += thirty;
+		cubec.position.addSelf(new THREE.Vector3(0, 75, 10));
+		cubeb.add(cubec);
 	}
 	
 	function randomColor() {

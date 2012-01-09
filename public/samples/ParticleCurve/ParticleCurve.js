@@ -97,7 +97,13 @@
 			particleCount: 500,
 			life: 12,
 			boxes: [box1,box2,box3,box4,box5,box6,box7,box8,box9,box1],
-			particleShape: hemi.shape.createArrow(null, 10, 5, 10, null),
+			particleShape: hemi.createShape({
+					shape: 'arrow',
+					material: null,
+					size: 10,
+					tail: 5,
+					depth: 10
+				}),
 			colors: [blue,green,red,blue],
 			scaleKeys: [scaleKey1,scaleKey2,scaleKey3,scaleKey4,scaleKey5]
 		};
