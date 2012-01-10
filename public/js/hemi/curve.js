@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	var dbgBoxMat =  new THREE.MeshPhongMaterial({
 			color: 0x000088,
@@ -1677,5 +1677,4 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
+})();

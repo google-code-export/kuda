@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Shared functions
@@ -175,5 +175,4 @@ var hemi = (function(hemi) {
 	hemi.makeOctanable(THREE.Vector3, 'THREE.Vector3', ['x', 'y', 'z']);
 	hemi.makeOctanable(THREE.Quaternion, 'THREE.Quaternion', ['x', 'y', 'z', 'w']);
 
-	return hemi;
-})(hemi || {});
+})();

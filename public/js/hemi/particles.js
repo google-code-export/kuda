@@ -34,33 +34,24 @@
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+ var hemi = hemi || {};
 
 /**
- * @fileoverview This file contains various functions and classes for rendering
- * gpu based particles.
+ * @fileoverview This file contains various functions and classes for rendering gpu based particles.
  */
-var hemi = (function(hemi) {
+(function() {
 	/**
-	 * A Module with various GPU particle functions and classes.
-	 * Note: GPU particles have the issue that they are not sorted per particle
-	 * but rather per emitter.
-	 * @namespace
+	 * @namespace A Module with various GPU particle functions and classes.
+	 * Note: GPU particles have the issue that they are not sorted per particle but rather per
+	 * emitter.
 	 */
 	hemi.particles = hemi.particles || {};
 
-// Utilities
-	var convertToPixels = function(values) {
-			var pixels = new Uint8Array(values.length),
-				pixel;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Particle shader code
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-			for (var i = 0; i < values.length; ++i) {
-				pixel = values[i] * 256.0;
-				pixels[i] = pixel > 255 ? 255 : pixel < 0 ? 0 : pixel;
-			}
-
-			return pixels;
-		},
-		SHADERS = {
+	var SHADERS = {
 			particle3d: {
 				attributes: {
 					uvLifeTimeFrameStart: { type: 'v4', value: [] },
@@ -300,6 +291,10 @@ var hemi = (function(hemi) {
 			[-0.5, +0.5]
 		];
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// System class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	 * An Object to manage Particles.
 	 * You only need one of these to run multiple emitters of different types
@@ -398,6 +393,10 @@ var hemi = (function(hemi) {
 			this.emitters[i]._timeParam.value += delta;
 		}
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Spec class
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	* A particle Spec specifies how to emit particles.
@@ -613,6 +612,10 @@ var hemi = (function(hemi) {
 		this.orientation = [0, 0, 0, 1];
 	};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Emitter class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	* A ParticleEmitter
 	* @constructor
@@ -776,6 +779,10 @@ var hemi = (function(hemi) {
 		return new hemi.particles.OneShot(this, opt_parent);
 	};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// OneShot class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	* An object to manage a particle emitter instance as a one shot. Examples of
 	* one shot effects are things like an explosion, some fireworks.
@@ -823,6 +830,10 @@ var hemi = (function(hemi) {
 		this._transform.visible = true;
 		this._timeOffsetParam.value = this._emitter._timeParam.value;
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Trail class
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	* A type of emitter to use for particle effects that leave trails like exhaust.
@@ -883,172 +894,185 @@ var hemi = (function(hemi) {
 
 // Private functions
 
-		/**
-		* Allocates particles.
-		* 
-		* @param {number} numParticles Number of particles to allocate.
-		*/
-	var allocateParticles = function(numParticles) {
-			for (var i = 0; i < numParticles; ++i) {
-				for (var j = 0; j < 4; ++j) {
-					this.shape.vertices.push(new THREE.Vertex());
-				}
-
-				var index = i * 4;
-				this.shape.faces.push(new THREE.Face3(index, index + 1, index + 2));
-				this.shape.faces.push(new THREE.Face3(index, index + 2, index + 3));
-			}
-		},
-
-		/**
-		* Creates particles.
-		*  
-		* @param {number} firstParticleIndex Index of first particle to create.
-		* @param {number} numParticles The number of particles to create.
-		* @param {hemi.particles.Spec} parameters The parameters for the
-		*     emitter.
-		* @param {function(number, hemi.particles.Spec): void} opt_paramSetter A
-		*     function that is called for each particle to allow it's parameters to
-		*     be adjusted per particle. The number is the index of the particle
-		*     being created, in other words, if numParticles is 20 this value will
-		*     be 0 to 19. The ParticleSpec is a spec for this particular particle.
-		*     You can set any per particle value before returning.
-		*/
-		createParticles = function(firstParticleIndex, numParticles, parameters, opt_paramSetter) {
-			var attributes = this.material.attributes,
-				uniforms = this.material.uniforms,
-				uvLifeTimeFrameStart = attributes.uvLifeTimeFrameStart;
-				positionStartTime = attributes.positionStartTime;
-				velocityStartSize = attributes.velocityStartSize;
-				accelerationEndSize = attributes.accelerationEndSize;
-				spinStartSpinSpeed = attributes.spinStartSpinSpeed;
-				orientation = attributes.orientation;
-				colorMult = attributes.colorMult,
-				wv = parameters.worldVelocity,
-				wa = parameters.worldAcceleration,
-				random = this._particleSystem._randomFunction,
-
-				plusMinus = function(range) {
-					return (random() - 0.5) * range * 2;
-				},
-
-				plusMinusVector = function(v, range) {
-					var r = [];
-
-					for (var i = 0, il = v.length; i < il; ++i) {
-						r[i] = v[i] + plusMinus(range[i]);
-					}
-
-					return r;
-				};
-
-			// Set the globals.
-			uniforms.colorSampler.texture = this._colorTexture;
-			uniforms.rampSampler.texture = this._rampTexture;
-			uniforms.timeRange.value = parameters.timeRange;
-			uniforms.numFrames.value = parameters.numFrames;
-			uniforms.frameDuration.value = parameters.frameDuration;
-			uniforms.worldVelocity.value.set(wv[0], wv[1], wv[2]);
-			uniforms.worldAcceleration.value.set(wa[0], wa[1], wa[2]);
-
-			if (parameters.billboard) {
-				uniforms.viewInverse.value = this._camera.matrixWorld;
+	/*
+	 * Allocates particles.
+	 * 
+	 * @param {number} numParticles Number of particles to allocate.
+	 */
+	function allocateParticles(numParticles) {
+		for (var i = 0; i < numParticles; ++i) {
+			for (var j = 0; j < 4; ++j) {
+				this.shape.vertices.push(new THREE.Vertex());
 			}
 
-			for (var ii = 0; ii < numParticles; ++ii) {
-				if (opt_paramSetter) {
-					opt_paramSetter(ii, parameters);
+			var index = i * 4;
+			this.shape.faces.push(new THREE.Face3(index, index + 1, index + 2));
+			this.shape.faces.push(new THREE.Face3(index, index + 2, index + 3));
+		}
+	}
+
+	/*
+	 * Creates particles.
+	 *  
+	 * @param {number} firstParticleIndex Index of first particle to create.
+	 * @param {number} numParticles The number of particles to create.
+	 * @param {hemi.particles.Spec} parameters The parameters for the emitter.
+	 * @param {function(number, hemi.particles.Spec): void} opt_paramSetter A function that is
+	 *     called for each particle to allow it's parameters to be adjusted per particle. The number
+	 *     is the index of the particle being created, in other words, if numParticles is 20 this
+	 *     value will be 0 to 19. The ParticleSpec is a spec for this particular particle. You can
+	 *     set any per particle value before returning.
+	 */
+	function createParticles(firstParticleIndex, numParticles, parameters, opt_paramSetter) {
+		var attributes = this.material.attributes,
+			uniforms = this.material.uniforms,
+			uvLifeTimeFrameStart = attributes.uvLifeTimeFrameStart,
+			positionStartTime = attributes.positionStartTime,
+			velocityStartSize = attributes.velocityStartSize,
+			accelerationEndSize = attributes.accelerationEndSize,
+			spinStartSpinSpeed = attributes.spinStartSpinSpeed,
+			orientation = attributes.orientation,
+			colorMult = attributes.colorMult,
+			wv = parameters.worldVelocity,
+			wa = parameters.worldAcceleration,
+			random = this._particleSystem._randomFunction,
+
+			plusMinus = function(range) {
+				return (random() - 0.5) * range * 2;
+			},
+
+			plusMinusVector = function(v, range) {
+				var r = [];
+
+				for (var i = 0, il = v.length; i < il; ++i) {
+					r[i] = v[i] + plusMinus(range[i]);
 				}
 
-				var pLifeTime = parameters.lifeTime,
-					pStartTime = (parameters.startTime === null) ?
-						(ii * pLifeTime / numParticles) : parameters.startTime,
-					pFrameStart =
-						parameters.frameStart + plusMinus(parameters.frameStartRange),
-					pPosition = plusMinusVector(parameters.position, parameters.positionRange),
-					pVelocity = plusMinusVector(parameters.velocity, parameters.velocityRange),
-					pAcceleration = plusMinusVector(parameters.acceleration, parameters.accelerationRange),
-					pColorMult =plusMinusVector(parameters.colorMult, parameters.colorMultRange),
-					pSpinStart =
-						parameters.spinStart + plusMinus(parameters.spinStartRange),
-					pSpinSpeed =
-						parameters.spinSpeed + plusMinus(parameters.spinSpeedRange),
-					pStartSize =
-						parameters.startSize + plusMinus(parameters.startSizeRange),
-					pEndSize = parameters.endSize + plusMinus(parameters.endSizeRange),
-					pOrientation = parameters.orientation;
+				return r;
+			};
 
-				// make each corner of the particle.
-				for (var jj = 0; jj < 4; ++jj) {
-					var offset = ii * 4 + jj + firstParticleIndex;
+		// Set the globals.
+		uniforms.colorSampler.texture = this._colorTexture;
+		uniforms.rampSampler.texture = this._rampTexture;
+		uniforms.timeRange.value = parameters.timeRange;
+		uniforms.numFrames.value = parameters.numFrames;
+		uniforms.frameDuration.value = parameters.frameDuration;
+		uniforms.worldVelocity.value.set(wv[0], wv[1], wv[2]);
+		uniforms.worldAcceleration.value.set(wa[0], wa[1], wa[2]);
 
-					uvLifeTimeFrameStart.value[offset] = new THREE.Vector4(
-						PARTICLE_CORNERS[jj][0],
-						PARTICLE_CORNERS[jj][1],
-						pLifeTime,
-						pFrameStart);
+		if (parameters.billboard) {
+			uniforms.viewInverse.value = this._camera.matrixWorld;
+		}
 
-					positionStartTime.value[offset] =  new THREE.Vector4(
-						pPosition[0],
-						pPosition[1],
-						pPosition[2],
-						pStartTime);
-
-					velocityStartSize.value[offset] =  new THREE.Vector4(
-						pVelocity[0],
-						pVelocity[1],
-						pVelocity[2],
-						pStartSize);
-
-					accelerationEndSize.value[offset] =  new THREE.Vector4(
-						pAcceleration[0],
-						pAcceleration[1],
-						pAcceleration[2],
-						pEndSize);
-
-					spinStartSpinSpeed.value[offset] =  new THREE.Vector4(
-						pSpinStart,
-						pSpinSpeed,
-						0,
-						0);
-
-					colorMult.value[offset] =  new THREE.Vector4(
-						pColorMult[0],
-						pColorMult[1],
-						pColorMult[2],
-						pColorMult[3]);
-					
-					if (orientation) {
-						orientation.value[offset] =  new THREE.Vector4(
-							pOrientation[0],
-							pOrientation[1],
-							pOrientation[2],
-							pOrientation[3]);
-					}
-				}
+		for (var ii = 0; ii < numParticles; ++ii) {
+			if (opt_paramSetter) {
+				opt_paramSetter(ii, parameters);
 			}
 
-			uvLifeTimeFrameStart.needsUpdate = true;
-			positionStartTime.needsUpdate = true;
-			velocityStartSize.needsUpdate = true;
-			accelerationEndSize.needsUpdate = true;
-			spinStartSpinSpeed.needsUpdate = true;
-			colorMult.needsUpdate = true;
+			var pLifeTime = parameters.lifeTime,
+				pStartTime = (parameters.startTime === null) ?
+					(ii * pLifeTime / numParticles) : parameters.startTime,
+				pFrameStart =
+					parameters.frameStart + plusMinus(parameters.frameStartRange),
+				pPosition = plusMinusVector(parameters.position, parameters.positionRange),
+				pVelocity = plusMinusVector(parameters.velocity, parameters.velocityRange),
+				pAcceleration = plusMinusVector(parameters.acceleration, parameters.accelerationRange),
+				pColorMult =plusMinusVector(parameters.colorMult, parameters.colorMultRange),
+				pSpinStart =
+					parameters.spinStart + plusMinus(parameters.spinStartRange),
+				pSpinSpeed =
+					parameters.spinSpeed + plusMinus(parameters.spinSpeedRange),
+				pStartSize =
+					parameters.startSize + plusMinus(parameters.startSizeRange),
+				pEndSize = parameters.endSize + plusMinus(parameters.endSizeRange),
+				pOrientation = parameters.orientation;
 
-			if (orientation) orientation.needsUpdate = true;
-		},
+			// make each corner of the particle.
+			for (var jj = 0; jj < 4; ++jj) {
+				var offset = ii * 4 + jj + firstParticleIndex;
 
-		setupMaterial = function(parameters) {
-			this.validateParameters(parameters);
+				uvLifeTimeFrameStart.value[offset] = new THREE.Vector4(
+					PARTICLE_CORNERS[jj][0],
+					PARTICLE_CORNERS[jj][1],
+					pLifeTime,
+					pFrameStart);
 
-			var shader = SHADERS[parameters.billboard ? 'particle2d' : 'particle3d'];
+				positionStartTime.value[offset] =  new THREE.Vector4(
+					pPosition[0],
+					pPosition[1],
+					pPosition[2],
+					pStartTime);
 
-			this.material.attributes = THREE.UniformsUtils.clone(shader.attributes);
-			this.material.uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-			this.material.vertexShader = shader.vertexShader;
-			this.material.fragmentShader = shader.fragmentShader;
-			this._timeParam = this.material.uniforms.time;
-		};
+				velocityStartSize.value[offset] =  new THREE.Vector4(
+					pVelocity[0],
+					pVelocity[1],
+					pVelocity[2],
+					pStartSize);
 
-	return hemi;
-})(hemi || {});
+				accelerationEndSize.value[offset] =  new THREE.Vector4(
+					pAcceleration[0],
+					pAcceleration[1],
+					pAcceleration[2],
+					pEndSize);
+
+				spinStartSpinSpeed.value[offset] =  new THREE.Vector4(
+					pSpinStart,
+					pSpinSpeed,
+					0,
+					0);
+
+				colorMult.value[offset] =  new THREE.Vector4(
+					pColorMult[0],
+					pColorMult[1],
+					pColorMult[2],
+					pColorMult[3]);
+				
+				if (orientation) {
+					orientation.value[offset] =  new THREE.Vector4(
+						pOrientation[0],
+						pOrientation[1],
+						pOrientation[2],
+						pOrientation[3]);
+				}
+			}
+		}
+
+		uvLifeTimeFrameStart.needsUpdate = true;
+		positionStartTime.needsUpdate = true;
+		velocityStartSize.needsUpdate = true;
+		accelerationEndSize.needsUpdate = true;
+		spinStartSpinSpeed.needsUpdate = true;
+		colorMult.needsUpdate = true;
+
+		if (orientation) orientation.needsUpdate = true;
+	}
+
+	function setupMaterial(parameters) {
+		this.validateParameters(parameters);
+
+		var shader = SHADERS[parameters.billboard ? 'particle2d' : 'particle3d'];
+
+		this.material.attributes = THREE.UniformsUtils.clone(shader.attributes);
+		this.material.uniforms = THREE.UniformsUtils.clone(shader.uniforms);
+		this.material.vertexShader = shader.vertexShader;
+		this.material.fragmentShader = shader.fragmentShader;
+		this._timeParam = this.material.uniforms.time;
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function convertToPixels(values) {
+		var pixels = new Uint8Array(values.length),
+			pixel;
+
+		for (var i = 0; i < values.length; ++i) {
+			pixel = values[i] * 256.0;
+			pixels[i] = pixel > 255 ? 255 : pixel < 0 ? 0 : pixel;
+		}
+
+		return pixels;
+	}
+
+})();

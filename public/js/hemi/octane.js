@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	/*
 	 * Map of class names to stored class constructor functions.
@@ -285,5 +285,4 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
+})();

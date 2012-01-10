@@ -971,6 +971,4 @@
 		return viewpoint;
 	};
 
-	return hemi;
-
 })();

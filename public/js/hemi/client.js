@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	/*
 	 * The projector used to cast rays from screen space into 3D space.
@@ -279,5 +279,4 @@ var hemi = (function(hemi) {
 		toOctane: Client.prototype._octane
 	});
 
-	return hemi;
-})(hemi || {});
+})();

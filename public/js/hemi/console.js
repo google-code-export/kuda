@@ -20,98 +20,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
-
-	/**
-	 * @namespace A module for displaying log, warning, and error messages to a console element on a
-	 * webpage.
-	 */
-	hemi.console = hemi.console || {};
+(function() {
 
 		/*
-		 * Get a timestamp for the current time.
-		 * 
-		 * @return {string} the current timestamp
+		 * This function is aliased to the proper test function for the console's current priority
+		 * level.
 		 */
-	var getTime = function() {
-			var currentTime = new Date(),
-				hours = currentTime.getHours(),
-				minutes = currentTime.getMinutes(),
-				seconds = currentTime.getSeconds();
-
-			hours = hours < 10 ? '0' + hours : '' + hours;
-			minutes = minutes < 10 ? ':0' + minutes : ':' + minutes;
-			seconds = seconds < 10 ? ':0' + seconds : ':' + seconds;
-
-			return hours + minutes + seconds;
-		},
-		/*
-		 * The actual function for logging a message.
-		 * 
-		 * @param {string} msg the message to log
-		 * @param {string} level the priority level of the message
-		 */
-		logMessage = function(msg, level) {
-			level = level || hemi.console.LOG;
-
-			if (testPriority(level)) {
-				var fullMsg = level + ':\t' + msg;
-
-				if (showTime) {
-					fullMsg = getTime() + '\t' + fullMsg;
-				}
-
-				output(fullMsg);
-			}
-		},
-		/*
-		 * The default method for displaying a log message.
-		 * 
-		 * @param {string} msg the full log message to display
-		 */
-		output = function(msg) {
-			try {
-				console.log(msg);
-			} catch(e) { }
-		},
-		/*
-		 * Test if the given priority level for a message is high enough to display when the console
-		 * is set to LOG priority.
-		 * 
-		 * @param {string} level the priority level to check
-		 * @return {boolean} true if the level is high enough to display
-		 */
-		logTest = function(level) {
-			return level === hemi.console.LOG ||
-			       level === hemi.console.WARN ||
-			       level === hemi.console.ERR;
-		},
-		/*
-		 * Test if the given priority level for a message is high enough to display when the console
-		 * is set to WARN priority.
-		 * 
-		 * @param {string} level the priority level to check
-		 * @return {boolean} true if the level is high enough to display
-		 */
-		warnTest = function(level) {
-			return level === hemi.console.WARN ||
-			       level === hemi.console.ERR;
-		},
-		/*
-		 * Test if the given priority level for a message is high enough to display when the console
-		 * is set to ERR priority.
-		 * 
-		 * @param {string} level the priority level to check
-		 * @return {boolean} true if the level is high enough to display
-		 */
-		errTest = function(level) {
-			return level === hemi.console.ERR;
-		},	
-		/*
-		 * This function is aliased to the proper test function for the console's
-		 * current priority level.
-		 */
-		testPriority = logTest,
+	var testPriority = logTest,
 		/*
 		 * Flag indicating if the console should display log messages.
 		 * @type boolean
@@ -122,6 +37,16 @@ var hemi = (function(hemi) {
 		 * @type boolean
 		 */
 		showTime = true;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Constants
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @namespace A module for displaying log, warning, and error messages to a console element on a
+	 * webpage.
+	 */
+	hemi.console = hemi.console || {};
 
 	/**
 	 * The priority level for an error message.
@@ -143,6 +68,10 @@ var hemi = (function(hemi) {
 	 * @constant
 	 */
 	hemi.console.LOG = 'LOG';
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Log the given message if the console is enabled or ignore the message if the console is
@@ -201,5 +130,93 @@ var hemi = (function(hemi) {
 		showTime = show;
 	};
 
-	return hemi;
-})(hemi || {});
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Test if the given priority level for a message is high enough to display when the console
+	 * is set to ERR priority.
+	 * 
+	 * @param {string} level the priority level to check
+	 * @return {boolean} true if the level is high enough to display
+	 */
+	function errTest(level) {
+		return level === hemi.console.ERR;
+	}
+
+	/*
+	 * Get a timestamp for the current time.
+	 * 
+	 * @return {string} the current timestamp
+	 */
+	function getTime() {
+		var currentTime = new Date(),
+			hours = currentTime.getHours(),
+			minutes = currentTime.getMinutes(),
+			seconds = currentTime.getSeconds();
+
+		hours = hours < 10 ? '0' + hours : '' + hours;
+		minutes = minutes < 10 ? ':0' + minutes : ':' + minutes;
+		seconds = seconds < 10 ? ':0' + seconds : ':' + seconds;
+
+		return hours + minutes + seconds;
+	}
+
+	/*
+	 * The actual function for logging a message.
+	 * 
+	 * @param {string} msg the message to log
+	 * @param {string} level the priority level of the message
+	 */
+	function logMessage(msg, level) {
+		level = level || hemi.console.LOG;
+
+		if (testPriority(level)) {
+			var fullMsg = level + ':\t' + msg;
+
+			if (showTime) {
+				fullMsg = getTime() + '\t' + fullMsg;
+			}
+
+			output(fullMsg);
+		}
+	}
+
+	/*
+	 * Test if the given priority level for a message is high enough to display when the console
+	 * is set to LOG priority.
+	 * 
+	 * @param {string} level the priority level to check
+	 * @return {boolean} true if the level is high enough to display
+	 */
+	function logTest(level) {
+		return level === hemi.console.LOG ||
+		       level === hemi.console.WARN ||
+		       level === hemi.console.ERR;
+	}
+
+	/*
+	 * The default method for displaying a log message.
+	 * 
+	 * @param {string} msg the full log message to display
+	 */
+	function output(msg) {
+		try {
+			console.log(msg);
+		} catch(e) { }
+	}
+
+	/*
+	 * Test if the given priority level for a message is high enough to display when the console
+	 * is set to WARN priority.
+	 * 
+	 * @param {string} level the priority level to check
+	 * @return {boolean} true if the level is high enough to display
+	 */
+	function warnTest(level) {
+		return level === hemi.console.WARN ||
+		       level === hemi.console.ERR;
+	}
+
+})();

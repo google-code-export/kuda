@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	var defaultParticleSystem = new hemi.particles.System();
 
@@ -570,5 +570,4 @@ var hemi = (function(hemi) {
 		return puff;
 	}
 
-	return hemi;
-})(hemi || {});
+})();

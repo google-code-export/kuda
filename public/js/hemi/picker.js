@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	// Static helper objects shared by all Pickers
 	var _projector = new THREE.Projector(),
@@ -78,5 +78,4 @@ var hemi = (function(hemi) {
 		}
 	};
 
-	return hemi;
-})(hemi || {});
+})();

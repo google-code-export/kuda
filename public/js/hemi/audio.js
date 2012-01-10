@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Audio class
@@ -266,18 +266,17 @@ var hemi = (function(hemi) {
 	 * This is the proper way to set looping for HTML5 audio tags. Unfortunately Firefox doesn't
 	 * currently support this feature, so we have to hack it in the ended event.
 	 */
-	var setLoopProper = function() {
-			if (this.looping) {
-				this.audio.setAttribute('loop', 'loop');
-			} else {
-				this.audio.removeAttribute('loop');
-			}
-		};
+	function setLoopProper() {
+		if (this.looping) {
+			this.audio.setAttribute('loop', 'loop');
+		} else {
+			this.audio.removeAttribute('loop');
+		}
+	};
 
 	hemi.makeCitizen(Audio, 'hemi.Audio', {
 		cleanup: Audio.prototype._clean,
 		toOctane: Audio.prototype._octane
 	});
 
-	return hemi;
-})(hemi || {});
+})();

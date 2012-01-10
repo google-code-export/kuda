@@ -42,84 +42,15 @@ if (!window.requestAnimationFrame) {
  * @namespace The core Hemi library used by Kuda.
  * @version 2.0.0-beta
  */
-var hemi = (function(hemi) {
+ var hemi = hemi || {};
 
-		/*
-		 * Get the supported renderer for the browser (WebGL or canvas) If WebGL is not supported,
-		 * display a warning message.
-		 * 
-		 * @param {Object} element DOM element to add warning message to if necessary
-		 * @return {THREE.WebGLRenderer} the supported renderer or null
-		 */
-	var getRenderer = function(element) {
-			var renderer = null;
+(function() {
 
-			if (Detector.webgl) {
-				renderer = new THREE.WebGLRenderer();
-			} else {
-				if (Detector.canvas) {
-					renderer = new THREE.CanvasRenderer();
-				}
-
-				Detector.addGetWebGLMessage({
-					id: 'warn_' + element.id,
-					parent: element
-				});
-
-				(function(elem) {
-					setTimeout(function() {
-						var msg = document.getElementById('warn_' + elem.id);
-						elem.removeChild(msg);
-					}, 5000);
-				})(element);
-			}
-
-			return renderer;
-		},
-		/*
-		 * The render function to be executed on each animation frame. Calls onRender for each
-		 * render listener and then for each Client.
-		 * 
-		 * @param {boolean} update flag to force Clients to render
-		 */
-		render = function(update) {
-			requestAnimationFrame(render);
-
-			var renderTime = new Date().getTime(),
-				event = {
-					elapsedTime: hz
-				};
-
-			while (renderTime - lastRenderTime > hzMS) {
-				update = true;
-				lastRenderTime += hzMS;
-
-				for (renderNdx = 0; renderNdx < renderListeners.length; ++renderNdx) {
-					renderListeners[renderNdx].onRender(event);
-				}
-			}
-
-			renderNdx = -1;
-
-			if (update) {
-				for (var i = 0, il = hemi.clients.length; i < il; ++i) {
-					hemi.clients[i].onRender(event);
-				}
-			}
-		},
-		/*
-		 * Window resize handler function.
-		 */
-		resize = function() {
-			for (var i = 0; i < hemi.clients.length; ++i) {
-				hemi.clients[i]._resize();
-			}
-		},
 		/*
 		 * The function to pass errors thrown using hemi.error. Default is to throw a new Error.
 		 * @type function(string):void
 		 */
-		errCallback = null,
+	var errCallback = null,
 		/*
 		 * The current frames per second that are enforced by Hemi.
 		 * @type number
@@ -152,7 +83,9 @@ var hemi = (function(hemi) {
 		 */
 		renderNdx = -1;
 
-	// Useful constants to cache
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Constants
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Conversion factor for degrees to radians.
@@ -180,7 +113,10 @@ var hemi = (function(hemi) {
 	 * @constant
 	 */
 	hemi.version = '2.0.0-beta';
-	hemi.console.setEnabled(true);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * The list of Clients being rendered on the current webpage.
@@ -238,6 +174,7 @@ var hemi = (function(hemi) {
 	 * but it can be used on its own if you don't want to use hemi's client system.
 	 */
 	hemi.init = function() {
+		hemi.console.setEnabled(true);
 		window.addEventListener('resize', resize, false);
 		lastRenderTime = new Date().getTime();
 		render(true);
@@ -313,5 +250,82 @@ var hemi = (function(hemi) {
 		hzMS = hz * 1000;
 	};
 
-	return hemi;
-})(hemi || {});
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Get the supported renderer for the browser (WebGL or canvas) If WebGL is not supported,
+	 * display a warning message.
+	 * 
+	 * @param {Object} element DOM element to add warning message to if necessary
+	 * @return {THREE.WebGLRenderer} the supported renderer or null
+	 */
+	function getRenderer(element) {
+		var renderer = null;
+
+		if (Detector.webgl) {
+			renderer = new THREE.WebGLRenderer();
+		} else {
+			if (Detector.canvas) {
+				renderer = new THREE.CanvasRenderer();
+			}
+
+			Detector.addGetWebGLMessage({
+				id: 'warn_' + element.id,
+				parent: element
+			});
+
+			(function(elem) {
+				setTimeout(function() {
+					var msg = document.getElementById('warn_' + elem.id);
+					elem.removeChild(msg);
+				}, 5000);
+			})(element);
+		}
+
+		return renderer;
+	}
+
+	/*
+	 * The render function to be executed on each animation frame. Calls onRender for each render
+	 * listener and then for each Client.
+	 * 
+	 * @param {boolean} update flag to force Clients to render
+	 */
+	function render(update) {
+		requestAnimationFrame(render);
+
+		var renderTime = new Date().getTime(),
+			event = {
+				elapsedTime: hz
+			};
+
+		while (renderTime - lastRenderTime > hzMS) {
+			update = true;
+			lastRenderTime += hzMS;
+
+			for (renderNdx = 0; renderNdx < renderListeners.length; ++renderNdx) {
+				renderListeners[renderNdx].onRender(event);
+			}
+		}
+
+		renderNdx = -1;
+
+		if (update) {
+			for (var i = 0, il = hemi.clients.length; i < il; ++i) {
+				hemi.clients[i].onRender(event);
+			}
+		}
+	}
+
+	/*
+	 * Window resize handler function.
+	 */
+	function resize() {
+		for (var i = 0; i < hemi.clients.length; ++i) {
+			hemi.clients[i]._resize();
+		}
+	}
+
+})();

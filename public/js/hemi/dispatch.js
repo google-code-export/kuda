@@ -20,12 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
-	/**
-	 * @namespace A module for message dispatching and handling. The Dispatch receives Messages and
-	 * sends them to MessageTargets that are registered with MessageSpecs.
-	 */
-	hemi.dispatch = hemi.dispatch || {};
+(function() {
 
 		/* All of the MessageSpecs (and MessageTargets) in the Dispatch */
 	var msgSpecs = new hemi.utils.Hashtable(),
@@ -36,6 +31,12 @@ var hemi = (function(hemi) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @namespace A module for message dispatching and handling. The Dispatch receives Messages and
+	 * sends them to MessageTargets that are registered with MessageSpecs.
+	 */
+	hemi.dispatch = hemi.dispatch || {};
 
 	/**
 	 * String literal to indicate that all entries for a field are desired.
@@ -891,5 +892,4 @@ var hemi = (function(hemi) {
 		return spec;
 	}
 
-	return hemi;
-})(hemi || {});
+})();

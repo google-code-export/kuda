@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	var colladaLoader = new THREE.ColladaLoader(),
 		resetCB = null,
@@ -241,5 +241,4 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
+})();
