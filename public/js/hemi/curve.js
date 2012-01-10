@@ -498,7 +498,7 @@ var hemi = (function(hemi) {
 		 */
 		interpolateLinear = function(time) {
 			var last = this.count - 1,
-				ndx = Math.floor(time * points);
+				ndx = Math.floor(time * last);
 
 			if (ndx >= last) {
 				ndx = last - 1;

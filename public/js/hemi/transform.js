@@ -1,74 +1,84 @@
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
 var hemi = (function(hemi) {
-		/*
-		 * Perform clean up on the Transform/mesh
-		 */
-	var cleanFunc = function() {
-			this.parent.remove(this);
 
-			for (var i = 0, il = this.children.length; i < il; ++i) {
-				this.children[i].cleanup();
-			}
-		},
-		/*
-		 * Set all transform properties to their identity values.
-		 */
-		identityFunc = function() {
-			this.position.set(0, 0, 0);
-			this.quaternion.set(0, 0, 0, 1);
-			this.rotation.set(0, 0, 0);
-			this.scale.set(1, 1, 1);
-			this.matrix.identity();
-			this.updateMatrixWorld();
-		},
-		/*
-		 * Initialize Transform properties using the given Object3D.
-		 */
-		initFunc = function(obj, toConvert) {
-			var children = this.children;
-			// This is important since THREE.KeyFrameAnimation relies on updating a shared reference
-			// to the matrix.
-			this.matrix = obj.matrix;
-			this.matrixWorld = obj.matrixWorld;
-			this.updateMatrix();
-			this.updateMatrixWorld();
-			this.children = [];
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Shared functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-			if (toConvert[obj.id] !== undefined) {
-				toConvert[obj.id] = this;
-			}
+	/*
+	 * Perform clean up on the Transform/Mesh
+	 */
+	function _clean() {
+		this.parent.remove(this);
 
-			for (var i = 0, il = children.length; i < il; ++i) {
-				var child = children[i],
-					childObj = obj.getChildByName(child.name, false);
+		for (var i = 0, il = this.children.length; i < il; ++i) {
+			this.children[i].cleanup();
+		}
+	}
 
-				this.add(child);
-				child._init(childObj, toConvert);
-			}
-		},
+	/*
+	 * Set all transform properties to their identity values.
+	 */
+	function _identity() {
+		this.position.set(0, 0, 0);
+		this.quaternion.set(0, 0, 0, 1);
+		this.rotation.set(0, 0, 0);
+		this.scale.set(1, 1, 1);
+		this.matrix.identity();
+		this.updateMatrixWorld();
+	}
+
+	/*
+	 * Initialize Transform properties using the given Object3D.
+	 */
+	function _init(obj, toConvert) {
+		var children = this.children;
+		// This is important since THREE.KeyFrameAnimation relies on updating a shared reference to
+		// the matrix.
+		this.matrix = obj.matrix;
+		this.matrixWorld = obj.matrixWorld;
+		this.updateMatrix();
+		this.updateMatrixWorld();
+		this.children = [];
+
+		if (toConvert[obj.id] !== undefined) {
+			toConvert[obj.id] = this;
+		}
+
+		for (var i = 0, il = children.length; i < il; ++i) {
+			var child = children[i],
+				childObj = obj.getChildByName(child.name, false);
+
+			this.add(child);
+			child._init(childObj, toConvert);
+		}
+	}
+
 		/*
 		 * Shared Octane properties for hemi.Transform and hemi.Mesh.
 		 */
-		octaneProps = ['name', 'children', 'pickable', 'visible', 'position', 'rotation',
+	var octaneProps = ['name', 'children', 'pickable', 'visible', 'position', 'rotation',
 			'quaternion', 'scale', 'useQuaternion'];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -88,9 +98,9 @@ var hemi = (function(hemi) {
 	Transform.prototype = new THREE.Object3D();
 	Transform.constructor = Transform;
 
-	Transform.prototype._clean = cleanFunc;
+	Transform.prototype._clean = _clean;
 
-	Transform.prototype._init = initFunc;
+	Transform.prototype._init = _init;
 
 	Transform.prototype._octane = octaneProps;
 
@@ -101,7 +111,7 @@ var hemi = (function(hemi) {
 	 * @param {Object} toConvert look-up structure to get the Transform equivalent of an Object3D
 	 *     for animations
 	 */
-	Transform.prototype.identity = identityFunc;
+	Transform.prototype.identity = _identity;
 
 	hemi.makeCitizen(Transform, 'hemi.Transform', {
 		cleanup: Transform.prototype._clean,
@@ -126,7 +136,7 @@ var hemi = (function(hemi) {
 	Mesh.prototype = new THREE.Mesh();
 	Mesh.constructor = Mesh;
 
-	Mesh.prototype._clean = cleanFunc;
+	Mesh.prototype._clean = _clean;
 
 	/*
 	 * Use the given Mesh to initialize properties.
@@ -147,12 +157,12 @@ var hemi = (function(hemi) {
 			this.morphTargetDictionary = obj.morphTargetDictionary;
 		}
 
-		initFunc.call(this, obj, toConvert);
+		_init.call(this, obj, toConvert);
 	};
 
 	Mesh.prototype._octane = octaneProps;
 
-	Mesh.prototype.identity = identityFunc;
+	Mesh.prototype.identity = _identity;
 
 	hemi.makeCitizen(Mesh, 'hemi.Mesh', {
 		cleanup: Mesh.prototype._clean,

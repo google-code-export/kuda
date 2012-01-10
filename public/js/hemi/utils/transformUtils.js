@@ -61,18 +61,28 @@ var hemi = (function(hemi) {
 	};
 	
 	/**
-	 * Interprets a point in world space into local space.
+	 * Interprets a point in world space into local space. Note that this function converts the
+	 * actual point passed in, not a clone of it.
+	 * 
+	 * @param {hemi.Transform} transform the transform whose local space the point will be in
+	 * @param {THREE.Vector3} point the point to convert to local space
+	 * @return {THREE.Vector3} the given point, now in local space
 	 */
 	hemi.utils.pointAsLocal = function(transform, point) {
 		var inv = new THREE.Matrix4().getInverse(transform.matrixWorld);
-	    return inv.multiplyVector3(point.clone());
+	    return inv.multiplyVector3(point);
 	};
 	
 	/**
-	 * Interprets a point in local space into world space.
+	 * Interprets a point in local space into world space. Note that this function converts the
+	 * actual point passed in, not a clone of it.
+	 * 
+	 * @param {hemi.Transform} transform the transform whose local space the point is in
+	 * @param {THREE.Vector3} point the point to convert to world space
+	 * @return {THREE.Vector3} the given point, now in world space
 	 */
 	hemi.utils.pointAsWorld = function(transform, point) {
-		return transform.matrixWorld.multiplyVector3(point.clone());
+		return transform.matrixWorld.multiplyVector3(point);
 	};
 	
 	/**
