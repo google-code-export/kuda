@@ -62,7 +62,7 @@
 		this.container = jQuery('<div></div>');
 
 		if (this.config.uiFile && this.config.uiFile !== '') {
-			hemi.loader.loadHtml(this.config.uiFile, function(data) {
+			hemi.loadHtml(this.config.uiFile, function(data) {
 				// clean the string of html comments
 				var cleaned = data.replace(/<!--(.|\s)*?-->/, '');
 				cmp.container.append(jQuery(cleaned));

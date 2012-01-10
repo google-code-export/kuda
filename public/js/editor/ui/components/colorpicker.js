@@ -46,6 +46,7 @@
 		this.gInput = jQuery('<input type="text" id="' + this.config.inputId + 'G"  class="gNdx color" placeholder="g" disabled />');
 		this.bInput = jQuery('<input type="text" id="' + this.config.inputId + 'B"  class="bNdx color" placeholder="b" disabled />');
 		this.aInput = jQuery('<input type="text" id="' + this.config.inputId + 'A"  class="aNdx color" placeholder="a" disabled />');
+		this.hex = 0x000000;
 		
 		// initialize colorpicker button
 		this.pickerBtn = jQuery('<span id="' + this.config.buttonId + '" class="colorPicker"></span>');
@@ -96,6 +97,7 @@
 			g.val(rndFnc(color.val('g')/255, 2));
 			b.val(rndFnc(color.val('b')/255, 2));
 			a.val(rndFnc(color.val('a')/255, 2));
+			wgt.hex = color.val('hex');
 			
 			var val = [
 				parseFloat(r.val()), parseFloat(g.val()), parseFloat(b.val()), 
@@ -206,6 +208,18 @@
 		}
 		
 		return color;
+	};
+	
+	ColorPicker.prototype.getColorHex = function() {
+		return parseInt(this.hex, 16);
+	};
+	
+	ColorPicker.prototype.getAlpha = function() {
+		var a = this.aInput.val();
+		
+		if (a !== '') {
+			return parseFloat(a);
+		}
 	};
 	
 	ColorPicker.prototype.reset = function() {

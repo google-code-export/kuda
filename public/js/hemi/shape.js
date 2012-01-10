@@ -145,6 +145,19 @@
 		this.config.shape = type;
 		this.create();
 	};
+	
+	/**
+	 * Convenience method for translating the mesh.
+	 * 
+	 * @param {number} x amount to translate in the x direction 
+	 * @param {number} y amount to translate in the y direction
+	 * @param {number} z amount to translate in the z direction
+	 */
+	Shape.prototype.translate = function(x, y, z) {
+		this.mesh.translateX(x);
+		this.mesh.translateY(y);
+		this.mesh.translateZ(z);
+	};
 
 	hemi.makeCitizen(Shape, 'hemi.Shape', {
 		cleanup: Shape.prototype._clean,
