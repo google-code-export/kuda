@@ -27,7 +27,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/*
-	 * Perform clean up on the Transform/Mesh
+	 * Perform clean up on the Transform/Mesh.
 	 */
 	function _clean() {
 		this.parent.remove(this);
@@ -35,6 +35,21 @@
 		for (var i = 0, il = this.children.length; i < il; ++i) {
 			this.children[i].cleanup();
 		}
+	}
+
+	/**
+	 * Get all of the children, grandchildren etc of the Transform/Mesh.
+	 */
+	function _getAllChildren(opt_arr) {
+		opt_arr = opt_arr || [];
+
+		for (var i = 0, il = this.children.length; i < il; ++i) {
+			var child = this.children[i];
+			opt_arr.push(child);
+			child.getAllChildren(opt_arr);
+		}
+
+		return opt_arr;
 	}
 
 	/*
@@ -105,6 +120,14 @@
 	Transform.prototype._octane = octaneProps;
 
 	/**
+	 * Get all of the child Transforms that are under the Transform.
+	 *
+	 * @param {hemi.Transform[]} opt_arr optional array to place Transforms in
+	 * @return {hemi.Transform[]} array of all child/grandchild Transforms
+	 */
+	Transform.prototype.getAllChildren = _getAllChildren;
+
+	/**
 	 * Use the given Object3D to initialize properties.
 	 * 
 	 * @param {THREE.Object3D} obj Object3D to use to initialize properties
@@ -161,6 +184,14 @@
 	};
 
 	Mesh.prototype._octane = octaneProps;
+
+	/**
+	 * Get all of the child Transforms that are under the Mesh.
+	 *
+	 * @param {hemi.Transform[]} opt_arr optional array to place Transforms in
+	 * @return {hemi.Transform[]} array of all child/grandchild Transforms
+	 */
+	Mesh.prototype.getAllChildren = _getAllChildren;
 
 	Mesh.prototype.identity = _identity;
 

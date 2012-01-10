@@ -499,7 +499,7 @@
 		var newTilt = this.panTilt.rotation.x + tilt;
 
 		this.panTilt.rotation.y += pan;
-		this.panTilt.rotation.x = newTilt >= this.tiltMax ? this.tiltMax : (newTilt <= this.tiltMin ? this.tiltMin : newTilt);
+		this.panTilt.rotation.x = hemi.utils.clamp(newTilt, this.tiltMin, this.tiltMax);
 		this.panTilt.updateMatrix();
 		updateCamera.call(this);
 		return this;
@@ -649,7 +649,7 @@
 	 * @param {number} max zoom-out limit (in radians)
 	 * @return {hemi.Camera} this Camera (for easy chaining)
 	 */
-	Camera.prototype.setZoomLimits = function(min,max) {
+	Camera.prototype.setZoomLimits = function(min, max) {
 		this.fov.min = min;
 		this.fov.max = max;
 
