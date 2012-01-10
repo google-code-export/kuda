@@ -1834,129 +1834,48 @@ if (!window.requestAnimationFrame) {
 	}
 
 })();
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-/* Simple JavaScript Inheritance
- * By John Resig http://ejohn.org/
- * MIT Licensed.
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-// Inspired by base2 and Prototype
-var hemi = (function(hemi){
-    var initializing = false, 
-		fnTest = /xyz/.test(function(){
-	        xyz;
-	    }) ? /\b_super\b/ : /.*/;
-    
-    // The base Class implementation (does nothing)
-    hemi.Class = function(){};
-    
-    // Create a new Class that inherits from this class
-    hemi.Class.extend = function(prop){
-        var _super = this.prototype;
-        
-        // Instantiate a base class (but only create the instance,
-        // don't run the init constructor)
-        initializing = true;
-        var prototype = new this();
-        initializing = false;
-        
-        // Copy the properties over onto the new prototype
-        for (var name in prop) {
-            // Check if we're overwriting an existing function
-            prototype[name] = typeof prop[name] == "function" &&
-            typeof _super[name] == "function" &&
-            fnTest.test(prop[name]) ? (function(name, fn){
-                return function(){
-                    var tmp = this._super;
-                    
-                    // Add a new ._super() method that is the same method
-                    // but on the super-class
-                    this._super = _super[name];
-                    
-                    // The method only need to be bound temporarily, so we
-                    // remove it when we're done executing
-                    var ret = fn.apply(this, arguments);
-                    this._super = tmp;
-                    
-                    return ret;
-                };
-            })(name, prop[name]) : prop[name];
-        }
-        
-        // The dummy class constructor
-        function Class(){
-            // All construction is actually done in the init method
-            if (!initializing && this.init) 
-                this.init.apply(this, arguments);
-        }
-        
-        // Populate our constructed prototype object
-        Class.prototype = prototype;
-        
-        // Enforce the constructor to be what we expect
-        Class.constructor = Class;
-        
-        // And make this class extendable
-        Class.extend = arguments.callee;
-        
-        return Class;
-    };
-	
-	return hemi;
-})(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
-/*
-The MIT License (MIT)
 
-Copyright (c) 2011 SRI International
+(function() {
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-var hemi = (function(hemi) {
 	/**
 	 * @namespace A module to provide various utilities for Hemi.
 	 */
 	hemi.utils = hemi.utils || {};
-	
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Hashtable class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/*
-	 * Here we extend Hashtable to allow it to be queried for Object attributes
-	 * that are not the Hash key.
+	 * Here we extend Hashtable to allow it to be queried for Object attributes that are not the
+	 * Hash key.
 	 */
 	hemi.utils.Hashtable = Hashtable;
-	
+
 	/**
-	 * Search the Hashtable for values with attributes that match the given
-	 * set of attributes. The attributes may be single values or arrays of
-	 * values which are alternatives.
+	 * Search the Hashtable for values with attributes that match the given set of attributes. The
+	 * attributes may be single values or arrays of values which are alternatives.
 	 * @example
 	 * query({
 	 *     a: 1
@@ -1981,30 +1900,30 @@ var hemi = (function(hemi) {
 			aN,
 			aL,
 			match;
-		
-		// Copy the property names out of the attributes object just once
-		// since this is less efficient than a simple array.
-		for (x in attributes) {
+
+		// Copy the property names out of the attributes object just once since this is less
+		// efficient than a simple array.
+		for (var x in attributes) {
 			if (hemi.utils.isArray(attributes[x])) {
 				arrProps.push(x);
 			} else {
 				props.push(x);
 			}
 		}
-		
+
 		var pLen = props.length,
 			aLen = arrProps.length;
-		
-		for (var ndx = 0, len = values.length; ndx < len; ndx++) {
-			value = values[ndx];
+
+		for (var i = 0, il = values.length; i < il; ++i) {
+			value = values[i];
 			match = true;
 			// First test the single value properties.
-			for (pN = 0; match && pN < pLen; pN++) {
+			for (pN = 0; match && pN < pLen; ++pN) {
 				propName = props[pN];
 				match = value[propName] === attributes[propName];
 			}
 			// Next test the array of value properties.
-			for (pN = 0; match && pN < aLen; pN++) {
+			for (pN = 0; match && pN < aLen; ++pN) {
 				match = false;
 				propName = arrProps[pN];
 				propVal = value[propName];
@@ -2012,7 +1931,7 @@ var hemi = (function(hemi) {
 				aL = propArr.length;
 				// Search through the array until we find a match for the
 				// Hashtable value's property.
-				for (aN = 0; !match && aN < aL; aN++) {
+				for (aN = 0; !match && aN < aL; ++aN) {
 					match = propVal === propArr[aN];
 				}
 			}
@@ -2021,54 +1940,57 @@ var hemi = (function(hemi) {
 				results.push(value);
 			}
 		}
-		
+
 		return results;
 	};
-	
-	return hemi;
-})(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+
+})();
 /*
-The MIT License (MIT)
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-Copyright (c) 2011 SRI International
+(function() {
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-var hemi = (function(hemi) {
-	hemi.utils = hemi.utils || {};
-	
 	/**
 	 * Create a copy of the given Object (or array).
 	 * 
 	 * @param {Object} src an Object (or array) to clone
-	 * @param {boolean} opt_deep optional flag to indicate if deep copying
-	 *     should be performed (default is deep copying)
+	 * @param {boolean} opt_deep optional flag to indicate if deep copying should be performed
+	 *     (default is deep copying)
 	 * @return {Object} the created Object (or array)
 	 */
 	hemi.utils.clone = function(src, opt_deep) {
-		var dest = hemi.utils.isArray(src) ? [] : {},
-			opt_deep = opt_deep == null ? true : opt_deep;
-		
+		var dest = hemi.utils.isArray(src) ? [] : {};
+		opt_deep = opt_deep === undefined ? true : opt_deep;
+
 		hemi.utils.join(dest, src, opt_deep);
 		return dest;
 	};
-	
+
 	/**
-	 * Compare the two given arrays of numbers. The arrays should be the same
-	 * length.
+	 * Compare the two given arrays of numbers. The arrays should be the same length.
 	 * 
 	 * @param {number[]} a the first array
 	 * @param {number[]} b the second array
@@ -2076,55 +1998,55 @@ var hemi = (function(hemi) {
 	 */
 	hemi.utils.compareArrays = function(a, b) {
 		var eq = a.length === b.length;
-		
-		for (var i = 0; eq && i < a.length; i++) {
-			if (a[i] instanceof Array) { 
+
+		for (var i = 0, il = a.length; eq && i < il; ++i) {
+			if (hemi.utils.isArray(a[i])) { 
 				eq = hemi.utils.compareArrays(a[i], b[i]);
 			} else {
 				eq = Math.abs(a[i] - b[i]) <= 0.001;
 			}
 		}
-		
+
 		return eq;
 	};
-	
+
 	/**
 	 * Perform an asynchronous AJAX GET for the resource at the given URL.
 	 * 
 	 * @param {string} url url of the resource to get
-	 * @param {function(string, string):void)} callback function to pass the
-	 *     data retrieved from the URL as well as the status text of the request
+	 * @param {function(string, string):void)} callback function to pass the data retrieved from the
+	 *     URL as well as the status text of the request
 	 */
 	hemi.utils.get = function(url, callback) {
 		var xhr = new window.XMLHttpRequest();
-		
+
 		xhr.onreadystatechange = function() {
 			if (this.readyState === 4) {
 				this.onreadystatechange = hemi.utils.noop;
 				var data = null;
-				
+
 				if (this.status === 200 || window.location.href.indexOf('http') === -1) {
 					var ct = this.getResponseHeader('content-type');
-					
+
 					if (ct && ct.indexOf('xml') >= 0) {
 						data = this.responseXML;
 					} else {
 						data = this.responseText;
 					}
 				}
-				
+
 				callback(data, this.statusText);
 			}
 		};
 		xhr.open('GET', url, true);
-		
+
 		try {
 			xhr.send(null);
 		} catch (err) {
 			callback(null, err.name + ': ' + err.message);
 		}
 	};
-	
+
 	/** 
 	 * The "best" way to test if a value is an array or not.
 	 *
@@ -2144,18 +2066,17 @@ var hemi = (function(hemi) {
 	hemi.utils.isFunction = function(val) {
 		return Object.prototype.toString.call(val) === '[object Function]';
 	};
-	
+
 	/**
-	 * Merge all of the properties of the given objects into the first object.
-	 * If any of the objects have properties with the same name, the later
-	 * properties will overwrite earlier ones. The exception to this is if both
-	 * properties are objects or arrays and the merge is doing a deep copy. In
-	 * that case, the properties will be merged recursively.
+	 * Merge all of the properties of the given objects into the first object. If any of the objects
+	 * have properties with the same name, the later properties will overwrite earlier ones. The
+	 * exception to this is if both properties are objects or arrays and the merge is doing a deep
+	 * copy. In that case, the properties will be merged recursively.
 	 * 
 	 * @param {Object} obj1 the first object which will receive all properties
 	 * @param {Object} objN any number of objects to copy properties from
-	 * @param {boolean} opt_deep optional flag to indicate if deep copying
-	 *     should be performed (default is deep copying)
+	 * @param {boolean} opt_deep optional flag to indicate if deep copying should be performed
+	 *     (default is deep copying)
 	 * @return {Object} the first object now merged with all other objects
 	 */
 	hemi.utils.join = function() {
@@ -2163,82 +2084,90 @@ var hemi = (function(hemi) {
 			il = arguments.length,
 			lastArg = arguments[il - 1],
 			deep = true;
-		
+
 		if (typeof lastArg === 'boolean') {
 			deep = lastArg;
 			--il;
 		}
-		
+
 		for (var i = 1; i < il; i++) {
 			var obj = arguments[i];
-			
+
 			for (var j in obj) {
 				var src = obj[j];
-				
+
 				if (deep && src != null && typeof src === 'object') {
 					var dest = target[j],
 						srcArr = hemi.utils.isArray(src);
-					
+
 					if (dest == null || typeof dest !== 'object' || hemi.utils.isArray(dest) !== srcArr) {
 						dest = srcArr ? [] : {};
 					}
-					
+
 					target[j] = hemi.utils.join(dest, src);
 				} else {
 					target[j] = src;
 				}
 			}
 		}
-		
+
 		return target;
 	};
-	
+
 	/**
 	 * A no-operation function for utility use.
 	 */
 	hemi.utils.noop = function() {};
-	
-	return hemi;
-})(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+
+})();
 /*
-The MIT License (MIT)
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-Copyright (c) 2011 SRI International
+(function() {
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
+		// Static helper vector
+	var _vector = new THREE.Vector3();
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-var hemi = (function(hemi) {
-	hemi.utils = hemi.utils || {};
-	
 	/** 
-	 * General function to convert from cartesian to spherical coordinates.
+	 * Convert from cartesian to spherical coordinates.
 	 *
 	 * @param {number[3]} coords XYZ cartesian coordinates
-	 * @return {number[3]} Radius, Theta, Phi
+	 * @return {number[3]} array of radius, theta, phi
 	 */
 	hemi.utils.cartesianToSpherical = function(coords) {
-		var x = coords[0];
-		var y = coords[1];
-		var z = coords[2];
-		var r = Math.sqrt(x*x + y*y + z*z);
-		var theta = Math.acos(y/r);
-		var phi = Math.atan2(x,z);
-		return [r,theta,phi];	
+		var x = coords[0],
+			y = coords[1],
+			z = coords[2],
+			r = Math.sqrt(x*x + y*y + z*z),
+			theta = Math.acos(y/r),
+			phi = Math.atan2(x,z);
+
+		return [r,theta,phi];
 	};
-	
+
 	/** 
 	 * A choose function (also called the binomial coefficient).
 	 *
@@ -2247,9 +2176,9 @@ var hemi = (function(hemi) {
 	 * @return {number} choose output, (n!)/(m!*(n-m)!)
 	 */
 	hemi.utils.choose = function(n, m) {
-		return hemi.utils.factorial(n, (n-m)+1) / hemi.utils.factorial(m);
+		return hemi.utils.factorial(n, (n - m) + 1) / hemi.utils.factorial(m);
 	};
-	
+
 	/** 
 	 * Clamp the given value between the given min and max.
 	 *
@@ -2259,370 +2188,21 @@ var hemi = (function(hemi) {
 	 * @return {number} the clamped value
 	 */
 	hemi.utils.clamp = function(val, min, max) {
-		return Math.min(max, Math.max(min, val));
+		return val > max ? max : (val < min ? min : val);
 	};
 
 	/**
-	 * Calculate the cubic hermite interpolation between two points with
-	 * associated tangents.
-	 *
-	 * @param {number} t time (between 0 and 1)
-	 * @param {number[3]} p0 the first waypoint
-	 * @param {number[3]} m0 the tangent through the first waypoint
-	 * @param {number[3]} p1 the second waypoint
-	 * @param {number[3]} m1 the tangent through the second waypoint
-	 * @return {number[3]} the interpolated point
-	 */
-	hemi.utils.cubicHermite = function(t,p0,m0,p1,m1) {
-		var t2 = t*t,
-			t3 = t2*t,
-			tp0 = 2*t3 - 3*t2 + 1,
-			tm0 = t3 - 2*t2 + t,
-			tp1 = -2*t3 + 3*t2,
-			tm1 = t3 - t2;
-		
-		return tp0*p0 + tm0*m0 + tp1*p1 + tm1*m1;
-	};
-	
-	/**
-	 * Calculate the factorial of the given number.
-	 *
-	 * @param {number} num number to factorialize
-	 * @param {number} opt_stop optional number to stop the factorial at (if it
-	 *     should be stopped before 1
-	 * @return {number} (num!) or (num! - opt_stop!)
-	 */
-	hemi.utils.factorial = function(num, opt_stop) {
-		var f = 1,
-			x = opt_stop ? opt_stop : 2;
-		
-		while (x <= num) {
-			f *= x++;
-		}
-		
-		return f;
-	};
-	
-	/**
-	 * Calculate the intersection between a ray and a plane.
-	 * 
-	 * @param {THREE.Ray} ray Ray described by a near xyz point and a far xyz point
-	 * @param {THREE.Vector3[3]} plane Array of 3 xyz coordinates defining a plane
-	 * @return {number[3]} Array [t: Time value on ray, u: U-coordinate on plane,
-	 *		v: V-coordinate on plane} of intersection point
-	 */
-	hemi.utils.intersect = function(ray, plane) {
-		var A = hemi.utils.inverse(
-			[[ray.direction.x, plane[1].x - plane[0].x, plane[2].x - plane[0].x],
-			 [ray.direction.y, plane[1].y - plane[0].y, plane[2].y - plane[0].y],
-			 [ray.direction.z, plane[1].z - plane[0].z, plane[2].z - plane[0].z]]),
-			B = [ray.origin.x - plane[0].x, ray.origin.y - plane[0].y, ray.origin.z - plane[0].z],
-			t = A[0][0] * B[0] + A[0][1] * B[1] + A[0][2] * B[2],
-			u = A[1][0] * B[0] + A[1][1] * B[1] + A[1][2] * B[2],
-			v = A[2][0] * B[0] + A[2][1] * B[1] + A[2][2] * B[2];
-		
-		return [t,u,v];
-	};
-	
-	/**
-	 * Perform linear interpolation on the given values. Values can be numbers
-	 * or arrays or even nested arrays (as long as their lengths match).
-	 * 
-	 * @param {number} a first number (or array of numbers) for interpolation
-	 * @param {number} v second number (or array of numbers) for interpolation
-	 * @param {number} t coefficient for interpolation (usually time)
-	 * @return {number} the interpolated number (or array of numbers)
-	 */
-	hemi.utils.lerp = function(a, b, t) {
-		var ret;
-		
-		if (hemi.utils.isArray(a)) {
-			ret = [];
-			
-			for (var i = 0; i < a.length; ++i) {
-				ret[i] = hemi.utils.lerp(a[i], b[i], t);
-			}
-		} else {
-			ret = a + (b - a) * t;
-		}
-		
-		return ret;
-	};
-	
-	/**
-	 * Convert the given linear interpolated value to a sinusoidal interpolated
-	 * value.
-	 * 
-	 * @param {number} val the linear value
-	 * @return {number} the sinusoidal value
-	 */
-	hemi.utils.linearToSine = function(val) {
-		return (Math.sin(Math.PI * val - hemi.HALF_PI) + 1) / 2;
-	};
-	
-	/**
-	 * Convert the given linear interpolated value to a parabolic interpolated
-	 * value.
-	 * 
-	 * @param {number} val the linear value
-	 * @return {number} the parabolic value
-	 */
-	hemi.utils.linearToParabolic = function(val) {
-		return val * val;
-	};
-	
-	/**
-	 * Convert the given linear interpolated value to a inverse parabolic
-	 * interpolated value.
-	 * 
-	 * @param {number} val the linear value
-	 * @return {number} the inverse parabolic value
-	 */
-	hemi.utils.linearToParabolicInverse = function(val) {
-		return 1 - (1 - val) * (1 - val);
-	};
-	
-	/**
-	 * Convert the given linear interpolated value to an exponential
-	 * interpolated value.
-	 * 
-	 * @param {number} val the linear value
-	 * @param {number} x the exponent to use
-	 * @return {number} the exponential value
-	 */
-	hemi.utils.linearToExponential = function(val, x) {
-		return (Math.pow(x, val) - 1) / (x - 1);
-	};
-	
-	/**
-	 * Convert the given linear interpolated value to an inverse exponential
-	 * interpolated value.
-	 * 
-	 * @param {number} val the linear value
-	 * @param {number} x the exponent to use
-	 * @return {number} the inverse exponential value
-	 */
-	hemi.utils.linearToExponentialInverse = function(val, x) {
-		return 1 - hemi.utils.linearToExponential(1 - val, x);
-	};
-	
-	/**
-	 * A container for all the common penner easing equations - 
-	 * 		linear
-	 *		quadratic 
-	 *		cubic
-	 *		quartic
-	 *		quintic
-	 *		exponential
-	 *		sinusoidal
-	 *		circular
-	 */
-	hemi.utils.penner = {
-	
-		linearTween : function (t, b, c, d) {
-			return c*t/d + b;
-		},
-		
-		easeInQuad : function (t, b, c, d) {
-			t /= d;
-			return c*t*t + b;
-		},
-		
-		easeOutQuad : function (t, b, c, d) {
-			t /= d;
-			return -c * t*(t-2) + b;
-		},
-		
-		easeInOutQuad : function (t, b, c, d) {
-			t /= d/2;
-			if (t < 1) return c/2*t*t + b;
-			t--;
-			return -c/2 * (t*(t-2) - 1) + b;
-		},
-	
-		easeInCubic : function (t, b, c, d) {
-			t /= d;
-			return c*t*t*t + b;
-		},
-		
-		easeOutCubic : function (t, b, c, d) {
-			t /= d;
-			t--;
-			return c*(t*t*t + 1) + b;
-		},
-		
-		easeInOutCubic : function (t, b, c, d) {
-			t /= d/2;
-			if (t < 1) return c/2*t*t*t + b;
-			t -= 2;
-			return c/2*(t*t*t + 2) + b;
-		},
-		
-		easeInQuart : function (t, b, c, d) {
-			t /= d;
-			return c*t*t*t*t + b;
-		},
-		
-		easeOutQuart : function (t, b, c, d) {
-			t /= d;
-			t--;
-			return -c * (t*t*t*t - 1) + b;
-		},
-		
-		easeInOutQuart : function (t, b, c, d) {
-			t /= d/2;
-			if (t < 1) return c/2*t*t*t*t + b;
-			t -= 2;
-			return -c/2 * (t*t*t*t - 2) + b;
-		},
-		
-		easeInQuint : function (t, b, c, d) {
-			t /= d;
-			return c*t*t*t*t*t + b;
-		},
-		
-		easeOutQuint : function (t, b, c, d) {
-			t /= d;
-			t--;
-			return c*(t*t*t*t*t + 1) + b;
-		},
-		
-		easeInOutQuint : function (t, b, c, d) {
-			t /= d/2;
-			if (t < 1) return c/2*t*t*t*t*t + b;
-			t -= 2;
-			return c/2*(t*t*t*t*t + 2) + b;
-		},
-		
-		easeInSine : function (t, b, c, d) {
-			return -c * Math.cos(t/d * hemi.HALF_PI) + c + b;
-		},
-		
-		easeOutSine : function (t, b, c, d) {
-			return c * Math.sin(t/d * hemi.HALF_PI) + b;
-		},
-		
-		easeInOutSine : function (t, b, c, d) {
-			return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
-		},
-		
-		easeInExpo : function (t, b, c, d) {
-			return c * Math.pow( 2, 10 * (t/d - 1) ) + b;
-		},
-		
-		easeOutExpo : function (t, b, c, d) {
-			return c * ( -Math.pow( 2, -10 * t/d ) + 1 ) + b;
-		},
-		
-		easeInOutExpo : function (t, b, c, d) {
-			t /= d/2;
-			if (t < 1) return c/2 * Math.pow( 2, 10 * (t - 1) ) + b;
-			t--;
-			return c/2 * ( -Math.pow( 2, -10 * t) + 2 ) + b;
-		},
-		
-		easeInCirc : function (t, b, c, d) {
-			t /= d;
-			return -c * (Math.sqrt(1 - t*t) - 1) + b;
-		},
-		
-		easeOutCirc : function (t, b, c, d) {
-			t /= d;
-			t--;
-			return c * Math.sqrt(1 - t*t) + b;
-		},
-		
-		easeInOutCirc : function (t, b, c, d) {
-			t /= d/2;
-			if (t < 1) return -c/2 * (Math.sqrt(1 - t*t) - 1) + b;
-			t -= 2;
-			return c/2 * (Math.sqrt(1 - t*t) + 1) + b;
-		}
-
-	};
-	
-	hemi.utils.sphericalToCartesian = function(coords) {
-		var r = coords[0];
-		var t = coords[1];
-		var p = coords[2];
-		return [r*Math.sin(t)*Math.cos(p),	// x
-				r*Math.sin(t)*Math.sin(p),  // y
-				r*Math.cos(t)];				// z
-	};
-	
-	/**
-	 * Convert the given UV coordinates for the given plane into XYZ coordinates
-	 * in 3D space.
-	 * 
-	 * @param {number[2]} uv uv coordinates on a plane
-	 * @param {THREE.Vector3[3]} plane array of 3 xyz coordinates defining the plane
-	 * @return {number[3]} xyz coordinates of the uv location on the plane
-	 */
-	hemi.utils.uvToXYZ = function(uv, plane) {
-		var uf = new THREE.Vector3().sub(plane[1], plane[0]).multiplyScalar(uv[0]),
-		vf = new THREE.Vector3().sub(plane[2], plane[0]).multiplyScalar(uv[1]),
-		pos = uf.addSelf(vf).addSelf(plane[0]);
-		return pos;
-	};
-	
-	/**
-	 * Calculate the screen coordinates from a 3d position in the world.
-	 * @param {number[3]} p XYZ point to calculate from
-	 * @return {number[2]} XY screen position of point
-	 */
-	hemi.utils.worldToScreen = function(p0) {
-		var VM = hemi.view.viewInfo.drawContext.view,
-			PM = hemi.view.viewInfo.drawContext.projection,
-			w = hemi.view.clientSize.width,
-			h = hemi.view.clientSize.height,
-			m4 = hemi.core.math.matrix4,
-			v = m4.transformPoint(VM,p0),
-			z = v[2],
-			p = m4.transformPoint(PM, v);
-		
-		if (z > 0) {
-			p[0] = -p[0];
-			p[1] = -p[1];
-		}
-		var x = (p[0]+1.0)*0.5*w;
-		var y = (-p[1]+1.0)*0.5*h;
-		return [Math.round(x),Math.round(y)];
-	};
-	
-	/**
-	 * Calculate the screen coordinates from a 3d position in the world.
-	 * @param {hemi.client} The current client
-	 * @param {THREE.Vector3} point XYZ point to calculate from
-	 * @return {THREE.Vector3} XY screen position of point, plus z-distance,
-	 *		where 0.0 = near clip and 1.0 = flar clip
-	 */
-	hemi.utils.worldToScreenFloat = function(client, point) {
-		var viewVec = client.camera.threeCamera.matrixWorldInverse.multiplyVector3(point.clone()),
-			projVec = client.camera.threeCamera.projectionMatrix.multiplyVector3(viewVec.clone());
-		
-		if (viewVec.z > 0) {
-			projVec.x = -projVec.x;
-			projVec.y = -projVec.y;
-		}
-
-		var x = (projVec.x + 1.0) * 0.5 * client.getWidth();
-		var y = (-projVec.y + 1.0) * 0.5 * client.getHeight();
-		return new THREE.Vector3(x, y, projVec.z);
-	};
-
-	/**
-	 * Computes the normal given three vertices that form a triangle
+	 * Compute the normal of the three given vertices that form a triangle.
 	 * 
 	 * @param {THREE.Vertex} a vertex a
 	 * @param {THREE.Vertex} b vertex b
 	 * @param {THREE.Vertex} c vertex c
+	 * @return {THREE.Vector3} the normal vector
 	 */
 	hemi.utils.computeNormal = function(a, b, c) {
-		var cb = new THREE.Vector3(), 
-			ab = new THREE.Vector3();
-			
-		cb.sub(c.position, b.position);
-		ab.sub(a.position, b.position);
+		var cb = new THREE.Vector3().sub(c.position, b.position),
+			ab = _vector.sub(a.position, b.position);
+
 		cb.crossSelf(ab);
 
 		if (!cb.isZero()) {
@@ -2632,50 +2212,428 @@ var hemi = (function(hemi) {
 		return cb;
 	};
 
-	
 	/**
-	 * Computes the inverse of a 3-by-3 matrix.
-	 * @param {number[3][3]} m The matrix.
-	 * @return {number[3][3]} The inverse of m.
+	 * Calculate the cubic hermite interpolation between two points with associated tangents.
+	 *
+	 * @param {number} t time (between 0 and 1)
+	 * @param {number[3]} p0 the first waypoint
+	 * @param {number[3]} m0 the tangent through the first waypoint
+	 * @param {number[3]} p1 the second waypoint
+	 * @param {number[3]} m1 the tangent through the second waypoint
+	 * @return {number[3]} the interpolated point
 	 */
-	hemi.utils.inverse = function(m) {
-		var t00 = m[1][1] * m[2][2] - m[1][2] * m[2][1];
-		var t10 = m[0][1] * m[2][2] - m[0][2] * m[2][1];
-		var t20 = m[0][1] * m[1][2] - m[0][2] * m[1][1];
-		var d = 1.0 / (m[0][0] * t00 - m[1][0] * t10 + m[2][0] * t20);
-		return [[d * t00, -d * t10, d * t20],
-			  [-d * (m[1][0] * m[2][2] - m[1][2] * m[2][0]),
-				d * (m[0][0] * m[2][2] - m[0][2] * m[2][0]),
-			   -d * (m[0][0] * m[1][2] - m[0][2] * m[1][0])],
-			  [d * (m[1][0] * m[2][1] - m[1][1] * m[2][0]),
-			  -d * (m[0][0] * m[2][1] - m[0][1] * m[2][0]),
-			   d * (m[0][0] * m[1][1] - m[0][1] * m[1][0])]];
+	hemi.utils.cubicHermite = function(t,p0,m0,p1,m1) {
+		var t2 = t * t,
+			t3 = t2 * t,
+			tp0 = 2*t3 - 3*t2 + 1,
+			tm0 = t3 - 2*t2 + t,
+			tp1 = -2*t3 + 3*t2,
+			tm1 = t3 - t2;
+
+		return tp0*p0 + tm0*m0 + tp1*p1 + tm1*m1;
 	};
-	return hemi;
-})(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+
+	/**
+	 * Calculate the factorial of the given number.
+	 *
+	 * @param {number} num number to factorialize
+	 * @param {number} opt_stop optional number to stop the factorial at (if it should be stopped
+	 *     before 1
+	 * @return {number} (num!) or (num! - opt_stop!)
+	 */
+	hemi.utils.factorial = function(num, opt_stop) {
+		var f = 1,
+			x = opt_stop ? opt_stop : 2;
+
+		while (x <= num) {
+			f *= x++;
+		}
+
+		return f;
+	};
+
+	/**
+	 * Calculate the intersection between a ray and a plane.
+	 * 
+	 * @param {THREE.Ray} ray Ray described by a near xyz point and a far xyz point
+	 * @param {THREE.Vector3[3]} plane Array of 3 xyz coordinates defining a plane
+	 * @return {number[3]} the array [
+	 *     t: time value on ray,
+	 *     u: u-coordinate on plane,
+	 *     v: v-coordinate on plane
+	 */
+	hemi.utils.intersect = function(ray, plane) {
+		var dir = ray.direction,
+			orig = ray.origin,
+			point0 = plane[0],
+			point1 = plane[1],
+			point2 = plane[2],
+			A = hemi.utils.invertMat3([[dir.x, point1.x - point0.x, point2.x - point0.x],
+				[dir.y, point1.y - point0.y, point2.y - point0.y],
+				[dir.z, point1.z - point0.z, point2.z - point0.z]]),
+			B = [orig.x - point0.x, orig.y - point0.y, orig.z - point0.z],
+			t = A[0][0] * B[0] + A[0][1] * B[1] + A[0][2] * B[2],
+			u = A[1][0] * B[0] + A[1][1] * B[1] + A[1][2] * B[2],
+			v = A[2][0] * B[0] + A[2][1] * B[1] + A[2][2] * B[2];
+
+		return [t,u,v];
+	};
+
+	/**
+	 * Compute the inverse of a 3-by-3 matrix.
+	 * 
+	 * @param {number[3][3]} m the matrix to invert
+	 * @return {number[3][3]} the inverse of m
+	 */
+	hemi.utils.invertMat3 = function(m) {
+		var t00 = m[1][1] * m[2][2] - m[1][2] * m[2][1],
+			t10 = m[0][1] * m[2][2] - m[0][2] * m[2][1],
+			t20 = m[0][1] * m[1][2] - m[0][2] * m[1][1],
+			d = 1 / (m[0][0] * t00 - m[1][0] * t10 + m[2][0] * t20);
+
+		return [[d * t00, -d * t10, d * t20],
+			[-d * (m[1][0] * m[2][2] - m[1][2] * m[2][0]),
+			 d * (m[0][0] * m[2][2] - m[0][2] * m[2][0]),
+			 -d * (m[0][0] * m[1][2] - m[0][2] * m[1][0])],
+			[d * (m[1][0] * m[2][1] - m[1][1] * m[2][0]),
+			 -d * (m[0][0] * m[2][1] - m[0][1] * m[2][0]),
+			 d * (m[0][0] * m[1][1] - m[0][1] * m[1][0])]];
+	};
+
+	/**
+	 * Perform linear interpolation on the given values. Values can be numbers or arrays or even
+	 * nested arrays (as long as their lengths match).
+	 * 
+	 * @param {number} a first number (or array of numbers) for interpolation
+	 * @param {number} v second number (or array of numbers) for interpolation
+	 * @param {number} t coefficient for interpolation (usually time)
+	 * @return {number} the interpolated number (or array of numbers)
+	 */
+	hemi.utils.lerp = function(a, b, t) {
+		var ret;
+
+		if (hemi.utils.isArray(a)) {
+			ret = [];
+
+			for (var i = 0, il = a.length; i < il; ++i) {
+				ret[i] = hemi.utils.lerp(a[i], b[i], t);
+			}
+		} else {
+			ret = a + (b - a) * t;
+		}
+
+		return ret;
+	};
+
+	/**
+	 * Convert the given linear interpolated value to an exponential interpolated value.
+	 * 
+	 * @param {number} val the linear value
+	 * @param {number} x the exponent to use
+	 * @return {number} the exponential value
+	 */
+	hemi.utils.linearToExponential = function(val, x) {
+		return (Math.pow(x, val) - 1) / (x - 1);
+	};
+
+	/**
+	 * Convert the given linear interpolated value to an inverse exponential interpolated value.
+	 * 
+	 * @param {number} val the linear value
+	 * @param {number} x the exponent to use
+	 * @return {number} the inverse exponential value
+	 */
+	hemi.utils.linearToExponentialInverse = function(val, x) {
+		return 1 - hemi.utils.linearToExponential(1 - val, x);
+	};
+
+	/**
+	 * Convert the given linear interpolated value to a parabolic interpolated value.
+	 * 
+	 * @param {number} val the linear value
+	 * @return {number} the parabolic value
+	 */
+	hemi.utils.linearToParabolic = function(val) {
+		return val * val;
+	};
+
+	/**
+	 * Convert the given linear interpolated value to a inverse parabolic interpolated value.
+	 * 
+	 * @param {number} val the linear value
+	 * @return {number} the inverse parabolic value
+	 */
+	hemi.utils.linearToParabolicInverse = function(val) {
+		return 1 - (1 - val) * (1 - val);
+	};
+
+	/**
+	 * Convert the given linear interpolated value to a sinusoidal interpolated value.
+	 * 
+	 * @param {number} val the linear value
+	 * @return {number} the sinusoidal value
+	 */
+	hemi.utils.linearToSine = function(val) {
+		return (Math.sin(Math.PI * val - hemi.HALF_PI) + 1) / 2;
+	};
+
+	/**
+	 * A container for all the common penner easing equations:
+	 * linear
+	 * quadratic 
+	 * cubic
+	 * quartic
+	 * quintic
+	 * exponential
+	 * sinusoidal
+	 * circular
+	 */
+	hemi.utils.penner = {
+
+		linearTween: function (t, b, c, d) {
+			return c*t/d + b;
+		},
+
+		easeInQuad: function (t, b, c, d) {
+			t /= d;
+			return c*t*t + b;
+		},
+
+		easeOutQuad: function (t, b, c, d) {
+			t /= d;
+			return -c * t*(t-2) + b;
+		},
+
+		easeInOutQuad: function (t, b, c, d) {
+			t /= d/2;
+			if (t < 1) return c/2*t*t + b;
+			t--;
+			return -c/2 * (t*(t-2) - 1) + b;
+		},
+
+		easeInCubic: function (t, b, c, d) {
+			t /= d;
+			return c*t*t*t + b;
+		},
+
+		easeOutCubic: function (t, b, c, d) {
+			t /= d;
+			t--;
+			return c*(t*t*t + 1) + b;
+		},
+
+		easeInOutCubic: function (t, b, c, d) {
+			t /= d/2;
+			if (t < 1) return c/2*t*t*t + b;
+			t -= 2;
+			return c/2*(t*t*t + 2) + b;
+		},
+
+		easeInQuart: function (t, b, c, d) {
+			t /= d;
+			return c*t*t*t*t + b;
+		},
+		
+		easeOutQuart: function (t, b, c, d) {
+			t /= d;
+			t--;
+			return -c * (t*t*t*t - 1) + b;
+		},
+
+		easeInOutQuart: function (t, b, c, d) {
+			t /= d/2;
+			if (t < 1) return c/2*t*t*t*t + b;
+			t -= 2;
+			return -c/2 * (t*t*t*t - 2) + b;
+		},
+
+		easeInQuint: function (t, b, c, d) {
+			t /= d;
+			return c*t*t*t*t*t + b;
+		},
+		
+		easeOutQuint: function (t, b, c, d) {
+			t /= d;
+			t--;
+			return c*(t*t*t*t*t + 1) + b;
+		},
+
+		easeInOutQuint: function (t, b, c, d) {
+			t /= d/2;
+			if (t < 1) return c/2*t*t*t*t*t + b;
+			t -= 2;
+			return c/2*(t*t*t*t*t + 2) + b;
+		},
+
+		easeInSine: function (t, b, c, d) {
+			return -c * Math.cos(t/d * hemi.HALF_PI) + c + b;
+		},
+
+		easeOutSine: function (t, b, c, d) {
+			return c * Math.sin(t/d * hemi.HALF_PI) + b;
+		},
+
+		easeInOutSine: function (t, b, c, d) {
+			return -c/2 * (Math.cos(Math.PI*t/d) - 1) + b;
+		},
+
+		easeInExpo: function (t, b, c, d) {
+			return c * Math.pow( 2, 10 * (t/d - 1) ) + b;
+		},
+
+		easeOutExpo: function (t, b, c, d) {
+			return c * ( -Math.pow( 2, -10 * t/d ) + 1 ) + b;
+		},
+
+		easeInOutExpo: function (t, b, c, d) {
+			t /= d/2;
+			if (t < 1) return c/2 * Math.pow( 2, 10 * (t - 1) ) + b;
+			t--;
+			return c/2 * ( -Math.pow( 2, -10 * t) + 2 ) + b;
+		},
+
+		easeInCirc: function (t, b, c, d) {
+			t /= d;
+			return -c * (Math.sqrt(1 - t*t) - 1) + b;
+		},
+
+		easeOutCirc: function (t, b, c, d) {
+			t /= d;
+			t--;
+			return c * Math.sqrt(1 - t*t) + b;
+		},
+
+		easeInOutCirc: function (t, b, c, d) {
+			t /= d/2;
+			if (t < 1) return -c/2 * (Math.sqrt(1 - t*t) - 1) + b;
+			t -= 2;
+			return c/2 * (Math.sqrt(1 - t*t) + 1) + b;
+		}
+
+	};
+
+	/** 
+	 * Convert from spherical to cartesian coordinates.
+	 *
+	 * @param {number[3]} rtp array of radius, theta, phi
+	 * @return {number[3]} XYZ cartesian coordinates
+	 */
+	hemi.utils.sphericalToCartesian = function(rtp) {
+		var r = rtp[0],
+			t = rtp[1],
+			p = rtp[2],
+			sinT = Math.sin(t);
+
+		return [r * sinT * Math.cos(p),	// x
+				r * sinT * Math.sin(p), // y
+				r * Math.cos(t)]; // z
+	};
+
+	/**
+	 * Convert the given UV coordinates for the given plane into XYZ coordinates in 3D space.
+	 * 
+	 * @param {number[2]} uv uv coordinates on a plane
+	 * @param {THREE.Vector3[3]} plane array of 3 xyz coordinates defining the plane
+	 * @return {THREE.Vector3} xyz coordinates of the uv location on the plane
+	 */
+	hemi.utils.uvToXYZ = function(uv, plane) {
+		var point0 = plane[0],
+			point1 = plane[1],
+			point2 = plane[2],
+			uf = new THREE.Vector3().sub(point1, point2).multiplyScalar(uv[0]),
+			vf = _vector.sub(point2, point0).multiplyScalar(uv[1]);
+
+		return uf.addSelf(vf).addSelf(point0);
+	};
+
+	/**
+	 * Convert the given XYZ point in world space to screen coordinates. Note that this function
+	 * converts the actual point passed in, not a clone of it.
+	 * 
+	 * @param {hemi.Client} the Client containing the point
+	 * @param {THREE.Vector3} point XYZ point to convert
+	 * @return {number[2]} XY screen position of point
+	 */
+	hemi.utils.worldToScreen = function(client, point) {
+		var camera = client.camera.threeCamera;
+		camera.matrixWorldInverse.multiplyVector3(point);
+
+		var viewZ = point.z;
+		camera.projectionMatrix.multiplyVector3(point);
+
+		var projX = point.x,
+			projY = point.y;
+
+		if (viewZ > 0) {
+			projX = -projX;
+			projY = -projY;
+		}
+
+		point.x = (1 + projX) * 0.5 * client.getWidth();
+		point.y = (1 - projY) * 0.5 * client.getHeight();
+
+		return [Math.round(point.x), Math.round(point.y)];
+	};
+
+	/**
+	 * Convert the given XYZ point in world space to screen coordinates. Note that this function
+	 * converts the actual point passed in, not a clone of it.
+	 * 
+	 * @param {hemi.Client} the Client containing the point
+	 * @param {THREE.Vector3} point XYZ point to convert
+	 * @return {THREE.Vector3} XY screen position of point plus z-distance, where 0.0 = near clip
+	 *     and 1.0 = flar clip
+	 */
+	hemi.utils.worldToScreenFloat = function(client, point) {
+		var camera = client.camera.threeCamera;
+		camera.matrixWorldInverse.multiplyVector3(point);
+
+		var viewZ = point.z;
+		camera.projectionMatrix.multiplyVector3(point);
+
+		var projX = point.x,
+			projY = point.y;
+
+		if (viewZ > 0) {
+			projX = -projX;
+			projY = -projY;
+		}
+
+		point.x = (1 + projX) * 0.5 * client.getWidth();
+		point.y = (1 - projY) * 0.5 * client.getHeight();
+
+		return point;
+	};
+
+})();
 /*
-The MIT License (MIT)
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-Copyright (c) 2011 SRI International
+(function() {
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-var hemi = (function(hemi) {
-	hemi.utils = hemi.utils || {};
-	
 	/**
 	 * Build a shader source string from the given parsed source structure.
 	 * 
@@ -2710,13 +2668,12 @@ var hemi = (function(hemi) {
 			(parsed.glob ? parsed.glob : '') +
 			(parsed.postGlob ? parsed.postGlob : '') +
 			parsed.end;
-		
+
 		return src;
 	};
-	
+
 	/**
-	 * Combine the given strings into one cohesive fragment shader source
-	 * string.
+	 * Combine the given strings into one cohesive fragment shader source string.
 	 * 
 	 * @param {string} src the original shader source string
 	 * @param {Object} cfg configuration object for how to build the new shader:
@@ -2736,36 +2693,9 @@ var hemi = (function(hemi) {
 	 * @return {string} the new shader source string
 	 */
 	hemi.utils.combineFragSrc = function(src, cfg) {
-		return this.combineSrc(src, cfg, 'gl_FragColor');
+		return combineSrc(src, cfg, 'gl_FragColor');
 	};
-	
-	/**
-	 * Combine the given strings into one cohesive shader source string.
-	 * 
-	 * @param {string} src the original shader source string
-	 * @param {Object} cfg configuration object for how to build the new shader:
-	 *     (all fields are optional)
-	 *     preHdr: source to prepend to the existing header
-	 *     hdr: source to replace the existing header
-	 *     postHdr: source to append to the existing header
-	 *     preSprt: source to prepend to the existing support
-	 *     sprt: source to replace the existing support
-	 *     postSprt: source to append to the existing support
-	 *     preBody: source to prepend to the existing body
-	 *     body: source to replace the existing body
-	 *     postBody: source to append to the existing body
-	 *     preGlob: source to prepend to the existing global
-	 *     glob: source to replace the existing global variable assignment
-	 *     postGlob: source to append to the existing global
-	 * @param {string} globName name of the global variable to set in main()
-	 * @return {string} the new shader source string
-	 */
-	hemi.utils.combineSrc = function(src, cfg, globName) {
-		var parsed = this.parseSrc(src, globName);
-		hemi.utils.join(parsed, cfg);
-		return this.buildSrc(parsed);
-	};
-	
+
 	/**
 	 * Combine the given strings into one cohesive vertex shader source string.
 	 * 
@@ -2787,14 +2717,14 @@ var hemi = (function(hemi) {
 	 * @return {string} the new shader source string
 	 */
 	hemi.utils.combineVertSrc = function(src, cfg) {
-		return this.combineSrc(src, cfg, 'gl_Position');
+		return combineSrc(src, cfg, 'gl_Position');
 	};
-	
+
 	/**
-	 * Get the vertex and pixel shaders (as well as their source) for the given
-	 * Material.
+	 * Get the vertex and pixel shaders (as well as their source) for the given Material.
 	 * 
-	 * @param {o3d.Material} material the material to get shaders for
+	 * @param {hemi.Client} client the Client that is rendering the Material
+	 * @param {THREE.Material} material the material to get shaders for
 	 * @return {Object} object containing shaders and source strings
 	 */
 	hemi.utils.getShaders = function(client, material) {
@@ -2804,7 +2734,7 @@ var hemi = (function(hemi) {
 			source1 = gl.getShaderSource(shaders[0]),
 			source2 = gl.getShaderSource(shaders[1]),
 			obj;
-		
+	
 		if (source1.search('gl_FragColor') > 0) {
 			obj = {
 				fragShd: shaders[0],
@@ -2820,10 +2750,10 @@ var hemi = (function(hemi) {
 				vertSrc: source1
 			};
 		}
-		
+
 		return obj;
 	};
-	
+
 	/**
 	 * Parse the given shader source into logical groupings as follows:
 	 *   Header - uniform, attribute, and varying parameters
@@ -2863,7 +2793,7 @@ var hemi = (function(hemi) {
 			bodyStart = src.indexOf('{', sprtEnd) + 1,
 			bodyEnd = src.lastIndexOf(global),
 			globEnd = src.lastIndexOf('}');
-		
+
 		if (src.charAt(hdrEnd) === '\n') {
 			++hdrEnd;
 		}
@@ -2876,7 +2806,7 @@ var hemi = (function(hemi) {
 		if (src.charAt(globEnd) === '\n') {
 			++globEnd;
 		}
-		
+
 		var parsedSrc = {
 			hdr: src.slice(0, hdrEnd),
 			sprt: src.slice(hdrEnd, sprtEnd),
@@ -2885,87 +2815,157 @@ var hemi = (function(hemi) {
 			glob: src.slice(bodyEnd, globEnd),
 			end: src.slice(globEnd)
 		};
-		
+
 		return parsedSrc;
 	};
-	
-	return hemi;
-})(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Combine the given strings into one cohesive shader source string.
+	 * 
+	 * @param {string} src the original shader source string
+	 * @param {Object} cfg configuration object for how to build the new shader:
+	 *     (all fields are optional)
+	 *     preHdr: source to prepend to the existing header
+	 *     hdr: source to replace the existing header
+	 *     postHdr: source to append to the existing header
+	 *     preSprt: source to prepend to the existing support
+	 *     sprt: source to replace the existing support
+	 *     postSprt: source to append to the existing support
+	 *     preBody: source to prepend to the existing body
+	 *     body: source to replace the existing body
+	 *     postBody: source to append to the existing body
+	 *     preGlob: source to prepend to the existing global
+	 *     glob: source to replace the existing global variable assignment
+	 *     postGlob: source to append to the existing global
+	 * @param {string} globName name of the global variable to set in main()
+	 * @return {string} the new shader source string
+	 */
+	function combineSrc(src, cfg, globName) {
+		var parsed = hemi.utils.parseSrc(src, globName);
+		hemi.utils.join(parsed, cfg);
+		return hemi.utils.buildSrc(parsed);
+	}
+
+})();
 /*
-The MIT License (MIT)
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-Copyright (c) 2011 SRI International
+(function() {
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
+		/*
+		 * A table of characters to break a line on (for text wrapping), weighted by preference.
+		 */
+	var breakable = {
+			' ': 10,
+			',': 20,
+			';': 30,
+			'.': 10,
+			'!': 40,
+			'?': 40
+		};
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-var hemi = (function(hemi) {
-	hemi.utils = hemi.utils || {};
-	
-	/*
-	 * Add a function to the Javascript string to remove whitespace from the
-	 * beginning and end.
+	/**
+	 * Capitalize the first letter of the given string.
+	 * 
+	 * @param {string} str the string to capitalize
+	 * @return {string} the capitalized string
 	 */
-	String.prototype.trim = function() {
-		return this.replace(/^\s*/, "").replace(/\s*$/, "");
+	hemi.utils.capitalize = function(str) {
+		return str.charAt(0).toUpperCase() + str.slice(1);
 	};
-	
-	/*
-	 * Adds a method to the Javascript string to capitalize the first letter 
-	 */
-	String.prototype.capitalize = function() {
-		return this.charAt(0).toUpperCase() + this.slice(1);
-	};
-	
+
 	/**
 	 * Test if the given string is numeric.
-	 *  
+	 * 
 	 * @param {string} str the string to test
 	 * @return {boolean} true if the string can be converted directly to a number
 	 */
 	hemi.utils.isNumeric = function(str) {
 		return !(str === null || isNaN(str) || str.length === 0);
 	};
-	
-	
-	/*
-	 * A table of characters to break a line on (for text wrapping), weighted
-	 * by preference.
-	 */
-	var breakable = new Hashtable();
-	breakable.put(' ', 10);
-	breakable.put(',', 20);
-	breakable.put(';', 30);
-	breakable.put('.', 10);
-	breakable.put('!', 40);
-	breakable.put('?', 40);
-	
+
 	/**
-	 * Perform strict text wrapping on the given text. The returned text is
-	 * guaranteed to be no wider than the specified target width, though it may
-	 * be farther from that width than with loose text wrapping.
+	 * Remove any whitespace from the beginning and end of the given string.
+	 * 
+	 * @param {string} str the string to trim
+	 * @return {string} the trimmed string
+	 */
+	hemi.utils.trim = function(str) {
+		return str.replace(/^\s*/, "").replace(/\s*$/, "");
+	};
+
+	/**
+	 * Perform loose text wrapping on the given text. The returned text will be close to the
+	 * specified target width, but may be a little wider.
+	 * 
+	 * @param {string} text the string to perform text wrapping on
+	 * @param {number} targetWidth desired width for text in pixels
+	 * @param {number} charWidth average width of a character of the text in pixels
+	 * @return {string[]} array of wrapped text
+	 */
+	hemi.utils.wrapText = function(text, targetWidth, charWidth) {
+		text = cleanseText(text);
+
+		var wrapLines = [],
+			textLength = text.length,
+			cols = parseInt(targetWidth / charWidth, 10),
+			rows = Math.ceil(textLength / cols),
+			start = cols,
+			index = 0,
+			last;
+
+		for (var i = 0; i < rows - 1; ++i) {
+			last = index;
+			index = bestBreak(text, start, 10);
+			wrapLines.push(hemi.utils.trim(text.substring(last, index)));
+			start = index + cols;
+		}
+
+		wrapLines.push(text.substring(index, textLength));
+		return wrapLines;
+	};
+
+	/**
+	 * Perform strict text wrapping on the given text. The returned text is guaranteed to be no
+	 * wider than the specified target width, though it may be farther from that width than with
+	 * loose text wrapping.
 	 * 
 	 * @param {string} text the string to perform text wrapping on
 	 * @param {number} targetWidth maximum desired width for text in pixels
-	 * @param {CanvasRenderingContext2D} canvas object used to measure text's
-	 *     on-screen size
+	 * @param {CanvasRenderingContext2D} canvas object used to measure text's on-screen size
 	 * @return {string[]} array of wrapped text
 	 */
 	hemi.utils.wrapTextStrict = function(text, targetWidth, canvas) {
+		text = cleanseText(text);
+
 		var wrapLines = [],
-			text = hemi.utils.cleanseText(text),
 			textLength = text.length,
 			metric = canvas.measureText(text),
 			charWidth = metric.width / textLength,
@@ -2974,108 +2974,70 @@ var hemi = (function(hemi) {
 			start = 0,
 			end = chars,
 			line, width;
-		
+
 		while (end < textLength) {
-			line = text.substring(start, end).trim();
+			line = hemi.utils.trim(text.substring(start, end));
 			metric = canvas.measureText(line);
 			width = metric.width;
-			
+
 			while (width < targetWidth && end < textLength) {
 				end += increment;
-				
+
 				if (end > textLength) {
 					end = textLength;
 				}
-				
-				line = text.substring(start, end).trim();
+
+				line = hemi.utils.trim(text.substring(start, end));
 				metric = canvas.measureText(line);
 				width = metric.width;
 			}
-			
+
 			while (width > targetWidth) {
 				end--;
-				line = text.substring(start, end).trim();
+				line = hemi.utils.trim(text.substring(start, end));
 				metric = canvas.measureText(line);
 				width = metric.width;
 			}
-			
+
 			var breakNdx = end - 1,
 				ch = text.charAt(breakNdx);
-			
-			while (!breakable.containsKey(ch) && breakNdx > start) {
+
+			while (breakable[ch] === undefined && breakNdx > start) {
 				breakNdx--;
 				ch = text.charAt(breakNdx);
 			}
-			
+
 			if (breakNdx > start) {
 				end = breakNdx + 1;
 			}
-			
-			line = text.substring(start, end).trim();
+
+			line = hemi.utils.trim(text.substring(start, end));
 			wrapLines.push(line);
 			start = end;
 			end += chars;
 		}
-			
-		if (start != textLength || wrapLines.length === 0) {
-			line = text.substring(start, textLength).trim();
+
+		if (start !== textLength || wrapLines.length === 0) {
+			line = hemi.utils.trim(text.substring(start, textLength));
 			wrapLines.push(line);
 		}
-		
+
 		return wrapLines;
 	};
-	
-	/**
-	 * Perform loose text wrapping on the given text. The returned text will be
-	 * close to the specified target width, but may be a little wider.
-	 * 
-	 * @param {string} text the string to perform text wrapping on
-	 * @param {number} targetWidth desired width for text in pixels
-	 * @param {number} charWidth average width of a character of the text in
-	 *     pixels
-	 * @return {string[]} array of wrapped text
-	 */
-	hemi.utils.wrapText = function(text, targetWidth, charWidth) {
-		var wrapLines = [],
-			text = hemi.utils.cleanseText(text),
-			textLength = text.length,
-			cols = parseInt(targetWidth / charWidth),
-        	rows = Math.ceil(textLength / cols),
-			start = cols,
-			index = 0,
-			last;
-		
-		for (var i = 0; i < rows - 1; i++) {
-			last = index;
-			index = bestBreak(text, start, 10);
-			wrapLines.push(text.substring(last, index).trim());
-			start = index + cols;
-		}
-		
-		wrapLines.push(text.substring(index, textLength));
-		return wrapLines;
-	};
-	
-	/**
-	 * Replace any newline characters in the text with spaces. This is used to
-	 * prepare text for text wrapping.
-	 * 
-	 * @param {string} text string to clean
-	 * @return {string} string with all newline characters replaced
-	 */
-	hemi.utils.cleanseText = function(text) {
-		text = text.replace('\n', ' ');
-		return text;
-	};
-	
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/*
-	 * Internal function to calculate the "best" index to break a line of
-	 * text at, given a certain weighted preference for characters to break on.
+	 * Calculate the "best" index to break a line of text at, given a certain weighted preference
+	 * for characters to break on.
 	 * 
 	 * @param {string} text string of text to break into two lines
 	 * @param {number} start estimated index the user would like to break at
-	 * @param {number} radius maximum distance before and after the start index
-	 *     to search for a "best" break
+	 * @param {number} radius maximum distance before and after the start index to search for a
+	 *     "best" break
+	 * @return {number} the calculated break index
 	 */
 	function bestBreak(text, start, radius) {
 		var bestIndex = start,
@@ -3084,91 +3046,92 @@ var hemi = (function(hemi) {
 			beginRadius = start - Math.max(start - radius, 0),
 			endRadius = Math.min(start + radius, textLength - 1) - start,
 			examWeight, weight;
-		
-		for (var i = parseInt(start - beginRadius); i <= start + endRadius; i++) {
-			weight = breakable.get(text.charAt(i));
-			if (weight === null) 
+
+		for (var i = parseInt(start - beginRadius, 10); i <= start + endRadius; ++i) {
+			weight = breakable[text.charAt(i)];
+
+			if (weight === undefined) 
 				continue;
-			
+
 			examWeight = weight / Math.abs(start - i);
+
 			if (examWeight > bestWeight) {
 				bestIndex = i;
 				bestWeight = examWeight;
 			}
 		}
-		
+
 		return Math.min(bestIndex + 1, textLength - 1);
-	};
-	
-	return hemi;
-})(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+	}
+
+	/*
+	 * Replace any newline characters in the text with spaces.
+	 * 
+	 * @param {string} text string to clean
+	 * @return {string} string with all newline characters replaced
+	 */
+	function cleanseText(text) {
+		return text.replace('\n', ' ');
+	}
+
+})();
 /*
-The MIT License (MIT)
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-Copyright (c) 2011 SRI International
+(function() {
 
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
+		// Static helper objects
+	var _matrix = new THREE.Matrix4(),
+		_quaternion = new THREE.Quaternion(),
+		_vector = new THREE.Vector3();
 
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-var hemi = (function(hemi) {
-	hemi.utils = hemi.utils || {};
-	
 	/**
-	 * Check to see if the given Transform has key frame animations bound to it.
+	 * Rotate the given Transform about the given axis by the given amount.
 	 * 
-	 * @param {o3d.Transform} transform the Transform to check
-	 * @return {boolean} true if Transform has key frame animations
-	 */
-	hemi.utils.isAnimated = function(transform) {
-		var lm = transform.getParam('o3d.localMatrix');
-		
-		return lm.inputConnection != null;
-	};
-	
-	/**
-	 * Create a new child Transform for the given Transform and move all of its
-	 * current children and shapes onto the new child.
-	 * 
-	 * @param {o3d.Transform} transform the Transform to foster from
-	 * @return {o3d.Transform} the created child Transform
-	 */
-	hemi.utils.fosterTransform = function(transform) {
-		var children = transform.children,
-			shapes = transform.shapes,
-			newTran = hemi.core.mainPack.createObject('Transform');
-		
-		while (children.length > 0) {
-			children[0].parent = newTran;
+	 * @param {THREE.Vector3} axis rotation axis defined as an XYZ vector
+	 * @param {number} angle amount to rotate by in radians
+	 * @param {hemi.Transform} transform the transform to rotate
+	*/
+	hemi.utils.axisRotate = function(axis, angle, transform) {
+		if (!transform.useQuaternion) {
+			transform.useQuaternion = true;
+			_vector.copy(transform.rotation);
+			transform.quaternion.setFromEuler(_vector.multiplyScalar(hemi.RAD_TO_DEG));
 		}
-		
-		newTran.parent = transform;
-		
-		while (shapes.length > 0) {
-			var shape = shapes[0];
-			newTran.addShape(shape);
-			transform.removeShape(shape);
-		}
-		
-		return newTran;
+
+		_quaternion.setFromAxisAngle(axis, angle);
+		transform.quaternion.multiplySelf(_quaternion);
+		transform.updateMatrix();
 	};
-	
+
 	/**
-	 * Interprets a point in world space into local space. Note that this function converts the
-	 * actual point passed in, not a clone of it.
+	 * Interpret the given point from world space to local space. Note that this function converts
+	 * the actual point passed in, not a clone of it.
 	 * 
-	 * @param {hemi.Transform} transform the transform whose local space the point will be in
+	 * @param {hemi.Transform} transform the Transform whose local space the point will be in
 	 * @param {THREE.Vector3} point the point to convert to local space
 	 * @return {THREE.Vector3} the given point, now in local space
 	 */
@@ -3176,62 +3139,59 @@ var hemi = (function(hemi) {
 		var inv = new THREE.Matrix4().getInverse(transform.matrixWorld);
 	    return inv.multiplyVector3(point);
 	};
-	
+
 	/**
-	 * Interprets a point in local space into world space. Note that this function converts the
-	 * actual point passed in, not a clone of it.
+	 * Interpret the given point from local space to world space. Note that this function converts
+	 * the actual point passed in, not a clone of it.
 	 * 
-	 * @param {hemi.Transform} transform the transform whose local space the point is in
+	 * @param {hemi.Transform} transform the Transform whose local space the point is in
 	 * @param {THREE.Vector3} point the point to convert to world space
 	 * @return {THREE.Vector3} the given point, now in world space
 	 */
 	hemi.utils.pointAsWorld = function(transform, point) {
 		return transform.matrixWorld.multiplyVector3(point);
 	};
-	
+
 	/**
-	 * Point the y axis of the given matrix toward the given point.
+	 * Point the y axis of the given Transform toward the given point.
 	 *
-	 * @param {THREE.Matrix4} matrix the matrix to rotate
+	 * @param {hemi.Transform} tran the Transform to rotate
 	 * @param {THREE.Vector3} eye XYZ point from which to look (may be the origin)
 	 * @param {THREE.Vector3} target XYZ point at which to aim the y axis
-	 * @return {THREE.Object3D} the rotated transform
+	 * @return {hemi.Transform} the rotated Transform
 	 */
-	hemi.utils.pointYAt = function(matrix, eye, target) {
+	hemi.utils.pointYAt = function(tran, eye, target) {
 		var dx = target.x - eye.x,
 			dy = target.y - eye.y,
 			dz = target.z - eye.z,
 			dxz = Math.sqrt(dx*dx + dz*dz),
 			rotY = Math.atan2(dx,dz),
 			rotX = Math.atan2(dxz,dy);
-		
-//		tran.rotation.y += rotY;
-//		tran.rotation.x += rotX;
-//		tran.updateMatrix();
-		matrix.rotateY(rotY);
-		matrix.rotateX(rotX);
 
-		
-		return matrix;
-	};
-	
-	/**
-	 * Point the z axis of the given transform toward the given point.
-	 *
-	 * @param {THREE.Object3D} tran the transform to rotate
-	 * @param {THREE.Vector3} eye XYZ point from which to look (may be the origin)
-	 * @param {THREE.Vector3} target XYZ point at which to aim the z axis
-	 * @return {THREE.Object3D} the rotated transform
-	 */
-	hemi.utils.pointZAt = function(tran, eye, target) {
-		var delta = new THREE.Vector3().sub(target, eye),
-			rotY = Math.atan2(delta.x, delta.z),
-			rotX = -Math.asin(delta.y / delta.length());
-		
 		tran.rotation.y += rotY;
 		tran.rotation.x += rotX;
 		tran.updateMatrix();
-		
+
+		return tran;
+	};
+
+	/**
+	 * Point the z axis of the given Transform toward the given point.
+	 *
+	 * @param {hemi.Transform} tran the Transform to rotate
+	 * @param {THREE.Vector3} eye XYZ point from which to look (may be the origin)
+	 * @param {THREE.Vector3} target XYZ point at which to aim the z axis
+	 * @return {hemi.Transform} the rotated Transform
+	 */
+	hemi.utils.pointZAt = function(tran, eye, target) {
+		var delta = _vector.sub(target, eye),
+			rotY = Math.atan2(delta.x, delta.z),
+			rotX = -Math.asin(delta.y / delta.length());
+
+		tran.rotation.y += rotY;
+		tran.rotation.x += rotX;
+		tran.updateMatrix();
+
 		return tran;
 	};
 
@@ -3260,15 +3220,7 @@ var hemi = (function(hemi) {
 		}
 
 		// Magic to get the WebGLRenderer to update the vertex buffer
-		for (var i = 0, il = geometry.geometryGroupsList.length; i < il; ++i) {
-			var group = geometry.geometryGroupsList[i],
-				verts = group.faces3.length * 3 + group.faces4.length * 4;
-
-			group.__uvArray = new Float32Array(verts * 2);
-			group.__inittedArrays = true;
-		}
-
-		geometry.__dirtyUvs = true;
+		updateUVs(geometry);
 	};
 
 	/**
@@ -3291,20 +3243,12 @@ var hemi = (function(hemi) {
 		}
 
 		// Magic to get the WebGLRenderer to update the vertex buffer
-		for (var i = 0, il = geometry.geometryGroupsList.length; i < il; ++i) {
-			var group = geometry.geometryGroupsList[i],
-				verts = group.faces3.length * 3 + group.faces4.length * 4;
-
-			group.__uvArray = new Float32Array(verts * 2);
-			group.__inittedArrays = true;
-		}
-
-		geometry.__dirtyUvs = true;
+		updateUVs(geometry);
 	};
 
 	/**
-	 * Apply the given transform matrix to the vertices of the given transform's
-	 * geometry as well as the geometry of any child transforms.
+	 * Apply the given transform matrix to the vertices of the given transform's geometry as well as
+	 * the geometry of any child transforms.
 	 * 
 	 * @param {THREE.Object3D} transform the transform to start shifting at
 	 * @param {THREE.Matrix4} matrix the transform matrix to apply
@@ -3355,8 +3299,101 @@ var hemi = (function(hemi) {
 		}
 
 		// Magic to get the WebGLRenderer to update the vertex buffer
-		for (var i = 0, il = geometry.geometryGroupsList.length; i < il; ++i) {
-			var group = geometry.geometryGroupsList[i],
+		updateUVs(geometry);
+	};
+
+	/**
+	 * Rotate the Transform by the given angle along the given world space axis.
+	 *
+	 * @param {THREE.Vector3} axis rotation axis defined as an XYZ vector
+	 * @param {number} angle amount to rotate by in radians
+	 * @param {hemi.Transform} transform the Transform to rotate
+	 */
+	hemi.utils.worldRotate = function(axis, angle, transform) {
+		var invWorld = _matrix.getInverse(transform.matrixWorld),
+			localAxis = transformVector(invWorld, axis);
+
+		hemi.utils.axisRotate(localAxis, angle, transform);
+	};
+
+	/**
+	 * Scale the Transform by the given scale amounts in world space.
+	 *
+	 * @param {THREE.Vector3} scale scale factors defined as an XYZ vector
+	 * @param {hemi.Transform} transform the Transform to scale
+	 */
+	hemi.utils.worldScale = function(scale, transform) {
+		var invMat = THREE.Matrix4.makeInvert3x3(transform.parent.matrixWorld);
+
+		_vector.copy(scale);
+		transform.scale.multiplySelf(multiplyMat3(invMat, _vector));
+		transform.updateMatrix();
+	};
+
+	/**
+	 * Translate the Transform by the given world space vector.
+	 *
+	 * @param {THREE.Vector3} delta XYZ vector to translate by
+	 * @param {hemi.Transform} transform the Transform to translate
+	 */
+	hemi.utils.worldTranslate = function(delta, transform) {
+		var invWorld = _matrix.getInverse(transform.matrixWorld),
+			localDelta = transformVector(invWorld, delta);
+
+		transform.position.addSelf(localDelta);
+		transform.updateMatrix();
+	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Transform the given vector by the given 3x3 matrix.
+	 * 
+	 * @param {THREE.Matrix3} m the matrix
+	 * @param {THREE.Vector3} v the vector
+	 * @return {THREE.Vector3} the transformed vector
+	 */
+	function multiplyMat3(matrix, vector) {
+		var vX = vector.x,
+			vY = vector.y,
+			vZ = vector.z;
+
+		vector.x = matrix.m[0] * vX + matrix.m[3] * vY + matrix.m[6] * vZ;
+		vector.y = matrix.m[1] * vX + matrix.m[4] * vY + matrix.m[7] * vZ;
+		vector.z = matrix.m[2] * vX + matrix.m[5] * vY + matrix.m[8] * vZ;
+
+		return vector;
+	}
+
+	/*
+	 * Transform the given vector by the rotation and scale of the given matrix.
+	 * 
+	 * @param {THREE.Matrix4} matrix the matrix
+	 * @param {THREE.Vector3} vector the vector
+	 * @return {THREE.Vector3} the transformed vector
+	 */
+	function transformVector(matrix, vector) {
+		var vX = vector.x,
+			vY = vector.y,
+			vZ = vector.z;
+
+		return _vector.set(vX * matrix.n11 + vY * matrix.n21 + vZ * matrix.n31,
+			vX * matrix.n12 + vY * matrix.n22 + vZ * matrix.n32,
+			vX * matrix.n13 + vY * matrix.n23 + vZ * matrix.n33);
+	}
+
+	/*
+	 * Perform magic to get the WebGLRenderer to update the geometry's UV buffer.
+	 * 
+	 * @param {THREE.Geometry} geometry geometry to update UVs for
+	 */
+	function updateUVs(geometry) {
+		var groupList = geometry.geometryGroupsList;
+
+		for (var i = 0, il = groupList.length; i < il; ++i) {
+			var group = groupList[i],
 				verts = group.faces3.length * 3 + group.faces4.length * 4;
 
 			group.__uvArray = new Float32Array(verts * 2);
@@ -3364,151 +3401,9 @@ var hemi = (function(hemi) {
 		}
 
 		geometry.__dirtyUvs = true;
-	};
+	}
 
-	/**
-	 * Move all of the children and shapes off of the given foster Transform and
-	 * back to the original parent Transform. Destroy the foster Transform
-	 *
-	 * @param {o3d.Transform} transform the foster Transform previously created
-	 * @return {o3d.Transform} the original parent Transform
-	 */
-	hemi.utils.unfosterTransform = function(transform) {
-		var children = transform.children,
-			shapes = transform.shapes,
-			tParent = transform.parent;
-
-		while (children.length > 0) {
-			children[0].parent = tParent;
-		}
-
-		while (shapes.length > 0) {
-			var shape = shapes[0];
-			tParent.addShape(shape);
-			transform.removeShape(shape);
-		}
-
-		transform.parent = null;
-		hemi.core.mainPack.removeObject(transform);
-		return tParent;
-	};
-	
-	/**
-	 * Rotate the transform by the given angle along the given world space axis.
-	 *
-	 * @param {THREE.Vector3} axis rotation axis defined as an XYZ vector
-	 * @param {number} angle amount to rotate by in radians
-	 * @param {THREE.Object3D} transform the transform to rotate
-	 */
-	hemi.utils.worldRotate = function(axis, angle, transform) {
-		var iW = new THREE.Matrix4().getInverse(transform.matrixWorld),
-			lA = hemi.utils.transformDirection(iW, axis);
-
-		hemi.utils.axisRotate(lA, angle, transform);
-	};
-	
-	/**
-	 * Scale the transform by the given scale amounts in world space.
-	 *
-	 * @param {THREE.Vector3} scale scale factors defined as an XYZ vector
-	 * @param {THREE.Object3D} transform the transform to scale
-	 */
-	hemi.utils.worldScale = function(scale, transform) {
-		var matrix3x3 = THREE.Matrix4.makeInvert3x3(transform.parent.matrixWorld);
-		transform.scale.multiplySelf(hemi.utils.multiplyVector3(matrix3x3, scale.clone()));
-		transform.updateMatrix();
-	};
-	
-	/**
-	 * Translate the transform by the given world space vector.
-	 *
-	 * @param {THREE.Vector3} v XYZ vector to translate by
-	 * @param {THREE.Object3D} transform the transform to translate
-	 */
-	hemi.utils.worldTranslate = function(v, transform) {
-		var iW = new THREE.Matrix4().getInverse(transform.matrixWorld),
-			lV = hemi.utils.transformDirection(iW, v);
-		
-		transform.translateX(lV.x);
-		transform.translateY(lV.y);
-		transform.translateZ(lV.z);
-		transform.updateMatrix();
-	};
-
-	/**
-	 * @param {THREE.Vector3} axis rotation axis defined as an XYZ vector
-	 * @param {number} angle amount to rotate by in radians
-	 * @param {THREE.Object3D} transform the transform to rotate
-	*/
-	hemi.utils.axisRotate = function(axis, angle, transform) {
-		if (!transform.useQuaternion) {
-			transform.useQuaternion = true;
-			transform.quaternion.setFromEuler(THREE.Vector3(hemi.utils.radToDeg(transform.rotation.x),
-			 hemi.utils.radToDeg(transform.rotation.y),
-			 hemi.utils.radToDeg(transform.rotation.z)));
-		}						
-		transform.quaternion = new THREE.Quaternion().setFromAxisAngle(axis, angle).multiplySelf(transform.quaternion);
-		transform.updateMatrix();
-	};
-
-	/**
-	 * Return the Object3D to the identity matrix
-	 *
-	 * @param {THREE.Object3D} object3D the Object3D to modify
-	 */
-    hemi.utils.identity = function(object3d) {
-        object3d.position = new THREE.Vector3(0, 0, 0);
-        object3d.rotation = new THREE.Vector3(0, 0, 0);
-        object3d.scale = new THREE.Vector3(1, 1, 1);
-        object3d.updateMatrix();
-    };
-
-	/**
-	 * Get all of the child Object3Ds of an Object3D
-	 *
-	 * @param {THREE.Object3D} object3D The parent of the Object3Ds to find
-	 * @param {Object3D[]} an array where the child Object3Ds will be placed 
-	 */
-    hemi.utils.getChildren = function(parent, returnObjs) {
-		for (var i = 0; i < parent.children.length; ++i) {
-			var child = parent.children[i];
-			returnObjs.push(child);
-			hemi.utls.getChildren(child, returnObjs);
-		}
-	};
-
-
-	/**
-	 * Takes a 4-by-4 matrix and a vector with 3 entries, interprets the vector as a
-	 * direction, transforms that direction by the matrix, and returns the result;
-	 * assumes the transformation of 3-dimensional space represented by the matrix
-	 * is parallel-preserving, i.e. any combination of rotation, scaling and
-	 * translation, but not a perspective distortion. Returns a vector with 3
-	 * entries.
-	 * @param {THREE.Matrix4} m The matrix.
-	 * @param {THREE.Vector3} v The direction.
-	 * @return {THREE.Vector3} The transformed direction.
-	 */
-	hemi.utils.transformDirection = function(m, v) {
-	  return new THREE.Vector3(v.x * m.n11 + v.y * m.n21 + v.z * m.n31,
-	    v.x * m.n12 + v.y * m.n22 + v.z * m.n32,
-	    v.x * m.n13 + v.y * m.n23 + v.z * m.n33);
-	};
-
-
-	hemi.utils.multiplyVector3 = function (matrix, vector) {
-
-		var vx = vector.x, vy = vector.y, vz = vector.z;
-
-		vector.x = matrix.m[0] * vx + matrix.m[3] * vy + matrix.m[6] * vz;
-		vector.y = matrix.m[1] * vx + matrix.m[4] * vy + matrix.m[7] * vz;
-		vector.z = matrix.m[2] * vx + matrix.m[5] * vy + matrix.m[8] * vz;
-
-		return vector;
-	};
-
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -6677,7 +6572,7 @@ var hemi = (function(hemi) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/*
-	 * Perform clean up on the Transform/Mesh
+	 * Perform clean up on the Transform/Mesh.
 	 */
 	function _clean() {
 		this.parent.remove(this);
@@ -6685,6 +6580,21 @@ var hemi = (function(hemi) {
 		for (var i = 0, il = this.children.length; i < il; ++i) {
 			this.children[i].cleanup();
 		}
+	}
+
+	/**
+	 * Get all of the children, grandchildren etc of the Transform/Mesh.
+	 */
+	function _getAllChildren(opt_arr) {
+		opt_arr = opt_arr || [];
+
+		for (var i = 0, il = this.children.length; i < il; ++i) {
+			var child = this.children[i];
+			opt_arr.push(child);
+			child.getAllChildren(opt_arr);
+		}
+
+		return opt_arr;
 	}
 
 	/*
@@ -6755,6 +6665,14 @@ var hemi = (function(hemi) {
 	Transform.prototype._octane = octaneProps;
 
 	/**
+	 * Get all of the child Transforms that are under the Transform.
+	 *
+	 * @param {hemi.Transform[]} opt_arr optional array to place Transforms in
+	 * @return {hemi.Transform[]} array of all child/grandchild Transforms
+	 */
+	Transform.prototype.getAllChildren = _getAllChildren;
+
+	/**
 	 * Use the given Object3D to initialize properties.
 	 * 
 	 * @param {THREE.Object3D} obj Object3D to use to initialize properties
@@ -6811,6 +6729,14 @@ var hemi = (function(hemi) {
 	};
 
 	Mesh.prototype._octane = octaneProps;
+
+	/**
+	 * Get all of the child Transforms that are under the Mesh.
+	 *
+	 * @param {hemi.Transform[]} opt_arr optional array to place Transforms in
+	 * @return {hemi.Transform[]} array of all child/grandchild Transforms
+	 */
+	Mesh.prototype.getAllChildren = _getAllChildren;
 
 	Mesh.prototype.identity = _identity;
 
@@ -7327,7 +7253,7 @@ var hemi = (function(hemi) {
 		var newTilt = this.panTilt.rotation.x + tilt;
 
 		this.panTilt.rotation.y += pan;
-		this.panTilt.rotation.x = newTilt >= this.tiltMax ? this.tiltMax : (newTilt <= this.tiltMin ? this.tiltMin : newTilt);
+		this.panTilt.rotation.x = hemi.utils.clamp(newTilt, this.tiltMin, this.tiltMax);
 		this.panTilt.updateMatrix();
 		updateCamera.call(this);
 		return this;
@@ -7477,7 +7403,7 @@ var hemi = (function(hemi) {
 	 * @param {number} max zoom-out limit (in radians)
 	 * @return {hemi.Camera} this Camera (for easy chaining)
 	 */
-	Camera.prototype.setZoomLimits = function(min,max) {
+	Camera.prototype.setZoomLimits = function(min, max) {
 		this.fov.min = min;
 		this.fov.max = max;
 
@@ -11908,8 +11834,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 	 */
 	ManipulatorBase.prototype.containsTransform = function(transform) {
 		for (var i = 0; i < this.transformObjs.length; i++) {
-			var children = [];
-			hemi.utils.getChildren(this.transformObjs[i], children);
+			var children = this.transformObjs[i].getAllChildren();
+
 			for (var j = 0; j < children.length; j++) {
 				if (transform.id === children[j].id) {
 					return true;

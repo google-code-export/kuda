@@ -85,8 +85,8 @@
 	 */
 	ManipulatorBase.prototype.containsTransform = function(transform) {
 		for (var i = 0; i < this.transformObjs.length; i++) {
-			var children = [];
-			hemi.utils.getChildren(this.transformObjs[i], children);
+			var children = this.transformObjs[i].getAllChildren();
+
 			for (var j = 0; j < children.length; j++) {
 				if (transform.id === children[j].id) {
 					return true;

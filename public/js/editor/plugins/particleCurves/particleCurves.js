@@ -356,7 +356,7 @@
 		
 		updateSystem: function(param, value) {
 			if (this.currentSystem) {
-				var method = this.currentSystem['set' + param.capitalize()];
+				var method = this.currentSystem['set' + hemi.utils.capitalize(param)];
 				method.apply(this.currentSystem, [value]);
 			}
 		},
