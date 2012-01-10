@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 	/**
 	 * @namespace A module for managing the string literals for Message types.
 	 * @example
@@ -242,5 +242,4 @@ var hemi = (function(hemi) {
 		visible: 'hemi.visible'
 	};
 
-	return hemi;
-})(hemi || {});
+})();

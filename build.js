@@ -158,6 +158,7 @@ var uglifyHemi = function(src, dst) {
 					'hemi/particles.min.js',
 				],
 				moduleFiles: [
+					'hemi/core.js',
 					'hemi/utils/inheritance.js',
 					'hemi/utils/hashtable.js',
 					'hemi/utils/jsUtils.js',
@@ -167,7 +168,6 @@ var uglifyHemi = function(src, dst) {
 					'hemi/utils/transformUtils.js',
 					'hemi/msg.js',
 					'hemi/console.js',
-					'hemi/core.js',
 					'hemi/loader.js',
 					//'hemi/accessibility.js',
 					'hemi/world.js',

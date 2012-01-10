@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Timer class
@@ -165,5 +165,4 @@ var hemi = (function(hemi) {
 		});
 	}
 
-	return hemi;
-})(hemi || {});
+})();

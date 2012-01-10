@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Loop class
@@ -253,21 +253,20 @@ var hemi = (function(hemi) {
 	 * Check if the current time of the AnimationGroup needs to be reset by any of its Loops. If a
 	 * Loop resets the current time, increment that Loop's iteration counter.
 	 */
-	var checkLoops = function() {
-			for (var i = 0, il = this.loops.length; i < il; ++i) {
-				var loop = this.loops[i];
-				
-				if (loop._current !== loop.iterations && this.currentTime >= loop.stopTime) {
-					this.currentTime = loop.startTime;
-					loop._current++;
-				}
+	function checkLoops() {
+		for (var i = 0, il = this.loops.length; i < il; ++i) {
+			var loop = this.loops[i];
+			
+			if (loop._current !== loop.iterations && this.currentTime >= loop.stopTime) {
+				this.currentTime = loop.startTime;
+				loop._current++;
 			}
-		};
+		}
+	};
 
 	hemi.makeCitizen(AnimationGroup, 'hemi.AnimationGroup', {
 		cleanup: AnimationGroup.prototype._clean,
 		toOctane: AnimationGroup.prototype._octane
 	});
 
-	return hemi;
-})(hemi || {});
+})();

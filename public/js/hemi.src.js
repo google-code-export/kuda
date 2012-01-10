@@ -461,33 +461,24 @@ var Hashtable = (function() {
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+ var hemi = hemi || {};
 
 /**
- * @fileoverview This file contains various functions and classes for rendering
- * gpu based particles.
+ * @fileoverview This file contains various functions and classes for rendering gpu based particles.
  */
-var hemi = (function(hemi) {
+(function() {
 	/**
-	 * A Module with various GPU particle functions and classes.
-	 * Note: GPU particles have the issue that they are not sorted per particle
-	 * but rather per emitter.
-	 * @namespace
+	 * @namespace A Module with various GPU particle functions and classes.
+	 * Note: GPU particles have the issue that they are not sorted per particle but rather per
+	 * emitter.
 	 */
 	hemi.particles = hemi.particles || {};
 
-// Utilities
-	var convertToPixels = function(values) {
-			var pixels = new Uint8Array(values.length),
-				pixel;
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Particle shader code
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-			for (var i = 0; i < values.length; ++i) {
-				pixel = values[i] * 256.0;
-				pixels[i] = pixel > 255 ? 255 : pixel < 0 ? 0 : pixel;
-			}
-
-			return pixels;
-		},
-		SHADERS = {
+	var SHADERS = {
 			particle3d: {
 				attributes: {
 					uvLifeTimeFrameStart: { type: 'v4', value: [] },
@@ -727,6 +718,10 @@ var hemi = (function(hemi) {
 			[-0.5, +0.5]
 		];
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// System class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	 * An Object to manage Particles.
 	 * You only need one of these to run multiple emitters of different types
@@ -825,6 +820,10 @@ var hemi = (function(hemi) {
 			this.emitters[i]._timeParam.value += delta;
 		}
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Spec class
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	* A particle Spec specifies how to emit particles.
@@ -1040,6 +1039,10 @@ var hemi = (function(hemi) {
 		this.orientation = [0, 0, 0, 1];
 	};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Emitter class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	* A ParticleEmitter
 	* @constructor
@@ -1203,6 +1206,10 @@ var hemi = (function(hemi) {
 		return new hemi.particles.OneShot(this, opt_parent);
 	};
 
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// OneShot class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
 	/**
 	* An object to manage a particle emitter instance as a one shot. Examples of
 	* one shot effects are things like an explosion, some fireworks.
@@ -1250,6 +1257,10 @@ var hemi = (function(hemi) {
 		this._transform.visible = true;
 		this._timeOffsetParam.value = this._emitter._timeParam.value;
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Trail class
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	* A type of emitter to use for particle effects that leave trails like exhaust.
@@ -1310,175 +1321,519 @@ var hemi = (function(hemi) {
 
 // Private functions
 
-		/**
-		* Allocates particles.
-		* 
-		* @param {number} numParticles Number of particles to allocate.
-		*/
-	var allocateParticles = function(numParticles) {
-			for (var i = 0; i < numParticles; ++i) {
-				for (var j = 0; j < 4; ++j) {
-					this.shape.vertices.push(new THREE.Vertex());
-				}
-
-				var index = i * 4;
-				this.shape.faces.push(new THREE.Face3(index, index + 1, index + 2));
-				this.shape.faces.push(new THREE.Face3(index, index + 2, index + 3));
-			}
-		},
-
-		/**
-		* Creates particles.
-		*  
-		* @param {number} firstParticleIndex Index of first particle to create.
-		* @param {number} numParticles The number of particles to create.
-		* @param {hemi.particles.Spec} parameters The parameters for the
-		*     emitter.
-		* @param {function(number, hemi.particles.Spec): void} opt_paramSetter A
-		*     function that is called for each particle to allow it's parameters to
-		*     be adjusted per particle. The number is the index of the particle
-		*     being created, in other words, if numParticles is 20 this value will
-		*     be 0 to 19. The ParticleSpec is a spec for this particular particle.
-		*     You can set any per particle value before returning.
-		*/
-		createParticles = function(firstParticleIndex, numParticles, parameters, opt_paramSetter) {
-			var attributes = this.material.attributes,
-				uniforms = this.material.uniforms,
-				uvLifeTimeFrameStart = attributes.uvLifeTimeFrameStart;
-				positionStartTime = attributes.positionStartTime;
-				velocityStartSize = attributes.velocityStartSize;
-				accelerationEndSize = attributes.accelerationEndSize;
-				spinStartSpinSpeed = attributes.spinStartSpinSpeed;
-				orientation = attributes.orientation;
-				colorMult = attributes.colorMult,
-				wv = parameters.worldVelocity,
-				wa = parameters.worldAcceleration,
-				random = this._particleSystem._randomFunction,
-
-				plusMinus = function(range) {
-					return (random() - 0.5) * range * 2;
-				},
-
-				plusMinusVector = function(v, range) {
-					var r = [];
-
-					for (var i = 0, il = v.length; i < il; ++i) {
-						r[i] = v[i] + plusMinus(range[i]);
-					}
-
-					return r;
-				};
-
-			// Set the globals.
-			uniforms.colorSampler.texture = this._colorTexture;
-			uniforms.rampSampler.texture = this._rampTexture;
-			uniforms.timeRange.value = parameters.timeRange;
-			uniforms.numFrames.value = parameters.numFrames;
-			uniforms.frameDuration.value = parameters.frameDuration;
-			uniforms.worldVelocity.value.set(wv[0], wv[1], wv[2]);
-			uniforms.worldAcceleration.value.set(wa[0], wa[1], wa[2]);
-
-			if (parameters.billboard) {
-				uniforms.viewInverse.value = this._camera.matrixWorld;
+	/*
+	 * Allocates particles.
+	 * 
+	 * @param {number} numParticles Number of particles to allocate.
+	 */
+	function allocateParticles(numParticles) {
+		for (var i = 0; i < numParticles; ++i) {
+			for (var j = 0; j < 4; ++j) {
+				this.shape.vertices.push(new THREE.Vertex());
 			}
 
-			for (var ii = 0; ii < numParticles; ++ii) {
-				if (opt_paramSetter) {
-					opt_paramSetter(ii, parameters);
+			var index = i * 4;
+			this.shape.faces.push(new THREE.Face3(index, index + 1, index + 2));
+			this.shape.faces.push(new THREE.Face3(index, index + 2, index + 3));
+		}
+	}
+
+	/*
+	 * Creates particles.
+	 *  
+	 * @param {number} firstParticleIndex Index of first particle to create.
+	 * @param {number} numParticles The number of particles to create.
+	 * @param {hemi.particles.Spec} parameters The parameters for the emitter.
+	 * @param {function(number, hemi.particles.Spec): void} opt_paramSetter A function that is
+	 *     called for each particle to allow it's parameters to be adjusted per particle. The number
+	 *     is the index of the particle being created, in other words, if numParticles is 20 this
+	 *     value will be 0 to 19. The ParticleSpec is a spec for this particular particle. You can
+	 *     set any per particle value before returning.
+	 */
+	function createParticles(firstParticleIndex, numParticles, parameters, opt_paramSetter) {
+		var attributes = this.material.attributes,
+			uniforms = this.material.uniforms,
+			uvLifeTimeFrameStart = attributes.uvLifeTimeFrameStart,
+			positionStartTime = attributes.positionStartTime,
+			velocityStartSize = attributes.velocityStartSize,
+			accelerationEndSize = attributes.accelerationEndSize,
+			spinStartSpinSpeed = attributes.spinStartSpinSpeed,
+			orientation = attributes.orientation,
+			colorMult = attributes.colorMult,
+			wv = parameters.worldVelocity,
+			wa = parameters.worldAcceleration,
+			random = this._particleSystem._randomFunction,
+
+			plusMinus = function(range) {
+				return (random() - 0.5) * range * 2;
+			},
+
+			plusMinusVector = function(v, range) {
+				var r = [];
+
+				for (var i = 0, il = v.length; i < il; ++i) {
+					r[i] = v[i] + plusMinus(range[i]);
 				}
 
-				var pLifeTime = parameters.lifeTime,
-					pStartTime = (parameters.startTime === null) ?
-						(ii * pLifeTime / numParticles) : parameters.startTime,
-					pFrameStart =
-						parameters.frameStart + plusMinus(parameters.frameStartRange),
-					pPosition = plusMinusVector(parameters.position, parameters.positionRange),
-					pVelocity = plusMinusVector(parameters.velocity, parameters.velocityRange),
-					pAcceleration = plusMinusVector(parameters.acceleration, parameters.accelerationRange),
-					pColorMult =plusMinusVector(parameters.colorMult, parameters.colorMultRange),
-					pSpinStart =
-						parameters.spinStart + plusMinus(parameters.spinStartRange),
-					pSpinSpeed =
-						parameters.spinSpeed + plusMinus(parameters.spinSpeedRange),
-					pStartSize =
-						parameters.startSize + plusMinus(parameters.startSizeRange),
-					pEndSize = parameters.endSize + plusMinus(parameters.endSizeRange),
-					pOrientation = parameters.orientation;
+				return r;
+			};
 
-				// make each corner of the particle.
-				for (var jj = 0; jj < 4; ++jj) {
-					var offset = ii * 4 + jj + firstParticleIndex;
+		// Set the globals.
+		uniforms.colorSampler.texture = this._colorTexture;
+		uniforms.rampSampler.texture = this._rampTexture;
+		uniforms.timeRange.value = parameters.timeRange;
+		uniforms.numFrames.value = parameters.numFrames;
+		uniforms.frameDuration.value = parameters.frameDuration;
+		uniforms.worldVelocity.value.set(wv[0], wv[1], wv[2]);
+		uniforms.worldAcceleration.value.set(wa[0], wa[1], wa[2]);
 
-					uvLifeTimeFrameStart.value[offset] = new THREE.Vector4(
-						PARTICLE_CORNERS[jj][0],
-						PARTICLE_CORNERS[jj][1],
-						pLifeTime,
-						pFrameStart);
+		if (parameters.billboard) {
+			uniforms.viewInverse.value = this._camera.matrixWorld;
+		}
 
-					positionStartTime.value[offset] =  new THREE.Vector4(
-						pPosition[0],
-						pPosition[1],
-						pPosition[2],
-						pStartTime);
-
-					velocityStartSize.value[offset] =  new THREE.Vector4(
-						pVelocity[0],
-						pVelocity[1],
-						pVelocity[2],
-						pStartSize);
-
-					accelerationEndSize.value[offset] =  new THREE.Vector4(
-						pAcceleration[0],
-						pAcceleration[1],
-						pAcceleration[2],
-						pEndSize);
-
-					spinStartSpinSpeed.value[offset] =  new THREE.Vector4(
-						pSpinStart,
-						pSpinSpeed,
-						0,
-						0);
-
-					colorMult.value[offset] =  new THREE.Vector4(
-						pColorMult[0],
-						pColorMult[1],
-						pColorMult[2],
-						pColorMult[3]);
-					
-					if (orientation) {
-						orientation.value[offset] =  new THREE.Vector4(
-							pOrientation[0],
-							pOrientation[1],
-							pOrientation[2],
-							pOrientation[3]);
-					}
-				}
+		for (var ii = 0; ii < numParticles; ++ii) {
+			if (opt_paramSetter) {
+				opt_paramSetter(ii, parameters);
 			}
 
-			uvLifeTimeFrameStart.needsUpdate = true;
-			positionStartTime.needsUpdate = true;
-			velocityStartSize.needsUpdate = true;
-			accelerationEndSize.needsUpdate = true;
-			spinStartSpinSpeed.needsUpdate = true;
-			colorMult.needsUpdate = true;
+			var pLifeTime = parameters.lifeTime,
+				pStartTime = (parameters.startTime === null) ?
+					(ii * pLifeTime / numParticles) : parameters.startTime,
+				pFrameStart =
+					parameters.frameStart + plusMinus(parameters.frameStartRange),
+				pPosition = plusMinusVector(parameters.position, parameters.positionRange),
+				pVelocity = plusMinusVector(parameters.velocity, parameters.velocityRange),
+				pAcceleration = plusMinusVector(parameters.acceleration, parameters.accelerationRange),
+				pColorMult =plusMinusVector(parameters.colorMult, parameters.colorMultRange),
+				pSpinStart =
+					parameters.spinStart + plusMinus(parameters.spinStartRange),
+				pSpinSpeed =
+					parameters.spinSpeed + plusMinus(parameters.spinSpeedRange),
+				pStartSize =
+					parameters.startSize + plusMinus(parameters.startSizeRange),
+				pEndSize = parameters.endSize + plusMinus(parameters.endSizeRange),
+				pOrientation = parameters.orientation;
 
-			if (orientation) orientation.needsUpdate = true;
-		},
+			// make each corner of the particle.
+			for (var jj = 0; jj < 4; ++jj) {
+				var offset = ii * 4 + jj + firstParticleIndex;
 
-		setupMaterial = function(parameters) {
-			this.validateParameters(parameters);
+				uvLifeTimeFrameStart.value[offset] = new THREE.Vector4(
+					PARTICLE_CORNERS[jj][0],
+					PARTICLE_CORNERS[jj][1],
+					pLifeTime,
+					pFrameStart);
 
-			var shader = SHADERS[parameters.billboard ? 'particle2d' : 'particle3d'];
+				positionStartTime.value[offset] =  new THREE.Vector4(
+					pPosition[0],
+					pPosition[1],
+					pPosition[2],
+					pStartTime);
 
-			this.material.attributes = THREE.UniformsUtils.clone(shader.attributes);
-			this.material.uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-			this.material.vertexShader = shader.vertexShader;
-			this.material.fragmentShader = shader.fragmentShader;
-			this._timeParam = this.material.uniforms.time;
-		};
+				velocityStartSize.value[offset] =  new THREE.Vector4(
+					pVelocity[0],
+					pVelocity[1],
+					pVelocity[2],
+					pStartSize);
 
-	return hemi;
-})(hemi || {});
+				accelerationEndSize.value[offset] =  new THREE.Vector4(
+					pAcceleration[0],
+					pAcceleration[1],
+					pAcceleration[2],
+					pEndSize);
+
+				spinStartSpinSpeed.value[offset] =  new THREE.Vector4(
+					pSpinStart,
+					pSpinSpeed,
+					0,
+					0);
+
+				colorMult.value[offset] =  new THREE.Vector4(
+					pColorMult[0],
+					pColorMult[1],
+					pColorMult[2],
+					pColorMult[3]);
+				
+				if (orientation) {
+					orientation.value[offset] =  new THREE.Vector4(
+						pOrientation[0],
+						pOrientation[1],
+						pOrientation[2],
+						pOrientation[3]);
+				}
+			}
+		}
+
+		uvLifeTimeFrameStart.needsUpdate = true;
+		positionStartTime.needsUpdate = true;
+		velocityStartSize.needsUpdate = true;
+		accelerationEndSize.needsUpdate = true;
+		spinStartSpinSpeed.needsUpdate = true;
+		colorMult.needsUpdate = true;
+
+		if (orientation) orientation.needsUpdate = true;
+	}
+
+	function setupMaterial(parameters) {
+		this.validateParameters(parameters);
+
+		var shader = SHADERS[parameters.billboard ? 'particle2d' : 'particle3d'];
+
+		this.material.attributes = THREE.UniformsUtils.clone(shader.attributes);
+		this.material.uniforms = THREE.UniformsUtils.clone(shader.uniforms);
+		this.material.vertexShader = shader.vertexShader;
+		this.material.fragmentShader = shader.fragmentShader;
+		this._timeParam = this.material.uniforms.time;
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function convertToPixels(values) {
+		var pixels = new Uint8Array(values.length),
+			pixel;
+
+		for (var i = 0; i < values.length; ++i) {
+			pixel = values[i] * 256.0;
+			pixels[i] = pixel > 255 ? 255 : pixel < 0 ? 0 : pixel;
+		}
+
+		return pixels;
+	}
+
+})();
+/*
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+/**
+ * Create the requestAnimationFrame function if needed. Each browser implements it as a different
+ * name currently. Default to a timeout if not supported. Credit to
+ * http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+ * and others...
+ */
+if (!window.requestAnimationFrame) {
+	window.requestAnimationFrame = (function() {
+		return window.mozRequestAnimationFrame ||
+			window.webkitRequestAnimationFrame ||
+			window.oRequestAnimationFrame      ||
+			window.msRequestAnimationFrame     ||
+			function(callback, element) {
+				window.setTimeout(callback, 1000 / 60);
+			};
+	})();
+}
+
+/**
+ * @namespace The core Hemi library used by Kuda.
+ * @version 2.0.0-beta
+ */
+ var hemi = hemi || {};
+
+(function() {
+
+		/*
+		 * The function to pass errors thrown using hemi.error. Default is to throw a new Error.
+		 * @type function(string):void
+		 */
+	var errCallback = null,
+		/*
+		 * The current frames per second that are enforced by Hemi.
+		 * @type number
+		 * @default 60
+		 */
+		fps = 60,
+		/*
+		 * Cached inverse of the frames per second.
+		 * @type number
+		 */
+		hz = 1 / fps,
+		/*
+		 * Cached inverse of the frames per millisecond. (Internal time is in milliseconds)
+		 * @type number
+		 */
+		hzMS = hz * 1000,
+		/*
+		 * The time of the last render in milliseconds.
+		 * @type {number}
+		 */
+		lastRenderTime = 0,
+		/*
+		 * Array of render listener objects that all have an onRender function.
+		 * @type Object[]
+		 */
+		renderListeners = [],
+		/*
+		 * The index of the render listener currently running onRender().
+		 * @type number
+		 */
+		renderNdx = -1;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Constants
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Conversion factor for degrees to radians.
+	 * @type number
+	 * @default Math.PI / 180
+	 */
+	hemi.DEG_TO_RAD = Math.PI / 180;
+
+	/**
+	 * Half of Pi
+	 * @type number
+	 * @default Math.PI / 2
+	 */
+	hemi.HALF_PI = Math.PI / 2;
+
+	/**
+	 * Conversion factor for radians to degrees.
+	 * @type number
+	 * @default 180 / Math.PI
+	 */
+	hemi.RAD_TO_DEG = 180 / Math.PI;
+
+	/**
+	 * The version of Hemi released: TBD
+	 * @constant
+	 */
+	hemi.version = '2.0.0-beta';
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * The list of Clients being rendered on the current webpage.
+	 */
+	hemi.clients = [];
+
+	/**
+	 * Add the given render listener to hemi. A listener must implement the onRender function.
+	 * 
+	 * @param {Object} listener the render listener to add
+	 */
+	hemi.addRenderListener = function(listener) {
+		if (renderListeners.indexOf(listener) === -1) {
+			renderListeners.push(listener);
+		}
+	};
+
+	/**
+	 * Pass the given error message to the registered error handler or throw an Error if no handler
+	 * is registered.
+	 * 
+	 * @param {string} msg error message
+	 */
+	hemi.error = function(msg) {
+		if (errCallback) {
+			errCallback(msg);
+		} else {
+			var err = new Error(msg);
+			err.name = 'HemiError';
+			throw err;
+		}
+	};
+
+	/**
+	 * Get the current frames-per-second that will be enforced for rendering.
+	 * 
+	 * @return {number} current frames-per-second
+	 */
+	hemi.getFPS = function() {
+		return fps;
+	};
+
+	/**
+	 * Get the time that the specified animation frame occurs at.
+	 *
+	 * @param {number} frame frame number to get the time for
+	 * @return {number} time that the frame occurs at in seconds
+	 */
+	hemi.getTimeOfFrame = function(frame) {
+		return frame * hz;
+	};
+
+	/**
+	 * Initialize hemi features. This does not need to be called if hemi.makeClients() is called,
+	 * but it can be used on its own if you don't want to use hemi's client system.
+	 */
+	hemi.init = function() {
+		hemi.console.setEnabled(true);
+		window.addEventListener('resize', resize, false);
+		lastRenderTime = new Date().getTime();
+		render(true);
+	};
+
+	/**
+	 * Search the webpage for any divs with an ID starting with "kuda" and create a Client and
+	 * canvas within each div that will be rendered to using WebGL.
+	 */
+	hemi.makeClients = function() {
+		var elements = document.getElementsByTagName('div'),
+			numClients = hemi.clients.length;
+		
+		for (var i = 0, il = elements.length; i < il; ++i) {
+			var element = elements[i];
+
+			if (element.id && element.id.match(/^kuda/)) {
+				var renderer = getRenderer(element);
+
+				if (renderer) {
+					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true);
+
+					element.appendChild(renderer.domElement);
+					client.setRenderer(renderer);
+					hemi.hudManager.addClient(client);
+				}
+			}
+		}
+
+		hemi.init();
+		return hemi.clients;
+	};
+
+	/**
+	 * Remove the given render listener from hemi.
+	 * 
+	 * @param {Object} listener the render listener to remove
+	 * @return {Object} the removed listener if successful or null
+	 */
+	hemi.removeRenderListener = function(listener) {
+		var ndx = renderListeners.indexOf(listener),
+			retVal = null;
+
+		if (ndx !== -1) {
+			retVal = renderListeners.splice(ndx, 1)[0];
+
+			if (ndx <= renderNdx) {
+				// Adjust so that the next render listener will not get skipped.
+				renderNdx--;
+			}
+		}
+
+		return retVal;
+	};
+
+	/**
+	 * Set the given function as the error handler for Hemi errors.
+	 * 
+	 * @param {function(string):void} callback error handling function
+	 */
+	hemi.setErrorCallback = function(callback) {
+		errCallback = callback;
+	};
+
+	/**
+	 * Set the current frames-per-second that will be enforced for rendering.
+	 * 
+	 * @param {number} newFps frames-per-second to enforce
+	 */
+	hemi.setFPS = function(newFps) {
+		fps = newFps;
+		hz = 1/fps;
+		hzMS = hz * 1000;
+	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Get the supported renderer for the browser (WebGL or canvas) If WebGL is not supported,
+	 * display a warning message.
+	 * 
+	 * @param {Object} element DOM element to add warning message to if necessary
+	 * @return {THREE.WebGLRenderer} the supported renderer or null
+	 */
+	function getRenderer(element) {
+		var renderer = null;
+
+		if (Detector.webgl) {
+			renderer = new THREE.WebGLRenderer();
+		} else {
+			if (Detector.canvas) {
+				renderer = new THREE.CanvasRenderer();
+			}
+
+			Detector.addGetWebGLMessage({
+				id: 'warn_' + element.id,
+				parent: element
+			});
+
+			(function(elem) {
+				setTimeout(function() {
+					var msg = document.getElementById('warn_' + elem.id);
+					elem.removeChild(msg);
+				}, 5000);
+			})(element);
+		}
+
+		return renderer;
+	}
+
+	/*
+	 * The render function to be executed on each animation frame. Calls onRender for each render
+	 * listener and then for each Client.
+	 * 
+	 * @param {boolean} update flag to force Clients to render
+	 */
+	function render(update) {
+		requestAnimationFrame(render);
+
+		var renderTime = new Date().getTime(),
+			event = {
+				elapsedTime: hz
+			};
+
+		while (renderTime - lastRenderTime > hzMS) {
+			update = true;
+			lastRenderTime += hzMS;
+
+			for (renderNdx = 0; renderNdx < renderListeners.length; ++renderNdx) {
+				renderListeners[renderNdx].onRender(event);
+			}
+		}
+
+		renderNdx = -1;
+
+		if (update) {
+			for (var i = 0, il = hemi.clients.length; i < il; ++i) {
+				hemi.clients[i].onRender(event);
+			}
+		}
+	}
+
+	/*
+	 * Window resize handler function.
+	 */
+	function resize() {
+		for (var i = 0; i < hemi.clients.length; ++i) {
+			hemi.clients[i]._resize();
+		}
+	}
+
+})();
 /* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
 The MIT License (MIT)
@@ -3176,7 +3531,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 	/**
 	 * @namespace A module for managing the string literals for Message types.
 	 * @example
@@ -3398,8 +3753,7 @@ var hemi = (function(hemi) {
 		visible: 'hemi.visible'
 	};
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -3422,98 +3776,13 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
-
-	/**
-	 * @namespace A module for displaying log, warning, and error messages to a console element on a
-	 * webpage.
-	 */
-	hemi.console = hemi.console || {};
+(function() {
 
 		/*
-		 * Get a timestamp for the current time.
-		 * 
-		 * @return {string} the current timestamp
+		 * This function is aliased to the proper test function for the console's current priority
+		 * level.
 		 */
-	var getTime = function() {
-			var currentTime = new Date(),
-				hours = currentTime.getHours(),
-				minutes = currentTime.getMinutes(),
-				seconds = currentTime.getSeconds();
-
-			hours = hours < 10 ? '0' + hours : '' + hours;
-			minutes = minutes < 10 ? ':0' + minutes : ':' + minutes;
-			seconds = seconds < 10 ? ':0' + seconds : ':' + seconds;
-
-			return hours + minutes + seconds;
-		},
-		/*
-		 * The actual function for logging a message.
-		 * 
-		 * @param {string} msg the message to log
-		 * @param {string} level the priority level of the message
-		 */
-		logMessage = function(msg, level) {
-			level = level || hemi.console.LOG;
-
-			if (testPriority(level)) {
-				var fullMsg = level + ':\t' + msg;
-
-				if (showTime) {
-					fullMsg = getTime() + '\t' + fullMsg;
-				}
-
-				output(fullMsg);
-			}
-		},
-		/*
-		 * The default method for displaying a log message.
-		 * 
-		 * @param {string} msg the full log message to display
-		 */
-		output = function(msg) {
-			try {
-				console.log(msg);
-			} catch(e) { }
-		},
-		/*
-		 * Test if the given priority level for a message is high enough to display when the console
-		 * is set to LOG priority.
-		 * 
-		 * @param {string} level the priority level to check
-		 * @return {boolean} true if the level is high enough to display
-		 */
-		logTest = function(level) {
-			return level === hemi.console.LOG ||
-			       level === hemi.console.WARN ||
-			       level === hemi.console.ERR;
-		},
-		/*
-		 * Test if the given priority level for a message is high enough to display when the console
-		 * is set to WARN priority.
-		 * 
-		 * @param {string} level the priority level to check
-		 * @return {boolean} true if the level is high enough to display
-		 */
-		warnTest = function(level) {
-			return level === hemi.console.WARN ||
-			       level === hemi.console.ERR;
-		},
-		/*
-		 * Test if the given priority level for a message is high enough to display when the console
-		 * is set to ERR priority.
-		 * 
-		 * @param {string} level the priority level to check
-		 * @return {boolean} true if the level is high enough to display
-		 */
-		errTest = function(level) {
-			return level === hemi.console.ERR;
-		},	
-		/*
-		 * This function is aliased to the proper test function for the console's
-		 * current priority level.
-		 */
-		testPriority = logTest,
+	var testPriority = logTest,
 		/*
 		 * Flag indicating if the console should display log messages.
 		 * @type boolean
@@ -3524,6 +3793,16 @@ var hemi = (function(hemi) {
 		 * @type boolean
 		 */
 		showTime = true;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Constants
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @namespace A module for displaying log, warning, and error messages to a console element on a
+	 * webpage.
+	 */
+	hemi.console = hemi.console || {};
 
 	/**
 	 * The priority level for an error message.
@@ -3545,6 +3824,10 @@ var hemi = (function(hemi) {
 	 * @constant
 	 */
 	hemi.console.LOG = 'LOG';
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
 	 * Log the given message if the console is enabled or ignore the message if the console is
@@ -3603,8 +3886,96 @@ var hemi = (function(hemi) {
 		showTime = show;
 	};
 
-	return hemi;
-})(hemi || {});
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Test if the given priority level for a message is high enough to display when the console
+	 * is set to ERR priority.
+	 * 
+	 * @param {string} level the priority level to check
+	 * @return {boolean} true if the level is high enough to display
+	 */
+	function errTest(level) {
+		return level === hemi.console.ERR;
+	}
+
+	/*
+	 * Get a timestamp for the current time.
+	 * 
+	 * @return {string} the current timestamp
+	 */
+	function getTime() {
+		var currentTime = new Date(),
+			hours = currentTime.getHours(),
+			minutes = currentTime.getMinutes(),
+			seconds = currentTime.getSeconds();
+
+		hours = hours < 10 ? '0' + hours : '' + hours;
+		minutes = minutes < 10 ? ':0' + minutes : ':' + minutes;
+		seconds = seconds < 10 ? ':0' + seconds : ':' + seconds;
+
+		return hours + minutes + seconds;
+	}
+
+	/*
+	 * The actual function for logging a message.
+	 * 
+	 * @param {string} msg the message to log
+	 * @param {string} level the priority level of the message
+	 */
+	function logMessage(msg, level) {
+		level = level || hemi.console.LOG;
+
+		if (testPriority(level)) {
+			var fullMsg = level + ':\t' + msg;
+
+			if (showTime) {
+				fullMsg = getTime() + '\t' + fullMsg;
+			}
+
+			output(fullMsg);
+		}
+	}
+
+	/*
+	 * Test if the given priority level for a message is high enough to display when the console
+	 * is set to LOG priority.
+	 * 
+	 * @param {string} level the priority level to check
+	 * @return {boolean} true if the level is high enough to display
+	 */
+	function logTest(level) {
+		return level === hemi.console.LOG ||
+		       level === hemi.console.WARN ||
+		       level === hemi.console.ERR;
+	}
+
+	/*
+	 * The default method for displaying a log message.
+	 * 
+	 * @param {string} msg the full log message to display
+	 */
+	function output(msg) {
+		try {
+			console.log(msg);
+		} catch(e) { }
+	}
+
+	/*
+	 * Test if the given priority level for a message is high enough to display when the console
+	 * is set to WARN priority.
+	 * 
+	 * @param {string} level the priority level to check
+	 * @return {boolean} true if the level is high enough to display
+	 */
+	function warnTest(level) {
+		return level === hemi.console.WARN ||
+		       level === hemi.console.ERR;
+	}
+
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -3627,324 +3998,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/**
- * Create the requestAnimationFrame function if needed. Each browser implements it as a different
- * name currently. Default to a timeout if not supported. Credit to
- * http://paulirish.com/2011/requestanimationframe-for-smart-animating/
- * and others...
- */
-if (!window.requestAnimationFrame) {
-	window.requestAnimationFrame = (function() {
-		return window.mozRequestAnimationFrame ||
-			window.webkitRequestAnimationFrame ||
-			window.oRequestAnimationFrame      ||
-			window.msRequestAnimationFrame     ||
-			function(callback, element) {
-				window.setTimeout(callback, 1000 / 60);
-			};
-	})();
-}
-
-/**
- * @namespace The core Hemi library used by Kuda.
- * @version 2.0.0-beta
- */
-var hemi = (function(hemi) {
-
-		/*
-		 * Get the supported renderer for the browser (WebGL or canvas) If WebGL is not supported,
-		 * display a warning message.
-		 * 
-		 * @param {Object} element DOM element to add warning message to if necessary
-		 * @return {THREE.WebGLRenderer} the supported renderer or null
-		 */
-	var getRenderer = function(element) {
-			var renderer = null;
-
-			if (Detector.webgl) {
-				renderer = new THREE.WebGLRenderer();
-			} else {
-				if (Detector.canvas) {
-					renderer = new THREE.CanvasRenderer();
-				}
-
-				Detector.addGetWebGLMessage({
-					id: 'warn_' + element.id,
-					parent: element
-				});
-
-				(function(elem) {
-					setTimeout(function() {
-						var msg = document.getElementById('warn_' + elem.id);
-						elem.removeChild(msg);
-					}, 5000);
-				})(element);
-			}
-
-			return renderer;
-		},
-		/*
-		 * The render function to be executed on each animation frame. Calls onRender for each
-		 * render listener and then for each Client.
-		 * 
-		 * @param {boolean} update flag to force Clients to render
-		 */
-		render = function(update) {
-			requestAnimationFrame(render);
-
-			var renderTime = new Date().getTime(),
-				event = {
-					elapsedTime: hz
-				};
-
-			while (renderTime - lastRenderTime > hzMS) {
-				update = true;
-				lastRenderTime += hzMS;
-
-				for (renderNdx = 0; renderNdx < renderListeners.length; ++renderNdx) {
-					renderListeners[renderNdx].onRender(event);
-				}
-			}
-
-			renderNdx = -1;
-
-			if (update) {
-				for (var i = 0, il = hemi.clients.length; i < il; ++i) {
-					hemi.clients[i].onRender(event);
-				}
-			}
-		},
-		/*
-		 * Window resize handler function.
-		 */
-		resize = function() {
-			for (var i = 0; i < hemi.clients.length; ++i) {
-				hemi.clients[i]._resize();
-			}
-		},
-		/*
-		 * The function to pass errors thrown using hemi.error. Default is to throw a new Error.
-		 * @type function(string):void
-		 */
-		errCallback = null,
-		/*
-		 * The current frames per second that are enforced by Hemi.
-		 * @type number
-		 * @default 60
-		 */
-		fps = 60,
-		/*
-		 * Cached inverse of the frames per second.
-		 * @type number
-		 */
-		hz = 1 / fps,
-		/*
-		 * Cached inverse of the frames per millisecond. (Internal time is in milliseconds)
-		 * @type number
-		 */
-		hzMS = hz * 1000,
-		/*
-		 * The time of the last render in milliseconds.
-		 * @type {number}
-		 */
-		lastRenderTime = 0,
-		/*
-		 * Array of render listener objects that all have an onRender function.
-		 * @type Object[]
-		 */
-		renderListeners = [],
-		/*
-		 * The index of the render listener currently running onRender().
-		 * @type number
-		 */
-		renderNdx = -1;
-
-	// Useful constants to cache
-
-	/**
-	 * Conversion factor for degrees to radians.
-	 * @type number
-	 * @default Math.PI / 180
-	 */
-	hemi.DEG_TO_RAD = Math.PI / 180;
-
-	/**
-	 * Half of Pi
-	 * @type number
-	 * @default Math.PI / 2
-	 */
-	hemi.HALF_PI = Math.PI / 2;
-
-	/**
-	 * Conversion factor for radians to degrees.
-	 * @type number
-	 * @default 180 / Math.PI
-	 */
-	hemi.RAD_TO_DEG = 180 / Math.PI;
-
-	/**
-	 * The version of Hemi released: TBD
-	 * @constant
-	 */
-	hemi.version = '2.0.0-beta';
-	hemi.console.setEnabled(true);
-
-	/**
-	 * The list of Clients being rendered on the current webpage.
-	 */
-	hemi.clients = [];
-
-	/**
-	 * Add the given render listener to hemi. A listener must implement the onRender function.
-	 * 
-	 * @param {Object} listener the render listener to add
-	 */
-	hemi.addRenderListener = function(listener) {
-		if (renderListeners.indexOf(listener) === -1) {
-			renderListeners.push(listener);
-		}
-	};
-
-	/**
-	 * Pass the given error message to the registered error handler or throw an Error if no handler
-	 * is registered.
-	 * 
-	 * @param {string} msg error message
-	 */
-	hemi.error = function(msg) {
-		if (errCallback) {
-			errCallback(msg);
-		} else {
-			var err = new Error(msg);
-			err.name = 'HemiError';
-			throw err;
-		}
-	};
-
-	/**
-	 * Get the current frames-per-second that will be enforced for rendering.
-	 * 
-	 * @return {number} current frames-per-second
-	 */
-	hemi.getFPS = function() {
-		return fps;
-	};
-
-	/**
-	 * Get the time that the specified animation frame occurs at.
-	 *
-	 * @param {number} frame frame number to get the time for
-	 * @return {number} time that the frame occurs at in seconds
-	 */
-	hemi.getTimeOfFrame = function(frame) {
-		return frame * hz;
-	};
-
-	/**
-	 * Initialize hemi features. This does not need to be called if hemi.makeClients() is called,
-	 * but it can be used on its own if you don't want to use hemi's client system.
-	 */
-	hemi.init = function() {
-		window.addEventListener('resize', resize, false);
-		lastRenderTime = new Date().getTime();
-		render(true);
-	};
-
-	/**
-	 * Search the webpage for any divs with an ID starting with "kuda" and create a Client and
-	 * canvas within each div that will be rendered to using WebGL.
-	 */
-	hemi.makeClients = function() {
-		var elements = document.getElementsByTagName('div'),
-			numClients = hemi.clients.length;
-		
-		for (var i = 0, il = elements.length; i < il; ++i) {
-			var element = elements[i];
-
-			if (element.id && element.id.match(/^kuda/)) {
-				var renderer = getRenderer(element);
-
-				if (renderer) {
-					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true);
-
-					element.appendChild(renderer.domElement);
-					client.setRenderer(renderer);
-					hemi.hudManager.addClient(client);
-				}
-			}
-		}
-
-		hemi.init();
-		return hemi.clients;
-	};
-
-	/**
-	 * Remove the given render listener from hemi.
-	 * 
-	 * @param {Object} listener the render listener to remove
-	 * @return {Object} the removed listener if successful or null
-	 */
-	hemi.removeRenderListener = function(listener) {
-		var ndx = renderListeners.indexOf(listener),
-			retVal = null;
-
-		if (ndx !== -1) {
-			retVal = renderListeners.splice(ndx, 1)[0];
-
-			if (ndx <= renderNdx) {
-				// Adjust so that the next render listener will not get skipped.
-				renderNdx--;
-			}
-		}
-
-		return retVal;
-	};
-
-	/**
-	 * Set the given function as the error handler for Hemi errors.
-	 * 
-	 * @param {function(string):void} callback error handling function
-	 */
-	hemi.setErrorCallback = function(callback) {
-		errCallback = callback;
-	};
-
-	/**
-	 * Set the current frames-per-second that will be enforced for rendering.
-	 * 
-	 * @param {number} newFps frames-per-second to enforce
-	 */
-	hemi.setFPS = function(newFps) {
-		fps = newFps;
-		hz = 1/fps;
-		hzMS = hz * 1000;
-	};
-
-	return hemi;
-})(hemi || {});
-/*
- * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
- * The MIT License (MIT)
- * 
- * Copyright (c) 2011 SRI International
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
- * associated  documentation files (the "Software"), to deal in the Software without restriction,
- * including without limitation the rights to use, copy, modify, merge, publish, distribute,
- * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all copies or
- * substantial portions of the  Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
- * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
- * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
- * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
- */
-
-var hemi = (function(hemi) {
+(function() {
 
 	var colladaLoader = new THREE.ColladaLoader(),
 		resetCB = null,
@@ -4165,146 +4219,135 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+})();
 /*
-The MIT License (MIT)
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-var hemi = (function(hemi) {
-
-	var createClass = function(clsCon, clsName) {
-			var names = clsName.split('.'),
-				il = names.length - 1,
-				scope = window;
-
-			for (var i = 0; i < il; ++i) {
-				var name = names[i];
-
-				if (!scope[name]) {
-					scope[name] = {};
-				}
-
-				scope = scope[name];
-			}
-
-			scope[names[il]] = clsCon;
-		},
-
-		/*
-		 * Get the Citizen's id.
-		 * 
-		 * @return {number} the id
-		 */        
-        _getId = function() {
-			return this._worldId;
-        },
-
-		/*
-		 * Set the Citizen's id.
-		 * 
-		 * @param {number} id the id to set
-		 */
-        _setId = function(id) {
-			var oldId = this._worldId;
-			this._worldId = id;
-
-			if (oldId !== null) {
-				hemi.world.citizens.remove(oldId);
-				hemi.world.citizens.put(id, this);
-			}
-        },
-
-		/*
-		 * Send a Message with the given attributes from the Citizen to any
-		 * registered MessageTargets.
-		 * 
-		 * @param {string} type type of Message
-		 * @param {Object} data container for any and all information relevant
-		 *        to the Message
-		 */
-		send = function(type, data) {
-			hemi.dispatch.postMessage(this, type, data);
-		},
-
-		/*
-		 * Register the given handler to receive Messages of the specified type
-		 * from the Citizen. This creates a MessageTarget.
-		 * 
-		 * @param {string} type type of Message to handle
-		 * @param {Object} handler either a function or an object
-		 * @param {string} opt_func name of the function to call if handler is
-		 *     an object
-		 * @param {string[]} opt_args optional array of names of arguments to
-		 *     pass to the handler. Otherwise the entire Message is just passed
-		 *     in.
-		 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
-		 */
-		subscribe = function(type, handler, opt_func, opt_args) {
-			return hemi.dispatch.registerTarget(this._worldId, type, handler,
-				opt_func, opt_args);
-		},
-
-		/*
-		 * Register the given handler to receive Messages of all types from the
-		 * Citizen. This creates a MessageTarget.
-		 * 
-		 * @param {Object} handler either a function or an object
-		 * @param {string} opt_func name of the function to call if handler is
-		 *     an object
-		 * @param {string[]} opt_args optional array of names of arguments to
-		 *     pass to the handler. Otherwise the entire Message is just passed
-		 *     in.
-		 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
-		 */
-		subscribeAll = function(handler, opt_func, opt_args) {
-			return hemi.dispatch.registerTarget(this._worldId, hemi.dispatch.WILDCARD,
-				handler, opt_func, opt_args);
-		},
-
-		/*
-		 * Remove the given MessageTarget for Messages of the specified type for
-		 * the Citizen.
-		 * 
-		 * @param {hemi.dispatch.MessageTarget} target the MessageTarget to
-		 *     remove from the Dispatch
-		 * @param {string} opt_type Message type the MessageTarget was
-		 *     registered for
-		 * @return {hemi.dispatch.MessageTarget} the removed MessageTarget or
-		 *     null
-		 */
-		unsubscribe = function(target, opt_type) {
-			return hemi.dispatch.removeTarget(target, {
-				src: this._worldId,
-				msg: opt_type
-			});
-		},
+(function() {
 
 		/*
 		 * Storage for the base classes that new Citizen classes were created from.
 		 */
-		baseClasses = {};
+	var baseClasses = {},
+
+		/*
+		 * All of the Citizens of the World.
+		 */
+		citizens = new hemi.utils.Hashtable(),
+
+		/*
+		 * The next id to assign to a Citizen requesting a world id.
+		 */
+		nextId = 1;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Shared functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Get the Citizen's id.
+	 * 
+	 * @return {number} the id
+	 */
+	function _getId() {
+		return this._worldId;
+	}
+
+	/*
+	 * Set the Citizen's id.
+	 * 
+	 * @param {number} id the id to set
+	 */
+	function _setId(id) {
+		var oldId = this._worldId;
+		this._worldId = id;
+
+		if (oldId !== null) {
+			citizens.remove(oldId);
+			citizens.put(id, this);
+		}
+	}
+
+	/*
+	 * Send a Message with the given attributes from the Citizen to any registered MessageTargets.
+	 * 
+	 * @param {string} type type of Message
+	 * @param {Object} data container for any and all information relevant to the Message
+	 */
+	function send(type, data) {
+		hemi.dispatch.postMessage(this, type, data);
+	}
+
+	/*
+	 * Register the given handler to receive Messages of the specified type from the Citizen. This
+	 * creates a MessageTarget.
+	 * 
+	 * @param {string} type type of Message to handle
+	 * @param {Object} handler either a function or an object
+	 * @param {string} opt_func name of the function to call if handler is an object
+	 * @param {string[]} opt_args optional array of names of arguments to pass to the handler.
+	 *     Otherwise the entire Message is just passed in.
+	 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
+	 */
+	function subscribe(type, handler, opt_func, opt_args) {
+		return hemi.dispatch.registerTarget(this._worldId, type, handler, opt_func, opt_args);
+	}
+
+	/*
+	 * Register the given handler to receive Messages of all types from the Citizen. This creates a
+	 * MessageTarget.
+	 * 
+	 * @param {Object} handler either a function or an object
+	 * @param {string} opt_func name of the function to call if handler is an object
+	 * @param {string[]} opt_args optional array of names of arguments to pass to the handler.
+	 *     Otherwise the entire Message is just passed in.
+	 * @return {hemi.dispatch.MessageTarget} the created MessageTarget
+	 */
+	function subscribeAll(handler, opt_func, opt_args) {
+		return hemi.dispatch.registerTarget(this._worldId, hemi.dispatch.WILDCARD, handler,
+			opt_func, opt_args);
+	}
+
+	/*
+	 * Remove the given MessageTarget for Messages of the specified type for the Citizen.
+	 * 
+	 * @param {hemi.dispatch.MessageTarget} target the MessageTarget to remove from the Dispatch
+	 * @param {string} opt_type optional message type the MessageTarget was registered for
+	 * @return {hemi.dispatch.MessageTarget} the removed MessageTarget or null
+	 */
+	function unsubscribe(target, opt_type) {
+		return hemi.dispatch.removeTarget(target, {
+			src: this._worldId,
+			msg: opt_type
+		});
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Global functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
-	 * Get the base class that the specified Citizen class was created from.
-	 * This can be useful if you want to extend functionality and create a new
-	 * Citizen class yourself.
+	 * Get the base class that the specified Citizen class was created from. This can be useful if
+	 * you want to extend functionality and create a new Citizen class yourself.
 	 * 
 	 * @param {string} clsName name of the Citizen class
 	 * @return {function} the base class constructor or undefined
@@ -4314,60 +4357,49 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Take the given base class constructor and create a new class from it that
-	 * has all of the required functionality of a Citizen.
+	 * Take the given base class constructor and create a new class from it that has all of the
+	 * required functionality of a Citizen.
 	 *  
 	 * @param {function} clsCon constructor function for the base class
 	 * @param {string} clsName name for the new Citizen class
 	 * @param {Object} opts options including:
 	 *     cleanup - function to execute for cleanup
-	 *     msgs - array of messages Citizen may send
 	 *     toOctane - array of properties for octaning or function to execute
 	 * @return {function} the constructor for the new Citizen class
 	 */
 	hemi.makeCitizen = function(clsCon, clsName, opts) {
 		opts = opts || {};
-		var cleanFunc = opts.cleanup,
-			msgs = opts.msgs || [];
-
 		baseClasses[clsName] = clsCon;
-		msgs.push(hemi.msg.cleanup);
+
+		var cleanFunc = opts.cleanup;
 
 		/*
-		 * A Citizen is a uniquely identifiable member of a World that is
-		 * able to send Messages through the World's dispatch. The Citizen's id is
-		 * all that is necessary to retrieve the Citizen from its World, regardless
-		 * of its type.
+		 * A Citizen is a uniquely identifiable member of a World that is able to send Messages
+		 * through the World's dispatch. The Citizen's id is all that is necessary to retrieve the
+		 * Citizen from its World, regardless of its type.
 		 */
-        function Citizen() {
+		function Citizen() {
 			clsCon.apply(this, arguments);
 
-            /*
+			/*
 			 * The name of the Citizen.
 			 * @type string
 			 * @default ''
 			 */
-            this.name = this.name || '';
+			this.name = this.name || '';
 			/* The unique identifier for any Citizen of the World */
 			this._worldId = null;
 			hemi.world.addCitizen(this);
-        }
+		}
 
-        // Populate our constructed prototype object
-        Citizen.prototype = clsCon.prototype;
-
-		/*
-		 * Array of Hemi Messages that the Citizen is known to send.
-		 * @type string[]
-		 */
-        Citizen.prototype._msgSent = msgs;
+		// Populate our constructed prototype object
+		Citizen.prototype = clsCon.prototype;
 
         /*
-		 * Send a cleanup Message and remove the Citizen from the World.
-		 * Base classes should extend this so that it removes all references to
-		 * the Citizen.
+		 * Send a cleanup Message and remove the Citizen from the World. Base classes should extend
+		 * this so that it removes all references to the Citizen.
 		 */
-        Citizen.prototype.cleanup = function() {
+		Citizen.prototype.cleanup = function() {
 			this.send(hemi.msg.cleanup, {});
 
 			if (cleanFunc) {
@@ -4393,6 +4425,10 @@ var hemi = (function(hemi) {
         // Enforce the constructor to be what we expect
         Citizen.constructor = Citizen;
 
+		if (Citizen.prototype._msgSent) {
+			Citizen.prototype._msgSent.push(hemi.msg.cleanup);
+		}
+
         hemi.makeOctanable(Citizen, clsName, opts.toOctane || []);
         createClass(Citizen, clsName);
 
@@ -4400,26 +4436,192 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * @namespace A module for managing all elements of a 3D world. The World
-	 * manages a set of Citizens and provides look up services for them.
+	 * @namespace A module for managing all elements of a 3D world. The World manages a set of
+	 * Citizens and provides look up services for them.
 	 */
 	hemi.world = hemi.world || {};
 
-	hemi.world.WORLD_ID = 0;
+	/**
+	 * Add the given Citizen to the World and give it a world id if it does not already have one.
+	 * 
+	 * @param {Citizen} citizen the Citizen to add
+	 */
+	hemi.world.addCitizen = function(citizen) {
+		var id = citizen._getId();
 
-	/* The next id to assign to a Citizen requesting a world id */
-	var nextId = 1;
+		if (id === null) {
+			id = this.getNextId();
+			citizen._setId(id);
+		}
 
-	/* All of the Citizens of the World */
-	hemi.world.citizens = new hemi.utils.Hashtable();
+		var toRemove = citizens.get(id);
+
+		if (toRemove !== null) {
+			hemi.console.log('Citizen with id ' + id + ' already exists.', hemi.console.ERR);
+			toRemove.cleanup();
+		}
+
+		citizens.put(id, citizen);
+	};
 
 	/**
-	 * Set the id for the World to assign to the next Citizen.
+	 * Check the next id that will be assigned without incrementing the World's nextId token.
 	 * 
-	 * @param {number} id the next id to assign
+	 * @return {number} the next id that will be assigned to a Citizen
 	 */
-	hemi.world.setNextId = function(id) {
-		nextId = id;
+	hemi.world.checkNextId = function() {
+		return nextId;
+	};
+
+	/**
+	 * Perform cleanup on the World and release all resources. This effectively resets the World.
+	 */
+	hemi.world.cleanup = function() {
+		hemi.resetLoadTasks();
+		hemi.send(hemi.msg.cleanup, {});
+
+		citizens.each(function(key, value) {
+			value.cleanup();
+		});
+
+		if (citizens.size() > 0) {
+			hemi.console.log('World cleanup did not remove all citizens.', hemi.console.ERR);
+		}
+
+		nextId = 1;
+	};
+
+	/**
+	 * Get any AnimationGroups with the given attributes. If no attributes are given, all
+	 * AnimationGroups will be returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.AnimationGroup): boolean} opt_filter optional filter function that
+	 *     takes a AnimationGroup and returns true if the AnimationGroup should be included in the
+	 *     returned array
+	 * @return {hemi.AnimationGroup[]} an array of AnimationGroups with matching attributes
+	 */
+	hemi.world.getAnimationGroups = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.AnimationGroup.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
+
+	/**
+	 * Get any Audio with the given attributes. If no attributes are given, all Audio will be
+	 * returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.Audio): boolean} opt_filter optional filter function that takes an
+	 *     Audio and returns true if the Audio should be included in the returned array
+	 * @return {hemi.Audio[]} an array of Audio with matching attributes
+	 */
+	hemi.world.getAudio = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.Audio.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
+
+	/**
+	 * Get any CameraCurves with the given attributes. If no attributes are given, all CameraCurves
+	 * will be returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.CameraCurve): boolean} opt_filter optional filter function that takes a
+	 *     CameraCurve and returns true if the CameraCurve should be included in the returned array
+	 * @return {hemi.CameraCurve[]} an array of CameraCurves with matching attributes
+	 */
+	hemi.world.getCamCurves = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.CameraCurve.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
+
+	/**
+	 * Get the Citizen with the given id and log an error if exactly one result is not returned.
+	 * 
+	 * @param {number} id world id of the Citizen to get
+	 * @return {Citizen} the found Citizen or null
+	 */
+	hemi.world.getCitizenById = function(id) {
+		var cit = citizens.get(id);
+
+		if (cit === null) {
+			hemi.console.log('Tried to get Citizen with id ' + id + ', returned null.', hemi.console.ERR);
+		}
+
+		return cit;
+	};
+
+	/**
+	 * Get any Citizens with the given attributes. If no attributes are given, all Citizens will be
+	 * returned. Note that you can give an array of values for an attribute and it will search for
+	 * Citizens with attributes that match any one of those values.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(Citizen): boolean} opt_filter optional filter function that takes a Citizen
+	 *     and returns true if the Citizen should be included in the returned array
+	 * @return {Citizen[]} an array of Citizens with matching attributes
+	 */
+	hemi.world.getCitizens = function(attributes, opt_filter) {
+		var matches = citizens.query(attributes || {});
+
+		if (opt_filter) {
+			for (var i = 0, il = matches.length; i < il; ++i) {
+				if (!opt_filter(matches[i])) {
+					matches.splice(i, 1);
+					--i;
+					--il;
+				}
+			}
+		}
+
+		return matches;
+	};
+
+	/**
+	 * Get any HudDisplays with the given attributes. If no attributes are given, all HudDisplays
+	 * will be returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.HudDisplay): boolean} opt_filter optional filter function that takes a
+	 *     HudDisplay and returns true if the HudDisplay should be included in the returned array
+	 * @return {hemi.HudDisplay[]} an array of HudDisplays with matching attributes
+	 */
+	hemi.world.getHudDisplays = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.HudDisplay.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
+
+	/**
+	 * Get any Meshes with the given attributes. If no attributes are given, all Meshes will be
+	 * returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.Mesh): boolean} opt_filter optional filter function that takes a Mesh
+	 *     and returns true if the Mesh should be included in the returned array
+	 * @return {hemi.Mesh[]} an array of Meshes with matching attributes
+	 */
+	hemi.world.getMeshes = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.Mesh.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
+
+	/**
+	 * Get any Models with the given attributes. If no attributes are given, all Models will be
+	 * returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.Model): boolean} opt_filter optional filter function that takes a Model
+	 *     and returns true if the Model should be included in the returned array
+	 * @return {hemi.Model[]} an array of Models with matching attributes
+	 */
+	hemi.world.getModels = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.Model.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
 	};
 
 	/**
@@ -4432,76 +4634,113 @@ var hemi = (function(hemi) {
 	};
 
 	/**
-	 * Check to see what the next id to assign will be without incrementing the
-	 * World's nextId token.
+	 * Get any particle effects with the given attributes. If no attributes are given, all particle
+	 * effects will be returned.
 	 * 
-	 * @return {number} the next id that will be assigned to a Citizen
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.ParticleEmitter): boolean} opt_filter optional filter function that
+	 *     takes a particle effect and returns true if the particle effect should be included in the
+	 *     returned array
+	 * @return {hemi.ParticleEmitter[]} an array of particle effects with matching attributes
 	 */
-	hemi.world.checkNextId = function() {
-		return nextId;
+	hemi.world.getParticleEffects = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.ParticleEmitter.prototype._citizenType;
+		var retVal = this.getCitizens(attributes, opt_filter);
+
+		attributes._citizenType = hemi.ParticleBurst.prototype._citizenType;
+		retVal = retVal.concat(this.getCitizens(attributes, opt_filter));
+
+		attributes._citizenType = hemi.ParticleTrail.prototype._citizenType;
+		retVal = retVal.concat(this.getCitizens(attributes, opt_filter));
+
+		return retVal; 
 	};
 
 	/**
-	 * Get the id for the World.
+	 * Get any Shapes with the given attributes. If no attributes are given, all Shapes will be
+	 * returned.
 	 * 
-	 * @return {number} the id of the World
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.Shape): boolean} opt_filter optional filter function that takes a Shape
+	 *     and returns true if the Shape should be included in the returned array
+	 * @return {hemi.Shape[]} an array of Shapes with matching attributes
 	 */
-	hemi.world._getId = function() {
-		return hemi.world.WORLD_ID;
+	hemi.world.getShapes = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.Shape.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
 	};
 
 	/**
-	 * Add the given Citizen to the World and give it a world id if it does not
-	 * already have one.
+	 * Get any States with the given attributes. If no attributes are given, all States will be
+	 * returned.
 	 * 
-	 * @param {hemi.world.Citizen} citizen the Citizen to add
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.State): boolean} opt_filter optional filter function that takes a State
+	 *     and returns true if the State should be included in the returned array
+	 * @return {hemi.State[]} an array of States with matching attributes
 	 */
-	hemi.world.addCitizen = function(citizen) {
-		var id = citizen._getId();
-
-		if (id == null) {
-			id = this.getNextId();
-			citizen._setId(id);
-		}
-
-		var toRemove = this.citizens.get(id);
-
-		if (toRemove !== null) {
-			hemi.console.log('Citizen with id ' + id + ' already exists.', hemi.console.ERR);
-			toRemove.cleanup();
-		}
-
-		this.citizens.put(id, citizen);
+	hemi.world.getStates = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.State.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
 	};
 
 	/**
-	 * Perform cleanup on the World and release all resources. This effectively
-	 * resets the World.
+	 * Get any Timers with the given attributes. If no attributes are given, all Timers will be
+	 * returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.Timer): boolean} opt_filter optional filter function that takes a Timer
+	 *     and returns true if the Timer should be included in the returned array
+	 * @return {hemi.Timer[]} an array of Timers with matching attributes
 	 */
-	hemi.world.cleanup = function() {
-		hemi.resetLoadTasks();
-		hemi.send(hemi.msg.cleanup, {});
+	hemi.world.getTimers = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.Timer.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
 
-		hemi.world.citizens.each(function(key, value) {
-			value.cleanup();
-		});
+	/**
+	 * Get any Transforms with the given attributes. If no attributes are given, all Transforms will
+	 * be returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.Transform): boolean} opt_filter optional filter function that takes a
+	 *     Transform and returns true if the Transform should be included in the returned array
+	 * @return {hemi.Transform[]} an array of Transforms with matching attributes
+	 */
+	hemi.world.getTransforms = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.Transform.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
+	};
 
-		if (hemi.world.citizens.size() > 0) {
-			hemi.console.log('World cleanup did not remove all citizens.', hemi.console.ERR);
-		}
-
-		nextId = 1;
+	/**
+	 * Get any Viewpoints with the given attributes. If no attributes are given, all Viewpoints will
+	 * be returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.Viewpoint): boolean} opt_filter optional filter function that takes a
+	 *     Viewpoint and returns true if the Viewpoint should be included in the returned array
+	 * @return {hemi.Viewpoint[]} an array of Viewpoints with matching attributes
+	 */
+	hemi.world.getViewpoints = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._citizenType = hemi.Viewpoint.prototype._citizenType;
+		return this.getCitizens(attributes, opt_filter);
 	};
 
 	/**
 	 * Remove the given Citizen from the World.
 	 * 
-	 * @param {hemi.world.Citizen} citizen the Citizen to remove
+	 * @param {Citizen} citizen the Citizen to remove
 	 * @return {boolean} true if the Citizen was found and removed
 	 */
 	hemi.world.removeCitizen = function(citizen) {
-		var id = citizen._getId();
-		var removed = this.citizens.remove(id);
+		var id = citizen._getId(),
+			removed = citizens.remove(id);
 
 		if (removed === null) {
 			hemi.console.log('Unable to remove Citizen with id ' + id, hemi.console.WARN);
@@ -4509,417 +4748,21 @@ var hemi = (function(hemi) {
 
 		return removed !== null;
 	};
-	
-	/**
-	 * Get any Citizens with the given attributes. If no attributes are given,
-	 * all Citizens will be returned. Valid attributes are:
-	 * - name
-	 * - citizenType
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Citizen): boolean} opt_filter optional filter function
-	 *     that takes a Citizen and returns true if the Citizen should be
-	 *     included in the returned array
-	 * @return {hemi.world.Citizen[]} an array of Citizens with matching
-	 *     attributes
-	 */
-	hemi.world.getCitizens = function(attributes, opt_filter) {
-		var atts = {};
-
-		if (attributes != undefined) {
-			if (attributes.worldId !== undefined) {
-				atts.worldId = attributes.worldId;
-			}
-			if (attributes.name !== undefined) {
-				atts.name = attributes.name;
-			}
-			if (attributes.citizenType !== undefined) {
-				atts.citizenType = attributes.citizenType;
-			}
-		}
-
-		var matches = this.citizens.query(atts);
-
-		if (opt_filter) {
-			for (var ndx = 0, len = matches.length; ndx < len; ndx++) {
-				if (!opt_filter(matches[ndx])) {
-					matches.splice(ndx, 1);
-					ndx--;
-					len--;
-				}
-			}
-		}
-
-		return matches;
-	};
 
 	/**
-	 * Get the Citizen with the given id and log an error if exactly one result
-	 * is not returned.
+	 * Set the id for the World to assign to the next Citizen.
 	 * 
-	 * @param {number} id world id of the Citizen to get
-	 * @return {hemi.world.Citizen} the found Citizen or null
+	 * @param {number} id the next id to assign
 	 */
-	hemi.world.getCitizenById = function(id) {
-		var cit = this.citizens.get(id);
-
-		if (cit === null) {
-			hemi.console.log('Tried to get Citizen with id ' + id + ', returned null.', hemi.console.ERR);
-		}
-
-		return cit;
-	};
-
-	/**
-	 * Get any Audio with the given attributes. If no attributes are given, all
-	 * Audio will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Audio): boolean} opt_filter optional filter function
-	 *     that takes an Audio and returns true if the Audio should be included
-	 *     in the returned array
-	 * @return {hemi.audio.Audio[]} an array of Audio with matching attributes
-	 */
-	hemi.world.getAudio = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.audio.Audio.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any CameraCurves with the given attributes. If no attributes are
-	 * given, all CameraCurves will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(CameraCurve): boolean} opt_filter optional filter
-	 *     function that takes a CameraCurve and returns true if the CameraCurve
-	 *     should be included in the returned array
-	 * @return {hemi.view.CameraCurve[]} an array of CameraCurves with matching
-	 *     attributes
-	 */
-	hemi.world.getCamCurves = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.view.CameraCurve.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any HudDisplays with the given attributes. If no attributes are
-	 * given, all HudDisplays will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(HudDisplay): boolean} opt_filter optional filter
-	 *     function that takes a HudDisplay and returns true if the HudDisplay
-	 *     should be included in the returned array
-	 * @return {hemi.hud.HudDisplay[]} an array of HudDisplays with matching
-	 *     attributes
-	 */
-	hemi.world.getHudDisplays = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.hud.HudDisplay.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any HudElements with the given attributes. If no attributes are
-	 * given, all HudElements will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(HudElement): boolean} opt_filter optional filter
-	 *     function that takes a HudElement and returns true if the HudElement
-	 *     should be included in the returned array
-	 * @return {hemi.hud.HudElement[]} an array of HudElements with matching
-	 *     attributes
-	 */
-	hemi.world.getHudElements = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.hud.HudElement.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Models with the given attributes. If no attributes are given, all
-	 * Models will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Model): boolean} opt_filter optional filter function
-	 *     that takes a Model and returns true if the Model should be included
-	 *     in the returned array
-	 * @return {hemi.model.Model[]} an array of Models with matching attributes
-	 */
-	hemi.world.getModels = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.model.Model.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Animations with the given attributes. If no attributes are given,
-	 * all Animations will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Animation): boolean} opt_filter optional filter function
-	 *     that takes a Animation and returns true if the Animation should be
-	 *     included in the returned array
-	 * @return {hemi.animation.Animation[]} an array of Animations with matching
-	 *     attributes
-	 */
-    hemi.world.getAnimations = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.animation.Animation.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Effects with the given attributes. If no attributes are given,
-	 * all Effects will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Effect): boolean} opt_filter optional filter function
-	 *     that takes a Effect and returns true if the Effect should be
-	 *     included in the returned array
-	 * @return {hemi.effect.Effect[]} an array of Effect with matching
-	 *     attributes
-	 */
-    hemi.world.getEffects = function(attributes, opt_filter) {
-		var retVal = [];
-
-		attributes = attributes || {};
-		attributes.citizenType = hemi.effect.Emitter.prototype.citizenType;
-		retVal = retVal.concat(this.getCitizens(attributes, opt_filter));
-
-		attributes.citizenType = hemi.effect.Burst.prototype.citizenType;
-		retVal = retVal.concat(this.getCitizens(attributes, opt_filter));
-
-		attributes.citizenType = hemi.effect.Trail.prototype.citizenType;
-		retVal = retVal.concat(this.getCitizens(attributes, opt_filter));
-
-		return retVal; 
-	};
-
-	/**
-	 * Get any Viewpoints with the given attributes. If no attributes are given,
-	 * all Viewpoints will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Viewpoint): boolean} opt_filter optional filter function
-	 *     that takes a Viewpoint and returns true if the Viewpoint should be
-	 *     included in the returned array
-	 * @return {hemi.view.Viewpoint[]} an array of Viewpoints with matching
-	 *     attributes
-	 */
-	hemi.world.getViewpoints = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.view.Viewpoint.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any PressureEngines with the given attributes. If no attributes are
-	 * given, all PressureEngines will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(PressureEngine): boolean} opt_filter optional filter
-	 *     function that takes a PressureEngine and returns true if the
-	 *     PressureEngine should be included in the returned array
-	 * @return {hext.engines.PressureEngine[]} an array of PressureEngines with
-	 *     matching attributes
-	 */
-	hemi.world.getPressureEngines = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hext.engines.PressureEngine.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Draggables with the given attributes. If no attributes are given,
-	 * all Draggables will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Draggable): boolean} opt_filter optional filter function
-	 *     that takes a Draggable and returns true if the Draggable should be
-	 *     included in the returned array
-	 * @return {hemi.manip.Draggable[]} an array of Draggables with matching
-	 *     attributes
-	 */
-	hemi.world.getDraggables = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.manip.Draggable.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Turnables with the given attributes. If no attributes are given,
-	 * all Turnables will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Turnable): boolean} opt_filter optional filter function
-	 *     that takes a Turnable and returns true if the Turnable should be
-	 *     included in the returned array
-	 * @return {hemi.manip.Turnable[]} an array of Turnables with matching
-	 *     attributes
-	 */
-	hemi.world.getTurnables = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.manip.Turnable.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Rotators with the given attributes. If no attributes are given,
-	 * all Rotators will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Rotator): boolean} opt_filter optional filter function
-	 *     that takes a Rotator and returns true if the Rotator should be
-	 *     included in the returned array
-	 * @return {hemi.motion.Rotator[]} an array of Rotators with matching
-	 *     attributes
-	 */
-	hemi.world.getRotators = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.motion.Rotator.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Scenes with the given attributes. If no attributes are given, all
-	 * Scenes will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Scene): boolean} opt_filter optional filter function
-	 *     that takes a Scene and returns true if the Scene should be included
-	 *     in the returned array
-	 * @return {hemi.scene.Scene[]} an array of Scenes with matching attributes
-	 */
-	hemi.world.getScenes = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.scene.Scene.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Timers with the given attributes. If no attributes are given, all
-	 * Timers will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Timer): boolean} opt_filter optional filter function
-	 *     that takes a Timer and returns true if the Timer should be included
-	 *     in the returned array
-	 * @return {hemi.time.Timer[]} an array of Timers with matching attributes
-	 */
-	hemi.world.getTimers = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.time.Timer.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Translators with the given attributes. If no attributes are
-	 * given, all Translators will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Translator): boolean} opt_filter optional filter
-	 *     function that takes a Translator and returns true if the Translator
-	 *     should be included in the returned array
-	 * @return {hemi.motion.Translator[]} an array of Translators with matching
-	 *     attributes
-	 */
-	hemi.world.getTranslators = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.motion.Translator.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get any Shapes with the given attributes. If no attributes are given, all
-	 * Shapes will be returned. Valid attributes are:
-	 * - name
-	 * - worldId
-	 * 
-	 * @param {Object} attributes optional structure with the attributes to
-	 *     search for
-	 * @param {function(Shape): boolean} opt_filter optional filter function
-	 *     that takes a Shape and returns true if the Shape should be included
-	 *     in the returned array
-	 * @return {hemi.shape.Shape[]} an array of Shapes with matching attributes
-	 */
-	hemi.world.getShapes = function(attributes, opt_filter) {
-		attributes = attributes || {};
-		attributes.citizenType = hemi.shape.Shape.prototype.citizenType;
-		return this.getCitizens(attributes, opt_filter);
-	};
-
-	/**
-	 * Get the owning Citizen that the given transform is a part of.
-	 * 
-	 * @param {o3d.Transform} transform the transform to get the owner for
-	 * @return {hemi.world.Citizen} the containing Citizen or null
-	 */
-	hemi.world.getTranOwner = function(transform) {
-		var param = transform.getParam('ownerId'),
-			owner = null;
-
-		if (param !== null) {
-			owner = this.getCitizenById(param.value);
-		}
-
-		return owner;
+	hemi.world.setNextId = function(id) {
+		nextId = id;
 	};
 
 	/**
 	 * Get the Octane structure for the World.
      * 
-	 * @param {function(Citizen): boolean} opt_filter optional filter function
-	 *     that takes a Citizen and returns true if the Citizen should be
-	 *     included in the returned Octane
+	 * @param {function(Citizen): boolean} opt_filter optional filter function that takes a Citizen
+	 *     and returns true if the Citizen should be included in the returned Octane
      * @return {Object} the Octane structure representing the World
 	 */
 	hemi.world.toOctane = function(opt_filter) {
@@ -4929,7 +4772,7 @@ var hemi = (function(hemi) {
 			citizens: []
 		};
 
-		this.citizens.each(function(key, value) {
+		citizens.each(function(key, value) {
 			var accept = opt_filter ? opt_filter(value) : true;
 
 			if (accept) {
@@ -4944,12 +4787,40 @@ var hemi = (function(hemi) {
 		});
 
 		octane.dispatch = hemi.dispatch._toOctane();
-
 		return octane;
 	};
 
-	return hemi;
-})(hemi || {});
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Set the given class constructor function to the given namespace. For example:
+	 * createClass(myClass, 'my.new.Class');
+	 * will make my.new.Class equal myClass
+	 * 
+	 * @param {function():void} clsCon class constructor function
+	 * @param {string} clsName fully qualified class name
+	 */
+	function createClass(clsCon, clsName) {
+		var names = clsName.split('.'),
+			il = names.length - 1,
+			scope = window;
+
+		for (var i = 0; i < il; ++i) {
+			var name = names[i];
+
+			if (!scope[name]) {
+				scope[name] = {};
+			}
+
+			scope = scope[name];
+		}
+
+		scope[names[il]] = clsCon;
+	}
+
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -4972,7 +4843,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	/*
 	 * Map of class names to stored class constructor functions.
@@ -5237,8 +5108,7 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -5261,7 +5131,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Audio class
@@ -5507,21 +5377,20 @@ var hemi = (function(hemi) {
 	 * This is the proper way to set looping for HTML5 audio tags. Unfortunately Firefox doesn't
 	 * currently support this feature, so we have to hack it in the ended event.
 	 */
-	var setLoopProper = function() {
-			if (this.looping) {
-				this.audio.setAttribute('loop', 'loop');
-			} else {
-				this.audio.removeAttribute('loop');
-			}
-		};
+	function setLoopProper() {
+		if (this.looping) {
+			this.audio.setAttribute('loop', 'loop');
+		} else {
+			this.audio.removeAttribute('loop');
+		}
+	};
 
 	hemi.makeCitizen(Audio, 'hemi.Audio', {
 		cleanup: Audio.prototype._clean,
 		toOctane: Audio.prototype._octane
 	});
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -5544,12 +5413,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
-	/**
-	 * @namespace A module for message dispatching and handling. The Dispatch receives Messages and
-	 * sends them to MessageTargets that are registered with MessageSpecs.
-	 */
-	hemi.dispatch = hemi.dispatch || {};
+(function() {
 
 		/* All of the MessageSpecs (and MessageTargets) in the Dispatch */
 	var msgSpecs = new hemi.utils.Hashtable(),
@@ -5560,6 +5424,12 @@ var hemi = (function(hemi) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @namespace A module for message dispatching and handling. The Dispatch receives Messages and
+	 * sends them to MessageTargets that are registered with MessageSpecs.
+	 */
+	hemi.dispatch = hemi.dispatch || {};
 
 	/**
 	 * String literal to indicate that all entries for a field are desired.
@@ -6415,8 +6285,7 @@ var hemi = (function(hemi) {
 		return spec;
 	}
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -6439,11 +6308,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {	
-	/**
-	 * @namespace A module for handling all keyboard and mouse input.
-	 */
-	hemi.input = hemi.input || {};
+(function() {
 
 	var mouseDownListeners = [],
 		mouseUpListeners = [],
@@ -6456,6 +6321,11 @@ var hemi = (function(hemi) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @namespace A module for handling all keyboard and mouse input.
+	 */
+	hemi.input = hemi.input || {};
 
 	/**
 	 * Setup the listener lists and register the event handlers.
@@ -6777,8 +6647,7 @@ var hemi = (function(hemi) {
 		if (event.preventDefault) event.preventDefault();
 	}
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -6801,7 +6670,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Shared functions
@@ -6956,8 +6825,7 @@ var hemi = (function(hemi) {
 	hemi.makeOctanable(THREE.Vector3, 'THREE.Vector3', ['x', 'y', 'z']);
 	hemi.makeOctanable(THREE.Quaternion, 'THREE.Quaternion', ['x', 'y', 'z', 'w']);
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -7931,8 +7799,6 @@ var hemi = (function(hemi) {
 		return viewpoint;
 	};
 
-	return hemi;
-
 })();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
@@ -7956,7 +7822,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Model class
@@ -8228,8 +8094,7 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -8252,7 +8117,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	// Static helper objects shared by all Pickers
 	var _projector = new THREE.Projector(),
@@ -8310,8 +8175,7 @@ var hemi = (function(hemi) {
 		}
 	};
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -8334,7 +8198,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	/*
 	 * The projector used to cast rays from screen space into 3D space.
@@ -8593,8 +8457,7 @@ var hemi = (function(hemi) {
 		toOctane: Client.prototype._octane
 	});
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -8617,7 +8480,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Loop class
@@ -8850,24 +8713,23 @@ var hemi = (function(hemi) {
 	 * Check if the current time of the AnimationGroup needs to be reset by any of its Loops. If a
 	 * Loop resets the current time, increment that Loop's iteration counter.
 	 */
-	var checkLoops = function() {
-			for (var i = 0, il = this.loops.length; i < il; ++i) {
-				var loop = this.loops[i];
-				
-				if (loop._current !== loop.iterations && this.currentTime >= loop.stopTime) {
-					this.currentTime = loop.startTime;
-					loop._current++;
-				}
+	function checkLoops() {
+		for (var i = 0, il = this.loops.length; i < il; ++i) {
+			var loop = this.loops[i];
+			
+			if (loop._current !== loop.iterations && this.currentTime >= loop.stopTime) {
+				this.currentTime = loop.startTime;
+				loop._current++;
 			}
-		};
+		}
+	};
 
 	hemi.makeCitizen(AnimationGroup, 'hemi.AnimationGroup', {
 		cleanup: AnimationGroup.prototype._clean,
 		toOctane: AnimationGroup.prototype._octane
 	});
 
-	return hemi;
-})(hemi || {});
+})();
 /* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
 The MIT License (MIT)
@@ -8893,9 +8755,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * and rotating objects in the scene.
  */
 
-var hemi = (function(hemi) {
-
-    hemi = hemi || {};
+(function() {
 
     /**
      * @class A Rotator makes automated rotation easier by allowing simple
@@ -9415,8 +9275,8 @@ var hemi = (function(hemi) {
 		}
 	};
 
-	return hemi;
-})(hemi || {});/*
+})();
+/*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
  * 
@@ -9438,7 +9298,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	var defaultParticleSystem = new hemi.particles.System();
 
@@ -9988,8 +9848,7 @@ var hemi = (function(hemi) {
 		return puff;
 	}
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -10012,7 +9871,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // HudTheme class
@@ -11961,8 +11820,7 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -11985,11 +11843,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
-	/**
-	 * @namespace A module for defining draggable objects.
-	 */
-	hemi = hemi|| {};
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
@@ -12689,8 +12543,8 @@ var hemi = (function(hemi) {
 		toOctane: []
 	});
 
-	return hemi;
-})(hemi || {});/*
+})();
+/*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
  * 
@@ -12712,7 +12566,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 	var dbgBoxMat =  new THREE.MeshPhongMaterial({
 			color: 0x000088,
@@ -14369,8 +14223,7 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -14580,7 +14433,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-(function (hemi) {
+(function () {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
@@ -14977,7 +14830,7 @@ var hemi = (function(hemi) {
 		return createCustom(v, f, uvs);
 	}
 
-})(hemi);
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -15000,15 +14853,15 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
-
-	hemi.fx = hemi.fx || {};
+(function() {
 
 	var clientData = [];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	hemi.fx = hemi.fx || {};
 
 	hemi.fx.cleanup = function() {
 		clientData = [];
@@ -15225,8 +15078,7 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -15249,7 +15101,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // TextureSet class
@@ -15336,8 +15188,7 @@ var hemi = (function(hemi) {
 
 	hemi.TextureSet = TextureSet;
 
-	return hemi;
-})(hemi || {});
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -15360,7 +15211,7 @@ var hemi = (function(hemi) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Timer class
@@ -15505,5 +15356,4 @@ var hemi = (function(hemi) {
 		});
 	}
 
-	return hemi;
-})(hemi || {});
+})();

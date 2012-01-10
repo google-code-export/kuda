@@ -20,11 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {	
-	/**
-	 * @namespace A module for handling all keyboard and mouse input.
-	 */
-	hemi.input = hemi.input || {};
+(function() {
 
 	var mouseDownListeners = [],
 		mouseUpListeners = [],
@@ -37,6 +33,11 @@ var hemi = (function(hemi) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @namespace A module for handling all keyboard and mouse input.
+	 */
+	hemi.input = hemi.input || {};
 
 	/**
 	 * Setup the listener lists and register the event handlers.
@@ -358,5 +359,4 @@ var hemi = (function(hemi) {
 		if (event.preventDefault) event.preventDefault();
 	}
 
-	return hemi;
-})(hemi || {});
+})();

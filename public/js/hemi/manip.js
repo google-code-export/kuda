@@ -20,11 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
-	/**
-	 * @namespace A module for defining draggable objects.
-	 */
-	hemi = hemi|| {};
+(function() {
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
@@ -724,5 +720,4 @@ var hemi = (function(hemi) {
 		toOctane: []
 	});
 
-	return hemi;
-})(hemi || {});
+})();

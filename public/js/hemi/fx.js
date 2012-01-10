@@ -20,15 +20,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-var hemi = (function(hemi) {
-
-	hemi.fx = hemi.fx || {};
+(function() {
 
 	var clientData = [];
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	hemi.fx = hemi.fx || {};
 
 	hemi.fx.cleanup = function() {
 		clientData = [];
@@ -245,5 +245,4 @@ var hemi = (function(hemi) {
 		}
 	}
 
-	return hemi;
-})(hemi || {});
+})();

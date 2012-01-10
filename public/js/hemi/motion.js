@@ -23,9 +23,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * and rotating objects in the scene.
  */
 
-var hemi = (function(hemi) {
-
-    hemi = hemi || {};
+(function() {
 
     /**
      * @class A Rotator makes automated rotation easier by allowing simple
@@ -545,5 +543,4 @@ var hemi = (function(hemi) {
 		}
 	};
 
-	return hemi;
-})(hemi || {});
+})();
