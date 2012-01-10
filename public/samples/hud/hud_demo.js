@@ -195,7 +195,7 @@
 		text.config.textAlign = 'left';
 		// This sets the maximum width of the text element. The text will be
 		// wrapped if it is wider.
-		text.setWidth(300);
+		text.setWidth(310);
 		text.setText(["This video will pause when you go to a different page."]);
 
 		text.mouseDown = function(mouseEvent) {
