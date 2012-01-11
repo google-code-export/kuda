@@ -16,10 +16,11 @@
  */
 
 (function() {
+	"use strict";
 	
-////////////////////////////////////////////////////////////////////////////////
-//                     			   Initialization  		                      //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                     			   			Initialization			  		                      //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var shorthand = editor.tools.fog;
 
@@ -36,9 +37,9 @@
 		navPane.add(fogView);
 	};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                     			  Tool Definition  		                      //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                     			  			Tool Definition  		    		                  //
+////////////////////////////////////////////////////////////////////////////////////////////////////
     
 	shorthand.events = {
 		// fog form sb widget events
@@ -50,226 +51,231 @@
 		FogWorldLoaded: "fog.FogWorldLoaded"
 	};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                                   Model                                    //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                   			 Model			                                  //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	var FogModel = editor.ToolModel.extend({
-		init: function() {
-			this._super('fog');
-		},
+	var FogModel = function() {
+		editor.ToolModel.call(this, 'fog');
+	};
 		
-		setVisible: function(visible) {
-			if (visible && this.currentVals) {
-				hemi.world.setFog(this.currentVals.color,
-					this.currentVals.start,
-					this.currentVals.end);
-			}
-			else {
-				hemi.world.clearFog();
-			}
-			
-			this.notifyListeners(shorthand.events.FogVisible, visible);
-		},
+	FogModel.prototype = new editor.ToolModel();
+	FogModel.prototype.constructor = FogModel;
 		
-		save: function(params) {
-			this.currentVals = params;
-			this.setVisible(true);
-		},
-			
-		worldCleaned: function() {
-			this.currentVals = null;
-			this.setVisible(false);
-			this.notifyListeners(shorthand.events.FogWorldLoaded, null);
-	    },
-	    
-	    worldLoaded: function() {
-			var fog = hemi.world.fog;
-			
-			this.currentVals = fog;
-			this.notifyListeners(shorthand.events.FogWorldLoaded, fog);
-	    }
-	});
+	FogModel.prototype.setVisible = function(visible) {
+		if (visible && this.currentVals) {
+			hemi.fx.setFog(editor.client, this.currentVals.color, this.currentVals.start, 
+				this.currentVals.end);
+		}
+		else {
+			hemi.fx.clearFog();
+		}
+		
+		this.notifyListeners(shorthand.events.FogVisible, visible);
+	};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                     		 Fog Form Sidebar Widget                          //
-//////////////////////////////////////////////////////////////////////////////// 
-	var FogFormWidget = editor.ui.FormWidget.extend({
-		init: function(options) {
-			var newOpts = jQuery.extend({
-					name: 'fogFormWidget',
-					uiFile: 'js/editor/plugins/fog/html/fogForms.htm',
-					height: editor.ui.Height.FULL
-				}, options);
-		    this._super(newOpts);
-		},
+	FogModel.prototype.save = function(params) {
+		this.currentVals = params;
+		this.setVisible(true);
+	};
 		
-		layout: function() {
-			this._super();
-			
-			var wgt = this,
-				form = this.find('form'),
-				validator = editor.ui.createDefaultValidator();
-			
-			this.onOff = this.find('#fogFormOnOff');
-			this.saveBtn = this.find('#fogFormSaveBtn');
-			this.cancelBtn = this.find('#fogFormCancelBtn');
-			this.start = new editor.ui.Input({
-				container: wgt.find('#fogFormStart'),
-				validator: validator
-			});
-			this.end = new editor.ui.Input({
-				container: wgt.find('#fogFormEnd'),
-				validator: validator
-			});
-			
-			this.colorPicker = new editor.ui.ColorPicker({
-				inputId: 'fogFormColor',	
-				buttonId: 'fogFormColorPicker'			
-			});
-			
-			this.find('#fogFormColorLbl').after(this.colorPicker.getUI());
-			
-			this.colorPicker.addListener(editor.events.ColorPicked, function(clr) {
-				wgt.canSave();
-			});
-			
-			this.onOff.bind('change', function(evt) {
-				var elem = jQuery(this),
-					checked = elem.is(':checked');
-				
-				wgt.notifyListeners(shorthand.events.FogOnOff, checked);
-			});
-			
-			form.find('input:not(type["checkbox"])').bind('keydown', function(evt) {
-				wgt.canSave();
-			});
-			
-			this.saveBtn.bind('click', function(evt) {
-				var vals = {
-					color: wgt.colorPicker.getColor(),
-					start: wgt.start.getValue(),
-					end: wgt.end.getValue()
-				};
-				
-				wgt.notifyListeners(shorthand.events.SaveFog, vals);
-				
-				wgt.saveBtn.attr('disabled', 'disabled');
-				wgt.cancelBtn.attr('disabled', 'disabled');
-			});
-			
-			this.cancelBtn.bind('click', function(evt) {
-				wgt.saveBtn.attr('disabled', 'disabled');
-				wgt.notifyListeners(editor.events.Cancel, null);
-				wgt.find('input.error').removeClass('error');
-			});
-			
-			form.bind('submit', function(evt) {
-				return false;
-			});
-		},
+	FogModel.prototype.worldCleaned = function() {
+		this.currentVals = null;
+		this.setVisible(false);
+		this.notifyListeners(shorthand.events.FogWorldLoaded, null);
+    };
+    
+    FogModel.prototype.worldLoaded = function() {
+		var fog = hemi.world.fog;
 		
-		set: function(vals) {
-			if (vals === null) {
-				this.colorPicker.reset();
-				this.start.reset();
-				this.end.reset();
-				this.onOff.attr('checked', false);
-			} else {
-				this.colorPicker.setColor(vals.color);
-				this.start.setValue(vals.start);
-				this.end.setValue(vals.end);
-				this.onOff.attr('checked', true);
-			}
+		this.currentVals = fog;
+		this.notifyListeners(shorthand.events.FogWorldLoaded, fog);
+    };
+	
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                     		 			  Fog Form Sidebar Widget		                          //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+	var FogFormWidget = function(options) {
+		var newOpts = jQuery.extend({
+				name: 'fogFormWidget',
+				uiFile: 'js/editor/plugins/fog/html/fogForms.htm',
+				height: editor.ui.Height.FULL
+			}, options);
+	    editor.ui.FormWidget.call(this, newOpts);
+	};
+	var formWgtSuper = editor.ui.FormWidget.prototype;
+		
+	FogFormWidget.prototype = new editor.ui.FormWidget();
+	FogFormWidget.prototype.constructor = FogFormWidget;
+		
+	FogFormWidget.prototype.layout = function() {
+		formWgtSuper.layout.call(this);
+		
+		var wgt = this,
+			form = this.find('form'),
+			validator = editor.ui.createDefaultValidator();
+		
+		this.onOff = this.find('#fogFormOnOff');
+		this.saveBtn = this.find('#fogFormSaveBtn');
+		this.cancelBtn = this.find('#fogFormCancelBtn');
+		this.start = new editor.ui.Input({
+			container: wgt.find('#fogFormStart'),
+			validator: validator
+		});
+		this.end = new editor.ui.Input({
+			container: wgt.find('#fogFormEnd'),
+			validator: validator
+		});
+		
+		this.colorPicker = new editor.ui.ColorPicker({
+			inputId: 'fogFormColor',	
+			buttonId: 'fogFormColorPicker'			
+		});
+		
+		this.find('#fogFormColorLbl').after(this.colorPicker.getUI());
+		
+		this.colorPicker.addListener(editor.events.ColorPicked, function(clr) {
+			wgt.canSave();
+		});
+		
+		this.onOff.bind('change', function(evt) {
+			var elem = jQuery(this),
+				checked = elem.is(':checked');
 			
+			wgt.notifyListeners(shorthand.events.FogOnOff, checked);
+		});
+		
+		form.find('input:not(type["checkbox"])').bind('keydown', function(evt) {
+			wgt.canSave();
+		});
+		
+		this.saveBtn.bind('click', function(evt) {
+			var vals = {
+				color: wgt.colorPicker.getColorHex(),
+				start: wgt.start.getValue(),
+				end: wgt.end.getValue()
+			};
+			
+			wgt.notifyListeners(shorthand.events.SaveFog, vals);
+			
+			wgt.saveBtn.attr('disabled', 'disabled');
+			wgt.cancelBtn.attr('disabled', 'disabled');
+		});
+		
+		this.cancelBtn.bind('click', function(evt) {
+			wgt.saveBtn.attr('disabled', 'disabled');
+			wgt.notifyListeners(editor.events.Cancel, null);
+			wgt.find('input.error').removeClass('error');
+		});
+		
+		form.bind('submit', function(evt) {
+			return false;
+		});
+	};
+	
+	FogFormWidget.prototype.set = function(vals) {
+		if (vals === null) {
+			this.colorPicker.reset();
+			this.start.reset();
+			this.end.reset();
+			this.onOff.attr('checked', false);
+		} else {
+			this.colorPicker.setColor(vals.color);
+			this.start.setValue(vals.start);
+			this.end.setValue(vals.end);
+			this.onOff.attr('checked', true);
+		}
+		
+		this.saveBtn.attr('disabled', 'disabled');
+		this.cancelBtn.attr('disabled', 'disabled');
+	};
+	
+	FogFormWidget.prototype.canSave = function() {
+		if (this.start.getValue() != null && this.end.getValue() != null &&
+			this.colorPicker.getColor() !== null) {
+				this.saveBtn.removeAttr('disabled');
+				this.cancelBtn.removeAttr('disabled');
+		} else {
 			this.saveBtn.attr('disabled', 'disabled');
 			this.cancelBtn.attr('disabled', 'disabled');
-		},
-		
-		canSave: function() {
-			if (this.start.getValue() != null && this.end.getValue() != null &&
-				this.colorPicker.getColor() !== null) {
-					this.saveBtn.removeAttr('disabled');
-					this.cancelBtn.removeAttr('disabled');
-			} else {
-				this.saveBtn.attr('disabled', 'disabled');
-				this.cancelBtn.attr('disabled', 'disabled');
-			}
 		}
-	});
+	};
     
-////////////////////////////////////////////////////////////////////////////////
-//                                   View                                     //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                   			 View		                                      //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	var FogView = editor.ToolView.extend({
-		init: function() {
-			this._super({
-		        toolName: 'Fog',
-				toolTip: 'Create and edit fog',
-				id: 'fog'
-		    });
-			
-			this.addPanel(new editor.ui.Panel({
-				classes: ['fogSidePanel']
-			}));
-			
-			this.sidePanel.addWidget(new FogFormWidget());
-		}
-	});
+	var FogView = function() {
+		editor.ToolView.call(this, {
+	        toolName: 'Fog',
+			toolTip: 'Create and edit fog',
+			id: 'fog'
+	    });
+		
+		this.addPanel(new editor.ui.Panel({
+			classes: ['fogSidePanel']
+		}));
+		
+		this.sidePanel.addWidget(new FogFormWidget());
+	};
+		
+	FogView.prototype = new editor.ToolView();
+	FogView.prototype.constructor = FogView;
     
-////////////////////////////////////////////////////////////////////////////////
-//                                Controller                                  //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                			   Controller		                                  //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    var FogController = editor.ToolController.extend({
-		init: function() {
-			this._super();
-    	},
+    var FogController = function() {
+		editor.ToolController.call(this);
+	};
+	var fogCtrSuper = editor.ToolController.prototype;
+		
+	FogController.prototype = new editor.ToolController();
+	FogController.prototype.constructor = FogController;
 		
 	    /**
 	     * Binds event and message handlers to the view and model this object 
 	     * references.  
 	     */
-	    bindEvents: function() {
-			this._super();
-	        
-	        var model = this.model,
-	        	view = this.view,
-				fogWgt = view.sidePanel.fogFormWidget;
+    FogController.prototype.bindEvents = function() {
+		fogCtrSuper.bindEvents.call(this);
+        
+        var model = this.model,
+        	view = this.view,
+			fogWgt = view.sidePanel.fogFormWidget;
+		
+		// fog sb widget specific
+		fogWgt.addListener(shorthand.events.FogOnOff, function(turnOn) {
+			model.setVisible(turnOn);
+		});
+		fogWgt.addListener(shorthand.events.SaveFog, function(params) {
+			model.save(params);
+		});
+		fogWgt.addListener(editor.events.Cancel, function() {
+			var curVals = model.currentVals;
 			
-			// fog sb widget specific
-			fogWgt.addListener(shorthand.events.FogOnOff, function(turnOn) {
-				model.setVisible(turnOn);
-			});
-			fogWgt.addListener(shorthand.events.SaveFog, function(params) {
-				model.save(params);
-			});
-			fogWgt.addListener(editor.events.Cancel, function() {
-				var curVals = model.currentVals;
-				
-				if (curVals) {
-					fogWgt.set(curVals);
-				} else {
-					fogWgt.set(null);
-				}
-			});
-			
-			// model specific
-			model.addListener(shorthand.events.FogVisible, function(visible) {
-				fogWgt.onOff.attr('checked', visible);
-			});
-			model.addListener(shorthand.events.FogWorldLoaded, function(params) {
-				if (fogWgt.colorPicker != null) {
-					fogWgt.set(params);
-				}
-			});
-	    }
-	});
+			if (curVals) {
+				fogWgt.set(curVals);
+			} else {
+				fogWgt.set(null);
+			}
+		});
+		
+		// model specific
+		model.addListener(shorthand.events.FogVisible, function(visible) {
+			fogWgt.onOff.attr('checked', visible);
+		});
+		model.addListener(shorthand.events.FogWorldLoaded, function(params) {
+			if (fogWgt.colorPicker != null) {
+				fogWgt.set(params);
+			}
+		});
+    };
 	
-////////////////////////////////////////////////////////////////////////////////
-//                     			  	Extra Scripts  		                      //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                     			  			  Extra Scripts			  		                      //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	editor.getCss('js/editor/plugins/fog/css/style.css');
 	

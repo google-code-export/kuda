@@ -31,24 +31,24 @@
 			children.push(child);
 		}
 		
-		this.depends.put(parent.getId(), children);
+		this.depends.put(parent._getId(), children);
 	};
 	
 	DependencyManager.prototype.clearDependencies = function(citizen) {
-		if (citizen.getId) {
-			this.depends.remove(citizen.getId());
+		if (citizen._getId) {
+			this.depends.remove(citizen._getId());
 		}
 	};
 	
 	DependencyManager.prototype.getDependencies = function(citizen, getAll) {
-		var children = this.depends.get(citizen.getId()) || [];
+		var children = this.depends.get(citizen._getId()) || [];
 		
 		if (getAll) {
 			for (var i = 0; i < children.length; ++i) {
 				var child = children[i];
 				
-				if (child.getId) {
-					var grandChildren = this.depends.get(child.getId()) || [];
+				if (child._getId) {
+					var grandChildren = this.depends.get(child._getId()) || [];
 					
 					for (var j = 0, jl = grandChildren.length; j < jl; ++j) {
 						gc = grandChildren[j];

@@ -27,14 +27,12 @@
 	};
 		
 	editor.ui.GridPlane.prototype.createShape = function() {
-		var mat = new THREE.MeshBasicMaterial({
-				blending: THREE.BillboardBlending,
+		var mat = new THREE.MeshPhongMaterial({
 				color: 0x666666,
 				opacity: 0.2,
 				wireframe: true
 			}),
-			markerMat = new THREE.MeshBasicMaterial({
-				blending: THREE.BillboardBlending,
+			markerMat = new THREE.MeshPhongMaterial({
 				color: 0x666666,
 				lighting: false,
 				opacity: 0.5,
