@@ -476,24 +476,24 @@ var editor = {};
 			children.push(child);
 		}
 		
-		this.depends.put(parent.getId(), children);
+		this.depends.put(parent._getId(), children);
 	};
 	
 	DependencyManager.prototype.clearDependencies = function(citizen) {
-		if (citizen.getId) {
-			this.depends.remove(citizen.getId());
+		if (citizen._getId) {
+			this.depends.remove(citizen._getId());
 		}
 	};
 	
 	DependencyManager.prototype.getDependencies = function(citizen, getAll) {
-		var children = this.depends.get(citizen.getId()) || [];
+		var children = this.depends.get(citizen._getId()) || [];
 		
 		if (getAll) {
 			for (var i = 0; i < children.length; ++i) {
 				var child = children[i];
 				
-				if (child.getId) {
-					var grandChildren = this.depends.get(child.getId()) || [];
+				if (child._getId) {
+					var grandChildren = this.depends.get(child._getId()) || [];
 					
 					for (var j = 0, jl = grandChildren.length; j < jl; ++j) {
 						gc = grandChildren[j];
@@ -1569,8 +1569,11 @@ var editor = {};
 	};
 	
 	ColorPicker.prototype.setColorHex = function(color, alpha) {
-		var str = (typeof color) == 'number' ? color.toString(16) : color;
-		var rgb = jQuery.jPicker.ColorMethods.hexToRgba(str);
+		var colorMeth = jQuery.jPicker.ColorMethods,
+			str = ((typeof color) == 'number' ? color.toString(16) : color) + 
+				colorMeth.intToHex(alpha * 255),
+			rgb = colorMeth.hexToRgba(str);
+			
 		this.rInput.val(rgb.r / 255);
 		this.gInput.val(rgb.g / 255);
 		this.bInput.val(rgb.b / 255);
@@ -1580,7 +1583,7 @@ var editor = {};
 			r: rgb.r,
 			g: rgb.g,
 			b: rgb.b,
-			a: alpha
+			a: rgb.a
 		});
 	};
 	
@@ -4791,14 +4794,12 @@ var editor = {};
 	};
 		
 	editor.ui.GridPlane.prototype.createShape = function() {
-		var mat = new THREE.MeshBasicMaterial({
-				blending: THREE.BillboardBlending,
+		var mat = new THREE.MeshPhongMaterial({
 				color: 0x666666,
 				opacity: 0.2,
 				wireframe: true
 			}),
-			markerMat = new THREE.MeshBasicMaterial({
-				blending: THREE.BillboardBlending,
+			markerMat = new THREE.MeshPhongMaterial({
 				color: 0x666666,
 				lighting: false,
 				opacity: 0.5,

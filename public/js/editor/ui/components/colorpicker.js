@@ -190,8 +190,11 @@
 	};
 	
 	ColorPicker.prototype.setColorHex = function(color, alpha) {
-		var str = (typeof color) == 'number' ? color.toString(16) : color;
-		var rgb = jQuery.jPicker.ColorMethods.hexToRgba(str);
+		var colorMeth = jQuery.jPicker.ColorMethods,
+			str = ((typeof color) == 'number' ? color.toString(16) : color) + 
+				colorMeth.intToHex(alpha * 255),
+			rgb = colorMeth.hexToRgba(str);
+			
 		this.rInput.val(rgb.r / 255);
 		this.gInput.val(rgb.g / 255);
 		this.bInput.val(rgb.b / 255);
@@ -201,7 +204,7 @@
 			r: rgb.r,
 			g: rgb.g,
 			b: rgb.b,
-			a: alpha
+			a: rgb.a
 		});
 	};
 	

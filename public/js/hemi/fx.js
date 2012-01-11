@@ -44,7 +44,7 @@
 
 		if (data && data.fog) {
 			client.scene.fog = undefined;
-			client.setBGColor(data.oldBGHex, data.oldBGAlpha);
+			client.setBGColor(data.oldBGHex);
 
 			// now change the materials
 			for (var i = 0, il = data.materials.length; i < il; i++) {
@@ -64,7 +64,7 @@
 	 * @param {number} near the viewing distance where the fog obscuring starts  
 	 * @param {number} far the viewing distance where fog opacity obscures the subject
 	 */
-	hemi.fx.setFog = function(client, color, alpha, near, far) {
+	hemi.fx.setFog = function(client, color, near, far) {
 		var data = findData(client),
 			objs = client.scene.__webglObjects.concat(client.scene.__webglObjectsImmediate),
 			mats = [],
@@ -82,7 +82,6 @@
 
 			// save the old background color
 			data.oldBGHex = client.renderer.getClearColor().getHex();
-			data.oldBGAlpha = client.renderer.getClearAlpha();
 			refresh = true;
 		}
 
@@ -91,7 +90,7 @@
 		data.fog.far = far;
 
 		client.scene.fog = data.fog;
-		client.setBGColor(color, alpha);
+		client.setBGColor(color);
 
 		if (refresh) {
 			// go through all the materials and update
@@ -102,15 +101,15 @@
 					opaque = webglObject.opaque, 
 					transparent = webglObject.transparent;
 
-				for (var j = 0, jl = opaque.count; j < jl; j++) {
+				if (opaque) {
 					mats.push({
-						mat: opaque.list[j],
+						mat: opaque,
 						obj: object
 					});
 				}
-				for (var j = 0, jl = transparent.count; j < jl; j++) {
+				if (transparent) {
 					mats.push({
-						mat: transparent.list[j],
+						mat: transparent,
 						obj: object
 					});
 				}
