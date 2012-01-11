@@ -118,7 +118,7 @@
 		this.scripts = new Hashtable();
 		this.models = new Hashtable();
 		this.views = new Hashtable();
-		this.initComplete = false;
+		this.initComplete = true;
 		
 		editor.addListener(editor.events.ScriptLoadStart, this);
 		editor.addListener(editor.events.ScriptLoaded, this);
@@ -138,13 +138,14 @@
 		}
 		
 		if (complete) {
+			this.initComplete = true;
+			
 			for (var i = 0, il = this.callbacks.length; i < il; i++) {
 				var obj = this.callbacks[i];
 				obj.callback.apply(this, obj.params);
 			}
 			
 			this.currentPlugin = null;
-			this.initComplete = true;
 			this.callbacks = [];
 		}			
 	};
@@ -206,6 +207,7 @@
 		switch(eventType) {
 			case editor.events.ScriptLoadStart:	
 				this.scripts.put(value, false);
+				this.initComplete = false;
 				break;
 			case editor.events.ScriptLoaded:
 				this.scripts.put(value, true);

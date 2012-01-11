@@ -53,9 +53,6 @@
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi - the World is being cleaned up and emptied
-		 * data = { }
-		 * @example
 		 * hemi.Citizen - the Citizen is being removed from the World
 		 * data = { }
 		 */
@@ -239,7 +236,14 @@
 		 *     visible: (boolean) a flag indicating if the tool is visible
 		 * }
 		 */
-		visible: 'hemi.visible'
+		visible: 'hemi.visible',
+		/**
+		 * @type string
+		 * @constant
+		 * @example
+		 * hemi - the World is being cleaned up and emptied.
+		 */
+		worldCleanup: 'hemi.worldCleanup'
 	};
 
 })();

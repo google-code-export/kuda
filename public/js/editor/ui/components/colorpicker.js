@@ -189,6 +189,22 @@
 		});
 	};
 	
+	ColorPicker.prototype.setColorHex = function(color, alpha) {
+		var str = (typeof color) == 'number' ? color.toString(16) : color;
+		var rgb = jQuery.jPicker.ColorMethods.hexToRgba(str);
+		this.rInput.val(rgb.r / 255);
+		this.gInput.val(rgb.g / 255);
+		this.bInput.val(rgb.b / 255);
+		this.aInput.val(alpha);
+		
+		this.picker.color.active.val('rgba', {
+			r: rgb.r,
+			g: rgb.g,
+			b: rgb.b,
+			a: alpha
+		});
+	};
+	
 	ColorPicker.prototype.getColor = function() {
 		var r = this.rInput.val(),
 			g = this.gInput.val(),

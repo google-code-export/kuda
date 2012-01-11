@@ -107,7 +107,7 @@ var editor = {};
 	};
 		
 	function setupWorldMessages() {			
-		hemi.subscribe(hemi.msg.cleanup, function() {
+		hemi.subscribe(hemi.msg.worldCleanup, function(msg) {
 			editor.notifyListeners(editor.events.WorldCleaned);
 		});
 		hemi.subscribe(hemi.msg.ready, function() {

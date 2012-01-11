@@ -832,7 +832,7 @@
 	ListWidget.prototype.constructor = ListWidget;
 			    
     ListWidget.prototype.add = function(obj) {			
-		var li = this.items.get(obj.getId());
+		var li = this.items.get(obj._getId());
 		
 		if (!li) {
 			li = this.createListItem();
@@ -843,7 +843,7 @@
 			this.bindButtons(li, obj);
 			
 			this.list.add(li);
-			this.items.put(obj.getId(), li);
+			this.items.put(obj._getId(), li);
 		}
 		
 		return li;
@@ -893,13 +893,13 @@
 	};
     
     ListWidget.prototype.remove = function(obj) {
-		var li = this.items.get(obj.getId()),
+		var li = this.items.get(obj._getId()),
 			retVal = false;
 		
 		if (li) {
 			li.removeObject();
 			this.list.remove(li);
-			this.items.remove(obj.getId());
+			this.items.remove(obj._getId());
 			retVal = true;
 		}
 		
@@ -907,7 +907,7 @@
     };
 	
 	ListWidget.prototype.update = function(obj) {
-		var li = this.items.get(obj.getId()),
+		var li = this.items.get(obj._getId()),
 			retVal = false;
 		
 		if (li) {

@@ -107,7 +107,7 @@ var editor = {};
 	};
 		
 	function setupWorldMessages() {			
-		hemi.subscribe(hemi.msg.cleanup, function() {
+		hemi.subscribe(hemi.msg.worldCleanup, function(msg) {
 			editor.notifyListeners(editor.events.WorldCleaned);
 		});
 		hemi.subscribe(hemi.msg.ready, function() {
@@ -1565,6 +1565,22 @@ var editor = {};
 			g: color[1] * 255,
 			b: color[2] * 255,
 			a: color[3] * 255
+		});
+	};
+	
+	ColorPicker.prototype.setColorHex = function(color, alpha) {
+		var str = (typeof color) == 'number' ? color.toString(16) : color;
+		var rgb = jQuery.jPicker.ColorMethods.hexToRgba(str);
+		this.rInput.val(rgb.r / 255);
+		this.gInput.val(rgb.g / 255);
+		this.bInput.val(rgb.b / 255);
+		this.aInput.val(alpha);
+		
+		this.picker.color.active.val('rgba', {
+			r: rgb.r,
+			g: rgb.g,
+			b: rgb.b,
+			a: alpha
 		});
 	};
 	
@@ -3662,7 +3678,7 @@ var editor = {};
 	ListWidget.prototype.constructor = ListWidget;
 			    
     ListWidget.prototype.add = function(obj) {			
-		var li = this.items.get(obj.getId());
+		var li = this.items.get(obj._getId());
 		
 		if (!li) {
 			li = this.createListItem();
@@ -3673,7 +3689,7 @@ var editor = {};
 			this.bindButtons(li, obj);
 			
 			this.list.add(li);
-			this.items.put(obj.getId(), li);
+			this.items.put(obj._getId(), li);
 		}
 		
 		return li;
@@ -3723,13 +3739,13 @@ var editor = {};
 	};
     
     ListWidget.prototype.remove = function(obj) {
-		var li = this.items.get(obj.getId()),
+		var li = this.items.get(obj._getId()),
 			retVal = false;
 		
 		if (li) {
 			li.removeObject();
 			this.list.remove(li);
-			this.items.remove(obj.getId());
+			this.items.remove(obj._getId());
 			retVal = true;
 		}
 		
@@ -3737,7 +3753,7 @@ var editor = {};
     };
 	
 	ListWidget.prototype.update = function(obj) {
-		var li = this.items.get(obj.getId()),
+		var li = this.items.get(obj._getId()),
 			retVal = false;
 		
 		if (li) {
@@ -6598,7 +6614,7 @@ var editor = {};
 		this.scripts = new Hashtable();
 		this.models = new Hashtable();
 		this.views = new Hashtable();
-		this.initComplete = false;
+		this.initComplete = true;
 		
 		editor.addListener(editor.events.ScriptLoadStart, this);
 		editor.addListener(editor.events.ScriptLoaded, this);
@@ -6618,13 +6634,14 @@ var editor = {};
 		}
 		
 		if (complete) {
+			this.initComplete = true;
+			
 			for (var i = 0, il = this.callbacks.length; i < il; i++) {
 				var obj = this.callbacks[i];
 				obj.callback.apply(this, obj.params);
 			}
 			
 			this.currentPlugin = null;
-			this.initComplete = true;
 			this.callbacks = [];
 		}			
 	};
@@ -6686,6 +6703,7 @@ var editor = {};
 		switch(eventType) {
 			case editor.events.ScriptLoadStart:	
 				this.scripts.put(value, false);
+				this.initComplete = false;
 				break;
 			case editor.events.ScriptLoaded:
 				this.scripts.put(value, true);

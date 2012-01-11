@@ -97,6 +97,12 @@
 
 		if (this.mesh.parent === undefined) {
 			this.client.scene.add(this.mesh);
+		} else {
+			// need the renderer to do some setup
+			this.mesh.__webglInit = false;
+			this.mesh.__webglActive = false;
+			this.client.scene.__objectsAdded.push(this.mesh);
+			this.client.renderer.initWebGLObjects(this.client.scene);
 		}
 	};
 

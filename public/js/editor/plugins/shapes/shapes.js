@@ -66,7 +66,7 @@
 		
 	ShapesModel.prototype.previewShape = function(props) {
 		if (this.currentShape !== null) {
-			this.currentShape.transform.visible = false;
+			this.currentShape.mesh.visible = false;
 		}
 		if (this.prevShape !== null) {
 			this.prevShape.cleanup();
@@ -85,7 +85,7 @@
 	};
 	
 	ShapesModel.prototype.saveShape = function(props) {
-		var msgType;
+		var msgType, shape;
 		
 		if (this.prevShape !== null) {
 			this.prevShape.cleanup();
@@ -93,19 +93,20 @@
 		}
 		
 		if (this.currentShape !== null) {
-			this.currentShape.change(props.shapeInfo);
-			this.currentShape.transform.identity();
-			this.currentShape.transform.visible = true;
+			shape = this.currentShape;
+			shape.config = props.shapeInfo;
+			shape.create();
+			shape.mesh.visible = true;
 			msgType = editor.events.Updated;
 		} else {
-			this.currentShape = new hemi.Shape(editor.client, props.shapeInfo);
+			shape = this.currentShape = new hemi.Shape(editor.client, props.shapeInfo);
 			msgType = editor.events.Created;
 		}
 		
 		var pos = props.position;
-		this.currentShape.translate(pos[0], pos[1], pos[2]);
-		this.currentShape.setName(props.name);
-		this.notifyListeners(msgType, this.currentShape);
+		shape.translate(pos[0], pos[1], pos[2]);
+		shape.setName(props.name);
+		this.notifyListeners(msgType, shape);
 		
 		this.currentShape = null;
 	};
@@ -116,7 +117,7 @@
 			this.prevShape = null;
 		}
 		if (this.currentShape !== null) {
-			this.currentShape.transform.visible = true;
+			this.currentShape.mesh.visible = true;
 		}
 		
 		this.currentShape = shape;
@@ -400,19 +401,19 @@
 	
 	CreateWidget.prototype.set = function(shape) {
 		// set the type
-		this.shapeType.val(shape.shapeType).change();
+		this.shapeType.val(shape.config.shape).change();
 		
 		// set the position
-		var translation = hemi.core.math.matrix4.getTranslation(shape.transform.localMatrix);
+		var translation = shape.mesh.position;
 		this.shapePosition.setValue({
-			x: translation[0],
-			y: translation[1],
-			z: translation[2]
+			x: translation.x,
+			y: translation.y,
+			z: translation.z
 		});
 		
 		// set the dimension values
-		for (var prop in shape.dim) {
-			var val = shape.dim[prop];
+		for (var prop in shape.config) {
+			var val = shape.config[prop];
 			
 			switch(prop) {
 				case 'height':
@@ -437,7 +438,7 @@
 		}
 		
 		// set the color
-		this.colorPicker.setColor(shape.color);
+		this.colorPicker.setColorHex(shape.config.color, shape.config.opacity);
 		
 		// set the name
 		this.shapeName.setValue(shape.name);
