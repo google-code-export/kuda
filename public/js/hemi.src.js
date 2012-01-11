@@ -3459,9 +3459,6 @@ if (!window.requestAnimationFrame) {
 		 * @type string
 		 * @constant
 		 * @example
-		 * hemi - the World is being cleaned up and emptied
-		 * data = { }
-		 * @example
 		 * hemi.Citizen - the Citizen is being removed from the World
 		 * data = { }
 		 */
@@ -3645,7 +3642,14 @@ if (!window.requestAnimationFrame) {
 		 *     visible: (boolean) a flag indicating if the tool is visible
 		 * }
 		 */
-		visible: 'hemi.visible'
+		visible: 'hemi.visible',
+		/**
+		 * @type string
+		 * @constant
+		 * @example
+		 * hemi - the World is being cleaned up and emptied.
+		 */
+		worldCleanup: 'hemi.worldCleanup'
 	};
 
 })();
@@ -4373,7 +4377,7 @@ if (!window.requestAnimationFrame) {
 	 */
 	hemi.world.cleanup = function() {
 		hemi.resetLoadTasks();
-		hemi.send(hemi.msg.cleanup, {});
+		hemi.send(hemi.msg.worldCleanup, {});
 
 		citizens.each(function(key, value) {
 			value.cleanup();
@@ -14436,6 +14440,12 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 
 		if (this.mesh.parent === undefined) {
 			this.client.scene.add(this.mesh);
+		} else {
+			// need the renderer to do some setup
+			this.mesh.__webglInit = false;
+			this.mesh.__webglActive = false;
+			this.client.scene.__objectsAdded.push(this.mesh);
+			this.client.renderer.initWebGLObjects(this.client.scene);
 		}
 	};
 

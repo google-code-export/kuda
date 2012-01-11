@@ -256,7 +256,7 @@
 	 */
 	hemi.world.cleanup = function() {
 		hemi.resetLoadTasks();
-		hemi.send(hemi.msg.cleanup, {});
+		hemi.send(hemi.msg.worldCleanup, {});
 
 		citizens.each(function(key, value) {
 			value.cleanup();
