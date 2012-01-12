@@ -233,7 +233,7 @@
 	 * @param {hemi.Transform} transform the Transform to rotate
 	 */
 	hemi.utils.worldRotate = function(axis, angle, transform) {
-		var invWorld = _matrix.getInverse(transform.matrixWorld),
+		var invWorld = _matrix.getInverse(transform.parent.matrixWorld),
 			localAxis = transformVector(invWorld, axis);
 
 		hemi.utils.axisRotate(localAxis, angle, transform);
@@ -260,7 +260,7 @@
 	 * @param {hemi.Transform} transform the Transform to translate
 	 */
 	hemi.utils.worldTranslate = function(delta, transform) {
-		var invWorld = _matrix.getInverse(transform.matrixWorld),
+		var invWorld = _matrix.getInverse(transform.parent.matrixWorld),
 			localDelta = transformVector(invWorld, delta);
 
 		transform.position.addSelf(localDelta);
