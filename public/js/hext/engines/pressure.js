@@ -66,7 +66,6 @@ var hext = (function(hext) {
 	 * Send a cleanup Message and remove all references in the Portal.
 	 */
 	Portal.prototype.cleanup = function() {
-		this._super();
 		this.locationA = null;
 		this.locationB = null;
 	};

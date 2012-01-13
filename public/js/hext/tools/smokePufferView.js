@@ -15,8 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hext.tools.toolbarView');
-
 var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
@@ -26,51 +24,52 @@ var hext = (function(hext) {
 	 * 
 	 * @param {Object} config configuration options
 	 */
-	hext.tools.SmokePufferToolbarView = hext.tools.ToolbarView.extend({
-		init: function(config) {
-	        this.button = null;
-	        config = hemi.utils.join({
-	        	containerId: 'smokePufferToolbarView',
-				buttonId: 'smokePufferButtonId'
-	        }, config);
-	        
-	        this._super(config);
-		},
+	var SmokePufferToolbarView = function(config) {
+        this.button = null;
+        config = hemi.utils.join({
+        	containerId: 'smokePufferToolbarView',
+			buttonId: 'smokePufferButtonId'
+        }, config);
+        
+        hext.tools.ToolbarView.call(this, config);
+	};
+
+	SmokePufferToolbarView.prototype = new hext.tools.ToolbarView();
+	SmokePufferToolbarView.prototype.constructor = SmokePufferToolbarView;
 		
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.SmokePufferToolbarView',
+	/**
+	 * Send a cleanup Message and remove all references in the
+	 * SmokePufferToolbarView.
+	 */
+	SmokePufferToolbarView.prototype.cleanup =function() {
+		hext.tools.ToolbarView.cleanup.call();
 		
-		/**
-		 * Send a cleanup Message and remove all references in the
-		 * SmokePufferToolbarView.
-		 */
-		cleanup: function() {
-			this._super();
-			
-			if (this.button) {
-				this.button.unbind();
-				this.button = null;
-			}
-		},
-		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			
-	    },
-		
-    	/**
-		 * Create the actual toolbar button element for the
-		 * SmokePufferToolbarView.
-		 */
-	    layoutView: function() {
-	        this.button = jQuery('<button id="' + this.config.buttonId + '" title="Smoke Puffer Tool">Smoke Puffer</button>');
-			this.container.append(this.button);
+		if (this.button) {
+			this.button.unbind();
+			this.button = null;
 		}
-    });
+	};
+		
+	/*
+	 * Not currently supported.
+	 */
+	SmokePufferToolbarView.prototype.toOctane = function() {
+		
+    };
+		
+	/**
+	 * Create the actual toolbar button element for the
+	 * SmokePufferToolbarView.
+	 */
+    SmokePufferToolbarView.prototype.layoutView = function() {
+        this.button = jQuery('<button id="' + this.config.buttonId + '" title="Smoke Puffer Tool">Smoke Puffer</button>');
+		this.container.append(this.button);
+	};
+
+	hemi.makeCitizen(SmokePufferToolbarView, 'hext.tools.SmokePufferToolbarView', {
+		msgs: [],
+		toOctane: []
+	});
 	
 	return hext;
 })(hext || {});

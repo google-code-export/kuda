@@ -15,8 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hext.tools.baseTool');
-
 var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
@@ -84,78 +82,79 @@ var hext = (function(hext) {
 	 * detect drafts.
 	 * @extends hext.tools.BaseTool
 	 */
-	hext.tools.SmokePuffer = hext.tools.BaseTool.extend({
-		init: function() {
-			this._super();
-			
-			this.puffConfigs = [];
-			this.puffs = new Hashtable();
-			this.pickNames = new Hashtable();
-		},
-	    
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.SmokePuffer',
+	var SmokePuffer = function(client) {
+		hext.tools.BaseTool.call(this);
 		
-		/**
-		 * Send a cleanup Message and remove all references in the SmokePuffer.
-		 */
-		cleanup: function() {
-			this._super();
-			this.puffConfigs = [];
-			this.puffs.clear();
-			this.puffs = null;
-			this.pickNames.clear();
-			this.pickNames = null;
-		},
+		this.puffConfigs = [];
+		this.puffs = new Hashtable();
+		this.pickNames = new Hashtable();
+		this.client = client;
+	};
+	
+	SmokePuffer.prototype = new hext.tools.BaseTool();
+	SmokePuffer.prototype.constructor = SmokePuffer;
 		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-			
-		},
+	/**
+	 * Send a cleanup Message and remove all references in the SmokePuffer.
+	 */
+	SmokePuffer.prototype.cleanup = function() {
+		hext.tools.BaseTool.cleanup.call(this);
+		this.puffConfigs = [];
+		this.puffs.clear();
+		this.puffs = null;
+		this.pickNames.clear();
+		this.pickNames = null;
+	};
 		
-		/**
-		 * Associate a smoke puff particle Effect with the given configuration
-		 * and the given shape name.
-		 *  
-		 * @param {string} shapeName name of the pickable shape to associate
-		 *     with the smoke puff
-		 * @param {hext.tools.SmokePuffConfig} config configuration for the
-		 *     particle Effect to generate when the shape is picked
-		 */
-		addSmokePuff: function(shapeName, config) {
-			var key = config.getKey();
-			var puff;
+	/*
+	 * Not currently supported.
+	 */
+	SmokePuffer.prototype.toOctane = function() {
+		
+	};
+	
+	/**
+	 * Associate a smoke puff particle Effect with the given configuration
+	 * and the given shape name.
+	 *  
+	 * @param {string} shapeName name of the pickable shape to associate
+	 *     with the smoke puff
+	 * @param {hext.tools.SmokePuffConfig} config configuration for the
+	 *     particle Effect to generate when the shape is picked
+	 */
+	SmokePuffer.prototype.addSmokePuff = function(shapeName, config) {
+		var key = config.getKey();
+		var puff;
+		
+		if (this.puffs.containsKey(key)) {
+			puff = this.puffs.get(key);
+		} else {
+			puff = hext.tools.createSmokePuff(this.client,
+				config.size,
+				config.position,
+				config.wind,
+				config.windVar);
 			
-			if (this.puffs.containsKey(key)) {
-				puff = this.puffs.get(key);
-			} else {
-				puff = hext.tools.createSmokePuff(
-					config.size,
-					config.position,
-					config.wind,
-					config.windVar);
-				
-				this.puffConfigs.push(config);
-				this.puffs.put(key, puff);
-			}
-			
-			this.pickNames.put(shapeName, puff);
+			this.puffConfigs.push(config);
+			this.puffs.put(key, puff);
 		}
+		
+		this.pickNames.put(shapeName, puff);
+	};
+
+	hemi.makeCitizen(SmokePuffer, 'hext.tools.SmokePuffer', {
+		msgs: [],
+		toOctane: []
 	});
 	
-	hext.tools.createSmokePuff = function(scale,position,opt_wind,opt_windRange) {
+	hext.tools.createSmokePuff = function(client, scale, position, opt_wind, opt_windRange) {
 		var wind = opt_wind || [0,0,0];
 		var windRange = opt_windRange || [0,0,0];
-		var pfSpecs = new hemi.effect.ParticleFunction();
-		pfSpecs.name = hemi.effect.ParticleFunctions.Puff;
+		var pfSpecs = new hemi.ParticleFunction();
+		pfSpecs.name = hemi.ParticleFunctionIds.Puff;
 		pfSpecs.options.wind = wind;
 		pfSpecs.options.size = scale;
 		
-		var state = hemi.core.particles.ParticleStateIds.ADD;
 		var colorRamp = 
 			[0.6, 0.6, 0.6, 0.6,
 			0.9, 0.9, 0.9, 0.2,
@@ -172,8 +171,7 @@ var hext = (function(hext) {
 			spinSpeedRange: 10,
 			accelerationRange: windRange};
 
-		var smokepuff = hemi.effect.createBurst(
-			state,
+		var smokepuff = hemi.createParticleBurst(client,
 			colorRamp,
 			params,
 			pfSpecs);

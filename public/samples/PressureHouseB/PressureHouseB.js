@@ -17,7 +17,7 @@
 
 /**
  * This demo shows us how to set up a very complex script that takes advantage
- * of Scenes to organize behavior into logical segments. It also shows how to
+ * of States to organize behavior into logical segments. It also shows how to
  * set up the manometer, blower door, and smoke puffer weatherization tools as
  * well as the camera navigation tool. The script calls for a complex
  * PressureEngine with several Locations and many Portals. It also requires us
@@ -25,25 +25,27 @@
  * type ("Swing").
  */
 (function() {
+	var client;
+
 	function init(clientElements) {
-		hemi.core.init(clientElements[0]);
-		hemi.view.setBGColor([1, 1, 1, 1]);
-		hemi.loader.loadPath = '../../';
+		client = hemi.makeClients()[0];
+		client.setBGColor([1, 1, 1, 1]);
+		hemi.loadPath = '../../';
 		
 		// Load the model
-		var house = new hemi.model.Model();
-		house.setFileName('assets/ScenarioB_v017/scene.json');
+		var house = new hemi.Model(client);
+		house.setFileName('assets/ScenarioB_v017/ScenarioB_v017.dae');
 		
 		// When the World is initialized, create the script.
-		hemi.world.subscribe(hemi.msg.ready,
+		hemi.subscribe(hemi.msg.ready,
 			function(msg) {
 				setupModel(house);
-				var firstScene = setupWorld(house);
-				// Once everything is set up, move to the first Scene.
-				firstScene.load();
+				var firstState = setupWorld(house);
+				// Once everything is set up, move to the first State.
+				firstState.load();
 			});
 		
-		hemi.world.ready();
+		hemi.ready();
 	}
 	
 	var setupModel = function(model) {
@@ -60,30 +62,31 @@
 			t10 = model.getTransforms('B1_window_paneLL')[0],
 			t11 = model.getTransforms('B1_window_paneLR')[0];
 		
-		model.setTransformVisible(t1, false);
-		model.setTransformPickable(t1, false);
-		model.setTransformVisible(t2, false);
-		model.setTransformPickable(t2, false);
-		model.setTransformVisible(t3, false);
-		model.setTransformPickable(t3, false);
-		model.setTransformVisible(t4, false);
-		model.setTransformPickable(t4, false);
-		model.setTransformVisible(t5, false);
-		model.setTransformPickable(t5, false);
-		model.setTransformVisible(t6, false);
-		model.setTransformPickable(t6, false);
-		model.setTransformVisible(t7, false);
-		model.setTransformPickable(t7, false);
-		model.setTransformVisible(t8, false);
-		model.setTransformPickable(t8, false);
-		model.setTransformVisible(t9, false);
-		model.setTransformPickable(t9, false);
-		model.setTransformVisible(t10, false);
-		model.setTransformPickable(t10, false);
-		model.setTransformVisible(t11, false);
-		model.setTransformPickable(t11, false);
+		t1.visible = false;
+		t1.pickable = false;
+		t2.visible = false;
+		t2.pickable = false;
+		t3.visible = false;
+		t3.pickable = false;
+		t4.visible = false;
+		t4.pickable = false;
+		t5.visible = false;
+		t5.pickable = false;
+		t6.visible = false;
+		t6.pickable = false;
+		t7.visible = false;
+		t7.pickable = false;
+		t8.visible = false;
+		t8.pickable = false;
+		t9.visible = false;
+		t9.pickable = false;
+		t10.visible = false;
+		t10.pickable = false;
+		t11.visible = false;
+		t11.pickable = false;
 
-		var t = model.transforms;
+		var t = [];
+		model.root.getAllChildren(t);
 		
 		for(var i = 0; i < t.length; i++) {
 			var name = t[i].name;
@@ -91,42 +94,34 @@
 			if (name === 'SO_B2_1') {
 				// Set this particular select Transform to be hidden and
 				// non-pickable
-				model.setTransformVisible(t[i], false);
-				model.setTransformPickable(t[i], false);
+				t[i].visible = false;
+				t[i].pickable = false;
 			} else if(name.substring(0,3) === 'SO_') {
 				// Set select Transforms to be hidden
-				model.setTransformVisible(t[i], false);
+				t[i].visible = false;
 			} else if(name.substring(0,3) === 'cam') {
 				// Set camera Transforms to be hidden and non-pickable
-				model.setTransformVisible(t[i], false);
-				model.setTransformPickable(t[i], false);
+				t[i].visible = false;
+				t[i].pickable = false;
 			}
 		}
 		
+
 		// Make the material of the highlight shapes pulse between two different
 		// colors.
 		var highlightTran = model.getTransforms('highlight_bdHole')[0];
-		var highlightMat = highlightTran.shapes[0].elements[0].material;
-		
 		var pulsator = {
-			diffuse: highlightMat.getParam('diffuse'),
 			count: 0,
 			direction: 1,
 			onRender: function(event) {
 				this.count += this.direction;
 				if (this.count > 30) this.direction = -1;
 				if (this.count < 0) this.direction = 1;
-				
-				if (this.diffuse.value != undefined) {
-					this.diffuse.value = hemi.core.math.addVector(
-						this.diffuse.value,
-						[0, this.direction / 45, 0, 0]);
-				}
+				highlightTran.material.color.g = highlightTran.material.color.g + this.direction / 45;
 			}
 		};
 		
-		pulsator.diffuse.value = [1,0,0,1];
-		hemi.view.addRenderListener(pulsator);
+		hemi.addRenderListener(pulsator);
 	};
 	
 	var setupWorld = function(model) {
@@ -349,7 +344,7 @@
 		}
 		
 		// Set up the Draggable windows.
-		var b1RightWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.XY, [[0, 0], [0, 55]], [0, 44]);
+		var b1RightWinDrag = new hemi.Draggable(client, hemi.Plane.XY, [[0, 0], [0, 55]], [0, 44]);
 		var b1RightWinTran = model.getTransforms('B1_window01_sashRight')[0];
 		var b1RightWinTranSO = model.getTransforms('SO_B1_window_right')[0];
 		b1RightWinDrag.addTransform(b1RightWinTran);
@@ -357,60 +352,60 @@
 		
 		// Set the position of the corresponding window Portal and register it
 		// to handle updates from the Draggable.
-		b1Window1Right.setClosedPosition([0, 0, -899]);
-		b1Window1Right.setOpening([0, 44, -899]);
+		b1Window1Right.setClosedPosition(new THREE.Vector3(0, 0, -899));
+		b1Window1Right.setOpening(new THREE.Vector3(0, 44, -899));
 		b1RightWinDrag.subscribe(hemi.msg.drag,
 			b1Window1Right,
 			"adjustOpening",
 			["msg:data.drag"]);
 		
-		var b1LeftWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.XY, [[0, 0], [0, 55]], [0, 44]);
+		var b1LeftWinDrag = new hemi.Draggable(client, hemi.Plane.XY, [[0, 0], [0, 55]], [0, 44]);
 		var b1LeftWinTran = model.getTransforms('B1_window_sashLeft')[0];
 		var b1LeftWinTranSO = model.getTransforms('SO_B1_window_left')[0];
 		b1LeftWinDrag.addTransform(b1LeftWinTran);
 		b1LeftWinDrag.addTransform(b1LeftWinTranSO);
 		
-		b1Window1Left.setClosedPosition([0, 0, -899]);
-		b1Window1Left.setOpening([0, 44, -899]);
+		b1Window1Left.setClosedPosition(new THREE.Vector3(0, 0, -899));
+		b1Window1Left.setOpening(new THREE.Vector3(0, 44, -899));
 		b1LeftWinDrag.subscribe(hemi.msg.drag,
 			b1Window1Left,
 			"adjustOpening",
 			["msg:data.drag"]);
 		
-		var b2RightWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.YZ, [[0, 0], [0, 55]], [0, 17]);
+		var b2RightWinDrag = new hemi.Draggable(client, hemi.Plane.YZ, [[0, 0], [0, 55]], [0, 17]);
 		var b2RightWinTran = model.getTransforms('B2_window2_sashRight')[0];
 		var b2RightWinTranSO = model.getTransforms('SO_B2_window2_right')[0];
 		b2RightWinDrag.addTransform(b2RightWinTran);
 		b2RightWinDrag.addTransform(b2RightWinTranSO);
 		
-		b2Window2Right.setClosedPosition([1000, 0, 0]);
-		b2Window2Right.setOpening([1000, 17, 0]);
+		b2Window2Right.setClosedPosition(new THREE.Vector3(1000, 0, 0));
+		b2Window2Right.setOpening(new THREE.Vector3(1000, 17, 0));
 		b2RightWinDrag.subscribe(hemi.msg.drag,
 			b2Window2Right,
 			"adjustOpening",
 			["msg:data.drag"]);
 		
-		var b2LeftWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.YZ, [[0, 0], [0, 55]], [0, 17]);
+		var b2LeftWinDrag = new hemi.Draggable(client, hemi.Plane.YZ, [[0, 0], [0, 55]], [0, 17]);
 		var b2LeftWinTran = model.getTransforms('B2_window2_sashLeft')[0];
 		var b2LeftWinTranSO = model.getTransforms('SO_B2_window2_left')[0];
 		b2LeftWinDrag.addTransform(b2LeftWinTran);
 		b2LeftWinDrag.addTransform(b2LeftWinTranSO);
 		
-		b2Window2Left.setClosedPosition([1000, 0, 0]);
-		b2Window2Left.setOpening([1000, 17, 0]);
+		b2Window2Left.setClosedPosition(new THREE.Vector3(1000, 0, 0));
+		b2Window2Left.setOpening(new THREE.Vector3(1000, 17, 0));
 		b2LeftWinDrag.subscribe(hemi.msg.drag,
 			b2Window2Left,
 			"adjustOpening",
 			["msg:data.drag"]);
 		
-		var baWinDrag = new hemi.manip.Draggable(hemi.manip.Plane.YZ, [[0, 0], [32, 0]], [13, 0]);
+		var baWinDrag = new hemi.Draggable(client, hemi.Plane.YZ, [[0, 0], [32, 0]], [13, 0]);
 		var baWinTran = model.getTransforms('BA_windowSashRight')[0];
 		var baWinTranSO = model.getTransforms('SO_BA_window')[0];
 		baWinDrag.addTransform(baWinTran);
 		baWinDrag.addTransform(baWinTranSO);
 		
-		baWindow1.setClosedPosition([-654, 0, 0]);
-		baWindow1.setOpening([-654, 0, 13]);
+		baWindow1.setClosedPosition(new THREE.Vector3(-654, 0, 0));
+		baWindow1.setOpening(new THREE.Vector3(-654, 0, 13));
 		baWinDrag.subscribe(hemi.msg.drag,
 			baWindow1,
 			"adjustOpening",
@@ -421,25 +416,22 @@
 		var ccw = -1;
 		
 		var b1DoorTran = model.getTransforms('B1_door')[0];
-		var b1DoorRot = new hemi.motion.Rotator(b1DoorTran, {
-			origin: [16.758, -14.848, 0]
-		});
+		var b1DoorRot = new hemi.Rotator(b1DoorTran);
+		b1DoorRot.setOrigin([16.758, -14.848, 0]);
 		
 		var door1 = createDoor(b1DoorRot, cw, true);
 		door1.addAltName('SO_B1_2');
 		
 		var b2DoorTran = model.getTransforms('B2_door')[0];
-		var b2DoorRot = new hemi.motion.Rotator(b2DoorTran, {
-			origin: [394.4, -20.1, 0]
-		});
+		var b2DoorRot = new hemi.Rotator(b2DoorTran);
+		b2DoorRot.setOrigin([394.4, -20.1, 0]);
 		
 		var door2 = createDoor(b2DoorRot, ccw, true);
 		door2.addAltName('SO_B2_2');
 		
 		var baDoorTran = model.getTransforms('BA_door')[0];
-		var baDoorRot = new hemi.motion.Rotator(baDoorTran, {
-			origin: [-135, -63.9, 0]
-		});
+		var baDoorRot = new hemi.Rotator(baDoorTran);
+		baDoorRot.setOrigin([-135, -63.9, 0]);
 		
 		var door3 = createDoor(baDoorRot, ccw, false);
 		door3.addAltName('SO_BA_2');
@@ -466,7 +458,7 @@
 		hext.html.toolViews.addView(manView);
 		hext.html.toolbar.addView(manToolbarView);
 		
-		var manController = new hext.tools.ManometerController();
+		var manController = new hext.tools.ManometerController(client);
 		manController.setModel(manometer);
 		manController.setView(manView);
 		manController.setShapeView(manShapeView);
@@ -500,13 +492,12 @@
 		// Create a Rotator to animate the fan blades in response to the blower
 		// door control.
 		var fanTrans = model.getTransforms('fan_blades')[0];
-		var fanRotator = new hemi.motion.Rotator(fanTrans, {
-			origin: [19.9943, 41.8675, 0]
-		});
+		var fanRotator = new hemi.Rotator(fanTrans);
+		fanRotator.setOrigin([19.9943, 41.8675, 0]);
 		
 		blowerDoor.subscribe(hext.msg.speed,
 			function(msg) {
-				fanRotator.setVel([0, 0, 0.3 * msg.data.speed]);
+				fanRotator.setVel(new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
 			});
 		
 		// Manometer tubes
@@ -587,80 +578,80 @@
 		// Location selectors to help place Manometer tubes
 		var outsideSel = new hext.engines.LocationSelector();
 		outsideSel.location = outside;
-		outsideSel.shapeName = 'SO_bdHoleShape';
+		outsideSel.shapeName = 'SO_bdHole';
 		engine.addLocationSelector(outsideSel);
 		
 		var blowerSel = new hext.engines.LocationSelector();
 		blowerSel.location = blowerDoor;
-		blowerSel.shapeName = 'SO_fanPressTapShape';
+		blowerSel.shapeName = 'SO_fanPressTap';
 		engine.addLocationSelector(blowerSel);
 		
 		var bathSel = new hext.engines.LocationSelector();
 		bathSel.location = bathroom;
-		bathSel.shapeName = 'SO_BA_Shape2';
+		bathSel.shapeName = 'SO_BA_2';
 		engine.addLocationSelector(bathSel);
         var bathSel2 = new hext.engines.LocationSelector();
         bathSel2.location = bathroom;
-        bathSel2.shapeName = 'SO_BA_Shape1';
+        bathSel2.shapeName = 'SO_BA_1';
         engine.addLocationSelector(bathSel2);
 		
 		var b1Sel = new hext.engines.LocationSelector();
 		b1Sel.location = bedroom1;
-		b1Sel.shapeName = 'SO_B1_Shape2';
+		b1Sel.shapeName = 'SO_B1_2';
 		engine.addLocationSelector(b1Sel);
         var b1Sel2 = new hext.engines.LocationSelector();
         b1Sel2.location = bedroom1;
-        b1Sel2.shapeName = 'SO_B1_Shape1';
+        b1Sel2.shapeName = 'SO_B1_1';
         engine.addLocationSelector(b1Sel2);
 		
 		var b2Sel = new hext.engines.LocationSelector();
 		b2Sel.location = bedroom2;
-		b2Sel.shapeName = 'SO_B2_Shape2';
+		b2Sel.shapeName = 'SO_B2_2';
 		engine.addLocationSelector(b2Sel);
         var b2Sel2 = new hext.engines.LocationSelector();
         b2Sel2.location = bedroom2;
-        b2Sel2.shapeName = 'SO_B2_Shape1';
+        b2Sel2.shapeName = 'SO_B2_1';
         engine.addLocationSelector(b2Sel2);
 		
 		// Smoke puffer
 		var smokePufferToolbarView = new hext.tools.SmokePufferToolbarView();
-		var smokePuffer = new hext.tools.SmokePuffer();
+		var smokePuffer = new hext.tools.SmokePuffer(client);
 		// Create a new default puff.
-		smokePuffer.defaultPuff = hext.tools.createSmokePuff(40, [0, 0, 0], [0, 0, 0], [0, 0, 0]);
+		smokePuffer.defaultPuff = hext.tools.createSmokePuff(client, 40, [0, 0, 0], [0, 0, 0], [0, 0, 0]);
 		// Create custom smoke puffs for when the user clicks on the leaky area.
 		var config1 = new hext.tools.SmokePuffConfig();
 		config1.size = 40;
 		config1.position = [-170, 50, -430];
 		config1.wind = [0, 0, 110];
 		config1.windVar = [10, 10, 20];
-		smokePuffer.addSmokePuff('SO_B1_window_leftShape', config1);
+		smokePuffer.addSmokePuff('SO_B1_window_left', config1);
 		var config2 = new hext.tools.SmokePuffConfig();
 		config2.size = 40;
 		config2.position = [-130, 50, -430];
 		config2.wind = [0, 0, 110];
 		config2.windVar = [10, 10, 20];
-		smokePuffer.addSmokePuff('SO_B1_window_rightShape', config2);
+		smokePuffer.addSmokePuff('SO_B1_window_right', config2);
 		
         hext.html.toolbar.addView(smokePufferToolbarView);
 		
-		var smokePufferController = new hext.tools.SmokePufferController();
+		var smokePufferController = new hext.tools.SmokePufferController(client);
 		smokePufferController.setModel(smokePuffer);
 		smokePufferController.setToolbarView(smokePufferToolbarView);
 		
 		// Navigation tool
-		var eye = [79, 2742, 1393];
-		var target = [98, 7, 88];
-		var fov = hemi.core.math.degToRad(40);
+		var eye = new THREE.Vector3(79, 2742, 1393);
+		var target = new THREE.Vector3(98, 7, 88);
+		var fov = 40 * hemi.DEG_TO_RAD;
 		var np = 5;
 		var fp = 5000;
-		var defaultViewpoint = hemi.view.createCustomViewpoint("Start", eye, target, fov, np, fp);
+		var defaultViewpoint = new hemi.Viewpoint({name: "Start", eye: eye, target: target, fov: fov, np: np, fp: fp});
 		
-		var navTool = new hext.tools.Navigation(hemi.world.camera, defaultViewpoint);
-		navTool.addArea('SO_BA_Shape1', createViewpoint(model, 'camEye_BA', 'camTarget_BA', 43));
-		navTool.addArea('SO_B1_Shape1', createViewpoint(model, 'camEye_B1', 'camTarget_B1'));
-		navTool.addArea('SO_B2_Shape1', createViewpoint(model, 'camEye_B2', 'camTarget_B2'));
-		navTool.addArea('LR_floorShape', createViewpoint(model, 'camEye_overview', 'camTarget_overview', 43));
-		navTool.addArea('AT_soffitFrontShape', createViewpoint(model, 'camEye_BDCam', 'camTarget_BDCam'));
+		var navTool = new hext.tools.Navigation(client.camera, defaultViewpoint);
+		navTool.addArea('SO_BA_1', createViewpoint(model, 'camEye_BA', 'camTarget_BA', 43));
+		navTool.addArea('SO_B1_1', createViewpoint(model, 'camEye_B1', 'camTarget_B1'));
+		navTool.addArea('SO_B2_1', createViewpoint(model, 'camEye_B2', 'camTarget_B2'));
+		navTool.addArea('LR_floor', createViewpoint(model, 'camEye_overview', 'camTarget_overview', 43));
+		navTool.addArea('AT_soffitFront', createViewpoint(model, 'camEye_BDCam', 'camTarget_BDCam'));
 		
 		// Add select transforms for zoom in
 		navTool.addZoomSelectTransform(model.getTransforms('SO_BA_1')[0]);
@@ -674,147 +665,146 @@
 		
 		hext.html.toolbar.addView(navToolbar);
 		
-		var navController = new hext.tools.NavigationController();
+		var navController = new hext.tools.NavigationController(client);
 		navController.setModel(navTool);
 		navController.setToolbarView(navToolbar);
 		
-		// Script the scenes
-		var scene1 = createScene1(model);
-		var scene2 = createScene2(model, tube1, manometer, manView);
-		var scene3 = createScene3(model, tube2, manView);
-		var scene4 = createScene4(model, blowerDoor);
-		var scene5 = createScene5(model, manometer);
-		var scene6 = createScene6(model, smokePuffer, manView);
+		// Script the states
+		var state1 = createState1(model);
+		var state2 = createState2(model, tube1, manometer, manView);
+		var state3 = createState3(model, tube2, manView);
+		var state4 = createState4(model, blowerDoor);
+		var state5 = createState5(model, manometer);
+		var state6 = createState6(model, smokePuffer, manView);
 		
-		scene1.next = scene2;
-		scene2.prev = scene1;
-		scene2.next = scene3;
-		scene3.prev = scene2;
-		scene3.next = scene4;
-		scene4.prev = scene3;
-		scene4.next = scene5;
-		scene5.prev = scene4;
-		scene5.next = scene6;
-		scene6.prev = scene5;
+		state1.next = state2;
+		state2.prev = state1;
+		state2.next = state3;
+		state3.prev = state2;
+		state3.next = state4;
+		state4.prev = state3;
+		state4.next = state5;
+		state5.prev = state4;
+		state5.next = state6;
+		state6.prev = state5;
 		
-		return scene1;
+		return state1;
 	};
 	
-	var createScene1 = function(model) {
-		var scene = new hemi.scene.Scene();
+	var createState1 = function(model) {
+		var state = new hemi.State();
 		var viewpoint1 = createViewpoint(model, 'camEye_overview', 'camTarget_overview');
 		
-		scene.subscribe(hemi.msg.load,
+		state.subscribe(hemi.msg.load,
 			function(msg) {
-				hemi.world.camera.moveToView(viewpoint1);
+				client.camera.moveToView(viewpoint1);
 			});
 		
-		var text1 = new hemi.hud.HudText();
+		var text1 = new hemi.HudText();
 		text1.config.textSize = 13;
 		text1.setText("Please select the front doorway to install a Blower Door.");
-		text1.setWidth(hemi.core.client.width);
-		text1.x = hemi.core.client.width / 2;
-		text1.y = hemi.core.client.height - text1.wrappedHeight;
+		text1.setWidth(client.getWidth());
+		text1.x = client.getWidth() / 2;
+		text1.y = client.getHeight() - text1._wrappedHeight;
 		
-		var page1 = new hemi.hud.HudPage();
-		page1.addElement(text1);
+		var page1 = new hemi.HudPage();
+		page1.add(text1);
 		
-		var display1 = new hemi.hud.HudDisplay();
-		display1.addPage(page1);
+		var display1 = new hemi.HudDisplay(client);
+		display1.add(page1);
 		
-		hemi.world.camera.subscribe(hemi.msg.stop,
+		client.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint1) {
 					display1.show();
-					model.setTransformVisible(model.getTransforms('highlight_frontDoor')[0], true);
+					model.getTransforms('highlight_frontDoor')[0].visible = true;
 				}
 			});
-		
-		hemi.world.subscribe(hemi.msg.pick,
+		hemi.subscribe(hemi.msg.pick,
 			function(msg) {
-				if (scene.isLoaded && msg.data.pickInfo.shapeInfo.shape.name === 'SO_BDShape') {
-					model.setTransformVisible(model.getTransforms('highlight_frontDoor')[0], false);
+				if (state.isLoaded && msg.data.pickedMesh.name === 'SO_BD') {
+					model.getTransforms('highlight_frontDoor')[0].visible = true;
 					display1.hide();
-					scene.nextScene();
+					state.nextState();
 				}
 			});
 		
-		return scene;
+		return state;
 	};
 	
-	var createScene2 = function(model, tube, manometer, manometerView) {
-		var scene = new hemi.scene.Scene();
+	var createState2 = function(model, tube, manometer, manometerView) {
+		var state = new hemi.State();
 		var viewpoint = createViewpoint(model, 'camEye_BDCam', 'camTarget_BDCam');
 		
-		scene.subscribe(hemi.msg.load,
+		state.subscribe(hemi.msg.load,
 			function(msg) {
-				hemi.world.camera.moveToView(viewpoint);
+				client.camera.moveToView(viewpoint);
 			});
 		
-		var text1 = new hemi.hud.HudText();
+		var text1 = new hemi.HudText();
 		text1.config.textSize = 13;
 		text1.setText("Activate the manometer by clicking the manometer tool on the left");
-		text1.setWidth(hemi.core.client.width);
-		text1.x = hemi.core.client.width / 2;
-		text1.y = hemi.core.client.height - text1.wrappedHeight;
+		text1.setWidth(client.getWidth());
+		text1.x = client.getWidth() / 2;
+		text1.y = client.getHeight() - text1._wrappedHeight;
 		
-		var page1 = new hemi.hud.HudPage();
-		page1.addElement(text1);
+		var page1 = new hemi.HudPage();
+		page1.add(text1);
 		
-		var display1 = new hemi.hud.HudDisplay();
-		display1.addPage(page1);
+		var display1 = new hemi.HudDisplay(client);
+		display1.add(page1);
 		
-		hemi.world.camera.subscribe(hemi.msg.stop,
+		client.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
 					// Replace the living room door with the blower door.
-					model.setTransformVisible(model.getTransforms('BD_barrier')[0], true);
-					model.setTransformVisible(model.getTransforms('LR_front_door')[0], false);
-					model.setTransformPickable(model.getTransforms('LR_front_door')[0], false);
+					model.getTransforms('BD_barrier')[0].visible = true;
+					model.getTransforms('LR_front_door')[0].visible = true;
+					model.getTransforms('LR_front_door')[0].visible = true;
 					display1.show();
 				}
 			});
 		
-		var text2 = new hemi.hud.HudText();
+		var text2 = new hemi.HudText();
 		text2.config.textSize = 13;
 		text2.setText(["The manometer measures the difference in pressure between the top and bottom pressure tap for each channel.", "", "To begin measuring click the lower left pressure tap on the 2D device to the right"]);
-		text2.setWidth(hemi.core.client.width);
-		text2.x = hemi.core.client.width / 2;
-		text2.y = hemi.core.client.height - text2.wrappedHeight;
+		text2.setWidth(client.get);
+		text2.x = client.getWidth() / 2;
+		text2.y = client.getHeight() - text2._wrappedHeight;
 		
-		var page2 = new hemi.hud.HudPage();
-		page2.addElement(text2);
+		var page2 = new hemi.HudPage();
+		page2.add(text2);
 		
-		var display2 = new hemi.hud.HudDisplay();
-		display2.addPage(page2);
+		var display2 = new hemi.HudDisplay(client);
+		display2.add(page2);
 		
 		manometer.subscribe(hemi.msg.visible,
 			function(msg) {
-				if (scene.isLoaded && msg.data.visible) {
+				if (state.isLoaded && msg.data.visible) {
 					display1.hide();
 					display2.show();
 					// Keep the Transform from obscuring the next pick.
-					model.setTransformPickable(model.getTransforms('SO_BD')[0], false);
+					model.getTransforms('SO_BD')[0].pickable = false;
 				}
 			});
         
-        var text3 = new hemi.hud.HudText();
+        var text3 = new hemi.HudText();
 		text3.config.textSize = 13;
 		text3.setText("Now click the highlighted area to run the tube through the lower opening.");
-		text3.setWidth(hemi.core.client.width);
-		text3.x = hemi.core.client.width / 2;
-		text3.y = hemi.core.client.height - text3.wrappedHeight;
+		text3.setWidth(client.getWidth());
+		text3.x = client.getWidth() / 2;
+		text3.y = client.getHeight() - text3._wrappedHeight;
 		
-		var page3 = new hemi.hud.HudPage();
-		page3.addElement(text3);
+		var page3 = new hemi.HudPage();
+		page3.add(text3);
 		
-		var display3 = new hemi.hud.HudDisplay();
-		display3.addPage(page3);
+		var display3 = new hemi.HudDisplay(client);
+		display3.add(page3);
 		
 		manometerView.subscribe(hext.msg.input,
 			function(msg) {
-				if (scene.isLoaded && msg.data.selected && msg.data.elementId === 'll') {
-					model.setTransformVisible(model.getTransforms('highlight_bdHole')[0], true);
+				if (state.isLoaded && msg.data.selected && msg.data.elementId === 'll') {
+					model.getTransforms('highlight_bdHole')[0].visible = true;
 					display2.hide();
 					display3.show();
 				}
@@ -822,65 +812,65 @@
 		
 		tube.subscribe(hemi.msg.visible,
 			function(msg) {
-				if (scene.isLoaded && msg.data.visible) {
-					model.setTransformVisible(model.getTransforms('highlight_bdHole')[0], false);
-					model.setTransformPickable(model.getTransforms('SO_BD')[0], true);
+				if (state.isLoaded && msg.data.visible) {
+					model.getTransforms('highlight_bdHole').visible = false;
+					model.getTransforms('SO_BD')[0].pickable = true;
 					display3.hide();
-					scene.nextScene();
+					state.nextState();
 				}
 			});
 		
-		return scene;
+		return state;
 	};
 	
-	var createScene3 = function(model, tube, manometerView) {
-		var scene = new hemi.scene.Scene();
+	var createState3 = function(model, tube, manometerView) {
+		var state = new hemi.State();
 		var viewpoint = createViewpoint(model, 'camEye_fanTap', 'camTarget_fanTap');
 		
-		scene.subscribe(hemi.msg.load,
+		state.subscribe(hemi.msg.load,
 			function(msg) {
-				hemi.world.camera.moveToView(viewpoint);
+				client.camera.moveToView(viewpoint);
 			});
         
-		var text1 = new hemi.hud.HudText();
+		var text1 = new hemi.HudText();
 		text1.config.textSize = 13;
 		text1.setText("Click the upper right pressure tap on the 2D device to the right");
-		text1.setWidth(hemi.core.client.width);
-		text1.x = hemi.core.client.width / 2;
-		text1.y = hemi.core.client.height - text1.wrappedHeight;
+		text1.setWidth(client.getWidth());
+		text1.x = client.getWidth() / 2;
+		text1.y = client.getHeight() - text1._wrappedHeight;
 		
-		var page1 = new hemi.hud.HudPage();
-		page1.addElement(text1);
+		var page1 = new hemi.HudPage();
+		page1.add(text1);
 		
-		var display1 = new hemi.hud.HudDisplay();
-		display1.addPage(page1);
+		var display1 = new hemi.HudDisplay(client);
+		display1.add(page1);
 		
-		hemi.world.camera.subscribe(hemi.msg.stop,
+		client.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
-					model.setTransformVisible(model.getTransforms('highlight_fanPressTap')[0], true);
+					model.getTransforms('highlight_fanPressTap')[0].visible = true;
 					// Keep the Transform from obscuring the next pick.
-					model.setTransformPickable(model.getTransforms('SO_BD')[0], false);
+					model.getTransforms('SO_BD')[0].pickable = false;
 					display1.show();
 				}
 			});
 		
-		var text2 = new hemi.hud.HudText();
+		var text2 = new hemi.HudText();
 		text2.config.textSize = 13;
 		text2.setText("Click the highlighted box to connect the tube to the fan handle housing");
-		text2.setWidth(hemi.core.client.width);
-		text2.x = hemi.core.client.width / 2;
-		text2.y = hemi.core.client.height - text2.wrappedHeight;
+		text2.setWidth(client.getWidth());
+		text2.x = client.getWidth() / 2;
+		text2.y = client.getHeight() - text2._wrappedHeight;
 		
-		var page2 = new hemi.hud.HudPage();
-		page2.addElement(text2);
+		var page2 = new hemi.HudPage();
+		page2.add(text2);
 		
-		var display2 = new hemi.hud.HudDisplay();
-		display2.addPage(page2);
+		var display2 = new hemi.HudDisplay(client);
+		display2.add(page2);
 		
 		manometerView.subscribe(hext.msg.input,
 			function(msg) {
-				if (scene.isLoaded && msg.data.selected && msg.data.elementId === 'ur') {
+				if (state.isLoaded && msg.data.selected && msg.data.elementId === 'ur') {
 					display1.hide();
 					display2.show();
 				}
@@ -888,68 +878,68 @@
 		
 		tube.subscribe(hemi.msg.visible,
 			function(msg) {
-				if (scene.isLoaded && msg.data.visible) {
-					model.setTransformVisible(model.getTransforms('highlight_fanPressTap')[0], false);
-					model.setTransformPickable(model.getTransforms('SO_BD')[0], true);
+				if (state.isLoaded && msg.data.visible) {
+					model.getTransforms('highlight_fanPressTap')[0].visible = false;
+					model.getTransforms('SO_BD')[0].pickable = true;
 					display2.hide();
-					scene.nextScene();
+					state.nextState();
 				}
 			});
 		
-		return scene;
+		return state;
 	};
 	
-	var createScene4 = function(model, blowerDoor) {
-		var scene = new hemi.scene.Scene();
+	var createState4 = function(model, blowerDoor) {
+		var state = new hemi.State();
 		
-		var text1 = new hemi.hud.HudText();
+		var text1 = new hemi.HudText();
 		text1.config.textSize = 13;
 		text1.setText("This red manometer tube will measure the pressure of the air flow across the flow sensors in the center of the fan. The manometer will translate this pressure reading into a measurement of the volume of air being drawn out through the fan.");
-		text1.setWidth(hemi.core.client.width);
-		text1.x = hemi.core.client.width / 2;
-		text1.y = hemi.core.client.height - (text1.wrappedHeight + 25);
+		text1.setWidth(client.getWidth());
+		text1.x = client.getWidth() / 2;
+		text1.y = client.getHeight() - (text1._wrappedHeight + 25);
 		
-		var page1 = new hemi.hud.HudPage();
-		page1.addElement(text1);
+		var page1 = new hemi.HudPage();
+		page1.add(text1);
 		
-		var text2 = new hemi.hud.HudText();
+		var text2 = new hemi.HudText();
 		text2.config.textSize = 13;
 		text2.setText("Before turning on the fan, close all exterior windows and open all interior doors (\"winter mode\"). Click on a door to open/close it or click and drag a window to open/close it.");
-		text2.setWidth(hemi.core.client.width);
-		text2.x = hemi.core.client.width / 2;
-		text2.y = hemi.core.client.height - (text2.wrappedHeight + 25);
+		text2.setWidth(client.getWidth());
+		text2.x = client.getWidth() / 2;
+		text2.y = client.getHeight() - (text2._wrappedHeight + 25);
 		
-		var page2 = new hemi.hud.HudPage();
-		page2.addElement(text2);
+		var page2 = new hemi.HudPage();
+		page2.add(text2);
 		
-		var text3 = new hemi.hud.HudText();
+		var text3 = new hemi.HudText();
 		text3.config.textSize = 13;
 		text3.setText("Use the Navigate tool to help. The magnifying glass with a '-' zooms out to a top-down view. The magnifying glass with a '+' zooms in after clicking on a room.");
-		text3.setWidth(hemi.core.client.width);
-		text3.x = hemi.core.client.width / 2;
-		text3.y = hemi.core.client.height - (text3.wrappedHeight + 25);
+		text3.setWidth(client.getWidth());
+		text3.x = client.getWidth() / 2;
+		text3.y = client.getHeight() - (text3._wrappedHeight + 25);
 		
-		var page3 = new hemi.hud.HudPage();
-		page3.addElement(text3);
+		var page3 = new hemi.HudPage();
+		page3.add(text3);
 		
-		var text4 = new hemi.hud.HudText();
+		var text4 = new hemi.HudText();
 		text4.config.textSize = 13;
 		text4.setText("Once all windows are closed and all doors are open, select the Blower Door tool.");
-		text4.setWidth(hemi.core.client.width);
-		text4.x = hemi.core.client.width / 2;
-		text4.y = hemi.core.client.height - (text4.wrappedHeight + 25);
+		text4.setWidth(client.getWidth());
+		text4.x = client.getWidth() / 2;
+		text4.y = client.getHeight() - (text4._wrappedHeight + 25);
 		
-		var page4 = new hemi.hud.HudPage();
-		page4.addElement(text4);
+		var page4 = new hemi.HudPage();
+		page4.add(text4);
 		
-		var display1 = new hemi.hud.HudDisplay();
-		display1.addPage(page1);
-		display1.addPage(page2);
-		display1.addPage(page3);
-		display1.addPage(page4);
+		var display1 = new hemi.HudDisplay(client);
+		display1.add(page1);
+		display1.add(page2);
+		display1.add(page3);
+		display1.add(page4);
 		hext.hud.addPagingInfo(display1);
 		
-		scene.subscribe(hemi.msg.load,
+		state.subscribe(hemi.msg.load,
 			function(msg) {
 				display1.show();
 			});
@@ -958,57 +948,57 @@
 		
 		display1.subscribe(hemi.msg.visible,
 			function(msg) {
-				if (scene.isLoaded && msg.data.page === 2) {
-					hemi.world.camera.moveToView(viewpoint1);
+				if (state.isLoaded && msg.data.page === 2) {
+					client.camera.moveToView(viewpoint1);
 				}
 			});
 		
 		blowerDoor.subscribe(hemi.msg.visible,
 			function(msg) {
-				if (scene.isLoaded && msg.data.visible) {
+				if (state.isLoaded && msg.data.visible) {
 					display1.hide();
 					hext.hud.removePagingInfo();
-					scene.nextScene();
+					state.nextState();
 				}
 			});
 		
-		return scene;
+		return state;
 	};
 	
-	var createScene5 = function(model, manometer) {
-		var scene = new hemi.scene.Scene();
+	var createState5 = function(model, manometer) {
+		var state = new hemi.State();
 		var viewpoint = createViewpoint(model, 'camEye_BDCam', 'camTarget_BDCam');
 		
-		scene.subscribe(hemi.msg.load,
+		state.subscribe(hemi.msg.load,
 			function(msg) {
-				hemi.world.camera.moveToView(viewpoint);
+				client.camera.moveToView(viewpoint);
 			});
 		
-        var text1 = new hemi.hud.HudText();
+        var text1 = new hemi.HudText();
 		text1.config.textSize = 13;
 		text1.setText("We have pre-configured this manometer for you. The left readout on the manometer reads 0 Pa and the right side reads \"----\" which means that it's not getting a usable reading.");
-		text1.setWidth(hemi.core.client.width);
-		text1.x = hemi.core.client.width / 2;
-		text1.y = hemi.core.client.height - (text1.wrappedHeight + 25);
+		text1.setWidth(client.getWidth());
+		text1.x = client.getWidth() / 2;
+		text1.y = client.getHeight() - (text1._wrappedHeight + 25);
 		
-		var page1 = new hemi.hud.HudPage();
-		page1.addElement(text1);
+		var page1 = new hemi.HudPage();
+		page1.add(text1);
 		
-		var text2 = new hemi.hud.HudText();
+		var text2 = new hemi.HudText();
 		text2.config.textSize = 13;
 		text2.setText("You can control the fan speed by clicking and dragging left and right on the fan control knob at the bottom of the manometer. Adjust the fan speed until you reach -50 Pa.");
-		text2.setWidth(hemi.core.client.width);
-		text2.x = hemi.core.client.width / 2;
-		text2.y = hemi.core.client.height - (text2.wrappedHeight + 25);
+		text2.setWidth(client.getWidth());
+		text2.x = client.getWidth() / 2;
+		text2.y = client.getHeight() - (text2._wrappedHeight + 25);
 		
-		var page2 = new hemi.hud.HudPage();
-		page2.addElement(text2);
+		var page2 = new hemi.HudPage();
+		page2.add(text2);
 		
-		var display1 = new hemi.hud.HudDisplay();
-		display1.addPage(page1);
-		display1.addPage(page2);
+		var display1 = new hemi.HudDisplay(client);
+		display1.add(page1);
+		display1.add(page2);
 		
-		hemi.world.camera.subscribe(hemi.msg.stop,
+		client.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
 					hext.hud.addPagingInfo(display1);
@@ -1019,80 +1009,80 @@
 		manometer.subscribe(hext.msg.pressure,
 			function(msg) {
 				// Wait for a pressure reading of -50 Pa.
-				if (scene.isLoaded && msg.data.left + 50 <= 0.1) {
+				if (state.isLoaded && msg.data.left + 50 <= 0.1) {
 					display1.hide();
 					hext.hud.removePagingInfo();
-					scene.nextScene();
+					state.nextState();
 				}
 			});
 		
-		return scene;
+		return state;
 	};
 	
-	var createScene6 = function(model, smokePuffer, manometerView) {
-		var scene = new hemi.scene.Scene();
+	var createState6 = function(model, smokePuffer, manometerView) {
+		var state = new hemi.State();
 		
-		var text1 = new hemi.hud.HudText();
+		var text1 = new hemi.HudText();
 		text1.config.textSize = 13;
 		text1.setText("This reading indicates that the house has 4,500 cubic feet of leakage per minute at -50 Pascals. The house is leaking more than recommended.");
-		text1.setWidth(hemi.core.client.width);
-		text1.x = hemi.core.client.width / 2;
-		text1.y = hemi.core.client.height - (text1.wrappedHeight + 25);
+		text1.setWidth(client.getWidth());
+		text1.x = client.getWidth() / 2;
+		text1.y = client.getHeight() - (text1._wrappedHeight + 25);
 		
-		var page1 = new hemi.hud.HudPage();
-		page1.addElement(text1);
+		var page1 = new hemi.HudPage();
+		page1.add(text1);
 		
-		var text2 = new hemi.hud.HudText();
+		var text2 = new hemi.HudText();
 		text2.config.textSize = 13;
 		text2.setText("The blower door blows air out from the house, creating a vacuum which reveals air leaks throughout the house. Begin zone testing to find any major leaks.");
-		text2.setWidth(hemi.core.client.width);
-		text2.x = hemi.core.client.width / 2;
-		text2.y = hemi.core.client.height - (text2.wrappedHeight + 25);
+		text2.setWidth(client.getWidth());
+		text2.x = client.getWidth() / 2;
+		text2.y = client.getHeight() - (text2._wrappedHeight + 25);
 		
-		var page2 = new hemi.hud.HudPage();
-		page2.addElement(text2);
+		var page2 = new hemi.HudPage();
+		page2.add(text2);
 		
-		var text3 = new hemi.hud.HudText();
+		var text3 = new hemi.HudText();
 		text3.config.textSize = 13;
 		text3.setText("To pressure test a room click the manometer upper right input tap of channel B and click the desired doorway.  This allows you to measure the pressure for each room. Close the door to each room to isolate it.");
-		text3.setWidth(hemi.core.client.width);
-		text3.x = hemi.core.client.width / 2;
-		text3.y = hemi.core.client.height - (text3.wrappedHeight + 25);
+		text3.setWidth(client.getWidth());
+		text3.x = client.getWidth() / 2;
+		text3.y = client.getHeight() - (text3._wrappedHeight + 25);
 		
-		var page3 = new hemi.hud.HudPage();
-		page3.addElement(text3);
+		var page3 = new hemi.HudPage();
+		page3.add(text3);
 		
-		var text4 = new hemi.hud.HudText();
+		var text4 = new hemi.HudText();
 		text4.config.textSize = 13;
 		text4.setText("When you test a room, the closer the pressure on channel B is to 0 Pa, the better that room is sealed against outside air.  Use the Smoke Puffer tool to locate the leak in a room with a high pressure reading.");
-		text4.setWidth(hemi.core.client.width);
-		text4.x = hemi.core.client.width / 2;
-		text4.y = hemi.core.client.height - (text4.wrappedHeight + 25);
+		text4.setWidth(client.getWidth());
+		text4.x = client.getWidth() / 2;
+		text4.y = client.getHeight() - (text4._wrappedHeight + 25);
 		
-		var page4 = new hemi.hud.HudPage();
-		page4.addElement(text4);
+		var page4 = new hemi.HudPage();
+		page4.add(text4);
 		
-		var display1 = new hemi.hud.HudDisplay();
-		display1.addPage(page1);
-		display1.addPage(page2);
-		display1.addPage(page3);
-		display1.addPage(page4);
+		var display1 = new hemi.HudDisplay(client);
+		display1.add(page1);
+		display1.add(page2);
+		display1.add(page3);
+		display1.add(page4);
 		
 		var viewpoint1 = createViewpoint(model, 'camEye_overview', 'camTarget_overview');
 		
-		scene.subscribe(hemi.msg.load,
+		state.subscribe(hemi.msg.load,
 			function(msg) {
 				hext.hud.addPagingInfo(display1);
 				display1.show();
-				hemi.world.camera.moveToView(viewpoint1);
+				client.camera.moveToView(viewpoint1);
 			});
 		
 		var startFrame = 260;
 		var endFrame = 292;
-		var animation1 = hemi.animation.createModelAnimation(model, hemi.view.getTimeOfFrame(startFrame), hemi.view.getTimeOfFrame(endFrame));
-		var loop1 = new hemi.animation.Loop();
-		loop1.startTime = hemi.view.getTimeOfFrame(280);
-		loop1.stopTime = hemi.view.getTimeOfFrame(292);
+		var animation1 = new hemi.AnimationGroup(hemi.getTimeOfFrame(startFrame), hemi.getTimeOfFrame(endFrame), model);
+		var loop1 = new hemi.Loop();
+		loop1.startTime = hemi.getTimeOfFrame(280);
+		loop1.stopTime = hemi.getTimeOfFrame(292);
 		animation1.addLoop(loop1);
 		
 		var viewpoint2 = createViewpoint(model, 'camEye_ExteriorCam', 'camTarget_ExteriorCam');
@@ -1100,14 +1090,14 @@
 		
 		display1.subscribe(hemi.msg.visible,
 			function(msg) {
-				if (scene.isLoaded) {
+				if (state.isLoaded) {
 					if (msg.data.page === 2) {
-						hemi.world.camera.moveToView(viewpoint2);
+						client.camera.moveToView(viewpoint2);
 						animation1.start();
-						model.setTransformVisible(model.getTransforms('blowerArrowsExt_g')[0], true);
+						model.getTransforms('blowerArrowsExt_g')[0].visible = true;
 					} else if (msg.data.page === 3) {
-						hemi.world.camera.moveToView(viewpoint3);
-						model.setTransformVisible(model.getTransforms('blowerArrowsExt_g')[0], false);
+						client.camera.moveToView(viewpoint3);
+						model.getTransforms('blowerArrowsExt_g')[0].visible = false;
 						animation1.stop();
 					}
 				}
@@ -1115,44 +1105,44 @@
 		
 		manometerView.subscribe(hext.msg.input,
 			function(msg) {
-				if (scene.isLoaded && msg.data.elementId === 'ur') {
+				if (state.isLoaded && msg.data.elementId === 'ur') {
 					if (msg.data.selected) {
-						model.setTransformPickable(model.getTransforms('SO_BA_1')[0], true);
-						model.setTransformPickable(model.getTransforms('SO_B1_1')[0], true);
-						model.setTransformPickable(model.getTransforms('SO_B2_1')[0], true);
+						model.getTransforms('SO_BA_1')[0].pickable = true;
+						model.getTransforms('SO_B1_1')[0].pickable = true;
+						model.getTransforms('SO_B2_1')[0].pickable = true;
 					} else {
-						model.setTransformPickable(model.getTransforms('SO_BA_1')[0], false);
-						model.setTransformPickable(model.getTransforms('SO_B1_1')[0], false);
-						model.setTransformPickable(model.getTransforms('SO_B2_1')[0], false);
+						model.getTransforms('SO_BA_1')[0].pickable = false;
+						model.getTransforms('SO_B1_1')[0].pickable = false;
+						model.getTransforms('SO_B2_1')[0].pickable = false;
 					}
 				}
 			});
         
-        var text5 = new hemi.hud.HudText();
+        var text5 = new hemi.HudText();
 		text5.config.textSize = 13;
 		text5.setText("Very good work. You've found the source of the leak!");
-		text5.setWidth(hemi.core.client.width);
-		text5.x = hemi.core.client.width / 2;
-		text5.y = hemi.core.client.height - text5.wrappedHeight;
+		text5.setWidth(client.getWidth());
+		text5.x = client.getWidth() / 2;
+		text5.y = client.getHeight() - text5._wrappedHeight;
 		
-		var page5 = new hemi.hud.HudPage();
-		page5.addElement(text5);
+		var page5 = new hemi.HudPage();
+		page5.add(text5);
 		
-		var display2 = new hemi.hud.HudDisplay();
-		display2.addPage(page5);
+		var display2 = new hemi.HudDisplay(client);
+		display2.add(page5);
 		
-		hemi.msg.subscribe(hemi.msg.burst,
+		hemi.subscribe(hemi.msg.burst,
 			function(msg) {
 				// If one of the custom puffs was generated, the user found the
 				// leak!
-				if (scene.isLoaded && msg.src !== smokePuffer.defaultPuff) {
+				if (state.isLoaded && msg.src !== smokePuffer.defaultPuff) {
 					display1.hide();
 					hext.hud.removePagingInfo();
 					display2.show();
 				}
 			});
 		
-		return scene;
+		return state;
 	};
 	
 	/*
@@ -1164,12 +1154,12 @@
 			open: open,
 			direction: direction,
 			rotator: rotator,
-			names: [rotator.transformObjs[0].offTran.name],
+			names: [rotator.transformObjs[0].name],
 			addAltName: function(name) {
 				this.names.push(name);
 			},
 			onPick: function(pickInfo) {
-				var pickName = pickInfo.shapeInfo.parent.transform.name;
+				var pickName = pickInfo.pickedMesh.name;
 				
 				for (var i = 0; i < this.names.length; i++) {
 					if (pickName === this.names[i]) {
@@ -1201,12 +1191,14 @@
 				}
 			}
 		};
+
+		rotator.transformObjs[0].visible = true;
 		
-		hemi.world.subscribe(
+		hemi.subscribe(
 			hemi.msg.pick,
 			door,
 			"onPick",
-			["msg:data.pickInfo"]);
+			[hemi.dispatch.MSG_ARG + 'data']);
 		
 		return door;
 	};
@@ -1219,27 +1211,20 @@
 		var viewpoint = null;
 		var np = 5;
 		var fp = 5000;
-		opt_fov = hemi.core.math.degToRad(opt_fov) || hemi.core.math.degToRad(40);
+		opt_fov = opt_fov * hemi.DEG_TO_RAD || hemi.DEG_TO_RAD * 40;
 		
 		var eyeTran = model.getTransforms(eyeName)[0];
 		var targetTran = model.getTransforms(targetName)[0];
 		
 		if (eyeTran != null && targetTran != null) {
-			var eye = hemi.core.math.matrix4.getTranslation(eyeTran.localMatrix);
-			var target = hemi.core.math.matrix4.getTranslation(targetTran.localMatrix);
-			viewpoint = hemi.view.createCustomViewpoint("", eye, target, opt_fov, np, fp);
+			viewpoint = new hemi.Viewpoint({name: "", eye: eyeTran.position.clone(), 
+				target: targetTran.position.clone(), fov: opt_fov, np: np, fp: fp});
 		}
 		
 		return viewpoint;
 	};
 
 	jQuery(window).load(function() {
-		o3djs.webgl.makeClients(init);
-	});
-
-	jQuery(window).unload(function() {
-		if (hemi.core.client) {
-			hemi.core.client.cleanup();
-		}
+		init();
 	});
 })();

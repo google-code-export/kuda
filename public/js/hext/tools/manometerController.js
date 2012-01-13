@@ -30,8 +30,10 @@ var hext = (function(hext) {
 	 * and its views.
 	 * @extends hext.tools.BaseController
 	 */
-	ManometerController = function() {
+	ManometerController = function(client) {
 		hext.tools.BaseController.call(this);
+
+		this.client = client;
 		
 		/**
 		 * The manager used to look up Locations by picked shape names.
@@ -119,7 +121,7 @@ var hext = (function(hext) {
 
 		this.view.setTapSelected(this.activeWidgetId, false);
 		document.getElementById('kuda').style.cursor = 'default';
-		hemi.removePickGrabber();
+		this.client.picker.removePickGrabber();
 		this.activeInputId = null;
 		this.activeWidgetId = null;
 	};
@@ -185,7 +187,7 @@ var hext = (function(hext) {
 					// The user clicked somewhere else. Just cancel the
 					// previous tap selection.
 					toolView.setTapSelected(that.activeWidgetId, false);
-					hemi.removePickGrabber();
+					that.client.picker.removePickGrabber();
 				}
 				else {
 					// The user selected a tap. Set its CSS class and set
@@ -198,7 +200,7 @@ var hext = (function(hext) {
 					toolView.setTapToRoom(newWidget, false);
 					toolView.setTapSelected(newWidget, true);
 					document.getElementById('kuda').style.cursor = 'pointer';
-					hemi.wsetPickGrabber(that);
+					that.client.picker.setPickGrabber(that);
 				}
 			});
 		});

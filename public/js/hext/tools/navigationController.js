@@ -23,7 +23,8 @@ var hext = (function(hext) {
 	 * Navigation tool and its views.
 	 * @extends hext.tools.BaseController
 	 */
-	var NavigationController = function() {
+	var NavigationController = function(client) {
+		this.client = client;
 	};
 
 	NavigationController.prototype = new hext.tools.BaseController();
@@ -51,7 +52,7 @@ var hext = (function(hext) {
 			// change the mode by setting the pickgrabber
 			if (!toolModel.picking) {
 				document.getElementById('kuda').style.cursor = 'pointer';
-				hemi.setPickGrabber(that);
+				that.client.picker.setPickGrabber(that);
 				toolModel.setPicking(true);
 				toolbarView.setClickedState(true);
 			}
@@ -86,7 +87,7 @@ var hext = (function(hext) {
 	 */
 	NavigationController.prototype.cleanupAfterPick = function() {
 		document.getElementById('kuda').style.cursor = 'default';
-		hemi.world.removePickGrabber();
+		this.client.picker.removePickGrabber();
 		this.model.setPicking(false);
 		this.toolbarView.setClickedState(false);
 	};

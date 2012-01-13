@@ -418,7 +418,7 @@
 		var point0 = plane[0],
 			point1 = plane[1],
 			point2 = plane[2],
-			uf = new THREE.Vector3().sub(point1, point2).multiplyScalar(uv[0]),
+			uf = new THREE.Vector3().sub(point1, point0).multiplyScalar(uv[0]),
 			vf = _vector.sub(point2, point0).multiplyScalar(uv[1]);
 
 		return uf.addSelf(vf).addSelf(point0);

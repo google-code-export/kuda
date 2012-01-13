@@ -23,8 +23,8 @@
         <script type="text/javascript" src="../../js/lib/jquery.js"></script>
         <script type="text/javascript" src="../../js/lib/jquery.rotate.js"></script>
         <script type="text/javascript" src="../../js/lib/jshashtable.min.js"></script>
-        <script type="text/javascript" src="../../js/o3d.min.js"></script>
-        <script type="text/javascript" src="../../js/hemi.min.js"></script>
+        <script type="text/javascript" src="../../js/three.js"></script>
+        <script type="text/javascript" src="../../js/hemi.src.js"></script>
         <script type="text/javascript" src="../../js/hext/msg.js"></script>
         <script type="text/javascript" src="../../js/hext/hud/paging.js"></script>
         <script type="text/javascript" src="../../js/hext/html/toolbar.js"></script>
@@ -32,6 +32,8 @@
         <script type="text/javascript" src="../../js/hext/engines/pressure.js"></script>
         <script type="text/javascript" src="../../js/hext/tools/baseTool.js"></script>
         <script type="text/javascript" src="../../js/hext/tools/baseController.js"></script>
+        <script type="text/javascript" src="../../js/hext/tools/htmlView.js"></script>
+        <script type="text/javascript" src="../../js/hext/tools/toolbarView.js"></script>
         <script type="text/javascript" src="../../js/hext/tools/manometer.js"></script>
         <script type="text/javascript" src="../../js/hext/tools/manometerTube.js"></script>
         <script type="text/javascript" src="../../js/hext/tools/manometerView.js"></script>
@@ -46,6 +48,7 @@
         <script type="text/javascript" src="../../js/hext/tools/smokepuffer.js"></script>
         <script type="text/javascript" src="../../js/hext/tools/smokePufferView.js"></script>
         <script type="text/javascript" src="../../js/hext/tools/smokePufferController.js"></script>
+        <script type="text/javascript" src="../../js/hext/house/structure.js"></script>
         <script type="text/javascript" src="PressureHouseB.js"></script>
         <link rel="stylesheet" href="../../js/hext/tools/assets/tools.css" type="text/css" />
         <style>
@@ -62,7 +65,7 @@
                 width: 650px;
             }
             
-            #o3d {
+            #kuda {
                 width: 560px;
                 height: 400px;
                 left: 70px;
@@ -74,7 +77,7 @@
     <body>
         <div id="wrapper">
             <div id="worldViewer">
-                <div id="o3d"></div>
+                <div id="kuda"></div>
                 <div id="hext-toolbar">
                 </div>
             </div>
