@@ -76,7 +76,7 @@ var hext = (function(hext) {
 		this.picking = pick;
 		
 		for (var ndx = 0, len = this.zoomSelectTransforms.length; ndx < len; ndx++) {
-			hemi.picking.setPickable(this.zoomSelectTransforms[ndx], pick, true);
+			this.zoomSelectTransforms[ndx].pickable = pick;
 		}
 	};
 		

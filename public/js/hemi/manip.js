@@ -171,7 +171,7 @@
 	 * constrained to a defined 2d plane.
 	 * 
 	 * @param {hemi.client} client the client that this draggable exists in
-	 * @param {number[3][3]} opt_plane Array of 3 xyz points defining a plane
+	 * @param {Vector3[3]} opt_plane Array of 3 xyz points defining a plane
 	 * @param {number[4]} opt_limits An array containing 
 	 *	   [min on u, max on u, min on v, max on v]
 	 * @param {number[2]} opt_startUV Draggable's starting uv coordinate, if
@@ -262,12 +262,13 @@
 		}
 
 		var plane;
-
+		
 		if (this.local) {
 			var u = hemi.utils;
-			plane = [u.pointAsWorld(this.activeTransform, this.plane[0]),
-					 u.pointAsWorld(this.activeTransform, this.plane[1]),
-					 u.pointAsWorld(this.activeTransform, this.plane[2])];
+			plane = [this.plane[0].clone(), this.plane[1].clone(), this.plane[2].clone()];
+			u.pointAsWorld(this.activeTransform, plane[0]);
+			u.pointAsWorld(this.activeTransform, plane[1]);
+			u.pointAsWorld(this.activeTransform, plane[2]);
 		} else {
 			var translation = this.activeTransform.matrixWorld.getPosition();
 

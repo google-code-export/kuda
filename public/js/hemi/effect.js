@@ -260,7 +260,7 @@
 		}
 
 		this._system = this._newSystem ? new hemi.particles.System() : defaultParticleSystem;
-		this.particles = this._newSystem.createEmitter(this.client.camera.threeCamera);
+		this.particles = this._system.createEmitter(this.client.camera.threeCamera);
 		this.particles.setBlending(this.blending);
 		this.particles.setColorRamp(this.colorRamp);
 		this.particles.setParameters(clonedParams, paramSetter);
@@ -449,7 +449,7 @@
 		burst.colorRamp = colorRamp;
 		burst.params = params;
 
-		if (opt_blending != null) burst.blending = blending;
+		if (opt_blending != null) burst.blending = opt_blending;
 		if (opt_function)  burst.particleFunction = opt_function;
 
 		burst.setup();
@@ -475,7 +475,7 @@
 		trail.params = params;
 		trail.fireInterval = fireInterval;
 
-		if (opt_blending != null) trail.blending = blending;
+		if (opt_blending != null) trail.blending = opt_blending;
 		if (opt_function)  trail.particleFunction = opt_function;
 
 		trail.setup();

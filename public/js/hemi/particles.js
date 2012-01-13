@@ -800,12 +800,12 @@
 		* Transform for OneShot.
 		* @type {THREE.Mesh}
 		*/
-		this.transform = new THREE.Mesh(emitter.shape, emitter.material);
-		this.transform.doubleSided = true; // turn off face culling
-		this.transform.visible = false;
+		this._transform = new THREE.Mesh(emitter.shape, emitter.material);
+		this._transform.doubleSided = true; // turn off face culling
+		this._transform.visible = false;
 
 		if (opt_parent) {
-			opt_parent.add(this.transform);
+			opt_parent.add(this._transform);
 		}
 	};
 

@@ -183,7 +183,7 @@ var uglifyHemi = function(src, dst) {
 					'hemi/animationGroup.js',
 					'hemi/motion.js',
 					'hemi/effect.js',
-					//'hemi/scene.js',
+					'hemi/state.js',
 					'hemi/hud.js',
 					'hemi/manip.js',
 					'hemi/curve.js',

@@ -1227,12 +1227,12 @@ var Hashtable = (function() {
 		* Transform for OneShot.
 		* @type {THREE.Mesh}
 		*/
-		this.transform = new THREE.Mesh(emitter.shape, emitter.material);
-		this.transform.doubleSided = true; // turn off face culling
-		this.transform.visible = false;
+		this._transform = new THREE.Mesh(emitter.shape, emitter.material);
+		this._transform.doubleSided = true; // turn off face culling
+		this._transform.visible = false;
 
 		if (opt_parent) {
-			opt_parent.add(this.transform);
+			opt_parent.add(this._transform);
 		}
 	};
 
@@ -2540,7 +2540,7 @@ if (!window.requestAnimationFrame) {
 		var point0 = plane[0],
 			point1 = plane[1],
 			point2 = plane[2],
-			uf = new THREE.Vector3().sub(point1, point2).multiplyScalar(uv[0]),
+			uf = new THREE.Vector3().sub(point1, point0).multiplyScalar(uv[0]),
 			vf = _vector.sub(point2, point0).multiplyScalar(uv[1]);
 
 		return uf.addSelf(vf).addSelf(point0);
@@ -3310,7 +3310,7 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Transform} transform the Transform to rotate
 	 */
 	hemi.utils.worldRotate = function(axis, angle, transform) {
-		var invWorld = _matrix.getInverse(transform.matrixWorld),
+		var invWorld = _matrix.getInverse(transform.parent.matrixWorld),
 			localAxis = transformVector(invWorld, axis);
 
 		hemi.utils.axisRotate(localAxis, angle, transform);
@@ -3337,7 +3337,7 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Transform} transform the Transform to translate
 	 */
 	hemi.utils.worldTranslate = function(delta, transform) {
-		var invWorld = _matrix.getInverse(transform.matrixWorld),
+		var invWorld = _matrix.getInverse(transform.parent.matrixWorld),
 			localDelta = transformVector(invWorld, delta);
 
 		transform.position.addSelf(localDelta);
@@ -8068,7 +8068,34 @@ if (!window.requestAnimationFrame) {
 		this.height = 1;
 		this.width = 1;
 
+		this.pickGrabber = null;
+
 		hemi.input.addMouseDownListener(this);
+	};
+
+		/**
+	 * Register the given handler as the 'pick grabber'. The pick grabber
+	 * intercepts pick messages and prevents them from being passed to other
+	 * handlers. It should be used if the user enters an 'interaction mode' that
+	 * overrides default behavior.
+	 * 
+	 * @param {Object} grabber an object that implements onPick()
+	 */
+	hemi.Picker.prototype.setPickGrabber = function(grabber) {
+		this.pickGrabber = grabber;
+	};
+	
+	/**
+	 * Remove the current 'pick grabber'. Allow pick messages to continue being
+	 * passed to the other registered handlers.
+	 * 
+	 * @return {Object} the removed grabber or null
+	 */
+	hemi.Picker.prototype.removePickGrabber = function() {
+		var grabber = this.pickGrabber;
+		this.pickGrabber = null;
+
+		return grabber;
 	};
 
 	/**
@@ -8093,12 +8120,21 @@ if (!window.requestAnimationFrame) {
 			for (var i = 0; i < pickedObjs.length; ++i) {
 				var pickedObj = pickedObjs[i];
 
-				if (pickedObj.object.parent.pickable) {
-					hemi.send(hemi.msg.pick,
-						{
-							mouseEvent: mouseEvent,
-							pickedMesh: pickedObj.object
-						});
+				if (pickedObj.object.pickable) {
+					var worldIntersectionPosition = pickedObj.object.parent.matrixWorld.multiplyVector3(
+						pickedObj.point.clone());
+
+					var pickInfo =	{
+						mouseEvent: mouseEvent,
+						pickedMesh: pickedObj.object,
+						worldIntersectionPosition: worldIntersectionPosition
+					};
+
+					if (this.pickGrabber != null) {
+						this.pickGrabber.onPick(pickInfo);
+					} else {
+						hemi.send(hemi.msg.pick, pickInfo);
+					}
 					break;
 				}
 			}
@@ -9468,7 +9504,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 		}
 
 		this._system = this._newSystem ? new hemi.particles.System() : defaultParticleSystem;
-		this.particles = this._newSystem.createEmitter(this.client.camera.threeCamera);
+		this.particles = this._system.createEmitter(this.client.camera.threeCamera);
 		this.particles.setBlending(this.blending);
 		this.particles.setColorRamp(this.colorRamp);
 		this.particles.setParameters(clonedParams, paramSetter);
@@ -9657,7 +9693,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 		burst.colorRamp = colorRamp;
 		burst.params = params;
 
-		if (opt_blending != null) burst.blending = blending;
+		if (opt_blending != null) burst.blending = opt_blending;
 		if (opt_function)  burst.particleFunction = opt_function;
 
 		burst.setup();
@@ -9683,7 +9719,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 		trail.params = params;
 		trail.fireInterval = fireInterval;
 
-		if (opt_blending != null) trail.blending = blending;
+		if (opt_blending != null) trail.blending = opt_blending;
 		if (opt_function)  trail.particleFunction = opt_function;
 
 		trail.setup();
@@ -9779,6 +9815,154 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 	}
 
 })();
+/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
+/*
+The MIT License (MIT)
+
+Copyright (c) 2011 SRI International
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
+documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
+rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
+persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
+Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+*/
+
+var hemi = (function(hemi) {
+	
+	/**
+	 * @class A Scene represents a logical grouping of behavior, events, and
+	 * interactions. It can be used to determine when various interactions are
+	 * valid or if various events should be enabled.
+	 * @extends hemi.world.Citizen
+	 */
+	var State = function() {
+		/**
+		 * Flag indicating if the Scene is currently loaded.
+		 * @type boolean
+		 * @default false
+		 */
+		this.isLoaded = false;
+		
+		/**
+		 * The next Scene to move to after this one.
+		 * @type hemi.scene.Scene
+		 */
+		this.next = null;
+		
+		/**
+		 * The previous Scene that occurred before this one.
+		 * @type hemi.scene.Scene
+		 */
+		this.prev = null;
+	};
+		
+	/**
+	 * Send a cleanup Message and remove all references in the State.
+	 */
+	State.prototype.cleanup = function() {
+		if (this.next !== null) {
+			this.next.prev = this.prev;
+		}
+		if (this.prev !== null) {
+			this.prev.next = this.next;
+		}
+		
+		this.next = null;
+		this.prev = null;
+	};
+	
+	/**
+	 * Get the Octane structure for the State.
+     *
+     * @return {Object} the Octane structure representing the State
+	 */
+	State.prototype.toOctane = function() {
+		var octane = this._super();
+		
+		if (this.next === null) {
+			octane.props.push({
+				name: 'next',
+				val: null
+			});
+		} else {
+			octane.props.push({
+				name: 'next',
+				id: this.next.getId()
+			});
+		}
+		
+		if (this.prev === null) {
+			octane.props.push({
+				name: 'prev',
+				val: null
+			});
+		} else {
+			octane.props.push({
+				name: 'prev',
+				id: this.prev.getId()
+			});
+		}
+		
+		return octane;
+	};
+		
+	/**
+	 * Load the State.
+	 */
+	State.prototype.load = function() {
+		if (!this.isLoaded) {
+			this.isLoaded = true;
+			
+			this.send(hemi.msg.load, {});
+		}
+	};
+	
+	/**
+	 * Unload the State.
+	 */
+	State.prototype.unload = function() {
+		if (this.isLoaded) {
+			this.isLoaded = false;
+			
+			this.send(hemi.msg.unload, {});
+		}
+	};
+		
+	/**
+	 * Unload the State and move to the next State (if it has been set).
+	 */
+	State.prototype.nextState = function() {
+		if (this.isLoaded && this.next != null) {
+			this.unload();
+			this.next.load();
+		}
+	};
+	
+	/**
+	 * Unload the State and move to the previous State (if it has been set).
+	 */
+	State.prototype.previousState = function() {
+		if (this.isLoaded && this.prev != null) {
+			this.unload();
+			this.prev.load();
+		}
+	};
+	
+	hemi.makeCitizen(State, 'hemi.State', {
+		msgs: [hemi.msg.load, hemi.msg.unload],
+		toOctane: []
+	});
+	
+	return hemi;
+})(hemi || {});
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
@@ -11924,7 +12108,7 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 	 * constrained to a defined 2d plane.
 	 * 
 	 * @param {hemi.client} client the client that this draggable exists in
-	 * @param {number[3][3]} opt_plane Array of 3 xyz points defining a plane
+	 * @param {Vector3[3]} opt_plane Array of 3 xyz points defining a plane
 	 * @param {number[4]} opt_limits An array containing 
 	 *	   [min on u, max on u, min on v, max on v]
 	 * @param {number[2]} opt_startUV Draggable's starting uv coordinate, if
@@ -12015,12 +12199,13 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 		}
 
 		var plane;
-
+		
 		if (this.local) {
 			var u = hemi.utils;
-			plane = [u.pointAsWorld(this.activeTransform, this.plane[0]),
-					 u.pointAsWorld(this.activeTransform, this.plane[1]),
-					 u.pointAsWorld(this.activeTransform, this.plane[2])];
+			plane = [this.plane[0].clone(), this.plane[1].clone(), this.plane[2].clone()];
+			u.pointAsWorld(this.activeTransform, plane[0]);
+			u.pointAsWorld(this.activeTransform, plane[1]);
+			u.pointAsWorld(this.activeTransform, plane[2]);
 		} else {
 			var translation = this.activeTransform.matrixWorld.getPosition();
 

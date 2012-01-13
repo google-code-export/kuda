@@ -41,7 +41,34 @@
 		this.height = 1;
 		this.width = 1;
 
+		this.pickGrabber = null;
+
 		hemi.input.addMouseDownListener(this);
+	};
+
+		/**
+	 * Register the given handler as the 'pick grabber'. The pick grabber
+	 * intercepts pick messages and prevents them from being passed to other
+	 * handlers. It should be used if the user enters an 'interaction mode' that
+	 * overrides default behavior.
+	 * 
+	 * @param {Object} grabber an object that implements onPick()
+	 */
+	hemi.Picker.prototype.setPickGrabber = function(grabber) {
+		this.pickGrabber = grabber;
+	};
+	
+	/**
+	 * Remove the current 'pick grabber'. Allow pick messages to continue being
+	 * passed to the other registered handlers.
+	 * 
+	 * @return {Object} the removed grabber or null
+	 */
+	hemi.Picker.prototype.removePickGrabber = function() {
+		var grabber = this.pickGrabber;
+		this.pickGrabber = null;
+
+		return grabber;
 	};
 
 	/**
@@ -66,12 +93,21 @@
 			for (var i = 0; i < pickedObjs.length; ++i) {
 				var pickedObj = pickedObjs[i];
 
-				if (pickedObj.object.parent.pickable) {
-					hemi.send(hemi.msg.pick,
-						{
-							mouseEvent: mouseEvent,
-							pickedMesh: pickedObj.object
-						});
+				if (pickedObj.object.pickable) {
+					var worldIntersectionPosition = pickedObj.object.parent.matrixWorld.multiplyVector3(
+						pickedObj.point.clone());
+
+					var pickInfo =	{
+						mouseEvent: mouseEvent,
+						pickedMesh: pickedObj.object,
+						worldIntersectionPosition: worldIntersectionPosition
+					};
+
+					if (this.pickGrabber != null) {
+						this.pickGrabber.onPick(pickInfo);
+					} else {
+						hemi.send(hemi.msg.pick, pickInfo);
+					}
 					break;
 				}
 			}

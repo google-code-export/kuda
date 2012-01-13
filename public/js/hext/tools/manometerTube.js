@@ -166,7 +166,6 @@ var hext = (function(hext) {
 	 * ManometerTubeManager.
 	 */
 	ManometerTubeManager.prototype.cleanup = function() {
-		this._super();
 		this.tubes = [];
 	};
 		

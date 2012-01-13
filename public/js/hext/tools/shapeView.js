@@ -24,8 +24,6 @@ var hext = (function(hext) {
 	 * @extends hemi.world.Citizen
 	 */
 	var ShapeView = function() {
-		this._super();
-		
         this.transforms = [];
 	};
 		
@@ -33,7 +31,6 @@ var hext = (function(hext) {
 	 * Send a cleanup Message and remove all references in the ShapeView.
 	 */
 	ShapeView.prototype.cleanup = function() {
-		this._super();
 		this.transforms = [];
 	};
 		

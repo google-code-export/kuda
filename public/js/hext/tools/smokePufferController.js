@@ -15,8 +15,6 @@
  * Boston, MA 02110-1301 USA.
  */
 
-o3djs.require('hext.tools.baseController');
-
 var hext = (function(hext) {
 	hext.tools = hext.tools || {};
 	
@@ -25,63 +23,69 @@ var hext = (function(hext) {
 	 * SmokePuffer and its views.
 	 * @extends hext.tools.BaseController
 	 */
-	hext.tools.SmokePufferController = hext.tools.BaseController.extend({
-		/**
-		 * Overwrites hemi.world.Citizen.citizenType
-		 */
-		citizenType: 'hext.tools.SmokePufferController',
+	var SmokePufferController = function(client) {
+		this.client = client;
+	};
+
+	SmokePufferController.prototype = new hext.tools.BaseController();
+	SmokePufferController.prototype.constructor = SmokePufferController;
 		
-		/*
-		 * Not currently supported.
-		 */
-		toOctane: function() {
-		},
+	/*
+	 * Not currently supported.
+	 */
+	SmokePufferController.prototype.toOctane = function() {
+	};
 
-		/**
-		 * Connect the SmokePuffer data model to the toolbar view so that they
-		 * respond to each other.
-		 * @see hext.tools.BaseController#setupToolbar
-		 */
-		setupToolbar: function() {
-			var toolModel = this.model;
-			var toolbarView = this.toolbarView;
-			var that = this;
+	/**
+	 * Connect the SmokePuffer data model to the toolbar view so that they
+	 * respond to each other.
+	 * @see hext.tools.BaseController#setupToolbar
+	 */
+	SmokePufferController.prototype.setupToolbar = function() {
+		var toolModel = this.model;
+		var toolbarView = this.toolbarView;
+		var that = this;
 
-			this.toolbarView.button.bind('click', function(evt) {
-				var enabled = !toolModel.enabled;
-				toolModel.setEnabled(enabled);
-				
-				if (enabled) {
-					hemi.world.setPickGrabber(that);
-				} else {
-				    hemi.world.removePickGrabber();
-				}
-
-				toolbarView.setClickedState(enabled);
-			});
-		},
-
-		/**
-		 * Check the shape from the pick to see if there is an associated
-		 * smoke puff particle Effect. If so, trigger it. Otherwise, generate a
-		 * 'default' puff at the picked world position.
-		 * 
-		 * @param {o3djs.picking.PickInfo} pickInfo pick event information
-		 */
-	    onPick: function(pickInfo) {
-			if (pickInfo && this.model.enabled) {
-				var puff = this.model.pickNames.get(pickInfo.shapeInfo.shape.name);
-
-				if (puff == null) {
-					var wi = pickInfo.worldIntersectionPosition;
-					var ci = hemi.world.camera.getEye();
-					puff = this.model.defaultPuff;
-					puff.params.position = hemi.core.math.lerpVector(ci, wi, 0.9);
-				}
-
-				puff.trigger();
+		this.toolbarView.button.bind('click', function(evt) {
+			var enabled = !toolModel.enabled;
+			toolModel.setEnabled(enabled);
+			
+			if (enabled) {
+				that.client.picker.setPickGrabber(that);
+			} else {
+			    that.client.picker.removePickGrabber();
 			}
+
+			toolbarView.setClickedState(enabled);
+		});
+	};
+
+	/**
+	 * Check the shape from the pick to see if there is an associated
+	 * smoke puff particle Effect. If so, trigger it. Otherwise, generate a
+	 * 'default' puff at the picked world position.
+	 * 
+	 * @param {PickInfo} pickInfo pick event information
+	 */
+    SmokePufferController.prototype.onPick = function(pickInfo) {
+		if (pickInfo && this.model.enabled) {
+			var puff = this.model.pickNames.get(pickInfo.pickedMesh.name);
+
+			if (puff == null) {
+				var wi = pickInfo.worldIntersectionPosition;
+				var ci = this.client.camera.getEye();
+				puff = this.model.defaultPuff;
+				var puffPos = hemi.utils.lerp([ci.x, ci.y, ci.z], [wi.x, wi.y, wi.z], 0.9);
+				puff.params.position = new THREE.Vector3(puffPos[0], puffPos[1], puffPos[2]);
+			}
+
+			puff.trigger();
 		}
+	};
+
+	hemi.makeCitizen(SmokePufferController, 'hext.tools.SmokePufferController', {
+		msgs: [],
+		toOctane: []
 	});
 	
 	return hext;

@@ -181,7 +181,6 @@
 		viewpoint.target = new THREE.Vector3(-425,-40,200);
 		viewpoint.fov = 40 * hemi.DEG_TO_RAD;
 		client.camera.moveToView(viewpoint, 1);
-		client.camera.enableControl();
 	}
 
 	jQuery(window).load(function() {
