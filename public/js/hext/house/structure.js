@@ -17,6 +17,8 @@
 
 var hext = (function(hext) {
 
+	var _vector = new THREE.Vector3();
+
 	/**
 	 * @namespace A module for pre-defined household objects, with standard
 	 * 		behaviors attached.
@@ -31,9 +33,9 @@ var hext = (function(hext) {
 	 * @param {float} opt_time How many seconds the swing shall take by default
 	 */
 	hext.house.Door = function(transform, opt_angle, opt_time) {
-		this.rotator = new hemi.Rotator(transform);
+		this.transform = transform;
 		this.closed = true;
-		this.angle = opt_angle || Math.PI/2.0;
+		this.angle = new THREE.Vector3(0, opt_angle || hemi.HALF_PI, 0);
 		this.time = opt_time || 1;
 		var that = this;
 		hemi.subscribe(hemi.msg.pick, function(msg) {
@@ -51,9 +53,7 @@ var hext = (function(hext) {
 			var time = opt_time || this.time;
 			if (this.closed) {
 				this.closed = false;
-				if(!this.rotator.rotate(new THREE.Vector3(0, this.angle, 0), time, true)) {
-					this.closed = true;
-				}
+				this.transform.turn(this.angle, time, true);
 			}
 		},
 		
@@ -65,9 +65,7 @@ var hext = (function(hext) {
 			var time = opt_time || this.time;
 			if (!this.closed) {
 				this.closed = true;
-				if(!this.rotator.rotate(new THREE.Vector3(0, -this.angle, 0), time, true)) {
-					this.closed = false;
-				}
+				this.transform.turn(_vector.copy(this.angle).multiplyScalar(-1), time, true);
 			}		
 		},
 		
@@ -89,7 +87,7 @@ var hext = (function(hext) {
 		 */
 		onOpening : function(callback) {
 			var that = this;
-			this.rotator.subscribe(hemi.msg.start, function(msg) {
+			this.transform.subscribe(hemi.msg.start, function(msg) {
 				if (!that.closed) callback(msg);
 				});
 		},
@@ -100,7 +98,7 @@ var hext = (function(hext) {
 		 */		
 		onOpen : function(callback) {
 			var that = this;
-			this.rotator.subscribe(hemi.msg.stop, function(msg) {
+			this.transform.subscribe(hemi.msg.stop, function(msg) {
 				if (!that.closed) callback(msg);
 			});		
 		},
@@ -111,7 +109,7 @@ var hext = (function(hext) {
 		 */		
 		onClosing : function(callback) {
 			var that = this;
-			this.rotator.subscribe(hemi.msg.start, function(msg) {
+			this.transform.subscribe(hemi.msg.start, function(msg) {
 				if (that.closed) callback(msg);
 			});	
 		},
@@ -122,7 +120,7 @@ var hext = (function(hext) {
 		 */		
 		onClosed : function(callback) {
 			var that = this;
-			this.rotator.subscribe(hemi.msg.stop, function(msg) {
+			this.transform.subscribe(hemi.msg.stop, function(msg) {
 				if (that.closed) callback(msg);
 			});			
 		},
@@ -140,9 +138,8 @@ var hext = (function(hext) {
 		 * @param {hemi.dispatch.Message} msg Message generated describing a pick event
 		 */
 		pickCallback : function(msg) {
-			if (msg.data.pickedMesh ==
-				this.translator.transformObjs[0]) {
-					this.swing();
+			if (msg.data.pickedMesh === this.transform) {
+				this.swing();
 			}
 		}
 	
@@ -152,11 +149,11 @@ var hext = (function(hext) {
 	 * @class Window is a pre-defined window that slides to a given point when clicked on
 	 * @extends hemi.world.Citizen
 	 * @param {THREE.Object3D} transform The transform containing the window shape
-	 * @param {float} openPoint [x,y,z] point at which the window will be open
+	 * @param {THREE.Vector3} openPoint XYZ point at which the window will be open
 	 * @param {float} opt_time How many seconds the slide shall take by default
 	 */	
-	hext.house.Window = function(transform,openPoint,opt_time) {
-		this.translator = new hemi.Translator(transform);
+	hext.house.Window = function(transform, openPoint, opt_time) {
+		this.transform = transform;
 		this.openPoint = openPoint;
 		this.time = opt_time || 1;
 		this.closed = true;
@@ -176,10 +173,7 @@ var hext = (function(hext) {
 			var time = opt_time || this.time;
 			if (this.closed) {
 				this.closed = false;
-				if(!this.translator.move(new THREE.Vector3(this.openPoint[0], this.openPoint[1], this.openPoint[2]),
-					time,true)) {
-					this.closed = true;
-				}
+				this.transform.move(this.openPoint, time, true);
 			}
 		},
 
@@ -191,11 +185,7 @@ var hext = (function(hext) {
 			var time = opt_time || this.time;
 			if (!this.closed) {
 				this.closed = true;
-				var reverse = new THREE.Vector3(this.openPoint[0], this.openPoint[1], this.openPoint[2]);
-				reverse.multiplyScalar(-1);
-				if(!this.translator.move(reverse, time, true)) {
-					this.closed = false;
-				}
+				this.transform.move(_vector.copy(this.openPoint).multiplyScalar(-1), time, true);
 			}		
 		},
 
@@ -217,7 +207,7 @@ var hext = (function(hext) {
 		 */
 		onOpening : function(callback) {
 			var that = this;
-			this.translator.subscribe(hemi.msg.start, function(msg) {
+			this.transform.subscribe(hemi.msg.start, function(msg) {
 				if (!that.closed) callback(msg);
 				});
 		},
@@ -228,7 +218,7 @@ var hext = (function(hext) {
 		 */		
 		onOpen : function(callback) {
 			var that = this;
-			this.translator.subscribe(hemi.msg.stop, function(msg) {
+			this.transform.subscribe(hemi.msg.stop, function(msg) {
 				if (!that.closed) callback(msg);
 			});		
 		},
@@ -239,7 +229,7 @@ var hext = (function(hext) {
 		 */		
 		onClosing : function(callback) {
 			var that = this;
-			this.translator.subscribe(hemi.msg.start, function(msg) {
+			this.transform.subscribe(hemi.msg.start, function(msg) {
 				if (that.closed) callback(msg);
 			});	
 		},
@@ -250,7 +240,7 @@ var hext = (function(hext) {
 		 */		
 		onClosed : function(callback) {
 			var that = this;
-			this.translator.subscribe(hemi.msg.stop, function(msg) {
+			this.transform.subscribe(hemi.msg.stop, function(msg) {
 				if (that.closed) callback(msg);
 			});
 		},
@@ -268,11 +258,10 @@ var hext = (function(hext) {
 		 * @param {hemi.dispatch.Message} msg Message generated describing a pick event
 		 */
 		pickCallback : function(msg) {
-			if (msg.data.pickedMesh ==
-				this.translator.transformObjs[0]) {
-					this.slide();
+			if (msg.data.pickedMesh === this.transform) {
+				this.slide();
 			}
-		}		
+		}
 
 	};
 

@@ -51,6 +51,31 @@
 	};
 
 	/**
+	 * Center the given Mesh's geometry about its local origin and update the Mesh so that the
+	 * geometry stays in the same world position.
+	 * 
+	 * @param {hemi.Mesh} mesh the Mesh to center geometry for
+	 * @param {THREE.Scene} scene the Mesh's scene
+	 */
+	hemi.utils.centerGeometry = function(mesh, scene) {
+		var delta = THREE.GeometryUtils.center(mesh.geometry);
+		delta.multiplySelf(mesh.scale);
+
+		if (mesh.useQuaternion) {
+			mesh.quaternion.multiplyVector3(delta);
+		} else {
+			_matrix.setRotationFromEuler(transform.rotation, transform.eulerOrder);
+			delta = transformVector(_matrix, delta);
+		}
+
+		mesh.position.subSelf(delta);
+		mesh.updateMatrix();
+		mesh.updateMatrixWorld();
+		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
+		updateVertices(mesh, scene);
+	};
+
+	/**
 	 * Interpret the given point from world space to local space. Note that this function converts
 	 * the actual point passed in, not a clone of it.
 	 * 
@@ -187,12 +212,7 @@
 			geometry.computeBoundingBox();
 
 			// Do some magic since Three.js doesn't currently have a way to flush cached vertices
-			if (transform.__webglInit) {
-				geometry.dynamic = true;
-				transform.__webglInit = false;
-				delete geometry.geometryGroupsList[0].__webglVertexBuffer;
-				scene.__objectsAdded.push(transform);
-			}
+			updateVertices(transform, scene);
 		}
 
 		// Shift geometry of all children
@@ -324,6 +344,22 @@
 		}
 
 		geometry.__dirtyUvs = true;
+	}
+
+	/*
+	 * Perform magic to get the WebGLRenderer to update the mesh geometry's vertex buffer.
+	 * 
+	 * @param {hemi.Mesh} mesh Mesh containing geometry to update vertices for
+	 * @param {THREE.Scene} scene the transform's scene
+	 */
+	function updateVertices(mesh, scene) {
+		if (mesh.__webglInit) {
+			var geometry = mesh.geometry;
+			geometry.dynamic = true;
+			delete geometry.geometryGroupsList[0].__webglVertexBuffer;
+			mesh.__webglInit = false;
+			scene.__objectsAdded.push(mesh);
+		}
 	}
 
 })();

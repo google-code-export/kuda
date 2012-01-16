@@ -79,7 +79,6 @@
 	}
 
 	function setupScene() {
-		var stuff = house.getTransforms('SO_door')[0];
 		house.getTransforms('SO_door')[0].visible = false;
 		house.getTransforms('SO_window1sashLeft')[0].visible = false;
 		house.getTransforms('SO_window1sashRight')[0].visible = false;
@@ -121,7 +120,7 @@
 		fire.transform.position.set(0.0, 72.0, -236.0);
 
 		door = new hext.house.Door(house.getTransforms('door')[0]);
-		door.angle = -door.angle;
+		door.angle.y *= -1;
 		door.onPick(function(msg) {
 			switch (msg.data.pickedMesh.name) {
 				case 'SO_door':
@@ -154,7 +153,7 @@
 			}, 200);
 		});
 		
-		window1Left = new hext.house.Window(house.getTransforms('window1_sashLeft')[0],[0,60,0]);
+		window1Left = new hext.house.Window(house.getTransforms('window1_sashLeft')[0], new THREE.Vector3(0, 60, 0));
 		window1Left.onPick(function(msg) {
 			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashLeft':
@@ -183,7 +182,7 @@
 			audio.winLeft.pause();
 		});
 	
-		window1Right = new hext.house.Window(house.getTransforms('window1_sashRight')[0],[0,60,0]);
+		window1Right = new hext.house.Window(house.getTransforms('window1_sashRight')[0], new THREE.Vector3(0, 60, 0));
 		window1Right.onPick(function(msg) {
 			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashRight':

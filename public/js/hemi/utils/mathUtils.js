@@ -182,25 +182,44 @@
 	 * Perform linear interpolation on the given values. Values can be numbers or arrays or even
 	 * nested arrays (as long as their lengths match).
 	 * 
-	 * @param {number} a first number (or array of numbers) for interpolation
-	 * @param {number} v second number (or array of numbers) for interpolation
+	 * @param {number} start start number (or array of numbers) for interpolation
+	 * @param {number} stop stop number (or array of numbers) for interpolation
 	 * @param {number} t coefficient for interpolation (usually time)
 	 * @return {number} the interpolated number (or array of numbers)
 	 */
-	hemi.utils.lerp = function(a, b, t) {
+	hemi.utils.lerp = function(start, stop, t) {
 		var ret;
 
-		if (hemi.utils.isArray(a)) {
+		if (hemi.utils.isArray(start)) {
 			ret = [];
 
-			for (var i = 0, il = a.length; i < il; ++i) {
-				ret[i] = hemi.utils.lerp(a[i], b[i], t);
+			for (var i = 0, il = start.length; i < il; ++i) {
+				ret[i] = hemi.utils.lerp(start[i], stop[i], t);
 			}
 		} else {
-			ret = a + (b - a) * t;
+			ret = start + (stop - start) * t;
 		}
 
 		return ret;
+	};
+
+	/**
+	 * Perform linear interpolation on the given vectors.
+	 * 
+	 * @param {THREE.Vector3} start start vector for interpolation
+	 * @param {THREE.Vector3} stop stop vector for interpolation
+	 * @param {number} t coefficient for interpolation (usually time)
+	 * @param {THREE.Vector3} opt_vec optional vector to receive interpolated value
+	 * @return {THREE.Vector3} the interpolated vector
+	 */
+	hemi.utils.lerpVec3 = function(start, stop, t, opt_vec) {
+		opt_vec = opt_vec || new THREE.Vector3();
+
+		opt_vec.x = hemi.utils.lerp(start.x, stop.x, t);
+		opt_vec.y = hemi.utils.lerp(start.y, stop.y, t);
+		opt_vec.z = hemi.utils.lerp(start.z, stop.z, t);
+
+		return opt_vec;
 	};
 
 	/**
