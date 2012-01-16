@@ -151,8 +151,8 @@ var hext = (function(hext) {
 	 *	   'closed'
 	 */
 	Portal.prototype.setClosedPosition = function(position) {
-		this.closedPosition = position;
-		this.position = position;
+		this.closedPosition.copy(position);
+		this.position.copy(position);
 	};
 		
 	/**
@@ -162,7 +162,7 @@ var hext = (function(hext) {
 	 * @param {THREE.Vector3} openPosition current xyz position
 	 */
 	Portal.prototype.setOpening = function(openPosition) {
-		this.position = openPosition;
+		this.position.copy(openPosition);
 		var length = this.closedPosition.distanceTo(this.position);
 		this.setLength(length / 4);
 	};
@@ -174,7 +174,7 @@ var hext = (function(hext) {
 	 * @param {THREE.Vector3} delta change in xyz position to apply
 	 */
 	Portal.prototype.adjustOpening = function(delta) {
-		this.position = this.position.addSelf(delta);
+		this.position.addSelf(delta);
 		var length = this.closedPosition.distanceTo(this.position);
 		this.setLength(length / 4);
 	};
