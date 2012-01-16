@@ -2304,25 +2304,44 @@ if (!window.requestAnimationFrame) {
 	 * Perform linear interpolation on the given values. Values can be numbers or arrays or even
 	 * nested arrays (as long as their lengths match).
 	 * 
-	 * @param {number} a first number (or array of numbers) for interpolation
-	 * @param {number} v second number (or array of numbers) for interpolation
+	 * @param {number} start start number (or array of numbers) for interpolation
+	 * @param {number} stop stop number (or array of numbers) for interpolation
 	 * @param {number} t coefficient for interpolation (usually time)
 	 * @return {number} the interpolated number (or array of numbers)
 	 */
-	hemi.utils.lerp = function(a, b, t) {
+	hemi.utils.lerp = function(start, stop, t) {
 		var ret;
 
-		if (hemi.utils.isArray(a)) {
+		if (hemi.utils.isArray(start)) {
 			ret = [];
 
-			for (var i = 0, il = a.length; i < il; ++i) {
-				ret[i] = hemi.utils.lerp(a[i], b[i], t);
+			for (var i = 0, il = start.length; i < il; ++i) {
+				ret[i] = hemi.utils.lerp(start[i], stop[i], t);
 			}
 		} else {
-			ret = a + (b - a) * t;
+			ret = start + (stop - start) * t;
 		}
 
 		return ret;
+	};
+
+	/**
+	 * Perform linear interpolation on the given vectors.
+	 * 
+	 * @param {THREE.Vector3} start start vector for interpolation
+	 * @param {THREE.Vector3} stop stop vector for interpolation
+	 * @param {number} t coefficient for interpolation (usually time)
+	 * @param {THREE.Vector3} opt_vec optional vector to receive interpolated value
+	 * @return {THREE.Vector3} the interpolated vector
+	 */
+	hemi.utils.lerpVec3 = function(start, stop, t, opt_vec) {
+		opt_vec = opt_vec || new THREE.Vector3();
+
+		opt_vec.x = hemi.utils.lerp(start.x, stop.x, t);
+		opt_vec.y = hemi.utils.lerp(start.y, stop.y, t);
+		opt_vec.z = hemi.utils.lerp(start.z, stop.z, t);
+
+		return opt_vec;
 	};
 
 	/**
@@ -3128,6 +3147,31 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
+	 * Center the given Mesh's geometry about its local origin and update the Mesh so that the
+	 * geometry stays in the same world position.
+	 * 
+	 * @param {hemi.Mesh} mesh the Mesh to center geometry for
+	 * @param {THREE.Scene} scene the Mesh's scene
+	 */
+	hemi.utils.centerGeometry = function(mesh, scene) {
+		var delta = THREE.GeometryUtils.center(mesh.geometry);
+		delta.multiplySelf(mesh.scale);
+
+		if (mesh.useQuaternion) {
+			mesh.quaternion.multiplyVector3(delta);
+		} else {
+			_matrix.setRotationFromEuler(transform.rotation, transform.eulerOrder);
+			delta = transformVector(_matrix, delta);
+		}
+
+		mesh.position.subSelf(delta);
+		mesh.updateMatrix();
+		mesh.updateMatrixWorld();
+		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
+		updateVertices(mesh, scene);
+	};
+
+	/**
 	 * Interpret the given point from world space to local space. Note that this function converts
 	 * the actual point passed in, not a clone of it.
 	 * 
@@ -3264,12 +3308,7 @@ if (!window.requestAnimationFrame) {
 			geometry.computeBoundingBox();
 
 			// Do some magic since Three.js doesn't currently have a way to flush cached vertices
-			if (transform.__webglInit) {
-				geometry.dynamic = true;
-				transform.__webglInit = false;
-				delete geometry.geometryGroupsList[0].__webglVertexBuffer;
-				scene.__objectsAdded.push(transform);
-			}
+			updateVertices(transform, scene);
 		}
 
 		// Shift geometry of all children
@@ -3401,6 +3440,22 @@ if (!window.requestAnimationFrame) {
 		}
 
 		geometry.__dirtyUvs = true;
+	}
+
+	/*
+	 * Perform magic to get the WebGLRenderer to update the mesh geometry's vertex buffer.
+	 * 
+	 * @param {hemi.Mesh} mesh Mesh containing geometry to update vertices for
+	 * @param {THREE.Scene} scene the transform's scene
+	 */
+	function updateVertices(mesh, scene) {
+		if (mesh.__webglInit) {
+			var geometry = mesh.geometry;
+			geometry.dynamic = true;
+			delete geometry.geometryGroupsList[0].__webglVertexBuffer;
+			mesh.__webglInit = false;
+			scene.__objectsAdded.push(mesh);
+		}
 	}
 
 })();
@@ -6571,52 +6626,534 @@ if (!window.requestAnimationFrame) {
 
 (function() {
 
+		// Static helper objects shared by all motions
+	var _matrix = new THREE.Matrix4(),
+		_vector = new THREE.Vector3();
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Contants
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	hemi.MotionType = {
+		ROTATE: 'rotate',
+		SCALE: 'scale',
+		TRANSLATE: 'translate'
+	};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Shared functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/*
-	 * Perform clean up on the Transform/Mesh.
+	 * Test if the Rotator/Scalor/Translator should be a render listener or not.
 	 */
-	function _clean() {
+	function shouldRender() {
+		if (!this.enabled ||  (this.accel.isZero() && this.vel.isZero())) {
+			hemi.removeRenderListener(this);
+		} else {
+			hemi.addRenderListener(this);
+		}
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Rotator class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A Rotator makes automated rotation easier by allowing simple calls such as setVel to
+	 * begin the automated spinning of a Transform.
+	 *
+	 * @param {hemi.Transform} opt_tran optional transform that will be rotating
+	 * @param {Object} opt_config optional configuration for the Rotator
+	 */
+	var Rotator = function(opt_tran, opt_config) {
+		var cfg = opt_config || {};
+
+		this._transform = null;
+		this.accel = cfg.accel || new THREE.Vector3();
+		this.angle = cfg.angle || new THREE.Vector3();
+		this.vel = cfg.vel || new THREE.Vector3();
+
+		this.time = 0;
+		this.stopTime = 0;
+		this.steadyRotate = false;
+		this.mustComplete = false;
+		this.startAngle = this.angle.clone();
+		this.stopAngle = this.angle.clone();
+
+		if (opt_tran !== undefined) {
+			this.setTransform(opt_tran);
+		}
+
+		this.enable();
+	};
+
+	/*
+	 * Remove all references in the Rotator.
+	 */
+	Rotator.prototype._clean = function() {
+		//TODO
+	};
+
+	/*
+	 * Array of Hemi Messages that Rotator is known to send.
+	 * @type string[]
+	 */
+	Rotator.prototype._msgSent = [hemi.msg.start, hemi.msg.stop];
+
+	/*
+	 * Octane properties for Rotator.
+	 * @type string[]
+	 */
+	Rotator.prototype._octane = ['accel', 'angle', 'vel'];
+
+	/**
+	 * Clear properties like acceleration, velocity, etc.
+	 */
+	Rotator.prototype.clear = function() {
+		this.accel.set(0, 0, 0);
+		this.angle.set(0, 0, 0);
+		this.vel.set(0, 0, 0);
+	};
+
+	/**
+	 * Disable animation for the Rotator.
+	 */
+	Rotator.prototype.disable = function() {
+		if (this.enabled) {
+			hemi.removeRenderListener(this);
+			this.enabled = false;
+		}
+	};
+
+	/**
+	 * Enable animation for the Rotator.
+	 */
+	Rotator.prototype.enable = function() {
+		this.enabled = true;
+		shouldRender.call(this);
+	};
+
+	/**
+	 * Perform Newtonian calculations on the rotating object, starting with the angular velocity.
+	 *
+	 * @param {Object} event the render event
+	 */
+	Rotator.prototype.onRender = function(event) {
+		if (!this._transform) return;
+
+		var t = event.elapsedTime;
+
+		if (this.steadyRotate) {
+			this.time += t;
+
+			if (this.time >= this.stopTime) {
+				hemi.removeRenderListener(this);
+				this.time = this.stopTime;
+				this.angle.copy(this.stopAngle);
+				this.steadyRotate = this.mustComplete = false;
+				this._transform.send(hemi.msg.stop, {});
+			} else {
+				hemi.utils.lerpVec3(this.startAngle, this.stopAngle, this.time / this.stopTime,
+					this.angle);
+			}
+		} else {
+			this.vel.addSelf(_vector.copy(this.accel).multiplyScalar(t));
+			this.angle.addSelf(_vector.copy(this.vel).multiplyScalar(t));
+		}
+
+		applyRotator.call(this);
+	};
+
+	/**
+	 * Make the Rotator rotate the specified amount in the specified amount of time.
+	 *
+	 * @param {THREE.Vector3} theta XYZ amounts to rotate (in radians)
+	 * @param {number} time number of seconds for the rotation to take
+	 * @param {boolean} opt_mustComplete optional flag indicating that no other rotations can be
+	 *     started until this one finishes
+	 */
+	Rotator.prototype.turn = function(theta, time, opt_mustComplete) {
+		if (!this.enabled || this.mustComplete) return false;
+
+		this.mustComplete = opt_mustComplete || false;
+		this.time = 0;
+		this.stopTime = time || 0.001;
+		this.steadyRotate = true;
+		this.startAngle.copy(this.angle);
+		this.stopAngle.add(this.angle, theta);
+		hemi.addRenderListener(this);
+		this._transform.send(hemi.msg.start, {});
+	};
+
+	/**
+	 * Set the angular acceleration.
+	 *
+	 * @param {THREE.Vector3} acceleration XYZ angular acceleration (in radians)
+	 */
+	Rotator.prototype.setAcceleration = function(acceleration) {
+		this.accel.copy(acceleration);
+		shouldRender.call(this);
+	};
+
+	/**
+	 * Set the current rotation angle.
+	 *
+	 * @param {THREE.Vector3} theta XYZ rotation angle (in radians)
+	 */
+	Rotator.prototype.setAngle = function(theta) {
+		this.angle.copy(theta);
+		applyRotator.call(this);
+	};
+
+	/**
+	 * Set the origin of the Rotator transform.
+	 * 
+	 * @param {THREE.Vector3} origin amount to shift the origin by
+	 */
+	Rotator.prototype.setOrigin = function(origin) {
+		if (!this._transform) return;
+
+		var tranMat = _matrix.setTranslation(-origin.x, -origin.y, -origin.z),
+			geometry = this._transform.geometry,
+			scene = this._transform.parent,
+			world = this._transform.matrixWorld,
+			delta = _vector.multiply(origin, this._transform.scale),
+			dX = delta.x,
+			dY = delta.y,
+			dZ = delta.z;
+
+		while (scene.parent !== undefined) {
+			scene = scene.parent;
+		}
+
+		// Re-center geometry around given origin
+		hemi.utils.shiftGeometry(transform, tranMat, scene);
+
+		// Offset local position so geometry's world position doesn't change
+		delta.x = dX * world.n11 + dY * world.n12 + dZ * world.n13;
+		delta.y = dX * world.n21 + dY * world.n22 + dZ * world.n23;
+		delta.z = dX * world.n31 + dY * world.n32 + dZ * world.n33;
+		transform.position.subSelf(delta);
+		transform.updateMatrix();
+		transform.updateMatrixWorld();
+	};
+
+	/**
+	 * Set the given Transform for the Rotator to control rotating.
+	 *
+	 * @param {hemi.Transform} transform the Transform to rotate
+	 */
+	Rotator.prototype.setTransform = function(transform) {
+		this._transform = transform;
+
+		if (transform.useQuaternion) {
+			_matrix.setRotationFromQuaternion(transform.quaternion);
+			transform.rotation.setRotationFromMatrix(_matrix);
+			transform.useQuaternion = false;
+		}
+
+		this.angle.copy(transform.rotation);
+	};
+
+	/**
+	 * Set the angular velocity.
+	 *
+	 * @param {THREE.Vector3} velocity XYZ angular velocity (in radians)
+	 */
+	Rotator.prototype.setVelocity = function(velocity) {
+		this.vel.copy(velocity);
+		shouldRender.call(this);
+	};
+
+// Private functions
+
+	/*
+	 * Apply the Rotator's calculated angle to its Transform's rotation.
+	 */
+	function applyRotator() {
+		if (this._transform.useQuaternion) {
+			this._transform.useQuaternion = false;
+		}
+
+		this._transform.rotation.copy(this.angle);
+		this._transform.updateMatrix();
+		this._transform.updateMatrixWorld();
+	}
+
+	hemi.makeCitizen(Rotator, 'hemi.Rotator', {
+		cleanup: Rotator.prototype._clean,
+		toOctane: Rotator.prototype._octane
+	});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Translator class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A Translator provides easy setting of linear velocity and acceleration of Transforms.
+	 * 
+	 * @param {hemi.Transform} opt_tran optional Transform that will be moving
+	 * @param {Object} opt_config optional configuration for the Translator
+	 */
+	var Translator = function(opt_tran, opt_config) {
+		var cfg = opt_config || {};
+
+		this._transform = null;
+		this.pos = cfg.pos || new THREE.Vector3();
+		this.vel = cfg.vel || new THREE.Vector3();
+		this.accel = cfg.accel || new THREE.Vector3();
+
+		this.time = 0;
+		this.stopTime = 0;
+		this.mustComplete = false;
+		this.steadyMove = false;
+		this.startPos = this.pos.clone();
+		this.stopPos = this.pos.clone();
+
+		if (opt_tran !== undefined) {
+			this.setTransform(opt_tran);
+		}
+
+		this.enable();
+	};
+
+	/*
+	 * Remove all references in the Translator.
+	 */
+	Translator.prototype._clean = function() {
+		this.disable();
+		this.clearTransforms();
+	};
+
+	/*
+	 * Array of Hemi Messages that Translator is known to send.
+	 * @type string[]
+	 */
+	Translator.prototype._msgSent = [hemi.msg.start, hemi.msg.stop];
+
+	/*
+	 * Octane properties for Translator.
+	 * @type string[]
+	 */
+	Translator.prototype._octane = ['accel', 'pos', 'vel'];
+
+	/**
+	 * Clear properties like acceleration, velocity, etc.
+	 */
+	Translator.prototype.clear = function() {
+		this.pos.set(0, 0, 0);
+		this.vel.set(0, 0, 0);
+		this.accel.set(0, 0, 0);
+	};
+
+	/**
+	 * Disable animation for the Translator. 
+	 */
+	Translator.prototype.disable = function() {
+		if (this.enabled) {
+			hemi.removeRenderListener(this);
+			this.enabled = false;
+		}
+	};
+
+	/**
+	 * Enable animation for the Translator. 
+	 */
+	Translator.prototype.enable = function() {
+		this.enabled = true;
+		shouldRender.call(this);
+	};
+
+	/**
+	 * Make the Translator translate the specified amount in the specified amount of time.
+	 * 
+	 * @param {THREE.Vector3} delta XYZ amount to translate
+	 * @param {number} time number of seconds for the translation to take
+	 * @param {boolean} opt_mustComplete optional flag indicating that no other translations can be
+	 *     started until this one finishes
+	 */
+	Translator.prototype.move = function(delta, time, opt_mustComplete) {
+		if (!this.enabled || this.mustComplete) return false;
+
+		this.mustComplete = opt_mustComplete || false;
+		this.time = 0;
+		this.stopTime = time || 0.001;
+		this.steadyMove = true;
+		this.startPos.copy(this.pos);
+		this.stopPos.add(this.pos, delta);
+		hemi.addRenderListener(this);
+		this._transform.send(hemi.msg.start,{});
+	};
+
+	/**
+	 * Calculate the position of the Translator based on the acceleration and velocity.
+	 * 
+	 * @param {Object} event the render event
+	 */
+	Translator.prototype.onRender = function(event) {
+		if (!this._transform) return;
+
+		var t = event.elapsedTime;
+
+		if (this.steadyMove) {
+			this.time += t;
+
+			if (this.time >= this.stopTime) {
+				hemi.removeRenderListener(this);
+				this.time = this.stopTime;
+				this.pos.copy(this.stopPos);
+				this.steadyMove = this.mustComplete = false;
+				this._transform.send(hemi.msg.stop,{});
+			} else {
+				hemi.utils.lerpVec3(this.startPos, this.stopPos, this.time / this.stopTime,
+					this.pos);
+			}
+		} else {
+			this.vel.addSelf(_vector.copy(this.accel).multiplyScalar(t));
+			this.pos.addSelf(_vector.copy(this.vel).multiplyScalar(t));
+		}
+
+		applyTranslator.call(this);
+	};
+
+	/**
+	 * Set the acceleration.
+	 * 
+	 * @param {THREE.Vector3} acceleration XYZ acceleration vector
+	 */
+	Translator.prototype.setAcceleration = function(acceleration) {
+		this.accel.copy(acceleration);
+		shouldRender.call(this);
+	};
+
+	/**
+	 * Set the position.
+	 * 
+	 * @param {THREE.Vector3} position XYZ position
+	 */
+	Translator.prototype.setPosition = function(position) {
+		this.pos.copy(position);
+		applyTranslator.call(this);
+	};
+
+	/**
+	 * Set the given Transform for the Translator to control translating.
+	 *
+	 * @param {hemi.Transform} transform the Transform to translate
+	 */
+	Translator.prototype.setTransform = function(transform) {
+		this._transform = transform;
+		this.pos.copy(transform.position);
+	};
+
+	/**
+	 * Set the velocity.
+	 * 
+	 * @param {THREE.Vector3} velocity XYZ velocity vector
+	 */
+	Translator.prototype.setVelocity = function(velocity) {
+		this.vel.copy(velocity);
+		shouldRender.call(this);
+	};
+
+// Private functions
+
+	/*
+	 * Apply the Translator's calculated position to its Transform's position.
+	 */
+	function applyTranslator() {
+		this._transform.position.copy(this.pos);
+		this._transform.updateMatrix();
+		this._transform.updateMatrixWorld();
+	}
+
+	hemi.makeCitizen(Translator, 'hemi.Translator', {
+		cleanup: Translator.prototype._clean,
+		toOctane: Translator.prototype._octane
+	});
+
+})();
+/*
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
+
+(function() {
+
+	var movables = [],
+		motions = [],
+		resizables = [],
+		turnables = [];
+
+	motions[hemi.MotionType.ROTATE] = {
+		create: function() { return new hemi.Rotator(); },
+		storage: []
+	};
+	motions[hemi.MotionType.SCALE] = {
+		create: function() { return new hemi.Scalor(); },
+		storage: []
+	};
+	motions[hemi.MotionType.TRANSLATE] = {
+		create: function() { return new hemi.Translator(); },
+		storage: []
+	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Transform class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A Transform performs hierarchical matrix transformations.
+	 */
+	var Transform = function() {
+		THREE.Object3D.call(this);
+
+		this._manip = null;
+		this._motions = {};
+		this.pickable = true;
+		// this.opacity?
+	};
+
+	Transform.prototype = new THREE.Object3D();
+	Transform.constructor = Transform;
+
+	/*
+	 * Remove all references in the Transform.
+	 */
+	Transform.prototype._clean = function() {
 		this.parent.remove(this);
 
 		for (var i = 0, il = this.children.length; i < il; ++i) {
 			this.children[i].cleanup();
 		}
-	}
+	};
 
 	/**
-	 * Get all of the children, grandchildren etc of the Transform/Mesh.
+	 * Use the given Object3D to initialize properties.
+	 * 
+	 * @param {THREE.Object3D} obj Object3D to use to initialize properties
+	 * @param {Object} toConvert look-up structure to get the Transform equivalent of an Object3D
+	 *     for animations
 	 */
-	function _getAllChildren(opt_arr) {
-		opt_arr = opt_arr || [];
-
-		for (var i = 0, il = this.children.length; i < il; ++i) {
-			var child = this.children[i];
-			opt_arr.push(child);
-			child.getAllChildren(opt_arr);
-		}
-
-		return opt_arr;
-	}
-
-	/*
-	 * Set all transform properties to their identity values.
-	 */
-	function _identity() {
-		this.position.set(0, 0, 0);
-		this.quaternion.set(0, 0, 0, 1);
-		this.rotation.set(0, 0, 0);
-		this.scale.set(1, 1, 1);
-		this.matrix.identity();
-		this.updateMatrixWorld();
-	}
-
-	/*
-	 * Initialize Transform properties using the given Object3D.
-	 */
-	function _init(obj, toConvert) {
+	Transform.prototype._init = function(obj, toConvert) {
 		var children = this.children;
 		// This is important since THREE.KeyFrameAnimation relies on updating a shared reference to
 		// the matrix.
@@ -6637,36 +7174,55 @@ if (!window.requestAnimationFrame) {
 			this.add(child);
 			child._init(childObj, toConvert);
 		}
-	}
-
-		/*
-		 * Shared Octane properties for hemi.Transform and hemi.Mesh.
-		 */
-	var octaneProps = ['name', 'children', 'pickable', 'visible', 'position', 'rotation',
-			'quaternion', 'scale', 'useQuaternion'];
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Transform class
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	/**
-	 * @class A Transform performs hierarchical matrix transformations.
-	 */
-	var Transform = function() {
-		THREE.Object3D.call(this);
-
-		this.pickable = true;
-		// this.opacity?
 	};
 
-	Transform.prototype = new THREE.Object3D();
-	Transform.constructor = Transform;
+	/*
+	 * Array of Hemi Messages that Transform is known to send.
+	 * @type string[]
+	 */
+	Transform.prototype._msgSent = [hemi.msg.start, hemi.msg.stop];
 
-	Transform.prototype._clean = _clean;
+	/*
+	 * Octane properties for Transform.
+	 * @type string[]
+	 */
+	Transform.prototype._octane = ['name', 'children', 'pickable', 'visible', 'position',
+			'rotation', 'quaternion', 'scale', 'useQuaternion'];
 
-	Transform.prototype._init = _init;
+	Transform.prototype.addMotion = function(type, opt_velocity, opt_acceleration) {
+		var motion = this._motions[type];
 
-	Transform.prototype._octane = octaneProps;
+		if (!motion) {
+			motion = getMotion(type);
+			motion.setTransform(this);
+			this._motions[type] = motion;
+		}
+
+		if (motion) {
+			if (opt_acceleration !== undefined) {
+				motion.setAcceleration(opt_acceleration);
+			}
+			if (opt_velocity !== undefined) {
+				motion.setVelocity(opt_velocity);
+			}
+		}
+	};
+
+	Transform.prototype.cancelInteraction = function() {
+		if (this._manip) {
+			this._manip.cleanup(); // return to pile?
+			this._manip = null;
+		}
+	};
+
+	Transform.prototype.cancelMotion = function(type) {
+		var motion = this._motions[type];
+
+		if (motion) {
+			removeMotion(motion, type);
+			this._motions[type] = undefined;
+		}
+	};
 
 	/**
 	 * Get all of the child Transforms that are under the Transform.
@@ -6674,16 +7230,95 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Transform[]} opt_arr optional array to place Transforms in
 	 * @return {hemi.Transform[]} array of all child/grandchild Transforms
 	 */
-	Transform.prototype.getAllChildren = _getAllChildren;
+	Transform.prototype.getAllChildren = function(opt_arr) {
+		opt_arr = opt_arr || [];
+
+		for (var i = 0, il = this.children.length; i < il; ++i) {
+			var child = this.children[i];
+			opt_arr.push(child);
+			child.getAllChildren(opt_arr);
+		}
+
+		return opt_arr;
+	};
 
 	/**
-	 * Use the given Object3D to initialize properties.
-	 * 
-	 * @param {THREE.Object3D} obj Object3D to use to initialize properties
-	 * @param {Object} toConvert look-up structure to get the Transform equivalent of an Object3D
-	 *     for animations
+	 * Set all of the Transform's properties to their identity values.
 	 */
-	Transform.prototype.identity = _identity;
+	Transform.prototype.identity = function() {
+		this.position.set(0, 0, 0);
+		this.quaternion.set(0, 0, 0, 1);
+		this.rotation.set(0, 0, 0);
+		this.scale.set(1, 1, 1);
+		this.matrix.identity();
+		this.updateMatrixWorld();
+	};
+
+	Transform.prototype.makeDraggable = function() {
+		if (this._manip) {
+			this._manip.cleanup(); // return to pile?
+		}
+
+		this._manip = getDraggable();
+		this._manip.addTransform(this);
+	};
+
+	Transform.prototype.makeScalable = function() {
+		if (this._manip) {
+			this._manip.cleanup(); // return to pile?
+		}
+
+		this._manip = getScalable();
+		this._manip.addTransform(this);
+	};
+
+	Transform.prototype.makeTurnable = function() {
+		if (this._manip) {
+			this._manip.cleanup(); // return to pile?
+		}
+
+		this._manip = getTurnable();
+		this._manip.addTransform(this);
+	};
+
+	Transform.prototype.move = function(delta, time, opt_mustComplete) {
+		var type = hemi.MotionType.TRANSLATE,
+			motion = this._motions[type];
+
+		if (!motion) {
+			motion = getMotion(type);
+			motion.setTransform(this);
+			this._motions[type] = motion;
+		}
+
+		motion.move(delta, time, opt_mustComplete);
+	};
+
+	Transform.prototype.resize = function(scale, time, opt_mustComplete) {
+		var type = hemi.MotionType.SCALE,
+			motion = this._motions[type];
+
+		if (!motion) {
+			motion = getMotion(type);
+			motion.setTransform(this);
+			this._motions[type] = motion;
+		}
+
+		motion.resize(scale, time, opt_mustComplete);
+	};
+
+	Transform.prototype.turn = function(theta, time, opt_mustComplete) {
+		var type = hemi.MotionType.ROTATE,
+			motion = this._motions[type];
+
+		if (!motion) {
+			motion = getMotion(type);
+			motion.setTransform(this);
+			this._motions[type] = motion;
+		}
+
+		motion.turn(theta, time, opt_mustComplete);
+	};
 
 	hemi.makeCitizen(Transform, 'hemi.Transform', {
 		cleanup: Transform.prototype._clean,
@@ -6702,13 +7337,18 @@ if (!window.requestAnimationFrame) {
 		THREE.Mesh.call(this);
 
 		this.pickable = true;
+		this._manip = null;
+		this._motions = {};
 		// this.opacity?
 	};
 
 	Mesh.prototype = new THREE.Mesh();
 	Mesh.constructor = Mesh;
 
-	Mesh.prototype._clean = _clean;
+	/*
+	 * Remove all references in the Mesh.
+	 */
+	Mesh.prototype._clean = Transform.prototype._clean;
 
 	/*
 	 * Use the given Mesh to initialize properties.
@@ -6729,10 +7369,24 @@ if (!window.requestAnimationFrame) {
 			this.morphTargetDictionary = obj.morphTargetDictionary;
 		}
 
-		_init.call(this, obj, toConvert);
+		Transform.prototype._init.call(this, obj, toConvert);
 	};
 
-	Mesh.prototype._octane = octaneProps;
+	/*
+	 * Array of Hemi Messages that Mesh is known to send.
+	 * @type string[]
+	 */
+	Mesh.prototype._msgSent = Transform.prototype._msgSent;
+
+	/*
+	 * Octane properties for Mesh.
+	 * @type string[]
+	 */
+	Mesh.prototype._octane = Transform.prototype._octane;
+
+	Mesh.prototype.addMotion = Transform.prototype.addMotion;
+
+	Mesh.prototype.cancelMotion = Transform.prototype.cancelMotion;
 
 	/**
 	 * Get all of the child Transforms that are under the Mesh.
@@ -6740,9 +7394,18 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Transform[]} opt_arr optional array to place Transforms in
 	 * @return {hemi.Transform[]} array of all child/grandchild Transforms
 	 */
-	Mesh.prototype.getAllChildren = _getAllChildren;
+	Mesh.prototype.getAllChildren = Transform.prototype.getAllChildren;
 
-	Mesh.prototype.identity = _identity;
+	/**
+	 * Set all of the Transform's properties to their identity values.
+	 */
+	Mesh.prototype.identity = Transform.prototype.identity;
+
+	Mesh.prototype.move = Transform.prototype.move;
+
+	Mesh.prototype.resize = Transform.prototype.resize;
+
+	Mesh.prototype.turn = Transform.prototype.turn;
 
 	hemi.makeCitizen(Mesh, 'hemi.Mesh', {
 		cleanup: Mesh.prototype._clean,
@@ -6754,6 +7417,34 @@ if (!window.requestAnimationFrame) {
 	hemi.makeCitizen(THREE.Scene, 'hemi.Scene');
 	hemi.makeOctanable(THREE.Vector3, 'THREE.Vector3', ['x', 'y', 'z']);
 	hemi.makeOctanable(THREE.Quaternion, 'THREE.Quaternion', ['x', 'y', 'z', 'w']);
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function getMotion(type) {
+		var obj = motions[type],
+			motion;
+
+		if (obj) {
+			motion = obj.storage.length > 0 ? obj.storage.pop() : obj.create();
+		} else {
+			hemi.console.log('Unrecognized motion type: ' + type, hemi.console.WARN);
+		}
+
+		return motion;
+	}
+
+	function removeMotion(motion, type) {
+		var obj = motions[type];
+		motion.clear();
+
+		if (obj) {
+			obj.storage.length > 10 ? motion.cleanup() : obj.storage.push(motion);
+		} else {
+			hemi.console.log('Unrecognized motion type: ' + type, hemi.console.WARN);
+		}
+	}
 
 })();
 /*
@@ -8694,552 +9385,6 @@ if (!window.requestAnimationFrame) {
 		cleanup: AnimationGroup.prototype._clean,
 		toOctane: AnimationGroup.prototype._octane
 	});
-
-})();
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
-/*
-The MIT License (MIT)
-
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-/**
- * @fileoverview Motion describes classes for automatically translating
- * and rotating objects in the scene.
- */
-
-(function() {
-
-    /**
-     * @class A Rotator makes automated rotation easier by allowing simple
-     * calls such as setVel to begin the automated spinning of a Transform.
-     * @extends hemi.world.Citizen
-     *
-     * @param {THREE.Object3d} opt_tran optional transform that will be spinning
-     * @param {Object} opt_config optional configuration for the Rotator
-     */
-    hemi.RotatorBase = function(opt_tran, opt_config) {
-        var cfg = opt_config || {};
-
-        this.accel = cfg.accel || new THREE.Vector3();
-        this.angle = cfg.angle || new THREE.Vector3();
-        this.vel = cfg.vel || new THREE.Vector3();
-
-        this.time = 0;
-        this.stopTime = 0;
-        this.steadyRotate = false;
-        this.mustComplete = false;
-        this.startAngle = this.angle.clone();
-        this.stopAngle = this.angle.clone();
-        this.toLoad = {};
-        this.transformObjs = [];
-
-        if (opt_tran != null) {
-            this.addTransform(opt_tran);
-        }
-
-        this.enable();
-    };
-
-    hemi.RotatorBase.prototype = {
-        /**
-         * Add a Transform to the list of Transforms that will be spinning. A
-         * child Transform is created to allow the Rotator to spin about an
-         * arbitray axis.
-         *
-         * @param {THREE.Object3D} transform the Transform to add
-         */
-        addTransform : function(transform) {
-            this.transformObjs.push(transform);
-            applyRotator.call(this, [transform]);
-        },
-
-        /**
-         * Clear properties like acceleration, velocity, etc.
-         */
-        clear: function() {
-            this.accel = new THREE.Vector3(0,0,0);
-            this.angle =  new THREE.Vector3(0,0,0);
-            this.vel =  new THREE.Vector3(0,0,0);
-        },
-
-        /**
-         * Clear the list of spinning Transforms.
-         */
-        clearTransforms: function() {
-            while (this.transformObjs.length > 0) {
-                removeRotateTransforms.call(this, this.transformObjs[0]);
-            }
-        },
-
-        /**
-         * Disable mouse interaction for the Rotator.
-         */
-        disable: function() {
-            if (this.enabled) {
-                hemi.removeRenderListener(this);
-                this.enabled = false;
-            }
-        },
-
-        /**
-         * Enable mouse interaction for the Rotator.
-         */
-        enable: function() {
-            this.enabled = true;
-            shouldRender.call(this);
-        },
-
-        /**
-         * Get the Transforms that the Rotator currently contains.
-         *
-         * @return {THREE.Object3D[]} array of Transforms
-         */
-        getTransforms: function() {
-            return this.transformObjs.slice();
-        },
-
-        /**
-         * Make the Rotator rotate the specified amount in the specified amount
-         * of time.
-         *
-         * @param {THREE.Vecto3} theta XYZ amounts to rotate (in radians)
-         * @param {number} time number of seconds for the rotation to take
-         * @param {boolean} opt_mustComplete optional flag indicating that no
-         *     other rotations can be started until this one finishes
-         */
-        rotate: function(theta,time,opt_mustComplete) {
-            if (!this.enabled || this.mustComplete) return false;
-            this.time = 0;
-            this.stopTime = time || 0.001;
-            this.steadyRotate = true;
-            this.startAngle = this.angle.clone();
-            this.mustComplete = opt_mustComplete || false;
-            this.stopAngle.add(this.angle, theta);
-            hemi.addRenderListener(this);
-            this.send(hemi.msg.start,{});
-            return true;
-        },
-
-        /**
-         * Render event listener - Perform Newtonian calculations on the
-         * rotating object, starting with the angular velocity.
-         *
-         * @param {o3d.Event} event message describing the render event
-         */
-        onRender: function(event) {
-            if (this.transformObjs.length > 0) {
-                var t = event.elapsedTime;
-                if (this.steadyRotate) {
-                    this.time += t;
-                    if (this.time >= this.stopTime) {
-                        this.time = this.stopTime;
-                        this.steadyRotate = this.mustComplete = false;
-                        hemi.removeRenderListener(this);
-                        this.send(hemi.msg.stop,{});
-                    }
-                    var t1 = this.time/this.stopTime;
-                    var newAngle = hemi.utils.lerp(
-                        [this.startAngle.x, this.startAngle.y, this.startAngle.z],
-                        [this.stopAngle.x, this.stopAngle.y, this.stopAngle.z],
-                        t1);
-                    this.angle.x = newAngle[0];
-					this.angle.y = newAngle[1];
-					this.angle.z = newAngle[2];
-                } else {
-                    this.vel.addSelf(this.accel.clone().multiplyScalar(t));
-                    this.angle.addSelf(this.vel.clone().multiplyScalar(t));
-                }
-
-                applyRotator.call(this);
-            }
-        },
-
-		removeTransforms : function(tranObj) {
-			var ndx = this.transformObjs.indexOf(tranObj);
-
-			if (ndx > -1) {
-				this.transformObjs.splice(ndx, 1);
-			}
-		},
-
-        /**
-         * Set the angular acceleration.
-         *
-         * @param {THREE.Vector3} accel XYZ angular acceleration (in radians)
-         */
-        setAccel: function(accel) {
-            this.accel = accel.clone();
-            shouldRender.call(this);
-        },
-
-        /**
-         * Set the current rotation angle.
-         *
-         * @param {THREE.Vector3} theta XYZ rotation angle (in radians)
-         */
-        setAngle: function(theta) {
-            this.angle = theta.clone();
-            applyRotator.call(this);
-        },
-		
-		/**
-		 * Set the origin of the Rotator transform.
-		 * 
-		 * @param {number[3]} origin amount to shift the origin by
-		 */
-		setOrigin: function(origin) {
-			var originVec = new THREE.Vector3().set(-origin[0], -origin[1], -origin[2]),
-				tranMat = new THREE.Matrix4().setTranslation(-origin[0], -origin[1], -origin[2]);
-
-			for (var i = 0, il = this.transformObjs.length; i < il; ++i) {
-				var transform = this.transformObjs[i],
-					geometry = transform.geometry,
-					scene = transform.parent,
-					world = transform.matrixWorld,
-					delta = new THREE.Vector3().multiply(originVec, transform.scale),
-					dx = delta.x,
-					dy = delta.y,
-					dz = delta.z;
-
-				while (scene.parent != null) {
-					scene = scene.parent;
-				}
-
-				// Re-center geometry around given origin
-				hemi.utils.shiftGeometry(transform, tranMat, scene);
-
-				// Offset local position so geometry's world position doesn't change
-				delta.x = dx * world.n11 + dy * world.n12 + dz * world.n13;
-				delta.y = dx * world.n21 + dy * world.n22 + dz * world.n23;
-				delta.z = dx * world.n31 + dy * world.n32 + dz * world.n33;
-				transform.position.subSelf(delta);
-				transform.updateMatrix();
-				transform.updateMatrixWorld();
-			}
-		},
-
-        /**
-         * Set the angular velocity.
-         *
-         * @param {THREE.Vector3} vel XYZ angular velocity (in radians)
-         */
-        setVel: function(vel) {
-            this.vel = vel.clone();
-            shouldRender.call(this);
-        },
-
-        /**
-         * Get the Octane structure for the Rotator.
-         *
-         * @return {Object} the Octane structure representing the Rotator
-         */
-        toOctane: function() {
-            var octane = this._super(),
-                valNames = ['accel', 'angle', 'vel'];
-
-            for (var ndx = 0, len = valNames.length; ndx < len; ndx++) {
-                var name = valNames[ndx];
-
-                octane.props.push({
-                    name: name,
-                    val: this[name]
-                });
-            }
-
-            octane.props.push({
-                name: 'setOrigin',
-                arg: [this.origin]
-            });
-
-            // Save the local matrices of the transforms so we can restore them
-            var tranOct = {};
-
-            for (var i = 0, il = this.transformObjs.length; i < il; i++) {
-                var tranObj = this.transformObjs[i],
-                    origTran = tranObj.offTran,
-                    rotTran = tranObj.rotTran;
-
-                // Note: this will break if the Rotator has more than one
-                // transform with the same name
-                tranOct[origTran.name] = [
-                    tranObj.parent.localMatrix,
-                    rotTran.localMatrix,
-                    origTran.localMatrix
-                ];
-            }
-
-            octane.props.push({
-                name: 'toLoad',
-                val: tranOct
-            });
-
-            return octane;
-        }
-    };
-
-    hemi.makeCitizen(hemi.RotatorBase, 'hemi.Rotator', {
-		msgs: ['hemi.start', 'hemi.stop'],
-		toOctane: []
-	});
-	/**
-	 * @class A Translator provides easy setting of linear velocity and
-	 * acceleration of shapes and transforms in the 3d scene.
-	 * @extends hemi.world.Citizen
-	 * 
-	 * @param {THREE.Object3D} opt_tran optional Transform that will be moving
-	 * @param {Object} opt_config optional configuration for the Translator
-	 */
-	hemi.TranslatorBase = function(opt_tran, opt_config) {
-		var cfg = opt_config || {};
-
-		this.pos = cfg.pos || new THREE.Vector3();
-		this.vel = cfg.vel || new THREE.Vector3();
-		this.accel = cfg.accel || new THREE.Vector3();
-
-		this.time = 0;
-		this.stopTime = 0;
-		this.mustComplete = false;
-		this.steadyMove = false;
-		this.startPos = this.pos.clone();
-		this.stopPos = this.pos.clone();
-		this.toLoad = {};
-		this.transformObjs = [];
-
-		if (opt_tran != null) {
-			this.addTransform(opt_tran);
-		}
-
-		this.enable();
-	};
-
-
-	hemi.TranslatorBase.prototype = {
-		/**
-		 * Add the Transform to the list of Transforms that will be moving.
-		 *
-		 * @param {THREE.Object3D} transform the Transform to add
-		 */
-		addTransform: function(transform) {
-			this.transformObjs.push(transform);
-			applyTranslator.call(this, [transform]);
-		},
-
-		/**
-		 * Send a cleanup Message and remove all references in the Translator.
-		 */
-		cleanup: function() {
-			this.disable();
-			this.clearTransforms();
-		},
-
-		/**
-		 * Clear properties like acceleration, velocity, etc.
-		 */
-		clear: function() {
-			this.pos = new THREE.Vector3();
-			this.vel = new THREE.Vector3();
-			this.accel = new THREE.Vector3();
-		},
-
-		/**
-		 * Clear the list of translating Transforms.
-		 */
-		clearTransforms: function() {
-			while (this.transformObjs.length > 0) {
-				this.removeTransform(this.transformObjs[0]);
-			}
-		},
-
-		/**
-		 * Disable mouse interaction for the Translator. 
-		 */
-		disable: function() {
-			if (this.enabled) {
-				hemi.removeRenderListener(this);
-				this.enabled = false;
-			}
-		},
-
-		/**
-		 * Enable mouse interaction for the Translator. 
-		 */
-		enable: function() {
-			this.enabled = true;
-			shouldRender.call(this);
-		},
-
-		/**
-		 * Get the Transforms that the Translator currently contains.
-		 * 
-		 * @return {THREE.Object3D[]} array of Transforms
-		 */
-		getTransforms: function() {
-		    return this.transformObjs.slice();
-		},
-
-		/**
-		 * Make the Translator translate the specified amount in the specified
-		 * amount of time.
-		 * 
-		 * @param {THREE.Vector3} delta XYZ amount to translate
-		 * @param {number} time number of seconds for the translation to take
-		 * @param {boolean} opt_mustComplete optional flag indicating that no
-		 *     other translations can be started until this one finishes
-		 */
-		move : function(delta,time,opt_mustComplete) {
-			if (!this.enabled || this.mustComplete) return false;
-			this.time = 0;
-			this.stopTime = time || 0.001;
-			this.steadyMove = true;
-			this.startPos = this.pos.clone();
-			this.mustComplete = opt_mustComplete || false;
-			this.stopPos.add(this.pos, delta);
-			hemi.addRenderListener(this);
-			this.send(hemi.msg.start,{});
-			return true;
-		},
-
-		/**
-		 * Render event listener - calculate the position of the Translator,
-		 * based on the acceleration and velocity.
-		 * 
-		 * @param {o3d.Event} event message describing render event
-		 */
-		onRender : function(event) {
-			if (this.transformObjs.length > 0) {
-				var t = event.elapsedTime;
-				if (this.steadyMove) {
-					this.time += t;
-					if (this.time >= this.stopTime) {
-						this.time = this.stopTime;
-						this.steadyMove = this.mustComplete = false;
-						hemi.removeRenderListener(this);
-						this.send(hemi.msg.stop,{});
-					}
-					var t1 = this.time/this.stopTime;
-					var newPos = hemi.utils.lerp(
-						[this.startPos.x, this.startPos.y, this.startPos.z],
-						[this.stopPos.x, this.stopPos.y, this.stopPos.z],
-						t1);
-					this.pos.x = newPos[0];
-					this.pos.y = newPos[1];
-					this.pos.z = newPos[2];
-				} else {
-					this.vel.addSelf(this.accel.clone().multiplyScalar(t));
-					this.pos.addSelf(this.vel.clone().multiplyScalar(t));
-				}
-
-				applyTranslator.call(this);
-			}
-		},
-
-		removeTransforms : function(tranObj) {
-			var ndx = this.transformObjs.indexOf(tranObj);
-
-			if (ndx > -1) {
-				this.transformObjs.splice(ndx, 1);
-			}
-		},
-
-		/**
-		 * Set the acceleration.
-		 * 
-		 * @param {THREE.Vector3} a XYZ acceleration vector
-		 */
-		setAccel: function(a) {
-			this.accel = a.clone();
-			shouldRender.call(this);
-		},
-
-		/**
-		 * Set the position.
-		 * 
-		 * @param {THREE.Vector3} x XYZ position
-		 */
-		setPos: function(x) {
-			this.pos = x.clone();
-			applyTranslator.call(this);
-		},
-
-		/**
-		 * Set the velocity.
-		 * @param {THREE.Vector3} v XYZ velocity vector
-		 */
-		setVel: function(v) {
-			this.vel = v.clone();
-			shouldRender.call(this);
-		}
-	};
-
-	hemi.makeCitizen(hemi.TranslatorBase, 'hemi.Translator', {
-		msgs: ['hemi.start', 'hemi.stop'],
-		toOctane: []
-	});
-
-	///////////////////////////////////////////////////////////////////////////
-	// Private functions
-	///////////////////////////////////////////////////////////////////////////
-	shouldRender = function() {
-		if (!this.enabled ||  (this.accel.isZero() && this.vel.isZero())) {
-			hemi.removeRenderListener(this);
-		} else {
-			hemi.addRenderListener(this);
-		}
-	};
-
-	applyTranslator = function(opt_objs) {
-		var objs = this.transformObjs;
-
-		if (opt_objs) {
-			objs = opt_objs;
-		}
-
-		for (var i = 0, il = objs.length; i < il; i++) {
-			var transform = objs[i];
-
-			transform.position = this.pos.clone();
-			transform.updateMatrix();
-			transform.updateMatrixWorld();
-		}
-	};
-
-	
-	applyRotator = function(opt_objs) {
-		var objs = this.transformObjs;
-
-		if (opt_objs) {
-			objs = opt_objs;
-		}
-
-		for (var i = 0, il = objs.length; i < il; i++) {
-			var transform = objs[i];
-
-			if (transform.useQuaternion) {
-				var quat = new THREE.Quaternion().setFromEuler(new THREE.Vector3(
-				 this.angle.x * hemi.RAD_TO_DEG, this.angle.y * hemi.RAD_TO_DEG, this.angle.z * hemi.RAD_TO_DEG));
-				transform.quaternion.multiply(transform.quaternion, quat);
-			} else {
-				transform.rotation.addSelf(this.angle);
-			}
-
-			transform.updateMatrix();
-			transform.updateMatrixWorld();
-		}
-	};
 
 })();
 /*

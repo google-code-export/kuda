@@ -56,15 +56,15 @@
 		var outside = hext.engines.createOutsideLocation();
 
 		blowerFan = {
-			rotator: new hemi.Rotator(house.getTransforms('fan_blades')[0]),
+			transform: house.getTransforms('fan_blades')[0],
 			msgHandler: function(msg) {
-				blowerFan.rotator.setVel(new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
+				blowerFan.transform.addMotion('rotate', new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
 			},
 			// A fan is a special case where it has an active portal and a leaking portal
 			portal: new hext.engines.Portal(),
 			leakPortal: new hext.engines.Portal(),
 			init: function() {
-				//this.rotator.setOrigin(new THREE.Vector3(19.9943, 41.8675, 0));
+				hemi.utils.centerGeometry(this.transform);
 				this.portal.locationA = inside;
 				this.portal.locationB = outside;
 				this.portal.setWidth(winWidth * 1.1);
