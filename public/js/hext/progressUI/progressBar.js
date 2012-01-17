@@ -142,37 +142,32 @@ var hext = (function(hext) {
 		this.config = hemi.utils.join({}, hext.progressUI.barConfig, config);
 		this.containerBounds = bounds;
 		this.indicatorBounds = {
-			top: bounds.top,
-			bottom: bounds.bottom,
-			left: bounds.left,
-			right: bounds.left
+			_top: bounds._top,
+			_bottom: bounds._bottom,
+			_left: bounds._left,
+			_right: bounds._left
 		};
 		this.percent = 0;
 	};
 	
-	/*
-	 * Further class definitions for hext.progressUI.barUI
+	/**
+	 * Draws the progress bar to the hud.
 	 */
-	hext.progressUI.barUI.prototype = {
-		/**
-		 * Draws the progress bar to the hud.
-		 */
-		draw: function() {			
-			hemi.hud.hudMgr.createRectangleOverlay(this.containerBounds, this.config.container);			
-			hemi.hud.hudMgr.createRectangleOverlay(this.indicatorBounds, this.config.indicator);
-		},
+	hext.progressUI.barUI.prototype.draw = function() {			
+		hemi.hudManager.createRectangleOverlay(this.containerBounds, this.config.container);			
+		hemi.hudManager.createRectangleOverlay(this.indicatorBounds, this.config.indicator);
+	};
+	
+	/**
+	 * Updates the progress bar to the given percentage and redraws.
+	 * 
+	 * @param {Object} percent the new progress percentage
+	 */
+	hext.progressUI.barUI.prototype.update = function(percent) {
+		this.percent = percent/100;
+		this.indicatorBounds._right = (this.containerBounds._right - this.containerBounds._left) * this.percent + this.containerBounds._left;
 		
-		/**
-		 * Updates the progress bar to the given percentage and redraws.
-		 * 
-		 * @param {Object} percent the new progress percentage
-		 */
-		update: function(percent) {
-			this.percent = percent/100;
-			this.indicatorBounds.right = (this.containerBounds.right - this.containerBounds.left) * this.percent + this.containerBounds.left;
-			
-			this.draw();
-		}
+		this.draw();
 	};
 	
 	/**
@@ -186,17 +181,12 @@ var hext = (function(hext) {
 		this.config = hemi.utils.join({}, hext.progressUI.pageConfig, config);
 		this.bounds = bounds;
 	};
-	
-	/*
-	 * Class definitions for hext.progressUI.pageUI
+
+	/**
+	 * Draws the page ui to the hud.
 	 */
-	hext.progressUI.pageUI.prototype = {
-		/**
-		 * Draws the page ui to the hud.
-		 */
-		draw: function() {
-			hemi.hud.hudMgr.createRectangleOverlay(this.bounds, this.config);	
-		}
+	hext.progressUI.pageUI.prototype.draw = function() {
+		hemi.hudManager.createRectangleOverlay(this.bounds, this.config);	
 	};
 	
 	/**
@@ -204,82 +194,77 @@ var hext = (function(hext) {
 	 * hemi.msg.progress to update the bar UI.  Currently sets the bounds of
 	 * the page to the client width and height with the bar set to 20 pixels 
 	 * in height and 1/3 the client width.
-	 * 
+	 * @param {hemi.client}
 	 * @param {string} opt_taskName optional name of the task to get progress
 	 *     updates for (otherwise display bar only updates for total progress)
 	 */
-	hext.progressUI.bar = function(opt_taskName) {
-		var width = parseInt(hemi.core.client.width),
-			height = parseInt(hemi.core.client.height),
+	hext.progressUI.bar = function(client, opt_taskName) {
+		var width = parseInt(client.getWidth()),
+			height = parseInt(client.getHeight()),
 			barHeight = 20,
 			barWidth = width / 3;
 		
 		// set up the hud				
 		this.pageUI = new hext.progressUI.pageUI({
-			top: 0,
-			left: 0,
-			bottom: height,
-			right: width
+			_top: 0,
+			_left: 0,
+			_bottom: height,
+			_right: width
 		});
 		
 		this.barUI = new hext.progressUI.barUI({
-			top: height / 2 - barHeight / 2,
-			left: width / 2 - barWidth / 2,
-			bottom: height / 2 + barHeight / 2,
-			right: width / 2 + barWidth / 2
+			_top: height / 2 - barHeight / 2,
+			_left: width / 2 - barWidth / 2,
+			_bottom: height / 2 + barHeight / 2,
+			_right: width / 2 + barWidth / 2
 		});
 		
 		this.progress = -1;
 		this.task = opt_taskName;
 		// immediately update
 		this.update(0);
-		hemi.world.subscribe(hemi.msg.progress, this, 'msgUpdate');
+		hemi.subscribe(hemi.msg.progress, this, 'msgUpdate');
 	};
 	
-	/*
-	 * Class definitions for hext.progressUI.bar
+	/**
+	 * Callback for the hemi.msg.progress message type.  Only listens for
+	 * the total progress information and updates the progress bar UI 
+	 * accordingly.
+	 * 
+	 * @param {Object} progressMsg the message data received from the 
+	 * 				   message dispatcher.
 	 */
-	hext.progressUI.bar.prototype = {
-		/**
-		 * Callback for the hemi.msg.progress message type.  Only listens for
-		 * the total progress information and updates the progress bar UI 
-		 * accordingly.
-		 * 
-		 * @param {Object} progressMsg the message data received from the 
-		 * 				   message dispatcher.
-		 */
-		msgUpdate: function(progressMsg) {
-			var progressInfo = progressMsg.data,
-				percent = this.progress;
-			
-			if ((progressInfo.isTotal && this.task == null) || progressInfo.task === this.task) {
-				percent = progressInfo.percent;
-				this.update(percent);
-			}
-		},
+	hext.progressUI.bar.prototype.msgUpdate = function(progressMsg) {
+		var progressInfo = progressMsg.data,
+			percent = this.progress;
 		
-		/**
-		 * Updates the progress bar with the given progress.
-		 * 
-		 * @param {number} progress the progress in percent.
-		 */
-		update: function(progress) {
-			if (this.progress !== progress) {
-				this.progress = progress;
-				
-				// update the ui
-				hemi.hud.hudMgr.clearDisplay();
-				this.pageUI.draw();
-				this.barUI.update(this.progress);
-				
-				// if percent is 100, stop drawing this
-				if (this.progress >= 99.9) {
-					setTimeout(function() {
-						hemi.hud.hudMgr.clearDisplay();
-					}, 100);
-				}
-			}	
+		if ((progressInfo.isTotal && this.task == null) || progressInfo.task === this.task) {
+			percent = progressInfo.percent;
+			this.update(percent);
 		}
+	};
+		
+	/**
+	 * Updates the progress bar with the given progress.
+	 * 
+	 * @param {number} progress the progress in percent.
+	 */
+	hext.progressUI.bar.prototype.update = function(progress) {
+		if (this.progress !== progress) {
+			this.progress = progress;
+			
+			// update the ui
+			hemi.hudManager.clearDisplay();
+			this.pageUI.draw();
+			this.barUI.update(this.progress);
+			
+			// if percent is 100, stop drawing this
+			if (this.progress >= 99.9) {
+				setTimeout(function() {
+					hemi.hudManager.clearDisplay();
+				}, 100);
+			}
+		}	
 	};
 	
 	return hext;
