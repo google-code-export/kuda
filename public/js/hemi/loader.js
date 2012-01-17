@@ -83,13 +83,17 @@
 	hemi.loadCollada = function(url, callback) {
 		url = hemi.getLoadPath(url);
 		++taskCount;
-
+		createTask(url);
 		colladaLoader.load(url, function (collada) {
 			if (callback) {
 				callback(collada);
 			}
-
+			updateTask(url, 100);
 			decrementTaskCount();
+		}, function(progress) {
+			if (progress.loaded !== null && progress.total !== null) {
+				updateTask(url, (progress.loaded / progress.total) * 100);
+			}
 		});
 	};
 
@@ -168,10 +172,13 @@
 	 */
 	hemi.loadTexture = function(url, callback) {
 		hemi.loadImage(url, function(image) {
+			updateTask(url, 100);
 			var texture = new THREE.Texture(image);
 			texture.needsUpdate = true;
 			callback(texture);
 		});
+
+		createTask(url);
 	};
 
 	/**
@@ -229,6 +236,8 @@
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	var progressTable = new Hashtable();
+
 	function decrementTaskCount() {
 		if (--taskCount === 0) {
 			taskCount = 1;
@@ -240,5 +249,80 @@
 			}
 		}
 	}
+
+	/**
+	 * Create a new progress task with the given name. Initialize its
+	 * progress to 0.
+	 * 
+	 * @param {string} name the unique name of the task
+	 * @return {boolean} true if the task was created successfully, false if
+	 *      another task with the given name already exists
+	 */
+	var createTask = function(name) {
+		if (progressTable.get(name) !== null) {
+			return false;
+		}
+		
+		var obj = {
+			percent: 0,
+		};
+		
+		progressTable.put(name, obj);
+		updateTotal();
+		return true;
+	};
+		/**
+	 * Update the progress of the task with the given name to the given percent.
+	 * 
+	 * @param {string} name name of the task to update
+	 * @param {number} percent percent to set the task's progress to (0-100)
+	 * @return {boolean} true if the task was found and updated
+	 */
+	var updateTask = function(name, percent) {
+		var task = progressTable.get(name),
+			update = task !== null;
+		
+		if (update) {
+			task.percent = percent;
+			
+			hemi.send(hemi.msg.progress, {
+				task: name,
+				percent: percent,
+				isTotal: false
+			});
+			
+			updateTotal();
+		}
+		
+		return update;
+	};
+	
+	/**
+	 * Send an update on the total progress of all loading activities, and clear
+	 * the progress table if they are all finished.
+	 */
+	var updateTotal = function() {
+		var total = progressTable.size(),
+			values = progressTable.values(),
+			percent = 0;
+			
+		for (var ndx = 0; ndx < total; ndx++) {
+			var fileObj = values[ndx];
+			
+			percent += fileObj.percent / total;
+		}
+		
+		hemi.send(hemi.msg.progress, {
+			task: 'Total Progress',
+			isTotal: true,
+			percent: percent
+		});
+		
+		if (percent >= 99.9) {
+			progressTable.clear();
+		}
+		
+		return percent;
+	};
 
 })();

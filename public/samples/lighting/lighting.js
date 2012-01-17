@@ -104,29 +104,30 @@
 
 	function createWorld() {
 		// Check if we should display one load bar for all loading
+		
 		var full = getParam('fullProgress').toLowerCase() === 'true',
 			loadTask = 'LoadTextures',
 			houseModel = new hemi.Model(client);
 
-		// if (full) {
-		// 	// instantiate the progress bar to receive our progress updates
-		// 	pbar = new hext.progressUI.bar(loadTask);
-		// 	hemi.loader.createTask(loadTask, null);
+		if (full) {
+			// instantiate the progress bar to receive our progress updates
+			pbar = new hext.progressUI.bar(client, loadTask);
+			hemi.loader.createTask(loadTask, null);
 			
-		// 	hemi.world.subscribe(hemi.msg.progress, function(msg) {
-		// 		if (!msg.data.isTotal && msg.data.task !== loadTask) {
-		// 			var pct = msg.data.percent / numAssets;
-		// 			hemi.loader.updateTask(loadTask, loadProg + pct);
+			hemi.world.subscribe(hemi.msg.progress, function(msg) {
+				if (!msg.data.isTotal && msg.data.task !== loadTask) {
+					var pct = msg.data.percent / numAssets;
+					hemi.loader.updateTask(loadTask, loadProg + pct);
 					
-		// 			if (msg.data.percent === 100) {
-		// 				loadProg += pct;
-		// 			}
-		// 		}
-		// 	});
-		// } else {
-		// 	// instantiate the progress bar to receive total progress updates
-		// 	pbar = new hext.progressUI.bar();
-		// }
+					if (msg.data.percent === 100) {
+						loadProg += pct;
+					}
+				}
+			});
+		} else {
+			// instantiate the progress bar to receive total progress updates
+			pbar = new hext.progressUI.bar(client);
+		}
 
 		houseModel.setFileName('assets/LightingHouse_v082/LightingHouse_v082.dae');
 
