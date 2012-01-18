@@ -87,10 +87,10 @@
 		});
 		
 		var autoId = setInterval(function() {
-			if (prjMdl.dirty && !prjMdl.loading) {
-				prjMdl.save(AUTO_SAVE, true);
-				prjMdl.dirty = false;
-			}
+//			if (prjMdl.dirty && !prjMdl.loading) {
+//				prjMdl.save(AUTO_SAVE, true);
+//				prjMdl.dirty = false;
+//			}
 		}, 5000);
 		
 		jQuery(document).unload(function() {

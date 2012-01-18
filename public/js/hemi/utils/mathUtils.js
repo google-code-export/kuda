@@ -469,7 +469,7 @@
 		point.x = (1 + projX) * 0.5 * client.getWidth();
 		point.y = (1 - projY) * 0.5 * client.getHeight();
 
-		return [Math.round(point.x), Math.round(point.y)];
+		return new THREE.Vector2(Math.round(point.x), Math.round(point.y));//[Math.round(point.x), Math.round(point.y)];
 	};
 
 	/**

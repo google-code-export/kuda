@@ -34,7 +34,7 @@
 	
 	var TransHandles = editor.ui.TransHandles = function() {
 		editor.utils.Listenable.call(this);
-		this.canvas = hemi.hud.hudMgr.canvas;
+		this.canvas = hemi.hudManager.currentContext.canvas;
 		this.drawCallback = null;
 		this.transform = null;
 		
@@ -74,18 +74,18 @@
 	TransHandles.prototype.drawHandles = function() {
 		if (this.drawState !== editor.ui.trans.DrawState.NONE) {
 //				var origin = this.transform.localMatrix[3],		FOR LOCAL
-			var origin = this.transform.boundingBox.getCenterOfGeometry(), 
+			var origin = THREE.GeometryUtils.center(this.transform.geometry), 
 				extent = this.getExtent() / 2,
-				x = origin[0], 
-				y = origin[1], 
-				z = origin[2], 
+				x = origin.x, 
+				y = origin.y, 
+				z = origin.z, 
 //					u = hemi.utils,	 FOR LOCAL
 //					xVec = u.pointAsWorld(this.transform, [x + extent, y, z]),	 FOR LOCAL
 //					yVec = u.pointAsWorld(this.transform, [x, y + extent, z]),	 FOR LOCAL 
 //					zVec = u.pointAsWorld(this.transform, [x, y, z + extent]);	 FOR LOCAL
-				xVec = [x + extent, y, z], 
-				yVec = [x, y + extent, z], 
-				zVec = [x, y, z + extent];
+				xVec = new THREE.Vector3(x + extent, y, z), 
+				yVec = new THREE.Vector3(x, y + extent, z), 
+				zVec = new THREE.Vector3(x, y, z + extent);
 			
 			this.xArrow.setParams(origin, xVec,  
 				hemi.manip.Plane.XY, this.drawState, extent);
@@ -106,14 +106,14 @@
 	};
 	
 	TransHandles.prototype.getExtent = function() {
-		var bdgBox = o3djs.util.getBoundingBoxOfTree(this.transform),
+		var bdgBox = this.transform.geometry.boundingBox,
 //				minExt = bdgBox.minExtent,	FOR LOCAL
 //				maxExt = bdgBox.maxExtent,	FOR LOCAL
-			minExt = hemi.utils.pointAsWorld(this.transform.parent, bdgBox.minExtent),
-			maxExt = hemi.utils.pointAsWorld(this.transform.parent, bdgBox.maxExtent),
-			x = Math.abs(minExt[0] - maxExt[0]),
-			y = Math.abs(minExt[1] - maxExt[1]),
-			z = Math.abs(minExt[2] - maxExt[2]),
+			minExt = hemi.utils.pointAsWorld(this.transform, bdgBox.min),
+			maxExt = hemi.utils.pointAsWorld(this.transform, bdgBox.max),
+			x = Math.abs(minExt.x - maxExt.x),
+			y = Math.abs(minExt.y - maxExt.y),
+			z = Math.abs(minExt.z - maxExt.z),
 			realExt = (x + y + z) / 3;
 			
 		return realExt < MIN_EXTENT ? MIN_EXTENT : realExt;
@@ -122,18 +122,15 @@
 	TransHandles.prototype.isInView = function() {
 		var worldViewProjection = [[], [], [], []],
 			transform = this.transform,
-			bdgBox = this.transform.boundingBox;
-    	
-		o3d.Transform.compose(hemi.view.viewInfo.drawContext.view,
-			transform.getUpdatedWorldMatrix(),
-			worldViewProjection);
-    	o3d.Transform.compose(hemi.view.viewInfo.drawContext.projection,
-			worldViewProjection,
-			worldViewProjection);
+			bdgBox = this.transform.geometry.boundingBox,
+			projScreenMatrix = new THREE.Matrix4(),
+			frustum = new THREE.Frustum(),
+			camera = editor.client.camera;
+		
+		projScreenMatrix.multiply(camera.projectionMatrix, camera.matrixWorldInverse);
+		frustum.setFromMatrix(projScreenMatrix);
 
-		var onScreen = transform.boundingBox.inFrustum(worldViewProjection);
-
-		return onScreen;
+		return frustum.contains(transform);;
 	};
 	
 	TransHandles.prototype.onChange = function(val) {
@@ -159,21 +156,21 @@
 			
 		if (this.xArrow.isInside(x, y)) {
 			this.down = true;
-			plane = hemi.manip.Plane.XY;
-			axis = hemi.manip.Axis.Z;
-			scaleAxis = hemi.manip.Axis.X;
+			plane = hemi.Plane.XY;
+			axis = hemi.Axis.Z;
+			scaleAxis = hemi.Axis.X;
 		}
 		else if (this.yArrow.isInside(x, y)) {
 			this.down = true;
-			plane = hemi.manip.Plane.YZ;
-			axis = hemi.manip.Axis.X;
-			scaleAxis = hemi.manip.Axis.Y;
+			plane = hemi.Plane.YZ;
+			axis = hemi.Axis.X;
+			scaleAxis = hemi.Axis.Y;
 		}
 		else if (this.zArrow.isInside(x, y)) {
 			this.down = true;	
-			plane = hemi.manip.Plane.XZ;
-			axis = hemi.manip.Axis.Y;
-			scaleAxis = hemi.manip.Axis.Z;
+			plane = hemi.Plane.XZ;
+			axis = hemi.Axis.Y;
+			scaleAxis = hemi.Axis.Z;
 		}
 		
 		if (this.down) {
@@ -331,7 +328,7 @@
 			this.transform = null;
 			
 			if (this.drawState !== editor.ui.trans.DrawState.NONE) {
-				hemi.hud.hudMgr.clearDisplay();
+				hemi.hudManager.clearDisplay();
 			}
 		} else {
 			this.transform = transform;
@@ -423,7 +420,6 @@
 		this.canvas = canvas;
 		this.clr = color;
 		this.hvrClr = hoverColor;
-		this.math = hemi.core.math;
 	};
 	
 	Arrow.prototype.isInside = function(coordX, coordY) {
@@ -435,8 +431,8 @@
 		var cvs = this.canvas,
 			cfg = this.config;
 		cvs.beginPath();
-		cvs.moveTo(cfg.orgPnt[0], cfg.orgPnt[1]);
-		cvs.lineTo(cfg.endPnt[0], cfg.endPnt[1]);
+		cvs.moveTo(cfg.orgPnt.x, cfg.orgPnt.y);
+		cvs.lineTo(cfg.endPnt.x, cfg.endPnt.y);
 		cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
 		cvs.lineWidth = cfg.lineWidth;
 		cvs.stroke();
@@ -520,7 +516,8 @@
 	};
 	
 	Arrow.prototype.drawScaler = function() {
-		var cfg = this.config,
+		var client = editor.client,
+			cfg = this.config,
 			origin = cfg.origin,
 			vector = cfg.vector,
 			size = cfg.extent / 8,  
@@ -594,7 +591,7 @@
 		maxX = maxY = -10000000;
 		
 		for (var ndx = 0, len = points.length; ndx < len; ndx++) {
-			var pnt = hemi.utils.worldToScreen(points[ndx]);
+			var pnt = hemi.utils.worldToScreen(client, points[ndx]);
 			
 			minX = Math.min(minX, pnt[0]);
 			minY = Math.min(minY, pnt[1]);
@@ -602,14 +599,14 @@
 			maxY = Math.max(maxY, pnt[1]);
 		}
 		
-		var pnt1 = hemi.utils.worldToScreen(points[0]),
-			pnt2 = hemi.utils.worldToScreen(points[1]),
-			pnt3 = hemi.utils.worldToScreen(points[2]),
-			pnt4 = hemi.utils.worldToScreen(points[3]),
-			pnt5 = hemi.utils.worldToScreen(points[4]),
-			pnt6 = hemi.utils.worldToScreen(points[5]),
-			pnt7 = hemi.utils.worldToScreen(points[6]),
-			pnt8 = hemi.utils.worldToScreen(points[7]);
+		var pnt1 = hemi.utils.worldToScreen(client, points[0]),
+			pnt2 = hemi.utils.worldToScreen(client, points[1]),
+			pnt3 = hemi.utils.worldToScreen(client, points[2]),
+			pnt4 = hemi.utils.worldToScreen(client, points[3]),
+			pnt5 = hemi.utils.worldToScreen(client, points[4]),
+			pnt6 = hemi.utils.worldToScreen(client, points[5]),
+			pnt7 = hemi.utils.worldToScreen(client, points[6]),
+			pnt8 = hemi.utils.worldToScreen(client, points[7]);
 			
 		faceFcn(pnt1, pnt2, pnt3, pnt4);
 		faceFcn(pnt1, pnt8, pnt5, pnt4);
@@ -623,21 +620,22 @@
 	};
 	
 	Arrow.prototype.drawTranslator = function() {
-		var cfg = this.config,
+		var client = editor.client,
+			cfg = this.config,
 			origin = cfg.origin,
 			vector = cfg.vector,
 			increment = Math.PI / 90,  // 2 degrees
 			startAngle = Math.PI / 2,
 			radius = cfg.extent / 10,
-			endPnt = hemi.core.math.copyVector(vector),
+			endPnt = vector.clone(),
 			angles = 180,
 			angle = 0,
 			points = [],
 			size = cfg.extent / 5,  
 			cvs = this.canvas,
 			clr = this.hover ? this.hvrClr : this.clr,
-			ndx1 = 0,
-			ndx2 = 0,
+			ndx1 = 'x',
+			ndx2 = 'x',
 			getOutsidePoints = function(pnts) {
 				var maxDis = 0,
 					retVal = {
@@ -650,7 +648,7 @@
 					
 					for (var j = i+1; j < l; j++) {
 						var pnt2 = pnts[j],
-							dis = hemi.core.math.distance(pnt1, pnt2);	
+							dis = pnt1.distanceTo(pnt2);	
 						
 						if (dis > maxDis) {
 							maxDis = dis;
@@ -666,40 +664,37 @@
 		// get the endpoint
 		switch(cfg.plane) {
 			case hemi.manip.Plane.XY:
-				endPnt[0] = vector[0] + size;
-				ndx1 = 1;
-				ndx2 = 2;
+				endPnt.x = vector.x + size;
+				ndx1 = 'y';
+				ndx2 = 'z';
 				break;
 			case hemi.manip.Plane.YZ:
-				endPnt[1] = vector[1] + size;
-				ndx1 = 2;
+				endPnt.y = vector.y + size;
+				ndx1 = 'z';
 				break;
 			case hemi.manip.Plane.XZ:
-				endPnt[2] = vector[2] + size;
-				ndx1 = 1;
+				endPnt.z = vector.z + size;
+				ndx1 = 'y';
 				break;
 		}
-		endPnt = hemi.utils.worldToScreen(endPnt);
+		endPnt = hemi.utils.worldToScreen(client, endPnt);
 		
 		// sample points on a circle in 3d space
 		cvs.beginPath();
 		for (var ndx = 0; ndx < angles; ndx++) {
-			var pnt = hemi.core.math.copyVector(vector);
+			var pnt = vector.clone();
 			
 			angle = angle += increment; 
 				
 			pnt[ndx1] = vector[ndx1] + radius * Math.cos(angle);
 			pnt[ndx2] = vector[ndx2] + radius * Math.sin(angle);
 			
-			pnt = hemi.utils.worldToScreen(pnt);
+			pnt = hemi.utils.worldToScreen(client, pnt);
 			if (ndx === 0) {
-				cvs.moveTo(pnt[0], pnt[1]);
+				cvs.moveTo(pnt.x, pnt.y);
 			}
-			cvs.lineTo(pnt[0], pnt[1]);
-			
-			var x = pnt[0],
-				y = pnt[1];
-			
+			cvs.lineTo(pnt.x, pnt.y);
+						
 			points.push(pnt);
 		}
 		cvs.closePath();
@@ -710,15 +705,15 @@
 		var maxPnts = getOutsidePoints(points),
 			pnt1 = maxPnts.pnt1,
 			pnt2 = maxPnts.pnt2,
-			maxX = Math.max(pnt1[0], pnt2[0], endPnt[0]),
-			maxY = Math.max(pnt1[1], pnt2[1], endPnt[1]),
-			minX = Math.min(pnt1[0], pnt2[0], endPnt[0]),
-			minY = Math.min(pnt1[1], pnt2[1], endPnt[1]);
+			maxX = Math.max(pnt1.x, pnt2.x, endPnt.x),
+			maxY = Math.max(pnt1.y, pnt2.y, endPnt.y),
+			minX = Math.min(pnt1.x, pnt2.x, endPnt.x),
+			minY = Math.min(pnt1.y, pnt2.y, endPnt.y);
 		
 		cvs.beginPath();
-		cvs.moveTo(pnt1[0], pnt1[1]);
-		cvs.lineTo(pnt2[0], pnt2[1]);
-		cvs.lineTo(endPnt[0], endPnt[1]);
+		cvs.moveTo(pnt1.x, pnt1.y);
+		cvs.lineTo(pnt2.x, pnt2.y);
+		cvs.lineTo(endPnt.x, endPnt.y);
 		cvs.closePath();
 		cvs.fillStyle = clr;
 		cvs.fill();
@@ -728,12 +723,13 @@
 	};
 	
 	Arrow.prototype.setParams = function(origin, vector, plane, drawState, extent) {			
-		var ep = hemi.utils.worldToScreen(vector),
-			op = hemi.utils.worldToScreen(origin),
-			d = this.math.distance(op, ep),
-			e = hemi.world.camera.getEye(),
-			ce = this.math.normalize(this.math.subVector(e, origin)),
-			ca = this.math.normalize(this.math.subVector(vector, origin));
+		var client = editor.client,
+			ep = hemi.utils.worldToScreen(client, vector),
+			op = hemi.utils.worldToScreen(client, origin),
+			d = op.distanceTo(ep),
+			e = editor.client.camera.getEye(),
+			ce = new THREE.Vector3().sub(e, origin).normalize(),
+			ca = new THREE.Vector3().sub(vector, origin).normalize();
 			
 		if (!isNaN(ce[0]) && !isNaN(ca[0])) {			
 			this.config = {
