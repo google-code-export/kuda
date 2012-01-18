@@ -295,7 +295,7 @@ routes.get(routes.MODELS, function(req, res) {
                 for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
                     var mFile = mFiles[j];
                     
-                    if (mFile.match('.json')) {
+                    if (mFile.match('.dae')) {
                         mData.url = mDir + '/' + mFile;
                         found = true;
                     }

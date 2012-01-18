@@ -123,8 +123,8 @@
 			case editor.events.ToolClicked:
 				var toolList = this.tools;
 				
-				for (ndx = 0, len = toolList.length; ndx < len; ndx++) {
-					var t = toolList[ndx].tool;
+				for (var i = 0, len = toolList.length; i < len; i++) {
+					var t = toolList[i].tool;
 					
 					if (t != value) {
 						t.setMode(editor.ToolConstants.MODE_UP);
