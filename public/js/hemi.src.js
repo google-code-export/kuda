@@ -4015,13 +4015,17 @@ if (!window.requestAnimationFrame) {
 	hemi.loadCollada = function(url, callback) {
 		url = hemi.getLoadPath(url);
 		++taskCount;
-
+		createTask(url);
 		colladaLoader.load(url, function (collada) {
 			if (callback) {
 				callback(collada);
 			}
-
+			updateTask(url, 100);
 			decrementTaskCount();
+		}, function(progress) {
+			if (progress.loaded !== null && progress.total !== null) {
+				updateTask(url, (progress.loaded / progress.total) * 100);
+			}
 		});
 	};
 
@@ -4100,10 +4104,13 @@ if (!window.requestAnimationFrame) {
 	 */
 	hemi.loadTexture = function(url, callback) {
 		hemi.loadImage(url, function(image) {
+			updateTask(url, 100);
 			var texture = new THREE.Texture(image);
 			texture.needsUpdate = true;
 			callback(texture);
 		});
+
+		createTask(url);
 	};
 
 	/**
@@ -4161,6 +4168,8 @@ if (!window.requestAnimationFrame) {
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	var progressTable = new Hashtable();
+
 	function decrementTaskCount() {
 		if (--taskCount === 0) {
 			taskCount = 1;
@@ -4172,6 +4181,81 @@ if (!window.requestAnimationFrame) {
 			}
 		}
 	}
+
+	/**
+	 * Create a new progress task with the given name. Initialize its
+	 * progress to 0.
+	 * 
+	 * @param {string} name the unique name of the task
+	 * @return {boolean} true if the task was created successfully, false if
+	 *      another task with the given name already exists
+	 */
+	var createTask = function(name) {
+		if (progressTable.get(name) !== null) {
+			return false;
+		}
+		
+		var obj = {
+			percent: 0,
+		};
+		
+		progressTable.put(name, obj);
+		updateTotal();
+		return true;
+	};
+		/**
+	 * Update the progress of the task with the given name to the given percent.
+	 * 
+	 * @param {string} name name of the task to update
+	 * @param {number} percent percent to set the task's progress to (0-100)
+	 * @return {boolean} true if the task was found and updated
+	 */
+	var updateTask = function(name, percent) {
+		var task = progressTable.get(name),
+			update = task !== null;
+		
+		if (update) {
+			task.percent = percent;
+			
+			hemi.send(hemi.msg.progress, {
+				task: name,
+				percent: percent,
+				isTotal: false
+			});
+			
+			updateTotal();
+		}
+		
+		return update;
+	};
+	
+	/**
+	 * Send an update on the total progress of all loading activities, and clear
+	 * the progress table if they are all finished.
+	 */
+	var updateTotal = function() {
+		var total = progressTable.size(),
+			values = progressTable.values(),
+			percent = 0;
+			
+		for (var ndx = 0; ndx < total; ndx++) {
+			var fileObj = values[ndx];
+			
+			percent += fileObj.percent / total;
+		}
+		
+		hemi.send(hemi.msg.progress, {
+			task: 'Total Progress',
+			isTotal: true,
+			percent: percent
+		});
+		
+		if (percent >= 99.9) {
+			progressTable.clear();
+		}
+		
+		return percent;
+	};
 
 })();
 /*
@@ -4967,8 +5051,10 @@ if (!window.requestAnimationFrame) {
 				entry = {
 					name: name	
 				};
-
-			if (hemi.utils.isFunction(prop)) {
+                
+            if (!prop) {
+                entry.val = prop;
+            } else if (hemi.utils.isFunction(prop)) {
 				entry.arg = [];
 			} else if (hemi.utils.isArray(prop)) {
 				if (prop.length > 0) {
@@ -9960,59 +10046,62 @@ if (!window.requestAnimationFrame) {
 	}
 
 })();
-/* Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php */
 /*
-The MIT License (MIT)
+ * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
+ * The MIT License (MIT)
+ * 
+ * Copyright (c) 2011 SRI International
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+ * associated  documentation files (the "Software"), to deal in the Software without restriction,
+ * including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ * sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the  Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT
+ * NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ * NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ */
 
-Copyright (c) 2011 SRI International
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
-documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
-rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit
-persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the
-Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
-OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-var hemi = (function(hemi) {
+(function() {
 	
 	/**
-	 * @class A Scene represents a logical grouping of behavior, events, and
+	 * @class A State represents a logical grouping of behavior, events, and
 	 * interactions. It can be used to determine when various interactions are
 	 * valid or if various events should be enabled.
-	 * @extends hemi.world.Citizen
 	 */
 	var State = function() {
 		/**
-		 * Flag indicating if the Scene is currently loaded.
+		 * Flag indicating if the State is currently loaded.
 		 * @type boolean
 		 * @default false
 		 */
 		this.isLoaded = false;
 		
 		/**
-		 * The next Scene to move to after this one.
-		 * @type hemi.scene.Scene
+		 * The next State to move to after this one.
+		 * @type hemi.State
 		 */
 		this.next = null;
 		
 		/**
-		 * The previous Scene that occurred before this one.
-		 * @type hemi.scene.Scene
+		 * The previous State that occurred before this one.
+		 * @type hemi.State
 		 */
 		this.prev = null;
+        
+        
 	};
 		
-	/**
-	 * Send a cleanup Message and remove all references in the State.
-	 */
-	State.prototype.cleanup = function() {
+	/** 
+     * Remove all references in the State
+     */
+     State.prototype._clean = function() {
 		if (this.next !== null) {
 			this.next.prev = this.prev;
 		}
@@ -10022,41 +10111,6 @@ var hemi = (function(hemi) {
 		
 		this.next = null;
 		this.prev = null;
-	};
-	
-	/**
-	 * Get the Octane structure for the State.
-     *
-     * @return {Object} the Octane structure representing the State
-	 */
-	State.prototype.toOctane = function() {
-		var octane = this._super();
-		
-		if (this.next === null) {
-			octane.props.push({
-				name: 'next',
-				val: null
-			});
-		} else {
-			octane.props.push({
-				name: 'next',
-				id: this.next.getId()
-			});
-		}
-		
-		if (this.prev === null) {
-			octane.props.push({
-				name: 'prev',
-				val: null
-			});
-		} else {
-			octane.props.push({
-				name: 'prev',
-				id: this.prev.getId()
-			});
-		}
-		
-		return octane;
 	};
 		
 	/**
@@ -10100,14 +10154,25 @@ var hemi = (function(hemi) {
 			this.prev.load();
 		}
 	};
-	
+    /**
+	 * Octane properties for State.
+	 * 
+	 * @type String[]
+	 */
+	State.prototype._octane = ['next', 'prev'];
+    
+    /**
+     * Message types sent by State.
+     *
+     * @return (Object[]} Array of message types sent.
+     */
+    State.prototype._msgSent = [hemi.msg.load, hemi.msg.unload];
+    
 	hemi.makeCitizen(State, 'hemi.State', {
-		msgs: [hemi.msg.load, hemi.msg.unload],
-		toOctane: []
-	});
-	
-	return hemi;
-})(hemi || {});
+		toOctane: State.prototype._octane,
+        cleanup: State.prototype._clean
+	});	
+})();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)

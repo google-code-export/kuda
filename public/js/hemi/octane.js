@@ -190,8 +190,10 @@
 				entry = {
 					name: name	
 				};
-
-			if (hemi.utils.isFunction(prop)) {
+                
+            if (!prop) {
+                entry.val = prop;
+            } else if (hemi.utils.isFunction(prop)) {
 				entry.arg = [];
 			} else if (hemi.utils.isArray(prop)) {
 				if (prop.length > 0) {
