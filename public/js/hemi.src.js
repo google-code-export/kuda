@@ -2591,7 +2591,7 @@ if (!window.requestAnimationFrame) {
 		point.x = (1 + projX) * 0.5 * client.getWidth();
 		point.y = (1 - projY) * 0.5 * client.getHeight();
 
-		return [Math.round(point.x), Math.round(point.y)];
+		return new THREE.Vector2(Math.round(point.x), Math.round(point.y));//[Math.round(point.x), Math.round(point.y)];
 	};
 
 	/**
@@ -13246,9 +13246,9 @@ if (!window.requestAnimationFrame) {
 			this.count = points.length;
 
 			for (var i = 0; i < this.count; i++) {
-				this.xpts[i] = points[i].x;
-				this.ypts[i] = points[i].y;
-				this.zpts[i] = points[i].z;
+				this.xpts[i] = points[i][0];
+				this.ypts[i] = points[i][1];
+				this.zpts[i] = points[i][2];
 				this.xtans[i] = 0;
 				this.ytans[i] = 0;
 				this.ztans[i] = 0;
