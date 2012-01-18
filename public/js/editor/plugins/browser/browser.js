@@ -119,18 +119,25 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                          				  Helper Methods		                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	var owners = new Hashtable();
 		
-	var createJsonObj = function(node, parentNode) {
+	var createJsonObj = function(node, parentNode, owner) {
 			var c = getNodeChildren(node),
 				nodeType = getNodeType(node),
 				children = [];
+				
+			if (owner) {
+				owners.put(node, owner);
+			}
 			
 			if (parentNode == null) {
 				parentNode = node;
+				owner = node;
 			}
 			
 			for (var i = 0; c && i < c.length; i++) {
-				var nodeJson = createJsonObj(c[i], parentNode);
+				var nodeJson = createJsonObj(c[i], parentNode, owner);
 				children.push(nodeJson);
 			}
 			
@@ -226,7 +233,10 @@
 				id += 'models_';
 			} else if (cit instanceof hemi.Shape) {
 				id += 'shapes_';
-			}
+			} else if (cit instanceof hemi.Transform || cit instanceof hemi.Mesh) {
+				var owner = owners.get(cit);
+				id = getCitNodeId(owner) + '_trans' + getTransformPath(cit, owner);
+			} 
 			
 			id += cit._getId();
 			return id;
@@ -239,7 +249,7 @@
 			if (isCitizen) {
 				id = getCitNodeId(obj);
 			} else if (obj instanceof THREE.Material) {
-				id += '_mats_' + obj.id;
+				id = getCitNodeId(owners.get(obj)) + '_mats_' + obj.id;
 			} else if (obj.className === 'directory') {
 				id = obj.nodeId;
 			}
@@ -260,6 +270,18 @@
 				type = 'material';
 			}
 			return type;
+		},
+		
+		getTransformPath = function(transform, owner) {
+			var path = '_', 
+				parent = transform.parent;
+			
+			if (parent != editor.client.scene) {
+				path = parent._getId() + path;
+				path = getTransformPath(parent, owner) + path;	
+			}
+			
+			return path;
 		};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -376,7 +398,7 @@
 				this, 
 				"onPick", 
 				[
-					hemi.dispatch.MSG_ARG + "data.pickInfo", 
+					hemi.dispatch.MSG_ARG + "data.pickedMesh", 
 					hemi.dispatch.MSG_ARG + "data.mouseEvent"
 				]);
 				
@@ -443,22 +465,19 @@
 		return transforms.indexOf(transform) !== -1;
 	};
 	
-    BrowserModel.prototype.onPick = function(pickInfo, mouseEvent) {
-		if (!this.curHandle.down) {
-			var transform = pickInfo.shapeInfo.parent.transform, 
-				owner = hemi.world.getTranOwner(transform);
-			
-			if (this.isSelected(transform) && mouseEvent.shiftKey) {
-				this.deselectTransform(transform, owner);
+    BrowserModel.prototype.onPick = function(pickedMesh, mouseEvent) {
+//		if (!this.curHandle.down) {			
+			if (this.isSelected(pickedMesh) && mouseEvent.shiftKey) {
+				this.deselectTransform(pickedMesh);
 			}
 			else {
 				if (!mouseEvent.shiftKey) {
 					this.deselectAll();
 				}
 				
-				this.selectTransform(transform, owner);
+				this.selectTransform(pickedMesh);
 			}
-		}
+//		}
     };
     
     BrowserModel.prototype.processModel = function(model) {
