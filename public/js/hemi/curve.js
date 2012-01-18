@@ -375,9 +375,9 @@
 			this.count = points.length;
 
 			for (var i = 0; i < this.count; i++) {
-				this.xpts[i] = points[i].x;
-				this.ypts[i] = points[i].y;
-				this.zpts[i] = points[i].z;
+				this.xpts[i] = points[i][0];
+				this.ypts[i] = points[i][1];
+				this.zpts[i] = points[i][2];
 				this.xtans[i] = 0;
 				this.ytans[i] = 0;
 				this.ztans[i] = 0;
