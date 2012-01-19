@@ -132,12 +132,11 @@
 	/**
 	 * Load the Model's assets from its file.
 	 */
-	Model.prototype.load = function() {
+	Model.prototype.load = function(opt_collada) {
 		var that = this;
 
 		if (this._loaded) this.unload();
-
-		hemi.loadCollada(this._fileName, function (collada) {
+		var onCollada = function (collada) {
 			var animHandler = THREE.AnimationHandler,
 				animations = collada.animations,
 				toConvert = {};
@@ -170,7 +169,13 @@
 			that.send(hemi.msg.load, {
 				root: collada.scene
 			});
-		});
+		};
+
+		if (opt_collada) {
+			onCollada(opt_collada);
+		} else {
+			hemi.loadCollada(this._fileName, onCollada); 
+		};
 	};
 
 	/**

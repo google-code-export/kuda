@@ -70,9 +70,11 @@
 	 * @param {function(string, string):void)} callback function to pass the data retrieved from the
 	 *     URL as well as the status text of the request
 	 */
-	hemi.utils.get = function(url, callback) {
+	hemi.utils.get = function(url, callback, opt_overrideMimeType) {
 		var xhr = new window.XMLHttpRequest();
-
+		if (opt_overrideMimeType) {
+			xhr.overrideMimeType("text/xml");
+		}
 		xhr.onreadystatechange = function() {
 			if (this.readyState === 4) {
 				this.onreadystatechange = hemi.utils.noop;
@@ -81,7 +83,7 @@
 				if (this.status === 200 || window.location.href.indexOf('http') === -1) {
 					var ct = this.getResponseHeader('content-type');
 
-					if (ct && ct.indexOf('xml') >= 0) {
+					if (opt_overrideMimeType || ct && ct.indexOf('xml') >= 0) {
 						data = this.responseXML;
 					} else {
 						data = this.responseText;
