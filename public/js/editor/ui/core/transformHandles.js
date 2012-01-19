@@ -43,7 +43,7 @@
 		this.zArrow = new Arrow(this.canvas, '#00f', '#99f');
 		this.drawState = editor.ui.trans.DrawState.NONE;
 		
-		hemi.view.addRenderListener(this);
+		hemi.addRenderListener(this);
 		this.overrideHandlers();
 	};
 		
@@ -55,11 +55,11 @@
 		this.setTransform(null);
 		hemi.view.removeRenderListener(this);
 		
-		var mouseDown = hemi.hud.hudMgr.downHandler,
-			mouseUp = hemi.hud.hudMgr.upHandler,
-			mouseMove = hemi.hud.hudMgr.moveHandler,
+		var mouseDown = hemi.input.mouseDown,
+			mouseUp = hemi.input.mouseUp,
+			mouseMove = hemi.input.mouseMove,
 			that = this,
-			cvs = hemi.hud.hudMgr.canvasElem;
+			cvs = this.canvas;
 			
 		cvs.removeEventListener('mousedown', this.mouseDownHandler, true);
 		cvs.removeEventListener('mousemove', this.mouseMoveHandler, true);
@@ -257,7 +257,7 @@
 	
 	TransHandles.prototype.onRender = function(renderEvent) {
 		if (this.transform) {
-			hemi.hud.hudMgr.clearDisplay();
+			hemi.hudManager.clearDisplay();
 			
 			if (this.drawCallback) {
 				this.drawCallback();
@@ -268,11 +268,11 @@
 	};
 	
 	TransHandles.prototype.overrideHandlers = function() {
-		var mouseDown = hemi.hud.hudMgr.downHandler,
-			mouseUp = hemi.hud.hudMgr.upHandler,
-			mouseMove = hemi.hud.hudMgr.moveHandler,
+		var mouseDown = hemi.input.mouseDown,
+			mouseUp = hemi.input.mouseUp,
+			mouseMove = hemi.input.mouseMove,
 			that = this,
-			cvs = hemi.hud.hudMgr.canvasElem;
+			cvs = this.canvas;
 			
 		cvs.removeEventListener('mousedown', mouseDown, true);
 		cvs.removeEventListener('mousemove', mouseMove, true);
