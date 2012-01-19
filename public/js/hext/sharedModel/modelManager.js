@@ -45,75 +45,73 @@ var hext = (function(hext) {
 		this.models = new Hashtable();
 	};
 	
-	ModelManager.prototype = {
-		/**
-		 * Adds a model to the list of those being managed. If the model already
-		 * exists (identified by the url) and hasn't been loaded yet, this adds 
-		 * the caller to the list. If the model has already been
-		 * loaded, this immediately begins the deserialization process.
-		 * 
-		 * @param {string} url the path to the model file
-		 * @param {hemi.Client} client the current hemi client. R
-		 * @param {function(hemi.model)} callback the function to be called when the model is loaded
-		 */
-		addModel: function(url, client, callback) {
-			var	obj = this.models.get(url),
-				that = this,
-				thatURL = url;
-		
-			if (obj) {
-				if (obj.data) {
-					var collada = colladaLoader.parse(obj.data, null, url);
-					var model = new hemi.model(obj.client);
-					model.load(collada);
-					callback(model);
-				}	
-				else {
-					var configs = obj.configs;
-					configs.push({
-						client: client,
-						callback: callback
-					});
-				}
-			}
+	/**
+	 * Adds a model to the list of those being managed. If the model already
+	 * exists (identified by the url) and hasn't been loaded yet, this adds 
+	 * the caller to the list. If the model has already been
+	 * loaded, this immediately begins the deserialization process.
+	 * 
+	 * @param {string} url the path to the model file
+	 * @param {hemi.Client} client the current hemi client. R
+	 * @param {function(hemi.model)} callback the function to be called when the model is loaded
+	 */
+	ModelManager.prototype.addModel = function(url, client, callback) {
+		var	obj = this.models.get(url),
+			that = this,
+			thatURL = url;
+	
+		if (obj) {
+			if (obj.data) {
+				var collada = colladaLoader.parse(obj.data, null, url);
+				var model = new hemi.model(obj.client);
+				model.load(collada);
+				callback(model);
+			}	
 			else {
-				hemi.utils.get(url, function(data, status) {
-					that.notifyLoaded(thatURL, data);
-				}, true);
-				
-				this.models.put(url, {
-					configs: [{
-						client: client,
-						callback: callback
-					}],
-					data: null
+				var configs = obj.configs;
+				configs.push({
+					client: client,
+					callback: callback
 				});
 			}
-		},
-		
-		/**
-		 * Goes through the list of callees associated with the url found in
-		 * archiveInfo, and begins the deserialization process for each callee.
-		 * 
-		 * @param {string} url the url of the model
-		 * @param {string} data the archiveInfo object 
-		 * 		created when an archive is loaded.
-		 */
-		notifyLoaded: function(url, data) {
-			var modelObj = this.models.get(url),
-				list = modelObj.configs;
-			
-			for (var ndx = 0, len = list.length; ndx < len; ndx++) {
-				var config = list[ndx];
-					
-				var collada = colladaLoader.parse(data, null, url);
-				var model = new hemi.Model(config.client);
-				model.load(collada);
-				config.callback(model);
-			}
-			
-			modelObj.data = data;
 		}
+		else {
+			hemi.utils.get(url, function(data, status) {
+				that.notifyLoaded(thatURL, data);
+			}, true);
+			
+			this.models.put(url, {
+				configs: [{
+					client: client,
+					callback: callback
+				}],
+				data: null
+			});
+		}
+	};
+	
+	/**
+	 * Goes through the list of callees associated with the url found in
+	 * archiveInfo, and begins the deserialization process for each callee.
+	 * 
+	 * @param {string} url the url of the model
+	 * @param {string} data the archiveInfo object 
+	 * 		created when an archive is loaded.
+	 */
+	ModelManager.prototype.notifyLoaded = function(url, data) {
+		var modelObj = this.models.get(url),
+			list = modelObj.configs;
+		
+		for (var ndx = 0, len = list.length; ndx < len; ndx++) {
+			var config = list[ndx];
+				
+			var collada = colladaLoader.parse(data, null, url);
+			var model = new hemi.Model(config.client);
+			model.load(collada);
+			config.callback(model);
+		}
+		
+		modelObj.data = data;
 	};
 	
 	return hext;
