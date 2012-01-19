@@ -168,6 +168,7 @@
 	 * @param {number} time number of seconds for the rotation to take
 	 * @param {boolean} opt_mustComplete optional flag indicating that no other rotations can be
 	 *     started until this one finishes
+	 * @return {boolean} true if the Rotator will start turning, false if it will not
 	 */
 	Rotator.prototype.turn = function(theta, time, opt_mustComplete) {
 		if (!this.enabled || this.mustComplete) return false;
@@ -180,6 +181,7 @@
 		this.stopAngle.add(this.angle, theta);
 		hemi.addRenderListener(this);
 		this._transform.send(hemi.msg.start, {});
+		return true;
 	};
 
 	/**
@@ -200,39 +202,6 @@
 	Rotator.prototype.setAngle = function(theta) {
 		this.angle.copy(theta);
 		applyRotator.call(this);
-	};
-
-	/**
-	 * Set the origin of the Rotator transform.
-	 * 
-	 * @param {THREE.Vector3} origin amount to shift the origin by
-	 */
-	Rotator.prototype.setOrigin = function(origin) {
-		if (!this._transform) return;
-
-		var tranMat = _matrix.setTranslation(-origin.x, -origin.y, -origin.z),
-			geometry = this._transform.geometry,
-			scene = this._transform.parent,
-			world = this._transform.matrixWorld,
-			delta = _vector.multiply(origin, this._transform.scale),
-			dX = delta.x,
-			dY = delta.y,
-			dZ = delta.z;
-
-		while (scene.parent !== undefined) {
-			scene = scene.parent;
-		}
-
-		// Re-center geometry around given origin
-		hemi.utils.shiftGeometry(transform, tranMat, scene);
-
-		// Offset local position so geometry's world position doesn't change
-		delta.x = dX * world.n11 + dY * world.n12 + dZ * world.n13;
-		delta.y = dX * world.n21 + dY * world.n22 + dZ * world.n23;
-		delta.z = dX * world.n31 + dY * world.n32 + dZ * world.n33;
-		transform.position.subSelf(delta);
-		transform.updateMatrix();
-		transform.updateMatrixWorld();
 	};
 
 	/**
@@ -368,6 +337,7 @@
 	 * @param {number} time number of seconds for the translation to take
 	 * @param {boolean} opt_mustComplete optional flag indicating that no other translations can be
 	 *     started until this one finishes
+	 * @return {boolean} true if the Translator will start moving, false if it will not
 	 */
 	Translator.prototype.move = function(delta, time, opt_mustComplete) {
 		if (!this.enabled || this.mustComplete) return false;
@@ -380,6 +350,7 @@
 		this.stopPos.add(this.pos, delta);
 		hemi.addRenderListener(this);
 		this._transform.send(hemi.msg.start,{});
+		return true;
 	};
 
 	/**

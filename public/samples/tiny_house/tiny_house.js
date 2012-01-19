@@ -79,12 +79,8 @@
 
 		houseWindow = {
 			transform: house.getTransforms('SO_window')[0],
-			// Y always maps to the V coordinate, so this defines a Draggable on
-			// the YZ plane that can be dragged from 0 to 0 on the Z plane and 0
-			// to 55 on the Y plane.
-			draggable: new hemi.Draggable(client, hemi.Plane.YZ, [[0, 0], [0, 55]]),
 			msgHandler: function(msg) {
-				houseWindow.portal.adjustOpening(msg.data.drag);
+				houseWindow.portal.adjustOpening(msg.data.delta);
 			},
 			portal: new hext.engines.Portal(),
 			init: function() {
@@ -92,13 +88,11 @@
 				this.portal.locationB = outside;
 				this.portal.setWidth(winWidth);
 				this.portal.setClosedPosition(new THREE.Vector3(166, 0, 0));
-				// Create the select object, since the model did not come with one
-				//var pack = hemi.core.mainPack;
-				//var pickMat = hemi.core.material.createBasicMaterial(pack, hemi.view.viewInfo, [0, 0, 0, 0], true);
-				//var pickBox = hemi.core.primitives.createBox(pack, pickMat, 10, 60, 80);
-				this.draggable.addTransform(this.transform);
-				this.draggable.addTransform(house.getTransforms('tinyHouseWindow_sash')[0]);
-				this.draggable.subscribe(hemi.msg.drag, this.msgHandler);
+				// Make the Transform movable on the YZ plane. Y always maps to the V coordinate, so
+				// the Transform can be dragged from 0 to 0 on the Z plane and 0 to 55 on the Y
+				// plane.
+				this.transform.makeMovable(hemi.Plane.YZ, [0, 0, 0, 55], house.getTransforms('tinyHouseWindow_sash'));
+				this.transform.subscribe(hemi.msg.move, this.msgHandler);
 				return this;
 			}
 		}.init();
