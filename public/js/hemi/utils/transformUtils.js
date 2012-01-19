@@ -39,15 +39,16 @@
 	 * @param {hemi.Transform} transform the transform to rotate
 	*/
 	hemi.utils.axisRotate = function(axis, angle, transform) {
-		if (!transform.useQuaternion) {
-			transform.useQuaternion = true;
-			_vector.copy(transform.rotation);
-			transform.quaternion.setFromEuler(_vector.multiplyScalar(hemi.RAD_TO_DEG));
+		if (transform.useQuaternion) {
+			_quaternion.setFromAxisAngle(axis, angle);
+			transform.quaternion.multiplySelf(_quaternion);
+		} else {
+			_vector.copy(axis).multiplyScalar(angle);
+			transform.rotation.addSelf(_vector);
 		}
 
-		_quaternion.setFromAxisAngle(axis, angle);
-		transform.quaternion.multiplySelf(_quaternion);
 		transform.updateMatrix();
+		transform.updateMatrixWorld();
 	};
 
 	/**
@@ -55,9 +56,8 @@
 	 * geometry stays in the same world position.
 	 * 
 	 * @param {hemi.Mesh} mesh the Mesh to center geometry for
-	 * @param {THREE.Scene} scene the Mesh's scene
 	 */
-	hemi.utils.centerGeometry = function(mesh, scene) {
+	hemi.utils.centerGeometry = function(mesh) {
 		var delta = THREE.GeometryUtils.center(mesh.geometry);
 		delta.multiplySelf(mesh.scale);
 
@@ -72,7 +72,7 @@
 		mesh.updateMatrix();
 		mesh.updateMatrixWorld();
 		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
-		updateVertices(mesh, scene);
+		updateVertices(mesh);
 	};
 
 	/**
@@ -119,6 +119,7 @@
 		tran.rotation.y += rotY;
 		tran.rotation.x += rotX;
 		tran.updateMatrix();
+		tran.updateMatrixWorld();
 
 		return tran;
 	};
@@ -139,6 +140,7 @@
 		tran.rotation.y += rotY;
 		tran.rotation.x += rotX;
 		tran.updateMatrix();
+		tran.updateMatrixWorld();
 
 		return tran;
 	};
@@ -195,31 +197,33 @@
 	};
 
 	/**
-	 * Apply the given transform matrix to the vertices of the given transform's geometry as well as
-	 * the geometry of any child transforms.
+	 * Translate the vertices of the given Mesh's geometry by the given amount and update the Mesh
+	 * Mesh so that the geometry stays in the same world position.
 	 * 
-	 * @param {THREE.Object3D} transform the transform to start shifting at
-	 * @param {THREE.Matrix4} matrix the transform matrix to apply
-	 * @param {THREE.Scene} scene the transform's scene
+	 * @param {hemi.Mesh} mesh the Mesh to shift geometry for
+	 * @param {THREE.Vector3} delta the XYZ amount to shift the geometry by
 	 */
-	hemi.utils.shiftGeometry = function(transform, matrix, scene) {
-		var geometry = transform.geometry,
-			children = transform.children;
+	hemi.utils.translateGeometry = function(mesh, delta) {
+		// Shift geometry
+		mesh.geometry.applyMatrix(_matrix.setTranslation(delta.x, delta.y, delta.z));
+		mesh.geometry.computeBoundingBox();
 
-		if (geometry) {
-			// Shift geometry
-			geometry.applyMatrix(matrix);
-			geometry.computeBoundingBox();
+		// Update mesh transform matrix
+		delta.multiplySelf(mesh.scale);
 
-			// Do some magic since Three.js doesn't currently have a way to flush cached vertices
-			updateVertices(transform, scene);
+		if (mesh.useQuaternion) {
+			mesh.quaternion.multiplyVector3(delta);
+		} else {
+			_matrix.setRotationFromEuler(transform.rotation, transform.eulerOrder);
+			delta = transformVector(_matrix, delta);
 		}
 
-		// Shift geometry of all children
-		for (var i = 0, il = children.length; i < il; ++i) {
-			var child = children[i];
-			hemi.utils.shiftGeometry(child, matrix, scene);
-		}
+		mesh.position.subSelf(delta);
+		mesh.updateMatrix();
+		mesh.updateMatrixWorld();
+
+		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
+		updateVertices(mesh);
 	};
 
 	/**
@@ -271,6 +275,7 @@
 		_vector.copy(scale);
 		transform.scale.multiplySelf(multiplyMat3(invMat, _vector));
 		transform.updateMatrix();
+		transform.updateMatrixWorld();
 	};
 
 	/**
@@ -285,6 +290,7 @@
 
 		transform.position.addSelf(localDelta);
 		transform.updateMatrix();
+		transform.updateMatrixWorld();
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -350,11 +356,16 @@
 	 * Perform magic to get the WebGLRenderer to update the mesh geometry's vertex buffer.
 	 * 
 	 * @param {hemi.Mesh} mesh Mesh containing geometry to update vertices for
-	 * @param {THREE.Scene} scene the transform's scene
 	 */
-	function updateVertices(mesh, scene) {
+	function updateVertices(mesh) {
 		if (mesh.__webglInit) {
-			var geometry = mesh.geometry;
+			var geometry = mesh.geometry,
+				scene = mesh.parent;
+
+			while (scene.parent !== undefined) {
+				scene = scene.parent;
+			}
+
 			geometry.dynamic = true;
 			delete geometry.geometryGroupsList[0].__webglVertexBuffer;
 			mesh.__webglInit = false;

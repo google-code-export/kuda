@@ -343,105 +343,71 @@
 			engine.addPortal(leaks[ndx]);
 		}
 		
-		// Set up the Draggable windows.
-		var b1RightWinDrag = new hemi.Draggable(client, hemi.Plane.XY, [[0, 0], [0, 55]], [0, 44]);
+		// Set up the movable windows.
 		var b1RightWinTran = model.getTransforms('B1_window01_sashRight')[0];
-		var b1RightWinTranSO = model.getTransforms('SO_B1_window_right')[0];
-		b1RightWinDrag.addTransform(b1RightWinTran);
-		b1RightWinDrag.addTransform(b1RightWinTranSO);
-		
-		// Set the position of the corresponding window Portal and register it
-		// to handle updates from the Draggable.
+		b1RightWinTran.makeMovable(hemi.Plane.XY, [0, 0, -46, 11], model.getTransforms('SO_B1_window_right'));
+		b1RightWinTran.subscribe(hemi.msg.move, b1Window1Right, 'adjustOpening', ['msg:data.delta']);
+
+		// Set the position of the corresponding window Portal.
 		b1Window1Right.setClosedPosition(new THREE.Vector3(0, 0, -899));
 		b1Window1Right.setOpening(new THREE.Vector3(0, 44, -899));
-		b1RightWinDrag.subscribe(hemi.msg.drag,
-			b1Window1Right,
-			"adjustOpening",
-			["msg:data.drag"]);
-		
-		var b1LeftWinDrag = new hemi.Draggable(client, hemi.Plane.XY, [[0, 0], [0, 55]], [0, 44]);
+
 		var b1LeftWinTran = model.getTransforms('B1_window_sashLeft')[0];
-		var b1LeftWinTranSO = model.getTransforms('SO_B1_window_left')[0];
-		b1LeftWinDrag.addTransform(b1LeftWinTran);
-		b1LeftWinDrag.addTransform(b1LeftWinTranSO);
-		
+		b1LeftWinTran.makeMovable(hemi.Plane.XY, [0, 0, -46, 11], model.getTransforms('SO_B1_window_left'));
+		b1LeftWinTran.subscribe(hemi.msg.move, b1Window1Left, 'adjustOpening', ['msg:data.delta']);
+
 		b1Window1Left.setClosedPosition(new THREE.Vector3(0, 0, -899));
 		b1Window1Left.setOpening(new THREE.Vector3(0, 44, -899));
-		b1LeftWinDrag.subscribe(hemi.msg.drag,
-			b1Window1Left,
-			"adjustOpening",
-			["msg:data.drag"]);
-		
-		var b2RightWinDrag = new hemi.Draggable(client, hemi.Plane.YZ, [[0, 0], [0, 55]], [0, 17]);
+
 		var b2RightWinTran = model.getTransforms('B2_window2_sashRight')[0];
-		var b2RightWinTranSO = model.getTransforms('SO_B2_window2_right')[0];
-		b2RightWinDrag.addTransform(b2RightWinTran);
-		b2RightWinDrag.addTransform(b2RightWinTranSO);
-		
+		b2RightWinTran.makeMovable(hemi.Plane.YZ, [0, 0, -19, 38], model.getTransforms('SO_B2_window2_right'));
+		b2RightWinTran.subscribe(hemi.msg.move, b2Window2Right, 'adjustOpening', ['msg:data.delta']);
+
 		b2Window2Right.setClosedPosition(new THREE.Vector3(1000, 0, 0));
 		b2Window2Right.setOpening(new THREE.Vector3(1000, 17, 0));
-		b2RightWinDrag.subscribe(hemi.msg.drag,
-			b2Window2Right,
-			"adjustOpening",
-			["msg:data.drag"]);
-		
-		var b2LeftWinDrag = new hemi.Draggable(client, hemi.Plane.YZ, [[0, 0], [0, 55]], [0, 17]);
+
 		var b2LeftWinTran = model.getTransforms('B2_window2_sashLeft')[0];
-		var b2LeftWinTranSO = model.getTransforms('SO_B2_window2_left')[0];
-		b2LeftWinDrag.addTransform(b2LeftWinTran);
-		b2LeftWinDrag.addTransform(b2LeftWinTranSO);
-		
+		b2LeftWinTran.makeMovable(hemi.Plane.YZ, [0, 0, -19, 38], model.getTransforms('SO_B2_window2_left'));
+		b2LeftWinTran.subscribe(hemi.msg.move, b2Window2Left, 'adjustOpening', ['msg:data.delta']);
+
 		b2Window2Left.setClosedPosition(new THREE.Vector3(1000, 0, 0));
 		b2Window2Left.setOpening(new THREE.Vector3(1000, 17, 0));
-		b2LeftWinDrag.subscribe(hemi.msg.drag,
-			b2Window2Left,
-			"adjustOpening",
-			["msg:data.drag"]);
+
 		
-		var baWinDrag = new hemi.Draggable(client, hemi.Plane.YZ, [[0, 0], [32, 0]], [13, 0]);
 		var baWinTran = model.getTransforms('BA_windowSashRight')[0];
-		var baWinTranSO = model.getTransforms('SO_BA_window')[0];
-		baWinDrag.addTransform(baWinTran);
-		baWinDrag.addTransform(baWinTranSO);
+		baWinTran.makeMovable(hemi.Plane.YZ, [-13, 19, 0, 0], model.getTransforms('SO_BA_window'));
+		baWinTran.subscribe(hemi.msg.move, baWindow1, 'adjustOpening', ['msg:data.delta']);
 		
 		baWindow1.setClosedPosition(new THREE.Vector3(-654, 0, 0));
 		baWindow1.setOpening(new THREE.Vector3(-654, 0, 13));
-		baWinDrag.subscribe(hemi.msg.drag,
-			baWindow1,
-			"adjustOpening",
-			["msg:data.drag"]);
 		
 		// Set up the swinging doors
 		var cw = 1;
 		var ccw = -1;
 		
 		var b1DoorTran = model.getTransforms('B1_door')[0];
-		var b1DoorRot = new hemi.Rotator(b1DoorTran);
-		b1DoorRot.setOrigin([16.758, -14.848, 0]);
-		
-		var door1 = createDoor(b1DoorRot, cw, true);
+		hemi.utils.translateGeometry(b1DoorTran, new THREE.Vector3(-16.758, 14.848, 0));
+
+		var door1 = createDoor(b1DoorTran, cw, true);
 		door1.addAltName('SO_B1_2');
-		
+
 		var b2DoorTran = model.getTransforms('B2_door')[0];
-		var b2DoorRot = new hemi.Rotator(b2DoorTran);
-		b2DoorRot.setOrigin([394.4, -20.1, 0]);
-		
-		var door2 = createDoor(b2DoorRot, ccw, true);
+		hemi.utils.translateGeometry(b2DoorTran, new THREE.Vector3(-394.4, 20.1, 0));
+
+		var door2 = createDoor(b2DoorTran, ccw, true);
 		door2.addAltName('SO_B2_2');
-		
+
 		var baDoorTran = model.getTransforms('BA_door')[0];
-		var baDoorRot = new hemi.Rotator(baDoorTran);
-		baDoorRot.setOrigin([-135, -63.9, 0]);
-		
-		var door3 = createDoor(baDoorRot, ccw, false);
+		hemi.utils.translateGeometry(baDoorTran, new THREE.Vector3(135, 63.9, 0));
+
+		var door3 = createDoor(baDoorTran, ccw, false);
 		door3.addAltName('SO_BA_2');
 		
-		// Set the corresponding door Portals to handle updates from the
-		// Rotators. This allows the PressureEngine to respond to doors that are
-		// open or closed.
-		b1DoorRot.subscribe("Swing", b1Door, "setOpening", ["msg:data.position"]);
-		b2DoorRot.subscribe("Swing", b2Door, "setOpening", ["msg:data.position"]);
-		baDoorRot.subscribe("Swing", baDoor, "setOpening", ["msg:data.position"]);
+		// Set the corresponding door Portals to handle updates from the Transforms. This allows the
+		// PressureEngine to respond to doors that are open or closed.
+		b1DoorTran.subscribe('Swing', b1Door, 'setOpening', ['msg:data.position']);
+		b2DoorTran.subscribe('Swing', b2Door, 'setOpening', ['msg:data.position']);
+		baDoorTran.subscribe('Swing', baDoor, 'setOpening', ['msg:data.position']);
 		
 		// Set up the tools
 		
@@ -451,9 +417,9 @@
 		
 		var manometer = new hext.tools.Manometer();
 		manometer.setLocation(livingroom);
-        
-        var manShapeView = new hext.tools.ShapeView();
-        manShapeView.addTransform(model.getTransforms('LR_manometer')[0]);
+		
+		var manShapeView = new hext.tools.ShapeView();
+		manShapeView.addTransform(model.getTransforms('LR_manometer')[0]);
 		
 		hext.html.toolViews.addView(manView);
 		hext.html.toolbar.addView(manToolbarView);
@@ -473,10 +439,7 @@
 		// Set the Blower door to add its update to the PressureEngine when the
 		// fan Portal does. This allows us to calculate the manometer's CFM
 		// reading.
-		fan.subscribe(hext.msg.pressure,
-			blowerDoor,
-			"sendUpdate",
-			["msg:data.airFlow"]);
+		fan.subscribe(hext.msg.pressure, blowerDoor, 'sendUpdate', ['msg:data.airFlow']);
 		
 		var blowerDoorView = new hext.tools.BlowerDoorView();
 		var blowerDoorToolbarView = new hext.tools.BlowerDoorToolbarView();
@@ -489,15 +452,13 @@
 		blowerDoorController.setView(blowerDoorView);
 		blowerDoorController.setToolbarView(blowerDoorToolbarView);
 		
-		// Create a Rotator to animate the fan blades in response to the blower
-		// door control.
+		// Create a Rotator to animate the fan blades in response to the blower door control.
 		var fanTrans = model.getTransforms('fan_blades')[0];
-		var fanRotator = new hemi.Rotator(fanTrans);
-		fanRotator.setOrigin([19.9943, 41.8675, 0]);
-		
+		hemi.utils.centerGeometry(fanTrans);
+
 		blowerDoor.subscribe(hext.msg.speed,
 			function(msg) {
-				fanRotator.setVel(new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
+				fanTrans.addMotion('rotate', new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
 			});
 		
 		// Manometer tubes
@@ -530,37 +491,37 @@
 			hext.tools.TubeType.PressureYellow);
 		tube5.manometer = manometer;
 		tube5.setLocation(bedroom2);
-        
-        var tube1ShapeView = new hext.tools.ShapeView();
-        tube1ShapeView.addTransform(model.getTransforms('greenTube')[0]);
+		
+		var tube1ShapeView = new hext.tools.ShapeView();
+		tube1ShapeView.addTransform(model.getTransforms('greenTube')[0]);
 		
 		var tube1Controller = new hext.tools.BaseController();
 		tube1Controller.setModel(tube1);
 		tube1Controller.setShapeView(tube1ShapeView);
 		
-        var tube2ShapeView = new hext.tools.ShapeView();
-        tube2ShapeView.addTransform(model.getTransforms('redTube')[0]);
+		var tube2ShapeView = new hext.tools.ShapeView();
+		tube2ShapeView.addTransform(model.getTransforms('redTube')[0]);
 		
 		var tube2Controller = new hext.tools.BaseController();
 		tube2Controller.setModel(tube2);
 		tube2Controller.setShapeView(tube2ShapeView);
 		
-        var tube3ShapeView = new hext.tools.ShapeView();
-        tube3ShapeView.addTransform(model.getTransforms('tube_BA')[0]);
+		var tube3ShapeView = new hext.tools.ShapeView();
+		tube3ShapeView.addTransform(model.getTransforms('tube_BA')[0]);
 		
 		var tube3Controller = new hext.tools.BaseController();
 		tube3Controller.setModel(tube3);
 		tube3Controller.setShapeView(tube3ShapeView);
 		
-        var tube4ShapeView = new hext.tools.ShapeView();
-        tube4ShapeView.addTransform(model.getTransforms('tube_B1')[0]);
+		var tube4ShapeView = new hext.tools.ShapeView();
+		tube4ShapeView.addTransform(model.getTransforms('tube_B1')[0]);
 		
 		var tube4Controller = new hext.tools.BaseController();
 		tube4Controller.setModel(tube4);
 		tube4Controller.setShapeView(tube4ShapeView);
 		
-        var tube5ShapeView = new hext.tools.ShapeView();
-        tube5ShapeView.addTransform(model.getTransforms('tube_B2')[0]);
+		var tube5ShapeView = new hext.tools.ShapeView();
+		tube5ShapeView.addTransform(model.getTransforms('tube_B2')[0]);
 		
 		var tube5Controller = new hext.tools.BaseController();
 		tube5Controller.setModel(tube5);
@@ -590,28 +551,28 @@
 		bathSel.location = bathroom;
 		bathSel.shapeName = 'SO_BA_2';
 		engine.addLocationSelector(bathSel);
-        var bathSel2 = new hext.engines.LocationSelector();
-        bathSel2.location = bathroom;
-        bathSel2.shapeName = 'SO_BA_1';
-        engine.addLocationSelector(bathSel2);
+		var bathSel2 = new hext.engines.LocationSelector();
+		bathSel2.location = bathroom;
+		bathSel2.shapeName = 'SO_BA_1';
+		engine.addLocationSelector(bathSel2);
 		
 		var b1Sel = new hext.engines.LocationSelector();
 		b1Sel.location = bedroom1;
 		b1Sel.shapeName = 'SO_B1_2';
 		engine.addLocationSelector(b1Sel);
-        var b1Sel2 = new hext.engines.LocationSelector();
-        b1Sel2.location = bedroom1;
-        b1Sel2.shapeName = 'SO_B1_1';
-        engine.addLocationSelector(b1Sel2);
+		var b1Sel2 = new hext.engines.LocationSelector();
+		b1Sel2.location = bedroom1;
+		b1Sel2.shapeName = 'SO_B1_1';
+		engine.addLocationSelector(b1Sel2);
 		
 		var b2Sel = new hext.engines.LocationSelector();
 		b2Sel.location = bedroom2;
 		b2Sel.shapeName = 'SO_B2_2';
 		engine.addLocationSelector(b2Sel);
-        var b2Sel2 = new hext.engines.LocationSelector();
-        b2Sel2.location = bedroom2;
-        b2Sel2.shapeName = 'SO_B2_1';
-        engine.addLocationSelector(b2Sel2);
+		var b2Sel2 = new hext.engines.LocationSelector();
+		b2Sel2.location = bedroom2;
+		b2Sel2.shapeName = 'SO_B2_1';
+		engine.addLocationSelector(b2Sel2);
 		
 		// Smoke puffer
 		var smokePufferToolbarView = new hext.tools.SmokePufferToolbarView();
@@ -632,7 +593,7 @@
 		config2.windVar = [10, 10, 20];
 		smokePuffer.addSmokePuff('SO_B1_window_right', config2);
 		
-        hext.html.toolbar.addView(smokePufferToolbarView);
+		hext.html.toolbar.addView(smokePufferToolbarView);
 		
 		var smokePufferController = new hext.tools.SmokePufferController(client);
 		smokePufferController.setModel(smokePuffer);
@@ -787,8 +748,8 @@
 					model.getTransforms('SO_BD')[0].pickable = false;
 				}
 			});
-        
-        var text3 = new hemi.HudText();
+		
+		var text3 = new hemi.HudText();
 		text3.config.textSize = 13;
 		text3.setText("Now click the highlighted area to run the tube through the lower opening.");
 		text3.setWidth(client.getWidth());
@@ -831,7 +792,7 @@
 			function(msg) {
 				client.camera.moveToView(viewpoint);
 			});
-        
+		
 		var text1 = new hemi.HudText();
 		text1.config.textSize = 13;
 		text1.setText("Click the upper right pressure tap on the 2D device to the right");
@@ -974,7 +935,7 @@
 				client.camera.moveToView(viewpoint);
 			});
 		
-        var text1 = new hemi.HudText();
+		var text1 = new hemi.HudText();
 		text1.config.textSize = 13;
 		text1.setText("We have pre-configured this manometer for you. The left readout on the manometer reads 0 Pa and the right side reads \"----\" which means that it's not getting a usable reading.");
 		text1.setWidth(client.getWidth());
@@ -1117,8 +1078,8 @@
 					}
 				}
 			});
-        
-        var text5 = new hemi.HudText();
+		
+		var text5 = new hemi.HudText();
 		text5.config.textSize = 13;
 		text5.setText("Very good work. You've found the source of the leak!");
 		text5.setWidth(client.getWidth());
@@ -1146,15 +1107,15 @@
 	};
 	
 	/*
-	 * Create a Door object that rotates open/close when clicked on and uses its
-	 * Rotator to send a custom Message.
+	 * Create a Door object that rotates open/close when clicked on and uses its Transform to send a
+	 * custom Message.
 	 */
-	var createDoor = function(rotator, direction, open) {
+	var createDoor = function(transform, direction, open) {
 		var door = {
 			open: open,
 			direction: direction,
-			rotator: rotator,
-			names: [rotator.transformObjs[0].name],
+			transform: transform,
+			names: [transform.name],
 			addAltName: function(name) {
 				this.names.push(name);
 			},
@@ -1171,35 +1132,21 @@
 			swing: function() {
 				// We found the amount to rotate by testing empirically for a
 				// value that "looked right".
-				if (this.rotator.rotate([0, 0, this.direction * Math.PI / 1.85], 1, true)) {
+				if (this.transform.turn(new THREE.Vector3(0, 0, this.direction * Math.PI / 1.85), 1, true)) {
 					this.open = !this.open;
 					this.direction *= -1;
-					
-					var pos;
-				
-					if (this.open) {
-						pos = [0, 0, 180];
-					} else {
-						pos = [0, 0, 0];
-					}
-					
+
+					var pos = this.open ? [0, 0, 180] : [0, 0, 0];
+
 					// Notify any handlers that the door is open/closed.
-					this.rotator.send("Swing",
-						{
-							position: pos
-						});
+					this.transform.send('Swing', { position: pos });
 				}
 			}
 		};
 
-		rotator.transformObjs[0].visible = true;
-		
-		hemi.subscribe(
-			hemi.msg.pick,
-			door,
-			"onPick",
-			[hemi.dispatch.MSG_ARG + 'data']);
-		
+		// rotator.transformObjs[0].visible = true;
+		hemi.subscribe(hemi.msg.pick, door, 'onPick', [hemi.dispatch.MSG_ARG + 'data']);
+
 		return door;
 	};
 	

@@ -151,6 +151,30 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
+	 * Get the Client that is rendering the given Transform.
+	 * 
+	 * @param {hemi.Transform} transform the Transform to get the Client for
+	 * @return {hemi.Client} the Client rendering the Transform, or null
+	 */
+	hemi.getClient = function(transform) {
+		var scene = transform.parent;
+
+		while (scene.parent !== undefined) {
+			scene = scene.parent;
+		}
+
+		for (var i = 0, il = hemi.clients.length; i < il; ++i) {
+			var client = hemi.clients[i];
+
+			if (scene === client.scene) {
+				return client;
+			}
+		}
+
+		return null;
+	};
+
+	/**
 	 * Get the current frames-per-second that will be enforced for rendering.
 	 * 
 	 * @return {number} current frames-per-second
