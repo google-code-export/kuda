@@ -1806,6 +1806,12 @@ if (!window.requestAnimationFrame) {
 				elapsedTime: hz
 			};
 
+		if (update) {
+			for (var i = 0, il = hemi.clients.length; i < il; ++i) {
+				hemi.clients[i].onRender(event);
+			}
+		}
+
 		while (renderTime - lastRenderTime > hzMS) {
 			update = true;
 			lastRenderTime += hzMS;
@@ -1816,12 +1822,6 @@ if (!window.requestAnimationFrame) {
 		}
 
 		renderNdx = -1;
-
-		if (update) {
-			for (var i = 0, il = hemi.clients.length; i < il; ++i) {
-				hemi.clients[i].onRender(event);
-			}
-		}
 	}
 
 	/*
@@ -2017,9 +2017,11 @@ if (!window.requestAnimationFrame) {
 	 * @param {function(string, string):void)} callback function to pass the data retrieved from the
 	 *     URL as well as the status text of the request
 	 */
-	hemi.utils.get = function(url, callback) {
+	hemi.utils.get = function(url, callback, opt_overrideMimeType) {
 		var xhr = new window.XMLHttpRequest();
-
+		if (opt_overrideMimeType) {
+			xhr.overrideMimeType("text/xml");
+		}
 		xhr.onreadystatechange = function() {
 			if (this.readyState === 4) {
 				this.onreadystatechange = hemi.utils.noop;
@@ -2028,7 +2030,7 @@ if (!window.requestAnimationFrame) {
 				if (this.status === 200 || window.location.href.indexOf('http') === -1) {
 					var ct = this.getResponseHeader('content-type');
 
-					if (ct && ct.indexOf('xml') >= 0) {
+					if (opt_overrideMimeType || ct && ct.indexOf('xml') >= 0) {
 						data = this.responseXML;
 					} else {
 						data = this.responseText;
@@ -8641,12 +8643,11 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Load the Model's assets from its file.
 	 */
-	Model.prototype.load = function() {
+	Model.prototype.load = function(opt_collada) {
 		var that = this;
 
 		if (this._loaded) this.unload();
-
-		hemi.loadCollada(this._fileName, function (collada) {
+		var onCollada = function (collada) {
 			var animHandler = THREE.AnimationHandler,
 				animations = collada.animations,
 				toConvert = {};
@@ -8679,7 +8680,13 @@ if (!window.requestAnimationFrame) {
 			that.send(hemi.msg.load, {
 				root: collada.scene
 			});
-		});
+		};
+
+		if (opt_collada) {
+			onCollada(opt_collada);
+		} else {
+			hemi.loadCollada(this._fileName, onCollada); 
+		};
 	};
 
 	/**
@@ -15329,8 +15336,6 @@ if (!window.requestAnimationFrame) {
 			material.opacity = opacity;
 
 			// move the material to the transparent list and out of the opaque list
-			found.transparent && (found.transparent.list = []);
-			found.opaque && (found.opaque.list = []);
 			unrollBufferMaterial(found);
 			unrollImmediateBufferMaterial(found);
 		}

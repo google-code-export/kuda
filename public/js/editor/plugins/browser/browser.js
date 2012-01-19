@@ -299,7 +299,7 @@
 		this.msgHandler = null;
 		this.shapHighlightMat = null;
         this.tranHighlightMat = null;
-//		this.curHandle = new editor.ui.TransHandles();
+		this.curHandle = new editor.ui.TransHandles();
 		this.models = [];
         
 //        this.initSelectorUI();
@@ -538,12 +538,19 @@
 		this.curHandle.setDrawState(state);
 	};
 	
-	BrowserModel.prototype.setOpacity = function(opacity) {
-		if (this.currentTransform) {				
-			var owner = hemi.world.getTranOwner(this.currentTransform);
-			if (owner instanceof hemi.Model) {
-				owner.setTransformOpacity(this.currentTransform, opacity, true);
+	BrowserModel.prototype.setOpacity = function(opacity, transform) {
+		if (transform == null) {
+			transform = this.currentTransform;
+			transform.opacityVal = opacity;
+		}
+		
+		if (transform instanceof hemi.Transform) {
+			var children = transform.children;
+			for (var i = 0, il = children.length; i < il; i++) {
+				this.setOpacity(opacity, children[i]);
 			}
+		} else {			
+			hemi.fx.setOpacity(editor.client, transform, transform.material, opacity, true);
 		}
 	};
 	
@@ -1484,6 +1491,10 @@
 		this.slider.slider('value', 100);
 	};
 	
+	OpacityWidget.prototype.set = function(transform) {
+		this.slider.slider('value', transform.opacityVal == null ? 100 : transform.opacityVal * 100);
+	};
+	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                           				 Details Widget			                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1926,6 +1937,7 @@
 			mbrWgt.selectNode(getNodeId(transform));
 			detWgt.set(transform, DetailsType.TRANSFORM);
 			visWgt.set(transform);
+			opaWgt.set(transform);
 			
 			if (view.mode === editor.ToolConstants.MODE_DOWN) {
 				view.bottomPanel.setVisible(true);

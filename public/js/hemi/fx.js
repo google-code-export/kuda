@@ -165,8 +165,6 @@
 			material.opacity = opacity;
 
 			// move the material to the transparent list and out of the opaque list
-			found.transparent && (found.transparent.list = []);
-			found.opaque && (found.opaque.list = []);
 			unrollBufferMaterial(found);
 			unrollImmediateBufferMaterial(found);
 		}
