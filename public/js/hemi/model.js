@@ -131,51 +131,54 @@
 
 	/**
 	 * Load the Model's assets from its file.
+	 * 
+	 * @param {Object} opt_collada optional cached object constructed by the ColladaLoader that can
+	 *     be used to construct a new Model without loading and parsing the asset file
 	 */
 	Model.prototype.load = function(opt_collada) {
-		var that = this;
-
 		if (this._loaded) this.unload();
-		var onCollada = function (collada) {
-			var animHandler = THREE.AnimationHandler,
-				animations = collada.animations,
-				toConvert = {};
 
-			that._loaded = true;
+		var that = this,
+			onCollada = function (collada) {
+				var animHandler = THREE.AnimationHandler,
+					animations = collada.animations,
+					toConvert = {};
 
-			for (var i = 0, il = animations.length; i < il; ++i) {
-				var node = animations[i].node;
-				toConvert[node.id] = node;
-			}
+				that._loaded = true;
 
-			if (that.root === null) {
-				that.root = convertObject3Ds.call(that, collada.scene, toConvert);
-			} else {
-				that.root._init(collada.scene, toConvert);
-			}
+				for (var i = 0, il = animations.length; i < il; ++i) {
+					var node = animations[i].node;
+					toConvert[node.id] = node;
+				}
 
-			that.client.scene.add(that.root);
+				if (that.root === null) {
+					that.root = convertObject3Ds.call(that, collada.scene, toConvert);
+				} else {
+					that.root._init(collada.scene, toConvert);
+				}
 
-			for ( var i = 0, il = collada.animations.length; i < il; i++ ) {
-				var anim = animations[i];
-				//Add to the THREE Animation handler to get the benefits of it's
-				animHandler.add(anim);
+				that.client.scene.add(that.root);
 
-				var kfAnim = new THREE.KeyFrameAnimation(toConvert[anim.node.id], anim.name);
-				kfAnim.timeScale = 1;
-				that.animations.push(kfAnim);
-			}
+				for ( var i = 0, il = collada.animations.length; i < il; i++ ) {
+					var anim = animations[i];
+					//Add to the THREE Animation handler to get the benefits of it's
+					animHandler.add(anim);
 
-			that.send(hemi.msg.load, {
-				root: collada.scene
-			});
-		};
+					var kfAnim = new THREE.KeyFrameAnimation(toConvert[anim.node.id], anim.name);
+					kfAnim.timeScale = 1;
+					that.animations.push(kfAnim);
+				}
+
+				that.send(hemi.msg.load, {
+					root: collada.scene
+				});
+			};
 
 		if (opt_collada) {
 			onCollada(opt_collada);
 		} else {
 			hemi.loadCollada(this._fileName, onCollada); 
-		};
+		}
 	};
 
 	/**
