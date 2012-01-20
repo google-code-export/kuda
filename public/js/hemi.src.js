@@ -7255,9 +7255,11 @@ if (!window.requestAnimationFrame) {
 		this.cancelMotion(hemi.MotionType.SCALE);
 		this.cancelMotion(hemi.MotionType.TRANSLATE);
 		this.parent.remove(this);
+		
+		var children = [].concat(this.children);
 
-		for (var i = 0, il = this.children.length; i < il; ++i) {
-			this.children[i].cleanup();
+		for (var i = 0, il = children.length; i < il; ++i) {
+			children[i].cleanup();
 		}
 	};
 
@@ -15835,39 +15837,44 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Sets the opacity for the given material in the given object.
+	 * Sets the opacity for the given object.
 	 * 
 	 * @param {hemi.Client} client the client view in which to change opacity
-	 * @param {THREE.Object3d} object the object whose material's opacity we're changing
+	 * @param {THREE.Mesh} object the object whose material's opacity we're changing
 	 * @param {THREE.Material} material the material to set opacity on
 	 * @param {number} opacity the opacity value between 0 and 1
 	 */
-	hemi.fx.setOpacity = function(client, object, material, opacity) {
+	hemi.fx.setOpacity = function(client, object, opacity) {
 		var objs = client.scene.__webglObjects.concat(client.scene.__webglObjectsImmediate),
-			found = null;
+			material = object.material,
+			sharedObjects = [];
 
-		for (var i = 0, il = objs.length; i < il && found === null; i++) {
-			var webglObject = objs[i];
-
-			if (webglObject.object.parent === object || webglObject.object === object) {
-				found = webglObject;
+		for (var i = 0, il = objs.length; i < il; i++) {
+			var webglObject = objs[i],
+				obj = webglObject.object;
+			
+			if (obj.material === material) {
+				sharedObjects.push(webglObject);
 			}
 		}
 
-		if (found) {
+		if (sharedObjects.length > 0) {
 			material.transparent = opacity < 1;
 			material.opacity = opacity;
-
-			// move the material to the transparent list and out of the opaque list
-			unrollBufferMaterial(found);
-			unrollImmediateBufferMaterial(found);
+			
+			// setup transparent and opaque list for objects with the same material
+			for (var i = 0, il = sharedObjects.length; i < il; i++) {
+				var obj = sharedObjects[i];
+				unrollBufferMaterial(obj);
+				unrollImmediateBufferMaterial(obj);
+			}
 		}
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+	
 	function findData(client) {
 		var retVal = null;
 		for (var i = 0, il = clientData.length; i < il && retVal === null; i++) {

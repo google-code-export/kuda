@@ -374,8 +374,8 @@
 		if (ndx !== -1) {
 			this.selected.splice(ndx, 1);
 			this.currentShape = null;
-//			this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
-//			this.curHandle.setTransform(null);
+			this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
+			this.curHandle.setTransform(null);
 			this.notifyListeners(shorthand.events.ShapeSelected, null);
 			this.unhighlightTransform(transform);
 			this.notifyListeners(shorthand.events.TransformDeselected, transform);
@@ -466,7 +466,7 @@
 	};
 	
     BrowserModel.prototype.onPick = function(pickedMesh, mouseEvent) {
-//		if (!this.curHandle.down) {			
+		if (!this.curHandle.down) {			
 			if (this.isSelected(pickedMesh) && mouseEvent.shiftKey) {
 				this.deselectTransform(pickedMesh);
 			}
@@ -477,7 +477,7 @@
 				
 				this.selectTransform(pickedMesh);
 			}
-//		}
+		}
     };
     
     BrowserModel.prototype.processModel = function(model) {
@@ -500,11 +500,17 @@
     };
 	
 	BrowserModel.prototype.removeModel = function(model) {
-		var transforms = this.selected.get(model.getId());
+		var transforms = [].concat(this.selected);
 		
-		while (transforms && transforms.length > 0) {
-			this.deselectTransform(transforms[0], model);
+		for (var i = 0, il = transforms.length; i < il; i++) {
+			var transform = transforms[i],
+				owner = owners.get(transform);
+			
+			if (owner === model) {
+				this.deselectTransform(transform);
+			}
 		}
+		
 		model.cleanup();
 		
 		this.notifyListeners(editor.events.Removing, model);
@@ -523,7 +529,7 @@
 		var ndx = this.selected.indexOf(transform);
 			
 		if (this.selected.length === 0) {					
-//			this.curHandle.setTransform(transform);
+			this.curHandle.setTransform(transform);
 		}
 		if (ndx === -1) {
 			this.selected.push(transform);
@@ -550,7 +556,7 @@
 				this.setOpacity(opacity, children[i]);
 			}
 		} else {			
-			hemi.fx.setOpacity(editor.client, transform, transform.material, opacity, true);
+			hemi.fx.setOpacity(editor.client, transform, opacity);
 		}
 	};
 	
