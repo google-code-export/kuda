@@ -2040,12 +2040,16 @@ if (!window.requestAnimationFrame) {
 	 * @param {string} url url of the resource to get
 	 * @param {function(string, string):void)} callback function to pass the data retrieved from the
 	 *     URL as well as the status text of the request
+	 * @param {boolean} opt_overrideMimeType optional flag indicating the XHR's mime type should be
+	 *     forced to "text/xml"
 	 */
 	hemi.utils.get = function(url, callback, opt_overrideMimeType) {
 		var xhr = new window.XMLHttpRequest();
+
 		if (opt_overrideMimeType) {
 			xhr.overrideMimeType("text/xml");
 		}
+
 		xhr.onreadystatechange = function() {
 			if (this.readyState === 4) {
 				this.onreadystatechange = hemi.utils.noop;
@@ -2597,7 +2601,7 @@ if (!window.requestAnimationFrame) {
 	 * 
 	 * @param {hemi.Client} the Client containing the point
 	 * @param {THREE.Vector3} point XYZ point to convert
-	 * @return {number[2]} XY screen position of point
+	 * @return {THREE.Vector2} XY screen position of point
 	 */
 	hemi.utils.worldToScreen = function(client, point) {
 		var camera = client.camera.threeCamera;
@@ -2617,7 +2621,7 @@ if (!window.requestAnimationFrame) {
 		point.x = (1 + projX) * 0.5 * client.getWidth();
 		point.y = (1 - projY) * 0.5 * client.getHeight();
 
-		return new THREE.Vector2(Math.round(point.x), Math.round(point.y));//[Math.round(point.x), Math.round(point.y)];
+		return new THREE.Vector2(Math.round(point.x), Math.round(point.y));
 	};
 
 	/**
@@ -8973,51 +8977,54 @@ if (!window.requestAnimationFrame) {
 
 	/**
 	 * Load the Model's assets from its file.
+	 * 
+	 * @param {Object} opt_collada optional cached object constructed by the ColladaLoader that can
+	 *     be used to construct a new Model without loading and parsing the asset file
 	 */
 	Model.prototype.load = function(opt_collada) {
-		var that = this;
-
 		if (this._loaded) this.unload();
-		var onCollada = function (collada) {
-			var animHandler = THREE.AnimationHandler,
-				animations = collada.animations,
-				toConvert = {};
 
-			that._loaded = true;
+		var that = this,
+			onCollada = function (collada) {
+				var animHandler = THREE.AnimationHandler,
+					animations = collada.animations,
+					toConvert = {};
 
-			for (var i = 0, il = animations.length; i < il; ++i) {
-				var node = animations[i].node;
-				toConvert[node.id] = node;
-			}
+				that._loaded = true;
 
-			if (that.root === null) {
-				that.root = convertObject3Ds.call(that, collada.scene, toConvert);
-			} else {
-				that.root._init(collada.scene, toConvert);
-			}
+				for (var i = 0, il = animations.length; i < il; ++i) {
+					var node = animations[i].node;
+					toConvert[node.id] = node;
+				}
 
-			that.client.scene.add(that.root);
+				if (that.root === null) {
+					that.root = convertObject3Ds.call(that, collada.scene, toConvert);
+				} else {
+					that.root._init(collada.scene, toConvert);
+				}
 
-			for ( var i = 0, il = collada.animations.length; i < il; i++ ) {
-				var anim = animations[i];
-				//Add to the THREE Animation handler to get the benefits of it's
-				animHandler.add(anim);
+				that.client.scene.add(that.root);
 
-				var kfAnim = new THREE.KeyFrameAnimation(toConvert[anim.node.id], anim.name);
-				kfAnim.timeScale = 1;
-				that.animations.push(kfAnim);
-			}
+				for ( var i = 0, il = collada.animations.length; i < il; i++ ) {
+					var anim = animations[i];
+					//Add to the THREE Animation handler to get the benefits of it's
+					animHandler.add(anim);
 
-			that.send(hemi.msg.load, {
-				root: collada.scene
-			});
-		};
+					var kfAnim = new THREE.KeyFrameAnimation(toConvert[anim.node.id], anim.name);
+					kfAnim.timeScale = 1;
+					that.animations.push(kfAnim);
+				}
+
+				that.send(hemi.msg.load, {
+					root: collada.scene
+				});
+			};
 
 		if (opt_collada) {
 			onCollada(opt_collada);
 		} else {
 			hemi.loadCollada(this._fileName, onCollada); 
-		};
+		}
 	};
 
 	/**

@@ -449,7 +449,7 @@
 	 * 
 	 * @param {hemi.Client} the Client containing the point
 	 * @param {THREE.Vector3} point XYZ point to convert
-	 * @return {number[2]} XY screen position of point
+	 * @return {THREE.Vector2} XY screen position of point
 	 */
 	hemi.utils.worldToScreen = function(client, point) {
 		var camera = client.camera.threeCamera;
@@ -469,7 +469,7 @@
 		point.x = (1 + projX) * 0.5 * client.getWidth();
 		point.y = (1 - projY) * 0.5 * client.getHeight();
 
-		return new THREE.Vector2(Math.round(point.x), Math.round(point.y));//[Math.round(point.x), Math.round(point.y)];
+		return new THREE.Vector2(Math.round(point.x), Math.round(point.y));
 	};
 
 	/**
