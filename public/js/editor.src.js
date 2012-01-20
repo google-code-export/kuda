@@ -728,7 +728,7 @@ var editor = {};
 		this.messages = new Hashtable();
 		
 		try {
-			hemi.loader.loadHtml('js/editor/data/hemi.json', function(data) {
+			hemi.loadHtml('js/editor/data/hemi.json', function(data) {
 				var json = JSON.parse(data);
 			
 				for (var i = 0, il = json.length; i < il; i++) {
