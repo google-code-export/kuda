@@ -85,9 +85,11 @@
 		this.cancelMotion(hemi.MotionType.SCALE);
 		this.cancelMotion(hemi.MotionType.TRANSLATE);
 		this.parent.remove(this);
+		
+		var children = [].concat(this.children);
 
-		for (var i = 0, il = this.children.length; i < il; ++i) {
-			this.children[i].cleanup();
+		for (var i = 0, il = children.length; i < il; ++i) {
+			children[i].cleanup();
 		}
 	};
 
