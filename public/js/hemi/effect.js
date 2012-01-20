@@ -328,7 +328,7 @@
 	/**
 	 * Render event handling function that allows the ParticleTrail to animate.
 	 * 
-	 * @param {o3d.Event} event the render event
+	 * @param {Object} event the render event
 	 */
 	ParticleTrail.prototype.onRender = function(event) {
 		this.count += event.elapsedTime;

@@ -241,20 +241,20 @@
 		/**
 		 * The handler function for mouse down events that occur within the bounds of the
 		 * HudElement.
-		 * @type function(o3d.Event): void
+		 * @type function(Object): void
 		 */
 		this.mouseDown = null;
 
 		/**
 		 * The handler function for mouse up events that occur within the bounds of the HudElement.
-		 * @type function(o3d.Event): void
+		 * @type function(Object): void
 		 */
 		this.mouseUp = null;
 
 		/**
 		 * The handler function for mouse move events. It takes the Event and a boolean indicating
 		 * if the Event occurred within the bounds of the HudElement.
-		 * @type function(o3d.Event, boolean): void
+		 * @type function(Object, boolean): void
 		 */
 		this.mouseMove = null;
 
