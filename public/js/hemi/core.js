@@ -198,7 +198,6 @@ if (!window.requestAnimationFrame) {
 	 * but it can be used on its own if you don't want to use hemi's client system.
 	 */
 	hemi.init = function() {
-		hemi.console.setEnabled(true);
 		window.addEventListener('resize', resize, false);
 		lastRenderTime = new Date().getTime();
 		render(true);

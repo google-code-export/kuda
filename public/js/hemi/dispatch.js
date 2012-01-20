@@ -135,7 +135,7 @@
 			if (oct !== null) {
 				targetsOct.push(oct);
 			} else {
-				hemi.console.log('Null Octane returned by MessageTarget', hemi.console.WARN);
+				console.log('Null Octane returned by MessageTarget');
 			}
 		}
 
@@ -160,7 +160,7 @@
 	 */
 	MessageSpec.prototype.addTarget = function(target) {
 		if (this.targets.indexOf(target) !== -1) {
-			hemi.console.log('MessageSpec already contains MessageTarget', hemi.console.WARN);
+			console.log('MessageSpec already contains MessageTarget');
 		}
 
 		this.targets.push(target);
@@ -190,7 +190,7 @@
 		if (ndx !== -1) {
 			found = this.targets.splice(ndx, 1)[0];
 		} else {
-			hemi.console.log('MessageTarget not found in MessageSpec', hemi.console.WARN);
+			console.log('MessageTarget not found in MessageSpec');
 		}
 
 		return found;
@@ -266,7 +266,7 @@
 	 */
 	MessageTarget.prototype._octane = function() {
 		if (!this.handler._getId) {
-			hemi.console.log('Handler object in MessageTarget can not be saved to Octane', hemi.console.WARN);
+			console.log('Handler object in MessageTarget can not be saved to Octane');
 			return null;
 		}
 
@@ -322,7 +322,7 @@
 			if (oct !== null) {
 				octane.ents.push(oct);
 			} else {
-				hemi.console.log('Null Octane returned by MessageSpec', hemi.console.ERR);
+				console.log('Null Octane returned by MessageSpec');
 			}
 		});
 
@@ -675,7 +675,7 @@
 		}
 
 		if (removed === null) {
-			hemi.console.log('MessageTarget was not found and therefore not removed', hemi.console.WARN);
+			console.log('MessageTarget was not found and therefore not removed');
 		}
 
 		return removed;
@@ -759,7 +759,7 @@
 		if (spec !== null) {
 			spec.removeTarget(target);
 		} else {
-			hemi.console.log('Previous MessageSpec for MessageTarget not found', hemi.console.WARN);
+			console.log('Previous MessageSpec for MessageTarget not found');
 		}
 
 		spec = createSpec(src, msg);
@@ -883,7 +883,7 @@
 			msgSpecs.put(spec.getHash(), spec);
 		} else {
 			if (specs.length > 1) {
-				hemi.console.log('Found ' + specs.length + ' MessageSpecs with the same src and msg.', hemi.console.ERR);
+				console.log('Found ' + specs.length + ' MessageSpecs with the same src and msg.');
 			}
 
 			spec = specs[0];
