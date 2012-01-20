@@ -122,6 +122,10 @@
 		};
 		
 		hemi.addRenderListener(pulsator);
+
+		// There is a bug with this Mesh. Its geometry contains a quad that should really be a
+		// triangle (3 of the 4 points lie in a straight line) and it messes up picking.
+		model.getTransforms('EXT_walls')[0].pickable = false;
 	};
 	
 	var setupWorld = function(model) {
