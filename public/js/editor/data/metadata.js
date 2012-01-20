@@ -165,7 +165,7 @@
 				}
 			});
 		} catch (err) {
-			hemi.console.log(err);
+			console.log(err);
 		}
 	};
 	

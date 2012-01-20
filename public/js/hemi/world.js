@@ -235,7 +235,7 @@
 		var toRemove = citizens.get(id);
 
 		if (toRemove !== null) {
-			hemi.console.log('Citizen with id ' + id + ' already exists.', hemi.console.ERR);
+			console.log('Citizen with id ' + id + ' already exists.');
 			toRemove.cleanup();
 		}
 
@@ -263,7 +263,7 @@
 		});
 
 		if (citizens.size() > 0) {
-			hemi.console.log('World cleanup did not remove all citizens.', hemi.console.ERR);
+			console.log('World cleanup did not remove all citizens.');
 		}
 
 		nextId = 1;
@@ -325,7 +325,7 @@
 		var cit = citizens.get(id);
 
 		if (cit === null) {
-			hemi.console.log('Tried to get Citizen with id ' + id + ', returned null.', hemi.console.ERR);
+			console.log('Tried to get Citizen with id ' + id + ', returned null.');
 		}
 
 		return cit;
@@ -521,7 +521,7 @@
 			removed = citizens.remove(id);
 
 		if (removed === null) {
-			hemi.console.log('Unable to remove Citizen with id ' + id, hemi.console.WARN);
+			console.log('Unable to remove Citizen with id ' + id);
 		}
 
 		return removed !== null;
@@ -559,7 +559,7 @@
 				if (oct !== null) {
 					octane.citizens.push(oct);
 				} else {
-					hemi.console.log('Null Octane returned by Citizen with id ' + value._getId(), hemi.console.WARN);
+					console.log('Null Octane returned by Citizen with id ' + value._getId());
 				}
 			}
 		});

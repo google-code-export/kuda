@@ -168,7 +168,7 @@
 				object._setId(octane.id);
 			}
 		} else {
-			hemi.console.log('Cannot find constructor for type: ' + octane.type, hemi.console.ERR);
+			console.log('Cannot find constructor for type: ' + octane.type);
 		}
 
 		return object;
