@@ -131,7 +131,9 @@
 			ndx = emitters.indexOf(this.particles);
 
 		emitters.splice(ndx, 1);
-		this.transform.parent.remove(this.transform);
+		if (this.transform) {
+			this.transform.parent.remove(this.transform);
+		}
 		this.transform = null;
 		this.particles = null;
 	};
@@ -359,7 +361,7 @@
 		}
 
 		this._system = this._newSystem ? new hemi.particles.System() : defaultParticleSystem;
-		this.particles = this._newSystem.createTrail(
+		this.particles = this._system.createTrail(
 			this.client.camera.threeCamera,
 			maxParticles,
 			clonedParams,
@@ -367,6 +369,17 @@
 			paramSetter);
 		this.particles.setBlending(this.blending);
 		this.particles.setColorRamp(this.colorRamp);
+
+		this.transform = new THREE.Mesh(this.particles.shape, this.particles.material);
+		this.transform.doubleSided = true; // turn off face culling
+		this.client.scene.add(this.transform);
+
+		this.client.renderer.initWebGLObjects(this.client.scene);
+		var attributes = this.particles.material.attributes;
+
+		for (var a in attributes) {
+			attributes[a].needsUpdate = false;
+		}
 	};
 
 	/**
@@ -380,7 +393,7 @@
 
 		if (!this.isAnimating) {
 			this.isAnimating = true;
-			hemi.view.addRenderListener(this);
+			hemi.addRenderListener(this);
 			this.send(hemi.msg.start, { });
 		}
 	};
@@ -394,7 +407,7 @@
 		}
 
 		if (this.isAnimating) {
-			hemi.view.removeRenderListener(this);
+			hemi.removeRenderListener(this);
 			this.isAnimating = false;
 			this.count = 0;
 			this.send(hemi.msg.stop, { });
@@ -426,7 +439,7 @@
 		emitter.colorRamp = colorRamp;
 		emitter.params = params;
 
-		if (opt_blending != null) emitter.blending = blending;
+		if (opt_blending != null) emitter.blending = opt_blending;
 		if (opt_function)  emitter.particleFunction = opt_function;
 
 		emitter.setup();
