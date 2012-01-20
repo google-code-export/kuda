@@ -414,22 +414,17 @@
 	};
     
     BrowserModel.prototype.hideSelected = function() {
-		var mdl = this;
-		
 		for (var i = 0, il = this.selected.length; i < il; i++) {
-			mdl.hideTransform(this.selected[ndx]);
+			this.hideTransform(this.selected[i]);
 		}
     };
     
     BrowserModel.prototype.hideTransform = function(transform) {
 		transform.visible = false;
-//		opt_owner.setPickable({
-//			transforms: [transform],
-//			pick: false
-//		});
+		transform.pickable = false;
         this.notifyListeners(shorthand.events.TransformHidden, {
 			transform: transform,
-			owner: opt_owner
+			owner: owners.get(transform)
 		});
     };
 	
@@ -560,15 +555,8 @@
 		}
 	};
 	
-	BrowserModel.prototype.setTransformPickable = function(transform, pickable, opt_owner) {
-		if (opt_owner == null) {
-			opt_owner = hemi.world.getTranOwner(transform);
-		}
-		
-		opt_owner.setPickable({
-			transforms: [transform],
-			pick: pickable
-		});
+	BrowserModel.prototype.setTransformPickable = function(transform, pickable) {
+		transform.pickable = pickable;
         this.notifyListeners(shorthand.events.PickableSet, {
 			tran: transform,
 			pick: pickable
@@ -576,30 +564,14 @@
 	};
     
     BrowserModel.prototype.showSelected = function() {
-		var mdl = this;
-		
-		this.selected.each(function(key, value) {
-			var owner = hemi.world.getCitizenById(key);
-			
-			for (var ndx = 0, len = value.length; ndx < len; ndx++) {
-				mdl.showTransform(value[ndx], owner);
-			}
-		});
+		for (var i = 0, il = this.selected.length; i < il; i++) {
+			this.showTransform(this.selected[i]);
+		}
     };
     
     BrowserModel.prototype.showTransform = function(transform, opt_owner) {
-		if (opt_owner == null) {
-			opt_owner = hemi.world.getTranOwner(transform);
-		}
-		
-		opt_owner.setVisible({
-			transforms: [transform],
-			vis: true
-		});
-		opt_owner.setPickable({
-			transforms: [transform],
-			pick: true
-		});
+		transform.visible = true;
+		transform.pickable = true;
         this.notifyListeners(shorthand.events.TransformShown, transform);
     };
 	
@@ -627,9 +599,6 @@
 //			transform.material.color = DEFAULT_COLOR;
 		}
     };
-	
-	BrowserModel.prototype.unload = function(modelId) {
-	};
 	
 	BrowserModel.prototype.updateShape = function(shape) {
 		this.notifyListeners(shorthand.events.UpdateUserCreatedShape, shape);
@@ -959,7 +928,7 @@
 	HiddenItemListItem.prototype.constructor = HiddenItemListItem;
 
 	HiddenItemListItem.prototype.layout = function() {
-		hdnLiSuper.layou.call(this);
+		hdnLiSuper.layout.call(this);
 		
 		this.title = jQuery('<span></span>');
 		this.pickBtn = jQuery('<input type="checkbox"/>');
@@ -1001,7 +970,9 @@
 	};
 	
     HiddenItemsWidget.prototype.addHiddenItem = function(transform, owner) {
-		if (!this.hiddenItems.containsKey(transform.clientId)) {
+		var id = transform._getId();
+		
+		if (!this.hiddenItems.containsKey(id)) {
 			var li = new HiddenItemListItem(),
             	wgt = this;
 				
@@ -1024,13 +995,13 @@
 			transforms.push(transform);
 			
 			this.list.add(li);
-			this.hiddenItems.put(transform.clientId, li);
+			this.hiddenItems.put(id, li);
 			this.ownerTransHash.put(owner, transforms);
 		}
     };
     
     HiddenItemsWidget.prototype.removeHiddenItem = function(transform) {
-		var li = this.hiddenItems.remove(transform.clientId);
+		var li = this.hiddenItems.remove(transform._getId());
 		this.list.remove(li);
 		
 		if (this.hiddenItems.size() === 0) {
@@ -1061,7 +1032,7 @@
 	};
 	
 	HiddenItemsWidget.prototype.setPickable = function(transform, pickable) {
-		var li = this.hiddenItems.get(transform.clientId);
+		var li = this.hiddenItems.get(transform._getId());
 		
 		if (li) {
 			li.pickBtn.prop('checked', pickable);
