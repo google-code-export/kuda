@@ -7192,9 +7192,7 @@ if (!window.requestAnimationFrame) {
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.makeMovable = function(plane, opt_limits, opt_transforms) {
-		if (this._manip) {
-			removeMovable(this._manip);
-		}
+		this.cancelInteraction();
 
 		this._manip = getMovable(plane, opt_limits);
 		opt_transforms = opt_transforms || [];
@@ -7213,9 +7211,7 @@ if (!window.requestAnimationFrame) {
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.makeResizable = function(axis, opt_transforms) {
-		if (this._manip) {
-			removeResizable(this._manip);
-		}
+		this.cancelInteraction();
 
 		this._manip = getResizable(axis);
 		opt_transforms = opt_transforms || [];
@@ -7235,9 +7231,7 @@ if (!window.requestAnimationFrame) {
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.makeTurnable = function(axis, opt_limits, opt_transforms) {
-		if (this._manip) {
-			removeTurnable(this._manip);
-		}
+		this.cancelInteraction();
 
 		this._manip = getTurnable(axis, opt_limits);
 		opt_transforms = opt_transforms || [];
