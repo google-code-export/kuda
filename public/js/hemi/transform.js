@@ -71,6 +71,9 @@
 		 */
 		this.pickable = true;
 		// this.opacity?
+
+		// Improve performance by having autoupdate default to false
+		this.matrixAutoUpdate = false;
 	};
 
 	Transform.prototype = new THREE.Object3D();
@@ -394,6 +397,9 @@
 		 */
 		this.pickable = true;
 		// this.opacity?
+
+		// Improve performance by having autoupdate default to false
+		this.matrixAutoUpdate = false;
 	};
 
 	Mesh.prototype = new THREE.Mesh();
