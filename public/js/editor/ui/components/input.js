@@ -119,7 +119,7 @@
 					this.container.prop('checked', value);
 					break;
 				case 'angle':
-					value = hemi.core.math.radToDeg(value);
+					value = hemi.RAD_TO_DEG * value;
 				default:
 					if (this.config.placeHolder) {
 						this.container.val(this.config.placeHolder + ': ' + value);
@@ -159,7 +159,7 @@
 				break;
 			case 'angle':
 				var deg = parseFloat(this.container.val());
-				val = hemi.core.math.degToRad(deg);
+				val = hemi.DEG_TO_RAD * deg;
 				
 				if (isNaN(val)) {
 					val = null;
@@ -193,7 +193,7 @@
 					this.container.prop('checked', value);
 					break;
 				case 'angle':
-					var deg = hemi.core.math.radToDeg(value);
+					var deg = hemi.RAD_TO_DEG * value;
 					this.container.val(deg);
 					break;
 				default:
