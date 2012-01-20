@@ -82,7 +82,7 @@
 			y = -(mouseEvent.y / this.height) * 2 + 1,
 			camPos = this.camera.threeCamera.position;
 
-		_vector.set(x, y, 0.5);
+		_vector.set(x, y, 1);
 		_projector.unprojectVector(_vector, this.camera.threeCamera);
 		_ray.origin.copy(camPos);
 		_ray.direction.copy(_vector.subSelf(camPos).normalize());
