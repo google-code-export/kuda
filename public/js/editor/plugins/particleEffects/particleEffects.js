@@ -304,7 +304,7 @@
 		var saveBtn = this.find('#pteSaveBtn'),
 			cancelBtn = this.find('#pteCancelBtn'),
 			previewBtn = this.find('#ptePreviewBtn'),
-			inputs = this.find('input:not(.vector, .color, .quat, #pteName, #pteFireInterval)'),
+			inputs = this.find('input:not(.vector, .color, .quat, #pteName, #pte-fireInterval)'),
 			form = this.find('form'),
 			wgt = this,
 			validator = new editor.ui.createDefaultValidator(),
@@ -333,7 +333,7 @@
 			container: wgt.find('#pte-startTime')
 		});
 		this.fireInterval = new editor.ui.Input({
-			container: wgt.find('#ptefireInterval')
+			container: wgt.find('#pte-fireInterval')
 		});
 		this.billboard = new editor.ui.Input({
 			container: wgt.find('#pte-billboard'),
