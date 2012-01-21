@@ -850,7 +850,7 @@
 				this._client = hemi.getClient(pickedMesh);
 				this._originXY = xyPoint.call(this, _vector.set(0,0,0));
 
-				var axis2d = xyPoint.call(this, _vectory.copy(this.axis));
+				var axis2d = xyPoint.call(this, _vector.copy(this.axis));
 				this._pickXY.set(axis2d[0] - this._originXY[0], axis2d[1] - this._originXY[1]).normalize();
 				this._scale = getScale.call(this, event.x, event.y);
 				break;

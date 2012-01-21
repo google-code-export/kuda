@@ -374,7 +374,6 @@
 		if (ndx !== -1) {
 			this.selected.splice(ndx, 1);
 			this.currentShape = null;
-			this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
 			this.curHandle.setTransform(null);
 			this.notifyListeners(shorthand.events.ShapeSelected, null);
 			this.unhighlightTransform(transform);
@@ -518,17 +517,10 @@
 	
 	BrowserModel.prototype.selectTransform = function(transform) {		
 		// First clean out any child transforms or shapes that may have been
-		// previously selected.
+		// previously selected.00
 		this.deselectTransform(transform);
-		
-		var ndx = this.selected.indexOf(transform);
-			
-		if (this.selected.length === 0) {					
-			this.curHandle.setTransform(transform);
-		}
-		if (ndx === -1) {
-			this.selected.push(transform);
-		}
+		this.curHandle.setTransform(transform);
+		this.selected.push(transform);
 					
 		this.highlightTransform(transform);
 		this.notifyListeners(shorthand.events.TransformSelected, transform);
