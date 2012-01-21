@@ -4022,13 +4022,65 @@ var editor = {};
 	
 	var EXTENT = 5,
 		MAX_EXTENT = 10,
-		MIN_EXTENT = 4;
+		MIN_EXTENT = 4,
+		ALL_AXES = new THREE.Vector3(1, 1, 1);
 	
 	editor.ui.trans.DrawState = {
 		TRANSLATE: 0,
 		ROTATE: 1,
 		SCALE: 2,
 		NONE: 3
+	};
+	
+	function getBoundingBox(transform) {
+		var children = transform.children,
+			box = null;
+			
+		if (transform.geometry) {
+			box = {
+				min: transform.geometry.boundingBox.min.clone(),
+				max: transform.geometry.boundingBox.max.clone()
+			};
+		}
+		
+		for (var i = 0, il = children.length; i < il; i++) {
+			var b = getBoundingBox(children[i]);
+			if (box) {
+				box.min = new THREE.Vector3(
+					Math.min(b.min.x, box.min.x),
+					Math.min(b.min.y, box.min.y),
+					Math.min(b.min.z, box.min.z));
+				box.max = new THREE.Vector3(
+					Math.max(b.max.x, box.max.x),
+					Math.max(b.max.y, box.max.y),
+					Math.max(b.max.z, box.max.z));
+			}
+			else {
+				box = b;
+			}	
+		}
+		
+		return box;
+	};
+	
+	function getCenterOfGeometry(boundingBox) {
+		var x = (boundingBox.min.x + boundingBox.max.x)/2,
+			y = (boundingBox.min.y + boundingBox.max.y)/2,
+			z = (boundingBox.min.z + boundingBox.max.z)/2;
+		return new THREE.Vector3(x, y, z);
+	};
+	
+	function getExtent(boundingBox, transform) {
+		var minExt = hemi.utils.pointAsWorld(transform, boundingBox.min),
+			maxExt = hemi.utils.pointAsWorld(transform, boundingBox.max),
+//				minExt = bdgBox.minExtent,	FOR LOCAL
+//				maxExt = bdgBox.maxExtent,	FOR LOCAL
+			x = Math.abs(minExt.x - maxExt.x),
+			y = Math.abs(minExt.y - maxExt.y),
+			z = Math.abs(minExt.z - maxExt.z),
+			realExt = (x + y + z) / 3;
+			
+		return realExt < MIN_EXTENT ? MIN_EXTENT : realExt;
 	};
 	
 	var TransHandles = editor.ui.TransHandles = function() {
@@ -4073,8 +4125,9 @@ var editor = {};
 	TransHandles.prototype.drawHandles = function() {
 		if (this.drawState !== editor.ui.trans.DrawState.NONE) {
 //				var origin = this.transform.localMatrix[3],		FOR LOCAL
-			var origin = THREE.GeometryUtils.center(this.transform.geometry), 
-				extent = this.getExtent() / 2,
+			var bbox = getBoundingBox(this.transform),
+				origin = this.transform.matrix.decompose()[0].clone(), 
+				extent = getExtent(bbox, this.transform) / 2,
 				x = origin.x, 
 				y = origin.y, 
 				z = origin.z, 
@@ -4102,20 +4155,6 @@ var editor = {};
 		evt.y = evt.pageY - offset.top;
 		
 		return evt;
-	};
-	
-	TransHandles.prototype.getExtent = function() {
-		var bdgBox = this.transform.geometry.boundingBox,
-//				minExt = bdgBox.minExtent,	FOR LOCAL
-//				maxExt = bdgBox.maxExtent,	FOR LOCAL
-			minExt = hemi.utils.pointAsWorld(this.transform, bdgBox.min),
-			maxExt = hemi.utils.pointAsWorld(this.transform, bdgBox.max),
-			x = Math.abs(minExt.x - maxExt.x),
-			y = Math.abs(minExt.y - maxExt.y),
-			z = Math.abs(minExt.z - maxExt.z),
-			realExt = (x + y + z) / 3;
-			
-		return realExt < MIN_EXTENT ? MIN_EXTENT : realExt;
 	};
 	
 	TransHandles.prototype.isInView = function() {
@@ -4191,9 +4230,11 @@ var editor = {};
 	};
 	
 	TransHandles.prototype.onMouseMove = function(evt) {
-		if (!this.transform || this.down
-				|| this.drawState === editor.ui.trans.DrawState.NONE) {
+		if (!this.transform || this.drawState === editor.ui.trans.DrawState.NONE) {
 			return false;
+		} 
+		else if (this.down) {
+			this.manip.onMouseMove(evt);
 		}
 		
 		var x = evt.x,
@@ -4223,41 +4264,32 @@ var editor = {};
 		}
 		
 		this.down = false;
-		if (this.dragger) {
-			this.dragger.cleanup();
-			this.dragger = null;
-		}
-		if (this.turnable) {
-			this.turnable.cleanup();
-			this.turnable = null;
-		}
-		if (this.scalable) {
-			this.scalable.cleanup();
-			this.scalable = null;
+		if (this.manip) {
+			this.manip = null;
 		}
 		editor.client.camera.enableControl();
 		
 		// make the changes octanable
-		var param = this.transform.getParam('ownerId');
-		
-		if (param) {
-			owner = hemi.world.getCitizenById(param.value);
-			
-			if (owner.setTransformMatrix) {
-				owner.setTransformMatrix(this.transform, 
-					this.transform.localMatrix);
-			} else if (owner.setMatrix) {
-				owner.setMatrix(this.transform.localMatrix);
-			}
-		}
+//		var param = this.transform.getParam('ownerId');
+//		
+//		if (param) {
+//			owner = hemi.world.getCitizenById(param.value);
+//			
+//			if (owner.setTransformMatrix) {
+//				owner.setTransformMatrix(this.transform, 
+//					this.transform.localMatrix);
+//			} else if (owner.setMatrix) {
+//				owner.setMatrix(this.transform.localMatrix);
+//			}
+//		}
 		
 		return true;
 	};
 	
 	TransHandles.prototype.onRender = function(renderEvent) {
+		hemi.hudManager.clearDisplay();
+		
 		if (this.transform) {
-			hemi.hudManager.clearDisplay();
-			
 			if (this.drawCallback) {
 				this.drawCallback();
 			}
@@ -4338,24 +4370,18 @@ var editor = {};
 	
 	TransHandles.prototype.startRotate = function(axis, evt) {
 		editor.client.camera.disableControl();
-		this.turnable = new hemi.Turnable(axis);
-		this.turnable.addTransform(this.transform);
-		this.turnable.enable();
+		this.transform.makeTurnable(axis);
+		this.manip = this.transform._manip;
 		
-		this.turnable.onPick({
-			shapeInfo: {
-				parent: {
-					transform: this.transform
-				}
-			}
-		}, evt);
+		this.manip.onPick(this.transform, evt);
 	};
 	
 	TransHandles.prototype.startScale = function(axis, evt) {
 		editor.client.camera.disableControl();
-		this.scalable = new hemi.Scalable(axis);
-		this.scalable.addTransform(this.transform);
-		this.scalable.subscribe(
+		this.transform.makeResizable(axis);
+		this.manip = this.transform._manip;
+		
+		this.manip.subscribe(
 			hemi.msg.scale,
 			this,
 			"onChange",
@@ -4365,26 +4391,18 @@ var editor = {};
 		
 		
 		if (evt.shiftKey) {
-			this.scalable.axis = [1, 1, 1];
+			this.manip.axis = ALL_AXES;
 		}
 		
-		this.scalable.enable();
-		
-		this.scalable.onPick({
-			shapeInfo: {
-				parent: {
-					transform: this.transform
-				}
-			}
-		}, evt);
+		this.manip.onPick(this.transform, evt);
 	};
 	
 	TransHandles.prototype.startTranslate = function(plane, evt) {
-		editor.client.camera.disableControl();		
-		this.dragger = new hemi.Draggable();
-		this.dragger.name = editor.ToolConstants.EDITOR_PREFIX + 'Dragger';
-		this.dragger.setPlane(plane);
-		this.dragger.subscribe(
+		editor.client.camera.disableControl();
+		this.transform.makeMovable(plane);		
+		this.manip = this.transform._manip;
+		this.manip.name = editor.ToolConstants.EDITOR_PREFIX + 'Dragger';
+		this.manip.subscribe(
 			hemi.msg.drag,
 			this,
 			"onChange",
@@ -4394,25 +4412,17 @@ var editor = {};
 		
 		switch(plane) {
 			case hemi.Plane.XY:
-			    this.dragger.vmin = this.dragger.vmax = 0;
+			    this.manip.vmin = this.manip.vmax = 0;
 				break;
 			case hemi.Plane.YZ:
-			    this.dragger.umin = this.dragger.umax = 0;
+			    this.manip.umin = this.manip.umax = 0;
 				break;
 			case hemi.Plane.XZ:
-			    this.dragger.umin = this.dragger.umax = 0;
+			    this.manip.umin = this.manip.umax = 0;
 				break;
 		}
-
-        this.dragger.addTransform(this.transform);
 		
-		this.dragger.onPick({
-			shapeInfo: {
-				parent: {
-					transform: this.transform
-				}
-			}
-		}, evt);
+		this.manip.onPick(this.transform, evt);
 	};
 	
 	var Arrow = function(canvas, color, hoverColor) {
@@ -4461,32 +4471,32 @@ var editor = {};
 		// sample points on a circle in 3d space
 		for (var ndx = 0, len = angles.length; ndx < len; ndx++) {
 			var a = angles[ndx],
-				pnt = hemi.core.math.copyVector(origin); 
+				pnt = origin.clone(); 
 				
 			switch(cfg.plane) {
 				case hemi.Plane.XY:
-					pnt[1] = origin[1] + radius * Math.cos(a);
-					pnt[0] = origin[0] + radius * Math.sin(a);
+					pnt.y = origin.y + radius * Math.cos(a);
+					pnt.x = origin.x + radius * Math.sin(a);
 					break;
 				case hemi.Plane.YZ:
-					pnt[2] = origin[2] + radius * Math.cos(a);
-					pnt[1] = origin[1] + radius * Math.sin(a);
+					pnt.z = origin.z + radius * Math.cos(a);
+					pnt.y = origin.y + radius * Math.sin(a);
 					break;
 				case hemi.Plane.XZ:
-					pnt[0] = origin[0] + radius * Math.cos(a);
-					pnt[2] = origin[2] + radius * Math.sin(a);
+					pnt.x = origin.x + radius * Math.cos(a);
+					pnt.z = origin.z + radius * Math.sin(a);
 					break;
 			}
 			
-			pnt = hemi.utils.worldToScreen(pnt);
+			pnt = hemi.utils.worldToScreen(editor.client, pnt);
 			if (ndx === 0) {
-				cvs.moveTo(pnt[0], pnt[1]);
+				cvs.moveTo(pnt.x, pnt.y);
 				pnt1 = pnt;
 			}
 			else if (ndx === len-1) {
 				pnt2 = pnt;
 			}
-			cvs.lineTo(pnt[0], pnt[1]);
+			cvs.lineTo(pnt.x, pnt.y);
 		}
 		cvs.strokeStyle = this.hover ? this.hvrClr : this.clr;
 		cvs.lineWidth = cfg.lineWidth * 3;
@@ -4494,13 +4504,14 @@ var editor = {};
 		cvs.stroke();
 		
 		// save coordinates
-		var x1 = pnt1[0],
-			x2 = pnt2[0],
-			y1 = pnt1[1],
-			y2 = pnt2[1],
+		var x1 = pnt1.x,
+			x2 = pnt2.x,
+			y1 = pnt1.y,
+			y2 = pnt2.y,
 			minX = Math.min(x1, x2),
 			minY = Math.min(y1, y2),
 			maxX = Math.max(x1, x2),
+			
 			maxY = Math.max(y1, y2);
 			
 		if (Math.abs(x1 - x2) < 5) {
@@ -4524,37 +4535,37 @@ var editor = {};
 			cvs = this.canvas,
 			clr = this.hover ? this.hvrClr : this.clr,
 			cubeFcn = function(ndx1, ndx2, ndx3) {
-				var pnt1 = hemi.core.math.copyVector(vector),
+				var pnt1 = vector.clone(),
 					pnts = [];
-				pnt1[ndx1] = vector[ndx1] + size/2;
-				pnt1[ndx2] = vector[ndx2] + size/2;
+				pnt1[ndx1] = pnt1[ndx1] + size/2;
+				pnt1[ndx2] = pnt1[ndx2] + size/2;
 				pnts.push(pnt1);
 				
-				var pnt2 = hemi.core.math.copyVector(pnt1);
+				var pnt2 = pnt1.clone();
 				pnt2[ndx2] -= size;
 				pnts.push(pnt2);
 				
-				var pnt3 = hemi.core.math.copyVector(pnt2);
+				var pnt3 = pnt2.clone();
 				pnt3[ndx1] -= size;	
 				pnts.push(pnt3);
 				
-				var pnt4 = hemi.core.math.copyVector(pnt3);
+				var pnt4 = pnt3.clone();
 				pnt4[ndx2] += size;
 				pnts.push(pnt4);
 				
-				var pnt = hemi.core.math.copyVector(pnt4);
+				var pnt = pnt4.clone();
 				pnt[ndx3] += size;
 				pnts.push(pnt);
 				
-				pnt = hemi.core.math.copyVector(pnt3);
+				pnt = pnt3.clone();
 				pnt[ndx3] += size;
 				pnts.push(pnt);
 				
-				pnt = hemi.core.math.copyVector(pnt2);
+				pnt = pnt2.clone();
 				pnt[ndx3] += size;
 				pnts.push(pnt);
 				
-				pnt = hemi.core.math.copyVector(pnt1);
+				pnt = pnt1.clone();
 				pnt[ndx3] += size;
 				pnts.push(pnt);
 				
@@ -4562,11 +4573,11 @@ var editor = {};
 			},
 			faceFcn = function(point1, point2, point3, point4) {
 				cvs.beginPath();
-				cvs.moveTo(point1[0], point1[1]);
-				cvs.lineTo(point2[0], point2[1]);
-				cvs.lineTo(point3[0], point3[1]);
-				cvs.lineTo(point4[0], point4[1]);
-				cvs.lineTo(point1[0], point1[1]);
+				cvs.moveTo(point1.x, point1.y);
+				cvs.lineTo(point2.x, point2.y);
+				cvs.lineTo(point3.x, point3.y);
+				cvs.lineTo(point4.x, point4.y);
+				cvs.lineTo(point1.x, point1.y);
 				cvs.closePath();
 				cvs.fillStyle = clr;
 				cvs.fill();
@@ -4574,13 +4585,13 @@ var editor = {};
 				
 		switch(cfg.plane) {
 			case hemi.Plane.XY:
-				points = cubeFcn(1, 2, 0);
+				points = cubeFcn('y', 'z', 'x');
 				break;
 			case hemi.Plane.YZ:
-				points = cubeFcn(2, 0, 1);
+				points = cubeFcn('z', 'x', 'y');
 				break;
 			case hemi.Plane.XZ:
-				points = cubeFcn(0, 1, 2);
+				points = cubeFcn('x', 'y', 'z');
 				break;
 		}
 		
@@ -4590,12 +4601,12 @@ var editor = {};
 		maxX = maxY = -10000000;
 		
 		for (var ndx = 0, len = points.length; ndx < len; ndx++) {
-			var pnt = hemi.utils.worldToScreen(client, points[ndx]);
+			var pnt = hemi.utils.worldToScreen(client, points[ndx].clone());
 			
-			minX = Math.min(minX, pnt[0]);
-			minY = Math.min(minY, pnt[1]);
-			maxX = Math.max(maxX, pnt[0]);
-			maxY = Math.max(maxY, pnt[1]);
+			minX = Math.min(minX, pnt.x);
+			minY = Math.min(minY, pnt.y);
+			maxX = Math.max(maxX, pnt.x);
+			maxY = Math.max(maxY, pnt.y);
 		}
 		
 		var pnt1 = hemi.utils.worldToScreen(client, points[0]),
