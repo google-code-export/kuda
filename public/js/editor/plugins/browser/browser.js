@@ -568,14 +568,8 @@
     };
 	
 	BrowserModel.prototype.unhighlightAll = function() {
-		var owners = this.selected.values();
-		
-		for (var i = 0, il = owners.length; i < il; i++) {
-			var transforms = owners[i];
-			
-			for (var j = 0, jl = transforms.length; j < jl; j++) {
-				this.unhighlightTransform(transforms[j]);
-			}
+		for (var i = 0, il = this.selected.length; i < il; i++) {
+			this.unhighlightTransform(this.selected[i]);
 		}
 	};
     
@@ -1876,7 +1870,7 @@
 			
 			mbrWgt.addShape(shape);
 			
-			if (shape.transform.visible === false) {
+			if (shape.mesh.visible === false) {
 				hidWgt.addHiddenItem(shape.transform, shape);
 				hidWgt.setVisible(isDown);
 			}
