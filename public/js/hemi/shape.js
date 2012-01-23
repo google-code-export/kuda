@@ -298,6 +298,7 @@
 		}
 
 		mesh.geometry.computeBoundingSphere();
+		mesh.geometry.computeBoundingBox();
 		mesh.boundRadius = mesh.geometry.boundingSphere.radius;
 		return mesh;
 	};
