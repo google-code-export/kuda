@@ -169,7 +169,6 @@ var uglifyHemi = function(src, dst) {
 					//'hemi/accessibility.js',
 					'hemi/world.js',
 					'hemi/octane.js',
-					//'hemi/handlers/valueCheck.js',
 					'hemi/audio.js',
 					'hemi/dispatch.js',
 					'hemi/input.js',
@@ -189,7 +188,8 @@ var uglifyHemi = function(src, dst) {
 					'hemi/shape.js',
 					'hemi/fx.js',
 					'hemi/texture.js',
-					'hemi/timer.js'
+					'hemi/timer.js',
+					'hemi/valueCheck.js'
 				]
 			},
 			header =
