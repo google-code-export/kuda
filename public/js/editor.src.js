@@ -240,6 +240,8 @@ var editor = {};
 		Editing: 'editor.Editing',
 		
 		Enabled: 'editor.Enabled',
+
+		Invalidate: 'editor.Invalidate',
 		
 		Loaded: 'editor.Loaded',
 		
@@ -276,7 +278,7 @@ var editor = {};
 		Updated: 'editor.Updated',
 		
 		ViewAdded: 'editor.ViewAdded',
-		
+
 		WidgetVisible: 'editor.WidgetVisible',
 		
 		WorldCleaned: 'editor.WorldCleaned',
@@ -3427,11 +3429,16 @@ var editor = {};
 	};
 	
 	Panel.prototype.addWidget = function(widget) {
+		var pnl = this;
+
 		this.container.append(widget.getUI());
 		this[widget.getName()] = widget;
 		this.widgets.push(widget);
-		
+
 		widget.setMinHeight(parseInt(this.container.css('min-height')));
+		widget.addListener(editor.events.Invalidate, function(data) {
+			pnl.resize();
+		});
 	};
 	
 	Panel.prototype.resize = function() {
@@ -3526,7 +3533,7 @@ var editor = {};
 	};
 	
 	Widget.prototype.invalidate = function() {
-		this.sizeAndPosition();
+		this.notifyListeners(editor.events.Invalidate, null);
 	};
 	
 	Widget.prototype.setMinHeight = function(pnlHeight) {

@@ -34,6 +34,8 @@
 		Editing: 'editor.Editing',
 		
 		Enabled: 'editor.Enabled',
+
+		Invalidate: 'editor.Invalidate',
 		
 		Loaded: 'editor.Loaded',
 		
@@ -70,7 +72,7 @@
 		Updated: 'editor.Updated',
 		
 		ViewAdded: 'editor.ViewAdded',
-		
+
 		WidgetVisible: 'editor.WidgetVisible',
 		
 		WorldCleaned: 'editor.WorldCleaned',
