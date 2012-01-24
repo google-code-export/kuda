@@ -521,6 +521,7 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
+					'varying float v_discard;\n' +
 					'\n' +
 					'void main() {\n' +
 					'  vec2 uv = uvLifeTimeFrameStart.xy;\n' +
@@ -536,6 +537,13 @@ var Hashtable = (function() {
 					'  float endSize = accelerationEndSize.w;\n' +
 					'  float spinStart = spinStartSpinSpeed.x;\n' +
 					'  float spinSpeed = spinStartSpinSpeed.y;\n' +
+					'\n' +
+					'  if (startTime < 0.0) {\n' +
+					'    gl_Position = vec4(0);\n' +
+					'    v_discard = 1.0;\n' +
+					'  } else {\n' +
+					'    v_discard = -1.0;\n' +
+					'  }\n' +
 					'\n' +
 					'  float localTime = mod((time - timeOffset - startTime),\n' +
 					'      timeRange);\n' +
@@ -591,12 +599,17 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
+					'varying float v_discard;\n' +
 					'\n' +
 					'// We need to implement 1D!\n' +
 					'uniform sampler2D rampSampler;\n' +
 					'uniform sampler2D colorSampler;\n' +
 					'\n' +
 					'void main() {\n' +
+					'  if (v_discard > 0.0) {\n' +
+					'    discard;\n' +
+					'  }\n' +
+					'\n' +
 					'  vec4 colorMult = texture2D(rampSampler, \n' +
 					'      vec2(v_percentLife, 0.5)) * v_colorMult;\n' +
 					'  vec4 color = texture2D(colorSampler, v_texcoord) * colorMult;\n' +
@@ -645,6 +658,7 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
+					'varying float v_discard;\n' +
 					'\n' +
 					'void main() {\n' +
 					'  vec2 uv = uvLifeTimeFrameStart.xy;\n' +
@@ -660,6 +674,13 @@ var Hashtable = (function() {
 					'  float endSize = accelerationEndSize.w;\n' +
 					'  float spinStart = spinStartSpinSpeed.x;\n' +
 					'  float spinSpeed = spinStartSpinSpeed.y;\n' +
+					'\n' +
+					'  if (startTime < 0.0) {\n' +
+					'    gl_Position = vec4(0);\n' +
+					'    v_discard = 1.0;\n' +
+					'  } else {\n' +
+					'    v_discard = -1.0;\n' +
+					'  }\n' +
 					'\n' +
 					'  float localTime = mod((time - timeOffset - startTime),\n' +
 					'      timeRange);\n' +
@@ -697,12 +718,17 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
+					'varying float v_discard;\n' +
 					'\n' +
 					'// We need to implement 1D!\n' +
 					'uniform sampler2D rampSampler;\n' +
 					'uniform sampler2D colorSampler;\n' +
 					'\n' +
 					'void main() {\n' +
+					'  if (v_discard > 0.0) {\n' +
+					'    discard;\n' +
+					'  }\n' +
+					'\n' +
 					'  vec4 colorMult = texture2D(rampSampler, \n' +
 					'      vec2(v_percentLife, 0.5)) * v_colorMult;\n' +
 					'  vec4 color = texture2D(colorSampler, v_texcoord) * colorMult;\n' +
@@ -1291,8 +1317,12 @@ var Hashtable = (function() {
 		this._parameters = parameters;
 		this._paramSetter = opt_paramSetter;
 
+		parameters.startTime = -1;
+		this.shape.dynamic = true;
+
 		allocateParticles.call(this, maxParticles);
 		setupMaterial.call(this, parameters);
+		createParticles.call(this, 0, maxParticles, parameters, opt_paramSetter);
 	};
 
 	hemi.particles.Trail.prototype = new hemi.particles.Emitter();
@@ -1304,18 +1334,18 @@ var Hashtable = (function() {
 	* @param {number[3]} position Position to birth particles at.
 	*/
 	hemi.particles.Trail.prototype.birthParticles = function(position) {
-		var numParticles = this._parameters.numParticles;
-		this._parameters.startTime = this._timeParam.value;
-		this._parameters.position = position;
+		var numParticles = this._parameters.numParticles,
+			positionRange = this._parameters.positionRange,
+			startTime = this._timeParam.value;
 
 		while (this._birthIndex + numParticles >= this._maxParticles) {
 			var numParticlesToEnd = this._maxParticles - this._birthIndex;
-			createParticles.call(this, this._birthIndex, numParticlesToEnd, this._parameters, this._paramSetter);
+			updateParticles.call(this, this._birthIndex, numParticlesToEnd, startTime, position, positionRange);
 			numParticles -= numParticlesToEnd;
 			this._birthIndex = 0;
 		}
 
-		createParticles.call(this, this._birthIndex, numParticles, this._parameters, this._paramSetter);
+		updateParticles.call(this, this._birthIndex, numParticles, startTime, position, positionRange);
 		this._birthIndex += numParticles;
 	};
 
@@ -1333,8 +1363,8 @@ var Hashtable = (function() {
 			}
 
 			var index = i * 4;
-			this.shape.faces.push(new THREE.Face3(index, index + 1, index + 2));
-			this.shape.faces.push(new THREE.Face3(index, index + 2, index + 3));
+			this.shape.faces.push(new THREE.Face3(index, index + 1, index + 3));
+			this.shape.faces.push(new THREE.Face3(index + 1, index + 2, index + 3));
 		}
 	}
 
@@ -1484,6 +1514,41 @@ var Hashtable = (function() {
 		this.material.vertexShader = shader.vertexShader;
 		this.material.fragmentShader = shader.fragmentShader;
 		this._timeParam = this.material.uniforms.time;
+	}
+
+	function updateParticles(firstParticleIndex, numParticles, startTime, position, positionRange) {
+		var positionStartTime = this.material.attributes.positionStartTime,
+			random = this._particleSystem._randomFunction,
+
+			plusMinus = function(range) {
+				return (random() - 0.5) * range * 2;
+			},
+
+			plusMinusVector = function(v, range) {
+				var r = [];
+
+				for (var i = 0, il = v.length; i < il; ++i) {
+					r[i] = v[i] + plusMinus(range[i]);
+				}
+
+				return r;
+			};
+
+		for (var ii = 0; ii < numParticles; ++ii) {
+			var pPosition = plusMinusVector(position, positionRange);
+
+			// make each corner of the particle.
+			for (var jj = 0; jj < 4; ++jj) {
+				var offset = ii * 4 + jj + firstParticleIndex;
+
+				positionStartTime.value[offset].x = pPosition[0];
+				positionStartTime.value[offset].y = pPosition[1];
+				positionStartTime.value[offset].z = pPosition[2];
+				positionStartTime.value[offset].w = startTime;
+			}
+		}
+
+		positionStartTime.needsUpdate = true;
 	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3372,6 +3437,19 @@ if (!window.requestAnimationFrame) {
 
 		// Magic to get the WebGLRenderer to update the vertex buffer
 		updateUVs(geometry);
+	};
+
+	/**
+	 * Convert the transform from using quaternions to manage its rotation to using Euler angles.
+	 * 
+	 * @param {hemi.Transform} transform the Transform to convert
+	 */
+	hemi.utils.useEuler = function(transform) {
+		if (transform.useQuaternion) {
+			_matrix.setRotationFromQuaternion(transform.quaternion);
+			transform.rotation.setRotationFromMatrix(_matrix);
+			transform.useQuaternion = false;
+		}
 	};
 
 	/**
@@ -6532,8 +6610,7 @@ if (!window.requestAnimationFrame) {
 (function() {
 
 		// Static helper objects shared by all motions
-	var _matrix = new THREE.Matrix4(),
-		_vector = new THREE.Vector3();
+	var _vector = new THREE.Vector3();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Contants
@@ -6592,19 +6669,6 @@ if (!window.requestAnimationFrame) {
 
 		this.enable();
 	};
-
-	/*
-	 * Remove all references in the Rotator.
-	 */
-	Rotator.prototype._clean = function() {
-		//TODO
-	};
-
-	/*
-	 * Array of Hemi Messages that Rotator is known to send.
-	 * @type string[]
-	 */
-	Rotator.prototype._msgSent = [hemi.msg.start, hemi.msg.stop];
 
 	/*
 	 * Octane properties for Rotator.
@@ -6719,14 +6783,8 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Transform} transform the Transform to rotate
 	 */
 	Rotator.prototype.setTransform = function(transform) {
+		hemi.utils.useEuler(transform);
 		this._transform = transform;
-
-		if (transform.useQuaternion) {
-			_matrix.setRotationFromQuaternion(transform.quaternion);
-			transform.rotation.setRotationFromMatrix(_matrix);
-			transform.useQuaternion = false;
-		}
-
 		this.angle.copy(transform.rotation);
 	};
 
@@ -6755,10 +6813,8 @@ if (!window.requestAnimationFrame) {
 		this._transform.updateMatrixWorld();
 	}
 
-	hemi.makeCitizen(Rotator, 'hemi.Rotator', {
-		cleanup: Rotator.prototype._clean,
-		toOctane: Rotator.prototype._octane
-	});
+	hemi.Rotator = Rotator;
+	hemi.makeOctanable(hemi.Rotator, 'hemi.Rotator', hemi.Rotator.prototype._octane);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Translator class
@@ -6791,20 +6847,6 @@ if (!window.requestAnimationFrame) {
 
 		this.enable();
 	};
-
-	/*
-	 * Remove all references in the Translator.
-	 */
-	Translator.prototype._clean = function() {
-		this.disable();
-		this.clearTransforms();
-	};
-
-	/*
-	 * Array of Hemi Messages that Translator is known to send.
-	 * @type string[]
-	 */
-	Translator.prototype._msgSent = [hemi.msg.start, hemi.msg.stop];
 
 	/*
 	 * Octane properties for Translator.
@@ -6944,10 +6986,8 @@ if (!window.requestAnimationFrame) {
 		this._transform.updateMatrixWorld();
 	}
 
-	hemi.makeCitizen(Translator, 'hemi.Translator', {
-		cleanup: Translator.prototype._clean,
-		toOctane: Translator.prototype._octane
-	});
+	hemi.Translator = Translator;
+	hemi.makeOctanable(hemi.Translator, 'hemi.Translator', hemi.Translator.prototype._octane);
 
 })();
 /*
@@ -7011,10 +7051,16 @@ if (!window.requestAnimationFrame) {
 		this._manip = null;
 
 		/*
-		 * A container of any Motions that are currently animating the Transform.
-		 * @type Object
+		 * The Rotator that is currently moving the Transform.
+		 * @type hemi.Rotator
 		 */
-		this._motions = {};
+		this._rotator = null;
+
+		/*
+		 * The Translator that is currently moving the Transform.
+		 * @type hemi.Translator
+		 */
+		this._translator = null;
 
 		/**
 		 * Flag indicating if the Transform should be pickable by mouse clicks.
@@ -7086,10 +7132,49 @@ if (!window.requestAnimationFrame) {
 
 	/*
 	 * Octane properties for Transform.
-	 * @type string[]
+	 * 
+	 * @return {Object[]} array of Octane properties
 	 */
-	Transform.prototype._octane = ['name', 'children', 'pickable', 'visible', 'position',
-			'rotation', 'quaternion', 'scale', 'useQuaternion'];
+	Transform.prototype._octane = function() {
+		var names = ['pickable', 'visible', 'useQuaternion'],
+			props = [],
+			childArr = [];
+
+		for (var i = 0, il = names.length; i < il; ++i) {
+			var name = names[i];
+
+			props.push({
+				name: name,
+				val: this[name]
+			});
+		}
+
+		for (var i = 0, il = this.children.length; i < il; ++i) {
+			childArr[i] = this.children[i]._getId();
+		}
+
+		props.push({
+			name: 'children',
+			id: childArr
+		});
+
+		names = ['_manip', '_rotator', '_translator', 'position', 'scale'];
+
+		names.push(this.useQuaternion ? 'quaternion' : 'rotation');
+
+		for (var i = 0, il = names.length; i < il; ++i) {
+			var name = names[i];
+
+			if (this[name]) {
+				props.push({
+					name: name,
+					oct: this[name]._toOctane()
+				});
+			}
+		}
+
+		return props;
+	};
 
 	/**
 	 * Add the given motion type to the Transform with the given velocity and/or acceleration.
@@ -7099,12 +7184,28 @@ if (!window.requestAnimationFrame) {
 	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for the motion
 	 */
 	Transform.prototype.addMotion = function(type, opt_velocity, opt_acceleration) {
-		var motion = this._motions[type];
+		var motion;
 
-		if (!motion) {
-			motion = getMotion(type);
-			motion.setTransform(this);
-			this._motions[type] = motion;
+		switch (type) {
+			case hemi.MotionType.ROTATE:
+				if (!this._rotator) {
+					this._rotator = getMotion(type);
+					this._rotator.setTransform(this);
+				}
+
+				motion = this._rotator;
+				break;
+			case hemi.MotionType.TRANSLATE:
+				if (!this._translator) {
+					this._translator = getMotion(type);
+					this._translator.setTransform(this);
+				}
+
+				motion = this._translator;
+				break;
+			default:
+				console.log('Unrecognized motion type: ' + type);
+				break;
 		}
 
 		if (motion) {
@@ -7144,12 +7245,57 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.MotionType} type the type of motion to cancel
 	 */
 	Transform.prototype.cancelMotion = function(type) {
-		var motion = this._motions[type];
+		var motion;
+
+		switch (type) {
+			case hemi.MotionType.ROTATE:
+				motion = this._rotator;
+				this._rotator = null;
+				break;
+			case hemi.MotionType.TRANSLATE:
+				motion = this._translator;
+				this._translator = null;
+				break;
+			default:
+				console.log('Unrecognized motion type: ' + type);
+				break;
+		}
 
 		if (motion) {
 			removeMotion(motion, type);
-			this._motions[type] = undefined;
 		}
+	};
+
+	/**
+	 * Get the current acceleration of the given motion type for the Transform.
+	 * 
+	 * @param {hemi.MotionType} type the type of motion acceleration to get
+	 * @param {THREE.Vector3} opt_accel optional vector to receive acceleration data
+	 * @return {THREE.Vector3} the current acceleration of the given motion type
+	 */
+	Transform.prototype.getAcceleration = function(type, opt_accel) {
+		var motion;
+		opt_accel = opt_accel || new THREE.Vector3();
+
+		switch (type) {
+			case hemi.MotionType.ROTATE:
+				motion = this._rotator;
+				break;
+			case hemi.MotionType.TRANSLATE:
+				motion = this._translator;
+				break;
+			default:
+				console.log('Unrecognized motion type: ' + type);
+				break;
+		}
+
+		if (motion) {
+			opt_accel.copy(motion.accel);
+		} else {
+			opt_accel.set(0, 0, 0);
+		}
+
+		return opt_accel;
 	};
 
 	/**
@@ -7168,6 +7314,38 @@ if (!window.requestAnimationFrame) {
 		}
 
 		return opt_arr;
+	};
+
+	/**
+	 * Get the current velocity of the given motion type for the Transform.
+	 * 
+	 * @param {hemi.MotionType} type the type of motion velocity to get
+	 * @param {THREE.Vector3} opt_vel optional vector to receive velocity data
+	 * @return {THREE.Vector3} the current velocity of the given motion type
+	 */
+	Transform.prototype.getVelocity = function(type, opt_vel) {
+		var motion;
+		opt_vel = opt_vel || new THREE.Vector3();
+
+		switch (type) {
+			case hemi.MotionType.ROTATE:
+				motion = this._rotator;
+				break;
+			case hemi.MotionType.TRANSLATE:
+				motion = this._translator;
+				break;
+			default:
+				console.log('Unrecognized motion type: ' + type);
+				break;
+		}
+
+		if (motion) {
+			opt_vel.copy(motion.vel);
+		} else {
+			opt_vel.set(0, 0, 0);
+		}
+
+		return opt_vel;
 	};
 
 	/**
@@ -7252,16 +7430,12 @@ if (!window.requestAnimationFrame) {
 	 * @return {boolean} true if the Transform will start moving, false if it will not
 	 */
 	Transform.prototype.move = function(delta, time, opt_mustComplete) {
-		var type = hemi.MotionType.TRANSLATE,
-			motion = this._motions[type];
-
-		if (!motion) {
-			motion = getMotion(type);
-			motion.setTransform(this);
-			this._motions[type] = motion;
+		if (!this._translator) {
+			this._translator = getMotion(hemi.MotionType.TRANSLATE);
+			this._translator.setTransform(this);
 		}
 
-		return motion.move(delta, time, opt_mustComplete);
+		return this._translator.move(delta, time, opt_mustComplete);
 	};
 
 	/**
@@ -7274,16 +7448,7 @@ if (!window.requestAnimationFrame) {
 	 * @return {boolean} true if the Transform will start resizing, false if it will not
 	 */
 	Transform.prototype.resize = function(scale, time, opt_mustComplete) {
-		var type = hemi.MotionType.SCALE,
-			motion = this._motions[type];
-
-		if (!motion) {
-			motion = getMotion(type);
-			motion.setTransform(this);
-			this._motions[type] = motion;
-		}
-
-		return motion.resize(scale, time, opt_mustComplete);
+		// TODO
 	};
 
 	/**
@@ -7296,16 +7461,12 @@ if (!window.requestAnimationFrame) {
 	 * @return {boolean} true if the Transform will start turning, false if it will not
 	 */
 	Transform.prototype.turn = function(theta, time, opt_mustComplete) {
-		var type = hemi.MotionType.ROTATE,
-			motion = this._motions[type];
-
-		if (!motion) {
-			motion = getMotion(type);
-			motion.setTransform(this);
-			this._motions[type] = motion;
+		if (!this._rotator) {
+			this._rotator = getMotion(hemi.MotionType.ROTATE);
+			this._rotator.setTransform(this);
 		}
 
-		return motion.turn(theta, time, opt_mustComplete);
+		return this._rotator.turn(theta, time, opt_mustComplete);
 	};
 
 	hemi.makeCitizen(Transform, 'hemi.Transform', {
@@ -7331,10 +7492,16 @@ if (!window.requestAnimationFrame) {
 		this._manip = null;
 
 		/*
-		 * A container of any Motions that are currently animating the Mesh.
-		 * @type Object
+		 * The Rotator that is currently moving the Mesh.
+		 * @type hemi.Rotator
 		 */
-		this._motions = {};
+		this._rotator = null;
+
+		/*
+		 * The Translator that is currently moving the Mesh.
+		 * @type hemi.Translator
+		 */
+		this._translator = null;
 
 		/**
 		 * Flag indicating if the Mesh should be pickable by mouse clicks.
@@ -7412,12 +7579,30 @@ if (!window.requestAnimationFrame) {
 	Mesh.prototype.cancelMotion = Transform.prototype.cancelMotion;
 
 	/**
+	 * Get the current acceleration of the given motion type for the Mesh.
+	 * 
+	 * @param {hemi.MotionType} type the type of motion acceleration to get
+	 * @param {THREE.Vector3} opt_accel optional vector to receive acceleration data
+	 * @return {THREE.Vector3} the current acceleration of the given motion type
+	 */
+	Mesh.prototype.getAcceleration = Transform.prototype.getAcceleration;
+
+	/**
 	 * Get all of the child Transforms that are under the Mesh.
 	 *
 	 * @param {hemi.Transform[]} opt_arr optional array to place Transforms in
 	 * @return {hemi.Transform[]} array of all child/grandchild Transforms
 	 */
 	Mesh.prototype.getAllChildren = Transform.prototype.getAllChildren;
+
+	/**
+	 * Get the current velocity of the given motion type for the Mesh.
+	 * 
+	 * @param {hemi.MotionType} type the type of motion velocity to get
+	 * @param {THREE.Vector3} opt_vel optional vector to receive velocity data
+	 * @return {THREE.Vector3} the current velocity of the given motion type
+	 */
+	Mesh.prototype.getVelocity = Transform.prototype.getVelocity;
 
 	/**
 	 * Set all of the Transform's properties to their identity values.
@@ -8722,22 +8907,24 @@ if (!window.requestAnimationFrame) {
 	 * @return {Object[]} array of Octane properties
 	 */
 	Model.prototype._octane = function() {
-		var names = ['autoLoad', 'client', 'root'],
-			props = [];
-
-		for (var i = 0, il = names.length; i < il; ++i) {
-			var name = names[i];
-
-			props.push({
-				name: name,
-				val: this[name]
-			});
-		}
-
-		props.push({
-			name: 'setFileName',
-			arg: [this._fileName]
-		});
+		return [
+				{
+					name: 'autoLoad',
+					val: this.autoLoad
+				},
+				{
+					name: 'client',
+					id: this.client._getId()
+				},
+				{
+					name: 'root',
+					id: this.root._getId()
+				},
+				{
+					name: 'setFileName',
+					arg: [this._fileName]
+				}
+			];
 
 		return props;
 	};
@@ -9971,13 +10158,6 @@ if (!window.requestAnimationFrame) {
 		this.transform = new THREE.Mesh(this.particles.shape, this.particles.material);
 		this.transform.doubleSided = true; // turn off face culling
 		this.client.scene.add(this.transform);
-
-		this.client.renderer.initWebGLObjects(this.client.scene);
-		var attributes = this.particles.material.attributes;
-
-		for (var a in attributes) {
-			attributes[a].needsUpdate = false;
-		}
 	};
 
 	/**

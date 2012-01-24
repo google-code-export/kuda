@@ -250,6 +250,19 @@
 	};
 
 	/**
+	 * Convert the transform from using quaternions to manage its rotation to using Euler angles.
+	 * 
+	 * @param {hemi.Transform} transform the Transform to convert
+	 */
+	hemi.utils.useEuler = function(transform) {
+		if (transform.useQuaternion) {
+			_matrix.setRotationFromQuaternion(transform.quaternion);
+			transform.rotation.setRotationFromMatrix(_matrix);
+			transform.useQuaternion = false;
+		}
+	};
+
+	/**
 	 * Rotate the Transform by the given angle along the given world space axis.
 	 *
 	 * @param {THREE.Vector3} axis rotation axis defined as an XYZ vector
