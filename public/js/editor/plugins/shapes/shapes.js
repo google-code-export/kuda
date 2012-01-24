@@ -507,6 +507,17 @@
         	view = this.view,
 			crtWgt = view.sidePanel.createShapeWidget,
 			lstWgt = view.sidePanel.shapeListWidget;
+			
+		view.addListener(editor.events.ToolModeSet, function(value) {
+			var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
+			
+			if (model.prevShape) {
+				model.prevShape.mesh.visible = isDown;
+				if (model.currentShape) {
+					model.currentShape.mesh.visible = !isDown;
+				}
+			}
+		});	        
 		
 		// create sidebar widget listeners
 		crtWgt.addListener(shorthand.events.SaveShape, function(props) {				

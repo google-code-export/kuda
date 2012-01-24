@@ -15156,21 +15156,28 @@ if (!window.requestAnimationFrame) {
 	 * Create the actual geometry for the Shape.
 	 */
 	Shape.prototype.create = function() {
+		var renderer = this.client.renderer,
+			scene = this.client.scene;
+			
 		if (this.mesh === null) {
 			this.mesh = new hemi.Mesh();
+		}
+		else {
+			// cleanup
+			scene.__objectsRemoved.push(this.mesh);
+			renderer.initWebGLObjects(scene);
+			renderer.deallocateObject(this.mesh);
 		}
 
 		hemi.createShape(this.config, this.mesh);
 		this.setName(this.name);
 
 		if (this.mesh.parent === undefined) {
-			this.client.scene.add(this.mesh);
+			scene.add(this.mesh);
 		} else {
 			// need the renderer to do some setup
-			this.mesh.__webglInit = false;
-			this.mesh.__webglActive = false;
-			this.client.scene.__objectsAdded.push(this.mesh);
-			this.client.renderer.initWebGLObjects(this.client.scene);
+			scene.__objectsAdded.push(this.mesh);
+			renderer.initWebGLObjects(scene);
 		}
 	};
 
@@ -15231,6 +15238,8 @@ if (!window.requestAnimationFrame) {
 		this.mesh.translateX(x);
 		this.mesh.translateY(y);
 		this.mesh.translateZ(z);
+		this.mesh.updateMatrix();
+		this.mesh.updateMatrixWorld();
 	};
 
 	hemi.makeCitizen(Shape, 'hemi.Shape', {
@@ -15266,21 +15275,18 @@ if (!window.requestAnimationFrame) {
 	 */
 	hemi.createShape = function(shapeInfo, opt_mesh) {
 		var mesh = opt_mesh || new hemi.Mesh(),
-			shapeType = shapeInfo.shape || hemi.ShapeType.Box;
+			shapeType = shapeInfo.shape || hemi.ShapeType.Box,
+			color = shapeInfo.color || 0x000000,
+			opacity = shapeInfo.opacity === undefined ? 1 : shapeInfo.opacity;
 
-		if (!mesh.material) {
-			if (shapeInfo.material !== undefined) {
-				mesh.material = shapeInfo.material;
-			} else {
-				var color = shapeInfo.color || 0x000000,
-					opacity = shapeInfo.opacity === undefined ? 1 : shapeInfo.opacity;
-
-				mesh.material = new THREE.MeshPhongMaterial({
-					color: color,
-					opacity: opacity,
-					transparent: opacity < 1
-				});
-			}
+		if (shapeInfo.material !== undefined) {
+			mesh.material = shapeInfo.material;
+		} else {
+			mesh.material = new THREE.MeshPhongMaterial({
+				color: color,
+				opacity: opacity,
+				transparent: opacity < 1
+			});
 		}
 
 		switch (shapeType.toLowerCase()) {

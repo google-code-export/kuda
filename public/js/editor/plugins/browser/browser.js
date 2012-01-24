@@ -511,7 +511,7 @@
 	};
 	
 	BrowserModel.prototype.removeShape = function(shape) {
-		this.deselectTransform(shape.getTransform());
+		this.deselectTransform(shape.mesh);
 		this.notifyListeners(shorthand.events.RemoveUserCreatedShape, shape);
 	};
 	
