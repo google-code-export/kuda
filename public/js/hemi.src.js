@@ -12561,15 +12561,6 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Remove all references in the Manipulator
-	 */
-	Manipulator.prototype._clean = function() {
-		this.disable();
-		this.clearTransforms();
-		this._msgHandler = null;
-	};
-
-	/**
 	 * Add a Transform to the list of Manipulator Transforms.
 	 *
 	 * @param {hemi.Transform} transform the transform to add
@@ -12948,10 +12939,8 @@ if (!window.requestAnimationFrame) {
 		return [tuv[1], tuv[2]];
 	}
 
-	hemi.makeCitizen(Movable, 'hemi.Movable', {
-		cleanup: Movable.prototype._clean,
-		toOctane: Movable.prototype._octane
-	});
+	hemi.Movable = Movable;
+	hemi.makeOctanable(hemi.Movable, 'hemi.Movable', hemi.Movable.prototype._octane);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Turnable class
@@ -13198,10 +13187,8 @@ if (!window.requestAnimationFrame) {
 		return Math.atan2(tuv[2], tuv[1]);
 	}
 
-	hemi.makeCitizen(Turnable, 'hemi.Turnable', {
-		cleanup: Turnable.prototype._clean,
-		toOctane: Turnable.prototype._octane
-	});
+	hemi.Turnable = Turnable;
+	hemi.makeOctanable(hemi.Turnable, 'hemi.Turnable', hemi.Turnable.prototype._octane);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Resizable class
@@ -13250,6 +13237,16 @@ if (!window.requestAnimationFrame) {
 
 	Resizable.prototype = new Manipulator();
 	Resizable.constructor = Resizable;
+
+	/*
+	 * Octane properties for Resizable.
+	 * 
+	 * @return {Object[]} array of Octane properties
+	 */
+	Resizable.prototype._octane = function(){
+		// TODO
+		return [];
+	};
 
 	/**
 	 * Clear all properties for the Resizable.
@@ -13373,10 +13370,8 @@ if (!window.requestAnimationFrame) {
 		return [point.x, point.y];
 	}
 
-	hemi.makeCitizen(Resizable, 'hemi.Resizable', {
-		cleanup: Resizable.prototype._clean,
-		toOctane: []
-	});
+	hemi.Resizable = Resizable;
+	hemi.makeOctanable(hemi.Resizable, 'hemi.Resizable', hemi.Resizable.prototype._octane);
 
 })();
 /*
