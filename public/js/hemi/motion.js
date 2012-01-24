@@ -23,8 +23,7 @@
 (function() {
 
 		// Static helper objects shared by all motions
-	var _matrix = new THREE.Matrix4(),
-		_vector = new THREE.Vector3();
+	var _vector = new THREE.Vector3();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Contants
@@ -83,19 +82,6 @@
 
 		this.enable();
 	};
-
-	/*
-	 * Remove all references in the Rotator.
-	 */
-	Rotator.prototype._clean = function() {
-		//TODO
-	};
-
-	/*
-	 * Array of Hemi Messages that Rotator is known to send.
-	 * @type string[]
-	 */
-	Rotator.prototype._msgSent = [hemi.msg.start, hemi.msg.stop];
 
 	/*
 	 * Octane properties for Rotator.
@@ -210,14 +196,8 @@
 	 * @param {hemi.Transform} transform the Transform to rotate
 	 */
 	Rotator.prototype.setTransform = function(transform) {
+		hemi.utils.useEuler(transform);
 		this._transform = transform;
-
-		if (transform.useQuaternion) {
-			_matrix.setRotationFromQuaternion(transform.quaternion);
-			transform.rotation.setRotationFromMatrix(_matrix);
-			transform.useQuaternion = false;
-		}
-
 		this.angle.copy(transform.rotation);
 	};
 
@@ -246,10 +226,8 @@
 		this._transform.updateMatrixWorld();
 	}
 
-	hemi.makeCitizen(Rotator, 'hemi.Rotator', {
-		cleanup: Rotator.prototype._clean,
-		toOctane: Rotator.prototype._octane
-	});
+	hemi.Rotator = Rotator;
+	hemi.makeOctanable(hemi.Rotator, 'hemi.Rotator', hemi.Rotator.prototype._octane);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Translator class
@@ -282,20 +260,6 @@
 
 		this.enable();
 	};
-
-	/*
-	 * Remove all references in the Translator.
-	 */
-	Translator.prototype._clean = function() {
-		this.disable();
-		this.clearTransforms();
-	};
-
-	/*
-	 * Array of Hemi Messages that Translator is known to send.
-	 * @type string[]
-	 */
-	Translator.prototype._msgSent = [hemi.msg.start, hemi.msg.stop];
 
 	/*
 	 * Octane properties for Translator.
@@ -435,9 +399,7 @@
 		this._transform.updateMatrixWorld();
 	}
 
-	hemi.makeCitizen(Translator, 'hemi.Translator', {
-		cleanup: Translator.prototype._clean,
-		toOctane: Translator.prototype._octane
-	});
+	hemi.Translator = Translator;
+	hemi.makeOctanable(hemi.Translator, 'hemi.Translator', hemi.Translator.prototype._octane);
 
 })();

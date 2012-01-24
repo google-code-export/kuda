@@ -98,22 +98,24 @@
 	 * @return {Object[]} array of Octane properties
 	 */
 	Model.prototype._octane = function() {
-		var names = ['autoLoad', 'client', 'root'],
-			props = [];
-
-		for (var i = 0, il = names.length; i < il; ++i) {
-			var name = names[i];
-
-			props.push({
-				name: name,
-				val: this[name]
-			});
-		}
-
-		props.push({
-			name: 'setFileName',
-			arg: [this._fileName]
-		});
+		return [
+				{
+					name: 'autoLoad',
+					val: this.autoLoad
+				},
+				{
+					name: 'client',
+					id: this.client._getId()
+				},
+				{
+					name: 'root',
+					id: this.root._getId()
+				},
+				{
+					name: 'setFileName',
+					arg: [this._fileName]
+				}
+			];
 
 		return props;
 	};

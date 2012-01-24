@@ -59,10 +59,16 @@
 		this._manip = null;
 
 		/*
-		 * A container of any Motions that are currently animating the Transform.
-		 * @type Object
+		 * The Rotator that is currently moving the Transform.
+		 * @type hemi.Rotator
 		 */
-		this._motions = {};
+		this._rotator = null;
+
+		/*
+		 * The Translator that is currently moving the Transform.
+		 * @type hemi.Translator
+		 */
+		this._translator = null;
 
 		/**
 		 * Flag indicating if the Transform should be pickable by mouse clicks.
@@ -134,10 +140,49 @@
 
 	/*
 	 * Octane properties for Transform.
-	 * @type string[]
+	 * 
+	 * @return {Object[]} array of Octane properties
 	 */
-	Transform.prototype._octane = ['name', 'children', 'pickable', 'visible', 'position',
-			'rotation', 'quaternion', 'scale', 'useQuaternion'];
+	Transform.prototype._octane = function() {
+		var names = ['pickable', 'visible', 'useQuaternion'],
+			props = [],
+			childArr = [];
+
+		for (var i = 0, il = names.length; i < il; ++i) {
+			var name = names[i];
+
+			props.push({
+				name: name,
+				val: this[name]
+			});
+		}
+
+		for (var i = 0, il = this.children.length; i < il; ++i) {
+			childArr[i] = this.children[i]._getId();
+		}
+
+		props.push({
+			name: 'children',
+			id: childArr
+		});
+
+		names = ['_manip', '_rotator', '_translator', 'position', 'scale'];
+
+		names.push(this.useQuaternion ? 'quaternion' : 'rotation');
+
+		for (var i = 0, il = names.length; i < il; ++i) {
+			var name = names[i];
+
+			if (this[name]) {
+				props.push({
+					name: name,
+					oct: this[name]._toOctane()
+				});
+			}
+		}
+
+		return props;
+	};
 
 	/**
 	 * Add the given motion type to the Transform with the given velocity and/or acceleration.
@@ -147,12 +192,28 @@
 	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for the motion
 	 */
 	Transform.prototype.addMotion = function(type, opt_velocity, opt_acceleration) {
-		var motion = this._motions[type];
+		var motion;
 
-		if (!motion) {
-			motion = getMotion(type);
-			motion.setTransform(this);
-			this._motions[type] = motion;
+		switch (type) {
+			case hemi.MotionType.ROTATE:
+				if (!this._rotator) {
+					this._rotator = getMotion(type);
+					this._rotator.setTransform(this);
+				}
+
+				motion = this._rotator;
+				break;
+			case hemi.MotionType.TRANSLATE:
+				if (!this._translator) {
+					this._translator = getMotion(type);
+					this._translator.setTransform(this);
+				}
+
+				motion = this._translator;
+				break;
+			default:
+				console.log('Unrecognized motion type: ' + type);
+				break;
 		}
 
 		if (motion) {
@@ -192,12 +253,57 @@
 	 * @param {hemi.MotionType} type the type of motion to cancel
 	 */
 	Transform.prototype.cancelMotion = function(type) {
-		var motion = this._motions[type];
+		var motion;
+
+		switch (type) {
+			case hemi.MotionType.ROTATE:
+				motion = this._rotator;
+				this._rotator = null;
+				break;
+			case hemi.MotionType.TRANSLATE:
+				motion = this._translator;
+				this._translator = null;
+				break;
+			default:
+				console.log('Unrecognized motion type: ' + type);
+				break;
+		}
 
 		if (motion) {
 			removeMotion(motion, type);
-			this._motions[type] = undefined;
 		}
+	};
+
+	/**
+	 * Get the current acceleration of the given motion type for the Transform.
+	 * 
+	 * @param {hemi.MotionType} type the type of motion acceleration to get
+	 * @param {THREE.Vector3} opt_accel optional vector to receive acceleration data
+	 * @return {THREE.Vector3} the current acceleration of the given motion type
+	 */
+	Transform.prototype.getAcceleration = function(type, opt_accel) {
+		var motion;
+		opt_accel = opt_accel || new THREE.Vector3();
+
+		switch (type) {
+			case hemi.MotionType.ROTATE:
+				motion = this._rotator;
+				break;
+			case hemi.MotionType.TRANSLATE:
+				motion = this._translator;
+				break;
+			default:
+				console.log('Unrecognized motion type: ' + type);
+				break;
+		}
+
+		if (motion) {
+			opt_accel.copy(motion.accel);
+		} else {
+			opt_accel.set(0, 0, 0);
+		}
+
+		return opt_accel;
 	};
 
 	/**
@@ -216,6 +322,38 @@
 		}
 
 		return opt_arr;
+	};
+
+	/**
+	 * Get the current velocity of the given motion type for the Transform.
+	 * 
+	 * @param {hemi.MotionType} type the type of motion velocity to get
+	 * @param {THREE.Vector3} opt_vel optional vector to receive velocity data
+	 * @return {THREE.Vector3} the current velocity of the given motion type
+	 */
+	Transform.prototype.getVelocity = function(type, opt_vel) {
+		var motion;
+		opt_vel = opt_vel || new THREE.Vector3();
+
+		switch (type) {
+			case hemi.MotionType.ROTATE:
+				motion = this._rotator;
+				break;
+			case hemi.MotionType.TRANSLATE:
+				motion = this._translator;
+				break;
+			default:
+				console.log('Unrecognized motion type: ' + type);
+				break;
+		}
+
+		if (motion) {
+			opt_vel.copy(motion.vel);
+		} else {
+			opt_vel.set(0, 0, 0);
+		}
+
+		return opt_vel;
 	};
 
 	/**
@@ -300,16 +438,12 @@
 	 * @return {boolean} true if the Transform will start moving, false if it will not
 	 */
 	Transform.prototype.move = function(delta, time, opt_mustComplete) {
-		var type = hemi.MotionType.TRANSLATE,
-			motion = this._motions[type];
-
-		if (!motion) {
-			motion = getMotion(type);
-			motion.setTransform(this);
-			this._motions[type] = motion;
+		if (!this._translator) {
+			this._translator = getMotion(hemi.MotionType.TRANSLATE);
+			this._translator.setTransform(this);
 		}
 
-		return motion.move(delta, time, opt_mustComplete);
+		return this._translator.move(delta, time, opt_mustComplete);
 	};
 
 	/**
@@ -322,16 +456,7 @@
 	 * @return {boolean} true if the Transform will start resizing, false if it will not
 	 */
 	Transform.prototype.resize = function(scale, time, opt_mustComplete) {
-		var type = hemi.MotionType.SCALE,
-			motion = this._motions[type];
-
-		if (!motion) {
-			motion = getMotion(type);
-			motion.setTransform(this);
-			this._motions[type] = motion;
-		}
-
-		return motion.resize(scale, time, opt_mustComplete);
+		// TODO
 	};
 
 	/**
@@ -344,16 +469,12 @@
 	 * @return {boolean} true if the Transform will start turning, false if it will not
 	 */
 	Transform.prototype.turn = function(theta, time, opt_mustComplete) {
-		var type = hemi.MotionType.ROTATE,
-			motion = this._motions[type];
-
-		if (!motion) {
-			motion = getMotion(type);
-			motion.setTransform(this);
-			this._motions[type] = motion;
+		if (!this._rotator) {
+			this._rotator = getMotion(hemi.MotionType.ROTATE);
+			this._rotator.setTransform(this);
 		}
 
-		return motion.turn(theta, time, opt_mustComplete);
+		return this._rotator.turn(theta, time, opt_mustComplete);
 	};
 
 	hemi.makeCitizen(Transform, 'hemi.Transform', {
@@ -379,10 +500,16 @@
 		this._manip = null;
 
 		/*
-		 * A container of any Motions that are currently animating the Mesh.
-		 * @type Object
+		 * The Rotator that is currently moving the Mesh.
+		 * @type hemi.Rotator
 		 */
-		this._motions = {};
+		this._rotator = null;
+
+		/*
+		 * The Translator that is currently moving the Mesh.
+		 * @type hemi.Translator
+		 */
+		this._translator = null;
 
 		/**
 		 * Flag indicating if the Mesh should be pickable by mouse clicks.
@@ -460,12 +587,30 @@
 	Mesh.prototype.cancelMotion = Transform.prototype.cancelMotion;
 
 	/**
+	 * Get the current acceleration of the given motion type for the Mesh.
+	 * 
+	 * @param {hemi.MotionType} type the type of motion acceleration to get
+	 * @param {THREE.Vector3} opt_accel optional vector to receive acceleration data
+	 * @return {THREE.Vector3} the current acceleration of the given motion type
+	 */
+	Mesh.prototype.getAcceleration = Transform.prototype.getAcceleration;
+
+	/**
 	 * Get all of the child Transforms that are under the Mesh.
 	 *
 	 * @param {hemi.Transform[]} opt_arr optional array to place Transforms in
 	 * @return {hemi.Transform[]} array of all child/grandchild Transforms
 	 */
 	Mesh.prototype.getAllChildren = Transform.prototype.getAllChildren;
+
+	/**
+	 * Get the current velocity of the given motion type for the Mesh.
+	 * 
+	 * @param {hemi.MotionType} type the type of motion velocity to get
+	 * @param {THREE.Vector3} opt_vel optional vector to receive velocity data
+	 * @return {THREE.Vector3} the current velocity of the given motion type
+	 */
+	Mesh.prototype.getVelocity = Transform.prototype.getVelocity;
 
 	/**
 	 * Set all of the Transform's properties to their identity values.
