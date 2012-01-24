@@ -15,73 +15,60 @@
   Boston, MA 02110-1301 USA.
 -->
 
-<h1>Create Motion</h1>
+<h1>Add Transform Motions</h1>
     <form id="mtnForm" class="withSteps" method="post" action="">
         <fieldset id="mtnTransforms">
             <legend>
-                Select Transforms
+                Select Transform
             </legend>
             <ol id="mtnTranList">
             </ol>
         </fieldset>
         <fieldset id="mtnType">
             <legend>
-                Select Motion Type
+                Set Motion Parameters
             </legend>
-            <ol>
+            <ol id="movParams">
                 <li>
-                    <select id="mtnTypeSelect">
-                        <option value="-1">Select Type</option>
-                        <option value="rot">Rotator</option>
-                        <option value="trans">Translator</option>
-                    </select>
-                </li>
-            </ol>
-        </fieldset>
-        <fieldset id="mtnParams">
-            <legend>
-                Set Optional Parameters
-            </legend>
-            <ol>
-            	<li>
-                    <label for="mtnOrigin">
-                        Origin
-                    </label>
-					<div id="mtnOriginDiv" ></div>
+                    <label style="font-size:14px">Moving</label>
                 </li>
             	<li>
-                    <label for="mtnAngle">
-                        Angle
-                    </label>
-					<div id="mtnAngleDiv" ></div>
-                </li>
-            	<li>
-                    <label for="mtnPos">
-                        Position
-                    </label>
-                    <div id="mtnPosDiv" ></div>
-                </li>
-            	<li>
-                    <label for="mtnVel">
+                    <label for="movVel">
                         Velocity
                     </label>
-					<div id="mtnVelDiv" ></div>
+					<div id="movVelDiv" ></div>
                 </li>
             	<li>
-                    <label for="mtnAccel">
+                    <label for="movAccel">
                         Acceleration
                     </label>
-					<div id="mtnAccelDiv" ></div>
+					<div id="movAccelDiv" ></div>
+                </li>
+            </ol>
+            <ol id="trnParams">
+                <li>
+                    <label style="font-size:14px">Turning</label>
+                </li>
+                <li>
+                    <label for="trnVel">
+                        Velocity
+                    </label>
+                    <div id="trnVelDiv" ></div>
+                </li>
+                <li>
+                    <label for="trnAccel">
+                        Acceleration
+                    </label>
+                    <div id="trnAccelDiv" ></div>
                 </li>
             </ol>
         </fieldset>
         <fieldset id="mtnSave">
             <legend>
-                Save Motion
+                Save Motions
             </legend>
             <ol>
                 <li>
-                    <input type="text" id="mtnName" class="name" autocomplete="off" placeholder="Name" />
                     <div class="buttons">
                         <button id="mtnPrevBtn">
                             Start Preview

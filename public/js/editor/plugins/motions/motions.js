@@ -16,26 +16,30 @@
  */
 
 (function() {
+	"use strict";
 
-////////////////////////////////////////////////////////////////////////////////
-//								Initialization								  //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                     			   			Initialization			  		                      //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	var shorthand = editor.tools.motions;
+	var shorthand = editor.tools.motions,
+		_vector1 = new THREE.Vector3(),
+		_vector2 = new THREE.Vector3();
 
 	shorthand.init = function() {
 		var navPane = editor.ui.getNavPane('Animation'),
+
 			mtnMdl = new MotionsModel(),
 			mtnView = new MotionsView(),
 			mtnCtr = new MotionsController();
-		
+
 		mtnCtr.setModel(mtnMdl);
 		mtnCtr.setView(mtnView);
-		
+
 		navPane.add(mtnView);
-		
+
 		var model = editor.getModel('browser');
-		
+
 		if (model) {
 			mtnCtr.setBrowserModel(model);
 		} else {
@@ -47,645 +51,498 @@
 		}
 	};
 
-////////////////////////////////////////////////////////////////////////////////
-//								Tool Definition								  //
-////////////////////////////////////////////////////////////////////////////////
-    
-    shorthand.events = {
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                     			  			Tool Definition			  		                      //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	shorthand.events = {
 		// view specific
 		SaveMotion: "Motion.SaveMotion",
 		StartPreview: "Motion.StartPreview",
 		StopPreview: "Motion.StopPreview"
-    };
-    
-////////////////////////////////////////////////////////////////////////////////
-//                                   Model                                    //
-////////////////////////////////////////////////////////////////////////////////
-    
-    /**
-     * A MotionsModel handles the creation, updating, and removal of Rotators
-     * and Translators.
-     */
-    var MotionsModel = editor.ToolModel.extend({
-		init: function() {
-			this._super('motions');
-			
-			this.currentMotion = null;
-			this.previewMotion = null;
-			this.matrices = [];
-	    },
-		
-		removeMotion: function(motion) {
-			this.notifyListeners(editor.events.Removing, motion);
-			motion.cleanup();
-		},
-		
-		saveMotion: function(props) {
-			var motion = this.currentMotion,
-				currentType = null,
-				event;
-			
-			if (motion instanceof hemi.motion.Rotator) {
-				currentType = 'rot';
-			} else if (motion instanceof hemi.motion.Translator) {
-				currentType = 'trans';
-			}
-			
-			if (currentType !== props.type) {
-				if (motion !== null) {
-					this.removeMotion(motion);
-				}
-				
-				if (props.type === 'rot') {
-					motion = new hemi.motion.Rotator();
-					if (props.origin.join() !== '0,0,0') {
-						motion.setOrigin(props.origin);
-					}
-					if (props.angle.join() !== '0,0,0') {
-						motion.setAngle(props.angle);
-					}
-				} else {
-					motion = new hemi.motion.Translator();
-					if (props.pos.join() !== '0,0,0') {
-						motion.setPos(props.pos);
-					}
-				}
-				
-				motion.disable();
-				event = editor.events.Created;
-			} else {
-				motion.clear();
-				motion.clearTransforms();
-				event = editor.events.Updated;
-			}
-			
-			if (props.accel.join() !== '0,0,0') {
-				motion.setAccel(props.accel);
-			}
-			if (props.vel.join() !== '0,0,0') {
-				motion.setVel(props.vel);
-			}
-			
-			for (var i = 0, il = props.transforms.length; i < il; i++) {
-				motion.addTransform(props.transforms[i]);
-			}
-			
-			motion.name = props.name;
-			this.notifyListeners(event, motion);
-			this.setMotion(null);
-		},
-		
-		setMotion: function(motion) {
+	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                   			 Model                                    		  //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * A MotionsModel handles the creation, updating, and removal of Rotators and Translators.
+	 */
+	var MotionsModel = function() {
+		editor.ToolModel.call(this, 'motions');
+
+		this.currentTransform = null;
+		this.previewProps = {
+			active: false,
+			moveAccel: new THREE.Vector3(),
+			moveVel: new THREE.Vector3(),
+			position: new THREE.Vector3(),
+			rotation: new THREE.Vector3(),
+			scale: new THREE.Vector3(),
+			turnAccel: new THREE.Vector3(),
+			turnVel: new THREE.Vector3()
+		};
+	};
+
+	MotionsModel.prototype = new editor.ToolModel();
+	MotionsModel.prototype.constructor = MotionsModel;
+
+	MotionsModel.prototype.clearMotion = function(transform) {
+		transform.cancelMotion(hemi.MotionType.TRANSLATE);
+		transform.cancelMotion(hemi.MotionType.ROTATE);
+		this.notifyListeners(editor.events.Removing, transform);
+	};
+
+	MotionsModel.prototype.saveMotion = function(props) {
+		var transform = this.currentTransform,
+			motionBefore = hasMotions(transform);
+
+		this.stopPreview();
+		setTransformMotion(transform, props);
+		this.setTransform(null);
+
+		var motionAfter = hasMotions(transform);
+
+		if (motionBefore && !motionAfter) {
+			this.notifyListeners(editor.events.Removing, transform);
+		} else if (!motionBefore && motionAfter) {
+			this.notifyListeners(editor.events.Created, transform);
+		}
+	};
+
+	MotionsModel.prototype.setTransform = function(transform, opt_notify) {
+		if (this.currentTransform !== transform) {
 			this.stopPreview();
-			this.currentMotion = motion;
-			this.notifyListeners(editor.events.Editing, motion);
-		},
-		
-		startPreview: function(props) {
-			this.stopPreview();
-			
-			if (props.type === 'rot') {
-				this.previewMotion = new hemi.motion.Rotator();
-				if (props.origin.join() !== '0,0,0') {
-					this.previewMotion.setOrigin(props.origin);
-				}
-				if (props.angle.join() !== '0,0,0') {
-					this.previewMotion.setAngle(props.angle);
-				}
+			this.currentTransform = transform;
+
+			if (opt_notify !== false) {
+				this.notifyListeners(editor.events.Editing, transform);
+			}
+		}
+	};
+
+	MotionsModel.prototype.startPreview = function(props) {
+		var transform = this.currentTransform,
+			prevProps = this.previewProps;
+
+		this.stopPreview();
+		hemi.utils.useEuler(transform);
+
+		prevProps.active = true;
+		prevProps.position.copy(transform.position);
+		prevProps.rotation.copy(transform.rotation);
+		prevProps.scale.copy(transform.scale);
+		transform.getAcceleration(hemi.MotionType.TRANSLATE, prevProps.moveAccel);
+		transform.getVelocity(hemi.MotionType.TRANSLATE, prevProps.moveVel);
+		transform.getAcceleration(hemi.MotionType.ROTATE, prevProps.turnAccel);
+		transform.getVelocity(hemi.MotionType.ROTATE, prevProps.turnVel);
+
+		setTransformMotion(transform, props);
+	};
+
+	MotionsModel.prototype.stopPreview = function() {
+		var transform = this.currentTransform,
+			props = this.previewProps;
+
+		if (props.active) {
+			props.active = false;
+
+			if (!props.moveAccel.isZero() || !props.moveVel.isZero()) {
+				transform.addMotion(hemi.MotionType.TRANSLATE, props.moveAccel, props.moveVel);
 			} else {
-				this.previewMotion = new hemi.motion.Translator();
-				if (props.pos.join() !== '0,0,0') {
-					this.previewMotion.setPos(props.pos);
-				}
+				transform.cancelMotion(hemi.MotionType.TRANSLATE);
 			}
 
-			if (props.accel.join() !== '0,0,0') {
-				this.previewMotion.setAccel(props.accel);
+			if (!props.turnAccel.isZero() || !props.turnVel.isZero()) {
+				transform.addMotion(hemi.MotionType.ROTATE, props.turnAccel, props.turnVel);
+			} else {
+				transform.cancelMotion(hemi.MotionType.ROTATE);
 			}
-			if (props.vel.join() !== '0,0,0') {
-				this.previewMotion.setVel(props.vel);
-			}
-			
-			for (var i = 0, il = props.transforms.length; i < il; i++) {
-				var tran = props.transforms[i];
-				this.previewMotion.addTransform(tran);
-				this.matrices.push(hemi.utils.clone(tran.localMatrix));
-			}
-			
-			this.previewMotion.name = editor.ToolConstants.EDITOR_PREFIX + 'PreviewMotion';
-			this.previewMotion.enable();
-		},
-		
-		stopPreview: function() {
-			if (this.previewMotion !== null) {
-				var trans = this.previewMotion.getTransforms();
-					
-				for (var i = 0, il = trans.length; i < il; i++) {
-					var tran = trans[i];
-					
-					if (!hemi.utils.isAnimated(tran)) {
-						tran.localMatrix = this.matrices[i];
-					}
-				}
-				
-				this.previewMotion.cleanup();
-				this.previewMotion = null;
-				this.matrices = [];
-			}
-		},
-			
-		worldCleaned: function() {
-			var rots = hemi.world.getRotators(),
-				trans = hemi.world.getTranslators();
-			
-			for (var i = 0, il = rots.length; i < il; i++) {
-				this.notifyListeners(editor.events.Removing, rots[i]);
-			}
-			for (var i = 0, il = trans.length; i < il; i++) {
-				this.notifyListeners(editor.events.Removing, trans[i]);
-			}
-	    },
-	    
-	    worldLoaded: function() {
-			var rots = hemi.world.getRotators(),
-				trans = hemi.world.getTranslators();
-			
-			for (var i = 0, il = rots.length; i < il; i++) {
-				this.notifyListeners(editor.events.Created, rots[i]);
-			}
-			for (var i = 0, il = trans.length; i < il; i++) {
-				this.notifyListeners(editor.events.Created, trans[i]);
-			}
-	    }
-	});
 
-////////////////////////////////////////////////////////////////////////////////
-//                     	   Create Motion Sidebar Widget                        //
-//////////////////////////////////////////////////////////////////////////////// 
-    var NO_TRANS = 'NONE_SELECTED';
-    
-	var CreateWidget = editor.ui.FormWidget.extend({
-		init: function() {
-		    this._super({
+			transform.position.copy(props.position);
+			transform.rotation.copy(props.rotation);
+			transform.scale.copy(props.scale);
+		}
+	};
+
+	MotionsModel.prototype.worldCleaned = function() {
+		var transform = editor.client.scene,
+			children = scene.children.slice(0);
+
+		while (children.length > 0) {
+			transform = children.pop();
+
+			if (hasMotions(transform)) {
+				this.notifyListeners(editor.events.Removing, transform);
+			}
+
+			for (var i = 0, il = transform.children.length; i < il; ++i) {
+				children.push(transform.children[i]);
+			}
+		}
+	};
+
+	MotionsModel.prototype.worldLoaded = function() {
+		var transform = editor.client.scene,
+			children = scene.children.slice(0);
+
+		while (children.length > 0) {
+			transform = children.pop();
+
+			if (hasMotions(transform)) {
+				this.notifyListeners(editor.events.Created, transform);
+			}
+
+			for (var i = 0, il = transform.children.length; i < il; ++i) {
+				children.push(transform.children[i]);
+			}
+		}
+	};
+
+	function hasMotions(transform) {
+		return transform._translator !== null || transform._rotator !== null;
+	}
+
+	function setTransformMotion(transform, props) {
+		if (props.moveAccel.join() !== '0,0,0' || props.moveVel.join() !== '0,0,0') {
+			_vector1.x = props.moveAccel[0];
+			_vector1.y = props.moveAccel[1];
+			_vector1.z = props.moveAccel[2];
+			_vector2.x = props.moveVel[0];
+			_vector2.y = props.moveVel[1];
+			_vector2.z = props.moveVel[2];
+
+			transform.addMotion(hemi.MotionType.TRANSLATE, _vector2, _vector1);
+		} else {
+			transform.cancelMotion(hemi.MotionType.TRANSLATE);
+		}
+
+		if (props.turnAccel.join() !== '0,0,0' || props.turnVel.join() !== '0,0,0') {
+			_vector1.x = props.turnAccel[0];
+			_vector1.y = props.turnAccel[1];
+			_vector1.z = props.turnAccel[2];
+			_vector2.x = props.turnVel[0];
+			_vector2.y = props.turnVel[1];
+			_vector2.z = props.turnVel[2];
+
+			transform.addMotion(hemi.MotionType.ROTATE, _vector2, _vector1);
+		} else {
+			transform.cancelMotion(hemi.MotionType.ROTATE);
+		}
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                     	   			 Create Motion Sidebar Widget    	                          //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+	var NO_TRANS = 'NONE_SELECTED',
+
+		crtWgtSuper = editor.ui.FormWidget.prototype,
+
+		CreateWidget = function() {
+			editor.ui.FormWidget.call(this, {
 				name: 'createMtnWidget',
 				uiFile: 'js/editor/plugins/motions/html/motionsForms.htm'
 			});
-			
-			this.transforms = [];
+
+			this.transform = null;
 			this.tranList = {};
-		},
-		
-		addTransform: function(transform) {
-			var ndx = this.transforms.indexOf(transform);
-			
-			if (ndx === -1) {
-				var name = transform.name,
-					li = this.tranList[name],
-					ol = this.find('#mtnTranList');
-				
-				if (li == null) {
-					this.tranList[name] = li = jQuery('<li><label>' + name + '</label></li>');
-				}
-				if (this.transforms.length === 0) {
-					this.tranList[NO_TRANS].detach();
-				}
-				
-				ol.append(li);
-				this.transforms.push(transform);
-				this.checkStatus();
-			}
-		},
-		
-		checkStatus: function() {
-			var typeSelect = this.find('#mtnTypeSelect'),
-				prevBtn = this.find('#mtnPrevBtn'),
-				saveBtn = this.find('#mtnSaveBtn'),
-				isSafe = this.transforms.length > 0 && typeSelect.val() !== '-1';
-			
-			if (isSafe) {
-				prevBtn.removeAttr('disabled');
-			} else {
-				prevBtn.attr('disabled', 'disabled');
-			}
-			
-			if (isSafe && this.nameInput.getValue() != null) {
-				saveBtn.removeAttr('disabled');
-			} else {
-				saveBtn.attr('disabled', 'disabled');
-			}
-		},
-		
-		layout: function() {
-			this._super();
-			
-			var form = this.find('form'),
-				typeSel = this.find('#mtnTypeSelect'),
-				saveBtn = this.find('#mtnSaveBtn'),
-				cancelBtn = this.find('#mtnCancelBtn'),
-				prevBtn = this.find('#mtnPrevBtn'),
-				ol = this.find('#mtnTranList'),
-				validator = editor.ui.createDefaultValidator(),
-				wgt = this;
-			
-			this.origin = new editor.ui.Vector({
-				container: wgt.find('#mtnOriginDiv'),
-				inputType: 'angle',
-				validator: validator
-			});
-			this.angle = new editor.ui.Vector({
-				container: wgt.find('#mtnAngleDiv'),
-				inputType: 'angle',
-				validator: validator
-			});
-			this.position = new editor.ui.Vector({
-				container: wgt.find('#mtnPosDiv'),
-				validator: validator
-			});
-			this.velocity = new editor.ui.Vector({
-				container: wgt.find('#mtnVelDiv'),
-				validator: validator
-			});
-			this.acceleration = new editor.ui.Vector({
-				container: wgt.find('#mtnAccelDiv'),
-				validator: validator
-			});
-			this.nameInput = new editor.ui.Input({
-				container: wgt.find('#mtnName'),
-				type: 'string'
-			});
-			
-			this.tranList[NO_TRANS] = jQuery('<li><label>None selected</label></li>');
-			ol.append(this.tranList[NO_TRANS]);
-			
-			// bind type selection
-			typeSel.bind('change', function(evt) {
-				var elem = jQuery(this),
-					val = elem.val();
-				
-				wgt.reset();
-				elem.val(val);
-				
-				// switch between shapes
-				switch(val) {
-					case 'rot':
-						wgt.velocity.setInputType('angle');
-						wgt.acceleration.setInputType('angle');
-						
-						wgt.origin.getUI().parent().show();
-						wgt.angle.getUI().parent().show();
-						wgt.velocity.getUI().parent().show();
-						wgt.acceleration.getUI().parent().show();
-						break;
-					case 'trans':
-						wgt.velocity.setInputType('number');
-						wgt.acceleration.setInputType('number');
-						
-						wgt.position.getUI().parent().show();
-						wgt.velocity.getUI().parent().show();
-						wgt.acceleration.getUI().parent().show();
-						break;
-				}
-				
-				wgt.checkStatus();
-				wgt.invalidate();
-			})
-			.change();
-			
-			this.nameInput.getUI().bind('keyup', function(evt) {
-				wgt.checkStatus();
-			});
-			
-			saveBtn.bind('click', function(evt) {
-				var props = wgt.getProperties();
-				wgt.reset();
-				wgt.notifyListeners(shorthand.events.SaveMotion, props);
-			})
-			.attr('disabled', 'disabled');
-			
-			cancelBtn.bind('click', function(evt) {
-				wgt.reset();
-				wgt.notifyListeners(editor.events.Edit, null);
-			});
-			
-			prevBtn.bind('click', function(evt) {
-				var btn = jQuery(this);
-				
-				if (btn.data('previewing')) {
-	            	wgt.notifyListeners(shorthand.events.StopPreview, null);
-					btn.text('Start Preview').data('previewing', false);
-				}
-				else {
-					var props = wgt.getProperties();
-					wgt.notifyListeners(shorthand.events.StartPreview, props);
-					btn.text('Stop Preview').data('previewing', true);
-				}
-	        }).data('previewing', false);
-			
-			form.submit(function(evt) {
-				return false;
-			});
-		},
-		
-		getProperties: function() {
-			var typeSel = this.find('#mtnTypeSelect'),
-				name = this.nameInput.getValue(),
-				props = {
-					name: name,
-					transforms: this.transforms,
-					type: typeSel.val()
-				};
-			
-			props.vel = this.velocity.getValue() || [0,0,0];
-			props.accel = this.acceleration.getValue() || [0,0,0];
-			
-			switch(props.type) {
-				case 'rot':
-					props.origin = this.origin.getValue() || [0,0,0];
-					props.angle = this.angle.getValue() || [0,0,0];
-					break;
-				case 'trans':
-					props.pos = this.position.getValue() || [0,0,0];
-					break;
-			}
-			
-			return props;
-		},
-		
-		removeTransform: function(transform) {
-			var ndx = this.transforms.indexOf(transform);
-			
-			if (ndx !== -1) {
-				this.tranList[transform.name].detach();
-				
-				if (this.transforms.length === 1) {
-					var ol = this.find('#mtnTranList');
-					ol.append(this.tranList[NO_TRANS]);
-				}
-				
-				this.transforms.splice(ndx, 1);
-				this.checkStatus();
-			}
-		},
-		
-		reset: function() {
-			// reset selects
-			this.find('form select').val(-1);
-			
-			// set all inputs to blank
-			this.find('form input').val('');
-			
-			// reset the vectors and hide them
-			this.origin.reset();
-			this.origin.getUI().parent().hide();
-			this.angle.reset();
-			this.angle.getUI().parent().hide();
-			this.position.reset();
-			this.position.getUI().parent().hide();
-			this.velocity.reset();
-			this.velocity.getUI().parent().hide();
-			this.acceleration.reset();
-			this.acceleration.getUI().parent().hide();
-						
-			// disable the save and preview buttons
-			this.find('#mtnSaveBtn').attr('disabled', 'disabled');
-			this.find('#mtnPrevBtn').attr('disabled', 'disabled')
-				.text('Start Preview')
-				.data('previewing', false);
-		},
-		
-		resize: function(maxHeight) {
-			this._super(maxHeight);	
-			
-			var form = this.find('form'),
-				padding = parseInt(form.css('paddingTop')) 
-					+ parseInt(form.css('paddingBottom')),
-				newHeight = maxHeight - padding,
-				oldHeight = form.outerHeight(true);
-			
-			if (oldHeight > newHeight) {
-				form.addClass('scrolling');
-			}
-			else {
-				form.removeClass('scrolling');
-			}
-			if (newHeight > 0) {
-				this.find('form').height(newHeight);
-			}
-		},
-		
-		setMotion: function(motion) {
-			var typeSel = this.find('#mtnTypeSelect');
-			
-			if (motion instanceof hemi.motion.Rotator) {
-				typeSel.val('rot').change();
-				
-				if (motion.origin[0] !== 0 || motion.origin[1] !== 0 || motion.origin[2] !== 0) {
-					this.origin.setValue({
-						x: motion.origin[0],
-						y: motion.origin[1],
-						z: motion.origin[2]
-					});
-				}
-				if (motion.angle[0] !== 0 || motion.angle[1] !== 0 || motion.angle[2] !== 0) {
-					this.angle.setValue({
-						x: motion.angle[0],
-						y: motion.angle[1],
-						z: motion.angle[2]
-					});
-				}
-			} else if (motion instanceof hemi.motion.Translator) {
-				typeSel.val('trans').change();
-				
-				if (motion.pos[0] !== 0 || motion.pos[1] !== 0 || motion.pos[2] !== 0) {
-					this.position.setValue({
-						x: motion.pos[0],
-						y: motion.pos[1],
-						z: motion.pos[2]
-					});
-				}
-			}
-			
-			if (motion.vel[0] !== 0 || motion.vel[1] !== 0 || motion.vel[2] !== 0) {
-				this.velocity.setValue({
-					x: motion.vel[0],
-					y: motion.vel[1],
-					z: motion.vel[2]
-				});
-			}
-			if (motion.accel[0] !== 0 || motion.accel[1] !== 0 || motion.accel[2] !== 0) {
-				this.acceleration.setValue({
-					x: motion.accel[0],
-					y: motion.accel[1],
-					z: motion.accel[2]
-				});
-			}
-			
-			this.nameInput.setValue(motion.name);
-			this.checkStatus();
+		};
+
+	CreateWidget.prototype = new editor.ui.FormWidget();
+	CreateWidget.prototype.constructor = CreateWidget;
+
+	CreateWidget.prototype.checkStatus = function() {
+		var prevBtn = this.find('#mtnPrevBtn'),
+			saveBtn = this.find('#mtnSaveBtn'),
+			isSafe = this.transform !== null;
+
+		if (isSafe) {
+			prevBtn.removeAttr('disabled');
+		} else {
+			prevBtn.attr('disabled', 'disabled');
 		}
-	});
 
-////////////////////////////////////////////////////////////////////////////////
-//                                   View                                     //
-////////////////////////////////////////////////////////////////////////////////    
+		if (isSafe) {
+			saveBtn.removeAttr('disabled');
+		} else {
+			saveBtn.attr('disabled', 'disabled');
+		}
+	};
 
-    /**
-     * The MotionsView controls the dialog and toolbar widget for the motions 
-     * tool.
-     */
-    var MotionsView = editor.ToolView.extend({
-		init: function() {
-	        this._super({
-	            toolName: 'Motions',
-	    		toolTip: 'Create and edit moving transforms',
-	    		id: 'motions'
-	        });
-	        
-	        this.addPanel(new editor.ui.Panel({
-				name: 'sidePanel',
-				classes: ['mtnSidePanel']
-			}));
-			
-			this.sidePanel.addWidget(new CreateWidget());
-			this.sidePanel.addWidget(new editor.ui.ListWidget({
-				name: 'mtnListWidget',
-				listId: 'motionList',
-				prefix: 'mtnLst',
-				title: 'Motions',
-				instructions: "Add motions above."
-			}));
-	    }
-	});
+	CreateWidget.prototype.getProperties = function() {
+		return {
+				moveAccel: this.moveAccel.getValue() || [0,0,0],
+				moveVel: this.moveVel.getValue() || [0,0,0],
+				turnAccel: this.turnAccel.getValue() || [0,0,0],
+				turnVel: this.turnVel.getValue() || [0,0,0]
+			};
+	};
 
-////////////////////////////////////////////////////////////////////////////////
-//                                Controller                                  //
-////////////////////////////////////////////////////////////////////////////////
+	CreateWidget.prototype.layout = function() {
+		crtWgtSuper.layout.call(this);
 
-    /**
-     * The MotionsController facilitates MotionsModel and MotionsView
-     * communication by binding event and message handlers.
-     */
-    var MotionsController = editor.ToolController.extend({
-		init: function() {
-			this._super();
+		var validator = editor.ui.createDefaultValidator(),
+			wgt = this;
+
+		this.tranList[NO_TRANS] = jQuery('<li><label>None selected</label></li>');
+		this.find('#mtnTranList').append(this.tranList[NO_TRANS]);
+
+		this.moveVel = new editor.ui.Vector({
+			container: wgt.find('#movVelDiv'),
+			validator: validator
+		});
+		this.moveAccel = new editor.ui.Vector({
+			container: wgt.find('#movAccelDiv'),
+			validator: validator
+		});
+		this.turnVel = new editor.ui.Vector({
+			container: wgt.find('#trnVelDiv'),
+			inputType: 'angle',
+			validator: validator
+		});
+		this.turnAccel = new editor.ui.Vector({
+			container: wgt.find('#trnAccelDiv'),
+			inputType: 'angle',
+			validator: validator
+		});
+
+		this.find('#movParams').hide();
+		this.find('#trnParams').hide();
+
+		this.find('#mtnSaveBtn').bind('click', function(evt) {
+			var props = wgt.getProperties();
+			wgt.reset();
+			wgt.notifyListeners(shorthand.events.SaveMotion, props);
+		})
+		.attr('disabled', 'disabled');
+
+		this.find('#mtnCancelBtn').bind('click', function(evt) {
+			wgt.reset();
+			wgt.notifyListeners(editor.events.Edit, null);
+		});
+
+		this.find('#mtnPrevBtn').bind('click', function(evt) {
+			var btn = jQuery(this);
+
+			if (btn.data('previewing')) {
+				wgt.notifyListeners(shorthand.events.StopPreview, null);
+				btn.text('Start Preview').data('previewing', false);
+			} else {
+				var props = wgt.getProperties();
+				wgt.notifyListeners(shorthand.events.StartPreview, props);
+				btn.text('Stop Preview').data('previewing', true);
+			}
+		}).data('previewing', false);
+
+		this.find('form').submit(function(evt) {
+			return false;
+		});
+	};
+
+	CreateWidget.prototype.reset = function() {
+		if (this.transform !== null) {
+			this.find('#mtnTranList').append(this.tranList[NO_TRANS]);
+			this.tranList[this.transform.name].detach();
+			this.transform = null;
+		}
+
+		// reset the vectors and hide them
+		this.moveVel.reset();
+		this.moveAccel.reset();
+		this.turnVel.reset();
+		this.turnAccel.reset();
+		this.find('#movParams').hide();
+		this.find('#trnParams').hide();
+
+		// disable the save and preview buttons
+		this.find('#mtnSaveBtn').attr('disabled', 'disabled');
+		this.find('#mtnPrevBtn').attr('disabled', 'disabled')
+			.text('Start Preview')
+			.data('previewing', false);
+
+		this.invalidate();
+	};
+
+	CreateWidget.prototype.setTransform = function(transform) {
+		if (transform === this.transform) return;
+
+		if (transform === null) {
+			this.reset();
+			return;
+		} else if (this.transform !== null) {
+			this.tranList[this.transform.name].detach();
+		} else {
+			this.tranList[NO_TRANS].detach();
+		}
+
+		var name = transform.name,
+			li = this.tranList[name],
+			ol = this.find('#mtnTranList');
+
+		if (li === undefined) {
+			this.tranList[name] = li = jQuery('<li><label>' + name + '</label></li>');
+		}
+
+		setInput(transform.getAcceleration(hemi.MotionType.TRANSLATE, _vector1), this.moveAccel);
+		setInput(transform.getVelocity(hemi.MotionType.TRANSLATE, _vector1), this.moveVel);
+		setInput(transform.getAcceleration(hemi.MotionType.ROTATE, _vector1), this.turnAccel);
+		setInput(transform.getVelocity(hemi.MotionType.ROTATE, _vector1), this.turnVel);
+
+		ol.append(li);
+		this.find('#movParams').show();
+		this.find('#trnParams').show();
+		this.invalidate();
+
+		this.transform = transform;
+		this.checkStatus();
+	};
+
+	function setInput(vector, input) {
+		if (vector.x !== 0 || vector.y !== 0 || vector.z !== 0) {
+			input.setValue({
+				x: vector.x,
+				y: vector.y,
+				z: vector.z
+			});
+		} else {
+			input.reset();
+		}
+	}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                  			View		                                      //
+////////////////////////////////////////////////////////////////////////////////////////////////////   
+
+	/**
+	 * The MotionsView controls the dialog and toolbar widget for the motions tool.
+	 */
+	var MotionsView = function() {
+		editor.ToolView.call(this, {
+			toolName: 'Motions',
+			toolTip: 'Create and edit moving transforms',
+			id: 'motions'
+		});
+
+		this.addPanel(new editor.ui.Panel({
+			name: 'sidePanel',
+			classes: ['mtnSidePanel']
+		}));
+
+		this.sidePanel.addWidget(new CreateWidget());
+		this.sidePanel.addWidget(new editor.ui.ListWidget({
+			name: 'mtnListWidget',
+			listId: 'motionList',
+			prefix: 'mtnLst',
+			title: 'Transforms with motions',
+			instructions: "Add motions above."
+		}));
+	};
+
+	MotionsView.prototype = new editor.ToolView();
+	MotionsView.prototype.constructor = MotionsView;
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                			  Controller		                                  //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	var mtnCtrSuper = editor.ToolController.prototype,
+
+		/**
+		 * The MotionsController facilitates MotionsModel and MotionsView communication by binding
+		 * event and message handlers.
+		 */
+		MotionsController = function() {
+			editor.ToolController.call(this);
+
 			this.bound = false;
 			this.bwrModel = null;
-		},
-		
-		setBrowserModel: function(model) {
-			this.bwrModel = model;
-			
-			if (this.checkBindEvents()) {
-				this.bindEvents();
+		};
+
+	MotionsController.prototype = new editor.ToolController();
+	MotionsController.prototype.constructor = MotionsController;
+
+	MotionsController.prototype.bindEvents = function() {
+		mtnCtrSuper.bindEvents.call(this);
+
+		this.bound = true;
+
+		var model = this.model,
+			bwrModel = this.bwrModel,
+			view = this.view,
+			crtWgt = view.sidePanel.createMtnWidget,
+			lstWgt = view.sidePanel.mtnListWidget;
+
+		// create motion widget events
+		crtWgt.addListener(editor.events.Edit, function(transform) {
+			model.setTransform(transform);
+		});
+		crtWgt.addListener(shorthand.events.SaveMotion, function(props) {
+			model.saveMotion(props);
+		});
+		crtWgt.addListener(shorthand.events.StartPreview, function(props) {
+			bwrModel.enableSelection(false);
+			model.startPreview(props);
+		});
+		crtWgt.addListener(shorthand.events.StopPreview, function(value) {
+			bwrModel.enableSelection(true);
+			model.stopPreview();
+		});
+
+		// motion list widget events
+		lstWgt.addListener(editor.events.Edit, function(transform) {
+			model.setTransform(transform);
+		});
+		lstWgt.addListener(editor.events.Remove, function(transform) {
+			model.clearMotion(transform);
+		});
+
+		// view events
+		view.addListener(editor.events.ToolModeSet, function(value) {
+			var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
+			bwrModel.enableSelection(isDown);
+		});
+
+		// model events
+		model.addListener(editor.events.Created, function(transform) {
+			lstWgt.add(transform);
+		});
+		model.addListener(editor.events.Editing, function(transform) {
+			bwrModel.deselectAll();
+			bwrModel.enableSelection(true);
+			crtWgt.setTransform(transform);
+
+			if (transform !== null) {
+				bwrModel.selectTransform(transform);
 			}
-		},
-		
-		checkBindEvents: function() {
-			return !this.bound && this.bwrModel && this.model && this.view;
-		},
-		
-		bindEvents: function() {
-			this._super();
-			this.bound = true;
-			
-			var model = this.model,
-				bwrModel = this.bwrModel,
-				view = this.view,
-				crtWgt = view.sidePanel.createMtnWidget,
-				lstWgt = view.sidePanel.mtnListWidget;
-			
-			// create motion widget events
-			crtWgt.addListener(editor.events.Edit, function(motion) {
-				model.setMotion(motion);
-			});
-			crtWgt.addListener(shorthand.events.SaveMotion, function(props) {
-				model.saveMotion(props);
-			});
-			crtWgt.addListener(shorthand.events.StartPreview, function(props) {
-				bwrModel.enableSelection(false);
-				model.startPreview(props);
-			});
-			crtWgt.addListener(shorthand.events.StopPreview, function(value) {
-				bwrModel.enableSelection(true);
-				model.stopPreview();
-			});
-			
-			// motion list widget events
-			lstWgt.addListener(editor.events.Edit, function(motion) {
-				model.setMotion(motion);
-			});
-			lstWgt.addListener(editor.events.Remove, function(motion) {
-				model.removeMotion(motion);
-			});
-			
-			// view events
-			view.addListener(editor.events.ToolModeSet, function(value) {
-				var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
-				bwrModel.enableSelection(isDown);
-			});
-			
-			// model events
-			model.addListener(editor.events.Created, function(motion) {
-				var trans = motion.getTransforms();
-				
-				for (var i = 0, il = trans.length; i < il; ++i) {
-					var id = trans[i].getParam('ownerId').value,
-						model = hemi.world.getCitizenById(id);
-					
-					editor.depends.add(motion, model);
-				}
-				
-				lstWgt.add(motion);
-			});
-			model.addListener(editor.events.Editing, function(motion) {
-				bwrModel.deselectAll();
-				bwrModel.enableSelection(true);
-				
-				if (motion != null) {
-					crtWgt.setMotion(motion);
-					var trans = motion.getTransforms();
-					
-					for (var i = 0, il = trans.length; i < il; i++) {
-						bwrModel.selectTransform(trans[i]);
-					}
-				}
-			});
-			model.addListener(editor.events.Removing, function(motion) {
-				var trans = motion.getTransforms();
-				
-				for (var i = 0, il = trans.length; i < il; ++i) {
-					var id = trans[i].getParam('ownerId').value,
-						model = hemi.world.getCitizenById(id);
-					
-					editor.depends.remove(motion, model);
-				}
-				
-				lstWgt.remove(motion);
-			});
-			model.addListener(editor.events.Updated, function(motion) {
-				editor.depends.reset(motion);
-				var trans = motion.getTransforms();
-				
-				for (var i = 0, il = trans.length; i < il; ++i) {
-					var id = trans[i].getParam('ownerId').value,
-						model = hemi.world.getCitizenById(id);
-					
-					editor.depends.add(motion, model);
-				}
-				
-				lstWgt.update(motion);
-			});
-			
-			// browser model events
-			var browserEvents = editor.tools.browser.events;
-			
-			bwrModel.addListener(browserEvents.TransformDeselected, function(transform) {
-				crtWgt.removeTransform(transform);
-			});
-			bwrModel.addListener(browserEvents.TransformSelected, function(transform) {
-				crtWgt.addTransform(transform);
-			});
+		});
+		model.addListener(editor.events.Removing, function(transform) {
+			lstWgt.remove(transform);
+		});
+
+		// browser model events
+		var browserEvents = editor.tools.browser.events;
+
+		bwrModel.addListener(browserEvents.TransformDeselected, function(transform) {
+			model.setTransform(null, false);
+			crtWgt.setTransform(null);
+		});
+		bwrModel.addListener(browserEvents.TransformSelected, function(transform) {
+			model.setTransform(transform, false);
+			crtWgt.setTransform(transform);
+		});
+	};
+
+	MotionsController.prototype.checkBindEvents = function() {
+		return !this.bound && this.bwrModel && this.model && this.view;
+	};
+
+	MotionsController.prototype.setBrowserModel = function(model) {
+		this.bwrModel = model;
+
+		if (this.checkBindEvents()) {
+			this.bindEvents();
 		}
-	});
-    
+	};
+
 })();
