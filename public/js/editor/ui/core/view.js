@@ -578,11 +578,16 @@
 	};
 	
 	Panel.prototype.addWidget = function(widget) {
+		var pnl = this;
+
 		this.container.append(widget.getUI());
 		this[widget.getName()] = widget;
 		this.widgets.push(widget);
-		
+
 		widget.setMinHeight(parseInt(this.container.css('min-height')));
+		widget.addListener(editor.events.Invalidate, function(data) {
+			pnl.resize();
+		});
 	};
 	
 	Panel.prototype.resize = function() {
@@ -677,7 +682,7 @@
 	};
 	
 	Widget.prototype.invalidate = function() {
-		this.sizeAndPosition();
+		this.notifyListeners(editor.events.Invalidate, null);
 	};
 	
 	Widget.prototype.setMinHeight = function(pnlHeight) {
