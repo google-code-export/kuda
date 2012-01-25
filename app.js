@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 
 /*
  * Simple web server to serve the Kuda World Editor. It provides asset
