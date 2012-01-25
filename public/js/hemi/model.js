@@ -215,6 +215,24 @@
 		this.materials = [];
 	};
 
+    /**
+	 * Calculates the max animation time (in seconds)
+     * @return {number} Max animation time in seconds.
+	 */
+    Model.prototype.getMaxAnimationTime = function() {
+        var max,
+            animations = this.animations;
+            for (var ndx = 0; ndx < animations.length; ndx++) {
+                var heirarchy = animations[ndx];
+                for(var key in animations) {
+                    var time = animations[key].data.length
+                    max = max >  time ? max : time;
+                }
+            }
+            
+        return max;
+    };
+
 // Private functions for Model
 
 	/*
