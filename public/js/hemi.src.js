@@ -9007,6 +9007,24 @@ if (!window.requestAnimationFrame) {
 		this.materials = [];
 	};
 
+    /**
+	 * Calculates the max animation time (in seconds)
+     * @return {number} Max animation time in seconds.
+	 */
+    Model.prototype.getMaxAnimationTime = function() {
+        var max,
+            animations = this.animations;
+            for (var ndx = 0; ndx < animations.length; ndx++) {
+                var heirarchy = animations[ndx];
+                for(var key in animations) {
+                    var time = animations[key].data.length
+                    max = max >  time ? max : time;
+                }
+            }
+            
+        return max;
+    };
+
 // Private functions for Model
 
 	/*
@@ -9593,10 +9611,10 @@ if (!window.requestAnimationFrame) {
 		this._isAnimating = false;
 	
 		/**
-		 * The animations to play.
-		 * @type THREE.KeyFrameAnimation[]
+		 * The model used in animation. Contains the THREE.KeyAnimations[]
+		 * @type Hemi.Model
 		 */
-		this.animations = opt_model ? opt_model.animations : [];
+		this.model = opt_model ? opt_model : null;
 
 		/**
 		 * The time the AnimationGroup begins at.
@@ -9617,6 +9635,8 @@ if (!window.requestAnimationFrame) {
 		 * @type hemi.Loop[]
 		 */
 		this.loops = [];
+
+        
 	};
 
 	/*
@@ -9627,7 +9647,7 @@ if (!window.requestAnimationFrame) {
 			this.stop();
 		}
 
-		this.animations = [];
+		this.model = null;
 		this.loops = [];
 	};
 
@@ -9641,7 +9661,7 @@ if (!window.requestAnimationFrame) {
 	 * Octane properties for AnimationGroup.
 	 * @type string[]
 	 */
-	AnimationGroup.prototype._octane = ['beginTime', 'endTime', 'loops', 'reset'];
+	AnimationGroup.prototype._octane = ['beginTime', 'endTime', 'loops', 'reset','model'];
 	// TODO: how to get animations in octane?
 
 	/**
@@ -9662,27 +9682,49 @@ if (!window.requestAnimationFrame) {
 	 * @param {Object} event event containing information about the render
 	 */
 	AnimationGroup.prototype.onRender = function(event){
-		var previous = this.currentTime,
+		var previous = this._currentTime,
 			delta = event.elapsedTime;
 
-		this.currentTime += delta;
-		checkLoops.call(this);
 
-		this.send(hemi.msg.animate,
-			{
-				previous: previous,
-				time: this.currentTime
-			});
+		this._currentTime += delta;
+		checkLoops.call(this);        
 
-		if (this.currentTime >= this.endTime) {
-			delta = this.endTime - previous;
-			this.stop();
-			this.reset();
-		}
+        var animations = [];
+        if (this.model) 
+            animations = this.model.animations;
+        if (this._currentTime !== previous + delta) {
+            delta = 0;
+        }
+        if (delta === 0) {
+            this.send(hemi.msg.animate,
+                {
+                    previous: this._currentTime,
+                    time: this._currentTime
+                });
+            for (var i = 0, il = animations.length; i < il; ++i) {
+				animations[i].stop();
+			}
+            for (var i = 0, il = animations.length; i < il; ++i) {
+				animations[i].play(false, this._currentTime);
+			}
+        } else {
+            this.send(hemi.msg.animate,
+                {
+                    previous: previous,
+                    time: this._currentTime
+                });
 
-		for (var i = 0, il = this.animations.length; i < il; ++i) {
-			this.animations[i].update(delta);
-		}
+            if (this._currentTime >= this.endTime) {
+                delta = this.endTime - previous;
+                this.stop();
+                this.reset();
+            }
+
+            for (var i = 0, il = animations.length; i < il; ++i) {
+                animations[i].update(delta);
+            }
+        }
+        /////////////////////////////////////
 	};
 
 	/**
@@ -9717,15 +9759,52 @@ if (!window.requestAnimationFrame) {
 	 * If the AnimationGroup is not currently animating, start it.
 	 */
 	AnimationGroup.prototype.start = function() {
+    
 		if (!this._isAnimating) {
-			for (var i = 0, il = this.animations.length; i < il; ++i) {
-				this.animations[i].play(false, this._currentTime);
+            var animations = [];
+            
+            if (this.model)  {
+                animations = this.model.animations;
+            }
+            
+			for (var i = 0, il = animations.length; i < il; ++i) {
+                var animation = animations[i];
+                for ( var h = 0, hl = animation.hierarchy.length; h < hl; h++ ) {
+
+                    var keys = animation.data.hierarchy[h].keys,
+                        sids = animation.data.hierarchy[h].sids,
+                        obj = animation.hierarchy[h];
+
+                    if ( keys.length && sids ) {
+
+                        for ( var s = 0; s < sids.length; s++ ) {
+
+                            var sid = sids[ s ],
+                                next = animation.getNextKeyWith( sid, h, 0 );
+
+                            if ( next ) {
+
+                                next.apply( sid );
+
+                            }
+                        }
+    // //console.log(obj.matrixAutoUpdate + ' ' + obj.matrixWorldNeedsUpdate);
+                        // //obj.matrixAutoUpdate = false;
+                        animation.data.hierarchy[h].node.updateMatrix();
+                        obj.matrixWorldNeedsUpdate = true;
+
+                    }
+
+                }
+
+				animations[i].play(false, this._currentTime);
 			}
 
 			this._isAnimating = true;
 			hemi.addRenderListener(this);
 			this.send(hemi.msg.start, {});
 		}
+        
 	};
 
 	/**
@@ -9733,8 +9812,11 @@ if (!window.requestAnimationFrame) {
 	 */
 	AnimationGroup.prototype.stop = function() {
 		if (this._isAnimating) {
-			for (var i = 0, il = this.animations.length; i < il; ++i) {
-				this.animations[i].stop();
+            var animations = [];
+            if (this.model) 
+                animations = this.model.animations;
+			for (var i = 0, il = animations.length; i < il; ++i) {
+				animations[i].stop();
 			}
 
 			hemi.removeRenderListener(this);
@@ -9753,8 +9835,8 @@ if (!window.requestAnimationFrame) {
 		for (var i = 0, il = this.loops.length; i < il; ++i) {
 			var loop = this.loops[i];
 			
-			if (loop._current !== loop.iterations && this.currentTime >= loop.stopTime) {
-				this.currentTime = loop.startTime;
+			if (loop._current !== loop.iterations && this._currentTime >= loop.stopTime) {
+				this._currentTime = loop.startTime;
 				loop._current++;
 			}
 		}
