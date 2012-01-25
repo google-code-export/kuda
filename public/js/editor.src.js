@@ -627,14 +627,17 @@ var editor = {};
  * Boston, MA 02110-1301 USA.
  */
 
-(function(editor) {
-	editor.data = editor.data || {};
+(function() {
+	"use strict";
 	
-	var MetaData =  function() {
-		loadJSON.call(this);
-	};
+	var shorthand = editor.data = (function() {
+		var metadata = {};
+		loadJSON.call(metadata);
 		
-	getDescription = function(objType, opt_fnc, opt_param) {
+		return metadata;
+	})();
+		
+	shorthand.getDescription = function(objType, opt_fnc, opt_param) {
 		var parent = this.getParent(objType),
 			args = [];
 		
@@ -653,7 +656,7 @@ var editor = {};
 		return retVal == null ? null : retVal.description;
 	};
 	
-	getMsgDescription = function(objType, msgName) {
+	shorthand.getMsgDescription = function(objType, msgName) {
 		var parent = this.getParent(objType),
 			retVal = this.messages.get(objType + '.' + msgName);
 		
@@ -665,7 +668,7 @@ var editor = {};
 		return retVal;
 	};
 	
-	getMethods = function(objType) {
+	shorthand.getMethods = function(objType) {
 		var methods = [];
 		
 		while (objType != null) {
@@ -682,7 +685,7 @@ var editor = {};
 		return methods;
 	};
 	
-	getParameters = function(objType, fnc) {
+	shorthand.getParameters = function(objType, fnc) {
 		var data = this.functions.get(objType + '.' + fnc),
 			parent = this.getParent(objType);
 		
@@ -694,12 +697,12 @@ var editor = {};
 		return data ? data.parameters : null;
 	};
 	
-	getParent = function(objType) {
+	shorthand.getParent = function(objType) {
 		var data = this.types.get(objType);
 		return data ? data.parent : null;
 	};
 	
-	getType = function(objType, opt_fnc, opt_param) {
+	shorthand.getType = function(objType, opt_fnc, opt_param) {
 		var parent = this.getParent(objType),
 			args = [];
 		
@@ -798,14 +801,12 @@ var editor = {};
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                	   			Setup				                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	var metadata = new MetaData();	
 	
-	editor.data.getMetaData = function() {
+	shorthand.getMetaData = function() {
 		return metadata;
 	};
 	
-})(editor);
+})();
 /* 
  * Kuda includes a library and editor for authoring interactive 3D content for the web.
  * Copyright (C) 2011 SRI International.
@@ -2138,7 +2139,9 @@ var editor = {};
 					ipt.removeClass('open');
 				}
 				else {
-					var isDocBound = pnl.data('docBound');
+					var isDocBound = pnl.data('docBound'),
+						width = 0;
+						
 					ipt.addClass('open');
 					btn.addClass('open');
 					width = ipt.outerWidth() + btn.outerWidth() -
@@ -3859,9 +3862,9 @@ var editor = {};
 		cam.enableControl();
 		cam.far = FARPLANE;
 		cam.near = NEARPLANE;
-//		cam.updateProjection();
+		cam.name = 'Main Camera';
         
-		var vp = new hemi.Viewpoint();
+		var vp = hemi.createViewData(client.camera);
 		vp.eye = new THREE.Vector3(0, 10, 40);
 		vp.target = new THREE.Vector3(0, 0, 0);
         cam.moveToView(vp, 0);

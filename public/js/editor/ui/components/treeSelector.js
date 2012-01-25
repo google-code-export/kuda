@@ -59,7 +59,9 @@
 					ipt.removeClass('open');
 				}
 				else {
-					var isDocBound = pnl.data('docBound');
+					var isDocBound = pnl.data('docBound'),
+						width = 0;
+						
 					ipt.addClass('open');
 					btn.addClass('open');
 					width = ipt.outerWidth() + btn.outerWidth() -

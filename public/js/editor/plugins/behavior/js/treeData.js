@@ -16,12 +16,14 @@
  */
 
 (function() {
+	"use strict";
+	
 	var shorthand = editor.tools.behavior;
 	shorthand.treeData = shorthand.treeData || {};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                                 Constants                                  //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                 				Constants		                                  //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var MSG_WILDCARD = shorthand.treeData.MSG_WILDCARD = 'Any';
 	
@@ -88,9 +90,9 @@
 		'toOctane'
 	];
 		
-////////////////////////////////////////////////////////////////////////////////
-//                               Local Variables                              //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                               			Local Variables			                              //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var commonMethods = {
 		'hemi.animation.Animation': ['reset', 'start', 'stop'],
@@ -114,12 +116,12 @@
 			'moveToView', 'orbit', 'rotate', 'truck']
 	};
 	
-////////////////////////////////////////////////////////////////////////////////
-//                                  Methods                                   //
-////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                  			Methods			                                  //
+////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var isCommon = function(citizen, method) {
-		var type = citizen.getCitizenType ? citizen.getCitizenType() : citizen.name,
+		var type = citizen._citizenType ? citizen._citizenType : citizen.name,
 			methList = commonMethods[type],
 			common = false;
 		
@@ -141,8 +143,8 @@
 			return null;
 		} else if (citizen === MSG_WILDCARD) {
 			nodeName += citizen;
-		} else if (citizen.getCitizenType !== undefined) {
-			nodeName += citizen.getCitizenType().split('.').pop();
+		} else if (citizen._citizenType !== undefined) {
+			nodeName += citizen._citizenType.split('.').pop();
 		}
 		
 		if (config.id != null) {
@@ -178,7 +180,7 @@
 		var name = getNodeName(citizen, {
 			option: null,
 			prefix: prefix,
-			id: citizen.getId()
+			id: citizen._getId()
 		});
 		
 		return {
@@ -204,11 +206,9 @@
 			shapePick: true,
 			name: 'Picked Shape:',
 			citizen: model,
-			getCitizenType: function() {
-				return shorthand.constants.SHAPE_PICK;
-			},
-			getId: function() {
-				return this.citizen.getId();
+			_citizenType: shorthand.constants.SHAPE_PICK,
+			_getId: function() {
+				return this.citizen._getId();
 			}
 		};
 	};
@@ -218,17 +218,15 @@
 			camMove: true,
 			name: 'Camera Move:',
 			citizen: camera,
-			getCitizenType: function() {
-				return shorthand.constants.CAM_MOVE;
-			},
-			getId: function() {
-				return this.citizen.getId();
+			_citizenType: shorthand.constants.CAM_MOVE,
+			_getId: function() {
+				return this.citizen._getId();
 			}
 		};
 	};
 	
 	shorthand.treeData.createCitizenTypeJson = function(citizen, prefix) {
-		var type = citizen.getCitizenType().split('.').pop(),
+		var type = citizen._citizenType.split('.').pop(),
 			name = getNodeName(citizen, {
 				option: null,
 				prefix: prefix
@@ -249,7 +247,7 @@
 	};
 	
 	shorthand.treeData.createTriggerJson = function(citizen, prefix) {
-		var id = citizen.getId(),
+		var id = citizen._getId(),
 			name = getNodeName(citizen, {
 				option: MSG_WILDCARD,
 				prefix: prefix,
@@ -268,8 +266,8 @@
 				}
 			}];
 		
-		for (var ndx = 0, len = citizen.msgSent.length; ndx < len; ndx++) {
-			var msg = citizen.msgSent[ndx],
+		for (var ndx = 0, len = citizen._msgSent.length; ndx < len; ndx++) {
+			var msg = citizen._msgSent[ndx],
 				name = getNodeName(citizen, {
 					option: msg,
 					prefix: prefix,
@@ -299,9 +297,9 @@
 	shorthand.treeData.createActionJson = function(citizen, prefix) {
 		var methods = [],
 			moreMethods = [],
-			id = citizen.getId();
+			id = citizen._getId();
 		
-		for (propName in citizen) {
+		for (var propName in citizen) {
 			var prop = citizen[propName];
 			
 			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
@@ -369,7 +367,7 @@
 				var name = getNodeName(module, {
 					option: propName,
 					prefix: prefix,
-					id: module.getId()
+					id: module._getId()
 				});
 				
 				methods.push({
@@ -388,7 +386,7 @@
 		
 		var name = getNodeName(module, {
 			prefix: prefix,
-			id: module.getId()
+			id: module._getId()
 		});
 		
 		return {
@@ -420,7 +418,7 @@
 		var name = getNodeName(cmCit, {
 			option: null,
 			prefix: prefix,
-			id: cmCit.getId()
+			id: cmCit._getId()
 		});
 		
 		return {
@@ -460,9 +458,9 @@
 	
 	shorthand.treeData.createViewpointJson = function(cmCit, viewpoint, prefix) {
 		var name = getNodeName(cmCit, {
-				option: viewpoint.getId(),
+				option: viewpoint._getId(),
 				prefix: prefix,
-				id: cmCit.getId()
+				id: cmCit._getId()
 			});
 			
 		return {
@@ -474,14 +472,14 @@
 			metadata: {
 				type: 'message',
 				parent: cmCit,
-				msg: viewpoint.getId()
+				msg: viewpoint._getId()
 			}
 		};
 	};
 	
 	shorthand.treeData.createModelPickJson = function(spCit, prefix) {
 		var model = spCit.citizen,
-			id = spCit.getId(),
+			id = spCit._getId(),
 			shapes = [];
 		
 		for (var ndx = 0, len = model.shapes.length; ndx < len; ndx++) {
@@ -529,7 +527,7 @@
 	
 	shorthand.treeData.createShapePickJson = function(spCit, prefix) {
 		var shape = spCit.citizen.transform.shapes[0],
-			id = spCit.getId(),
+			id = spCit._getId(),
 			name = getNodeName(spCit, {
 				option: shape.name || '',
 				prefix: prefix,
