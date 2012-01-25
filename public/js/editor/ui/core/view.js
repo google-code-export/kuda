@@ -1008,9 +1008,9 @@
 		cam.enableControl();
 		cam.far = FARPLANE;
 		cam.near = NEARPLANE;
-//		cam.updateProjection();
+		cam.name = 'Main Camera';
         
-		var vp = new hemi.Viewpoint();
+		var vp = hemi.createViewData(client.camera);
 		vp.eye = new THREE.Vector3(0, 10, 40);
 		vp.target = new THREE.Vector3(0, 0, 0);
         cam.moveToView(vp, 0);
