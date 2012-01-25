@@ -18,12 +18,21 @@
 <div id="hudDpyEditor">
 	<h1 class="displayName">HUD Display Name</h1>
 	<form id="hudDpyForm" method="post">
-		<button id="hudDpyAddPageBtn">
-			Add Page
-		</button>
-		<button id="hudDpyRemoveBtn">
-			Remove
-		</button>
+		<fieldset id="hudPgeOptions">
+			<legend>
+				Display Operations
+			</legend>
+			<ol>
+				<li>
+					<button id="hudDpyAddPageBtn">
+						Add Page
+					</button>
+					<button id="hudDpyRemoveBtn">
+						Remove Display
+					</button>
+				</li>
+			</ol>
+		</fieldset>
 	</form>
 </div>
 <div id="hudPgeEditor">
@@ -49,7 +58,7 @@
 		</fieldset>	
 		<fieldset id="hudPgeOptions">
 			<legend>
-				Page Options
+				Page Operations
 			</legend>
 			<ol>
 				<li>
@@ -60,7 +69,7 @@
 						Add Image
 					</button>
 					<button id="hudPgeRemoveBtn">
-						Remove
+						Remove Page
 					</button>
 				</li>
 			</ol>
@@ -75,6 +84,15 @@
 				Set Text Properties
 			</legend>
 			<ol>
+				<li>
+					<label for="hudTxtText">
+						Text
+					</label>
+					<textarea id="hudTxtText"></textarea>
+				</li>
+				<li>
+					<input type="text" value="" id="hudTxtWidth" class="short" placeholder="Width" />
+				</li>
 				<li>
 					<label for="hudTxtPosition" class="short" >
 						Position
@@ -94,11 +112,12 @@
 					</label>
 					<select id="hudTxtFont" class="optional">
 						<option value="-1">Select a Font</option>
-						<option>Arial</option>
-						<option>Helvetica</option>
-						<option>Tahoma</option>
-						<option>Times New Roman</option>
-						<option>Verdana</option>
+						<option value="arial">Arial</option>
+						<option value="courier">Courier</option>
+						<option value="helvetica">Helvetica</option>
+						<option value="tahoma">Tahoma</option>
+						<option value="times new roman">Times New Roman</option>
+						<option value="verdana">Verdana</option>
 					</select>
 				</li>
 				<li>
@@ -124,15 +143,6 @@
 						<option value="right">Right</option>
 					</select>
 				</li>
-				<li>
-					<label for="hudTxtText">
-						Text
-					</label>
-					<textarea id="hudTxtText"></textarea>
-				</li>
-				<li>
-					<input type="text" value="" id="hudTxtWidth" class="short" placeholder="Width" />
-				</li>
 			</ol>
 		</fieldset>
 		<fieldset id="hudTxtSave">
@@ -141,7 +151,6 @@
 			</legend>
 			<ol>
 				<li>
-					<input type="text" id="hudTxtName" class="name" autocomplete="off" placeholder="Name" />
 					<div class="buttons">
 						<button id="hudTxtSaveBtn" disabled="disabled">
 							Save
@@ -184,7 +193,6 @@
 			</legend>
 			<ol>
 				<li>
-					<input type="text" id="hudImgName" class="name" autocomplete="off" placeholder="Name" />
 					<div class="buttons">
 						<button id="hudImgSaveBtn" disabled="disabled">
 							Save
