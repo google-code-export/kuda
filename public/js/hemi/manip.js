@@ -431,6 +431,18 @@
 		}
 	};
 
+	Movable.prototype.getPlaneString = function() {
+		if (this.plane == XY_PLANE) {
+			return hemi.Plane.XY;
+		} else if (this.plane == XZ_PLANE) {
+			return hemi.Plane.XZ;
+		} else if (this.plane == YZ_PLANE) {
+			return hemi.Plane.YZ;
+		} else {
+			return "UNKNOWN";
+		}
+	};
+
 // Private functions
 
 	/*
@@ -695,6 +707,18 @@
 		}
 	};
 
+	Turnable.prototype.getAxisString = function() {
+		if (hemi.utils.vector3Equals(this.axis, new THREE.Vector3(-1, 0, 0))) {
+			return hemi.Axis.X;
+		} else if (hemi.utils.vector3Equals(this.axis, new THREE.Vector3(0, -1, 0))) {
+			return hemi.Axis.Y;
+		} else if (hemi.utils.vector3Equals(this.axis, new THREE.Vector3(0, 0, 1))) {
+			return hemi.Axis.Z;
+		} else {
+			return "UNKNOWN";
+		}
+	};
+
 	/**
 	 * Set the limits to which the Turnable can rotate.
 	 * 
@@ -723,6 +747,7 @@
 
 		return Math.atan2(tuv[2], tuv[1]);
 	}
+
 
 	hemi.Turnable = Turnable;
 	hemi.makeOctanable(hemi.Turnable, 'hemi.Turnable', hemi.Turnable.prototype._octane);

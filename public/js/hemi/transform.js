@@ -89,7 +89,7 @@
 	 * Remove all references in the Transform.
 	 */
 	Transform.prototype._clean = function() {
-		this.cancelInteraction();
+		this.removeInteraction();
 		this.cancelMotion(hemi.MotionType.ROTATE);
 		this.cancelMotion(hemi.MotionType.SCALE);
 		this.cancelMotion(hemi.MotionType.TRANSLATE);
@@ -227,10 +227,10 @@
 	};
 
 	/**
-	 * Cancel the current interaction that is enabled for the Transform (movable, resizable or
+	 * Remove the current interaction that is enabled for the Transform (movable, resizable or
 	 * turnable).
 	 */
-	Transform.prototype.cancelInteraction = function() {
+	Transform.prototype.removeInteraction = function() {
 		if (this._manip) {
 
 			if (this._manip instanceof hemi.Movable) {
@@ -244,6 +244,26 @@
 			}
 
 			this._manip = null;
+		}
+	};
+
+	/**
+	 * Disable the current interaction that is enabled for the Transform (movable, resizable or
+	 * turnable).
+	 */
+	Transform.prototype.disableInteraction = function() {
+		if (this._manip) {
+			this._manip.disable();
+		}
+	};
+
+	/**
+	 * Enable the current interaction that is enabled for the Transform (movable, resizable or
+	 * turnable).
+	 */
+	Transform.prototype.enableInteraction = function() {
+		if (this._manip) {
+			this._manip.enable();
 		}
 	};
 
@@ -378,7 +398,7 @@
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.makeMovable = function(plane, opt_limits, opt_transforms) {
-		this.cancelInteraction();
+		this.removeInteraction();
 
 		this._manip = getMovable(plane, opt_limits);
 		opt_transforms = opt_transforms || [];
@@ -397,7 +417,7 @@
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.makeResizable = function(axis, opt_transforms) {
-		this.cancelInteraction();
+		this.removeInteraction();
 
 		this._manip = getResizable(axis);
 		opt_transforms = opt_transforms || [];
@@ -417,7 +437,7 @@
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.makeTurnable = function(axis, opt_limits, opt_transforms) {
-		this.cancelInteraction();
+		this.removeInteraction();
 
 		this._manip = getTurnable(axis, opt_limits);
 		opt_transforms = opt_transforms || [];
@@ -575,9 +595,21 @@
 	Mesh.prototype.addMotion = Transform.prototype.addMotion;
 
 	/**
-	 * Cancel the current interaction that is enabled for the Mesh (movable, resizable or turnable).
+	 * Remove the current interaction that is enabled for the Mesh (movable, resizable or turnable).
 	 */
-	Mesh.prototype.cancelInteraction = Transform.prototype.cancelInteraction;
+	Mesh.prototype.removeInteraction = Transform.prototype.removeInteraction;
+
+	/**
+	 * Disable the current interaction that is enabled for the Transform (movable, resizable or
+	 * turnable).
+	 */
+	 Mesh.prototype.disableInteraction = Transform.prototype.disableInteraction;
+
+	/**
+	 * Enable the current interaction that is enabled for the Transform (movable, resizable or
+	 * turnable).
+	 */
+	 Mesh.prototype.enableInteraction = Transform.prototype.enableInteraction;
 
 	/**
 	 * Cancel any motion of the given type that is currently enabled for the Mesh.
