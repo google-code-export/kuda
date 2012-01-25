@@ -619,14 +619,19 @@
 	/**
 	 * Load the image from the image url into a texture for the HudManager to paint. This sets the
 	 * texture, height, and width properties.
+	 * 
+	 * @param {function(hemi.HudImage):void} opt_callback optional callback function to pass the
+	 *     HudImage when it is done loading
 	 */
-	HudImage.prototype.loadImage = function() {
+	HudImage.prototype.loadImage = function(opt_callback) {
 		var that = this;
 
 		hemi.loadImage(this.url, function(image) {
 				that._image = image;
 				that._height = image.height;
 				that._width = image.width;
+
+				if (opt_callback) opt_callback(that);
 			});
 	};
 
@@ -634,10 +639,12 @@
 	 * Set the URL of the image file to load and begin loading it.
 	 * 
 	 * @param {string} url the URL of the image file
+	 * @param {function(hemi.HudImage):void} opt_callback optional callback function to pass the
+	 *     HudImage when it is done loading
 	 */
-	HudImage.prototype.setUrl = function(url) {
+	HudImage.prototype.setUrl = function(url, opt_callback) {
 		this.url = url;
-		this.loadImage();
+		this.loadImage(opt_callback);
 	};
 
 	hemi.HudImage = HudImage;
@@ -1553,11 +1560,12 @@
 	HudDisplay.prototype.show = function() {
 		if (!this._visible) {
 			this._visible = true;
-			this.showPage();
 			hemi.input.addMouseDownListener(this);
 			hemi.input.addMouseUpListener(this);
 			hemi.input.addMouseMoveListener(this);
 		}
+
+		this.showPage();
 	};
 
 	/**
@@ -1589,7 +1597,7 @@
 	/**
 	 * @class A HudManager creates the appropriate view components for  rendering a HUD.
 	 */
-	var HudManager = function(clients) {
+	var HudManager = function() {
 		/*
 		 * 2D canvas contexts for the Clients the HudManager is managing.
 		 */
@@ -1880,6 +1888,15 @@
 	};
 
 	/**
+	 * Reset the text baseline value for all clients to 'top' (the default for the HudManager).
+	 */
+	HudManager.prototype.resetTextBaseline = function() {
+		for (var id in this._contexts) {
+			this._contexts[id].textBaseline = 'top';
+		}
+	};
+
+	/**
 	 * Set the current client for the HudManager to draw to.
 	 * 
 	 * @param {hemi.Client} client the client to draw to
@@ -1891,6 +1908,15 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * Get the current theme for HUD displays.
+	 * 
+	 * @return {hemi.HudTheme} the current display options for HUD elements
+	 */
+	hemi.getHudTheme = function(theme) {
+		return currentTheme;
+	};
 
 	/**
 	 * Set the current theme for HUD displays.
