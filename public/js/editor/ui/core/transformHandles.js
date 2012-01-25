@@ -288,13 +288,13 @@
 	};
 	
 	TransHandles.prototype.onRender = function(renderEvent) {
-		hemi.hudManager.clearDisplay();
-		
-		if (this.transform) {
+		if (this.drawState !== editor.ui.trans.DrawState.NONE) {
+			hemi.hudManager.clearDisplay();
+
 			if (this.drawCallback) {
 				this.drawCallback();
 			}
-			
+
 			this.drawHandles();
 		}
 	};
@@ -350,21 +350,22 @@
 	};
 	
 	TransHandles.prototype.setDrawState = function(state) {
+		if (state === editor.ui.trans.DrawState.NONE) {
+			// Clear any previously drawn handles off the display
+			hemi.hudManager.clearDisplay();
+		}
+
 		this.drawState = state;
 		// make sure the render handler is called at least once
 		this.onRender();
 	};
 	
 	TransHandles.prototype.setTransform = function(transform) {
-//		if (transform && hemi.utils.isAnimated(transform)) {
-//			this.transform = null;
-//			
-//			if (this.drawState !== editor.ui.trans.DrawState.NONE) {
-//				hemi.hudManager.clearDisplay();
-//			}
-//		} else {
-			this.transform = transform;
-//		}
+		if (transform === null) {
+			this.drawState = editor.ui.trans.DrawState.NONE;
+		}
+
+		this.transform = transform;
 		// make sure the render handler is called at least once
 		this.onRender();
 	};

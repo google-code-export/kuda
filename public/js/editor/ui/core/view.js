@@ -964,7 +964,7 @@
 		cans.attr('width', windowWidth);
 		cans.attr('height', windowHeight);
 		// For some reason, textBaseline gets reset when canvas is resized
-//		hemi.hud.hudMgr.canvas.textBaseline = 'top';
+		hemi.hudManager.resetTextBaseline();
 	};
 		
 	var navBar = null;
