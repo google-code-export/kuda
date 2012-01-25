@@ -521,7 +521,6 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
-					'varying float v_discard;\n' +
 					'\n' +
 					'void main() {\n' +
 					'  vec2 uv = uvLifeTimeFrameStart.xy;\n' +
@@ -537,13 +536,6 @@ var Hashtable = (function() {
 					'  float endSize = accelerationEndSize.w;\n' +
 					'  float spinStart = spinStartSpinSpeed.x;\n' +
 					'  float spinSpeed = spinStartSpinSpeed.y;\n' +
-					'\n' +
-					'  if (startTime < 0.0) {\n' +
-					'    gl_Position = vec4(0);\n' +
-					'    v_discard = 1.0;\n' +
-					'  } else {\n' +
-					'    v_discard = -1.0;\n' +
-					'  }\n' +
 					'\n' +
 					'  float localTime = mod((time - timeOffset - startTime),\n' +
 					'      timeRange);\n' +
@@ -599,17 +591,12 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
-					'varying float v_discard;\n' +
 					'\n' +
 					'// We need to implement 1D!\n' +
 					'uniform sampler2D rampSampler;\n' +
 					'uniform sampler2D colorSampler;\n' +
 					'\n' +
 					'void main() {\n' +
-					'  if (v_discard > 0.0) {\n' +
-					'    discard;\n' +
-					'  }\n' +
-					'\n' +
 					'  vec4 colorMult = texture2D(rampSampler, \n' +
 					'      vec2(v_percentLife, 0.5)) * v_colorMult;\n' +
 					'  vec4 color = texture2D(colorSampler, v_texcoord) * colorMult;\n' +
@@ -658,7 +645,6 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
-					'varying float v_discard;\n' +
 					'\n' +
 					'void main() {\n' +
 					'  vec2 uv = uvLifeTimeFrameStart.xy;\n' +
@@ -674,13 +660,6 @@ var Hashtable = (function() {
 					'  float endSize = accelerationEndSize.w;\n' +
 					'  float spinStart = spinStartSpinSpeed.x;\n' +
 					'  float spinSpeed = spinStartSpinSpeed.y;\n' +
-					'\n' +
-					'  if (startTime < 0.0) {\n' +
-					'    gl_Position = vec4(0);\n' +
-					'    v_discard = 1.0;\n' +
-					'  } else {\n' +
-					'    v_discard = -1.0;\n' +
-					'  }\n' +
 					'\n' +
 					'  float localTime = mod((time - timeOffset - startTime),\n' +
 					'      timeRange);\n' +
@@ -718,17 +697,12 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
-					'varying float v_discard;\n' +
 					'\n' +
 					'// We need to implement 1D!\n' +
 					'uniform sampler2D rampSampler;\n' +
 					'uniform sampler2D colorSampler;\n' +
 					'\n' +
 					'void main() {\n' +
-					'  if (v_discard > 0.0) {\n' +
-					'    discard;\n' +
-					'  }\n' +
-					'\n' +
 					'  vec4 colorMult = texture2D(rampSampler, \n' +
 					'      vec2(v_percentLife, 0.5)) * v_colorMult;\n' +
 					'  vec4 color = texture2D(colorSampler, v_texcoord) * colorMult;\n' +
@@ -1317,12 +1291,8 @@ var Hashtable = (function() {
 		this._parameters = parameters;
 		this._paramSetter = opt_paramSetter;
 
-		parameters.startTime = -1;
-		this.shape.dynamic = true;
-
 		allocateParticles.call(this, maxParticles);
 		setupMaterial.call(this, parameters);
-		createParticles.call(this, 0, maxParticles, parameters, opt_paramSetter);
 	};
 
 	hemi.particles.Trail.prototype = new hemi.particles.Emitter();
@@ -1334,18 +1304,18 @@ var Hashtable = (function() {
 	* @param {number[3]} position Position to birth particles at.
 	*/
 	hemi.particles.Trail.prototype.birthParticles = function(position) {
-		var numParticles = this._parameters.numParticles,
-			positionRange = this._parameters.positionRange,
-			startTime = this._timeParam.value;
+		var numParticles = this._parameters.numParticles;
+		this._parameters.startTime = this._timeParam.value;
+		this._parameters.position = position;
 
 		while (this._birthIndex + numParticles >= this._maxParticles) {
 			var numParticlesToEnd = this._maxParticles - this._birthIndex;
-			updateParticles.call(this, this._birthIndex, numParticlesToEnd, startTime, position, positionRange);
+			createParticles.call(this, this._birthIndex, numParticlesToEnd, this._parameters, this._paramSetter);
 			numParticles -= numParticlesToEnd;
 			this._birthIndex = 0;
 		}
 
-		updateParticles.call(this, this._birthIndex, numParticles, startTime, position, positionRange);
+		createParticles.call(this, this._birthIndex, numParticles, this._parameters, this._paramSetter);
 		this._birthIndex += numParticles;
 	};
 
@@ -1363,8 +1333,8 @@ var Hashtable = (function() {
 			}
 
 			var index = i * 4;
-			this.shape.faces.push(new THREE.Face3(index, index + 1, index + 3));
-			this.shape.faces.push(new THREE.Face3(index + 1, index + 2, index + 3));
+			this.shape.faces.push(new THREE.Face3(index, index + 1, index + 2));
+			this.shape.faces.push(new THREE.Face3(index, index + 2, index + 3));
 		}
 	}
 
@@ -1514,41 +1484,6 @@ var Hashtable = (function() {
 		this.material.vertexShader = shader.vertexShader;
 		this.material.fragmentShader = shader.fragmentShader;
 		this._timeParam = this.material.uniforms.time;
-	}
-
-	function updateParticles(firstParticleIndex, numParticles, startTime, position, positionRange) {
-		var positionStartTime = this.material.attributes.positionStartTime,
-			random = this._particleSystem._randomFunction,
-
-			plusMinus = function(range) {
-				return (random() - 0.5) * range * 2;
-			},
-
-			plusMinusVector = function(v, range) {
-				var r = [];
-
-				for (var i = 0, il = v.length; i < il; ++i) {
-					r[i] = v[i] + plusMinus(range[i]);
-				}
-
-				return r;
-			};
-
-		for (var ii = 0; ii < numParticles; ++ii) {
-			var pPosition = plusMinusVector(position, positionRange);
-
-			// make each corner of the particle.
-			for (var jj = 0; jj < 4; ++jj) {
-				var offset = ii * 4 + jj + firstParticleIndex;
-
-				positionStartTime.value[offset].x = pPosition[0];
-				positionStartTime.value[offset].y = pPosition[1];
-				positionStartTime.value[offset].z = pPosition[2];
-				positionStartTime.value[offset].w = startTime;
-			}
-		}
-
-		positionStartTime.needsUpdate = true;
 	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3494,6 +3429,22 @@ if (!window.requestAnimationFrame) {
 		transform.position.addSelf(localDelta);
 		transform.updateMatrix();
 		transform.updateMatrixWorld();
+	};
+
+	/*
+	 *Determine if two vectors are equal
+	 *@param {THREE.Vector3} vec1
+	 *@param {THREE.Vector3} vec2
+	 *@param {number} opt_precision
+	 *@return {bool}
+	 */
+	hemi.utils.vector3Equals = function(vec1, vec2, opt_precision) {
+		if (!opt_precision) {
+			opt_precision = 0;
+		}
+		return Math.abs(vec1.x - vec2.x) <= opt_precision 
+			&& Math.abs(vec1.y - vec2.y) <= opt_precision
+			&& Math.abs(vec1.z - vec2.z) <= opt_precision;
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -7081,7 +7032,7 @@ if (!window.requestAnimationFrame) {
 	 * Remove all references in the Transform.
 	 */
 	Transform.prototype._clean = function() {
-		this.cancelInteraction();
+		this.removeInteraction();
 		this.cancelMotion(hemi.MotionType.ROTATE);
 		this.cancelMotion(hemi.MotionType.SCALE);
 		this.cancelMotion(hemi.MotionType.TRANSLATE);
@@ -7219,10 +7170,10 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Cancel the current interaction that is enabled for the Transform (movable, resizable or
+	 * Remove the current interaction that is enabled for the Transform (movable, resizable or
 	 * turnable).
 	 */
-	Transform.prototype.cancelInteraction = function() {
+	Transform.prototype.removeInteraction = function() {
 		if (this._manip) {
 
 			if (this._manip instanceof hemi.Movable) {
@@ -7236,6 +7187,26 @@ if (!window.requestAnimationFrame) {
 			}
 
 			this._manip = null;
+		}
+	};
+
+	/**
+	 * Disable the current interaction that is enabled for the Transform (movable, resizable or
+	 * turnable).
+	 */
+	Transform.prototype.disableInteraction = function() {
+		if (this._manip) {
+			this._manip.disable();
+		}
+	};
+
+	/**
+	 * Enable the current interaction that is enabled for the Transform (movable, resizable or
+	 * turnable).
+	 */
+	Transform.prototype.enableInteraction = function() {
+		if (this._manip) {
+			this._manip.enable();
 		}
 	};
 
@@ -7370,7 +7341,7 @@ if (!window.requestAnimationFrame) {
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.makeMovable = function(plane, opt_limits, opt_transforms) {
-		this.cancelInteraction();
+		this.removeInteraction();
 
 		this._manip = getMovable(plane, opt_limits);
 		opt_transforms = opt_transforms || [];
@@ -7389,7 +7360,7 @@ if (!window.requestAnimationFrame) {
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.makeResizable = function(axis, opt_transforms) {
-		this.cancelInteraction();
+		this.removeInteraction();
 
 		this._manip = getResizable(axis);
 		opt_transforms = opt_transforms || [];
@@ -7409,7 +7380,7 @@ if (!window.requestAnimationFrame) {
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.makeTurnable = function(axis, opt_limits, opt_transforms) {
-		this.cancelInteraction();
+		this.removeInteraction();
 
 		this._manip = getTurnable(axis, opt_limits);
 		opt_transforms = opt_transforms || [];
@@ -7567,9 +7538,21 @@ if (!window.requestAnimationFrame) {
 	Mesh.prototype.addMotion = Transform.prototype.addMotion;
 
 	/**
-	 * Cancel the current interaction that is enabled for the Mesh (movable, resizable or turnable).
+	 * Remove the current interaction that is enabled for the Mesh (movable, resizable or turnable).
 	 */
-	Mesh.prototype.cancelInteraction = Transform.prototype.cancelInteraction;
+	Mesh.prototype.removeInteraction = Transform.prototype.removeInteraction;
+
+	/**
+	 * Disable the current interaction that is enabled for the Transform (movable, resizable or
+	 * turnable).
+	 */
+	 Mesh.prototype.disableInteraction = Transform.prototype.disableInteraction;
+
+	/**
+	 * Enable the current interaction that is enabled for the Transform (movable, resizable or
+	 * turnable).
+	 */
+	 Mesh.prototype.enableInteraction = Transform.prototype.enableInteraction;
 
 	/**
 	 * Cancel any motion of the given type that is currently enabled for the Mesh.
@@ -10158,6 +10141,13 @@ if (!window.requestAnimationFrame) {
 		this.transform = new THREE.Mesh(this.particles.shape, this.particles.material);
 		this.transform.doubleSided = true; // turn off face culling
 		this.client.scene.add(this.transform);
+
+		this.client.renderer.initWebGLObjects(this.client.scene);
+		var attributes = this.particles.material.attributes;
+
+		for (var a in attributes) {
+			attributes[a].needsUpdate = false;
+		}
 	};
 
 	/**
@@ -12920,6 +12910,18 @@ if (!window.requestAnimationFrame) {
 		}
 	};
 
+	Movable.prototype.getPlaneString = function() {
+		if (this.plane == XY_PLANE) {
+			return hemi.Plane.XY;
+		} else if (this.plane == XZ_PLANE) {
+			return hemi.Plane.XZ;
+		} else if (this.plane == YZ_PLANE) {
+			return hemi.Plane.YZ;
+		} else {
+			return "UNKNOWN";
+		}
+	};
+
 // Private functions
 
 	/*
@@ -13184,6 +13186,18 @@ if (!window.requestAnimationFrame) {
 		}
 	};
 
+	Turnable.prototype.getAxisString = function() {
+		if (hemi.utils.vector3Equals(this.axis, new THREE.Vector3(-1, 0, 0))) {
+			return hemi.Axis.X;
+		} else if (hemi.utils.vector3Equals(this.axis, new THREE.Vector3(0, -1, 0))) {
+			return hemi.Axis.Y;
+		} else if (hemi.utils.vector3Equals(this.axis, new THREE.Vector3(0, 0, 1))) {
+			return hemi.Axis.Z;
+		} else {
+			return "UNKNOWN";
+		}
+	};
+
 	/**
 	 * Set the limits to which the Turnable can rotate.
 	 * 
@@ -13212,6 +13226,7 @@ if (!window.requestAnimationFrame) {
 
 		return Math.atan2(tuv[2], tuv[1]);
 	}
+
 
 	hemi.Turnable = Turnable;
 	hemi.makeOctanable(hemi.Turnable, 'hemi.Turnable', hemi.Turnable.prototype._octane);

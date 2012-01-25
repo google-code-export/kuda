@@ -306,6 +306,22 @@
 		transform.updateMatrixWorld();
 	};
 
+	/*
+	 *Determine if two vectors are equal
+	 *@param {THREE.Vector3} vec1
+	 *@param {THREE.Vector3} vec2
+	 *@param {number} opt_precision
+	 *@return {bool}
+	 */
+	hemi.utils.vector3Equals = function(vec1, vec2, opt_precision) {
+		if (!opt_precision) {
+			opt_precision = 0;
+		}
+		return Math.abs(vec1.x - vec2.x) <= opt_precision 
+			&& Math.abs(vec1.y - vec2.y) <= opt_precision
+			&& Math.abs(vec1.z - vec2.z) <= opt_precision;
+	};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
