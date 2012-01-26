@@ -254,7 +254,7 @@
 	
 	TreeView.prototype.filter = function(type) {
 		var id = shorthand.treeData.getNodeName({
-				getCitizenType: function() { return type; }
+				_citizenType: type
 			}, {
 				prefix: this.pre
 			}),
@@ -316,7 +316,7 @@
 	};
 	
 	TreeView.prototype.restrictSelection = function(citizen, options) {
-		var id = citizen.getId ? citizen._getId() : null,
+		var id = citizen._getId ? citizen._getId() : null,
 			nodeName = shorthand.treeData.getNodeName(citizen, {
 				prefix: this.pre,
 				id: id
@@ -346,7 +346,7 @@
 			var nodeName = shorthand.treeData.getNodeName(citizen, {
 					option: option,
 					prefix: this.pre,
-					id: citizen.getId ? citizen._getId() : null
+					id: citizen._getId ? citizen._getId() : null
 				});
 			
 			generateNodes.call(this, nodeName, false);
@@ -363,7 +363,7 @@
 	};
 	
 	TreeView.prototype.unrestrictSelection = function(citizen, msgs) {
-		var id = citizen.getId ? citizen._getId() : null;
+		var id = citizen._getId ? citizen._getId() : null;
 		this.tree.removeClass('restricted');
 		
 		for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
@@ -760,7 +760,7 @@
 	function deselectTrigger(data) {
 		var citizen = data.citizen, 
 			message = data.message,
-			id = citizen.getId ? citizen._getId() : null,
+			id = citizen._getId ? citizen._getId() : null,
 			nodeName = shorthand.treeData.getNodeName(citizen, {
 				option: message,
 				prefix: this.pre,
@@ -843,7 +843,7 @@
 	};
 	
 	function removeTrigger(citizen, removeType) {
-		var id = citizen.getId ? citizen._getId() : null,
+		var id = citizen._getId ? citizen._getId() : null,
 			nodeName = shorthand.treeData.getNodeName(citizen, {
 				option: null,
 				prefix: this.pre,
