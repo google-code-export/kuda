@@ -5025,10 +5025,10 @@ if (!window.requestAnimationFrame) {
 				name = property.name;
 
 			if (property.oct !== undefined) {
-				if (property.oct instanceof Array) {
+				if (hemi.utils.isArray(property.oct)) {
 					value = [];
 
-					for (var j = 0, jl = property.oct.length; j < j; ++j) {
+					for (var j = 0, jl = property.oct.length; j < jl; ++j) {
 						var child = createObject(property.oct[j]);
 						setProperties(child, property.oct[j]);
 						value.push(child);
@@ -5044,7 +5044,7 @@ if (!window.requestAnimationFrame) {
 			} else if (property.id !== undefined) {
 				var value;
 
-				if (property.id instanceof Array) {
+				if (hemi.utils.isArray(property.id)) {
 					value = [];
 
 					for (var j = 0, jl = property.id.length; j < jl; ++j) {
