@@ -264,10 +264,11 @@
 					parent: citizen,
 					msg: MSG_WILDCARD
 				}
-			}];
+			}],
+			msgSent = citizen._msgSent;
 		
-		for (var ndx = 0, len = citizen._msgSent.length; ndx < len; ndx++) {
-			var msg = citizen._msgSent[ndx],
+		for (var ndx = 0, len = msgSent ? msgSent.length : 0; ndx < len; ndx++) {
+			var msg = msgSent[ndx],
 				name = getNodeName(citizen, {
 					option: msg,
 					prefix: prefix,
@@ -482,8 +483,8 @@
 			id = spCit._getId(),
 			shapes = [];
 		
-		for (var ndx = 0, len = model.shapes.length; ndx < len; ndx++) {
-			var shape = model.shapes[ndx],
+		for (var ndx = 0, len = model.geometries.length; ndx < len; ndx++) {
+			var shape = model.geometries[ndx],
 				name = getNodeName(spCit, {
 					option: shape.name || '',
 					prefix: prefix,

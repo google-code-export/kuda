@@ -462,13 +462,13 @@
 			desc;
 		
 		if (opt_func) {
-			desc = editor.data.getDescription(type, opt_func);
+			desc = editor.data.getMetaData().getDescription(type, opt_func);
 		} else if (type === shorthand.constants.SHAPE_PICK) {
 			desc = 'A Picked Shape is triggered when the user clicks on a shape that is part of a Model.';
 		} else if (type === shorthand.constants.CAM_MOVE) {
 			desc = 'A Camera Move is triggered when a Camera arrives at a Viewpoint.';
 		} else {
-			desc = editor.data.getDescription(type);
+			desc = editor.data.getMetaData().getDescription(type);
 		}
 		
 		if (desc != null) {
@@ -484,6 +484,7 @@
 		var triggerNode = shorthand.treeData.createTriggerJson(citizen, 
 				this.pre),
 			type = citizen._citizenType.split('.').pop(),
+			msgSent = citizen._msgSent,
 			name = shorthand.treeData.getNodeName(citizen, {
 					option: shorthand.treeData.MSG_WILDCARD,
 					prefix: this.pre,
@@ -544,7 +545,7 @@
 			}
 		}
 		
-		for (var i = 0, il = citizen._msgSent.length; i < il; ++i) {
+		for (var i = 0, il = msgSent ? msgSent.length : 0; i < il; ++i) {
 			addTriggerToolTip.call(this, citizen, citizen._msgSent[i]);
 		}
 	};
@@ -557,7 +558,7 @@
 				});
 		
 		msg = msg.split('.').pop();
-		var desc = editor.data.getMsgDescription(citizen._citizenType, msg);
+		var desc = editor.data.getMetaData().getMsgDescription(citizen._citizenType, msg);
 		
 		if (desc != null) {
 			this.tooltips.put(nodeId, desc);

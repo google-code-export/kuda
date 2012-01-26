@@ -269,7 +269,7 @@
 		this.setAction(handler, method);
 		
 		if (argList != null) {
-			var meta = editor.data.getMetaData(),
+			var meta = editor.data,
 				citType = handler._citizenType,
 				params = meta.getParameters(citType, method);
 			
