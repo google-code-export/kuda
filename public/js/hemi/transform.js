@@ -93,8 +93,11 @@
 		this.cancelMotion(hemi.MotionType.ROTATE);
 		this.cancelMotion(hemi.MotionType.SCALE);
 		this.cancelMotion(hemi.MotionType.TRANSLATE);
-		this.parent.remove(this);
-		
+
+		if (this.parent) {
+			this.parent.remove(this);
+		}
+
 		var children = [].concat(this.children);
 
 		for (var i = 0, il = children.length; i < il; ++i) {
@@ -203,6 +206,9 @@
 
 				motion = this._rotator;
 				break;
+			case hemi.MotionType.SCALE:
+				// TODO
+				break;
 			case hemi.MotionType.TRANSLATE:
 				if (!this._translator) {
 					this._translator = getMotion(type);
@@ -280,6 +286,9 @@
 				motion = this._rotator;
 				this._rotator = null;
 				break;
+			case hemi.MotionType.SCALE:
+				// TODO
+				break;
 			case hemi.MotionType.TRANSLATE:
 				motion = this._translator;
 				this._translator = null;
@@ -308,6 +317,9 @@
 		switch (type) {
 			case hemi.MotionType.ROTATE:
 				motion = this._rotator;
+				break;
+			case hemi.MotionType.SCALE:
+				// TODO
 				break;
 			case hemi.MotionType.TRANSLATE:
 				motion = this._translator;
@@ -358,6 +370,9 @@
 		switch (type) {
 			case hemi.MotionType.ROTATE:
 				motion = this._rotator;
+				break;
+			case hemi.MotionType.SCALE:
+				// TODO
 				break;
 			case hemi.MotionType.TRANSLATE:
 				motion = this._translator;

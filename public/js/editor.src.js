@@ -35,14 +35,13 @@ var editor = {};
 	DispatchProxy.prototype = {
 		swap: function() {
 			if (this.editorSpecs === null) {
-				this.editorSpecs = hemi.dispatch._msgSpecs;
-				hemi.dispatch._msgSpecs = this.worldSpecs;
+				this.editorSpecs = hemi._resetMsgSpecs(this.worldSpecs);
 			}
 		},
 		
 		unswap: function() {
 			if (this.editorSpecs !== null) {
-				hemi.dispatch._msgSpecs = this.editorSpecs;
+				hemi._resetMsgSpecs(this.editorSpecs);
 				this.editorSpecs = null;
 			}
 		},
@@ -5575,10 +5574,10 @@ var editor = {};
 		});
 		
 		var autoId = setInterval(function() {
-//			if (prjMdl.dirty && !prjMdl.loading) {
-//				prjMdl.save(AUTO_SAVE, true);
-//				prjMdl.dirty = false;
-//			}
+			if (prjMdl.dirty && !prjMdl.loading) {
+				prjMdl.save(AUTO_SAVE, true);
+				prjMdl.dirty = false;
+			}
 		}, 5000);
 		
 		jQuery(document).unload(function() {
@@ -5625,6 +5624,7 @@ var editor = {};
 		this.dirty = false;
 		this.loading = false;
 		this.current = null;
+		this.worldState = null;
 					
 		jQuery.ajax({
 			url: '/projects',
@@ -5829,145 +5829,66 @@ var editor = {};
 	};
 	
 	ProjectModel.prototype.startPreview = function() {
-		if (this.worldState != null) {
-			return;
-		}
-		
+		if (this.worldState !== null) return;
+
 		// save current world props (and editor props)
-		var hi = hemi.input,
-			hr = hemi.core.client.root,
-			hw = hemi.world,
-			data = editor.getProjectOctane();
-		
+		var data = editor.getProjectOctane();
+
 		// make a deep copy, so the preview world created from the data
 		// won't affect the editor world
 		data = hemi.utils.clone(data);
-		
+
 		this.worldState = {
-			camera: hw.camera,
-			citizens: hw.citizens,
-			loader: hw.loader,
-			pickGrabber: hw.pickGrabber,
-			tranReg: hw.tranReg,
-			fog: hw.fog,
-			nextId: hw.checkNextId(),
-			msgSpecs: hemi.dispatch.msgSpecs,
-			pickRoot: hemi.picking.pickRoot,
-			pickManager: hemi.picking.pickManager,
-			modelRoot: hemi.model.modelRoot,
-			shapeRoot: hemi.shape.root,
-			children: hr.children,
-			rL: hemi.view.renderListeners,
-			mdL: hi.mouseDownListeners,
-			muL: hi.mouseUpListeners,
-			mmL: hi.mouseMoveListeners,
-			mwL: hi.mouseWheelListeners,
-	        kdL: hi.keyDownListeners,
-	        kuL: hi.keyUpListeners,
-	        kpL: hi.keyPressListeners
+			clients: hemi.clients,
+			renderListeners: hemi._resetRenderListeners(),
+			worldId: hemi.world.checkNextId(),
+			citizens: hemi._resetCitizens(),
+			dispatchId: hemi.dispatch.checkNextId(),
+			msgSpecs: hemi._resetMsgSpecs(),
+			keyListeners: hemi._resetKeyListeners(),
+			mouseListeners: hemi._resetMouseListeners(),
+			hudContexts: hemi.hudManager._contexts
 		};
-		
-		// Hide the currently rendered tree
-		var children = hr.children;
-		hr.children = [];
-		
-		for (var ndx = 0; ndx < children.length; ndx++) {
-			children[ndx].parent = null;
-		}
-		
-		// set the world to its initial state
-		hemi.view.renderListeners = [hemi.view.clientSize];
-		hi.mouseDownListeners = [hw];
-		hi.mouseUpListeners = [];
-		hi.mouseMoveListeners = [];
-		hi.mouseWheelListeners = [];
-        hi.keyDownListeners = [];
-        hi.keyUpListeners = [];
-        hi.keyPressListeners = [];
-		hw.citizens = new hemi.utils.Hashtable();
-		hw.camera = null;
-		hw.loader = {finish: function(){}};
-		hw.pickGrabber = null;
-		hw.tranReg = new hemi.world.TransformRegistry();
-		hw.fog = null;
-		
-		hemi.dispatch.msgSpecs = new hemi.utils.Hashtable();
-		hemi.picking.init();
-		hemi.model.init();
-		hemi.shape.root = hemi.core.mainPack.createObject('Transform');
-		hemi.shape.root.name = hemi.shape.SHAPE_ROOT;
-		hemi.shape.root.parent = hemi.picking.pickRoot;
-		
-		hemi.world.subscribe(hemi.msg.progress, editor.ui.progressUI, 'msgUpdate');
-		
+
+		// finish setting the world to its initial state
+		hemi.hudManager.clearDisplay();
+		hemi.clients = [];
+		hemi.hudManager._contexts = {};
+
 		// now load the preview data
-		hemi.octane.createWorld(data);
-		hemi.world.ready();
+		hemi.subscribe(hemi.msg.progress, editor.ui.progressUI, 'msgUpdate');
+		hemi.fromOctane(data);
+
+		var client = hemi.clients[0];
+		client.setRenderer(editor.client.renderer);
+		hemi.hudManager._contexts[client._getId()] = this.worldState.hudContexts[editor.client._getId()];
+		hemi.ready();
 	};
-	
+
 	ProjectModel.prototype.stopPreview = function() {
-		if (this.worldState == null) {
-			return;
-		}
-		
-		var hi = hemi.input,
-			hr = hemi.core.client.root,
-			hw = hemi.world,
-			ws = this.worldState;
-		
+		if (this.worldState === null) return;
+
+		var ws = this.worldState;
+
 		// Clean up the preview world
-		hw.cleanup();
+		hemi.world.cleanup();
 		hemi.dispatch.cleanup();
-		hw.camera.cleanup();
-		hemi.hud.hudMgr.clearDisplay();
-		hemi.model.modelRoot.parent = null;
-		hemi.core.mainPack.removeObject(hemi.model.modelRoot);
-		hemi.shape.root.parent = null;
-		hemi.core.mainPack.removeObject(hemi.shape.root);
-		hemi.picking.pickRoot.parent = null;
-		hemi.core.mainPack.removeObject(hemi.picking.pickRoot);
-		
+		hemi.hudManager.clearDisplay();
+
 		// restore the world back to original state
-		hemi.dispatch.msgSpecs = ws.msgSpecs;
-		hemi.picking.pickRoot = ws.pickRoot;
-		hemi.picking.pickManager = ws.pickManager;
-		hemi.model.modelRoot = ws.modelRoot;
-		hemi.shape.root = ws.shapeRoot;
-		hemi.shape.material.getParam('lightWorldPos').bind(ws.camera.light.position);
-		hemi.shape.transMaterial.getParam('lightWorldPos').bind(ws.camera.light.position);
-		
-		if (ws.fog != null) {
-			hw.fog = ws.fog;
-			hemi.view.setBGColor(ws.fog.color);
-		}
-		
-		hw.tranReg = ws.tranReg;
-		hw.pickGrabber = ws.pickGrabber;
-		hw.loader = ws.loader;
-		hw.camera = ws.camera;
-		hw.citizens = ws.citizens;
-		hw.setNextId(ws.nextId);
-		hi.mouseDownListeners = ws.mdL;
-		hi.mouseUpListeners = ws.muL;
-		hi.mouseMoveListeners = ws.mmL;
-		hi.mouseWheelListeners = ws.mwL;
-        hi.keyDownListeners = ws.kdL;
-        hi.keyUpListeners = ws.kuL;
-        hi.keyPressListeners = ws.kpL;
-		hemi.view.renderListeners = ws.rL;
-		
-		// Restore the render tree
-		hr.children = ws.children;
-		
-		for (var ndx = 0; ndx < ws.children.length; ndx++) {
-			ws.children[ndx].parent = hr;
-		}
-		
-		hw.camera.update();
-		hw.camera.updateProjection();
+		hemi.clients = ws.clients;
+		hemi._resetRenderListeners(ws.renderListeners);
+		hemi._resetCitizens(ws.citizens);
+		hemi._resetMsgSpecs(ws.msgSpecs);
+		hemi._resetKeyListeners(ws.keyListeners);
+		hemi._resetMouseListeners(ws.mouseListeners);
+		hemi.world.setNextId(ws.worldId);
+		hemi.dispatch.setNextId(ws.dispatchId);
+		hemi.hudManager._contexts = ws.hudContexts;
+
 		this.worldState = null;
 	};
-	
+
 	var findProject = function(project) {
 		var ndx = -1,
 			plc = project.toLowerCase();

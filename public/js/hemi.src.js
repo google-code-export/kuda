@@ -1694,6 +1694,18 @@ if (!window.requestAnimationFrame) {
 	hemi.clients = [];
 
 	/**
+	 * Utility function to reset the render listeners. This should typically not be used.
+	 * 
+	 * @param {Object[]} opt_listeners optional set of new render listeners
+	 * @return {Object[]} the previous set of render listeners
+	 */
+	hemi._resetRenderListeners = function(opt_listeners) {
+		var oldListeners = renderListeners;
+		renderListeners = opt_listeners || [];
+		return oldListeners;
+	};
+
+	/**
 	 * Add the given render listener to hemi. A listener must implement the onRender function.
 	 * 
 	 * @param {Object} listener the render listener to add
@@ -4302,6 +4314,18 @@ if (!window.requestAnimationFrame) {
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
+	 * Utility function to reset the Citizens of the world. This should typically not be used.
+	 * 
+	 * @param {hemi.utils.Hashtable} opt_citizens optional set of new Citizens for the world
+	 * @return {hemi.utils.Hashtable} the previous set of Citizens in the world
+	 */
+	hemi._resetCitizens = function(opt_citizens) {
+		var oldCitizens = citizens;
+		citizens = opt_citizens || new hemi.utils.Hashtable();
+		return oldCitizens;
+	};
+
+	/**
 	 * Get the base class that the specified Citizen class was created from. This can be useful if
 	 * you want to extend functionality and create a new Citizen class yourself.
 	 * 
@@ -5373,8 +5397,11 @@ if (!window.requestAnimationFrame) {
 
 (function() {
 
+		/* All of the MessageSpecs (and MessageTargets) in the Dispatch */
+	var msgSpecs = new hemi.utils.Hashtable(),
+
 		/* The next id to assign to a MessageTarget */
-	var nextId = 0;
+		nextId = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
@@ -5385,12 +5412,6 @@ if (!window.requestAnimationFrame) {
 	 * sends them to MessageTargets that are registered with MessageSpecs.
 	 */
 	hemi.dispatch = hemi.dispatch || {};
-
-	/*
-	 * All of the MessageSpecs (and MessageTargets) in the Dispatch
-	 * @type hemi.utils.Hashtable
-	 */
-	hemi.dispatch._msgSpecs = new hemi.utils.Hashtable();
 
 	/**
 	 * String literal to indicate that all entries for a field are desired.
@@ -5670,7 +5691,7 @@ if (!window.requestAnimationFrame) {
 			ents: []
 		};
 
-		this._msgSpecs.each(function(key, value) {
+		msgSpecs.each(function(key, value) {
 			var oct = value._toOctane();
 
 			if (oct !== null) {
@@ -5697,11 +5718,11 @@ if (!window.requestAnimationFrame) {
 	 * Empty the MessageSpec database of all entries.
 	 */
 	hemi.dispatch.cleanup = function() {
-		this._msgSpecs.each(function(key, value) {
+		msgSpecs.each(function(key, value) {
 			value.cleanup();
 		});
 
-		this._msgSpecs.clear();
+		msgSpecs.clear();
 	};
 
 	/**
@@ -5728,7 +5749,7 @@ if (!window.requestAnimationFrame) {
 		var specs;
 
 		if (attributes === undefined) {
-			specs = this._msgSpecs.values();
+			specs = msgSpecs.values();
 		} else {
 			var atts = {};
 
@@ -5756,7 +5777,7 @@ if (!window.requestAnimationFrame) {
 				}
 			}
 
-			specs = this._msgSpecs.query(atts);
+			specs = msgSpecs.query(atts);
 		}
 
 		return specs;
@@ -5775,7 +5796,7 @@ if (!window.requestAnimationFrame) {
 	hemi.dispatch.getSpecsFast = function(src, msg, wildcards) {
 		var specs = [],
 			hash = msg + src,
-			spec = this._msgSpecs.get(hash);
+			spec = msgSpecs.get(hash);
 
 		if (spec !== null) {
 			specs.push(spec);
@@ -5786,21 +5807,21 @@ if (!window.requestAnimationFrame) {
 
 			if (!wildSrc) {
 				hash = msg + hemi.dispatch.WILDCARD;
-				spec = this._msgSpecs.get(hash);
+				spec = msgSpecs.get(hash);
 				if (spec !== null) {
 					specs.push(spec);
 				}
 			}
 			if (msg !== hemi.dispatch.WILDCARD) {
 				hash = hemi.dispatch.WILDCARD + src;
-				spec = this._msgSpecs.get(hash);
+				spec = msgSpecs.get(hash);
 				if (spec !== null) {
 					specs.push(spec);
 				}
 
 				if (!wildSrc) {
 					hash = hemi.dispatch.WILDCARD + hemi.dispatch.WILDCARD;
-					spec = this._msgSpecs.get(hash);
+					spec = msgSpecs.get(hash);
 					if (spec !== null) {
 						specs.push(spec);
 					}
@@ -5898,7 +5919,7 @@ if (!window.requestAnimationFrame) {
 	hemi.dispatch.loadEntries = function(entries) {
 		for (var i = 0, il = entries.length; i < il; ++i) {
 			var entry = entries[i];
-			this._msgSpecs.put(entry.getHash(), entry);
+			msgSpecs.put(entry.getHash(), entry);
 		}
 	};
 
@@ -6001,7 +6022,7 @@ if (!window.requestAnimationFrame) {
 			spec;
 
 		for (var i = 0, il = specs.length; i < il; ++i) {
-			spec = this._msgSpecs.remove(specs[i].getHash());
+			spec = msgSpecs.remove(specs[i].getHash());
 			if (spec) removed.push(spec);
 		}
 
@@ -6173,6 +6194,18 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
+	 * Utility function to reset the contents of the dispatch. This should typically not be used.
+	 * 
+	 * @param {hemi.utils.Hashtable} opt_specs optional set of new MessageSpecs for the dispatch
+	 * @return {hemi.utils.Hashtable} the previous set of MessageSpecs in the dispatch
+	 */
+	hemi._resetMsgSpecs = function(opt_specs) {
+		var oldSpecs = msgSpecs;
+		msgSpecs = opt_specs || new hemi.utils.Hashtable();
+		return oldSpecs;
+	};
+
+	/**
 	 * Send a Message with the given attributes from an anonymous wildcard source to any registered
 	 * MessageTargets.
 	 * 
@@ -6234,7 +6267,7 @@ if (!window.requestAnimationFrame) {
 			spec = new hemi.dispatch.MessageSpec();
 			spec.src = src;
 			spec.msg = msg;
-			hemi.dispatch._msgSpecs.put(spec.getHash(), spec);
+			msgSpecs.put(spec.getHash(), spec);
 		} else {
 			if (specs.length > 1) {
 				console.log('Found ' + specs.length + ' MessageSpecs with the same src and msg.');
@@ -6300,6 +6333,50 @@ if (!window.requestAnimationFrame) {
 	hemi.input = hemi.input || {};
 
 	/**
+	 * Utility function to reset the key input listeners. This should typically not be used.
+	 * 
+	 * @param {Object} opt_listeners optional map of new key down/up/press listeners
+	 * @return {Object} map of the previous key down/up/press listeners
+	 */
+	hemi._resetKeyListeners = function(opt_listeners) {
+		var listeners = {
+			down: keyDownListeners,
+			up: keyUpListeners,
+			press: keyPressListeners
+		};
+
+		opt_listeners = opt_listeners || {};
+		keyDownListeners = opt_listeners.down || [];
+		keyUpListeners = opt_listeners.up || [];
+		keyPressListeners = opt_listeners.press || [];
+
+		return listeners;
+	};
+
+	/**
+	 * Utility function to reset the mouse input listeners. This should typically not be used.
+	 * 
+	 * @param {Object} opt_listeners optional map of new mouse down/up/move/wheel listeners
+	 * @return {Object} map of the previous mouse down/up/move/wheel listeners
+	 */
+	hemi._resetMouseListeners = function(opt_listeners) {
+		var listeners = {
+			down: mouseDownListeners,
+			up: mouseUpListeners,
+			move: mouseMoveListeners,
+			wheel: mouseWheelListeners
+		};
+
+		opt_listeners = opt_listeners || {};
+		mouseDownListeners = opt_listeners.down || [];
+		mouseUpListeners = opt_listeners.up || [];
+		mouseMoveListeners = opt_listeners.move || [];
+		mouseWheelListeners = opt_listeners.wheel || [];
+
+		return listeners;
+	};
+
+	/**
 	 * Setup the listener lists and register the event handlers.
 	 */
 	hemi.input.init = function(canvas) {
@@ -6361,27 +6438,27 @@ if (!window.requestAnimationFrame) {
 	 *  
 	 * @param {Object} listener an object that implements onKeyDown()
 	 */
-    hemi.input.addKeyDownListener = function(listener) {
+	hemi.input.addKeyDownListener = function(listener) {
 		addListener(keyDownListeners, listener);
-    };
+	};
 
 	/**
 	 * Register the given listener as a "key up" listener.
 	 *  
 	 * @param {Object} listener an object that implements onKeyUp()
 	 */
-    hemi.input.addKeyUpListener = function(listener) {
+	hemi.input.addKeyUpListener = function(listener) {
 		addListener(keyUpListeners, listener);
-    };
+	};
 
 	/**
 	 * Register the given listener as a "key press" listener.
 	 *  
 	 * @param {Object} listener an object that implements onKeyPress()
 	 */
-    hemi.input.addKeyPressListener = function(listener) {
+	hemi.input.addKeyPressListener = function(listener) {
 		addListener(keyPressListeners, listener);
-    };
+	};
 
 	/**
 	 * Remove the given listener from the list of "mouse down" listeners.
@@ -6429,9 +6506,9 @@ if (!window.requestAnimationFrame) {
 	 * @param {Object} listener the listener to remove
 	 * @return {Object} the removed listener if successful or null
 	 */
-    hemi.input.removeKeyDownListener = function(listener) {
+	hemi.input.removeKeyDownListener = function(listener) {
 		return removeListener(keyDownListeners, listener);
-    };
+	};
 
 	/**
 	 * Remove the given listener from the list of "key up" listeners.
@@ -6439,9 +6516,9 @@ if (!window.requestAnimationFrame) {
 	 * @param {Object} listener the listener to remove
 	 * @return {Object} the removed listener if successful or null
 	 */
-    hemi.input.removeKeyUpListener = function(listener) {
+	hemi.input.removeKeyUpListener = function(listener) {
 		return removeListener(keyUpListeners, listener);
-    };
+	};
 
 	/**
 	 * Remove the given listener from the list of "key press" listeners.
@@ -6449,9 +6526,9 @@ if (!window.requestAnimationFrame) {
 	 * @param {Object} listener the listener to remove
 	 * @return {Object} the removed listener if successful or null
 	 */
-    hemi.input.removeKeyPressListener = function(listener) {
+	hemi.input.removeKeyPressListener = function(listener) {
 		return removeListener(keyPressListeners, listener);
-    };
+	};
 
 	/**
 	 * Handle the event generated by the user pressing a mouse button down.
@@ -6460,7 +6537,7 @@ if (!window.requestAnimationFrame) {
 	 *     down" listeners
 	 */
 	hemi.input.mouseDown = function(event) {
-        var newEvent = getRelativeEvent(event);
+		var newEvent = getRelativeEvent(event);
 		for (var ndx = 0; ndx < mouseDownListeners.length; ndx++) {
 			mouseDownListeners[ndx].onMouseDown(newEvent);
 		}
@@ -6473,7 +6550,7 @@ if (!window.requestAnimationFrame) {
 	 *     listeners
 	 */
 	hemi.input.mouseUp = function(event) {
-        var newEvent = getRelativeEvent(event);
+		var newEvent = getRelativeEvent(event);
 		for (var ndx = 0; ndx < mouseUpListeners.length; ndx++) {
 			mouseUpListeners[ndx].onMouseUp(newEvent);
 		}
@@ -6486,7 +6563,7 @@ if (!window.requestAnimationFrame) {
 	 *     move" listeners
 	 */
 	hemi.input.mouseMove = function(event) {
-        var newEvent = getRelativeEvent(event);
+		var newEvent = getRelativeEvent(event);
 		for (var ndx = 0; ndx < mouseMoveListeners.length; ndx++) {
 			mouseMoveListeners[ndx].onMouseMove(newEvent);
 		}
@@ -6499,9 +6576,9 @@ if (!window.requestAnimationFrame) {
 	 *     wheel" listeners
 	 */
 	hemi.input.scroll = function(event) {
-        var newEvent = getRelativeEvent(event);
-        newEvent.deltaY = event.detail ? -event.detail : event.wheelDelta;
-        cancelEvent(event);
+		var newEvent = getRelativeEvent(event);
+		newEvent.deltaY = event.detail ? -event.detail : event.wheelDelta;
+		cancelEvent(event);
 		for (var ndx = 0; ndx < mouseWheelListeners.length; ndx++) {
 			mouseWheelListeners[ndx].onScroll(newEvent);
 		}
@@ -6513,11 +6590,11 @@ if (!window.requestAnimationFrame) {
 	 * @param {Object} event information about the event which is passed on to registered "key down"
 	 *     listeners
 	 */
-    hemi.input.keyDown = function(event) {
-        for (var ndx = 0; ndx < keyDownListeners.length; ndx++) {
-            keyDownListeners[ndx].onKeyDown(event);
-        }
-    };
+	hemi.input.keyDown = function(event) {
+		for (var ndx = 0; ndx < keyDownListeners.length; ndx++) {
+			keyDownListeners[ndx].onKeyDown(event);
+		}
+	};
 
 	/**
 	 * Handle the event generated by the user releasing a pressed key.
@@ -6525,11 +6602,11 @@ if (!window.requestAnimationFrame) {
 	 * @param {Object} event information about the event which is passed on to registered "key up"
 	 *     listeners
 	 */
-    hemi.input.keyUp = function(event) {
-        for (var ndx = 0; ndx < keyUpListeners.length; ndx++) {
-            keyUpListeners[ndx].onKeyUp(event);
-        }
-    };
+	hemi.input.keyUp = function(event) {
+		for (var ndx = 0; ndx < keyUpListeners.length; ndx++) {
+			keyUpListeners[ndx].onKeyUp(event);
+		}
+	};
 
 	/**
 	 * Handle the event generated by the user pressing a key down and releasing it.
@@ -6537,11 +6614,11 @@ if (!window.requestAnimationFrame) {
 	 * @param {Object} event information about the event which is passed on to registered "key
 	 *     press" listeners
 	 */
-    hemi.input.keyPress = function(event) {
-        for (var ndx = 0; ndx < keyPressListeners.length; ndx++) {
-            keyPressListeners[ndx].onKeyPress(event);
-        }
-    };
+	hemi.input.keyPress = function(event) {
+		for (var ndx = 0; ndx < keyPressListeners.length; ndx++) {
+			keyPressListeners[ndx].onKeyPress(event);
+		}
+	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility functions
@@ -7110,8 +7187,11 @@ if (!window.requestAnimationFrame) {
 		this.cancelMotion(hemi.MotionType.ROTATE);
 		this.cancelMotion(hemi.MotionType.SCALE);
 		this.cancelMotion(hemi.MotionType.TRANSLATE);
-		this.parent.remove(this);
-		
+
+		if (this.parent) {
+			this.parent.remove(this);
+		}
+
 		var children = [].concat(this.children);
 
 		for (var i = 0, il = children.length; i < il; ++i) {
@@ -7220,6 +7300,9 @@ if (!window.requestAnimationFrame) {
 
 				motion = this._rotator;
 				break;
+			case hemi.MotionType.SCALE:
+				// TODO
+				break;
 			case hemi.MotionType.TRANSLATE:
 				if (!this._translator) {
 					this._translator = getMotion(type);
@@ -7297,6 +7380,9 @@ if (!window.requestAnimationFrame) {
 				motion = this._rotator;
 				this._rotator = null;
 				break;
+			case hemi.MotionType.SCALE:
+				// TODO
+				break;
 			case hemi.MotionType.TRANSLATE:
 				motion = this._translator;
 				this._translator = null;
@@ -7325,6 +7411,9 @@ if (!window.requestAnimationFrame) {
 		switch (type) {
 			case hemi.MotionType.ROTATE:
 				motion = this._rotator;
+				break;
+			case hemi.MotionType.SCALE:
+				// TODO
 				break;
 			case hemi.MotionType.TRANSLATE:
 				motion = this._translator;
@@ -7375,6 +7464,9 @@ if (!window.requestAnimationFrame) {
 		switch (type) {
 			case hemi.MotionType.ROTATE:
 				motion = this._rotator;
+				break;
+			case hemi.MotionType.SCALE:
+				// TODO
 				break;
 			case hemi.MotionType.TRANSLATE:
 				motion = this._translator;

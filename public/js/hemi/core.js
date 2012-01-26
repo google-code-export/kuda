@@ -124,6 +124,18 @@ if (!window.requestAnimationFrame) {
 	hemi.clients = [];
 
 	/**
+	 * Utility function to reset the render listeners. This should typically not be used.
+	 * 
+	 * @param {Object[]} opt_listeners optional set of new render listeners
+	 * @return {Object[]} the previous set of render listeners
+	 */
+	hemi._resetRenderListeners = function(opt_listeners) {
+		var oldListeners = renderListeners;
+		renderListeners = opt_listeners || [];
+		return oldListeners;
+	};
+
+	/**
 	 * Add the given render listener to hemi. A listener must implement the onRender function.
 	 * 
 	 * @param {Object} listener the render listener to add
