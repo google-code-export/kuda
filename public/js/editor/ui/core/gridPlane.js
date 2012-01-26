@@ -65,7 +65,12 @@
 		this.markerMaterial = markerMat;
 		this.client.scene.add(this.transform);
 	};
-		
+
+	editor.ui.GridPlane.prototype.setClient = function(client) {
+		this.client = client;
+		this.createShape();
+	};
+
 	editor.ui.GridPlane.prototype.setVisible = function(visible) {
 		this.transform.visible = visible;
 	};

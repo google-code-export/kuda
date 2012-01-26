@@ -35,14 +35,14 @@ var editor = {};
 	DispatchProxy.prototype = {
 		swap: function() {
 			if (this.editorSpecs === null) {
-				this.editorSpecs = hemi.dispatch.msgSpecs;
-				hemi.dispatch.msgSpecs = this.worldSpecs;
+				this.editorSpecs = hemi.dispatch._msgSpecs;
+				hemi.dispatch._msgSpecs = this.worldSpecs;
 			}
 		},
 		
 		unswap: function() {
 			if (this.editorSpecs !== null) {
-				hemi.dispatch.msgSpecs = this.editorSpecs;
+				hemi.dispatch._msgSpecs = this.editorSpecs;
 				this.editorSpecs = null;
 			}
 		},
