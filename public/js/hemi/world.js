@@ -124,6 +124,18 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/**
+	 * Utility function to reset the Citizens of the world. This should typically not be used.
+	 * 
+	 * @param {hemi.utils.Hashtable} opt_citizens optional set of new Citizens for the world
+	 * @return {hemi.utils.Hashtable} the previous set of Citizens in the world
+	 */
+	hemi._resetCitizens = function(opt_citizens) {
+		var oldCitizens = citizens;
+		citizens = opt_citizens || new hemi.utils.Hashtable();
+		return oldCitizens;
+	};
+
+	/**
 	 * Get the base class that the specified Citizen class was created from. This can be useful if
 	 * you want to extend functionality and create a new Citizen class yourself.
 	 * 

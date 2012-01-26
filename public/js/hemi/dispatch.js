@@ -22,8 +22,11 @@
 
 (function() {
 
+		/* All of the MessageSpecs (and MessageTargets) in the Dispatch */
+	var msgSpecs = new hemi.utils.Hashtable(),
+
 		/* The next id to assign to a MessageTarget */
-	var nextId = 0;
+		nextId = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
@@ -34,12 +37,6 @@
 	 * sends them to MessageTargets that are registered with MessageSpecs.
 	 */
 	hemi.dispatch = hemi.dispatch || {};
-
-	/*
-	 * All of the MessageSpecs (and MessageTargets) in the Dispatch
-	 * @type hemi.utils.Hashtable
-	 */
-	hemi.dispatch._msgSpecs = new hemi.utils.Hashtable();
 
 	/**
 	 * String literal to indicate that all entries for a field are desired.
@@ -319,7 +316,7 @@
 			ents: []
 		};
 
-		this._msgSpecs.each(function(key, value) {
+		msgSpecs.each(function(key, value) {
 			var oct = value._toOctane();
 
 			if (oct !== null) {
@@ -346,11 +343,11 @@
 	 * Empty the MessageSpec database of all entries.
 	 */
 	hemi.dispatch.cleanup = function() {
-		this._msgSpecs.each(function(key, value) {
+		msgSpecs.each(function(key, value) {
 			value.cleanup();
 		});
 
-		this._msgSpecs.clear();
+		msgSpecs.clear();
 	};
 
 	/**
@@ -377,7 +374,7 @@
 		var specs;
 
 		if (attributes === undefined) {
-			specs = this._msgSpecs.values();
+			specs = msgSpecs.values();
 		} else {
 			var atts = {};
 
@@ -405,7 +402,7 @@
 				}
 			}
 
-			specs = this._msgSpecs.query(atts);
+			specs = msgSpecs.query(atts);
 		}
 
 		return specs;
@@ -424,7 +421,7 @@
 	hemi.dispatch.getSpecsFast = function(src, msg, wildcards) {
 		var specs = [],
 			hash = msg + src,
-			spec = this._msgSpecs.get(hash);
+			spec = msgSpecs.get(hash);
 
 		if (spec !== null) {
 			specs.push(spec);
@@ -435,21 +432,21 @@
 
 			if (!wildSrc) {
 				hash = msg + hemi.dispatch.WILDCARD;
-				spec = this._msgSpecs.get(hash);
+				spec = msgSpecs.get(hash);
 				if (spec !== null) {
 					specs.push(spec);
 				}
 			}
 			if (msg !== hemi.dispatch.WILDCARD) {
 				hash = hemi.dispatch.WILDCARD + src;
-				spec = this._msgSpecs.get(hash);
+				spec = msgSpecs.get(hash);
 				if (spec !== null) {
 					specs.push(spec);
 				}
 
 				if (!wildSrc) {
 					hash = hemi.dispatch.WILDCARD + hemi.dispatch.WILDCARD;
-					spec = this._msgSpecs.get(hash);
+					spec = msgSpecs.get(hash);
 					if (spec !== null) {
 						specs.push(spec);
 					}
@@ -547,7 +544,7 @@
 	hemi.dispatch.loadEntries = function(entries) {
 		for (var i = 0, il = entries.length; i < il; ++i) {
 			var entry = entries[i];
-			this._msgSpecs.put(entry.getHash(), entry);
+			msgSpecs.put(entry.getHash(), entry);
 		}
 	};
 
@@ -650,7 +647,7 @@
 			spec;
 
 		for (var i = 0, il = specs.length; i < il; ++i) {
-			spec = this._msgSpecs.remove(specs[i].getHash());
+			spec = msgSpecs.remove(specs[i].getHash());
 			if (spec) removed.push(spec);
 		}
 
@@ -822,6 +819,18 @@
 	};
 
 	/**
+	 * Utility function to reset the contents of the dispatch. This should typically not be used.
+	 * 
+	 * @param {hemi.utils.Hashtable} opt_specs optional set of new MessageSpecs for the dispatch
+	 * @return {hemi.utils.Hashtable} the previous set of MessageSpecs in the dispatch
+	 */
+	hemi._resetMsgSpecs = function(opt_specs) {
+		var oldSpecs = msgSpecs;
+		msgSpecs = opt_specs || new hemi.utils.Hashtable();
+		return oldSpecs;
+	};
+
+	/**
 	 * Send a Message with the given attributes from an anonymous wildcard source to any registered
 	 * MessageTargets.
 	 * 
@@ -883,7 +892,7 @@
 			spec = new hemi.dispatch.MessageSpec();
 			spec.src = src;
 			spec.msg = msg;
-			hemi.dispatch._msgSpecs.put(spec.getHash(), spec);
+			msgSpecs.put(spec.getHash(), spec);
 		} else {
 			if (specs.length > 1) {
 				console.log('Found ' + specs.length + ' MessageSpecs with the same src and msg.');
