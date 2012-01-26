@@ -30,6 +30,17 @@
 		keyUpListeners = [],
 		keyPressListeners = [];
 
+	// Register document listeners
+	document.addEventListener('keypress', function(event) {
+		hemi.input.keyPress(event);
+	}, true);
+	document.addEventListener('keydown', function(event) {
+		hemi.input.keyDown(event);
+	}, true);
+	document.addEventListener('keyup', function(event) {
+		hemi.input.keyUp(event);
+	}, true);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -58,16 +69,6 @@
 		canvas.addEventListener('DOMMouseScroll', function(event) {
 			hemi.input.scroll(event);
 		}, false);
-
-		document.addEventListener('keypress', function(event) {
-			hemi.input.keyPress(event);
-		}, true);
-		document.addEventListener('keydown', function(event) {
-			hemi.input.keyDown(event);
-		}, true);
-		document.addEventListener('keyup', function(event) {
-			hemi.input.keyUp(event);
-		}, true);
 	};
 
 	/**

@@ -87,8 +87,26 @@
 	};
 
 	/*
+	 * Remove all references in the Client.
+	 */
+	Client.prototype._clean = function() {
+		var ndx = hemi.clients.indexOf(this);
+
+		if (ndx !== -1) {
+			hemi.clients.splice(ndx, 1);
+		}
+
+		this.picker.cleanup();
+		this.picker = null;
+		this.camera = null;
+		this.scene = null;
+		this.renderer = null;
+	};
+
+	/*
 	 * Octane properties for Client.
-	 * @type string[]
+	 * 
+	 * @return {Object[]} array of Octane properties
 	 */
 	Client.prototype._octane = function() {
 		return [
@@ -228,11 +246,6 @@
 	 * @param {THREE.WebGLRenderer} renderer renderer to use
 	 */
 	Client.prototype.setRenderer = function(renderer) {
-		var dom = renderer.domElement;
-		dom.style.width = "100%";
-		dom.style.height = "100%";
-		hemi.input.init(dom);
-
 		renderer.setClearColorHex(this._bgColor, this._bgAlpha);
 		this.renderer = renderer;
 		this._resize();
@@ -276,6 +289,7 @@
 	};
 
 	hemi.makeCitizen(Client, 'hemi.Client', {
+		cleanup: Client.prototype._clean,
 		toOctane: Client.prototype._octane
 	});
 

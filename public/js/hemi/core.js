@@ -218,9 +218,14 @@ if (!window.requestAnimationFrame) {
 				var renderer = getRenderer(element);
 
 				if (renderer) {
-					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true);
+					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true),
+						dom = renderer.domElement;
 
-					element.appendChild(renderer.domElement);
+					element.appendChild(dom);
+					dom.style.width = "100%";
+					dom.style.height = "100%";
+					hemi.input.init(dom);
+
 					client.setRenderer(renderer);
 					hemi.hudManager.addClient(client);
 				}
