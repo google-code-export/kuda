@@ -116,14 +116,14 @@
 			var shapes = hemi.world.getShapes();
 			
 			for (var i = 0, il = shapes.length; i < il; i++) {
-				msgs.push(shapes[i].transform.shapes[0].name);
+				msgs.push(shapes[i].name);
 			}
 			var models = hemi.world.getModels();
 			
 			for (var i = 0, il = models.length; i < il; i++) {
-				var shapes = models[i].shapes;
-				for (var j = 0, jl = shapes.length; j < jl; j++) {
-					msgs.push(shapes[j].name);
+				var geometries = models[i].geometries;
+				for (var j = 0, jl = geometries.length; j < jl; j++) {
+					msgs.push(geometries[j].name);
 				}					
 			}
 		}			
@@ -135,7 +135,7 @@
 		var methods = [],
 			hasMore = false;
 
-		for (propName in citizen) {
+		for (var propName in citizen) {
 			var prop = citizen[propName];
 			
 			if (jQuery.isFunction(prop) && shorthand.treeData.methodsToRemove.indexOf(propName) === -1) {					
@@ -585,7 +585,7 @@
 				data = {
 					trigger: {
 						citizen: spc,
-						type: shp.transform.shapes[0].name
+						type: shp.name
 					}
 				}
 			}

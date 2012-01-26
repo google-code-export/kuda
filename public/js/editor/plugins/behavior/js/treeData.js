@@ -83,11 +83,10 @@
 	var methodsToRemove = shorthand.treeData.methodsToRemove = [
         'constructor',
         'init',
-		'getId',
-		'setId',
-		'getCitizenType',
-		'setCitizenType',
-		'toOctane'
+		'_getId',
+		'_setId',
+		'_citizenType',
+		'_toOctane'
 	];
 		
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -527,7 +526,7 @@
 	};
 	
 	shorthand.treeData.createShapePickJson = function(spCit, prefix) {
-		var shape = spCit.citizen.transform.shapes[0],
+		var shape = spCit.citizen,
 			id = spCit._getId(),
 			name = getNodeName(spCit, {
 				option: shape.name || '',
@@ -554,7 +553,7 @@
 		});
 		
 		return {
-			data: spCit.citizen.name || '',
+			data: shape.name || '',
 			attr: {
 				id: name,
 				rel: 'citizen'

@@ -84,8 +84,8 @@
 				citName = '';
 				
 			if (metadata.type === 'citizen') {
-				citParam = hemi.dispatch.ID_ARG + citizen.getId();
-				citName = citizen.getCitizenType().split('.').pop() 
+				citParam = hemi.dispatch.ID_ARG + citizen._getId();
+				citName = citizen._citizenType.split('.').pop() 
 					+ '.' + citizen.name;
 				jQuery(this).parent().hide(200);
 				tree.jstree('close_all').jstree('deselect_all');
@@ -206,10 +206,10 @@
 	};
 	
 	shorthand.ObjectPicker.prototype.setValue = function(citizen) {
-		if (citizen != null && citizen.getCitizenType() === this.filter) {
+		if (citizen != null && citizen._citizenType === this.filter) {
 			var nodeId = shorthand.treeData.getNodeName(citizen, {
 				prefix: citTree.pre,
-				id: citizen.getId()
+				id: citizen._getId()
 			});
 			
 			citTreePnl.data('curElem', this.container);
