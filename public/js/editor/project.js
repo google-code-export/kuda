@@ -179,12 +179,20 @@
 			data: data,
 			dataType: 'json',
 			success: function(data, status, xhr) {
+				var renderer = editor.client.renderer,
+					context = hemi.hudManager._contexts[editor.client._getId()];
+
 				mdl.loading = true;
-				hemi.world.send(hemi.msg.cleanup);
+				hemi.send(hemi.msg.worldCleanup);
 				dispatchProxy.swap();
-				hemi.octane.createWorld(data);
+				hemi.fromOctane(data);
 				dispatchProxy.unswap();
-				hemi.world.ready();
+
+				var client = editor.client = hemi.clients[0];
+				editor.grid.setClient(client);
+				client.setRenderer(renderer);
+				hemi.hudManager._contexts[client._getId()] = context;
+				hemi.ready();
 				
 				mdl.notifyListeners(shorthand.events.Loaded, {
 					project: project,
@@ -202,14 +210,16 @@
 	
 	ProjectModel.prototype.newProject = function() {
 		hemi.world.cleanup();
-		hemi.world.camera.enableControl();
-		hemi.world.ready();
-	
-		var vd = hemi.view.createViewData(hemi.world.camera);
+		hemi.ready();
+
+		var camera = editor.client.camera,
+			vd = hemi.createViewData(camera);
+
 		vd.eye = [0, 10, 40];
 		vd.target = [0, 0, 0];
-        hemi.world.camera.moveToView(vd, 0);
-		
+        camera.moveToView(vd, 0);
+        camera.enableControl();
+
 		this.notifyListeners(shorthand.events.NewProject);			
 	};
 	

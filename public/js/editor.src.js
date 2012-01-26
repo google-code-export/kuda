@@ -35,14 +35,14 @@ var editor = {};
 	DispatchProxy.prototype = {
 		swap: function() {
 			if (this.editorSpecs === null) {
-				this.editorSpecs = hemi.dispatch.msgSpecs;
-				hemi.dispatch.msgSpecs = this.worldSpecs;
+				this.editorSpecs = hemi.dispatch._msgSpecs;
+				hemi.dispatch._msgSpecs = this.worldSpecs;
 			}
 		},
 		
 		unswap: function() {
 			if (this.editorSpecs !== null) {
-				hemi.dispatch.msgSpecs = this.editorSpecs;
+				hemi.dispatch._msgSpecs = this.editorSpecs;
 				this.editorSpecs = null;
 			}
 		},
@@ -3854,7 +3854,7 @@ var editor = {};
 		
 		// create and size the webgl client
 		// create the grid plane
-		var grid = new editor.ui.GridPlane(client, EXTENT, FIDELITY);
+		editor.grid = new editor.ui.GridPlane(client, EXTENT, FIDELITY);
 		// create the plugin panel
 		navBar = new NavBar();
 			
@@ -4852,7 +4852,12 @@ var editor = {};
 		this.markerMaterial = markerMat;
 		this.client.scene.add(this.transform);
 	};
-		
+
+	editor.ui.GridPlane.prototype.setClient = function(client) {
+		this.client = client;
+		this.createShape();
+	};
+
 	editor.ui.GridPlane.prototype.setVisible = function(visible) {
 		this.transform.visible = visible;
 	};
@@ -5661,12 +5666,20 @@ var editor = {};
 			data: data,
 			dataType: 'json',
 			success: function(data, status, xhr) {
+				var renderer = editor.client.renderer,
+					context = hemi.hudManager._contexts[editor.client._getId()];
+
 				mdl.loading = true;
-				hemi.world.send(hemi.msg.cleanup);
+				hemi.send(hemi.msg.worldCleanup);
 				dispatchProxy.swap();
-				hemi.octane.createWorld(data);
+				hemi.fromOctane(data);
 				dispatchProxy.unswap();
-				hemi.world.ready();
+
+				var client = editor.client = hemi.clients[0];
+				editor.grid.setClient(client);
+				client.setRenderer(renderer);
+				hemi.hudManager._contexts[client._getId()] = context;
+				hemi.ready();
 				
 				mdl.notifyListeners(shorthand.events.Loaded, {
 					project: project,
@@ -5684,14 +5697,16 @@ var editor = {};
 	
 	ProjectModel.prototype.newProject = function() {
 		hemi.world.cleanup();
-		hemi.world.camera.enableControl();
-		hemi.world.ready();
-	
-		var vd = hemi.view.createViewData(hemi.world.camera);
+		hemi.ready();
+
+		var camera = editor.client.camera,
+			vd = hemi.createViewData(camera);
+
 		vd.eye = [0, 10, 40];
 		vd.target = [0, 0, 0];
-        hemi.world.camera.moveToView(vd, 0);
-		
+        camera.moveToView(vd, 0);
+        camera.enableControl();
+
 		this.notifyListeners(shorthand.events.NewProject);			
 	};
 	

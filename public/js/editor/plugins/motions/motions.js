@@ -168,7 +168,7 @@
 
 	MotionsModel.prototype.worldCleaned = function() {
 		var transform = editor.client.scene,
-			children = scene.children.slice(0);
+			children = transform.children.slice(0);
 
 		while (children.length > 0) {
 			transform = children.pop();
@@ -185,7 +185,7 @@
 
 	MotionsModel.prototype.worldLoaded = function() {
 		var transform = editor.client.scene,
-			children = scene.children.slice(0);
+			children = transform.children.slice(0);
 
 		while (children.length > 0) {
 			transform = children.pop();
@@ -201,7 +201,7 @@
 	};
 
 	function hasMotions(transform) {
-		return transform._translator !== null || transform._rotator !== null;
+		return transform._translator != null || transform._rotator != null;
 	}
 
 	function setTransformMotion(transform, props) {
