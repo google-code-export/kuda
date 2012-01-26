@@ -683,7 +683,7 @@
 	};
 	
 	shorthand.BhvListItem.prototype.attachObject = function(obj) {
-		bhvLiSuper.attachObject.all(this, obj);
+		bhvLiSuper.attachObject.call(this, obj);
 		
 		detectTriggersAndActions.call(this, obj);
 		behaviorLiTable.put(obj, this);

@@ -630,14 +630,13 @@ var editor = {};
 (function() {
 	"use strict";
 	
-	var shorthand = editor.data = (function() {
-		var metadata = {};
-		loadJSON.call(metadata);
-		
-		return metadata;
-	})();
-		
-	shorthand.getDescription = function(objType, opt_fnc, opt_param) {
+	var shorthand = editor.data = {};
+	
+	var MetaData = function() {
+		loadJSON.call(this);
+	};
+	
+	MetaData.prototype.getDescription = function(objType, opt_fnc, opt_param) {
 		var parent = this.getParent(objType),
 			args = [];
 		
@@ -656,7 +655,7 @@ var editor = {};
 		return retVal == null ? null : retVal.description;
 	};
 	
-	shorthand.getMsgDescription = function(objType, msgName) {
+	MetaData.prototype.getMsgDescription = function(objType, msgName) {
 		var parent = this.getParent(objType),
 			retVal = this.messages.get(objType + '.' + msgName);
 		
@@ -668,7 +667,7 @@ var editor = {};
 		return retVal;
 	};
 	
-	shorthand.getMethods = function(objType) {
+	MetaData.prototype.getMethods = function(objType) {
 		var methods = [];
 		
 		while (objType != null) {
@@ -685,7 +684,7 @@ var editor = {};
 		return methods;
 	};
 	
-	shorthand.getParameters = function(objType, fnc) {
+	MetaData.prototype.getParameters = function(objType, fnc) {
 		var data = this.functions.get(objType + '.' + fnc),
 			parent = this.getParent(objType);
 		
@@ -697,12 +696,12 @@ var editor = {};
 		return data ? data.parameters : null;
 	};
 	
-	shorthand.getParent = function(objType) {
+	MetaData.prototype.getParent = function(objType) {
 		var data = this.types.get(objType);
 		return data ? data.parent : null;
 	};
 	
-	shorthand.getType = function(objType, opt_fnc, opt_param) {
+	MetaData.prototype.getType = function(objType, opt_fnc, opt_param) {
 		var parent = this.getParent(objType),
 			args = [];
 		
@@ -801,6 +800,8 @@ var editor = {};
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                                	   			Setup				                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	var metadata = new MetaData();
 	
 	shorthand.getMetaData = function() {
 		return metadata;

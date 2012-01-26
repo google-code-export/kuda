@@ -199,7 +199,7 @@
 			vecData = {
 				inputs: inputs,
 				inputType: baseType
-			};
+			},
 			ui = null;
 		
 		switch(baseType) {
