@@ -521,6 +521,7 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
+					'varying float v_discard;\n' +
 					'\n' +
 					'void main() {\n' +
 					'  vec2 uv = uvLifeTimeFrameStart.xy;\n' +
@@ -536,6 +537,13 @@ var Hashtable = (function() {
 					'  float endSize = accelerationEndSize.w;\n' +
 					'  float spinStart = spinStartSpinSpeed.x;\n' +
 					'  float spinSpeed = spinStartSpinSpeed.y;\n' +
+					'\n' +
+					'  if (startTime < 0.0) {\n' +
+					'    gl_Position = vec4(0);\n' +
+					'    v_discard = 1.0;\n' +
+					'  } else {\n' +
+					'    v_discard = -1.0;\n' +
+					'  }\n' +
 					'\n' +
 					'  float localTime = mod((time - timeOffset - startTime),\n' +
 					'      timeRange);\n' +
@@ -591,12 +599,17 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
+					'varying float v_discard;\n' +
 					'\n' +
 					'// We need to implement 1D!\n' +
 					'uniform sampler2D rampSampler;\n' +
 					'uniform sampler2D colorSampler;\n' +
 					'\n' +
 					'void main() {\n' +
+					'  if (v_discard > 0.0) {\n' +
+					'    discard;\n' +
+					'  }\n' +
+					'\n' +
 					'  vec4 colorMult = texture2D(rampSampler, \n' +
 					'      vec2(v_percentLife, 0.5)) * v_colorMult;\n' +
 					'  vec4 color = texture2D(colorSampler, v_texcoord) * colorMult;\n' +
@@ -645,6 +658,7 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
+					'varying float v_discard;\n' +
 					'\n' +
 					'void main() {\n' +
 					'  vec2 uv = uvLifeTimeFrameStart.xy;\n' +
@@ -660,6 +674,13 @@ var Hashtable = (function() {
 					'  float endSize = accelerationEndSize.w;\n' +
 					'  float spinStart = spinStartSpinSpeed.x;\n' +
 					'  float spinSpeed = spinStartSpinSpeed.y;\n' +
+					'\n' +
+					'  if (startTime < 0.0) {\n' +
+					'    gl_Position = vec4(0);\n' +
+					'    v_discard = 1.0;\n' +
+					'  } else {\n' +
+					'    v_discard = -1.0;\n' +
+					'  }\n' +
 					'\n' +
 					'  float localTime = mod((time - timeOffset - startTime),\n' +
 					'      timeRange);\n' +
@@ -697,12 +718,17 @@ var Hashtable = (function() {
 					'varying vec2 v_texcoord;\n' +
 					'varying float v_percentLife;\n' +
 					'varying vec4 v_colorMult;\n' +
+					'varying float v_discard;\n' +
 					'\n' +
 					'// We need to implement 1D!\n' +
 					'uniform sampler2D rampSampler;\n' +
 					'uniform sampler2D colorSampler;\n' +
 					'\n' +
 					'void main() {\n' +
+					'  if (v_discard > 0.0) {\n' +
+					'    discard;\n' +
+					'  }\n' +
+					'\n' +
 					'  vec4 colorMult = texture2D(rampSampler, \n' +
 					'      vec2(v_percentLife, 0.5)) * v_colorMult;\n' +
 					'  vec4 color = texture2D(colorSampler, v_texcoord) * colorMult;\n' +
@@ -1291,8 +1317,12 @@ var Hashtable = (function() {
 		this._parameters = parameters;
 		this._paramSetter = opt_paramSetter;
 
+		parameters.startTime = -1;
+		this.shape.dynamic = true;
+
 		allocateParticles.call(this, maxParticles);
 		setupMaterial.call(this, parameters);
+		createParticles.call(this, 0, maxParticles, parameters, opt_paramSetter);
 	};
 
 	hemi.particles.Trail.prototype = new hemi.particles.Emitter();
@@ -1304,18 +1334,18 @@ var Hashtable = (function() {
 	* @param {number[3]} position Position to birth particles at.
 	*/
 	hemi.particles.Trail.prototype.birthParticles = function(position) {
-		var numParticles = this._parameters.numParticles;
-		this._parameters.startTime = this._timeParam.value;
-		this._parameters.position = position;
+		var numParticles = this._parameters.numParticles,
+			positionRange = this._parameters.positionRange,
+			startTime = this._timeParam.value;
 
 		while (this._birthIndex + numParticles >= this._maxParticles) {
 			var numParticlesToEnd = this._maxParticles - this._birthIndex;
-			createParticles.call(this, this._birthIndex, numParticlesToEnd, this._parameters, this._paramSetter);
+			updateParticles.call(this, this._birthIndex, numParticlesToEnd, startTime, position, positionRange);
 			numParticles -= numParticlesToEnd;
 			this._birthIndex = 0;
 		}
 
-		createParticles.call(this, this._birthIndex, numParticles, this._parameters, this._paramSetter);
+		updateParticles.call(this, this._birthIndex, numParticles, startTime, position, positionRange);
 		this._birthIndex += numParticles;
 	};
 
@@ -1333,8 +1363,8 @@ var Hashtable = (function() {
 			}
 
 			var index = i * 4;
-			this.shape.faces.push(new THREE.Face3(index, index + 1, index + 2));
-			this.shape.faces.push(new THREE.Face3(index, index + 2, index + 3));
+			this.shape.faces.push(new THREE.Face3(index, index + 1, index + 3));
+			this.shape.faces.push(new THREE.Face3(index + 1, index + 2, index + 3));
 		}
 	}
 
@@ -1484,6 +1514,41 @@ var Hashtable = (function() {
 		this.material.vertexShader = shader.vertexShader;
 		this.material.fragmentShader = shader.fragmentShader;
 		this._timeParam = this.material.uniforms.time;
+	}
+
+	function updateParticles(firstParticleIndex, numParticles, startTime, position, positionRange) {
+		var positionStartTime = this.material.attributes.positionStartTime,
+			random = this._particleSystem._randomFunction,
+
+			plusMinus = function(range) {
+				return (random() - 0.5) * range * 2;
+			},
+
+			plusMinusVector = function(v, range) {
+				var r = [];
+
+				for (var i = 0, il = v.length; i < il; ++i) {
+					r[i] = v[i] + plusMinus(range[i]);
+				}
+
+				return r;
+			};
+
+		for (var ii = 0; ii < numParticles; ++ii) {
+			var pPosition = plusMinusVector(position, positionRange);
+
+			// make each corner of the particle.
+			for (var jj = 0; jj < 4; ++jj) {
+				var offset = ii * 4 + jj + firstParticleIndex;
+
+				positionStartTime.value[offset].x = pPosition[0];
+				positionStartTime.value[offset].y = pPosition[1];
+				positionStartTime.value[offset].z = pPosition[2];
+				positionStartTime.value[offset].w = startTime;
+			}
+		}
+
+		positionStartTime.needsUpdate = true;
 	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1723,9 +1788,14 @@ if (!window.requestAnimationFrame) {
 				var renderer = getRenderer(element);
 
 				if (renderer) {
-					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true);
+					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true),
+						dom = renderer.domElement;
 
-					element.appendChild(renderer.domElement);
+					element.appendChild(dom);
+					dom.style.width = "100%";
+					dom.style.height = "100%";
+					hemi.input.init(dom);
+
 					client.setRenderer(renderer);
 					hemi.hudManager.addClient(client);
 				}
@@ -5303,11 +5373,8 @@ if (!window.requestAnimationFrame) {
 
 (function() {
 
-		/* All of the MessageSpecs (and MessageTargets) in the Dispatch */
-	var msgSpecs = new hemi.utils.Hashtable(),
-
 		/* The next id to assign to a MessageTarget */
-		nextId = 0;
+	var nextId = 0;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
@@ -5318,6 +5385,12 @@ if (!window.requestAnimationFrame) {
 	 * sends them to MessageTargets that are registered with MessageSpecs.
 	 */
 	hemi.dispatch = hemi.dispatch || {};
+
+	/*
+	 * All of the MessageSpecs (and MessageTargets) in the Dispatch
+	 * @type hemi.utils.Hashtable
+	 */
+	hemi.dispatch._msgSpecs = new hemi.utils.Hashtable();
 
 	/**
 	 * String literal to indicate that all entries for a field are desired.
@@ -5597,7 +5670,7 @@ if (!window.requestAnimationFrame) {
 			ents: []
 		};
 
-		msgSpecs.each(function(key, value) {
+		this._msgSpecs.each(function(key, value) {
 			var oct = value._toOctane();
 
 			if (oct !== null) {
@@ -5624,11 +5697,11 @@ if (!window.requestAnimationFrame) {
 	 * Empty the MessageSpec database of all entries.
 	 */
 	hemi.dispatch.cleanup = function() {
-		msgSpecs.each(function(key, value) {
+		this._msgSpecs.each(function(key, value) {
 			value.cleanup();
 		});
 
-		msgSpecs.clear();
+		this._msgSpecs.clear();
 	};
 
 	/**
@@ -5655,7 +5728,7 @@ if (!window.requestAnimationFrame) {
 		var specs;
 
 		if (attributes === undefined) {
-			specs = msgSpecs.values();
+			specs = this._msgSpecs.values();
 		} else {
 			var atts = {};
 
@@ -5683,7 +5756,7 @@ if (!window.requestAnimationFrame) {
 				}
 			}
 
-			specs = msgSpecs.query(atts);
+			specs = this._msgSpecs.query(atts);
 		}
 
 		return specs;
@@ -5702,7 +5775,7 @@ if (!window.requestAnimationFrame) {
 	hemi.dispatch.getSpecsFast = function(src, msg, wildcards) {
 		var specs = [],
 			hash = msg + src,
-			spec = msgSpecs.get(hash);
+			spec = this._msgSpecs.get(hash);
 
 		if (spec !== null) {
 			specs.push(spec);
@@ -5713,21 +5786,21 @@ if (!window.requestAnimationFrame) {
 
 			if (!wildSrc) {
 				hash = msg + hemi.dispatch.WILDCARD;
-				spec = msgSpecs.get(hash);
+				spec = this._msgSpecs.get(hash);
 				if (spec !== null) {
 					specs.push(spec);
 				}
 			}
 			if (msg !== hemi.dispatch.WILDCARD) {
 				hash = hemi.dispatch.WILDCARD + src;
-				spec = msgSpecs.get(hash);
+				spec = this._msgSpecs.get(hash);
 				if (spec !== null) {
 					specs.push(spec);
 				}
 
 				if (!wildSrc) {
 					hash = hemi.dispatch.WILDCARD + hemi.dispatch.WILDCARD;
-					spec = msgSpecs.get(hash);
+					spec = this._msgSpecs.get(hash);
 					if (spec !== null) {
 						specs.push(spec);
 					}
@@ -5825,7 +5898,7 @@ if (!window.requestAnimationFrame) {
 	hemi.dispatch.loadEntries = function(entries) {
 		for (var i = 0, il = entries.length; i < il; ++i) {
 			var entry = entries[i];
-			msgSpecs.put(entry.getHash(), entry);
+			this._msgSpecs.put(entry.getHash(), entry);
 		}
 	};
 
@@ -5928,7 +6001,7 @@ if (!window.requestAnimationFrame) {
 			spec;
 
 		for (var i = 0, il = specs.length; i < il; ++i) {
-			spec = msgSpecs.remove(specs[i].getHash());
+			spec = this._msgSpecs.remove(specs[i].getHash());
 			if (spec) removed.push(spec);
 		}
 
@@ -6161,7 +6234,7 @@ if (!window.requestAnimationFrame) {
 			spec = new hemi.dispatch.MessageSpec();
 			spec.src = src;
 			spec.msg = msg;
-			msgSpecs.put(spec.getHash(), spec);
+			hemi.dispatch._msgSpecs.put(spec.getHash(), spec);
 		} else {
 			if (specs.length > 1) {
 				console.log('Found ' + specs.length + ' MessageSpecs with the same src and msg.');
@@ -6206,6 +6279,17 @@ if (!window.requestAnimationFrame) {
 		keyUpListeners = [],
 		keyPressListeners = [];
 
+	// Register document listeners
+	document.addEventListener('keypress', function(event) {
+		hemi.input.keyPress(event);
+	}, true);
+	document.addEventListener('keydown', function(event) {
+		hemi.input.keyDown(event);
+	}, true);
+	document.addEventListener('keyup', function(event) {
+		hemi.input.keyUp(event);
+	}, true);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -6234,16 +6318,6 @@ if (!window.requestAnimationFrame) {
 		canvas.addEventListener('DOMMouseScroll', function(event) {
 			hemi.input.scroll(event);
 		}, false);
-
-		document.addEventListener('keypress', function(event) {
-			hemi.input.keyPress(event);
-		}, true);
-		document.addEventListener('keydown', function(event) {
-			hemi.input.keyDown(event);
-		}, true);
-		document.addEventListener('keyup', function(event) {
-			hemi.input.keyUp(event);
-		}, true);
 	};
 
 	/**
@@ -9161,29 +9235,14 @@ if (!window.requestAnimationFrame) {
 		hemi.input.addMouseDownListener(this);
 	};
 
-		/**
-	 * Register the given handler as the 'pick grabber'. The pick grabber
-	 * intercepts pick messages and prevents them from being passed to other
-	 * handlers. It should be used if the user enters an 'interaction mode' that
-	 * overrides default behavior.
-	 * 
-	 * @param {Object} grabber an object that implements onPick()
+	/*
+	 * Remove all references in the Picker.
 	 */
-	hemi.Picker.prototype.setPickGrabber = function(grabber) {
-		this.pickGrabber = grabber;
-	};
-	
-	/**
-	 * Remove the current 'pick grabber'. Allow pick messages to continue being
-	 * passed to the other registered handlers.
-	 * 
-	 * @return {Object} the removed grabber or null
-	 */
-	hemi.Picker.prototype.removePickGrabber = function() {
-		var grabber = this.pickGrabber;
+	hemi.Picker.prototype.cleanup = function() {
+		hemi.input.removeMouseDownListener(this);
+		this.camera = null;
 		this.pickGrabber = null;
-
-		return grabber;
+		this.scene = null;
 	};
 
 	/**
@@ -9227,6 +9286,31 @@ if (!window.requestAnimationFrame) {
 				}
 			}
 		}
+	};
+	
+	/**
+	 * Remove the current 'pick grabber'. Allow pick messages to continue being
+	 * passed to the other registered handlers.
+	 * 
+	 * @return {Object} the removed grabber or null
+	 */
+	hemi.Picker.prototype.removePickGrabber = function() {
+		var grabber = this.pickGrabber;
+		this.pickGrabber = null;
+
+		return grabber;
+	};
+
+		/**
+	 * Register the given handler as the 'pick grabber'. The pick grabber
+	 * intercepts pick messages and prevents them from being passed to other
+	 * handlers. It should be used if the user enters an 'interaction mode' that
+	 * overrides default behavior.
+	 * 
+	 * @param {Object} grabber an object that implements onPick()
+	 */
+	hemi.Picker.prototype.setPickGrabber = function(grabber) {
+		this.pickGrabber = grabber;
 	};
 
 })();
@@ -9319,8 +9403,26 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/*
+	 * Remove all references in the Client.
+	 */
+	Client.prototype._clean = function() {
+		var ndx = hemi.clients.indexOf(this);
+
+		if (ndx !== -1) {
+			hemi.clients.splice(ndx, 1);
+		}
+
+		this.picker.cleanup();
+		this.picker = null;
+		this.camera = null;
+		this.scene = null;
+		this.renderer = null;
+	};
+
+	/*
 	 * Octane properties for Client.
-	 * @type string[]
+	 * 
+	 * @return {Object[]} array of Octane properties
 	 */
 	Client.prototype._octane = function() {
 		return [
@@ -9460,11 +9562,6 @@ if (!window.requestAnimationFrame) {
 	 * @param {THREE.WebGLRenderer} renderer renderer to use
 	 */
 	Client.prototype.setRenderer = function(renderer) {
-		var dom = renderer.domElement;
-		dom.style.width = "100%";
-		dom.style.height = "100%";
-		hemi.input.init(dom);
-
 		renderer.setClearColorHex(this._bgColor, this._bgAlpha);
 		this.renderer = renderer;
 		this._resize();
@@ -9508,6 +9605,7 @@ if (!window.requestAnimationFrame) {
 	};
 
 	hemi.makeCitizen(Client, 'hemi.Client', {
+		cleanup: Client.prototype._clean,
 		toOctane: Client.prototype._octane
 	});
 
@@ -10223,13 +10321,6 @@ if (!window.requestAnimationFrame) {
 		this.transform = new THREE.Mesh(this.particles.shape, this.particles.material);
 		this.transform.doubleSided = true; // turn off face culling
 		this.client.scene.add(this.transform);
-
-		this.client.renderer.initWebGLObjects(this.client.scene);
-		var attributes = this.particles.material.attributes;
-
-		for (var a in attributes) {
-			attributes[a].needsUpdate = false;
-		}
 	};
 
 	/**
@@ -12206,12 +12297,18 @@ if (!window.requestAnimationFrame) {
 		hudCan.addEventListener('mouseup', hemi.input.mouseUp, true);
 		container.appendChild(hudCan);
 
-		var context = hudCan.getContext('2d');
+		var context = hudCan.getContext('2d'),
+			that = this;
+
 		// In our coordinate system, y indicates the top of the first line of text, so set the
 		// canvas baseline to match.
 		context.textBaseline = 'top';
 		this._contexts[client._getId()] = context;
 		this.currentContext = context;
+
+		client.subscribe(hemi.msg.cleanup, function(msg) {
+			that._contexts[msg.src._getId()] = undefined;
+		});
 	};
 
 	/**
@@ -15459,8 +15556,7 @@ if (!window.requestAnimationFrame) {
 			
 		if (this.mesh === null) {
 			this.mesh = new hemi.Mesh();
-		}
-		else {
+		} else if (this.mesh.__webglInit) {
 			// cleanup
 			scene.__objectsRemoved.push(this.mesh);
 			renderer.initWebGLObjects(scene);

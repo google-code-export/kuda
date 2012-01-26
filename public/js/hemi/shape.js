@@ -93,8 +93,7 @@
 			
 		if (this.mesh === null) {
 			this.mesh = new hemi.Mesh();
-		}
-		else {
+		} else if (this.mesh.__webglInit) {
 			// cleanup
 			scene.__objectsRemoved.push(this.mesh);
 			renderer.initWebGLObjects(scene);

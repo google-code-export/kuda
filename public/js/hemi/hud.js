@@ -1643,12 +1643,18 @@
 		hudCan.addEventListener('mouseup', hemi.input.mouseUp, true);
 		container.appendChild(hudCan);
 
-		var context = hudCan.getContext('2d');
+		var context = hudCan.getContext('2d'),
+			that = this;
+
 		// In our coordinate system, y indicates the top of the first line of text, so set the
 		// canvas baseline to match.
 		context.textBaseline = 'top';
 		this._contexts[client._getId()] = context;
 		this.currentContext = context;
+
+		client.subscribe(hemi.msg.cleanup, function(msg) {
+			that._contexts[msg.src._getId()] = undefined;
+		});
 	};
 
 	/**
