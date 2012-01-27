@@ -304,7 +304,7 @@
 		var saveBtn = this.find('#pteSaveBtn'),
 			cancelBtn = this.find('#pteCancelBtn'),
 			previewBtn = this.find('#ptePreviewBtn'),
-			inputs = this.find('input:not(.vector, .color, .quat, #pteName, #pte-fireInterval)'),
+			inputs = this.find('input:not(.vector, .color, .quat, #pteName, #pte-fireInterval, #pte-billboard)'),
 			form = this.find('form'),
 			wgt = this,
 			validator = new editor.ui.createDefaultValidator(),
@@ -339,6 +339,7 @@
 			container: wgt.find('#pte-billboard'),
 			type: 'boolean'
 		});
+		this.billboard.setValue(true);
 		this.startSize = new editor.ui.Input({
 			container: wgt.find('#pte-startSize')
 		});
