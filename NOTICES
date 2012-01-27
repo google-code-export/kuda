@@ -5,9 +5,6 @@ Copyright (C) 2011 SRI International.
 This software use three.js found at http://github.com/mrdoob/three.js, code is
 licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php.
 
-This software uses JigLibJS found at http://www.jiglibjs.org, code is licensed
-BSD indicated here http://www.nlnet.nl/project/jiglibjs/.
-
 This software uses jPicker a jQuery plugin.  The original software is available
 from
 http://johndyer.name/post/2007/09/PhotoShop-like-JavaScript-Color-Picker.aspx,
