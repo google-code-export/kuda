@@ -58,23 +58,13 @@ Change local files security policy
 
 AudioHouse  -   This sample shows how to incorporate audio media such as sound
                 effects into the Tutorial A house model.
-Dollhouse   -   This shows how to take a World that was created using the Kuda
-Octane          World Editor and modify it after loading it from Octane. We
-                define two new particle effects as well as binding camera
-                movement to HTML buttons in the viewer.
 FadingWalls -   This sample shows how to dynamically set the opacity of an object
                 using a custom shader and setting material parameters on the 
                 render tick. Some of this functionality will be built into future
                 versions of Kuda.
-Grandmas    -   Another example of using a Kuda World Editor built project and
-HouseOctane     modify it after loading from Octane. The World Editor project
-                has states defined that are used from JavaScript events.
 helloWorld  -   This is a simple hello world sample. It shows how to set up a
                 simple world, load a model, and move the camera to a viewpoint.
                 It also shows setting up a message handler.
-helloWorld  -   This sample is based off of the Hello World sample, except the
-Octane          entire World was created using the Kuda World Editor and saved
-                as a JSON file in the Kuda format called "Octane".
 hud         -   This shows how to create a heads-up-display with multiple pages
                 that have different configurations. It also shows how to handle
                 mouse interactions with the HUD elements.
