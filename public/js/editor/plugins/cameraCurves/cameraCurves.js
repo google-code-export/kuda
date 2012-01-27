@@ -680,6 +680,7 @@
         lstWgt.addListener(shorthand.events.AddCamCurve, function() {
         });
         lstWgt.addListener(editor.events.Edit, function(crv) {
+            crtWgt.reset();
             model.setCamCurve(crv);
             crtWgt.set(crv);
         });
