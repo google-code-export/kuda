@@ -30,8 +30,8 @@
 		 *		cameras, effects, etc. When we set the model's file name, it
 		 *		will begin loading that file.
 		 */
-//		var house = new hemi.Model(client);				// Create a new Model
-//		house.setFileName('assets/house_v12/house_v12.dae'); // Set the model file
+		var house = new hemi.Model(client);				// Create a new Model
+		house.setFileName('assets/house_v12/house_v12.dae'); // Set the model file
 		
 		/**
 		 * When we call the 'ready' function, it will wait for the model to
