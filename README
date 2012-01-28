@@ -43,7 +43,7 @@ default configuration for Express, a typical address will be:
 http://localhost:3000/samples/helloWorld/helloWorld.html
 
 Running samples locally
-You may want to create a separate browser profile / shortcutused just for local
+You may want to create a separate browser profile or shortcut used just for local
 development to be safe.
 
 Google Chrome
