@@ -345,6 +345,9 @@
 	 * Set the particle emitter up for the ParticleTrail.
 	 */
 	ParticleTrail.prototype.setup = function() {
+		// ParticleTrails use fireInterval instead of timeRange
+		this.params.timeRange = undefined;
+
 		// Create a deep copy of the parameters since the particle emitter will mutate them as it
 		// fires.
 		var clonedParams = hemi.utils.clone(this.params),
@@ -353,7 +356,7 @@
 			particlesPerFire = this.params.numParticles || 1,
 			maxLife = this.params.lifeTime || 1 + this.params.lifeTimeRange || 0,
 			maxFires = (maxLife / this.fireInterval) + 1,
-			maxParticles = parseInt(maxFires * particlesPerFire, 10);
+			maxParticles = Math.ceil(maxFires * particlesPerFire);
 
 		// It's okay if paramSetter stays undefined.
 		if (this.particleFunction !== null) {
@@ -373,13 +376,6 @@
 		this.transform = new THREE.Mesh(this.particles.shape, this.particles.material);
 		this.transform.doubleSided = true; // turn off face culling
 		this.client.scene.add(this.transform);
-
-		this.client.renderer.initWebGLObjects(this.client.scene);
-		var attributes = this.particles.material.attributes;
-
-		for (var a in attributes) {
-			attributes[a].needsUpdate = false;
-		}
 	};
 
 	/**
@@ -439,8 +435,8 @@
 		emitter.colorRamp = colorRamp;
 		emitter.params = params;
 
-		if (opt_blending != null) emitter.blending = opt_blending;
-		if (opt_function)  emitter.particleFunction = opt_function;
+		if (opt_blending !== undefined) emitter.blending = opt_blending;
+		if (opt_function !== undefined)  emitter.particleFunction = opt_function;
 
 		emitter.setup();
 		return emitter;
@@ -462,8 +458,8 @@
 		burst.colorRamp = colorRamp;
 		burst.params = params;
 
-		if (opt_blending != null) burst.blending = opt_blending;
-		if (opt_function)  burst.particleFunction = opt_function;
+		if (opt_blending !== undefined) burst.blending = opt_blending;
+		if (opt_function !== undefined)  burst.particleFunction = opt_function;
 
 		burst.setup();
 		return burst;
@@ -488,8 +484,8 @@
 		trail.params = params;
 		trail.fireInterval = fireInterval;
 
-		if (opt_blending != null) trail.blending = opt_blending;
-		if (opt_function)  trail.particleFunction = opt_function;
+		if (opt_blending !== undefined) trail.blending = opt_blending;
+		if (opt_function !== undefined)  trail.particleFunction = opt_function;
 
 		trail.setup();
 		return trail;
