@@ -53,17 +53,16 @@
         </legend>
         <ol>
             <li>
-                <label for="pteState">
-                    State
+                <label for="pteBlend">
+                    Blending
                 </label>
-                <select id="pteState">
-                    <option value="-1">Select State</option>
-                    <option value="0">Blend</option>
-                    <option value="1">Add</option>
-                    <option value="2">Blend Pre-Multiply</option>
-                    <option value="3">Blend No Alpha</option>
-                    <option value="4">Subtract</option>
-                    <option value="5">Inverse</option>
+                <select id="pteBlend">
+                    <option value="-1">Select Blending</option>
+                    <option value="0">Normal</option>
+                    <option value="1">Additive</option>
+                    <option value="2">Subtractive</option>
+                    <option value="3">Multiply</option>
+                    <option value="4">Additive Alpha</option>
                 </select>
             </li>
             <li>
@@ -88,6 +87,9 @@
             <li>
                 <input type="text" value="" id="pte-timeRange" placeholder="System Life Time" />
             </li>
+            <li>
+                <input type="text" value="" id="pte-fireInterval" placeholder="Fire Interval" />
+            </li>
             <li class="ranged">
                 <div>
                     <input type="text" value="" id="pte-lifeTime" placeholder="Particle Life Time" />
@@ -98,9 +100,6 @@
             </li>
             <li>
                 <input type="text" value="" id="pte-startTime" placeholder="Particle Start Time" />
-            </li>
-            <li>
-                <input type="text" value="" id="pte-fireInterval" placeholder="Fire Interval" />
             </li>
         </ol>
     </fieldset>

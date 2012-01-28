@@ -72,13 +72,13 @@
 		
 		switch (props.type) {
 			case 'Burst':
-				this.previewEffect = hemi.createParticleBurst(this.client, props.colorRamp, props.params);
+				this.previewEffect = hemi.createParticleBurst(this.client, props.colorRamp, props.params, props.blend);
 				break;
 			case 'Trail':
-				this.previewEffect = hemi.createParticleTrail(this.client, props.colorRamp, props.params, props.fireInterval);
+				this.previewEffect = hemi.createParticleTrail(this.client, props.colorRamp, props.params, props.fireInterval, props.blend);
 				break;
 			case 'Emitter':
-				this.previewEffect = hemi.createParticleEmitter(this.client, props.colorRamp, props.params);
+				this.previewEffect = hemi.createParticleEmitter(this.client, props.colorRamp, props.params, props.blend);
 				break;
 		}
 		
@@ -227,13 +227,13 @@
 			saveBtn = this.find('#pteSaveBtn'),
 			previewBtn = this.find('#ptePreviewBtn'),
 			typeVal = this.typeSelect.val(),
-			stateVal = this.stateSelect.val(),
+			blendVal = this.blendSelect.val(),
 			clrRmpVal = colorRampInput.val(),
 			nameVal = this.name.getValue(),
 			fireInterval = this.fireInterval.getValue(),
 			type = typeVal.replace('hemi.effect.', '');
 		
-		if (stateVal !== '-1' && clrRmpVal !== 'r' && typeVal !== '-1' && (type !== 'Trail' || fireInterval != null)) {
+		if (blendVal !== '-1' && clrRmpVal !== 'r' && typeVal !== '-1' && (type !== 'Trail' || fireInterval != null)) {
 			previewBtn.removeAttr('disabled');
 			
 			if (nameVal != null) {
@@ -252,17 +252,36 @@
 		
 		if (effect) {
 			var params = effect.params, 
-				type = effect.type ? effect.type 
-					: effect._citizenType.replace('hemi.', ''), 
+				type = effect._citizenType.replace('hemi.', ''), 
 				colorRamp = effect.colorRamp, 
-				state = effect.state, 
+				blend = effect.blending, 
 				fireInt = effect.fireInterval, 
 				numColors = colorRamp.length / 4;
 			
 			this.typeSelect.val(type).change();
-			this.stateSelect.val(state);
 			this.name.setValue(effect.name);
-			
+
+			switch (blend) {
+				case THREE.NormalBlending:
+					this.blendSelect.val(0);
+					break;
+				case THREE.AdditiveBlending:
+					this.blendSelect.val(1);
+					break;
+				case THREE.SubtractiveBlending:
+					this.blendSelect.val(2);
+					break;
+				case THREE.MultiplyBlending:
+					this.blendSelect.val(3);
+					break;
+				case THREE.AdditiveAlphaBlending:
+					this.blendSelect.val(4);
+					break;
+				default:
+					this.blendSelect.val(-1);
+					break;
+			}
+
 			for (var paramName in params) {
 				var val = params[paramName];
 				
@@ -312,7 +331,7 @@
 				wgt.canSave();
 			};
 		
-		this.stateSelect = this.find('#pteState');
+		this.blendSelect = this.find('#pteBlend');
 		this.tplSelect = this.find('#pteTemplateSelect');
     	this.typeSelect = this.find('#pteType');
 		this.loadTemplates();
@@ -447,18 +466,18 @@
 			var elem = jQuery(this),
 				val = elem.val();
 			
-			if (val != -1) {
-				if (val === 'Trail') {
-					wgt.fireInterval.getUI().parent().show();
-				} else {
-					wgt.fireInterval.getUI().parent().hide();
-				}
-			} else {
+			if (val === -1) {
 				wgt.reset();
+			} else if (val === 'Trail') {
+				wgt.timeRange.getUI().parent().hide();
+				wgt.fireInterval.getUI().parent().show();
+			} else {
+				wgt.fireInterval.getUI().parent().hide();
+				wgt.timeRange.getUI().parent().show();
 			}
 		});
 		
-		this.stateSelect.bind('change', function(evt) {
+		this.blendSelect.bind('change', function(evt) {
 			wgt.canSave();
 		});
 		
@@ -528,11 +547,28 @@
 				colorRamp: wgt.getColorRamp(),
 				fireInterval: wgt.fireInterval.getValue(),
 				name: wgt.name.getValue(),
-				state: parseInt(wgt.stateSelect.val()),
 				type: wgt.typeSelect.val()
 			},
 			params = {};
-		
+
+		switch (wgt.blendSelect.val()) {
+			case '0':
+				props.blend = THREE.NormalBlending;
+				break;
+			case '1':
+				props.blend = THREE.AdditiveBlending;
+				break;
+			case '2':
+				props.blend = THREE.SubtractiveBlending;
+				break;
+			case '3':
+				props.blend = THREE.MultiplyBlending;
+				break;
+			case '4':
+				props.blend = THREE.AdditiveAlphaBlending;
+				break;
+		}
+
 		for (var i = 0, il = names.length; i < il; ++i) {
 			var name = names[i],
 				elem = wgt[name],
@@ -589,7 +625,7 @@
 		// reset selects
 		this.tplSelect.val(-1);
 		this.typeSelect.val(-1);
-		this.stateSelect.val(-1);
+		this.blendSelect.val(-1);
 		
 		// set all inputs to blank
 		this.numParticles.reset();
