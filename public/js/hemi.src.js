@@ -539,14 +539,14 @@ var Hashtable = (function() {
 					'  float spinSpeed = spinStartSpinSpeed.y;\n' +
 					'\n' +
 					'  if (startTime < 0.0) {\n' +
-					'    gl_Position = vec4(0);\n' +
 					'    v_discard = 1.0;\n' +
+					'    gl_Position = vec4(0);\n' +
+					'    return;\n' +
 					'  } else {\n' +
 					'    v_discard = -1.0;\n' +
 					'  }\n' +
 					'\n' +
-					'  float localTime = mod((time - timeOffset - startTime),\n' +
-					'      timeRange);\n' +
+					'  float localTime = mod((time - timeOffset - startTime), timeRange);\n' +
 					'  float percentLife = localTime / lifeTime;\n' +
 					'\n' +
 					'  float frame = mod(floor(localTime / frameDuration + frameStart),\n' +
@@ -676,14 +676,14 @@ var Hashtable = (function() {
 					'  float spinSpeed = spinStartSpinSpeed.y;\n' +
 					'\n' +
 					'  if (startTime < 0.0) {\n' +
-					'    gl_Position = vec4(0);\n' +
 					'    v_discard = 1.0;\n' +
+					'    gl_Position = vec4(0);\n' +
+					'    return;\n' +
 					'  } else {\n' +
 					'    v_discard = -1.0;\n' +
 					'  }\n' +
 					'\n' +
-					'  float localTime = mod((time - timeOffset - startTime),\n' +
-					'      timeRange);\n' +
+					'  float localTime = mod((time - timeOffset - startTime), timeRange);\n' +
 					'  float percentLife = localTime / lifeTime;\n' +
 					'\n' +
 					'  float frame = mod(floor(localTime / frameDuration + frameStart),\n' +
@@ -776,6 +776,7 @@ var Hashtable = (function() {
 				 1, 1, 1, 0]),
 			rampTexture = new THREE.DataTexture(rampPixels, 3, 1, THREE.RGBAFormat);
 
+		rampTexture.wrapT = THREE.RepeatWrapping;
 		colorTexture.needsUpdate = rampTexture.needsUpdate = true;
 
 		this._randomFunction = opt_randomFunction || function() {
@@ -1156,10 +1157,11 @@ var Hashtable = (function() {
 
 		if (this._rampTexture === this._particleSystem.defaultRampTexture || this._rampTexture.image.width !== width) {
 			this._rampTexture = new THREE.DataTexture(rampPixels, width, 1, THREE.RGBAFormat);
+			this._rampTexture.wrapT = THREE.RepeatWrapping;
 			this._rampTexture.needsUpdate = true;
 
-			if (this.uniforms) {
-				this.uniforms.rampSampler.texture = this._rampTexture;
+			if (this.material.uniforms.rampSampler) {
+				this.material.uniforms.rampSampler.texture = this._rampTexture;
 			}
 		} else {
 			this._rampTexture.image.data = rampPixels;
@@ -1218,7 +1220,7 @@ var Hashtable = (function() {
 		var numParticles = parameters.numParticles;
 
 		allocateParticles.call(this, numParticles);
-		createParticles.call(this, 0, numParticles, parameters, opt_paramSetter);
+		createParticles.call(this, numParticles, parameters, opt_paramSetter);
 	};
 
 	/**
@@ -1322,7 +1324,7 @@ var Hashtable = (function() {
 
 		allocateParticles.call(this, maxParticles);
 		setupMaterial.call(this, parameters);
-		createParticles.call(this, 0, maxParticles, parameters, opt_paramSetter);
+		createParticles.call(this, maxParticles, parameters, opt_paramSetter);
 	};
 
 	hemi.particles.Trail.prototype = new hemi.particles.Emitter();
@@ -1371,7 +1373,6 @@ var Hashtable = (function() {
 	/*
 	 * Creates particles.
 	 *  
-	 * @param {number} firstParticleIndex Index of first particle to create.
 	 * @param {number} numParticles The number of particles to create.
 	 * @param {hemi.particles.Spec} parameters The parameters for the emitter.
 	 * @param {function(number, hemi.particles.Spec): void} opt_paramSetter A function that is
@@ -1380,7 +1381,7 @@ var Hashtable = (function() {
 	 *     value will be 0 to 19. The ParticleSpec is a spec for this particular particle. You can
 	 *     set any per particle value before returning.
 	 */
-	function createParticles(firstParticleIndex, numParticles, parameters, opt_paramSetter) {
+	function createParticles(numParticles, parameters, opt_paramSetter) {
 		var attributes = this.material.attributes,
 			uniforms = this.material.uniforms,
 			uvLifeTimeFrameStart = attributes.uvLifeTimeFrameStart,
@@ -1446,7 +1447,7 @@ var Hashtable = (function() {
 
 			// make each corner of the particle.
 			for (var jj = 0; jj < 4; ++jj) {
-				var offset = ii * 4 + jj + firstParticleIndex;
+				var offset = ii * 4 + jj;
 
 				uvLifeTimeFrameStart.value[offset] = new THREE.Vector4(
 					PARTICLE_CORNERS[jj][0],
@@ -1516,7 +1517,16 @@ var Hashtable = (function() {
 		this._timeParam = this.material.uniforms.time;
 	}
 
-	function updateParticles(firstParticleIndex, numParticles, startTime, position, positionRange) {
+	/*
+	 * Update the start time and position of particles.
+	 *  
+	 * @param {number} firstParticle Index of first particle to update.
+	 * @param {number} numParticles The number of particles to update.
+	 * @param {number} startTime The start time to set for the specified particles.
+	 * @param {number[3]} position The base position to set for the specified particles.
+	 * @param {number[3]} positionRange Variance for the base position for each particle.
+	 */
+	function updateParticles(firstParticle, numParticles, startTime, position, positionRange) {
 		var positionStartTime = this.material.attributes.positionStartTime,
 			random = this._particleSystem._randomFunction,
 
@@ -1534,12 +1544,12 @@ var Hashtable = (function() {
 				return r;
 			};
 
-		for (var ii = 0; ii < numParticles; ++ii) {
+		for (var i = firstParticle, il = firstParticle + numParticles; i < il; ++i) {
 			var pPosition = plusMinusVector(position, positionRange);
 
 			// make each corner of the particle.
-			for (var jj = 0; jj < 4; ++jj) {
-				var offset = ii * 4 + jj + firstParticleIndex;
+			for (var j = 0; j < 4; ++j) {
+				var offset = i * 4 + j;
 
 				positionStartTime.value[offset].x = pPosition[0];
 				positionStartTime.value[offset].y = pPosition[1];
@@ -1610,7 +1620,7 @@ if (!window.requestAnimationFrame) {
 
 /**
  * @namespace The core Hemi library used by Kuda.
- * @version 2.0.0-beta
+ * @version 2.0.0-rc
  */
  var hemi = hemi || {};
 
@@ -1682,7 +1692,7 @@ if (!window.requestAnimationFrame) {
 	 * The version of Hemi released: TBD
 	 * @constant
 	 */
-	hemi.version = '2.0.0-beta';
+	hemi.version = '2.0.0-rc';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
@@ -10385,6 +10395,9 @@ if (!window.requestAnimationFrame) {
 	 * Set the particle emitter up for the ParticleTrail.
 	 */
 	ParticleTrail.prototype.setup = function() {
+		// ParticleTrails use fireInterval instead of timeRange
+		this.params.timeRange = undefined;
+
 		// Create a deep copy of the parameters since the particle emitter will mutate them as it
 		// fires.
 		var clonedParams = hemi.utils.clone(this.params),
@@ -10393,7 +10406,7 @@ if (!window.requestAnimationFrame) {
 			particlesPerFire = this.params.numParticles || 1,
 			maxLife = this.params.lifeTime || 1 + this.params.lifeTimeRange || 0,
 			maxFires = (maxLife / this.fireInterval) + 1,
-			maxParticles = parseInt(maxFires * particlesPerFire, 10);
+			maxParticles = Math.ceil(maxFires * particlesPerFire);
 
 		// It's okay if paramSetter stays undefined.
 		if (this.particleFunction !== null) {
@@ -10472,8 +10485,8 @@ if (!window.requestAnimationFrame) {
 		emitter.colorRamp = colorRamp;
 		emitter.params = params;
 
-		if (opt_blending != null) emitter.blending = opt_blending;
-		if (opt_function)  emitter.particleFunction = opt_function;
+		if (opt_blending !== undefined) emitter.blending = opt_blending;
+		if (opt_function !== undefined)  emitter.particleFunction = opt_function;
 
 		emitter.setup();
 		return emitter;
@@ -10495,8 +10508,8 @@ if (!window.requestAnimationFrame) {
 		burst.colorRamp = colorRamp;
 		burst.params = params;
 
-		if (opt_blending != null) burst.blending = opt_blending;
-		if (opt_function)  burst.particleFunction = opt_function;
+		if (opt_blending !== undefined) burst.blending = opt_blending;
+		if (opt_function !== undefined)  burst.particleFunction = opt_function;
 
 		burst.setup();
 		return burst;
@@ -10521,8 +10534,8 @@ if (!window.requestAnimationFrame) {
 		trail.params = params;
 		trail.fireInterval = fireInterval;
 
-		if (opt_blending != null) trail.blending = opt_blending;
-		if (opt_function)  trail.particleFunction = opt_function;
+		if (opt_blending !== undefined) trail.blending = opt_blending;
+		if (opt_function !== undefined)  trail.particleFunction = opt_function;
 
 		trail.setup();
 		return trail;
