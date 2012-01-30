@@ -221,7 +221,7 @@
 		
 		colorAdder.data('ndx', ndx+1);
 	};
-		
+
 	CreateWidget.prototype.canSave = function() {
 		var colorRampInput = this.find('#pteColorRamp0'),
 			saveBtn = this.find('#pteSaveBtn'),
@@ -230,10 +230,9 @@
 			blendVal = this.blendSelect.val(),
 			clrRmpVal = colorRampInput.val(),
 			nameVal = this.name.getValue(),
-			fireInterval = this.fireInterval.getValue(),
-			type = typeVal.replace('hemi.effect.', '');
+			fireInterval = this.fireInterval.getValue();
 		
-		if (blendVal !== '-1' && clrRmpVal !== 'r' && typeVal !== '-1' && (type !== 'Trail' || fireInterval != null)) {
+		if (blendVal !== '-1' && clrRmpVal !== 'r' && typeVal !== '-1' && (typeVal !== 'Trail' || fireInterval !== null)) {
 			previewBtn.removeAttr('disabled');
 			
 			if (nameVal != null) {
@@ -252,7 +251,7 @@
 		
 		if (effect) {
 			var params = effect.params, 
-				type = effect._citizenType.replace('hemi.', ''), 
+				type = effect._citizenType.replace('hemi.Particle', ''), 
 				colorRamp = effect.colorRamp, 
 				blend = effect.blending, 
 				fireInt = effect.fireInterval, 
