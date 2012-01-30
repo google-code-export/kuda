@@ -405,7 +405,7 @@
 		});
 		
 		hemi.subscribe(hemi.msg.unload, function(msg) {
-			if (msg.src instanceof hemi.model.Model) {
+			if (msg.src instanceof hemi.Model) {
 				var id = msg.src._getId(),
 					elemId = 'anmMdlSel_' + id;
 				if (parseInt(wgt.selector.val()) === id) {

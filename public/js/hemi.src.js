@@ -9184,7 +9184,7 @@ if (!window.requestAnimationFrame) {
 				var keys = hierarchy[j].keys;
 
 				for (var k = 0, kl = keys.length; k < kl; ++k) {
-					var time = keys[i].time;
+					var time = keys[k].time;
 					if (min === null || min > time) min = time;
 				}
 			}
@@ -9948,7 +9948,6 @@ if (!window.requestAnimationFrame) {
                 animations[i].update(delta);
             }
         }
-        /////////////////////////////////////
 	};
 
 	/**
@@ -9983,7 +9982,6 @@ if (!window.requestAnimationFrame) {
 	 * If the AnimationGroup is not currently animating, start it.
 	 */
 	AnimationGroup.prototype.start = function() {
-    
 		if (!this._isAnimating) {
             var animations = [];
             
@@ -10012,17 +10010,18 @@ if (!window.requestAnimationFrame) {
 
                             }
                         }
-    // //console.log(obj.matrixAutoUpdate + ' ' + obj.matrixWorldNeedsUpdate);
-                        // //obj.matrixAutoUpdate = false;
+                        obj.matrixAutoUpdate = false;
                         animation.data.hierarchy[h].node.updateMatrix();
                         obj.matrixWorldNeedsUpdate = true;
 
                     }
 
                 }
-
-				animations[i].play(false, this._currentTime);
+				animation.play(false, this._currentTime);
 			}
+            // for (var i = 0, il = animations.length; i < il; ++i) {
+				// animations[i].play(false, this._currentTime);
+			// }
 
 			this._isAnimating = true;
 			hemi.addRenderListener(this);

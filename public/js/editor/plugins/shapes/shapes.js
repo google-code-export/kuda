@@ -105,7 +105,8 @@
 		}
 		
 		var pos = props.position;
-		shape.translate(pos[0], pos[1], pos[2]);
+        var currentPosition = shape.mesh.position;
+		shape.translate(pos[0] - currentPosition.x, pos[1] - currentPosition.y, pos[2] - currentPosition.z);
 		shape.setName(props.name);
 		this.notifyListeners(msgType, shape);
 		
