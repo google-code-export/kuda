@@ -1,7 +1,7 @@
 {
 "templates": [
 	{
-		"_citizenType": "hemi.Emitter",
+		"_citizenType": "hemi.ParticleEmitter",
 		"name": "Smoke Stack",
 		"blending": 0,
 		"colorRamp": [0, 0, 0, 0.7,
@@ -26,7 +26,7 @@
 		}
 	},
 	{
-		"_citizenType": "hemi.Emitter",
+		"_citizenType": "hemi.ParticleEmitter",
 		"name": "Fire",
 		"blending": 1,
 		"colorRamp": [1, 1, 0, 0.6,
@@ -52,7 +52,7 @@
 		}
 	},
 	{
-		"_citizenType": "hemi.Trail",
+		"_citizenType": "hemi.ParticleTrail",
 		"name": "Water Drip",
 		"blending": 0,
 		"colorRamp": [0.35, 0.71, 0.80, 0.8],
@@ -68,6 +68,27 @@
 			"position": [0, 5, 0],
 			"positionRange": [0.4, 0, 0.2],
 			"spinSpeedRange": 4
+		}
+	},
+	{
+		"_citizenType": "hemi.ParticleBurst",
+		"name": "Smoke Puff",
+		"blending": 1,
+		"colorRamp": [0.6, 0.6, 0.6, 0.6,
+				0.9, 0.9, 0.9, 0.2,
+				0.95, 0.95, 0.95, 0.1,
+				1, 1, 1, 0],
+		"params": {
+			"billboard": true,
+			"velocityRange": [3, 3, 3],
+			"numParticles": 60,
+			"lifeTime": 1.5,
+			"startTime": 0,
+			"startSize": 2,
+			"endSize": 12,
+			"endSizeRange": 4,
+			"position": [0, 2, 0],
+			"spinSpeedRange": 7
 		}
 	}
 ]}

@@ -10072,7 +10072,8 @@ if (!window.requestAnimationFrame) {
 
 (function() {
 
-	var defaultParticleSystem = new hemi.particles.System();
+	var defaultParticleSystem = new hemi.particles.System(),
+		_vector = new THREE.Vector3();
 
 	// The default particle system updates using render time.
 	hemi.addRenderListener({
@@ -10331,7 +10332,8 @@ if (!window.requestAnimationFrame) {
 			this.setup();
 		}
 
-		this.oneShot.trigger(this.params.position);
+		var pos = this.params.position;
+		this.oneShot.trigger(_vector.set(pos[0], pos[1], pos[2]));
 		this.send(hemi.msg.burst, {
 			position: this.params.position
 		});

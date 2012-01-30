@@ -76,7 +76,7 @@ var hext = (function(hext) {
 				var ci = this.client.camera.getEye();
 				puff = this.model.defaultPuff;
 				var puffPos = hemi.utils.lerp([ci.x, ci.y, ci.z], [wi.x, wi.y, wi.z], 0.9);
-				puff.params.position = new THREE.Vector3(puffPos[0], puffPos[1], puffPos[2]);
+				puff.params.position = puffPos;
 			}
 
 			puff.trigger();
