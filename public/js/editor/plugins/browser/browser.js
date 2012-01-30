@@ -506,9 +506,8 @@
 			}
 		}
 		
-		model.cleanup();
-		
 		this.notifyListeners(editor.events.Removing, model);
+		model.cleanup();
 	};
 	
 	BrowserModel.prototype.removeShape = function(shape) {

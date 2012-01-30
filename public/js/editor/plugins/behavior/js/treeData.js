@@ -212,6 +212,18 @@
 		};
 	};
 	
+	shorthand.treeData.createTransformCitizen = function(model) {
+		return {
+			isTransform: true,
+			name: 'Transforms',
+			citizen: model,
+			_citizenType: shorthand.constants.TRANSFORM,
+			_getId: function() {
+				return this.citizen._getId();
+			}
+		}
+	};
+	
 	shorthand.treeData.createCamMoveCitizen = function(camera) {
 		return {
 			camMove: true,
@@ -525,6 +537,34 @@
 		};
 	};
 	
+	shorthand.treeData.createModelTransformJson = function(tCit, prefix) {
+		var model = tCit.citizen,
+			list = model.getTransforms('*'),
+			transforms = [];
+		
+		for (var ndx = 0, len = list.length; ndx < len; ndx++) {
+			transforms.push(shorthand.treeData.createTriggerJson(list[ndx], prefix));
+		}
+		
+		return {
+			data: model.name || '',
+			attr: {
+				id: getNodeName(tCit, {
+					option: null,
+					prefix: prefix,
+					id: tCit._getId()
+				}),
+				rel: 'citizen'
+			},
+			children: transforms,
+			state: 'closed',
+			metadata: {
+				type: 'citizen',
+				citizen: tCit
+			}
+		};
+	};
+	
 	shorthand.treeData.createShapePickJson = function(spCit, prefix) {
 		var shape = spCit.citizen,
 			id = spCit._getId(),
@@ -567,6 +607,28 @@
 		};
 	};
 	
+	shorthand.treeData.createShapeTransformJson = function(tCit, prefix) {
+		var shape = tCit.citizen;
+		
+		return {
+			data: shape.name || '',
+			attr: {
+				id: getNodeName(tCit, {
+					option: null,
+					prefix: prefix,
+					id: tCit._getId()
+				}),
+				rel: 'citizen'
+			},
+			children: [shorthand.treeData.createTriggerJson(shape.mesh, prefix)],
+			state: 'closed',
+			metadata: {
+				type: 'citizen',
+				citizen: tCit
+			}
+		};
+	};
+	
 	shorthand.treeData.createShapePickTypeJson = function(spCit, prefix) {
 		var name = getNodeName(spCit, {
 			option: null,
@@ -575,6 +637,26 @@
 		
 		return {
 			data: 'Picked Shape',
+			attr: {
+				id: name,
+				rel: 'citType'
+			},
+			state: 'closed',
+			children: [],
+			metadata: {
+				type: 'citType'
+			}
+		};
+	};
+	
+	shorthand.treeData.createTransformTypeJson = function(tCit, prefix) {
+		var name = getNodeName(tCit, {
+			option: null,
+			prefix: prefix
+		});
+		
+		return {
+			data: 'Transforms',
 			attr: {
 				id: name,
 				rel: 'citType'

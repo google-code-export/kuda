@@ -195,7 +195,8 @@
     
 	shorthand.constants = {
 		CAM_MOVE: "CameraMove",
-		SHAPE_PICK: "ShapePick"
+		SHAPE_PICK: "ShapePick",
+		TRANSFORM: "Transform"
 	};
 	
 	shorthand.events = {
