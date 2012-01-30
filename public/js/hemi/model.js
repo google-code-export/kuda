@@ -216,7 +216,7 @@
 				var keys = hierarchy[j].keys;
 
 				for (var k = 0, kl = keys.length; k < kl; ++k) {
-					var time = keys[i].time;
+					var time = keys[k].time;
 					if (min === null || min > time) min = time;
 				}
 			}
