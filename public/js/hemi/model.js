@@ -184,6 +184,48 @@
 	};
 
 	/**
+	 * Calculate the maximum animation time (in seconds).
+	 * 
+	 * @return {number} max animation time in seconds.
+	 */
+	Model.prototype.getMaxAnimationTime = function() {
+		var animations = this.animations,
+			max = null;
+
+		for (var i = 0, il = animations.length; i < il; ++i) {
+			var time = animations[i].data.length;
+			if (max === null || max < time) max = time;
+		}
+
+		return max;
+	};
+
+	/**
+	 * Calculate the minimum animation time (in seconds).
+	 * 
+	 * @return {number} min animation time in seconds.
+	 */
+	Model.prototype.getMinAnimationTime = function() {
+		var animations = this.animations,
+			min = null;
+
+		for (var i = 0, il = animations.length; i < il; ++i) {
+			var hierarchy = animations[i].data.hierarchy;
+
+			for (var j = 0, jl = hierarchy.length; j < jl; ++j) {
+				var keys = hierarchy[j].keys;
+
+				for (var k = 0, kl = keys.length; k < kl; ++k) {
+					var time = keys[i].time;
+					if (min === null || min > time) min = time;
+				}
+			}
+		}
+
+		return min;
+	};
+
+	/**
 	 * Set the given file name as the Model's file to load. If the autoLoad flag is set, load the
 	 * Model now.
 	 * 
@@ -214,24 +256,6 @@
 		this.geometries = [];
 		this.materials = [];
 	};
-
-    /**
-	 * Calculates the max animation time (in seconds)
-     * @return {number} Max animation time in seconds.
-	 */
-    Model.prototype.getMaxAnimationTime = function() {
-        var max,
-            animations = this.animations;
-            for (var ndx = 0; ndx < animations.length; ndx++) {
-                var heirarchy = animations[ndx];
-                for(var key in animations) {
-                    var time = animations[key].data.length
-                    max = max >  time ? max : time;
-                }
-            }
-            
-        return max;
-    };
 
 // Private functions for Model
 
