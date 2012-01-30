@@ -9296,7 +9296,7 @@ if (!window.requestAnimationFrame) {
 	 * Recursive function to search through all Transform children for any Transforms with the given
 	 * name.
 	 * 
-	 * @param {string} name the name to search for
+	 * @param {string} name the name to search for, with '*' meaning all transforms
 	 * @param {hemi.Transform} transform the transform with children to check
 	 * @param {hemi.Transform[]} returnTrans array of matching Transforms that is being populated
 	 */
@@ -9304,7 +9304,7 @@ if (!window.requestAnimationFrame) {
 		for (var i = 0; i < transform.children.length; ++i) {
 			var child = transform.children[i];
 
-			if (child.name === name) {
+			if (child.name === name || name === '*') {
 				returnTrans.push(child);
 			}
 
@@ -9948,6 +9948,7 @@ if (!window.requestAnimationFrame) {
                 animations[i].update(delta);
             }
         }
+        /////////////////////////////////////
 	};
 
 	/**
@@ -9982,6 +9983,7 @@ if (!window.requestAnimationFrame) {
 	 * If the AnimationGroup is not currently animating, start it.
 	 */
 	AnimationGroup.prototype.start = function() {
+    
 		if (!this._isAnimating) {
             var animations = [];
             
@@ -10010,18 +10012,17 @@ if (!window.requestAnimationFrame) {
 
                             }
                         }
-                        obj.matrixAutoUpdate = false;
+    // //console.log(obj.matrixAutoUpdate + ' ' + obj.matrixWorldNeedsUpdate);
+                        // //obj.matrixAutoUpdate = false;
                         animation.data.hierarchy[h].node.updateMatrix();
                         obj.matrixWorldNeedsUpdate = true;
 
                     }
 
                 }
-				animation.play(false, this._currentTime);
+
+				animations[i].play(false, this._currentTime);
 			}
-            // for (var i = 0, il = animations.length; i < il; ++i) {
-				// animations[i].play(false, this._currentTime);
-			// }
 
 			this._isAnimating = true;
 			hemi.addRenderListener(this);
