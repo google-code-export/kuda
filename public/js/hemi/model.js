@@ -121,14 +121,81 @@
 	};
 
 	/**
+	 * Calculate the maximum animation time (in seconds).
+	 * 
+	 * @return {number} max animation time in seconds.
+	 */
+	Model.prototype.getMaxAnimationTime = function() {
+		var animations = this.animations,
+			max = null;
+
+		for (var i = 0, il = animations.length; i < il; ++i) {
+			var time = animations[i].data.length;
+			if (max === null || max < time) max = time;
+		}
+
+		return max;
+	};
+
+	/**
+	 * Calculate the minimum animation time (in seconds).
+	 * 
+	 * @return {number} min animation time in seconds.
+	 */
+	Model.prototype.getMinAnimationTime = function() {
+		var animations = this.animations,
+			min = null;
+
+		for (var i = 0, il = animations.length; i < il; ++i) {
+			var hierarchy = animations[i].data.hierarchy;
+
+			for (var j = 0, jl = hierarchy.length; j < jl; ++j) {
+				var keys = hierarchy[j].keys;
+
+				for (var k = 0, kl = keys.length; k < kl; ++k) {
+					var time = keys[k].time;
+					if (min === null || min > time) min = time;
+				}
+			}
+		}
+
+		return min;
+	};
+
+	/**
 	 * Get any Transforms with the given name in the Model.
 	 * 
+	 * @param {string} name the name of the Transform to find
 	 * @return {hemi.Transform[]} array of matching Transforms
 	 */
 	Model.prototype.getTransforms = function(name) {
 		var trans = [];
 		getTransformsRecursive(name, this.root, trans);
 		return trans;
+	};
+
+	/**
+	 * Get the first Transform found with the given name in the Model.
+	 * 
+	 * @param {string} name the name of the Transform to find
+	 * @return {hemi.Transform} the first matching Transform or null
+	 */
+	Model.prototype.getTransform = function(name) {
+		var trans = [],
+			tran = null;
+
+		getTransformsRecursive(name, this.root, trans);
+		var length = trans.length;
+
+		if (length > 0) {
+			tran = trans[0];
+
+			if (length > 1) {
+				console.log('Warning: found ' + length + ' transforms with name ' + name);
+			}
+		}
+
+		return tran;
 	};
 
 	/**
@@ -181,48 +248,6 @@
 		} else {
 			hemi.loadCollada(this._fileName, onCollada); 
 		}
-	};
-
-	/**
-	 * Calculate the maximum animation time (in seconds).
-	 * 
-	 * @return {number} max animation time in seconds.
-	 */
-	Model.prototype.getMaxAnimationTime = function() {
-		var animations = this.animations,
-			max = null;
-
-		for (var i = 0, il = animations.length; i < il; ++i) {
-			var time = animations[i].data.length;
-			if (max === null || max < time) max = time;
-		}
-
-		return max;
-	};
-
-	/**
-	 * Calculate the minimum animation time (in seconds).
-	 * 
-	 * @return {number} min animation time in seconds.
-	 */
-	Model.prototype.getMinAnimationTime = function() {
-		var animations = this.animations,
-			min = null;
-
-		for (var i = 0, il = animations.length; i < il; ++i) {
-			var hierarchy = animations[i].data.hierarchy;
-
-			for (var j = 0, jl = hierarchy.length; j < jl; ++j) {
-				var keys = hierarchy[j].keys;
-
-				for (var k = 0, kl = keys.length; k < kl; ++k) {
-					var time = keys[k].time;
-					if (min === null || min > time) min = time;
-				}
-			}
-		}
-
-		return min;
 	};
 
 	/**
