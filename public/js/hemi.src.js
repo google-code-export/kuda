@@ -9913,42 +9913,44 @@ if (!window.requestAnimationFrame) {
 		this._currentTime += delta;
 		checkLoops.call(this);        
 
-        var animations = [];
-        if (this.model) 
-            animations = this.model.animations;
+
         if (this._currentTime !== previous + delta) {
             delta = 0;
         }
-        if (delta === 0) {
-            this.send(hemi.msg.animate,
-                {
-                    previous: this._currentTime,
-                    time: this._currentTime
-                });
-            for (var i = 0, il = animations.length; i < il; ++i) {
-				animations[i].stop();
-			}
-            for (var i = 0, il = animations.length; i < il; ++i) {
-				animations[i].play(false, this._currentTime);
-			}
-        } else {
-            this.send(hemi.msg.animate,
-                {
-                    previous: previous,
-                    time: this._currentTime
-                });
+        var animations = [];
+        if (this.model) {
+            animations = this.model.animations;
 
-            if (this._currentTime >= this.endTime) {
-                delta = this.endTime - previous;
-                this.stop();
-                this.reset();
-            }
+            if (delta === 0) {
+                this.send(hemi.msg.animate,
+                    {
+                        previous: this._currentTime,
+                        time: this._currentTime
+                    });
+                for (var i = 0, il = animations.length; i < il; ++i) {
+                    animations[i].stop();
+                }
+                for (var i = 0, il = animations.length; i < il; ++i) {
+                    animations[i].play(false, this._currentTime);
+                }
+            } else {
+                this.send(hemi.msg.animate,
+                    {
+                        previous: previous,
+                        time: this._currentTime
+                    });
 
-            for (var i = 0, il = animations.length; i < il; ++i) {
-                animations[i].update(delta);
+                if (this._currentTime >= this.endTime) {
+                    delta = this.endTime - previous;
+                    this.stop();
+                    this.reset();
+                }
+
+                for (var i = 0, il = animations.length; i < il; ++i) {
+                    animations[i].update(delta);
+                }
             }
         }
-        /////////////////////////////////////
 	};
 
 	/**
@@ -9983,50 +9985,49 @@ if (!window.requestAnimationFrame) {
 	 * If the AnimationGroup is not currently animating, start it.
 	 */
 	AnimationGroup.prototype.start = function() {
-    
 		if (!this._isAnimating) {
             var animations = [];
             
             if (this.model)  {
                 animations = this.model.animations;
-            }
             
-			for (var i = 0, il = animations.length; i < il; ++i) {
-                var animation = animations[i];
-                for ( var h = 0, hl = animation.hierarchy.length; h < hl; h++ ) {
+            
+                for (var i = 0, il = animations.length; i < il; ++i) {
+                    var animation = animations[i];
+                    for ( var h = 0, hl = animation.hierarchy.length; h < hl; h++ ) {
 
-                    var keys = animation.data.hierarchy[h].keys,
-                        sids = animation.data.hierarchy[h].sids,
-                        obj = animation.hierarchy[h];
+                        var keys = animation.data.hierarchy[h].keys,
+                            sids = animation.data.hierarchy[h].sids,
+                            obj = animation.hierarchy[h];
 
-                    if ( keys.length && sids ) {
+                        if ( keys.length && sids ) {
 
-                        for ( var s = 0; s < sids.length; s++ ) {
+                            for ( var s = 0; s < sids.length; s++ ) {
 
-                            var sid = sids[ s ],
-                                next = animation.getNextKeyWith( sid, h, 0 );
+                                var sid = sids[ s ],
+                                    next = animation.getNextKeyWith( sid, h, 0 );
 
-                            if ( next ) {
-
-                                next.apply( sid );
-
+                                if ( next ) {
+                                    next.apply( sid );
+                                }
                             }
+                            obj.matrixAutoUpdate = false;
+                            animation.data.hierarchy[h].node.updateMatrix();
+                            obj.matrixWorldNeedsUpdate = true;
+
                         }
-    // //console.log(obj.matrixAutoUpdate + ' ' + obj.matrixWorldNeedsUpdate);
-                        // //obj.matrixAutoUpdate = false;
-                        animation.data.hierarchy[h].node.updateMatrix();
-                        obj.matrixWorldNeedsUpdate = true;
 
                     }
-
+                    animation.play(false, this._currentTime);
                 }
+                // for (var i = 0, il = animations.length; i < il; ++i) {
+                    // animations[i].play(false, this._currentTime);
+                // }
 
-				animations[i].play(false, this._currentTime);
-			}
-
-			this._isAnimating = true;
-			hemi.addRenderListener(this);
-			this.send(hemi.msg.start, {});
+                this._isAnimating = true;
+                hemi.addRenderListener(this);
+                this.send(hemi.msg.start, {});
+            }
 		}
         
 	};
@@ -10037,15 +10038,16 @@ if (!window.requestAnimationFrame) {
 	AnimationGroup.prototype.stop = function() {
 		if (this._isAnimating) {
             var animations = [];
-            if (this.model) 
+            if (this.model) {
                 animations = this.model.animations;
-			for (var i = 0, il = animations.length; i < il; ++i) {
-				animations[i].stop();
-			}
+                for (var i = 0, il = animations.length; i < il; ++i) {
+                    animations[i].stop();
+                }
 
-			hemi.removeRenderListener(this);
-			this._isAnimating = false;
-			this.send(hemi.msg.stop, {});
+                hemi.removeRenderListener(this);
+                this._isAnimating = false;
+                this.send(hemi.msg.stop, {});
+            }
 		}
 	};
 
