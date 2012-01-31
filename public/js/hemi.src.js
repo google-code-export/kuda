@@ -9955,7 +9955,7 @@ if (!window.requestAnimationFrame) {
 	 * Remove the given Loop from the AnimationGroup.
 	 * 
 	 * @param {hemi.Loop} loop the Loop to remove
-	 * @return {hemi[Loop} the removed Loop or null
+	 * @return {hemi.Loop} the removed Loop or null
 	 */
 	AnimationGroup.prototype.removeLoop = function(loop) {
 		var ndx = this.loops.indexOf(loop),
@@ -10051,7 +10051,7 @@ if (!window.requestAnimationFrame) {
 
 // Private functions for AnimationGroup
 
-	/**
+	/*
 	 * Check if the current time of the AnimationGroup needs to be reset by any of its Loops. If a
 	 * Loop resets the current time, increment that Loop's iteration counter.
 	 */
