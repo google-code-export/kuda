@@ -480,7 +480,7 @@
 			handler;
 
 		if (attributes !== undefined) {
-			dispatchId = attributes.dispatchId;
+			dispatchId = attributes._dispatchId;
 			name = attributes.name;
 			handler = attributes.handler;
 		}
@@ -703,7 +703,7 @@
 			handler;
 
 		if (attributes !== undefined) {
-			dispatchId = attributes.dispatchId;
+			dispatchId = attributes._dispatchId;
 			name = attributes.name;
 			handler = attributes.handler;
 		}
