@@ -85,7 +85,6 @@
         'init',
 		'_getId',
 		'_setId',
-		'_citizenType',
 		'_toOctane'
 	];
 		
@@ -120,7 +119,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var isCommon = function(citizen, method) {
-		var type = citizen._citizenType ? citizen._citizenType : citizen.name,
+		var type = citizen._octaneType ? citizen._octaneType : citizen.name,
 			methList = commonMethods[type],
 			common = false;
 		
@@ -142,8 +141,8 @@
 			return null;
 		} else if (citizen === MSG_WILDCARD) {
 			nodeName += citizen;
-		} else if (citizen._citizenType !== undefined) {
-			nodeName += citizen._citizenType.split('.').pop();
+		} else if (citizen._octaneType !== undefined) {
+			nodeName += citizen._octaneType.split('.').pop();
 		}
 		
 		if (config.id != null) {
@@ -205,7 +204,7 @@
 			shapePick: true,
 			name: 'Picked Shape:',
 			citizen: model,
-			_citizenType: shorthand.constants.SHAPE_PICK,
+			_octaneType: shorthand.constants.SHAPE_PICK,
 			_getId: function() {
 				return this.citizen._getId();
 			}
@@ -217,7 +216,7 @@
 			isTransform: true,
 			name: 'Transforms',
 			citizen: model,
-			_citizenType: shorthand.constants.TRANSFORM,
+			_octaneType: shorthand.constants.TRANSFORM,
 			_getId: function() {
 				return this.citizen._getId();
 			}
@@ -229,15 +228,15 @@
 			camMove: true,
 			name: 'Camera Move:',
 			citizen: camera,
-			_citizenType: shorthand.constants.CAM_MOVE,
+			_octaneType: shorthand.constants.CAM_MOVE,
 			_getId: function() {
 				return this.citizen._getId();
 			}
 		};
 	};
 	
-	shorthand.treeData.createCitizenTypeJson = function(citizen, prefix) {
-		var type = citizen._citizenType.split('.').pop(),
+	shorthand.treeData.createOctaneTypeJson = function(citizen, prefix) {
+		var type = citizen._octaneType.split('.').pop(),
 			name = getNodeName(citizen, {
 				option: null,
 				prefix: prefix

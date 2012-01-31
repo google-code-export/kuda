@@ -93,11 +93,6 @@ var hext = (function(hext) {
 		this.msgHandler = null;
 	};
 		
-        /**
-         * Overwrites hemi.world.Citizen.citizenType
-         */
-		citizenType: 'hext.tools.Manometer',
-		
 	/**
 	 * Send a cleanup Message and remove all references in the Manometer.
 	 */

@@ -409,7 +409,7 @@
 		} else {
 			var id = getNodeName(obj),
 				name = obj.name,
-				type = obj._citizenType.split('.').pop().toLowerCase().replace('hud', ''),
+				type = obj._octaneType.split('.').pop().toLowerCase().replace('hud', ''),
 				leaf = false,
 				children = [];
 
@@ -452,7 +452,7 @@
 		var nodeName = null;
 
 		if (obj !== null) {
-			nodeName = TREE_PREFIX + obj._citizenType.split('.').pop();				
+			nodeName = TREE_PREFIX + obj._octaneType.split('.').pop();				
 			nodeName += '_' + (obj._getId ? obj._getId() : obj.name);
 			nodeName = nodeName.replace(/ /g, '_').replace(/./g, '_');
 		}
@@ -710,10 +710,10 @@
 
 	CreateWidget.prototype.edit = function(obj) {
 		if (obj) {
-			var citizenType = obj._citizenType.split('.').pop();
+			var type = obj._octaneType.split('.').pop();
 
 			// now setup the appropriate editor
-			switch (citizenType) {
+			switch (type) {
 				case 'HudDisplay':
 					this.setDisplayEditor(obj);
 					this.preferredHeight = this.displayEditor.height();
@@ -923,7 +923,7 @@
 		treeWgt.addListener(shorthand.events.SelectHudNode, function(hudObjs) {
 			for (var i = 0, il = hudObjs.length; i < il; ++i) {
 				var hudObj = hudObjs[i],
-					type = hudObj._citizenType.split('.').pop();
+					type = hudObj._octaneType.split('.').pop();
 
 				switch (type) {
 					case 'HudDisplay':

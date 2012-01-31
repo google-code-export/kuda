@@ -95,8 +95,8 @@
 				name = cit.name,
 				type;
 			
-			if (cit.getCitizenType) {
-				type = cit.getCitizenType().split('.').pop();
+			if (cit._octaneType) {
+				type = cit._octaneType.split('.').pop();
 			} else {
 				type = 'Behavior';
 			}

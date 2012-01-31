@@ -591,12 +591,8 @@
 	};
 		
 	BrowserModel.prototype.worldCleaned = function() {
-		var models = hemi.world.getCitizens({
-				citizenType: hemi.Model.prototype.citizenType
-			}),
-			shapes = hemi.world.getCitizens({
-				citizenType: hemi.Shape.prototype.citizenType
-			});
+		var models = hemi.world.getModels(),
+			shapes = hemi.world.getShapes();
 		
 		// turn off handles
 		this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);

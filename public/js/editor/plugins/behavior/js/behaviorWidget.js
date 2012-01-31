@@ -65,7 +65,7 @@
 			argList = msgTarget.args;
 		}
 		
-		argNames = meta.getParameters(handler._citizenType, method);
+		argNames = meta.getParameters(handler._octaneType, method);
 		
 		if (!argNames) {
 			// If the metadata is missing, try the old way to get the
@@ -166,11 +166,11 @@
 			nameArr = ['[any source]', msgType.split('.').pop()];
 		} else if (hemi.utils.isNumeric(source)) {
 			var cit = hemi.world.getCitizenById(source),
-				citType = cit._citizenType.split('.').pop();
+				citType = cit._octaneType.split('.').pop();
 			
 			nameArr = [citType, cit.name, msgType.split('.').pop()];
 		} else {
-			var trigType = source._citizenType.split('.').pop(),
+			var trigType = source._octaneType.split('.').pop(),
 				citName = source.citizen.name,
 				argName;
 			
@@ -887,7 +887,7 @@
 	shorthand.getActionName = function(data) {
 		var handler = data.handler;
 		
-		return [handler._citizenType.split('.').pop(), handler.name, data.method];
+		return [handler._octaneType.split('.').pop(), handler.name, data.method];
 	};
 	
 	shorthand.modifyBehaviorListItems = function(msgTarget, spec, opt_method) {
@@ -914,7 +914,7 @@
 			li = null;
 		}
 			
-		if (data.method === 'moveToView' && data.handler._citizenType === 'hemi.Camera') {
+		if (data.method === 'moveToView' && data.handler._octaneType === 'hemi.Camera') {
 			var id = parseInt(data.args[0].value.replace('id:', ''));
 			li = behaviorLiTable.get(hemi.world.getCitizenById(id));				
 		}

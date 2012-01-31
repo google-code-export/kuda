@@ -271,7 +271,7 @@
 		
 		if (argList != null) {
 			var meta = editor.data,
-				citType = handler._citizenType,
+				citType = handler._octaneType,
 				params = meta.getParameters(citType, method);
 			
 			if (!params) {
@@ -425,7 +425,7 @@
 		
 		if (method !== null) {
 			var meta = editor.data.getMetaData(),
-				citType = this.handler._citizenType,
+				citType = this.handler._octaneType,
 				params = meta.getParameters(citType, method);
 			
 			if (!params) {
@@ -530,7 +530,7 @@
 	
 		
 	function getChainMessages(citizen, method) {
-		var type = citizen.getCitizenType ? citizen._citizenType : citizen.name,
+		var type = citizen._octaneType ? citizen._octaneType : citizen.name,
 			key = type + '_' + method,
 			msgList = shorthand.treeData.chainTable.get(key),
 			messages;
