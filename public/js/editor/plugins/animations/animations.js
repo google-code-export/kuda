@@ -224,7 +224,7 @@
 	 */
 	AnimatorModel.prototype.previewAnimation = function() {
 		this.createAnimation();
-		//this.animation.setToFrame(this.startTime);
+
 		this.animation.start();	                   
 	}; 
 	
