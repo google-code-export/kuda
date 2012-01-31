@@ -395,7 +395,7 @@
 			};
 		
 		if (this.msgTarget !== null) {
-			newTarget.dispatchId = this.msgTarget.dispatchId;
+			newTarget._dispatchId = this.msgTarget._dispatchId;
 			this.notifyListeners(editor.events.Updated, data);
 			
 			if (this.msgTarget.handler instanceof hemi.ValueCheck) {
@@ -631,7 +631,7 @@
 	};
 	
 	TableWidget.prototype.remove = function(msgTarget) {
-		var tr = this.behaviors.remove(msgTarget.dispatchId);
+		var tr = this.behaviors.remove(msgTarget._dispatchId);
 		this.table.fnDeleteRow(tr);
 		
 		this.invalidate();
@@ -639,7 +639,7 @@
 	
 	TableWidget.prototype.update = function(msgTarget, spec) {
 		var data = shorthand.expandBehaviorData(msgTarget, spec),
-			row = jQuery(this.behaviors.get(msgTarget.dispatchId)),
+			row = jQuery(this.behaviors.get(msgTarget._dispatchId)),
 			td = row.find('td.editHead');
 		
 		td.find('button').unbind('click');
@@ -666,7 +666,7 @@
 			wgt = this;
 			
 		tr.data('behavior', msgTarget);
-		this.behaviors.put(msgTarget.dispatchId, tr[0]);
+		this.behaviors.put(msgTarget._dispatchId, tr[0]);
 		
 		td.find('.editBtn').bind('click', function(evt) {
 			var bhv = tr.data('behavior');					

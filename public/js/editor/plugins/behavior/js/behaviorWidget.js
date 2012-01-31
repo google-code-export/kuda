@@ -52,7 +52,7 @@
 			method = msgTarget.handler.func;
 			argList = msgTarget.handler.args;
 			
-			if (spec.src === hemi.world.WORLD_ID) {
+			if (spec.src === hemi.dispatch.WILDCARD) {
 				source = shorthand.treeData.createShapePickCitizen(msgTarget.handler.citizen);
 			} else {
 				source = shorthand.treeData.createCamMoveCitizen(hemi.world.camera);
@@ -667,7 +667,7 @@
 	shorthand.BhvListItem.prototype.constructor = shorthand.BhvListItem;
 		
 	shorthand.BhvListItem.prototype.add = function(msgTarget, spec) {
-		if (this.targets.get(msgTarget.dispatchId) == null) {
+		if (this.targets.get(msgTarget._dispatchId) == null) {
 			var li = new editor.ui.EditableListItem(), 
 				data = expandTargetData(msgTarget, spec), 
 				name = getTriggerName(data);
@@ -678,7 +678,7 @@
 			this.bindButtons(li);
 			this.list.add(li);
 			
-			this.targets.put(msgTarget.dispatchId, li);
+			this.targets.put(msgTarget._dispatchId, li);
 		}
 	};
 	
@@ -753,11 +753,11 @@
 	};
 	
 	shorthand.BhvListItem.prototype.remove = function(msgTarget) {
-		var li = this.targets.get(msgTarget.dispatchId);
+		var li = this.targets.get(msgTarget._dispatchId);
 		
 		this.list.remove(li);
 		
-		this.targets.remove(msgTarget.dispatchId);
+		this.targets.remove(msgTarget._dispatchId);
 	};
 	
 	shorthand.BhvListItem.prototype.setParent = function(parent) {
@@ -776,7 +776,7 @@
 	};
 	
 	shorthand.BhvListItem.prototype.update = function(msgTarget, spec) {
-		var li = this.targets.get(msgTarget.dispatchId),
+		var li = this.targets.get(msgTarget._dispatchId),
 			data = expandTargetData(msgTarget, spec),
 			name = getTriggerName(data);
 		
