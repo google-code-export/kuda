@@ -88,7 +88,7 @@
 	ParticleFxModel.prototype.preview = function(props) {
 		this.create(props);
 		
-		switch(this.previewEffect._citizenType) {
+		switch(this.previewEffect._octaneType) {
 			case 'hemi.ParticleBurst':
 				this.previewEffect.trigger();
 				break;
@@ -151,7 +151,7 @@
 		
 	ParticleFxModel.prototype.stopPreview = function() {
 		if (this.previewEffect) {
-			switch(this.previewEffect._citizenType) {
+			switch(this.previewEffect._octaneType) {
 				case 'hemi.ParticleTrail':
 					this.previewEffect.stop();
 					break;
@@ -251,7 +251,7 @@
 		
 		if (effect) {
 			var params = effect.params, 
-				type = effect._citizenType.replace('hemi.Particle', ''), 
+				type = effect._octaneType.replace('hemi.Particle', ''), 
 				colorRamp = effect.colorRamp, 
 				blend = effect.blending, 
 				fireInt = effect.fireInterval, 

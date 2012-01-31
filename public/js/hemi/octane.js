@@ -101,7 +101,7 @@
          * Essentially a class name.
          * @type string
          */
-		clsCon.prototype._citizenType = clsName;
+		clsCon.prototype._octaneType = clsName;
 
 		/*
 	     * Get the Octane structure for the class. The structure returned is:
@@ -121,7 +121,7 @@
 
 			if (props !== null) {
 				octane = {
-					type: this._citizenType,
+					type: this._octaneType,
 					props: props
 				};
 

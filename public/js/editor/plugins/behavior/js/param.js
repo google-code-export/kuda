@@ -75,8 +75,8 @@
 		this.reset();
 		
 		var meta = editor.data.getMetaData(),
-			citType = obj._citizenType,
-			params = meta.getParameters(citType, fnc);
+			octType = obj._octaneType,
+			params = meta.getParameters(octType, fnc);
 		
 		if (!params) {
 			// Use the back up argument list
@@ -85,8 +85,8 @@
 		
 		for (var i = 0, il = params.length; i < il; i++) {
 			var prm = params[i],
-				type = meta.getType(citType, fnc, prm),
-				desc = meta.getDescription(citType, fnc, prm);
+				type = meta.getType(octType, fnc, prm),
+				desc = meta.getDescription(octType, fnc, prm);
 			
 			type = type || 'string';
 			

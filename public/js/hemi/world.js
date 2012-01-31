@@ -293,7 +293,7 @@
 	 */
 	hemi.world.getAnimationGroups = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.AnimationGroup.prototype._citizenType;
+		attributes._octaneType = hemi.AnimationGroup.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -308,7 +308,7 @@
 	 */
 	hemi.world.getAudio = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.Audio.prototype._citizenType;
+		attributes._octaneType = hemi.Audio.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -323,7 +323,7 @@
 	 */
 	hemi.world.getCamCurves = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.CameraCurve.prototype._citizenType;
+		attributes._octaneType = hemi.CameraCurve.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -380,7 +380,7 @@
 	 */
 	hemi.world.getHudDisplays = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.HudDisplay.prototype._citizenType;
+		attributes._octaneType = hemi.HudDisplay.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -395,7 +395,7 @@
 	 */
 	hemi.world.getMeshes = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.Mesh.prototype._citizenType;
+		attributes._octaneType = hemi.Mesh.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -410,7 +410,7 @@
 	 */
 	hemi.world.getModels = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.Model.prototype._citizenType;
+		attributes._octaneType = hemi.Model.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -435,13 +435,13 @@
 	 */
 	hemi.world.getParticleEffects = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.ParticleEmitter.prototype._citizenType;
+		attributes._octaneType = hemi.ParticleEmitter.prototype._octaneType;
 		var retVal = this.getCitizens(attributes, opt_filter);
 
-		attributes._citizenType = hemi.ParticleBurst.prototype._citizenType;
+		attributes._octaneType = hemi.ParticleBurst.prototype._octaneType;
 		retVal = retVal.concat(this.getCitizens(attributes, opt_filter));
 
-		attributes._citizenType = hemi.ParticleTrail.prototype._citizenType;
+		attributes._octaneType = hemi.ParticleTrail.prototype._octaneType;
 		retVal = retVal.concat(this.getCitizens(attributes, opt_filter));
 
 		return retVal; 
@@ -458,7 +458,7 @@
 	 */
 	hemi.world.getShapes = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.Shape.prototype._citizenType;
+		attributes._octaneType = hemi.Shape.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -473,7 +473,7 @@
 	 */
 	hemi.world.getStates = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.State.prototype._citizenType;
+		attributes._octaneType = hemi.State.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -488,7 +488,7 @@
 	 */
 	hemi.world.getTimers = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.Timer.prototype._citizenType;
+		attributes._octaneType = hemi.Timer.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -503,7 +503,7 @@
 	 */
 	hemi.world.getTransforms = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.Transform.prototype._citizenType;
+		attributes._octaneType = hemi.Transform.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 
@@ -518,7 +518,7 @@
 	 */
 	hemi.world.getViewpoints = function(attributes, opt_filter) {
 		attributes = attributes || {};
-		attributes._citizenType = hemi.Viewpoint.prototype._citizenType;
+		attributes._octaneType = hemi.Viewpoint.prototype._octaneType;
 		return this.getCitizens(attributes, opt_filter);
 	};
 

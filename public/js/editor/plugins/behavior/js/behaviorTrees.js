@@ -40,8 +40,8 @@
 	
 	var TreeModel = function() {
 		editor.utils.Listenable.call(this);
-		this.citizenTypes = new Hashtable();
-		
+		this.octaneTypes = new Hashtable();
+
 		hemi.subscribe(hemi.msg.worldCleanup, this, 'worldCleaned');
 		hemi.subscribe(hemi.msg.ready, this, 'worldLoaded');
 	};
@@ -54,19 +54,19 @@
 			return;
 		}
 		
-		var type = citizen._citizenType.split('.').pop(),
-			citizens = this.citizenTypes.get(type),
+		var type = citizen._octaneType.split('.').pop(),
+			citizens = this.octaneTypes.get(type),
 			createType = citizens === null,
 			add = createType;
 		
 		if (createType) {
-			this.citizenTypes.put(type, [citizen]);
+			this.octaneTypes.put(type, [citizen]);
 		} else {
 			add = citizens.indexOf(citizen) === -1;
 			
 			if (add) {
 				citizens.push(citizen);
-				this.citizenTypes.put(type, citizens);
+				this.octaneTypes.put(type, citizens);
 			}
 		}
 		
@@ -97,20 +97,20 @@
 	};
 	
 	TreeModel.prototype.removeCitizen = function(citizen) {
-		var type = citizen._citizenType.split('.').pop(),
-			citizens = this.citizenTypes.get(type),
+		var type = citizen._octaneType.split('.').pop(),
+			citizens = this.octaneTypes.get(type),
 			removeType = citizens !== null && citizens.length === 1,
 			remove = removeType;
 		
 		if (removeType) {
-			this.citizenTypes.remove(type);
+			this.octaneTypes.remove(type);
 		} else if (citizens !== null) {
 			var ndx = citizens.indexOf(citizen);
 			
 			if (ndx !== -1) {
 				remove = true;
 				citizens.splice(ndx, 1);
-				this.citizenTypes.put(type, citizens);
+				this.octaneTypes.put(type, citizens);
 			}
 		}
 		
@@ -254,7 +254,7 @@
 	
 	TreeView.prototype.filter = function(type) {
 		var id = shorthand.treeData.getNodeName({
-				_citizenType: type
+				_octaneType: type
 			}, {
 				prefix: this.pre
 			}),
@@ -405,7 +405,7 @@
 		
 		var actionNode = shorthand.treeData.createActionJson(citizen, 
 				this.pre),
-			type = citizen._citizenType.split('.').pop();
+			type = citizen._octaneType.split('.').pop();
 			
 		this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
 			json_data: actionNode
@@ -421,7 +421,7 @@
 	};
 	
 	function addActionType(citizen) {
-		var json = shorthand.treeData.createCitizenTypeJson(citizen, this.pre);
+		var json = shorthand.treeData.createOctaneTypeJson(citizen, this.pre);
 		
 		this.tree.jstree('create_node', -1, 'last', {
 			json_data: json
@@ -432,20 +432,20 @@
 	
 	function addCitizen(citizen, createType) {
 		if (createType) {
-			addCitizenType.call(this, citizen);
+			addOctaneType.call(this, citizen);
 		}
 		
 		var citizenNode = shorthand.treeData.createCitizenJson(citizen, 
 				this.pre),
-			type = citizen._citizenType.split('.').pop();
+			type = citizen._octaneType.split('.').pop();
 			
 		this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
 			json_data: citizenNode
 		});
 	};	
 	
-	function addCitizenType(citizen) {
-		var json = shorthand.treeData.createCitizenTypeJson(citizen, this.pre);
+	function addOctaneType(citizen) {
+		var json = shorthand.treeData.createOctaneTypeJson(citizen, this.pre);
 		
 		this.tree.jstree('create_node', -1, 'last', {
 			json_data: json
@@ -458,7 +458,7 @@
 				option: opt_func,
 				id: opt_func ? citizen._getId() : null
 			}),
-			type = citizen._citizenType,
+			type = citizen._octaneType,
 			desc;
 		
 		if (opt_func) {
@@ -483,7 +483,7 @@
 		
 		var triggerNode = shorthand.treeData.createTriggerJson(citizen, 
 				this.pre),
-			type = citizen._citizenType.split('.').pop(),
+			type = citizen._octaneType.split('.').pop(),
 			msgSent = citizen._msgSent,
 			name = shorthand.treeData.getNodeName(citizen, {
 					option: shorthand.treeData.MSG_WILDCARD,
@@ -502,8 +502,8 @@
 				tc = shorthand.treeData.createTransformCitizen(citizen),
 				spcTriggerNode = shorthand.treeData.createModelPickJson(spc, this.pre),
 				tcTriggerNode = shorthand.treeData.createModelTransformJson(tc, this.pre),
-				spcType = spc._citizenType.split('.').pop(),
-				tcType = tc._citizenType.split('.').pop();
+				spcType = spc._octaneType.split('.').pop(),
+				tcType = tc._octaneType.split('.').pop();
 			
 			this.tree.jstree('create_node', '#' + this.pre + spcType, 'inside', {
 				json_data: spcTriggerNode
@@ -516,8 +516,8 @@
 				tc = shorthand.treeData.createTransformCitizen(citizen),
 				spcTriggerNode = shorthand.treeData.createShapePickJson(spc, this.pre),
 				tcTriggerNode = shorthand.treeData.createShapeTransformJson(tc, this.pre),
-				spcType = spc._citizenType.split('.').pop(),
-				tcType = tc._citizenType.split('.').pop();
+				spcType = spc._octaneType.split('.').pop(),
+				tcType = tc._octaneType.split('.').pop();
 			
 			this.tree.jstree('create_node', '#' + this.pre + spcType, 'inside', {
 				json_data: spcTriggerNode
@@ -528,7 +528,7 @@
 		} else if (citizen instanceof hemi.Camera) {
 			var cmc = shorthand.treeData.createCamMoveCitizen(citizen),
 				triggerNode = shorthand.treeData.createCamMoveJson(cmc, this.pre);
-				type = cmc._citizenType.split('.').pop();
+				type = cmc._octaneType.split('.').pop();
 			
 			this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
 				json_data: triggerNode
@@ -567,7 +567,7 @@
 				});
 		
 		msg = msg.split('.').pop();
-		var desc = editor.data.getMetaData().getMsgDescription(citizen._citizenType, msg);
+		var desc = editor.data.getMetaData().getMsgDescription(citizen._octaneType, msg);
 		
 		if (desc != null) {
 			this.tooltips.put(nodeId, desc);
@@ -575,7 +575,7 @@
 	};
 	
 	function addTriggerType(citizen) {
-		var json = shorthand.treeData.createCitizenTypeJson(citizen, this.pre);
+		var json = shorthand.treeData.createOctaneTypeJson(citizen, this.pre);
 		
 		this.tree.jstree('create_node', -1, 'last', {
 			json_data: json
@@ -851,11 +851,11 @@
 		this.tree.jstree('delete_node', node);
 		
 		if (removeType) {
-			removeCitizenType.call(this, citizen);
+			removeOctaneType.call(this, citizen);
 		}
 	};
 	
-	function removeCitizenType(citizen) {
+	function removeOctaneType(citizen) {
 		var nodeName = shorthand.treeData.getNodeName(citizen, {
 			option: null,
 			prefix: this.pre
@@ -965,7 +965,7 @@
 				}),
 				triggerNode = shorthand.treeData.createShapePickJson(spc, 
 					this.pre),
-				type = spc._citizenType.split('.').pop();
+				type = spc._octaneType.split('.').pop();
 			
 			this.tree.jstree('delete_node', '#' + nodeName);				
 			this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
@@ -995,7 +995,7 @@
 
 	function populateTree(tree) {
 		var treeModel = shorthand.treeModel,
-			table = treeModel.citizenTypes,
+			table = treeModel.octaneTypes,
 			keys = table.keys();
 			
 		treeModel.addListener(shorthand.events.CitizenAdded, tree);

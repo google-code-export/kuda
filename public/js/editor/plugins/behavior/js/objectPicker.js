@@ -85,7 +85,7 @@
 				
 			if (metadata.type === 'citizen') {
 				citParam = hemi.dispatch.ID_ARG + citizen._getId();
-				citName = citizen._citizenType.split('.').pop() 
+				citName = citizen._octaneType.split('.').pop() 
 					+ '.' + citizen.name;
 				jQuery(this).parent().hide(200);
 				tree.jstree('close_all').jstree('deselect_all');
@@ -206,7 +206,7 @@
 	};
 	
 	shorthand.ObjectPicker.prototype.setValue = function(citizen) {
-		if (citizen != null && citizen._citizenType === this.filter) {
+		if (citizen != null && citizen._octaneType === this.filter) {
 			var nodeId = shorthand.treeData.getNodeName(citizen, {
 				prefix: citTree.pre,
 				id: citizen._getId()
