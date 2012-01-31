@@ -89,118 +89,90 @@ var parseFile = function(data, classes) {
 		
 		clsObj.desc = head.split(/\s*\*\s*/gm).join(' ').trim();
 		
-		// If the class inherits from another one, the code will look different.
-		if (clsObj.parent) {
-			// Parse the class name
-			var re = new RegExp('\\s*=\\s*' + clsObj.parent + '\\.extend\\({', 'm');
-			
-			ndx = body.search(re);
-			clsObj.name = body.substr(0, ndx);
+		// Parse the class name
+		ndx = body.search(/\s*=\s*function/m);
+		var clsName = body.substr(0, ndx);
 
-			// Parse the constructor (the head)
-			ndx = body.search(/init\s*:\s*function/m);
-			
-			if (ndx > -1) {
-				ndx = body.indexOf('{', ndx);
-				var count = 1;
-				
-				while (count > 0) {
-					var ch = body[++ndx];
-					
-					if (ch === '{') {
-						++count;
-					} else if (ch === '}') {
-						--count;
-					}
-				}
-				
-				head = body.substr(0, ndx);
+		if (clsName.substr(0, 4) === 'var ') {
+			clsName = clsName.substr(4);
+
+			// Looks to be private. Check to see if its Octanable or a Citizen.
+			ndx = body.indexOf('makeOctanable');
+			if (ndx === -1) ndx = body.indexOf('makeCitizen');
+
+			if (ndx !== -1) {
+				var stop = body.indexOf(';', ndx),
+					makeFunc = body.substring(ndx, stop),
+					name = makeFunc.match(/['"].*['"]/m)[0];
+
+				clsObj.name = name.substr(1, name.length - 2);
 			} else {
-				head = null;
-				ndx = body.search(re);
+				clsObj.name = clsName;
 			}
-			
-			ndx = body.indexOf('/**', ndx);
-			body = body.substr(ndx + 3);
 		} else {
-			// Parse the class name
-			ndx = body.search(/\s*=\s*function/m);
-			var clsName = body.substr(0, ndx);
 			clsObj.name = clsName;
+		}
+		
+		// Parse properties out of the head
+		ndx = body.indexOf('{');
+		var count = 1;
+		
+		while (count > 0) {
+			var ch = body[++ndx];
 			
-			// Parse the constructor (the head)
-			var re = new RegExp(clsName + '.prototype\\s*=\\s*{');
-			ndx = body.search(re);
+			if (ch === '{') {
+				++count;
+			} else if (ch === '}') {
+				--count;
+			}
+		}
+		
+		head = body.substr(0, ndx);
+		body = body.substr(ndx);
+		var props = head.split('/**');
+		
+		for (var j = 1, jl = props.length; j < jl; j++) {
+			var propStr = props[j],
+				prop = {};
 			
-			if (ndx > -1) {
-				head = body.substr(0, ndx);
-				ndx = body.indexOf('/**', ndx);
-				
-				if (ndx > -1) {
-					body = body.substr(ndx + 3);
-				} else {
-					body = null;
-				}
+			ndx = propStr.indexOf('*/');
+			var propDecl = propStr.substr(ndx + 2);
+			propStr = propStr.substr(0, ndx);
+			
+			ndx = propDecl.indexOf('this.');
+			propDecl = propDecl.substr(ndx + 5);
+			ndx = propDecl.search(/\s*=/);
+			prop.name = propDecl.substr(0, ndx);
+			
+			propStr = propStr.split(/\s*\*\s*/gm).join(' ');
+			ndx = propStr.indexOf('@');
+			prop.desc = propStr.substr(0, ndx).trim();
+			ndx = propStr.indexOf('@type');
+			propStr = propStr.substr(ndx + 5);
+			ndx = propStr.indexOf('@');
+			
+			if (ndx === -1) {
+				prop.type = propStr.trim();
 			} else {
-				head = body;
-				body = null;
+				prop.type = propStr.substr(0, ndx).trim();
 			}
 			
-			ndx = head.indexOf('{');
-			var count = 1;
-			
-			while (count > 0) {
-				var ch = head[++ndx];
-				
-				if (ch === '{') {
-					++count;
-				} else if (ch === '}') {
-					--count;
-				}
-			}
-			
-			head = head.substr(0, ndx);
+			clsObj.props.push(prop);
 		}
+
+		// Find the last prototype declaration
+		var clsProto = clsName + '.prototype.';
+		ndx = body.lastIndexOf(clsProto);
 		
-		if (head !== null) {
-			// Parse the class properties in the constructor
-			var props = head.split('/**');
+		if (ndx > -1) {
+			ndx = body.indexOf(';', ndx);
+
+			// Parse the prototype declarations
+			body = body.substr(0, ndx);
+
+			var funcs = body.split('/**');
 			
-			for (var j = 1, jl = props.length; j < jl; j++) {
-				var propStr = props[j],
-					prop = {};
-				
-				ndx = propStr.indexOf('*/');
-				var propDecl = propStr.substr(ndx + 2);
-				propStr = propStr.substr(0, ndx);
-				
-				ndx = propDecl.indexOf('this.');
-				propDecl = propDecl.substr(ndx + 5);
-				ndx = propDecl.search(/\s*=/);
-				prop.name = propDecl.substr(0, ndx);
-				
-				propStr = propStr.split(/\s*\*\s*/gm).join(' ');
-				ndx = propStr.indexOf('@');
-				prop.desc = propStr.substr(0, ndx).trim();
-				ndx = propStr.indexOf('@type');
-				propStr = propStr.substr(ndx + 5);
-				ndx = propStr.indexOf('@');
-				
-				if (ndx === -1) {
-					prop.type = propStr.trim();
-				} else {
-					prop.type = propStr.substr(0, ndx).trim();
-				}
-				
-				clsObj.props.push(prop);
-			}
-		}
-		
-		if (body !== null) {
-			// Parse the class functions
-			var funcs = body.split(/\,\s*\/\*\*/gm);
-			
-			for (var j = 0, jl = funcs.length; j < jl; j++) {
+			for (var j = 1, jl = funcs.length; j < jl; j++) {
 				var func = parseFunction(funcs[j]);
 				
 				if (func.params) {
@@ -226,7 +198,7 @@ var parseFunction = function(funcStr) {
 	
 	funcStr = funcStr.substr(end + 2);
 	
-	if (funcStr.search(/:\s*function\s*\(/) > -1) {
+	if (funcStr.search(/=\s*function\s*\(/) > -1) {
 		if (ndx > -1) {
 			var paramStrs = desc.substr(ndx + 1);
 			desc = desc.substr(0, ndx);
@@ -258,8 +230,9 @@ var parseFunction = function(funcStr) {
 	}
 	
 	func.desc = desc.split(/\s*\*\s*/gm).join(' ').trim();
-	ndx = funcStr.indexOf(':');
-	func.name = funcStr.substring(0, ndx).trim();
+	ndx = funcStr.indexOf('.prototype.');
+	end = funcStr.indexOf('=', ndx);
+	func.name = funcStr.substring(ndx + 11, end).trim();
 	
 	return func;
 };
@@ -298,6 +271,7 @@ var parseParam = function(param) {
 };
 
 var parseMessages = function(data, classes) {
+	debugger;
 	var ndx = data.search(/hemi.msg\s*=/),
 		msgObj = {};
 	
