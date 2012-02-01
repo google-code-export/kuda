@@ -7167,7 +7167,10 @@ if (!window.requestAnimationFrame) {
 		// Containers for motions and manips to allow them to be reused and save some memory
 		// allocation costs.
 	var manips = [],
-		motions = [];
+		motions = [],
+		// Mapping of previous manip parameters for Transforms and Meshes to enable quick swapping
+		// of cancelInteraction and setMovable (for example).
+		savedParams = {};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Contants
@@ -7267,6 +7270,8 @@ if (!window.requestAnimationFrame) {
 		for (var i = 0, il = children.length; i < il; ++i) {
 			children[i].cleanup();
 		}
+
+		savedParams[this._getId()] = undefined;
 	};
 
 	/*
@@ -7357,14 +7362,22 @@ if (!window.requestAnimationFrame) {
 	 */
 	Transform.prototype.cancelInteraction = function() {
 		if (this._manip) {
-			var type;
+			// We will save the manip's current state before we remove it (in case it is restored).
+			var params = getParams(this._getId()),
+				type;
 
 			if (this._manip instanceof hemi.Movable) {
 				type = hemi.MotionType.MOVE;
+				params.uv = this._manip._uv.slice(0);
+				params.angle = params.scale = undefined;
 			} else if (this._manip instanceof hemi.Resizable) {
 				type = hemi.MotionType.RESIZE;
+				params.scale = this._manip._scale;
+				params.angle = params.uv = undefined;
 			} else if (this._manip instanceof hemi.Turnable) {
 				type = hemi.MotionType.TURN;
+				params.angle = this._manip._angle;
+				params.scale = params.uv = undefined;
 			}
 
 			removeManip(this._manip, type);
@@ -7540,6 +7553,9 @@ if (!window.requestAnimationFrame) {
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.setMovable = function(opt_plane, opt_limits, opt_transforms) {
+		var params = getParams(this._getId()),
+			restore = opt_plane === undefined && opt_limits === undefined && opt_transforms === undefined;
+
 		if (this._manip instanceof hemi.Movable) {
 			this._manip.clearTransforms();
 		} else {
@@ -7547,16 +7563,37 @@ if (!window.requestAnimationFrame) {
 			this._manip = getManip(hemi.MotionType.MOVE);
 		}
 
+		if (params.uv === undefined) {
+			// Previous manip was not a Movable, so restoring is not possible.
+			restore = false;
+		} else {
+			this._manip._uv[0] = params.uv[0];
+			this._manip._uv[1] = params.uv[1];
+		}
+
 		if (opt_plane !== undefined) {
 			this._manip.setPlane(opt_plane);
+			params.plane = opt_plane;
+		} else if (restore && params.plane) {
+			this._manip.setPlane(params.plane);
 		}
 
 		if (opt_limits !== undefined) {
 			this._manip.setLimits(opt_limits);
+			params.limits = opt_limits;
+		} else if (restore && params.limits) {
+			this._manip.setLimits(params.limits);
 		}
 
-		opt_transforms = opt_transforms || [];
-		opt_transforms.unshift(this);
+		if (opt_transforms !== undefined) {
+			opt_transforms = opt_transforms.slice(0);
+			opt_transforms.unshift(this);
+			params.transforms = opt_transforms;
+		} else if (restore && params.transforms) {
+			opt_transforms = params.transforms;
+		} else {
+			opt_transforms = [this];
+		}
 
 		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
 			this._manip.addTransform(opt_transforms[i]);
@@ -7590,7 +7627,10 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make resizable
 	 *     as one group with the Transform
 	 */
-	Transform.prototype.setResizable = function(axis, opt_transforms) {
+	Transform.prototype.setResizable = function(opt_axis, opt_transforms) {
+		var params = getParams(this._getId()),
+			restore = opt_axis === undefined && opt_transforms === undefined;
+
 		if (this._manip instanceof hemi.Resizable) {
 			this._manip.clearTransforms();
 		} else {
@@ -7598,12 +7638,29 @@ if (!window.requestAnimationFrame) {
 			this._manip = getManip(hemi.MotionType.RESIZE);
 		}
 
-		if (opt_axis !== undefined) {
-			this._manip.setAxis(opt_axis);
+		if (params.scale === undefined) {
+			// Previous manip was not a Resizable, so restoring is not possible.
+			restore = false;
+		} else {
+			this._manip._scale = params.scale;
 		}
 
-		opt_transforms = opt_transforms || [];
-		opt_transforms.unshift(this);
+		if (opt_axis !== undefined) {
+			this._manip.setAxis(opt_axis);
+			params.axis = opt_axis;
+		} else if (restore && params.axis) {
+			this._manip.setAxis(params.axis);
+		}
+
+		if (opt_transforms !== undefined) {
+			opt_transforms = opt_transforms.slice(0);
+			opt_transforms.unshift(this);
+			params.transforms = opt_transforms;
+		} else if (restore && params.transforms) {
+			opt_transforms = params.transforms;
+		} else {
+			opt_transforms = [this];
+		}
 
 		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
 			this._manip.addTransform(opt_transforms[i]);
@@ -7629,6 +7686,9 @@ if (!window.requestAnimationFrame) {
 	 *     as one group with the Transform
 	 */
 	Transform.prototype.setTurnable = function(opt_axis, opt_limits, opt_transforms) {
+		var params = getParams(this._getId()),
+			restore = opt_axis === undefined && opt_limits === undefined && opt_transforms === undefined;
+
 		if (this._manip instanceof hemi.Turnable) {
 			this._manip.clearTransforms();
 		} else {
@@ -7636,16 +7696,36 @@ if (!window.requestAnimationFrame) {
 			this._manip = getManip(hemi.MotionType.TURN);
 		}
 
+		if (params.angle === undefined) {
+			// Previous manip was not a Turnable, so restoring is not possible.
+			restore = false;
+		} else {
+			this._manip._angle = params.angle;
+		}
+
 		if (opt_axis !== undefined) {
 			this._manip.setAxis(opt_axis);
+			params.axis = opt_axis;
+		} else if (restore && params.axis) {
+			this._manip.setAxis(params.axis);
 		}
 
 		if (opt_limits !== undefined) {
 			this._manip.setLimits(opt_limits);
+			params.limits = opt_limits;
+		} else if (restore && params.limits) {
+			this._manip.setLimits(params.limits);
 		}
 
-		opt_transforms = opt_transforms || [];
-		opt_transforms.unshift(this);
+		if (opt_transforms !== undefined) {
+			opt_transforms = opt_transforms.slice(0);
+			opt_transforms.unshift(this);
+			params.transforms = opt_transforms;
+		} else if (restore && params.transforms) {
+			opt_transforms = params.transforms;
+		} else {
+			opt_transforms = [this];
+		}
 
 		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
 			this._manip.addTransform(opt_transforms[i]);
@@ -7971,6 +8051,22 @@ if (!window.requestAnimationFrame) {
 
 		motion.enable();
 		return motion;
+	}
+
+	/*
+	 * Get the previous manip params for the Transform/Mesh with the given id.
+	 * 
+	 * @param {number} id world id of the Transform/Mesh
+	 * @return {Object} previous manip params
+	 */
+	function getParams(id) {
+		var params = savedParams[id];
+
+		if (!params) {
+			savedParams[id] = params = {};
+		}
+
+		return params;
 	}
 
 	/*
