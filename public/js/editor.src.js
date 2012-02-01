@@ -5615,7 +5615,7 @@ var editor = {};
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var ProjectModel = function() {
-		editor.ToolModel.call('projectLoad');
+		editor.ToolModel.call(this, 'projectLoad');
 		
 		var mdl = this;
 		
@@ -5712,7 +5712,7 @@ var editor = {};
 	};
 	
 	ProjectModel.prototype.notify = function(eventType, value) {
-		mdlSuper.notify.call(eventType, value);
+		mdlSuper.notify.call(this, eventType, value);
 		
 		switch (eventType) {
 			case editor.events.Created:
@@ -5883,7 +5883,7 @@ var editor = {};
 		hemi._resetKeyListeners(ws.keyListeners);
 		hemi._resetMouseListeners(ws.mouseListeners);
 		hemi.world.setNextId(ws.worldId);
-		hemi.dispatch.setNextId(ws.dispatchId);
+		hemi.dispatch.setNextId(ws._dispatchId);
 		hemi.hudManager._contexts = ws.hudContexts;
 
 		this.worldState = null;
