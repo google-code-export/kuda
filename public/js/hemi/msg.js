@@ -95,6 +95,11 @@
 		 * @type string
 		 * @constant
 		 * @example
+		 * hemi.Mesh - the Mesh has been moved
+		 * data = {
+		 *     delta: (THREE.Vector3) the change in XYZ position caused by the move
+		 * }
+		 * @example
 		 * hemi.Transform - the Transform has been moved
 		 * data = {
 		 *     delta: (THREE.Vector3) the change in XYZ position caused by the move
@@ -138,6 +143,11 @@
 		 * @type string
 		 * @constant
 		 * @example
+		 * hemi.Mesh - the Mesh has been resized
+		 * data = {
+		 *     scale: (number) the new scale
+		 * }
+		 * @example
 		 * hemi.Transform - the Transform has been resized
 		 * data = {
 		 *     scale: (number) the new scale
@@ -154,13 +164,15 @@
 		 * hemi.Audio - the Audio starts playing
 		 * data = { }
 		 * @example
+		 * hemi.Camera - the Camera starts moving to a Viewpoint
+		 * data = {
+		 *     viewpoint: (hemi.view.Viewpoint) the Viewpoint the Camera is moving to
+		 * }
+		 * @example
+		 * hemi.Mesh - the Mesh starts a motion
+		 * data = { }
+		 * @example
 		 * hemi.ParticleTrail - the ParticleTrail effect starts generating particles
-		 * data = { }
-		 * @example
-		 * hemi.Rotator - the Rotator starts rotating
-		 * data = { }
-		 * @example
-		 * hemi.Translator - the Translator starts translating
 		 * data = { }
 		 * @example
 		 * hemi.Timer - the Timer starts counting down
@@ -168,10 +180,8 @@
 		 *     time: (number) the milliseconds the Timer will count down for
 		 * }
 		 * @example
-		 * hemi.Camera - the Camera starts moving to a Viewpoint
-		 * data = {
-		 *     viewpoint: (hemi.view.Viewpoint) the Viewpoint the Camera is moving to
-		 * }
+		 * hemi.Transform - the Transform starts a motion
+		 * data = { }
 		 */
 		start: 'hemi.start',
 		/**
@@ -184,13 +194,15 @@
 		 * hemi.Audio - the Audio finishes playing
 		 * data = { }
 		 * @example
+		 * hemi.Camera - the Camera arrives at a Viewpoint
+		 * data = {
+		 *     viewpoint: (hemi.view.Viewpoint) the Viewpoint the Camera moved to
+		 * }
+		 * @example
+		 * hemi.Mesh - the Mesh finishes a motion
+		 * data = { }
+		 * @example
 		 * hemi.ParticleTrail - the ParticleTrail effect stops generating particles
-		 * data = { }
-		 * @example
-		 * hemi.Rotator - the Rotator stops rotating
-		 * data = { }
-		 * @example
-		 * hemi.Translator - the Translator stops translating
 		 * data = { }
 		 * @example
 		 * hemi.Timer - the Timer stops counting down
@@ -198,10 +210,8 @@
 		 *     time: (number) the milliseconds the Timer counted down
 		 * }
 		 * @example
-		 * hemi.Camera - the Camera arrives at a Viewpoint
-		 * data = {
-		 *     viewpoint: (hemi.view.Viewpoint) the Viewpoint the Camera moved to
-		 * }
+		 * hemi.Transform - the Transform finishes a motion
+		 * data = { }
 		 */
 		stop: 'hemi.stop',
 		/**
