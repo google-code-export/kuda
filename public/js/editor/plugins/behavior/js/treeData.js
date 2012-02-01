@@ -194,6 +194,60 @@
 		};
 	};
 	
+	var createShapeTransformJson = function(tCit, prefix, method) {
+		var shape = tCit.citizen;
+		
+		return {
+			data: shape.name || '',
+			attr: {
+				id: getNodeName(tCit, {
+					option: null,
+					prefix: prefix,
+					id: tCit._getId()
+				}),
+				rel: 'citizen'
+			},
+			children: [shorthand.treeData[method](shape.mesh, prefix)],
+			state: 'closed',
+			metadata: {
+				type: 'citizen',
+				citizen: tCit
+			}
+		};
+	};
+	
+	var createModelTransformJson = function(tCit, prefix, method) {
+		var model = tCit.citizen,
+			list = [],
+			transforms = [];
+		
+		THREE.SceneUtils.traverseHierarchy(model.root, function(transform) {
+			list.push(transform);	
+		});
+		
+		for (var ndx = 0, len = list.length; ndx < len; ndx++) {
+			transforms.push(shorthand.treeData[method](list[ndx], prefix));
+		}
+		
+		return {
+			data: model.name || '',
+			attr: {
+				id: getNodeName(tCit, {
+					option: null,
+					prefix: prefix,
+					id: tCit._getId()
+				}),
+				rel: 'citizen'
+			},
+			children: transforms,
+			state: 'closed',
+			metadata: {
+				type: 'citizen',
+				citizen: tCit
+			}
+		};
+	};
+	
 	shorthand.treeData.getNodeName = getNodeName;
 	shorthand.treeData.getNodePath = getNodePath;
 	shorthand.treeData.createCitizenJson = createCitizenJson;
@@ -536,32 +590,12 @@
 		};
 	};
 	
-	shorthand.treeData.createModelTransformJson = function(tCit, prefix) {
-		var model = tCit.citizen,
-			list = model.getTransforms('*'),
-			transforms = [];
-		
-		for (var ndx = 0, len = list.length; ndx < len; ndx++) {
-			transforms.push(shorthand.treeData.createTriggerJson(list[ndx], prefix));
-		}
-		
-		return {
-			data: model.name || '',
-			attr: {
-				id: getNodeName(tCit, {
-					option: null,
-					prefix: prefix,
-					id: tCit._getId()
-				}),
-				rel: 'citizen'
-			},
-			children: transforms,
-			state: 'closed',
-			metadata: {
-				type: 'citizen',
-				citizen: tCit
-			}
-		};
+	shorthand.treeData.createModelTransformTriggerJson = function(tCit, prefix) {
+		return createModelTransformJson(tCit, prefix, 'createTriggerJson');
+	};
+	
+	shorthand.treeData.createModelTransformActionJson = function(tCit, prefix) {
+		return createModelTransformJson(tCit, prefix, 'createActionJson');
 	};
 	
 	shorthand.treeData.createShapePickJson = function(spCit, prefix) {
@@ -606,26 +640,12 @@
 		};
 	};
 	
-	shorthand.treeData.createShapeTransformJson = function(tCit, prefix) {
-		var shape = tCit.citizen;
-		
-		return {
-			data: shape.name || '',
-			attr: {
-				id: getNodeName(tCit, {
-					option: null,
-					prefix: prefix,
-					id: tCit._getId()
-				}),
-				rel: 'citizen'
-			},
-			children: [shorthand.treeData.createTriggerJson(shape.mesh, prefix)],
-			state: 'closed',
-			metadata: {
-				type: 'citizen',
-				citizen: tCit
-			}
-		};
+	shorthand.treeData.createShapeTransformTriggerJson = function(tCit, prefix) {
+		return createShapeTransformJson(tCit, prefix, 'createTriggerJson');
+	};
+	
+	shorthand.treeData.createShapeTransformActionJson = function(tCit, prefix) {
+		return createShapeTransformJson(tCit, prefix, 'createActionJson');
 	};
 	
 	shorthand.treeData.createShapePickTypeJson = function(spCit, prefix) {

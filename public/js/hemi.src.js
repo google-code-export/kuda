@@ -9328,7 +9328,7 @@ if (!window.requestAnimationFrame) {
 	 * Recursive function to search through all Transform children for any Transforms with the given
 	 * name.
 	 * 
-	 * @param {string} name the name to search for, with '*' meaning all transforms
+	 * @param {string} name the name to search for
 	 * @param {hemi.Transform} transform the transform with children to check
 	 * @param {hemi.Transform[]} returnTrans array of matching Transforms that is being populated
 	 */
@@ -9336,7 +9336,7 @@ if (!window.requestAnimationFrame) {
 		for (var i = 0; i < transform.children.length; ++i) {
 			var child = transform.children[i];
 
-			if (child.name === name || name === '*') {
+			if (child.name === name) {
 				returnTrans.push(child);
 			}
 
