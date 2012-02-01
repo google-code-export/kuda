@@ -372,7 +372,7 @@
 	
 	TransHandles.prototype.startRotate = function(axis, evt) {
 		editor.client.camera.disableControl();
-		this.transform.makeTurnable(axis);
+		this.transform.setTurnable(axis);
 		this.manip = this.transform._manip;
 		
 		this.manip.onPick(this.transform, evt);
@@ -380,7 +380,7 @@
 	
 	TransHandles.prototype.startScale = function(axis, evt) {
 		editor.client.camera.disableControl();
-		this.transform.makeResizable(axis);
+		this.transform.setResizable(axis);
 		this.manip = this.transform._manip;
 		
 		this.manip.subscribe(
@@ -401,7 +401,7 @@
 	
 	TransHandles.prototype.startTranslate = function(plane, evt) {
 		editor.client.camera.disableControl();
-		this.transform.makeMovable(plane);		
+		this.transform.setMovable(plane);		
 		this.manip = this.transform._manip;
 		this.manip.name = editor.ToolConstants.EDITOR_PREFIX + 'Dragger';
 		this.manip.subscribe(

@@ -91,7 +91,7 @@
 			event = editor.events.Created;
 		}
 		this.applyManip(props);
-		transform.disableInteraction();
+		transform._manip.disable();
 		this.notifyListeners(event, transform);
 		this.setManip(null);
 	};
@@ -110,7 +110,7 @@
 		
 	ManipsModel.prototype.stopPreview = function() {
 		if (this.currentTransform) {
-			this.currentTransform.disableInteraction();
+			this.currentTransform.cancelInteraction();
 		}
 		editor.client.camera.enableControl();
 	};
@@ -138,10 +138,10 @@
 	ManipsModel.prototype.applyManip = function(props) {
 		if (props.transforms.length) {
 			if (props.type == 'move') {
-				props.transforms[0].makeMovable(props.plane, props.limits, props.transforms.slice[1]);
+				props.transforms[0].setMovable(props.plane, props.limits, props.transforms.slice[1]);
 			}
 			else if (props.type == 'turn') {
-				props.transforms[0].makeTurnable(props.axis, props.limits, props.transforms.slice[1]);
+				props.transforms[0].setTurnable(props.axis, props.limits, props.transforms.slice[1]);
 			}
 		}
 	};

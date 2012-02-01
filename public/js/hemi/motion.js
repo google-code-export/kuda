@@ -26,16 +26,6 @@
 	var _vector = new THREE.Vector3();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Contants
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	hemi.MotionType = {
-		ROTATE: 'rotate',
-		SCALE: 'scale',
-		TRANSLATE: 'translate'
-	};
-
-////////////////////////////////////////////////////////////////////////////////////////////////////
 // Shared functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -85,14 +75,33 @@
 
 	/*
 	 * Octane properties for Rotator.
-	 * @type string[]
+	 * 
+	 * @return {Object[]} array of Octane properties
 	 */
-	Rotator.prototype._octane = ['accel', 'angle', 'vel'];
+	Rotator.prototype._octane = function() {
+		return [{
+					name: '_transform',
+					id: this._transform._getId()
+				},
+				{
+					name: 'setAngle',
+					arg: [this.angle]
+				},
+				{
+					name: 'setAcceleration',
+					arg: [this.accel]
+				},
+				{
+					name: 'setVelocity',
+					arg: [this.vel]
+				}];
+	};
 
 	/**
 	 * Clear properties like acceleration, velocity, etc.
 	 */
 	Rotator.prototype.clear = function() {
+		this.disable();
 		this.accel.set(0, 0, 0);
 		this.angle.set(0, 0, 0);
 		this.vel.set(0, 0, 0);
@@ -263,14 +272,33 @@
 
 	/*
 	 * Octane properties for Translator.
-	 * @type string[]
+	 * 
+	 * @return {Object[]} array of Octane properties
 	 */
-	Translator.prototype._octane = ['accel', 'pos', 'vel'];
+	Translator.prototype._octane = function() {
+		return [{
+					name: '_transform',
+					id: this._transform._getId()
+				},
+				{
+					name: 'setPosition',
+					arg: [this.pos]
+				},
+				{
+					name: 'setAcceleration',
+					arg: [this.accel]
+				},
+				{
+					name: 'setVelocity',
+					arg: [this.vel]
+				}];
+	};
 
 	/**
 	 * Clear properties like acceleration, velocity, etc.
 	 */
 	Translator.prototype.clear = function() {
+		this.disable();
 		this.pos.set(0, 0, 0);
 		this.vel.set(0, 0, 0);
 		this.accel.set(0, 0, 0);
