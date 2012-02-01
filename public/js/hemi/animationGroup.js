@@ -282,9 +282,6 @@
                     }
                     animation.play(false, this._currentTime);
                 }
-                // for (var i = 0, il = animations.length; i < il; ++i) {
-                    // animations[i].play(false, this._currentTime);
-                // }
 
                 this._isAnimating = true;
                 hemi.addRenderListener(this);

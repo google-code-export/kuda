@@ -358,7 +358,7 @@
 	};
 	
 	AnimatorModel.prototype.worldCleaned = function() {
-		var animations = hemi.world.getAnimations();
+		var animations = hemi.world.getAnimationGroups();
 		
 		for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
 			var anm = animations[ndx];
@@ -367,7 +367,7 @@
 	};
 	
 	AnimatorModel.prototype.worldLoaded = function() {
-		var animations = hemi.world.getAnimations();
+		var animations = hemi.world.getAnimationGroups();
 		
 		for (var ndx = 0, len = animations.length; ndx < len; ndx++) {
 			var anm = animations[ndx];
