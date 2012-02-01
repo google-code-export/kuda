@@ -128,7 +128,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 	
 	var ProjectModel = function() {
-		editor.ToolModel.call('projectLoad');
+		editor.ToolModel.call(this, 'projectLoad');
 		
 		var mdl = this;
 		
@@ -225,7 +225,7 @@
 	};
 	
 	ProjectModel.prototype.notify = function(eventType, value) {
-		mdlSuper.notify.call(eventType, value);
+		mdlSuper.notify.call(this, eventType, value);
 		
 		switch (eventType) {
 			case editor.events.Created:
