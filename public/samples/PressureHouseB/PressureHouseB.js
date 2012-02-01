@@ -349,7 +349,7 @@
 		
 		// Set up the movable windows.
 		var b1RightWinTran = model.getTransforms('B1_window01_sashRight')[0];
-		b1RightWinTran.makeMovable(hemi.Plane.XY, [0, 0, -46, 11], model.getTransforms('SO_B1_window_right'));
+		b1RightWinTran.setMovable(hemi.Plane.XY, [0, 0, -46, 11], model.getTransforms('SO_B1_window_right'));
 		b1RightWinTran.subscribe(hemi.msg.move, b1Window1Right, 'adjustOpening', ['msg:data.delta']);
 
 		// Set the position of the corresponding window Portal.
@@ -357,21 +357,21 @@
 		b1Window1Right.setOpening(new THREE.Vector3(0, 44, -899));
 
 		var b1LeftWinTran = model.getTransforms('B1_window_sashLeft')[0];
-		b1LeftWinTran.makeMovable(hemi.Plane.XY, [0, 0, -46, 11], model.getTransforms('SO_B1_window_left'));
+		b1LeftWinTran.setMovable(hemi.Plane.XY, [0, 0, -46, 11], model.getTransforms('SO_B1_window_left'));
 		b1LeftWinTran.subscribe(hemi.msg.move, b1Window1Left, 'adjustOpening', ['msg:data.delta']);
 
 		b1Window1Left.setClosedPosition(new THREE.Vector3(0, 0, -899));
 		b1Window1Left.setOpening(new THREE.Vector3(0, 44, -899));
 
 		var b2RightWinTran = model.getTransforms('B2_window2_sashRight')[0];
-		b2RightWinTran.makeMovable(hemi.Plane.YZ, [0, 0, -19, 38], model.getTransforms('SO_B2_window2_right'));
+		b2RightWinTran.setMovable(hemi.Plane.YZ, [0, 0, -19, 38], model.getTransforms('SO_B2_window2_right'));
 		b2RightWinTran.subscribe(hemi.msg.move, b2Window2Right, 'adjustOpening', ['msg:data.delta']);
 
 		b2Window2Right.setClosedPosition(new THREE.Vector3(1000, 0, 0));
 		b2Window2Right.setOpening(new THREE.Vector3(1000, 17, 0));
 
 		var b2LeftWinTran = model.getTransforms('B2_window2_sashLeft')[0];
-		b2LeftWinTran.makeMovable(hemi.Plane.YZ, [0, 0, -19, 38], model.getTransforms('SO_B2_window2_left'));
+		b2LeftWinTran.setMovable(hemi.Plane.YZ, [0, 0, -19, 38], model.getTransforms('SO_B2_window2_left'));
 		b2LeftWinTran.subscribe(hemi.msg.move, b2Window2Left, 'adjustOpening', ['msg:data.delta']);
 
 		b2Window2Left.setClosedPosition(new THREE.Vector3(1000, 0, 0));
@@ -379,7 +379,7 @@
 
 		
 		var baWinTran = model.getTransforms('BA_windowSashRight')[0];
-		baWinTran.makeMovable(hemi.Plane.YZ, [-13, 19, 0, 0], model.getTransforms('SO_BA_window'));
+		baWinTran.setMovable(hemi.Plane.YZ, [-13, 19, 0, 0], model.getTransforms('SO_BA_window'));
 		baWinTran.subscribe(hemi.msg.move, baWindow1, 'adjustOpening', ['msg:data.delta']);
 		
 		baWindow1.setClosedPosition(new THREE.Vector3(-654, 0, 0));
@@ -462,7 +462,7 @@
 
 		blowerDoor.subscribe(hext.msg.speed,
 			function(msg) {
-				fanTrans.addMotion('rotate', new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
+				fanTrans.setTurning(new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
 			});
 		
 		// Manometer tubes

@@ -273,9 +273,8 @@
 		 */
 		this.vmax = null;
 
-		if (opt_plane !== undefined) {
-			this.setPlane(opt_plane);
-		}
+		this.setPlane(opt_plane || hemi.Plane.XZ);
+
 		if (opt_limits !== undefined) {
 			this.setLimits(opt_limits);
 		}
@@ -338,8 +337,8 @@
 		this._client = null;
 		this._uv[0] = this._uv[1] = 0;
 		this.local = false;
-		this.plane = null;
 
+		this.setPlane(hemi.Plane.XZ);
 		this.disable();
 		this.clearTransforms();
 		this.clearLimits();
@@ -544,9 +543,8 @@
 		 */
 		this.plane = null;
 
-		if (opt_axis !== undefined) {
-			this.setAxis(opt_axis);
-		}
+		this.setAxis(opt_axis || hemi.Axis.Y);
+
 		if (opt_limits !== undefined) {
 			this.setLimits(opt_limits);
 		}
@@ -612,10 +610,9 @@
 		this._activeTransform = null;
 		this._angle = 0;
 		this._client = null;
-		this.axis.set(0, 0, 0);
 		this.local = false;
-		this.plane = null;
 
+		this.setAxis(hemi.Axis.Y);
 		this.disable();
 		this.clearTransforms();
 		this.clearLimits();
@@ -790,9 +787,7 @@
 		 */
 		this.axis = null;
 
-		if (opt_axis !== undefined) {
-			this.setAxis(opt_axis);
-		}
+		this.setAxis(opt_axis || hemi.Axis.Y);
 
 		this.enable();
 	};
@@ -817,9 +812,9 @@
 		this._activeTransform = null;
 		this._scale = null;
 		this._client = null;
-		this.axis = null;
 		this.local = false;
 
+		this.setAxis(hemi.Axis.Y);
 		this.disable();
 		this.clearTransforms();
 	};

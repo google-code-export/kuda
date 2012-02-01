@@ -24,21 +24,42 @@
 
 		// Containers for motions and manips to allow them to be reused and save some memory
 		// allocation costs.
-	var movables = [],
-		motions = [],
-		resizables = [],
-		turnables = [];
+	var manips = [],
+		motions = [];
 
-	motions[hemi.MotionType.ROTATE] = {
-		create: function() { return new hemi.Rotator(); },
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Contants
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	hemi.MotionType = {
+		MOVE: 'move',
+		RESIZE: 'resize',
+		TURN: 'turn'
+	};
+
+	manips[hemi.MotionType.MOVE] = {
+		create: function() { return new hemi.Movable(); },
 		storage: []
 	};
-	motions[hemi.MotionType.SCALE] = {
+	manips[hemi.MotionType.RESIZE] = {
+		create: function() { return new hemi.Resizable(); },
+		storage: []
+	};
+	manips[hemi.MotionType.TURN] = {
+		create: function() { return new hemi.Turnable(); },
+		storage: []
+	};
+
+	motions[hemi.MotionType.MOVE] = {
+		create: function() { return new hemi.Translator(); },
+		storage: []
+	};
+	motions[hemi.MotionType.RESIZE] = {
 		create: function() { return new hemi.Scalor(); },
 		storage: []
 	};
-	motions[hemi.MotionType.TRANSLATE] = {
-		create: function() { return new hemi.Translator(); },
+	motions[hemi.MotionType.TURN] = {
+		create: function() { return new hemi.Rotator(); },
 		storage: []
 	};
 
@@ -89,10 +110,10 @@
 	 * Remove all references in the Transform.
 	 */
 	Transform.prototype._clean = function() {
-		this.removeInteraction();
-		this.cancelMotion(hemi.MotionType.ROTATE);
-		this.cancelMotion(hemi.MotionType.SCALE);
-		this.cancelMotion(hemi.MotionType.TRANSLATE);
+		this.cancelInteraction();
+		this.cancelMoving();
+		this.cancelResizing();
+		this.cancelTurning();
 
 		if (this.parent) {
 			this.parent.remove(this);
@@ -188,118 +209,50 @@
 	};
 
 	/**
-	 * Add the given motion type to the Transform with the given velocity and/or acceleration.
-	 * 
-	 * @param {hemi.MotionType} type the type of motion to add
-	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for the motion
-	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for the motion
-	 */
-	Transform.prototype.addMotion = function(type, opt_velocity, opt_acceleration) {
-		var motion;
-
-		switch (type) {
-			case hemi.MotionType.ROTATE:
-				if (!this._rotator) {
-					this._rotator = getMotion(type);
-					this._rotator.setTransform(this);
-				}
-
-				motion = this._rotator;
-				break;
-			case hemi.MotionType.SCALE:
-				// TODO
-				break;
-			case hemi.MotionType.TRANSLATE:
-				if (!this._translator) {
-					this._translator = getMotion(type);
-					this._translator.setTransform(this);
-				}
-
-				motion = this._translator;
-				break;
-			default:
-				console.log('Unrecognized motion type: ' + type);
-				break;
-		}
-
-		if (motion) {
-			if (opt_acceleration !== undefined) {
-				motion.setAcceleration(opt_acceleration);
-			}
-			if (opt_velocity !== undefined) {
-				motion.setVelocity(opt_velocity);
-			}
-		}
-	};
-
-	/**
-	 * Remove the current interaction that is enabled for the Transform (movable, resizable or
+	 * Cancel the current interaction that is enabled for the Transform (movable, resizable or
 	 * turnable).
 	 */
-	Transform.prototype.removeInteraction = function() {
+	Transform.prototype.cancelInteraction = function() {
 		if (this._manip) {
+			var type;
 
 			if (this._manip instanceof hemi.Movable) {
-				removeMovable(this._manip);
+				type = hemi.MotionType.MOVE;
 			} else if (this._manip instanceof hemi.Resizable) {
-				removeResizable(this._manip);
+				type = hemi.MotionType.RESIZE;
 			} else if (this._manip instanceof hemi.Turnable) {
-				removeTurnable(this._manip);
-			} else {
-				console.log('Unrecognized manip type: ' + this._manip);
+				type = hemi.MotionType.TURN;
 			}
 
+			removeManip(this._manip, type);
 			this._manip = null;
 		}
 	};
 
 	/**
-	 * Disable the current interaction that is enabled for the Transform (movable, resizable or
-	 * turnable).
+	 * Cancel any translating motion that is currently enabled for the Transform.
 	 */
-	Transform.prototype.disableInteraction = function() {
-		if (this._manip) {
-			this._manip.disable();
+	Transform.prototype.cancelMoving = function() {
+		if (this._translator) {
+			removeMotion(this._translator, hemi.MotionType.MOVE);
+			this._translator = null;
 		}
 	};
 
 	/**
-	 * Enable the current interaction that is enabled for the Transform (movable, resizable or
-	 * turnable).
+	 * Cancel any scaling motion that is currently enabled for the Transform.
 	 */
-	Transform.prototype.enableInteraction = function() {
-		if (this._manip) {
-			this._manip.enable();
-		}
+	Transform.prototype.cancelResizing = function() {
+		// TODO
 	};
 
 	/**
-	 * Cancel any motion of the given type that is currently enabled for the Transform.
-	 * 
-	 * @param {hemi.MotionType} type the type of motion to cancel
+	 * Cancel any rotating motion that is currently enabled for the Transform.
 	 */
-	Transform.prototype.cancelMotion = function(type) {
-		var motion;
-
-		switch (type) {
-			case hemi.MotionType.ROTATE:
-				motion = this._rotator;
-				this._rotator = null;
-				break;
-			case hemi.MotionType.SCALE:
-				// TODO
-				break;
-			case hemi.MotionType.TRANSLATE:
-				motion = this._translator;
-				this._translator = null;
-				break;
-			default:
-				console.log('Unrecognized motion type: ' + type);
-				break;
-		}
-
-		if (motion) {
-			removeMotion(motion, type);
+	Transform.prototype.cancelTurning = function(type) {
+		if (this._rotator) {
+			removeMotion(this._rotator, hemi.MotionType.TURN);
+			this._rotator = null;
 		}
 	};
 
@@ -315,13 +268,13 @@
 		opt_accel = opt_accel || new THREE.Vector3();
 
 		switch (type) {
-			case hemi.MotionType.ROTATE:
+			case hemi.MotionType.TURN:
 				motion = this._rotator;
 				break;
-			case hemi.MotionType.SCALE:
+			case hemi.MotionType.RESIZE:
 				// TODO
 				break;
-			case hemi.MotionType.TRANSLATE:
+			case hemi.MotionType.MOVE:
 				motion = this._translator;
 				break;
 			default:
@@ -368,13 +321,13 @@
 		opt_vel = opt_vel || new THREE.Vector3();
 
 		switch (type) {
-			case hemi.MotionType.ROTATE:
+			case hemi.MotionType.TURN:
 				motion = this._rotator;
 				break;
-			case hemi.MotionType.SCALE:
+			case hemi.MotionType.RESIZE:
 				// TODO
 				break;
-			case hemi.MotionType.TRANSLATE:
+			case hemi.MotionType.MOVE:
 				motion = this._translator;
 				break;
 			default:
@@ -404,66 +357,6 @@
 	};
 
 	/**
-	 * Allow the Transform to be moved (translated) through mouse interaction along the given plane.
-	 * 
-	 * @param {hemi.Plane} plane the 2D plane to enable movement along
-	 * @param {number[4]} opt_limits optional array of movement limits within the plane:
-	 *     [min on u, max on u, min on v, max on v]
-	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make movable
-	 *     as one group with the Transform
-	 */
-	Transform.prototype.makeMovable = function(plane, opt_limits, opt_transforms) {
-		this.removeInteraction();
-
-		this._manip = getMovable(plane, opt_limits);
-		opt_transforms = opt_transforms || [];
-		opt_transforms.unshift(this);
-
-		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
-			this._manip.addTransform(opt_transforms[i]);
-		}
-	};
-
-	/**
-	 * Allow the Transform to be resized (scaled) through mouse interaction along the given axis.
-	 * 
-	 * @param {hemi.Axis} axis the axis to enable resizing along
-	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make resizable
-	 *     as one group with the Transform
-	 */
-	Transform.prototype.makeResizable = function(axis, opt_transforms) {
-		this.removeInteraction();
-
-		this._manip = getResizable(axis);
-		opt_transforms = opt_transforms || [];
-		opt_transforms.unshift(this);
-
-		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
-			this._manip.addTransform(opt_transforms[i]);
-		}
-	};
-
-	/**
-	 * Allow the Transform to be turned (rotated) through mouse interaction about the given axis.
-	 * 
-	 * @param {hemi.Axis} axis the axis to enable turning about
-	 * @param {number[2]} opt_limits optional minimum and maximum angle limits (in radians)
-	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make turnable
-	 *     as one group with the Transform
-	 */
-	Transform.prototype.makeTurnable = function(axis, opt_limits, opt_transforms) {
-		this.removeInteraction();
-
-		this._manip = getTurnable(axis, opt_limits);
-		opt_transforms = opt_transforms || [];
-		opt_transforms.unshift(this);
-
-		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
-			this._manip.addTransform(opt_transforms[i]);
-		}
-	};
-
-	/**
 	 * Animate the Transform moving by the given amount over the given amount of time.
 	 * 
 	 * @param {THREE.Vector3} delta XYZ amount to move the Transform by
@@ -474,7 +367,7 @@
 	 */
 	Transform.prototype.move = function(delta, time, opt_mustComplete) {
 		if (!this._translator) {
-			this._translator = getMotion(hemi.MotionType.TRANSLATE);
+			this._translator = getMotion(hemi.MotionType.MOVE);
 			this._translator.setTransform(this);
 		}
 
@@ -495,6 +388,148 @@
 	};
 
 	/**
+	 * Allow the Transform to be moved (translated) through mouse interaction along the given plane.
+	 * 
+	 * @param {hemi.Plane} opt_plane optional 2D plane to enable movement along (default is XZ)
+	 * @param {number[4]} opt_limits optional array of movement limits within the plane:
+	 *     [min on u, max on u, min on v, max on v]
+	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make movable
+	 *     as one group with the Transform
+	 */
+	Transform.prototype.setMovable = function(opt_plane, opt_limits, opt_transforms) {
+		if (this._manip instanceof hemi.Movable) {
+			this._manip.clearTransforms();
+		} else {
+			this.cancelInteraction();
+			this._manip = getManip(hemi.MotionType.MOVE);
+		}
+
+		if (opt_plane !== undefined) {
+			this._manip.setPlane(opt_plane);
+		}
+
+		if (opt_limits !== undefined) {
+			this._manip.setLimits(opt_limits);
+		}
+
+		opt_transforms = opt_transforms || [];
+		opt_transforms.unshift(this);
+
+		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
+			this._manip.addTransform(opt_transforms[i]);
+		}
+	};
+
+	/**
+	 * Set the Transform to translate with the given velocity and/or acceleration.
+	 * 
+	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for moving
+	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for moving
+	 */
+	Transform.prototype.setMoving = function(opt_velocity, opt_acceleration) {
+		if (!this._translator) {
+			this._translator = getMotion(hemi.MotionType.MOVE);
+			this._translator.setTransform(this);
+		}
+
+		if (opt_acceleration !== undefined) {
+			this._translator.setAcceleration(opt_acceleration);
+		}
+		if (opt_velocity !== undefined) {
+			this._translator.setVelocity(opt_velocity);
+		}
+	};
+
+	/**
+	 * Allow the Transform to be resized (scaled) through mouse interaction along the given axis.
+	 * 
+	 * @param {hemi.Axis} opt_axis optional axis to enable resizing along (default is Y)
+	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make resizable
+	 *     as one group with the Transform
+	 */
+	Transform.prototype.setResizable = function(axis, opt_transforms) {
+		if (this._manip instanceof hemi.Resizable) {
+			this._manip.clearTransforms();
+		} else {
+			this.cancelInteraction();
+			this._manip = getManip(hemi.MotionType.RESIZE);
+		}
+
+		if (opt_axis !== undefined) {
+			this._manip.setAxis(opt_axis);
+		}
+
+		opt_transforms = opt_transforms || [];
+		opt_transforms.unshift(this);
+
+		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
+			this._manip.addTransform(opt_transforms[i]);
+		}
+	};
+
+	/**
+	 * Set the Transform to scale with the given velocity and/or acceleration.
+	 * 
+	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for resizing
+	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for resizing
+	 */
+	Transform.prototype.setResizing = function(opt_velocity, opt_acceleration) {
+		// TODO
+	};
+
+	/**
+	 * Allow the Transform to be turned (rotated) through mouse interaction about the given axis.
+	 * 
+	 * @param {hemi.Axis} axis optional axis to enable turning about (default is Y)
+	 * @param {number[2]} opt_limits optional minimum and maximum angle limits (in radians)
+	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make turnable
+	 *     as one group with the Transform
+	 */
+	Transform.prototype.setTurnable = function(opt_axis, opt_limits, opt_transforms) {
+		if (this._manip instanceof hemi.Turnable) {
+			this._manip.clearTransforms();
+		} else {
+			this.cancelInteraction();
+			this._manip = getManip(hemi.MotionType.TURN);
+		}
+
+		if (opt_axis !== undefined) {
+			this._manip.setAxis(opt_axis);
+		}
+
+		if (opt_limits !== undefined) {
+			this._manip.setLimits(opt_limits);
+		}
+
+		opt_transforms = opt_transforms || [];
+		opt_transforms.unshift(this);
+
+		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
+			this._manip.addTransform(opt_transforms[i]);
+		}
+	};
+
+	/**
+	 * Set the Transform to rotate with the given velocity and/or acceleration.
+	 * 
+	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for turning
+	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for turning
+	 */
+	Transform.prototype.setTurning = function(opt_velocity, opt_acceleration) {
+		if (!this._rotator) {
+			this._rotator = getMotion(hemi.MotionType.TURN);
+			this._rotator.setTransform(this);
+		}
+
+		if (opt_acceleration !== undefined) {
+			this._rotator.setAcceleration(opt_acceleration);
+		}
+		if (opt_velocity !== undefined) {
+			this._rotator.setVelocity(opt_velocity);
+		}
+	};
+
+	/**
 	 * Animate the Transform turning by the given amount over the given amount of time.
 	 * 
 	 * @param {THREE.Vector3} delta XYZ amount to turn the Transform by
@@ -505,7 +540,7 @@
 	 */
 	Transform.prototype.turn = function(theta, time, opt_mustComplete) {
 		if (!this._rotator) {
-			this._rotator = getMotion(hemi.MotionType.ROTATE);
+			this._rotator = getMotion(hemi.MotionType.TURN);
 			this._rotator.setTransform(this);
 		}
 
@@ -601,37 +636,24 @@
 	Mesh.prototype._octane = Transform.prototype._octane;
 
 	/**
-	 * Add the given motion type to the Mesh with the given velocity and/or acceleration.
-	 * 
-	 * @param {hemi.MotionType} type the type of motion to add
-	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for the motion
-	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for the motion
+	 * Cancel the current interaction that is enabled for the Mesh (movable, resizable or turnable).
 	 */
-	Mesh.prototype.addMotion = Transform.prototype.addMotion;
+	Mesh.prototype.cancelInteraction = Transform.prototype.cancelInteraction;
 
 	/**
-	 * Remove the current interaction that is enabled for the Mesh (movable, resizable or turnable).
+	 * Cancel any translating motion that is currently enabled for the Mesh.
 	 */
-	Mesh.prototype.removeInteraction = Transform.prototype.removeInteraction;
+	Mesh.prototype.cancelMoving = Transform.prototype.cancelMoving;
 
 	/**
-	 * Disable the current interaction that is enabled for the Transform (movable, resizable or
-	 * turnable).
+	 * Cancel any scaling motion that is currently enabled for the Mesh.
 	 */
-	 Mesh.prototype.disableInteraction = Transform.prototype.disableInteraction;
+	Mesh.prototype.cancelResizing = Transform.prototype.cancelResizing;
 
 	/**
-	 * Enable the current interaction that is enabled for the Transform (movable, resizable or
-	 * turnable).
+	 * Cancel any rotating motion that is currently enabled for the Mesh.
 	 */
-	 Mesh.prototype.enableInteraction = Transform.prototype.enableInteraction;
-
-	/**
-	 * Cancel any motion of the given type that is currently enabled for the Mesh.
-	 * 
-	 * @param {hemi.MotionType} type the type of motion to cancel
-	 */
-	Mesh.prototype.cancelMotion = Transform.prototype.cancelMotion;
+	Mesh.prototype.cancelTurning = Transform.prototype.cancelTurning;
 
 	/**
 	 * Get the current acceleration of the given motion type for the Mesh.
@@ -665,36 +687,6 @@
 	Mesh.prototype.identity = Transform.prototype.identity;
 
 	/**
-	 * Allow the Mesh to be moved (translated) through mouse interaction along the given plane.
-	 * 
-	 * @param {hemi.Plane} plane the 2D plane to enable movement along
-	 * @param {number[4]} opt_limits optional array of movement limits within the plane:
-	 *     [min on u, max on u, min on v, max on v]
-	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make movable
-	 *     as one group with the Mesh
-	 */
-	Mesh.prototype.makeMovable = Transform.prototype.makeMovable;
-
-	/**
-	 * Allow the Mesh to be resized (scaled) through mouse interaction along the given axis.
-	 * 
-	 * @param {hemi.Axis} axis the axis to enable resizing along
-	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make resizable
-	 *     as one group with the Mesh
-	 */
-	Mesh.prototype.makeResizable = Transform.prototype.makeResizable;
-
-	/**
-	 * Allow the Mesh to be turned (rotated) through mouse interaction about the given axis.
-	 * 
-	 * @param {hemi.Axis} axis the axis to enable turning about
-	 * @param {number[2]} opt_limits optional minimum and maximum angle limits (in radians)
-	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make turnable
-	 *     as one group with the Mesh
-	 */
-	Mesh.prototype.makeTurnable = Transform.prototype.makeTurnable;
-
-	/**
 	 * Animate the Mesh moving by the given amount over the given amount of time.
 	 * 
 	 * @param {THREE.Vector3} delta XYZ amount to move the Mesh by
@@ -715,6 +707,60 @@
 	 * @return {boolean} true if the Mesh will start resizing, false if it will not
 	 */
 	Mesh.prototype.resize = Transform.prototype.resize;
+
+	/**
+	 * Allow the Mesh to be moved (translated) through mouse interaction along the given plane.
+	 * 
+	 * @param {hemi.Plane} plane the 2D plane to enable movement along
+	 * @param {number[4]} opt_limits optional array of movement limits within the plane:
+	 *     [min on u, max on u, min on v, max on v]
+	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make movable
+	 *     as one group with the Mesh
+	 */
+	Mesh.prototype.setMovable = Transform.prototype.setMovable;
+
+	/**
+	 * Set the Mesh to translate with the given velocity and/or acceleration.
+	 * 
+	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for moving
+	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for moving
+	 */
+	Mesh.prototype.setMoving = Transform.prototype.setMoving;
+
+	/**
+	 * Allow the Mesh to be resized (scaled) through mouse interaction along the given axis.
+	 * 
+	 * @param {hemi.Axis} axis the axis to enable resizing along
+	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make resizable
+	 *     as one group with the Mesh
+	 */
+	Mesh.prototype.setResizable = Transform.prototype.setResizable;
+
+	/**
+	 * Set the Mesh to scale with the given velocity and/or acceleration.
+	 * 
+	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for resizing
+	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for resizing
+	 */
+	Mesh.prototype.setResizing = Transform.prototype.setResizing;
+
+	/**
+	 * Allow the Mesh to be turned (rotated) through mouse interaction about the given axis.
+	 * 
+	 * @param {hemi.Axis} axis the axis to enable turning about
+	 * @param {number[2]} opt_limits optional minimum and maximum angle limits (in radians)
+	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make turnable
+	 *     as one group with the Mesh
+	 */
+	Mesh.prototype.setTurnable = Transform.prototype.setTurnable;
+
+	/**
+	 * Set the Mesh to rotate with the given velocity and/or acceleration.
+	 * 
+	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for turning
+	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for turning
+	 */
+	Mesh.prototype.setTurning = Transform.prototype.setTurning;
 
 	/**
 	 * Animate the Mesh turning by the given amount over the given amount of time.
@@ -743,6 +789,27 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	/*
+	 * Get a manip object of the given type. This may be a newly constructed one or a cached one
+	 * that was no longer being used.
+	 * 
+	 * @param {hemi.MotionType} type the type of manip to get
+	 * @return {Manip} the newly constructed or cached manip object
+	 */
+	function getManip(type) {
+		var obj = manips[type],
+			manip;
+
+		if (obj) {
+			manip = obj.storage.length > 0 ? obj.storage.pop() : obj.create();
+		} else {
+			console.log('Unrecognized manipulation type: ' + type);
+		}
+
+		manip.enable();
+		return manip;
+	}
+
+	/*
 	 * Get a motion object of the given type. This may be a newly constructed one or a cached one
 	 * that was no longer being used.
 	 * 
@@ -759,81 +826,26 @@
 			console.log('Unrecognized motion type: ' + type);
 		}
 
+		motion.enable();
 		return motion;
 	}
 
 	/*
-	 * Get a Movable of the given type. This may be a newly constructed one or a cached one that was
-	 * no longer being used.
+	 * Clear the given manipulation object of its attributes and cache it for future use (unless the
+	 * cache is full).
 	 * 
-	 * @param {hemi.Plane} plane the 2D plane to enable movement along
-	 * @param {number[4]} opt_limits optional array of movement limits within the plane:
-	 *     [min on u, max on u, min on v, max on v]
-	 * @return {hemi.Movable} the newly constructed or cached Movable
+	 * @param {Manip} manip the manipulation object to clear and cache
+	 * @param {hemi.MotionType} type the type of motion
 	 */
-	function getMovable(plane, opt_limits) {
-		var movable;
+	function removeManip(manip, type) {
+		var obj = manips[type];
+		manip.clear();
 
-		if (movables.length > 0) {
-			movable = movables.pop();
-			movable.setPlane(plane);
-			movable.enable();
+		if (obj) {
+			obj.storage.length > 10 ? manip.cleanup() : obj.storage.push(manip);
 		} else {
-			movable = new hemi.Movable(plane);
+			console.log('Unrecognized manipulation type: ' + type);
 		}
-
-		if (opt_limits !== undefined) {
-			movable.setLimits(opt_limits);
-		}
-
-		return movable;
-	}
-
-	/*
-	 * Get a Resizable of the given type. This may be a newly constructed one or a cached one that
-	 * was no longer being used.
-	 * 
-	 * @param {hemi.Axis} axis the axis to enable resizing along
-	 * @return {hemi.Resizable} the newly constructed or cached Resizable
-	 */
-	function getResizable(axis) {
-		var resizable;
-
-		if (resizables.length > 0) {
-			resizable = resizables.pop();
-			resizable.setAxis(axis);
-			resizable.enable();
-		} else {
-			resizable = new hemi.Resizable(axis);
-		}
-
-		return resizable;
-	}
-
-	/*
-	 * Get a Turnable of the given type. This may be a newly constructed one or a cached one that
-	 * was no longer being used.
-	 * 
-	 * @param {hemi.Axis} axis the axis to enable turning about
-	 * @param {number[2]} opt_limits optional minimum and maximum angle limits (in radians)
-	 * @return {hemi.Turnable} the newly constructed or cached Turnable
-	 */
-	function getTurnable(axis, opt_limits) {
-		var turnable;
-
-		if (turnables.length > 0) {
-			turnable = turnables.pop();
-			turnable.setAxis(axis);
-			turnable.enable();
-		} else {
-			turnable = new hemi.Turnable(axis);
-		}
-
-		if (opt_limits !== undefined) {
-			turnable.setLimits(opt_limits);
-		}
-
-		return turnable;
 	}
 
 	/*
@@ -852,39 +864,6 @@
 		} else {
 			console.log('Unrecognized motion type: ' + type);
 		}
-	}
-
-	/*
-	 * Clear the given Movable of its attributes and cache it for future use (unless the cache is
-	 * full).
-	 * 
-	 * @param {hemi.Movable} movable the movable to clear and cache
-	 */
-	function removeMovable(movable) {
-		movable.clear();
-		movables.length > 10 ? movable.cleanup() : movables.push(movable);
-	}
-
-	/*
-	 * Clear the given Resizable of its attributes and cache it for future use (unless the cache is
-	 * full).
-	 * 
-	 * @param {hemi.Resizable} resizable the resizable to clear and cache
-	 */
-	function removeResizable(resizable) {
-		resizable.clear();
-		resizables.length > 10 ? resizable.cleanup() : resizables.push(resizable);
-	}
-
-	/*
-	 * Clear the given Turnable of its attributes and cache it for future use (unless the cache is
-	 * full).
-	 * 
-	 * @param {hemi.Turnable} turnable the turnable to clear and cache
-	 */
-	function removeTurnable(turnable) {
-		turnable.clear();
-		turnables.length > 10 ? turnable.cleanup() : turnables.push(turnable);
 	}
 
 })();

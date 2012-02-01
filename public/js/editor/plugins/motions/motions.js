@@ -89,8 +89,8 @@
 	MotionsModel.prototype.constructor = MotionsModel;
 
 	MotionsModel.prototype.clearMotion = function(transform) {
-		transform.cancelMotion(hemi.MotionType.TRANSLATE);
-		transform.cancelMotion(hemi.MotionType.ROTATE);
+		transform.cancelMoving();
+		transform.cancelTurning();
 		this.notifyListeners(editor.events.Removing, transform);
 	};
 
@@ -99,7 +99,7 @@
 			motionBefore = hasMotions(transform);
 
 		this.stopPreview();
-		setTransformMotion(transform, props);
+		setTransformMotion(transform, props, true);
 		this.setTransform(null);
 
 		var motionAfter = hasMotions(transform);
@@ -133,12 +133,12 @@
 		prevProps.position.copy(transform.position);
 		prevProps.rotation.copy(transform.rotation);
 		prevProps.scale.copy(transform.scale);
-		transform.getAcceleration(hemi.MotionType.TRANSLATE, prevProps.moveAccel);
-		transform.getVelocity(hemi.MotionType.TRANSLATE, prevProps.moveVel);
-		transform.getAcceleration(hemi.MotionType.ROTATE, prevProps.turnAccel);
-		transform.getVelocity(hemi.MotionType.ROTATE, prevProps.turnVel);
+		transform.getAcceleration(hemi.MotionType.MOVE, prevProps.moveAccel);
+		transform.getVelocity(hemi.MotionType.MOVE, prevProps.moveVel);
+		transform.getAcceleration(hemi.MotionType.TURN, prevProps.turnAccel);
+		transform.getVelocity(hemi.MotionType.TURN, prevProps.turnVel);
 
-		setTransformMotion(transform, props);
+		setTransformMotion(transform, props, false);
 	};
 
 	MotionsModel.prototype.stopPreview = function() {
@@ -149,20 +149,22 @@
 			props.active = false;
 
 			if (!props.moveAccel.isZero() || !props.moveVel.isZero()) {
-				transform.addMotion(hemi.MotionType.TRANSLATE, props.moveAccel, props.moveVel);
+				transform.setMoving(props.moveVel, props.moveAccel);
 			} else {
-				transform.cancelMotion(hemi.MotionType.TRANSLATE);
+				transform.cancelMoving();
 			}
 
 			if (!props.turnAccel.isZero() || !props.turnVel.isZero()) {
-				transform.addMotion(hemi.MotionType.ROTATE, props.turnAccel, props.turnVel);
+				transform.setTurning(props.turnVel, props.turnAccel);
 			} else {
-				transform.cancelMotion(hemi.MotionType.ROTATE);
+				transform.cancelTurning();
 			}
 
 			transform.position.copy(props.position);
 			transform.rotation.copy(props.rotation);
 			transform.scale.copy(props.scale);
+			transform.updateMatrix();
+			transform.updateMatrixWorld();
 		}
 	};
 
@@ -204,7 +206,7 @@
 		return transform._translator != null || transform._rotator != null;
 	}
 
-	function setTransformMotion(transform, props) {
+	function setTransformMotion(transform, props, disable) {
 		if (props.moveAccel.join() !== '0,0,0' || props.moveVel.join() !== '0,0,0') {
 			_vector1.x = props.moveAccel[0];
 			_vector1.y = props.moveAccel[1];
@@ -213,9 +215,13 @@
 			_vector2.y = props.moveVel[1];
 			_vector2.z = props.moveVel[2];
 
-			transform.addMotion(hemi.MotionType.TRANSLATE, _vector2, _vector1);
+			transform.setMoving(_vector2, _vector1);
+
+			if (disable) {
+				transform._translator.disable();
+			}
 		} else {
-			transform.cancelMotion(hemi.MotionType.TRANSLATE);
+			transform.cancelMoving();
 		}
 
 		if (props.turnAccel.join() !== '0,0,0' || props.turnVel.join() !== '0,0,0') {
@@ -226,9 +232,13 @@
 			_vector2.y = props.turnVel[1];
 			_vector2.z = props.turnVel[2];
 
-			transform.addMotion(hemi.MotionType.ROTATE, _vector2, _vector1);
+			transform.setTurning(_vector2, _vector1);
+
+			if (disable) {
+				transform._rotator.disable();
+			}
 		} else {
-			transform.cancelMotion(hemi.MotionType.ROTATE);
+			transform.cancelTurning();
 		}
 	}
 
@@ -384,10 +394,10 @@
 			this.tranList[name] = li = jQuery('<li><label>' + name + '</label></li>');
 		}
 
-		setInput(transform.getAcceleration(hemi.MotionType.TRANSLATE, _vector1), this.moveAccel);
-		setInput(transform.getVelocity(hemi.MotionType.TRANSLATE, _vector1), this.moveVel);
-		setInput(transform.getAcceleration(hemi.MotionType.ROTATE, _vector1), this.turnAccel);
-		setInput(transform.getVelocity(hemi.MotionType.ROTATE, _vector1), this.turnVel);
+		setInput(transform.getAcceleration(hemi.MotionType.MOVE, _vector1), this.moveAccel);
+		setInput(transform.getVelocity(hemi.MotionType.MOVE, _vector1), this.moveVel);
+		setInput(transform.getAcceleration(hemi.MotionType.TURN, _vector1), this.turnAccel);
+		setInput(transform.getVelocity(hemi.MotionType.TURN, _vector1), this.turnVel);
 
 		ol.append(li);
 		this.find('#movParams').show();

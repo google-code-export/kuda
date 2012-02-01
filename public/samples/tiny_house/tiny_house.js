@@ -58,7 +58,7 @@
 		blowerFan = {
 			transform: house.getTransforms('fan_blades')[0],
 			msgHandler: function(msg) {
-				blowerFan.transform.addMotion('rotate', new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
+				blowerFan.transform.setTurning(new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
 			},
 			// A fan is a special case where it has an active portal and a leaking portal
 			portal: new hext.engines.Portal(),
@@ -91,7 +91,7 @@
 				// Make the Transform movable on the YZ plane. Y always maps to the V coordinate, so
 				// the Transform can be dragged from 0 to 0 on the Z plane and 0 to 55 on the Y
 				// plane.
-				this.transform.makeMovable(hemi.Plane.YZ, [0, 0, 0, 55], house.getTransforms('tinyHouseWindow_sash'));
+				this.transform.setMovable(hemi.Plane.YZ, [0, 0, 0, 55], house.getTransforms('tinyHouseWindow_sash'));
 				this.transform.subscribe(hemi.msg.move, this.msgHandler);
 				return this;
 			}
