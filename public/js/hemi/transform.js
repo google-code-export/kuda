@@ -37,6 +37,7 @@
 		TURN: 'turn'
 	};
 
+	// We intentionally use the MotionType enum for both manips and motions.
 	manips[hemi.MotionType.MOVE] = {
 		create: function() { return new hemi.Movable(); },
 		storage: []
@@ -126,7 +127,7 @@
 		}
 	};
 
-	/**
+	/*
 	 * Use the given Object3D to initialize properties.
 	 * 
 	 * @param {THREE.Object3D} obj Object3D to use to initialize properties

@@ -97,8 +97,13 @@ var parseFile = function(data, classes) {
 			clsName = clsName.substr(4);
 
 			// Looks to be private. Check to see if its Octanable or a Citizen.
-			ndx = body.indexOf('makeOctanable');
-			if (ndx === -1) ndx = body.indexOf('makeCitizen');
+			var re = new RegExp('makeCitizen.*' + clsName, 'm');
+			ndx = body.search(re);
+
+			if (ndx === -1) {
+				re = new RegExp('makeOctanable.*' + clsName, 'm');
+				ndx = body.search(re);
+			}
 
 			if (ndx !== -1) {
 				var stop = body.indexOf(';', ndx),
@@ -198,7 +203,7 @@ var parseFunction = function(funcStr) {
 	
 	funcStr = funcStr.substr(end + 2);
 	
-	if (funcStr.search(/=\s*function\s*\(/) > -1) {
+	if (funcStr.indexOf('@type') === -1) {
 		if (ndx > -1) {
 			var paramStrs = desc.substr(ndx + 1);
 			desc = desc.substr(0, ndx);
