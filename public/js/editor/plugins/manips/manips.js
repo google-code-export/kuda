@@ -116,7 +116,12 @@
 	};
 			
 	ManipsModel.prototype.worldCleaned = function() {
-		var transforms = editor.client.scene.getAllChildren();
+		var transforms = [];
+		
+		THREE.SceneUtils.traverseHierarchy(editor.client.scene, function(transform) {
+			transforms.push(transform);
+		});
+		
 		for (var count = 0; count < transforms.length; ++count) {
 			var current = transforms[count];
 			if (current._manip) {
@@ -126,7 +131,12 @@
 	};
 		
 	ManipsModel.prototype.worldLoaded = function() {
-		var transforms = editor.client.scene.getAllChildren();
+		var transforms = [];
+		
+		THREE.SceneUtils.traverseHierarchy(editor.client.scene, function(transform) {
+			transforms.push(transform);
+		});
+		
 		for (var count = 0; count < transforms.length; ++count) {
 			var current = transforms[count];
 			if (current._manip) {

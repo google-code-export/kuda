@@ -50,7 +50,8 @@
 	TreeModel.prototype.constructor = TreeModel;
 		
 	TreeModel.prototype.addCitizen = function(citizen) {
-		if (citizen instanceof hemi.ValueCheck) {
+		if (citizen instanceof hemi.ValueCheck || citizen instanceof hemi.Client ||
+				citizen instanceof hemi.Mesh || citizen instanceof hemi.Transform) {
 			return;
 		}
 		
@@ -402,15 +403,32 @@
 		if (createType) {
 			addActionType.call(this, citizen);
 		}
-		
-		var actionNode = shorthand.treeData.createActionJson(citizen, 
-				this.pre),
-			type = citizen._octaneType.split('.').pop();
 			
-		this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
-			json_data: actionNode
-		});
-		
+		if (citizen instanceof hemi.Model) {
+			var tc = shorthand.treeData.createTransformCitizen(citizen),
+				tcTriggerNode = shorthand.treeData.createModelTransformActionJson(tc, this.pre),
+				tcType = tc._octaneType.split('.').pop();
+			
+			this.tree.jstree('create_node', '#' + this.pre + tcType, 'inside', {
+				json_data: tcTriggerNode
+			});
+		} else if (citizen instanceof hemi.Shape) {
+			var tc = shorthand.treeData.createTransformCitizen(citizen),
+				tcTriggerNode = shorthand.treeData.createShapeTransformActionJson(tc, this.pre),
+				tcType = tc._octaneType.split('.').pop();
+			
+			this.tree.jstree('create_node', '#' + this.pre + tcType, 'inside', {
+				json_data: tcTriggerNode
+			});
+		}
+		else {
+			var actionNode = shorthand.treeData.createActionJson(citizen, this.pre),
+				type = citizen._octaneType.split('.').pop();
+				
+			this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
+				json_data: actionNode
+			});			
+		}		
 		for (var propName in citizen) {
 			var prop = citizen[propName];
 			
@@ -428,6 +446,24 @@
 		});
 		
 		addToolTip.call(this, citizen);
+		
+		if (citizen instanceof hemi.Model || citizen instanceof hemi.Shape) {
+			var tc = shorthand.treeData.createTransformCitizen(citizen),
+				pre = this.pre,
+				tcName = shorthand.treeData.getNodeName(tc, {
+					option: null,
+					prefix: pre
+				});
+			if (this.tree.find('#' + tcName).length === 0) {
+				json = shorthand.treeData.createTransformTypeJson(tc, pre);
+				
+				this.tree.jstree('create_node', -1, 'last', {
+					json_data: json
+				});
+				
+				addToolTip.call(this, tc);
+			}
+		}
 	};
 	
 	function addCitizen(citizen, createType) {
@@ -501,7 +537,7 @@
 			var spc = shorthand.treeData.createShapePickCitizen(citizen),
 				tc = shorthand.treeData.createTransformCitizen(citizen),
 				spcTriggerNode = shorthand.treeData.createModelPickJson(spc, this.pre),
-				tcTriggerNode = shorthand.treeData.createModelTransformJson(tc, this.pre),
+				tcTriggerNode = shorthand.treeData.createModelTransformTriggerJson(tc, this.pre),
 				spcType = spc._octaneType.split('.').pop(),
 				tcType = tc._octaneType.split('.').pop();
 			
@@ -515,7 +551,7 @@
 			var spc = shorthand.treeData.createShapePickCitizen(citizen),
 				tc = shorthand.treeData.createTransformCitizen(citizen),
 				spcTriggerNode = shorthand.treeData.createShapePickJson(spc, this.pre),
-				tcTriggerNode = shorthand.treeData.createShapeTransformJson(tc, this.pre),
+				tcTriggerNode = shorthand.treeData.createShapeTransformTriggerJson(tc, this.pre),
 				spcType = spc._octaneType.split('.').pop(),
 				tcType = tc._octaneType.split('.').pop();
 			
