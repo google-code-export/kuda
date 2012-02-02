@@ -412,7 +412,7 @@
 	 */
 	Transform.prototype.setMovable = function(opt_plane, opt_limits, opt_transforms) {
 		var params = getParams(this._getId()),
-			restore = opt_plane === undefined && opt_limits === undefined && opt_transforms === undefined;
+			restore = opt_plane == null && opt_limits == null && opt_transforms == null;
 
 		if (this._manip instanceof hemi.Movable) {
 			this._manip.clearTransforms();
@@ -470,10 +470,10 @@
 			this._translator.setTransform(this);
 		}
 
-		if (opt_acceleration !== undefined) {
+		if (opt_acceleration != null) {
 			this._translator.setAcceleration(opt_acceleration);
 		}
-		if (opt_velocity !== undefined) {
+		if (opt_velocity != null) {
 			this._translator.setVelocity(opt_velocity);
 		}
 	};
@@ -487,7 +487,7 @@
 	 */
 	Transform.prototype.setResizable = function(opt_axis, opt_transforms) {
 		var params = getParams(this._getId()),
-			restore = opt_axis === undefined && opt_transforms === undefined;
+			restore = opt_axis == null && opt_transforms == null;
 
 		if (this._manip instanceof hemi.Resizable) {
 			this._manip.clearTransforms();
@@ -545,7 +545,7 @@
 	 */
 	Transform.prototype.setTurnable = function(opt_axis, opt_limits, opt_transforms) {
 		var params = getParams(this._getId()),
-			restore = opt_axis === undefined && opt_limits === undefined && opt_transforms === undefined;
+			restore = opt_axis == null && opt_limits == null && opt_transforms == null;
 
 		if (this._manip instanceof hemi.Turnable) {
 			this._manip.clearTransforms();
@@ -602,10 +602,10 @@
 			this._rotator.setTransform(this);
 		}
 
-		if (opt_acceleration !== undefined) {
+		if (opt_acceleration != null) {
 			this._rotator.setAcceleration(opt_acceleration);
 		}
-		if (opt_velocity !== undefined) {
+		if (opt_velocity != null) {
 			this._rotator.setVelocity(opt_velocity);
 		}
 	};
