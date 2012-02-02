@@ -270,7 +270,7 @@
 		this.setAction(handler, method);
 		
 		if (argList != null) {
-			var meta = editor.data,
+			var meta = editor.data.getMetaData(),
 				citType = handler._octaneType,
 				params = meta.getParameters(citType, method);
 			

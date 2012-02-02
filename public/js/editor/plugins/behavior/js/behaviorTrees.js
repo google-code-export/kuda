@@ -421,14 +421,13 @@
 				json_data: tcTriggerNode
 			});
 		}
-		else {
-			var actionNode = shorthand.treeData.createActionJson(citizen, this.pre),
-				type = citizen._octaneType.split('.').pop();
-				
-			this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
-				json_data: actionNode
-			});			
-		}		
+		
+		var actionNode = shorthand.treeData.createActionJson(citizen, this.pre),
+			type = citizen._octaneType.split('.').pop();
+			
+		this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
+			json_data: actionNode
+		});
 		for (var propName in citizen) {
 			var prop = citizen[propName];
 			
