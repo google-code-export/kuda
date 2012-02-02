@@ -743,7 +743,7 @@
 			options.classes = ['widgetWithForms'];
 		}
 		
-	    Widget.call(this, options);
+		Widget.call(this, options);
 	};
 		
 	FormWidget.prototype = new Widget();
@@ -827,7 +827,7 @@
 	
 	var ListWidget = editor.ui.ListWidget = function(options) {
 		var newOpts = jQuery.extend({}, editor.tools.ListWidgetDefaults, options);
-	    editor.ui.Widget.call(this, newOpts);
+		editor.ui.Widget.call(this, newOpts);
 		
 		this.items = new Hashtable();		
 	};
@@ -835,8 +835,8 @@
 		
 	ListWidget.prototype = new Widget();
 	ListWidget.prototype.constructor = ListWidget;
-			    
-    ListWidget.prototype.add = function(obj) {			
+				
+	ListWidget.prototype.add = function(obj) {			
 		var li = this.items.get(obj._getId());
 		
 		if (!li) {
@@ -852,9 +852,9 @@
 		}
 		
 		return li;
-    };
+	};
 	
-    ListWidget.prototype.bindButtons = function(li, obj) {
+	ListWidget.prototype.bindButtons = function(li, obj) {
 		var wgt = this;
 		
 		li.editBtn.bind('click', function(evt) {
@@ -896,8 +896,8 @@
 		.append(this.instructions)
 		.append(this.list.getUI());
 	};
-    
-    ListWidget.prototype.remove = function(obj) {
+	
+	ListWidget.prototype.remove = function(obj) {
 		var li = this.items.get(obj._getId()),
 			retVal = false;
 		
@@ -909,7 +909,7 @@
 		}
 		
 		return retVal;
-    };
+	};
 	
 	ListWidget.prototype.update = function(obj) {
 		var li = this.items.get(obj._getId()),
@@ -927,48 +927,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                     			  Private Module Vars and Functions   		                      //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	function resize() {		
-		var bdy = jQuery('body'),
-			win = jQuery(window),
-			vwr = jQuery('.mainView'),
-		
-			windowWidth = win.width(),
-			windowHeight = win.height();
-			
-		if (windowWidth <= 1024) {
-			bdy.addClass('ten24');
-			windowWidth = 1024;
-		}
-		else {
-			bdy.removeClass('ten24');
-		}
-		
-		if (windowHeight <= 728) {
-			windowHeight = 728;
-			if (!bdy.hasClass('ten24')) {
-				bdy.addClass('ten24');
-			}
-		}
-		
-		vwr.width(windowWidth);
-		vwr.height(windowHeight);
-		
-		for (var i = 0, il = panels.length; i < il; i++) {
-			panels[i].resize();
-		}
-		
-		// Unfortunately we also have to do this O3D-specific resizing
-		var cans = vwr.find('canvas');
-		
-		cans.attr('width', windowWidth);
-		cans.attr('height', windowHeight);
-		// For some reason, textBaseline gets reset when canvas is resized
-		hemi.hudManager.resetTextBaseline();
-	};
-		
+
 	var navBar = null;
-	
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                     			   			Public Functions		  		                      //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1009,20 +970,53 @@
 		cam.far = FARPLANE;
 		cam.near = NEARPLANE;
 		cam.name = 'Main Camera';
-        
+		
 		var vp = hemi.createViewData(client.camera);
 		vp.eye = new THREE.Vector3(0, 10, 40);
 		vp.target = new THREE.Vector3(0, 0, 0);
-        cam.moveToView(vp, 0);
-		
-		// add resizing functionality
-		jQuery(window).resize(resize);
+		cam.moveToView(vp, 0);
 		
 		// do an initial resize
-		resize();
+		editor.ui.resizeView();
 		
 		// add an empty panel for select boxes
 		bdy.append('<div class="topBottomSelect"></div>');
 	};
 	
+	editor.ui.resizeView = function() {
+		var bdy = jQuery('body'),
+			win = jQuery(window),
+			vwr = jQuery('.mainView'),
+		
+			windowWidth = win.width(),
+			windowHeight = win.height();
+			
+		if (windowWidth <= 1024) {
+			bdy.addClass('ten24');
+			windowWidth = 1024;
+		}
+		else {
+			bdy.removeClass('ten24');
+		}
+		
+		if (windowHeight <= 728) {
+			windowHeight = 728;
+			if (!bdy.hasClass('ten24')) {
+				bdy.addClass('ten24');
+			}
+		}
+		
+		vwr.width(windowWidth);
+		vwr.height(windowHeight);
+		
+		for (var i = 0, il = panels.length; i < il; i++) {
+			panels[i].resize();
+		}
+
+		editor.client._resize();
+
+		// For some reason, textBaseline gets reset when canvas is resized
+		hemi.hudManager.resetTextBaseline();
+	};
+
 })(editor);
