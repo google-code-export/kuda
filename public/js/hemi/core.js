@@ -208,9 +208,13 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Initialize hemi features. This does not need to be called if hemi.makeClients() is called,
 	 * but it can be used on its own if you don't want to use hemi's client system.
+	 * 
+	 * @param {Object} opt_config optional configuration parameters
 	 */
-	hemi.init = function() {
-		window.addEventListener('resize', resize, false);
+	hemi.init = function(opt_config) {
+		var handler = opt_config && opt_config.resizeHandler ? opt_config.resizeHandler : resize;
+
+		window.addEventListener('resize', handler, false);
 		lastRenderTime = new Date().getTime();
 		render(true);
 	};
@@ -218,8 +222,10 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Search the webpage for any divs with an ID starting with "kuda" and create a Client and
 	 * canvas within each div that will be rendered to using WebGL.
+	 * 
+	 * @param {Object} opt_config optional configuration parameters
 	 */
-	hemi.makeClients = function() {
+	hemi.makeClients = function(opt_config) {
 		var elements = document.getElementsByTagName('div'),
 			numClients = hemi.clients.length;
 		
@@ -244,7 +250,7 @@ if (!window.requestAnimationFrame) {
 			}
 		}
 
-		hemi.init();
+		hemi.init(opt_config);
 		return hemi.clients;
 	};
 

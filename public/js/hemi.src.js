@@ -1788,9 +1788,13 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Initialize hemi features. This does not need to be called if hemi.makeClients() is called,
 	 * but it can be used on its own if you don't want to use hemi's client system.
+	 * 
+	 * @param {Object} opt_config optional configuration parameters
 	 */
-	hemi.init = function() {
-		window.addEventListener('resize', resize, false);
+	hemi.init = function(opt_config) {
+		var handler = opt_config && opt_config.resizeHandler ? opt_config.resizeHandler : resize;
+
+		window.addEventListener('resize', handler, false);
 		lastRenderTime = new Date().getTime();
 		render(true);
 	};
@@ -1798,8 +1802,10 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Search the webpage for any divs with an ID starting with "kuda" and create a Client and
 	 * canvas within each div that will be rendered to using WebGL.
+	 * 
+	 * @param {Object} opt_config optional configuration parameters
 	 */
-	hemi.makeClients = function() {
+	hemi.makeClients = function(opt_config) {
 		var elements = document.getElementsByTagName('div'),
 			numClients = hemi.clients.length;
 		
@@ -1824,7 +1830,7 @@ if (!window.requestAnimationFrame) {
 			}
 		}
 
-		hemi.init();
+		hemi.init(opt_config);
 		return hemi.clients;
 	};
 
@@ -3479,6 +3485,81 @@ if (!window.requestAnimationFrame) {
 		}
 	};
 
+	/** 
+	 * Check for degenerate triangles (all three points are collinear) in the faces of the geometry
+	 * of the given Transform and its children.
+	 *
+	 * @param {hemi.Transform} transform Transform to begin checking faces at
+	 */
+	hemi.utils.validateTriangles = function(transform) {
+		function toString(vec) {
+			return '[' + vec.x + ', ' + vec.y + ', ' + vec.z + ']';
+		}
+
+		if (transform.geometry) {
+			var vertices = transform.geometry.vertices,
+				faces = transform.geometry.faces;
+
+			for (var i = 0, il = faces.length; i < il; ++i) {
+				var face = faces[i];
+
+				if (face instanceof THREE.Face3) {
+					var a = vertices[face.a].position,
+						b = vertices[face.b].position,
+						c = vertices[face.c].position,
+						area = THREE.GeometryUtils.triangleArea(a, b, c);
+
+					if (area < 0.0001) {
+						console.log('Zero area triangle: face ' + i + ' of ' + transform.name);
+						console.log('Verts: ' + toString(a) + ', ' + toString(b) + ', ' + toString(c));
+					}
+				} else if (face instanceof THREE.Face4) {
+					var a = vertices[face.a].position,
+						b = vertices[face.b].position,
+						c = vertices[face.c].position,
+						d = vertices[face.d].position,
+						area = THREE.GeometryUtils.triangleArea(a, b, d);
+
+					if (area < 0.0001) {
+						console.log('Zero area triangle (in quad): face ' + i + ' of ' + transform.name);
+						console.log('Verts: ' + toString(a) + ', ' + toString(b) + ', ' + toString(d));
+					}
+
+					area = THREE.GeometryUtils.triangleArea(b, c, d);
+
+					if (area < 0.0001) {
+						console.log('Zero area triangle (in quad): face ' + i + ' of ' + transform.name);
+						console.log('Verts: ' + toString(b) + ', ' + toString(c) + ', ' + toString(d));
+					}
+				}
+			}
+		}
+
+		var children = transform.children;
+
+		for (var i = 0, il = children.length; i < il; ++i) {
+			this.validateTriangles(children[i]);
+		}
+	};
+
+	/*
+	 * Determine if two vectors are equal.
+	 * 
+	 * @param {THREE.Vector3} vec1 the first vector
+	 * @param {THREE.Vector3} vec2 the second vector
+	 * @param {number} opt_precision optional precision float (default is 0)
+	 * @return {boolean} true if the vectors are equal to the given precision, otherwise false
+	 */
+	hemi.utils.vector3Equals = function(vec1, vec2, opt_precision) {
+		if (!opt_precision) {
+			opt_precision = 0;
+		}
+
+		return Math.abs(vec1.x - vec2.x) <= opt_precision &&
+			Math.abs(vec1.y - vec2.y) <= opt_precision &&
+			Math.abs(vec1.z - vec2.z) <= opt_precision;
+	};
+
 	/**
 	 * Rotate the Transform by the given angle along the given world space axis.
 	 *
@@ -3521,22 +3602,6 @@ if (!window.requestAnimationFrame) {
 		transform.position.addSelf(localDelta);
 		transform.updateMatrix();
 		transform.updateMatrixWorld();
-	};
-
-	/*
-	 *Determine if two vectors are equal
-	 *@param {THREE.Vector3} vec1
-	 *@param {THREE.Vector3} vec2
-	 *@param {number} opt_precision
-	 *@return {bool}
-	 */
-	hemi.utils.vector3Equals = function(vec1, vec2, opt_precision) {
-		if (!opt_precision) {
-			opt_precision = 0;
-		}
-		return Math.abs(vec1.x - vec2.x) <= opt_precision 
-			&& Math.abs(vec1.y - vec2.y) <= opt_precision
-			&& Math.abs(vec1.z - vec2.z) <= opt_precision;
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -8158,9 +8223,11 @@ if (!window.requestAnimationFrame) {
 		this.panTilt = new THREE.Object3D();
 		this.panTilt.name = 'panTilt';
 		this.panTilt.eulerOrder = 'ZYX';
+		this.panTilt.matrixAutoUpdate = false;
 		this.cam = new THREE.Object3D();
 		this.cam.name = 'cam';
 		this.cam.eulerOrder = 'ZYX';
+		this.cam.matrixAutoUpdate = false;
 		this.panTilt.add(this.cam);
 
 		this.cam.position.z = 1;
@@ -8203,6 +8270,7 @@ if (!window.requestAnimationFrame) {
 
 		this.threeCamera = new THREE.PerspectiveCamera(this.fov.current * hemi.RAD_TO_DEG,
 			window.innerWidth / window.innerHeight, NEAR_PLANE, FAR_PLANE);
+		this.threeCamera.matrixAutoUpdate = false;
 
 		/**
 		 * A light that moves with the Camera and is always pointing where the Camera is pointing.
@@ -8925,9 +8993,10 @@ if (!window.requestAnimationFrame) {
 		this.getEye(this.threeCamera.position);
 		this.getTarget(_vector1);
 
-		this.threeCamera.updateMatrix();
-		this.threeCamera.updateMatrixWorld(true);
+		this.threeCamera.matrix.setPosition(this.threeCamera.position);
 		this.threeCamera.lookAt(_vector1);
+		this.threeCamera.updateMatrixWorld(true);
+
 		this.light.updateMatrix();
 	}
 

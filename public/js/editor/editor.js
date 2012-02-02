@@ -97,7 +97,9 @@ var editor = {};
 		
 		
 	function initViewer() {
-		editor.client = hemi.makeClients()[0];
+		editor.client = hemi.makeClients({
+			resizeHandler: editor.ui.resizeView
+		})[0];
 								
 		setupWorldMessages();
 		editor.ui.initializeView(editor.client);

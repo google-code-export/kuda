@@ -50,9 +50,11 @@
 		this.panTilt = new THREE.Object3D();
 		this.panTilt.name = 'panTilt';
 		this.panTilt.eulerOrder = 'ZYX';
+		this.panTilt.matrixAutoUpdate = false;
 		this.cam = new THREE.Object3D();
 		this.cam.name = 'cam';
 		this.cam.eulerOrder = 'ZYX';
+		this.cam.matrixAutoUpdate = false;
 		this.panTilt.add(this.cam);
 
 		this.cam.position.z = 1;
@@ -95,6 +97,7 @@
 
 		this.threeCamera = new THREE.PerspectiveCamera(this.fov.current * hemi.RAD_TO_DEG,
 			window.innerWidth / window.innerHeight, NEAR_PLANE, FAR_PLANE);
+		this.threeCamera.matrixAutoUpdate = false;
 
 		/**
 		 * A light that moves with the Camera and is always pointing where the Camera is pointing.
@@ -817,9 +820,10 @@
 		this.getEye(this.threeCamera.position);
 		this.getTarget(_vector1);
 
-		this.threeCamera.updateMatrix();
-		this.threeCamera.updateMatrixWorld(true);
+		this.threeCamera.matrix.setPosition(this.threeCamera.position);
 		this.threeCamera.lookAt(_vector1);
+		this.threeCamera.updateMatrixWorld(true);
+
 		this.light.updateMatrix();
 	}
 
