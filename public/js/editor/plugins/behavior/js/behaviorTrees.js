@@ -51,7 +51,8 @@
 		
 	TreeModel.prototype.addCitizen = function(citizen) {
 		if (citizen instanceof hemi.ValueCheck || citizen instanceof hemi.Client ||
-				citizen instanceof hemi.Mesh || citizen instanceof hemi.Transform) {
+				citizen instanceof hemi.Mesh || citizen instanceof hemi.Transform ||
+				citizen instanceof hemi.Scene) {
 			return;
 		}
 		
