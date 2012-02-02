@@ -49,7 +49,7 @@
 //                                   Model                                    //
 ////////////////////////////////////////////////////////////////////////////////
 	var StatesModel = function() {
-		editor.ToolModel.call(this,'state');
+		editor.ToolModel.call(this,'states');
 		this.lastState = null;
 		this.editState = null;
 	};
