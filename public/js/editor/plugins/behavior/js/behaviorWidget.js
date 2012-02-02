@@ -55,7 +55,7 @@
 			if (spec.src === hemi.dispatch.WILDCARD) {
 				source = shorthand.treeData.createShapePickCitizen(msgTarget.handler.citizen);
 			} else {
-				source = shorthand.treeData.createCamMoveCitizen(hemi.world.camera);
+				source = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
 			}
 		} else {
 			source = spec.src === hemi.dispatch.WILDCARD ? shorthand.treeData.MSG_WILDCARD : spec.src;

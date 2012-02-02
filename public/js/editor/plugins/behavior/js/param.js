@@ -204,11 +204,19 @@
 		
 		switch(baseType) {
 			case 'angle':
+			case 'THREE.Vector3':
+				ui = new editor.ui.Vector({
+					validator: vdr,
+					container: jQuery('<div class="vectorContainer" />'),
+					inputType: 'number',
+					inputs: ['x', 'y', 'z']
+				});
+				break;
 			case 'number':
 				var vdr = editor.ui.createDefaultValidator();
 				if (isArray) {	
 					vecData.validator = vdr;
-					vecData.container = jQuery('<div class="vectorContainer"></div>');
+					vecData.container = jQuery('<div class="vectorContainer" />');
 					ui = new editor.ui.Vector(vecData);
 				}
 				else {
