@@ -95,7 +95,7 @@
 			'setAngle', 'setVel'],
 		'hemi.Translator': ['disable', 'enable', 'move', 'setAccel',
 			'setPos', 'setVel'],
-		'hemi.State': ['load', 'nextScene', 'previousScene', 'unload'],
+		'hemi.State': ['load', 'nextState', 'previousState', 'unload'],
 		'hemi.Camera': ['disableControl', 'enableControl', 'moveOnCurve',
 			'moveToView', 'orbit', 'rotate', 'truck'],
 		'hemi.Transform': ['move', 'turn', 'cancelInteraction', 'cancelMoving', 'cancelTurning', 
