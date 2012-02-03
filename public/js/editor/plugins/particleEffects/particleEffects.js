@@ -116,7 +116,7 @@
 		
 		if (this.currentEffect) {
 			msgType = editor.events.Updated;
-			oldId = this.currentEffect.getId();
+			oldId = this.currentEffect._getId();
 			this.currentEffect.cleanup();
 		} else {
 			msgType = editor.events.Created;
@@ -126,7 +126,7 @@
 		this.previewEffect.name = props.name;
 		
 		if (oldId) {
-			this.previewEffect.setId(oldId);
+			this.previewEffect._setId(oldId);
 		}
 			
 		this.notifyListeners(msgType, this.previewEffect);

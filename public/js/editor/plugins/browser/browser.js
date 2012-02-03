@@ -459,7 +459,7 @@
 		var transforms;
 		
 		if (opt_owner != null) {
-			transforms = this.selected.get(opt_owner.getId());
+			transforms = this.selected.get(opt_owner._getId());
 		} else {
 			transforms = this.getSelectedTransforms();
 		}
