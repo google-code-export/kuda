@@ -34,40 +34,29 @@
 		chainTable.put('hemi.Animation' + '_' + 'start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
 		chainTable.put('hemi.Animation' + '_' + 'stop', [hemi.msg.stop]);
 		// Burst
-		chainTable.put('hemi.effect.Burst' + '_' + 'trigger', [hemi.msg.burst]);
+		chainTable.put('hemi.ParticleBurst' + '_' + 'trigger', [hemi.msg.burst]);
 		// Emitter
-		chainTable.put('hemi.effect.Emitter' + '_' + 'hide', [hemi.msg.visible]);
-		chainTable.put('hemi.effect.Emitter' + '_' + 'show', [hemi.msg.visible]);
+		chainTable.put('hemi.ParticleEmitter' + '_' + 'hide', [hemi.msg.visible]);
+		chainTable.put('hemi.ParticleEmitter' + '_' + 'show', [hemi.msg.visible]);
 		// Trail
-		chainTable.put('hemi.effect.Trail' + '_' + 'start', [hemi.msg.start]);
-		chainTable.put('hemi.effect.Trail' + '_' + 'stop', [hemi.msg.stop]);
+		chainTable.put('hemi.ParticleTrail' + '_' + 'start', [hemi.msg.start]);
+		chainTable.put('hemi.ParticleTrail' + '_' + 'stop', [hemi.msg.stop]);
 		// HudDisplay
-		chainTable.put('hemi.HudDisplay' + '_' + 'clearPages', [hemi.msg.visible]); // Calls hide()
+		chainTable.put('hemi.HudDisplay' + '_' + 'clear', [hemi.msg.visible]); // Calls hide()
 		chainTable.put('hemi.HudDisplay' + '_' + 'hide', [hemi.msg.visible]);
 		chainTable.put('hemi.HudDisplay' + '_' + 'nextPage', [hemi.msg.visible]); // Calls showPage()
 		chainTable.put('hemi.HudDisplay' + '_' + 'previousPage', [hemi.msg.visible]); // Calls showPage()
 		chainTable.put('hemi.HudDisplay' + '_' + 'show', [hemi.msg.visible]); // Calls showPage()
 		chainTable.put('hemi.HudDisplay' + '_' + 'showPage', [hemi.msg.visible]);
-		// Draggable
-		chainTable.put('hemi.Draggable' + '_' + 'onMouseMove', [hemi.msg.drag]);
-		chainTable.put('hemi.Draggable' + '_' + 'onPick', [hemi.msg.drag]); // Calls onMouseMove()
 		// Model
-		chainTable.put('hemi.Model' + '_' + 'incrementAnimationTime', [hemi.msg.animate]); // Calls setAnimationTime()
 		chainTable.put('hemi.Model' + '_' + 'load', [hemi.msg.load]); // Calls loadConfig()
 		chainTable.put('hemi.Model' + '_' + 'loadConfig', [hemi.msg.load]);
-		chainTable.put('hemi.Model' + '_' + 'setAnimationTime', [hemi.msg.animate]);
 		chainTable.put('hemi.Model' + '_' + 'setFileName', [hemi.msg.load]); // Calls loadModel()
 		chainTable.put('hemi.Model' + '_' + 'unload', [hemi.msg.unload]);
-		// Rotator
-		chainTable.put('hemi.Rotator' + '_' + 'rotate', [hemi.msg.start, hemi.msg.stop]); // Leads to onRender()
-		chainTable.put('hemi.Rotator' + '_' + 'onRender', [hemi.msg.stop]);
-		// Translator
-		chainTable.put('hemi.Translator' + '_' + 'move', [hemi.msg.start, hemi.msg.stop]); // Leads to onRender()
-		chainTable.put('hemi.Translator' + '_' + 'onRender', [hemi.msg.stop]);
-		// Scene
+		// State
 		chainTable.put('hemi.State' + '_' + 'load', [hemi.msg.load]);
-		chainTable.put('hemi.State' + '_' + 'nextScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
-		chainTable.put('hemi.State' + '_' + 'previousScene', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.State' + '_' + 'nextState', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.State' + '_' + 'previousState', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
 		chainTable.put('hemi.State' + '_' + 'unload', [hemi.msg.unload]);
 		// Camera
 		chainTable.put('hemi.Camera' + '_' + 'moveOnCurve', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
@@ -93,17 +82,14 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var commonMethods = {
-		'hemi.Animation': ['reset', 'start', 'stop'],
+		'hemi.AnimationGroup': ['reset', 'start', 'stop'],
 		'hemi.Audio': ['pause', 'play', 'seek', 'setVolume'],
-		'hemi.GpuParticleSystem': ['pause', 'play', 'start', 'stop'],
+		'hemi.ParticleSystem': ['pause', 'play', 'start', 'stop'],
 		'hemi.Burst': ['trigger'],
 		'hemi.Emitter': ['hide', 'show'],
 		'hemi.Trail': ['start', 'stop'],
 		'hemi.HudDisplay': ['hide', 'nextPage', 'previousPage', 'show'],
 		'hemi.Theme': ['load'],
-		'hemi.Draggable': ['disable', 'enable'],
-		'hemi.Scalable': ['disable', 'enable'],
-		'hemi.Turnable': ['disable', 'enable'],
 		'hemi.Model': ['load', 'unload'],
 		'hemi.Rotator': ['disable', 'enable', 'rotate', 'setAccel',
 			'setAngle', 'setVel'],
@@ -111,7 +97,9 @@
 			'setPos', 'setVel'],
 		'hemi.State': ['load', 'nextScene', 'previousScene', 'unload'],
 		'hemi.Camera': ['disableControl', 'enableControl', 'moveOnCurve',
-			'moveToView', 'orbit', 'rotate', 'truck']
+			'moveToView', 'orbit', 'rotate', 'truck'],
+		'hemi.Transform': ['move', 'turn', 'cancelInteraction', 'cancelMoving', 'cancelTurning', 
+			'setMovable', 'setMoving', 'setTurnable', 'setTurning', 'setResizable']
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////

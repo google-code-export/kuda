@@ -92,19 +92,19 @@
 			});
 		}
 
-		octane.props.push({
+		props.push({
 			name: 'handler',
-			id: this.handler.getId()
+			id: this.handler._getId()
 		});
 
 		if (this.citizen) {
-			octane.props.push({
+			props.push({
 				name: 'citizen',
-				id: this.citizen.getId()
+				id: this.citizen._getId()
 			});
 		}
 
-		return octane;
+		return props;
 	};
 
 	/**
@@ -120,8 +120,8 @@
 		for (var i = 0, il = values.length; match && i < il; ++i) {
 			var val = values[i];
 
-			if (val && val.getId !== undefined) {
-				match = this.values[i] === val.getId();
+			if (val && val._getId !== undefined) {
+				match = this.values[i] === val._getId();
 			} else {
 				match = this.values[i] === val;
 			}
