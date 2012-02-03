@@ -116,8 +116,6 @@
 					arg: [this._fileName]
 				}
 			];
-
-		return props;
 	};
 
 	/**
@@ -228,7 +226,7 @@
 
 				that.client.scene.add(that.root);
 
-				for ( var i = 0, il = collada.animations.length; i < il; i++ ) {
+				for (var i = 0, il = animations.length; i < il; ++i) {
 					var anim = animations[i];
 					//Add to the THREE Animation handler to get the benefits of it's
 					animHandler.add(anim);
