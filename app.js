@@ -20,6 +20,7 @@ var qs = require('querystring'),
     path = require('path'),
     JSONt = 'application/json',
     HTMLt = 'text/html',
+    XMLt = 'text/xml',
     PLAINt = 'text/plain',
     opt_quiet = false,
     opt_repl = false, 
@@ -507,6 +508,10 @@ function req2ContentType(urlLessQueryString) {
     case '.htm':
     case '.html':
         contentType = HTMLt;
+        break;
+    case '.dae':
+    case '.DAE':
+        contentType = XMLt;
         break;
     case '.fx':
     case '.txt':
