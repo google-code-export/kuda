@@ -10608,7 +10608,8 @@ if (!window.requestAnimationFrame) {
 	 * Octane properties for ParticleTrail.
 	 * @type string[]
 	 */
-	ParticleTrail.prototype._octane = ParticleEmitter.prototype._octane.unshift('fireInterval');
+	ParticleTrail.prototype._octane = ['fireInterval', '_newSystem', 'blending', 'client', 'colorRamp', 'params',
+		'particleFunction', 'setup'];
 
 	/**
 	 * Render event handling function that allows the ParticleTrail to animate.

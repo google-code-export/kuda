@@ -162,12 +162,17 @@
 		}
 	};
 		
+    ParticleFxModel.prototype.updateClient = function(client) {
+        this.client = client;
+    };
+    
     ParticleFxModel.prototype.worldLoaded = function() {
 		var effects = hemi.world.getParticleEffects();
 		
 		for (var ndx = 0, len = effects.length; ndx < len; ndx++) {
 			this.notifyListeners(editor.events.Created, effects[ndx]);
 		}
+        this.updateClient(editor.client);
     };
 	    
     ParticleFxModel.prototype.worldCleaned = function() {
