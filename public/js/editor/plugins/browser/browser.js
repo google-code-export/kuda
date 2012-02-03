@@ -302,8 +302,11 @@
         this.tranHighlightMat = null;
 		this.curHandle = new editor.ui.TransHandles();
 		this.models = [];
+		this.highlightMaterial = new THREE.MeshPhongMaterial({
+			color: 0x75d0f4,
+			ambient: 0xffffff
+		});
         
-//        this.initSelectorUI();
 		var mdl = this;
 		
 		hemi.subscribe(hemi.msg.load,
@@ -443,8 +446,12 @@
 		}
 		
 		if (geometry) {
-//			transform.material.color = HILIGHT_COLOR;
-//			geometry.materials.push(HIGHLIGHT_MAT);
+			this.oldMaterial = transform.material;
+			transform.material = this.highlightMaterial;
+			var scene = editor.client.scene;
+			
+			editor.client.renderer.initMaterial(this.highlightMaterial, scene.lights, scene.fog, 
+				this.transform);
 		}
     };
 	
@@ -582,7 +589,7 @@
 		}
 		
 		if (geometry) {
-//			transform.material.color = DEFAULT_COLOR;
+			transform.material = this.oldMaterial;
 		}
     };
 	
