@@ -68,7 +68,7 @@
 				this.currentVals.end);
 		}
 		else {
-			hemi.fx.clearFog();
+			hemi.fx.clearFog(editor.client);
 		}
 		
 		this.notifyListeners(shorthand.events.FogVisible, visible);
@@ -174,7 +174,7 @@
 	};
 	
 	FogFormWidget.prototype.set = function(vals) {
-		if (vals === null) {
+		if (vals === null || vals === undefined) {
 			this.colorPicker.reset();
 			this.start.reset();
 			this.end.reset();
