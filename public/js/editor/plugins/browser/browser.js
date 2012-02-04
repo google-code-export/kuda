@@ -302,6 +302,7 @@
         this.tranHighlightMat = null;
 		this.curHandle = new editor.ui.TransHandles();
 		this.models = [];
+		this.oldMaterials = new Hashtable();
 		this.highlightMaterial = new THREE.MeshPhongMaterial({
 			color: 0x75d0f4,
 			ambient: 0xffffff
@@ -446,7 +447,7 @@
 		}
 		
 		if (geometry) {
-			this.oldMaterial = transform.material;
+			this.oldMaterials.put(transform, transform.material);
 			transform.material = this.highlightMaterial;
 			var scene = editor.client.scene;
 			
@@ -589,7 +590,7 @@
 		}
 		
 		if (geometry) {
-			transform.material = this.oldMaterial;
+			transform.material = this.oldMaterials.get(transform);
 		}
     };
 	
