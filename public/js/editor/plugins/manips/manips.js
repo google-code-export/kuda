@@ -21,7 +21,8 @@
 //								Initialization								  //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var shorthand = editor.tools.manips;
+	var shorthand = editor.tools.manips,
+		_matrix = new THREE.Matrix4();
 	
 	shorthand.init = function() {
 		var navPane =editor.ui.getNavPane('Behaviors'),
@@ -70,6 +71,14 @@
 		editor.ToolModel.call(this, 'manips');
 		
 		this.currentTransform = null;
+		this.previewProps = {
+			active: null,
+			field: null,
+			limits: null,
+			transforms: [],
+			type: null,
+			vector: new THREE.Vector3()
+		};
 	};
 
 	ManipsModel.prototype = new editor.ToolModel();
@@ -81,16 +90,11 @@
 	};
 		
 	ManipsModel.prototype.saveManip = function(props) {
-		var event,
-			transform = props.transforms[0];
+		var transform = props.transforms[0],
+			event = transform === this.currentTransform ? editor.events.Updated : editor.events.Created;
 
-		if (transform === this.currentTransform) {
-			event = editor.events.Updated;
-		}
-		else {
-			event = editor.events.Created;
-		}
-		this.applyManip(props);
+		this.stopPreview();
+		applyManip(props);
 		transform._manip.disable();
 		this.notifyListeners(event, transform);
 		this.setManip(null);
@@ -101,18 +105,100 @@
 		this.currentTransform = transform;
 		this.notifyListeners(editor.events.Editing, transform);
 	};
-		
+
 	ManipsModel.prototype.startPreview = function(props) {
-		this.currentTransform = props.transforms[0];
-		this.applyManip(props);
+		this.stopPreview();
+
+		var transform = props.transforms[0],
+			manip = transform._manip
+			prevProps = this.previewProps;
+		
+		switch (props.type) {
+			case 'move':
+				prevProps.vector.copy(transform.position);
+				break;
+			case 'turn':
+				if (transform.useQuaternion) {
+					_matrix.setRotationFromQuaternion(transform.quaternion);
+					prevProps.vector.setRotationFromMatrix(_matrix);
+				} else {
+					prevProps.vector.copy(transform.rotation);
+				}
+				break;
+			case 'resize':
+				prevProps.vector.copy(transform.scale);
+				break;
+		}
+
+		if (manip instanceof hemi.Movable) {
+			prevProps.type = 'movable';
+			prevProps.field = manip.getPlaneString();
+			prevProps.limits = [manip.umin, manip.umax, manip.vmin, manip.vmax];
+		} else if (manip instanceof hemi.Turnable) {
+			prevProps.type = 'turnable';
+			prevProps.field = manip.getAxisString();
+			prevProps.limits = [manip.min, manip.max];
+		} else if (manip instanceof hemi.Resizable) {
+			prevProps.type = 'resizable';
+			prevProps.field = manip.axis;
+		}
+
+		if (manip) {
+			for (var i = 0, il = manip.transforms.length; i < il; ++i) {
+				var tran = manip.transforms[i];
+
+				if (tran !== transform) {
+					prevProps.transforms.push(tran);
+				}
+			}
+		}
+
+		prevProps.active = transform;
+		applyManip(props);
 		editor.client.camera.disableControl();
 	};
-		
+
 	ManipsModel.prototype.stopPreview = function() {
-		if (this.currentTransform) {
-			this.currentTransform.cancelInteraction();
+		var prevProps = this.previewProps,
+			transform = prevProps.active;
+
+		if (transform) {
+			// Undo any manipulation done in the preview
+			var manip = transform._manip,
+				transforms = manip.transforms;
+
+			if (manip instanceof hemi.Movable) {
+				var delta = prevProps.vector.subSelf(transform.position);
+
+				for (var i = 0, il = transforms.length; i < il; ++i) {
+					hemi.utils.worldTranslate(delta, transforms[i]);
+				}
+			} else if (manip instanceof hemi.Turnable) {
+				for (var i = 0, il = transforms.length; i < il; ++i) {
+					hemi.utils.worldRotate(manip.axis, manip._angle * -1, transforms[i]);
+				}
+			} else if (manip instanceof hemi.Resizable) {
+				// TODO: We can't reverse until we track the amount scaling done by the Resizable
+			}
+
+			// Restore any previous manipulation
+			switch (prevProps.type) {
+				case 'movable':
+					transform.setMovable(prevProps.field, prevProps.limits, prevProps.transforms);
+					break;
+				case 'turnable':
+					transform.setTurnable(prevProps.field, prevProps.limits, prevProps.transforms);
+					break;
+				case 'resizable':
+					transform.setResizable(prevProps.field, prevProps.transforms);
+					break;
+			}
+
+			prevProps.active = null;
+			prevProps.type = null;
+			prevProps.transforms.length = 0;
+			editor.client.camera.enableControl();
 		}
-		editor.client.camera.enableControl();
 	};
 			
 	ManipsModel.prototype.worldCleaned = function() {
@@ -145,7 +231,7 @@
 		}
 	};
 
-	ManipsModel.prototype.applyManip = function(props) {
+	function applyManip(props) {
 		if (props.transforms.length) {
 			if (props.type == 'move') {
 				props.transforms[0].setMovable(props.plane, props.limits, props.transforms.slice[1]);
@@ -154,7 +240,7 @@
 				props.transforms[0].setTurnable(props.axis, props.limits, props.transforms.slice[1]);
 			}
 		}
-	};
+	}
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -386,10 +472,8 @@
 		
 		switch(props.type) {
 			case 'move':
-				var min = [this.uMin.getValue(), this.vMin.getValue()],
-					max = [this.uMax.getValue(), this.vMax.getValue()];
-				
-				props.limits = [min, max];
+				props.limits = [this.uMin.getValue(), this.uMax.getValue(), this.vMin.getValue(),
+					this.vMax.getValue()];
 				props.plane = planeSel.val();
 				break;
 			case 'turn':

@@ -13350,6 +13350,23 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
+	 * Get the string representation of the Movable's plane.
+	 * 
+	 * @return {hemi.Plane} the current plane for the Movable
+	 */
+	Movable.prototype.getPlaneString = function() {
+		if (this.plane === XY_PLANE) {
+			return hemi.Plane.XY;
+		} else if (this.plane === XZ_PLANE) {
+			return hemi.Plane.XZ;
+		} else if (this.plane === YZ_PLANE) {
+			return hemi.Plane.YZ;
+		} else {
+			return 'UNKNOWN';
+		}
+	};
+
+	/**
 	 * Calculate mouse point intersection with the Movable's plane and then translate the moving
 	 * Transforms accordingly.
 	 *
@@ -13422,18 +13439,6 @@ if (!window.requestAnimationFrame) {
 			case (hemi.Plane.YZ):
 				this.plane = YZ_PLANE;
 				break;
-		}
-	};
-
-	Movable.prototype.getPlaneString = function() {
-		if (this.plane == XY_PLANE) {
-			return hemi.Plane.XY;
-		} else if (this.plane == XZ_PLANE) {
-			return hemi.Plane.XZ;
-		} else if (this.plane == YZ_PLANE) {
-			return hemi.Plane.YZ;
-		} else {
-			return "UNKNOWN";
 		}
 	};
 
@@ -13622,6 +13627,23 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
+	 * Get the string representation of the Turnable's axis.
+	 * 
+	 * @return {hemi.Axis} the current axis for the Turnable
+	 */
+	Turnable.prototype.getAxisString = function() {
+		if (hemi.utils.vector3Equals(this.axis, _vector.set(-1, 0, 0))) {
+			return hemi.Axis.X;
+		} else if (hemi.utils.vector3Equals(this.axis, _vector.set(0, -1, 0))) {
+			return hemi.Axis.Y;
+		} else if (hemi.utils.vector3Equals(this.axis, _vector.set(0, 0, 1))) {
+			return hemi.Axis.Z;
+		} else {
+			return 'UNKNOWN';
+		}
+	};
+
+	/**
 	 * Calculate mouse point intersection with the Turnable's plane and then rotate the turning
 	 * Transforms accordingly.
 	 *
@@ -13696,18 +13718,6 @@ if (!window.requestAnimationFrame) {
 				this.axis.copy(Z_AXIS);
 				this.plane = XY_PLANE;
 				break;
-		}
-	};
-
-	Turnable.prototype.getAxisString = function() {
-		if (hemi.utils.vector3Equals(this.axis, new THREE.Vector3(-1, 0, 0))) {
-			return hemi.Axis.X;
-		} else if (hemi.utils.vector3Equals(this.axis, new THREE.Vector3(0, -1, 0))) {
-			return hemi.Axis.Y;
-		} else if (hemi.utils.vector3Equals(this.axis, new THREE.Vector3(0, 0, 1))) {
-			return hemi.Axis.Z;
-		} else {
-			return "UNKNOWN";
 		}
 	};
 
