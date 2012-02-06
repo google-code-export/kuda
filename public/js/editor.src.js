@@ -5693,14 +5693,22 @@ var editor = {};
 	};
 	
 	ProjectModel.prototype.newProject = function() {
-		hemi.world.cleanup();
-		hemi.ready();
-
-		var camera = editor.client.camera,
+		var client = editor.client,
+			scene = client.scene,
+			camera = client.camera,
 			vd = hemi.createViewData(camera);
 
-		vd.eye = [0, 10, 40];
-		vd.target = [0, 0, 0];
+		hemi.world.removeCitizen(client);
+		hemi.world.removeCitizen(scene);
+		hemi.world.removeCitizen(camera);
+		hemi.world.cleanup();
+		hemi.ready();
+		hemi.world.addCitizen(client);
+		hemi.world.addCitizen(scene);
+		hemi.world.addCitizen(camera);
+
+		vd.eye.set(0, 10, 40);
+		vd.target.set(0, 0, 0);
         camera.moveToView(vd, 0);
         camera.enableControl();
 

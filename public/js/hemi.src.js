@@ -4517,6 +4517,8 @@ if (!window.requestAnimationFrame) {
 		if (id === null) {
 			id = this.getNextId();
 			citizen._setId(id);
+		} else if (id >= nextId) {
+			nextId = id + 1;
 		}
 
 		var toRemove = citizens.get(id);
