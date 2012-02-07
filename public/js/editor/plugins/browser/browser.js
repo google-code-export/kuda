@@ -26,7 +26,6 @@
 		wgtSuper = editor.ui.Widget.prototype,
 		
 		HILIGHT_COLOR = new THREE.Color(0x75d0f4),
-		DEFAULT_COLOR = new THREE.Color(0xffffff),
 		HIGHLIGHT_MAT = new THREE.MeshBasicMaterial({
 			color: 0x75d0f4
 		});
@@ -259,7 +258,7 @@
 		},
 		
 		getNodeType = function(node) {
-			var type = 'ojb';
+			var type = 'obj';
 			
 			if (node instanceof hemi.Transform || node instanceof hemi.Mesh) {
 				type = 'transform';
@@ -354,6 +353,8 @@
 		for (var i = 0, il = this.selected.length; i < il; i++) {
 			this.deselectTransform(this.selected[i]);
 		}
+		
+		this.deselectMaterial();
 	};
 	
 	BrowserModel.prototype.deselectGeometry = function() {
@@ -366,6 +367,13 @@
 			
 			this.currentShape = this.currentHighlightShape = null;
 			this.notifyListeners(shorthand.events.ShapeSelected, null);
+		}
+	};
+	
+	BrowserModel.prototype.deselectMaterial = function() {
+		if (this.currentMaterial) {
+			this.currentMaterial.color = this.originalColor;
+			this.currentMaterial = this.originalColor = null;
 		}
 	};
 	
@@ -519,6 +527,12 @@
 	BrowserModel.prototype.removeShape = function(shape) {
 		this.deselectTransform(shape.mesh);
 		this.notifyListeners(shorthand.events.RemoveUserCreatedShape, shape);
+	};
+	
+	BrowserModel.prototype.selectMaterial = function(material) {
+		this.currentMaterial = material;
+		this.originalColor = material.color;
+		material.color = HILIGHT_COLOR;
 	};
 	
 	BrowserModel.prototype.selectTransform = function(transform) {		
@@ -1372,6 +1386,19 @@
 		
 	AdjustWidget.prototype = new editor.ui.Widget();
 	AdjustWidget.prototype.constructor = AdjustWidget;
+	
+	AdjustWidget.prototype.enable = function(enable) {
+		if (enable) {
+			this.transBtn.removeAttr('disabled');
+			this.rotateBtn.removeAttr('disabled');
+			this.scaleBtn.removeAttr('disabled');
+		}
+		else {
+			this.transBtn.attr('disabled', 'disabled');
+			this.rotateBtn.attr('disabled', 'disabled');
+			this.scaleBtn.attr('disabled', 'disabled');
+		}
+	};
 		
 	AdjustWidget.prototype.layout = function() {
 		wgtSuper.layout.call(this);
@@ -1432,6 +1459,15 @@
 		
 	OpacityWidget.prototype = new editor.ui.Widget();
 	OpacityWidget.prototype.constructor = OpacityWidget;
+	
+	OpacityWidget.prototype.enable = function(enable) {
+		if (enable) {
+			this.slider.slider('enable');
+		}
+		else {
+			this.slider.slider('disable');
+		}
+	};
 		
 	OpacityWidget.prototype.layout = function() {
 		wgtSuper.layout.call(this);
@@ -1659,7 +1695,8 @@
 		this.btn.text(type === DetailsType.TRANSFORM ? 'View Shapes' : 
 			'View Texture');
 			
-		if ((obj.material && obj.material.map == null) || obj.geometry == null) {
+		if ((type === DetailsType.MATERIAL && obj.material && obj.material.map == null) || 
+				(type === DetailsType.TRANSFORM && obj.geometry == null)) {
 			this.btn.attr('disabled', 'disabled');
 		}
 		else {
@@ -1680,6 +1717,15 @@
 		
 	VisibilityWidget.prototype = new editor.ui.Widget();
 	VisibilityWidget.prototype.constructor = VisibilityWidget;
+	
+	VisibilityWidget.prototype.enable = function(enable) {
+		if (enable) {
+			this.visBtn.removeAttr('disabled');
+		}
+		else {
+			this.visBtn.attr('disabled', 'disabled');
+		}
+	};
 		
 	VisibilityWidget.prototype.layout = function() {
 		wgtSuper.layout.call(this);
@@ -1825,6 +1871,12 @@
 				model.deselectAll();
 				detWgt.set(value, DetailsType.MATERIAL);
 				view.bottomPanel.setVisible(true);
+				opaWgt.enable(false);
+				visWgt.enable(false);
+				adjWgt.enable(false);
+				model.selectMaterial(value.material);
+//				opaWgt.setVisible(false);
+//				adjWgt.setVisible(false);
 				// TODO: Do something useful like highlight the material so
 				// that the user can see what shapes use it. ~ekitson
 			}
@@ -1904,6 +1956,9 @@
 			detWgt.set(transform, DetailsType.TRANSFORM);
 			visWgt.set(transform);
 			opaWgt.set(transform);
+			opaWgt.enable(true);
+			visWgt.enable(true);
+			adjWgt.enable(true);
 			
 			if (view.mode === editor.ToolConstants.MODE_DOWN) {
 				view.bottomPanel.setVisible(true);
