@@ -198,10 +198,10 @@
 
 			hemi.dispatch.removeSpecs({
 				src: this._worldId
-			}, true);
+			}, false);
 			hemi.dispatch.removeTargets({
 				handler: this
-			}, true);
+			}, false);
 			hemi.world.removeCitizen(this);
 		};
 

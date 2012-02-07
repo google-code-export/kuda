@@ -327,8 +327,7 @@
 	 * Octane properties for ParticleTrail.
 	 * @type string[]
 	 */
-	ParticleTrail.prototype._octane = ['fireInterval', '_newSystem', 'blending', 'client', 'colorRamp', 'params',
-		'particleFunction', 'setup'];
+	ParticleTrail.prototype._octane = ['fireInterval'].concat(ParticleEmitter.prototype._octane);
 
 	/**
 	 * Render event handling function that allows the ParticleTrail to animate.
