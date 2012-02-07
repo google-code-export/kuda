@@ -78,12 +78,12 @@
 //                     			  			Tool Definition  				                      //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-    shorthand.constants = {
+	shorthand.constants = {
 		// TODO: We need a better way of testing for our highlight shapes than
 		// searching for this prefix.
-    	HIGHLIGHT_PRE: 'kuda_highlight_',
-    	SEL_HIGHLIGHT: 'selectorHighlight'	
-    };
+		HIGHLIGHT_PRE: 'kuda_highlight_',
+		SEL_HIGHLIGHT: 'selectorHighlight'	
+	};
 	
 	shorthand.events = {
 		// browser model events
@@ -100,13 +100,13 @@
 		UpdateUserCreatedShape: "browser.UpdateUserCreatedShape",
 		
 		// view events
-	    ShowPicked: "browser.ShowPicked",
-	    ManipState: "browser.ManipState",
-	    SetTransOpacity: "browser.SetTransOpacity",
+		ShowPicked: "browser.ShowPicked",
+		ManipState: "browser.ManipState",
+		SetTransOpacity: "browser.SetTransOpacity",
 		
 		// hidden items widget events
 		SetPickable: "browser.SetPickable",
-	    ShowHiddenItem: "browser.ShowHiddenItem",
+		ShowHiddenItem: "browser.ShowHiddenItem",
 		
 		// model tree widget events
 		DeselectTreeItem: "browser.DeselectTreeItem",
@@ -212,9 +212,9 @@
 						className: 'directory',
 						nodeId: citId + '_mats'
 					};
-			    children = [tranObj, matObj];
+				children = [tranObj, matObj];
 			} else if (node instanceof hemi.Shape) {
-			    children = [{
+				children = [{
 						name: 'Transforms',
 						children: [node.mesh],
 						className: 'directory',
@@ -291,15 +291,15 @@
 	
 	var BrowserModel = function() {
 		editor.ToolModel.call(this, 'browser');
-        
+		
 		this.selected = [];
-        this.highlightedShapes = new Hashtable();
+		this.highlightedShapes = new Hashtable();
 		this.currentShape = null;
 		this.currentHighlightShape = null;
 		this.currentTransform = null;
 		this.msgHandler = null;
 		this.shapHighlightMat = null;
-        this.tranHighlightMat = null;
+		this.tranHighlightMat = null;
 		this.curHandle = new editor.ui.TransHandles();
 		this.models = [];
 		this.oldMaterials = new Hashtable();
@@ -307,14 +307,16 @@
 			color: 0x75d0f4,
 			ambient: 0xffffff
 		});
-        
+		
 		var mdl = this;
 		
 		hemi.subscribe(hemi.msg.load,
 			function(msg) {
-				if (msg.src instanceof hemi.Model) {
-					mdl.processModel(msg.src);			
-					mdl.notifyListeners(editor.events.Created, msg.src);
+				var src = msg.src;
+
+				if (src instanceof hemi.Model) {
+					mdl.processModel(src, src.root);
+					mdl.notifyListeners(editor.events.Created, src);
 				}
 			});
 			
@@ -416,29 +418,29 @@
 	BrowserModel.prototype.getSelectedTransforms = function() {
 		return this.selected;
 	};
-    
-    BrowserModel.prototype.hideSelected = function() {
+	
+	BrowserModel.prototype.hideSelected = function() {
 		for (var i = 0, il = this.selected.length; i < il; i++) {
 			this.hideTransform(this.selected[i]);
 		}
-    };
-    
-    BrowserModel.prototype.hideTransform = function(transform) {
+	};
+	
+	BrowserModel.prototype.hideTransform = function(transform) {
 		transform.visible = false;
 		transform.pickable = false;
-        this.notifyListeners(shorthand.events.TransformHidden, {
+		this.notifyListeners(shorthand.events.TransformHidden, {
 			transform: transform,
 			owner: owners.get(transform)
 		});
-    };
+	};
 	
 	BrowserModel.prototype.highlightSelected = function() {
 		for (var i = 0, il = this.selected.length; i < il; i++) {
 			this.highlightTransform(this.selected[i]);
 		}
 	};
-        
-    BrowserModel.prototype.highlightTransform = function(transform) {
+		
+	BrowserModel.prototype.highlightTransform = function(transform) {
 		var children = transform.children,
 			geometry = transform.geometry;
 		
@@ -454,7 +456,7 @@
 			editor.client.renderer.initMaterial(this.highlightMaterial, scene.lights, scene.fog, 
 				this.transform);
 		}
-    };
+	};
 	
 	BrowserModel.prototype.isSelected = function(transform, opt_owner) {
 		var transforms;
@@ -468,7 +470,7 @@
 		return transforms.indexOf(transform) !== -1;
 	};
 	
-    BrowserModel.prototype.onPick = function(pickedMesh, mouseEvent) {
+	BrowserModel.prototype.onPick = function(pickedMesh, mouseEvent) {
 		if (!this.curHandle.down) {			
 			if (this.isSelected(pickedMesh) && mouseEvent.shiftKey) {
 				this.deselectTransform(pickedMesh);
@@ -481,26 +483,22 @@
 				this.selectTransform(pickedMesh);
 			}
 		}
-    };
-    
-    BrowserModel.prototype.processModel = function(model) {
-//		var updates = model.transformUpdates;
-//		
-//		for (var ndx = 0, len = updates.length; ndx < len; ndx++) {
-//            var update = updates[ndx],
-//				vis = update.visible,
-//				pick = update.pickable;
-//			
-//            if (vis === false) {
-//				this.hideTransform(update.transform, model);
-//				
-//				// Pickable will be false or null (not true)
-//				if (pick === null) {
-//					this.setTransformPickable(update.transform, true, model);
-//				}
-//            }
-//        }
-    };
+	};
+
+	BrowserModel.prototype.processModel = function(model, transform) {
+		var children = transform.children;
+
+		if (!transform.visible) {
+			this.notifyListeners(shorthand.events.TransformHidden, {
+				transform: transform,
+				owner: model
+			});
+		}
+
+		for (var i = 0, il = children.length; i < il; ++i) {
+			this.processModel(model, children[i]);
+		}
+	};
 	
 	BrowserModel.prototype.removeModel = function(model) {
 		var transforms = [].concat(this.selected);
@@ -557,30 +555,30 @@
 	
 	BrowserModel.prototype.setTransformPickable = function(transform, pickable) {
 		transform.pickable = pickable;
-        this.notifyListeners(shorthand.events.PickableSet, {
+		this.notifyListeners(shorthand.events.PickableSet, {
 			tran: transform,
 			pick: pickable
 		});
 	};
-    
-    BrowserModel.prototype.showSelected = function() {
+	
+	BrowserModel.prototype.showSelected = function() {
 		for (var i = 0, il = this.selected.length; i < il; i++) {
 			this.showTransform(this.selected[i]);
 		}
-    };
-    
-    BrowserModel.prototype.showTransform = function(transform, opt_owner) {
+	};
+	
+	BrowserModel.prototype.showTransform = function(transform, opt_owner) {
 		transform.visible = true;
 		transform.pickable = true;
-        this.notifyListeners(shorthand.events.TransformShown, transform);
-    };
+		this.notifyListeners(shorthand.events.TransformShown, transform);
+	};
 	
 	BrowserModel.prototype.unhighlightAll = function() {
 		for (var i = 0, il = this.selected.length; i < il; i++) {
 			this.unhighlightTransform(this.selected[i]);
 		}
 	};
-    
+	
    BrowserModel.prototype. unhighlightTransform = function(transform) {
 		var children = transform.children,
 			geometry = transform.geometry;
@@ -592,7 +590,7 @@
 		if (geometry) {
 			transform.material = this.oldMaterials.get(transform);
 		}
-    };
+	};
 	
 	BrowserModel.prototype.updateShape = function(shape) {
 		this.notifyListeners(shorthand.events.UpdateUserCreatedShape, shape);
@@ -693,7 +691,7 @@
 	
 	
 	var ModelTreeWidget = function(options) {
-        editor.ui.Widget.call(this, {
+		editor.ui.Widget.call(this, {
 			name: 'modelTreeWidget'
 		});
 	};
@@ -720,7 +718,7 @@
 	};
 	
 	ModelTreeWidget.prototype.deselectNode = function(nodeName) {
-        var node = this.tree.find('#' + nodeName);
+		var node = this.tree.find('#' + nodeName);
 		this.tree.jstree('deselect_node', node);
 	};
 	
@@ -936,7 +934,7 @@
 	};
 	
 	var HiddenItemsWidget = function(options) {
-	    editor.ui.Widget.call(this, {
+		editor.ui.Widget.call(this, {
 			name: 'hiddenItemsWidget'
 		});
 		
@@ -959,12 +957,12 @@
 		this.container.append(this.list.getUI());
 	};
 	
-    HiddenItemsWidget.prototype.addHiddenItem = function(transform, owner) {
+	HiddenItemsWidget.prototype.addHiddenItem = function(transform, owner) {
 		var id = transform._getId();
 		
 		if (!this.hiddenItems.containsKey(id)) {
 			var li = new HiddenItemListItem(),
-            	wgt = this;
+				wgt = this;
 				
 			li.setText(transform.name);
 			li.attachObject(transform);
@@ -975,7 +973,8 @@
 					tran: transform,
 					pick: this.checked
 				});
-			});
+			}).prop('checked', transform.pickable);
+
 			li.showBtn.bind('click', function(evt) {
 				var transform = li.getAttachedObject();
 				wgt.notifyListeners(shorthand.events.ShowHiddenItem, transform);
@@ -988,16 +987,16 @@
 			this.hiddenItems.put(id, li);
 			this.ownerTransHash.put(owner, transforms);
 		}
-    };
-    
-    HiddenItemsWidget.prototype.removeHiddenItem = function(transform) {
+	};
+	
+	HiddenItemsWidget.prototype.removeHiddenItem = function(transform) {
 		var li = this.hiddenItems.remove(transform._getId());
 		this.list.remove(li);
 		
 		if (this.hiddenItems.size() === 0) {
 			this.setVisible(false);
 		}
-    };
+	};
 	
 	HiddenItemsWidget.prototype.removeOwner = function(owner) {
 		var transforms = this.ownerTransHash.get(owner);
@@ -1014,7 +1013,7 @@
 		var list = this.list.getUI(),
 		
 		// adjust the list pane height
-		 	listHeight = maxHeight - hdrHeight;
+			listHeight = maxHeight - hdrHeight;
 			
 		if (listHeight > 0) {
 			list.height(listHeight);
@@ -1803,7 +1802,7 @@
 			model.setTransformPickable(data.tran, data.pick);
 		});
 		hidWgt.addListener(shorthand.events.ShowHiddenItem, function(transform) {
-	        model.showTransform(transform);
+			model.showTransform(transform);
 		});
 		
 		// loader widget specific
@@ -1837,17 +1836,17 @@
 		});
 		
 		// bottom panel			  
-	    adjWgt.addListener(shorthand.events.ManipState, function(state) {
+		adjWgt.addListener(shorthand.events.ManipState, function(state) {
 			model.setManipState(state);
-	    });
-	    opaWgt.addListener(shorthand.events.SetTransOpacity, function(opacity) {
+		});
+		opaWgt.addListener(shorthand.events.SetTransOpacity, function(opacity) {
 			model.setOpacity(opacity);
-	    });
-	    visWgt.addListener(shorthand.events.ShowPicked, function(value) {
+		});
+		visWgt.addListener(shorthand.events.ShowPicked, function(value) {
 			if (value) {
-	            model.showSelected();
+				model.showSelected();
 			} else {
-	            model.hideSelected();
+				model.hideSelected();
 			}
 		});
 					
@@ -1859,15 +1858,15 @@
 		model.addListener(shorthand.events.LoadException, function(url) {
 			ldrWgt.updateLoadException(url);
 		});
-	    model.addListener(editor.events.Removing, function(model) {
-	        mbrWgt.removeModel(model);
+		model.addListener(editor.events.Removing, function(model) {
+			mbrWgt.removeModel(model);
 			hidWgt.removeOwner(model);
 			ldrWgt.updateModelRemoved(model);
 			adjWgt.reset();
 			detWgt.reset();
 			opaWgt.reset();
 			view.bottomPanel.setVisible(false);
-	    });
+		});
 		
 		model.addListener(shorthand.events.AddUserCreatedShape, function(shape) {
 			var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
@@ -1890,16 +1889,16 @@
 			mbrWgt.updateShape(shape);
 		});
 		model.addListener(shorthand.events.PickableSet, function(data) {
-	        hidWgt.setPickable(data.tran, data.pick);
-	    });
+			hidWgt.setPickable(data.tran, data.pick);
+		});
 		model.addListener(shorthand.events.TransformDeselected, function(transform) {
 			mbrWgt.deselectNode(getNodeId(transform));
 		});
-	    model.addListener(shorthand.events.TransformHidden, function(obj) {
+		model.addListener(shorthand.events.TransformHidden, function(obj) {
 			var isDown = view.mode == editor.ToolConstants.MODE_DOWN;
-	        hidWgt.addHiddenItem(obj.transform, obj.owner);
+			hidWgt.addHiddenItem(obj.transform, obj.owner);
 			hidWgt.setVisible(isDown);
-	    });
+		});
 		model.addListener(shorthand.events.TransformSelected, function(transform) {
 			mbrWgt.selectNode(getNodeId(transform));
 			detWgt.set(transform, DetailsType.TRANSFORM);
@@ -1910,9 +1909,9 @@
 				view.bottomPanel.setVisible(true);
 			}
 		});
-	    model.addListener(shorthand.events.TransformShown, function(transform) {
-	        hidWgt.removeHiddenItem(transform);
-	    });
+		model.addListener(shorthand.events.TransformShown, function(transform) {
+			hidWgt.removeHiddenItem(transform);
+		});
 		
 		
 		if (!model.serverRunning) {
