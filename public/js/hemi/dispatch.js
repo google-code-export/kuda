@@ -710,7 +710,7 @@
 
 		for (var i = 0, il = specs.length; i < il; ++i) {
 			var spec = specs[i],
-				targets = spec.targets;
+				targets = spec.targets.slice(0);
 
 			for (var j = 0, jl = targets.length; j < jl; ++j) {
 				var result = targets[j],
