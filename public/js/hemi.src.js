@@ -4476,10 +4476,10 @@ if (!window.requestAnimationFrame) {
 
 			hemi.dispatch.removeSpecs({
 				src: this._worldId
-			}, true);
+			}, false);
 			hemi.dispatch.removeTargets({
 				handler: this
-			}, true);
+			}, false);
 			hemi.world.removeCitizen(this);
 		};
 
@@ -10611,8 +10611,7 @@ if (!window.requestAnimationFrame) {
 	 * Octane properties for ParticleTrail.
 	 * @type string[]
 	 */
-	ParticleTrail.prototype._octane = ['fireInterval', '_newSystem', 'blending', 'client', 'colorRamp', 'params',
-		'particleFunction', 'setup'];
+	ParticleTrail.prototype._octane = ['fireInterval'].concat(ParticleEmitter.prototype._octane);
 
 	/**
 	 * Render event handling function that allows the ParticleTrail to animate.
