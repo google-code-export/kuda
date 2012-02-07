@@ -3969,7 +3969,8 @@ if (!window.requestAnimationFrame) {
 
 (function() {
 
-	var colladaLoader = new THREE.ColladaLoader(),
+
+	var progressTable = new Hashtable(),
 		resetCB = null,
 		taskCount = 1;
 
@@ -4028,10 +4029,13 @@ if (!window.requestAnimationFrame) {
 	 * @param {function(Object):void} callback a function to pass the loaded COLLADA data
 	 */
 	hemi.loadCollada = function(url, callback) {
+		var loader = new THREE.ColladaLoader();
+
 		url = hemi.getLoadPath(url);
 		++taskCount;
 		createTask(url);
-		colladaLoader.load(url, function (collada) {
+
+		loader.load(url, function (collada) {
 			if (callback) {
 				callback(collada);
 			}
@@ -4183,7 +4187,27 @@ if (!window.requestAnimationFrame) {
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	var progressTable = new Hashtable();
+	/*
+	 * Create a new progress task with the given name. Initialize its
+	 * progress to 0.
+	 * 
+	 * @param {string} name the unique name of the task
+	 * @return {boolean} true if the task was created successfully, false if
+	 *      another task with the given name already exists
+	 */
+	function createTask(name) {
+		if (progressTable.get(name) !== null) {
+			return false;
+		}
+		
+		var obj = {
+			percent: 0
+		};
+		
+		progressTable.put(name, obj);
+		updateTotal();
+		return true;
+	}
 
 	function decrementTaskCount() {
 		if (--taskCount === 0) {
@@ -4197,35 +4221,14 @@ if (!window.requestAnimationFrame) {
 		}
 	}
 
-	/**
-	 * Create a new progress task with the given name. Initialize its
-	 * progress to 0.
-	 * 
-	 * @param {string} name the unique name of the task
-	 * @return {boolean} true if the task was created successfully, false if
-	 *      another task with the given name already exists
-	 */
-	var createTask = function(name) {
-		if (progressTable.get(name) !== null) {
-			return false;
-		}
-		
-		var obj = {
-			percent: 0,
-		};
-		
-		progressTable.put(name, obj);
-		updateTotal();
-		return true;
-	};
-		/**
+	/*
 	 * Update the progress of the task with the given name to the given percent.
 	 * 
 	 * @param {string} name name of the task to update
 	 * @param {number} percent percent to set the task's progress to (0-100)
 	 * @return {boolean} true if the task was found and updated
 	 */
-	var updateTask = function(name, percent) {
+	function updateTask(name, percent) {
 		var task = progressTable.get(name),
 			update = task !== null;
 		
@@ -4242,13 +4245,13 @@ if (!window.requestAnimationFrame) {
 		}
 		
 		return update;
-	};
+	}
 	
-	/**
+	/*
 	 * Send an update on the total progress of all loading activities, and clear
 	 * the progress table if they are all finished.
 	 */
-	var updateTotal = function() {
+	function updateTotal() {
 		var total = progressTable.size(),
 			values = progressTable.values(),
 			percent = 0;
@@ -4270,7 +4273,7 @@ if (!window.requestAnimationFrame) {
 		}
 		
 		return percent;
-	};
+	}
 
 })();
 /*
