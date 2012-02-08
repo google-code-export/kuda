@@ -52,7 +52,7 @@
 		
 	Vector.prototype.layout = function() {
 		// initialize container
-		this.container = this.config.container;
+		this.container = this.config.container || jQuery('<div></div>');
 		
 		if (this.unbounded || this.multiDimUnbounded) {
 			layoutUnbounded.call(this);
@@ -314,11 +314,8 @@
 			elem.removeClass('vectorHelper');
 		})
 		.bind('blur', function(evt) {
-			var elem = jQuery(this),
-				val = wgt.getValue();
-			
 			if (wgt.config.onBlur) {
-				wgt.config.onBlur(elem, evt, wgt);
+				wgt.config.onBlur(jQuery(this), evt, wgt);
 			}
 		});
 	};
@@ -419,6 +416,29 @@
 		}
 	};
 	
+////////////////////////////////////////////////////////////////////////////////////////////////////
+//                                			  	Vector3	                                          //
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	var Vector3 = editor.ui.Vector3 = function(options) {
+		Vector.call(this, options);
+	};
+
+	Vector3.prototype = new Vector();
+	Vector3.prototype.constructor = Vector3;
+
+	Vector3.prototype.setValue = function(value) {
+		var values = [value.x, value.y, value.z];
+		Vector.prototype.setValue.call(this, values);
+	};
+
+	Vector3.prototype.getValue = function() {
+		var val = Vector.prototype.getValue.call(this),
+			vec = val ? new THREE.Vector3(val[0], val[1], val[2]) : null;
+
+		return vec;
+	};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //                               			Helper Methods			                              //
 ////////////////////////////////////////////////////////////////////////////////////////////////////		

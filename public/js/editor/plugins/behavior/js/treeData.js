@@ -533,18 +533,21 @@
 	shorthand.treeData.createModelPickJson = function(spCit, prefix) {
 		var model = spCit.citizen,
 			id = spCit._getId(),
-			shapes = [];
-		
-		for (var ndx = 0, len = model.geometries.length; ndx < len; ndx++) {
-			var shape = model.geometries[ndx],
+			meshes = [],
+			meshJson = [];
+
+		findMeshes(model.root, meshes);
+
+		for (var i = 0, il = meshes.length; i < il; ++i) {
+			var mesh = meshes[i],
 				name = getNodeName(spCit, {
-					option: shape.name || '',
+					option: mesh.name || '',
 					prefix: prefix,
 					id: id
 				});
-			
-			shapes.push({
-				data: shape.name || '',
+
+			meshJson.push({
+				data: mesh.name || '',
 				attr: {
 					id: name,
 					rel: 'message'
@@ -552,24 +555,24 @@
 				metadata: {
 					type: 'message',
 					parent: spCit,
-					msg: shape.name || ''
+					msg: mesh.name || ''
 				}
 			});
 		}
-		
+
 		var name = getNodeName(spCit, {
 			option: null,
 			prefix: prefix,
 			id: id
 		});
-		
+
 		return {
 			data: model.name || '',
 			attr: {
 				id: name,
 				rel: 'citizen'
 			},
-			children: shapes,
+			children: meshJson,
 			state: 'closed',
 			metadata: {
 				type: 'citizen',
@@ -737,5 +740,17 @@
 			}
 		};
 	};
-	
+
+	function findMeshes(transform, meshes) {
+		var children = transform.children;
+
+		if (transform.geometry) {
+			meshes.push(transform);
+		}
+
+		for (var i = 0, il = children.length; i < il; ++i) {
+			findMeshes(children[i], meshes);
+		}
+	}
+
 })();

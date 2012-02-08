@@ -205,7 +205,7 @@
 		switch(baseType) {
 			case 'angle':
 			case 'THREE.Vector3':
-				ui = new editor.ui.Vector({
+				ui = new editor.ui.Vector3({
 					validator: vdr,
 					container: jQuery('<div class="vectorContainer" />'),
 					inputType: 'number',
