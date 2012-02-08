@@ -119,7 +119,7 @@
 						}
 						
 						if (compId === id) {
-							if (obj instanceof hemi.shape.Shape) {
+							if (obj instanceof hemi.Shape) {
 								target.handler.values[0] = obj.transform.shapes[0].name;
 							}
 							tblWgt.update(target, spec);
