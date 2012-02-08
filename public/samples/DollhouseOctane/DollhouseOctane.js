@@ -22,27 +22,29 @@
  */
 (function() {
 
-	function init(clientElements) {
-		hemi.core.init(clientElements[0]);
-		hemi.view.setBGColor([1, 1, 1, 1]);
-		hemi.loader.loadPath = '../../';
-		loadWorld();
-	}
+	// function init(clientElements) {
+		// hemi.core.init(clientElements[0]);
+		// hemi.view.setBGColor([1, 1, 1, 1]);
+		// hemi.loader.loadPath = '../../';
+		// loadWorld();
+	// }
+    hemi.init();
+    hemi.loadPath = '../../';
+    loadWorld();
 	
-	function loadWorld() {
-		hemi.loader.loadOctane('samples/DollhouseOctane/dollhouse.json',
+    function loadWorld() {
+		hemi.loadOctane('samples/DollhouseOctane/dollhouse.json',
 			function() {
 				// This will be executed before hemi.world.ready() is called.
-				hemi.world.subscribe(hemi.msg.ready,
+				hemi.subscribe(hemi.msg.ready,
 					function(msg) {
 						// We are not currently able to disable camera control
 						// from the Kuda World Editor, so we must do it here.
-						hemi.world.camera.disableControl();
 						bindJavascript();
 					});
 			});
 	}
-	
+
 	/*
 	 * Find the Viewpoints that were created in the Kuda World Editor and bind
 	 * a camera move for each one to an HTML button.
@@ -87,7 +89,7 @@
 			}
 		}
 		
-		var camera = hemi.world.camera;
+		var camera = hemi.clients[0].camera;
 		
 		jQuery('#viewpoint1').click(function() {
 			camera.moveToView(viewpoint1);
@@ -116,15 +118,47 @@
 		jQuery('#viewpoint9').click(function() {
 			camera.moveToView(viewpoint9);
 		});
+        
+        var animationGroups = hemi.world.getAnimationGroups();
+        
+        var animAtticDoor, animFan, animFrontDoor;
+        
+        for (var ndx = 0, len = animationGroups.length; ndx < len; ndx++) {
+			var animationGroup = animationGroups[ndx];
+            
+            switch (animationGroup.name) {
+                case 'Fan':
+                    animFan = animationGroup;
+                    break;
+                case 'AtticDoor':
+                    animAtticDoor = animationGroup;
+                    break;
+                case 'FrontDoor':
+                    animFrontDoor = animationGroup;
+                    break;
+                default:
+                    break;
+			}
+		}
+		
+        jQuery('#atticDoor').click(function() {
+            animAtticDoor.start();
+		});
+        jQuery('#frontDoor').click(function() {
+            animFrontDoor.start();
+		});
+        jQuery('#fan').click(function() {
+            animFan.start();
+		});
 	}
 
-	jQuery(window).load(function() {
-		o3djs.webgl.makeClients(init);
-	});
+	// jQuery(window).load(function() {
+		// o3djs.webgl.makeClients(init);
+	// });
 
-	jQuery(window).unload(function() {
-		if (hemi.core.client) {
-			hemi.core.client.cleanup();
-		}
-	});
+	// jQuery(window).unload(function() {
+		// if (hemi.core.client) {
+			// hemi.core.client.cleanup();
+		// }
+	// });
 })();
