@@ -424,7 +424,7 @@
 		if (params.uv === undefined) {
 			// Previous manip was not a Movable, so restoring is not possible.
 			restore = false;
-		} else {
+		} else if (restore) {
 			this._manip._uv[0] = params.uv[0];
 			this._manip._uv[1] = params.uv[1];
 		}
@@ -499,7 +499,7 @@
 		if (params.scale === undefined) {
 			// Previous manip was not a Resizable, so restoring is not possible.
 			restore = false;
-		} else {
+		} else if (restore) {
 			this._manip._scale = params.scale;
 		}
 
@@ -557,7 +557,7 @@
 		if (params.angle === undefined) {
 			// Previous manip was not a Turnable, so restoring is not possible.
 			restore = false;
-		} else {
+		} else if (restore) {
 			this._manip._angle = params.angle;
 		}
 
@@ -641,8 +641,8 @@
 	 * @class A Mesh performs hierarchical matrix transformations and contains geometry and
 	 * rendering materials.
 	 */
-	var Mesh = function() {
-		THREE.Mesh.call(this);
+	var Mesh = function(geometry, material) {
+		THREE.Mesh.call(this, geometry, material);
 
 		/*
 		 * The Manipulator that allows the user to control the Mesh through mouse interaction.
@@ -702,6 +702,14 @@
 		}
 
 		Transform.prototype._init.call(this, obj, toConvert);
+	};
+
+	Mesh.prototype.getBoundingBox = function() {
+		if (!this.geometry.boundingBox) {
+			this.geometry.computeBoundingBox();
+		}
+		return new hemi.BoundingBox(this.matrixWorld.multiplyVector3(this.geometry.boundingBox.min.clone()),
+			this.matrixWorld.multiplyVector3(this.geometry.boundingBox.max.clone()));
 	};
 
 	/*

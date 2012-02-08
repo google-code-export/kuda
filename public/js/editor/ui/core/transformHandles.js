@@ -35,15 +35,8 @@
 	
 	function getBoundingBox(transform) {
 		var children = transform.children,
-			box = null;
-			
-		if (transform.geometry) {
-			box = {
-				min: transform.geometry.boundingBox.min.clone(),
-				max: transform.geometry.boundingBox.max.clone()
-			};
-		}
-		
+			box = transform.getBoundingBox();
+
 		for (var i = 0, il = children.length; i < il; i++) {
 			var b = getBoundingBox(children[i]);
 			if (box) {
@@ -266,6 +259,7 @@
 		
 		this.down = false;
 		if (this.manip) {
+			this.transform.cancelInteraction();
 			this.manip = null;
 		}
 		editor.client.camera.enableControl();
@@ -383,8 +377,8 @@
 		this.transform.setResizable(axis);
 		this.manip = this.transform._manip;
 		
-		this.manip.subscribe(
-			hemi.msg.scale,
+		this.transform.subscribe(
+			hemi.msg.resize,
 			this,
 			"onChange",
 			[
@@ -401,29 +395,32 @@
 	
 	TransHandles.prototype.startTranslate = function(plane, evt) {
 		editor.client.camera.disableControl();
-		this.transform.setMovable(plane);		
-		this.manip = this.transform._manip;
-		this.manip.name = editor.ToolConstants.EDITOR_PREFIX + 'Dragger';
-		this.manip.subscribe(
-			hemi.msg.drag,
-			this,
-			"onChange",
-			[
-				hemi.dispatch.MSG_ARG + "data.drag"
-			]);
-		
+
+		var limits;
 		switch(plane) {
 			case hemi.Plane.XY:
-			    this.manip.vmin = this.manip.vmax = 0;
+			    limits = [null, null, 0, 0];
 				break;
 			case hemi.Plane.YZ:
-			    this.manip.umin = this.manip.umax = 0;
+				limits = [0, 0, null, null];
 				break;
 			case hemi.Plane.XZ:
-			    this.manip.umin = this.manip.umax = 0;
+				limits = [0, 0, null, null];
 				break;
 		}
 		
+		this.transform.setMovable(plane, limits);		
+		this.manip = this.transform._manip;
+		this.manip.name = editor.ToolConstants.EDITOR_PREFIX + 'Dragger';
+		this.transform.subscribe(
+			hemi.msg.move,
+			this,
+			"onChange",
+			[
+				hemi.dispatch.MSG_ARG + "data.delta"
+			]);
+		
+
 		this.manip.onPick(this.transform, evt);
 	};
 	

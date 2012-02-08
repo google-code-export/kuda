@@ -611,6 +611,7 @@
 		this._tension = 0;
 		this._timeParam = null;
 		this._viewITParam = null;
+		this._particleSize = null;
 
 		/**
 		 * Flag indicating if the ParticleCurve is currently running.
@@ -646,8 +647,8 @@
 	 */
 	ParticleCurve.prototype._octane = function() {
 		return [{
-			name: 'mesh',
-			id: this._mesh._getId()
+			name: 'client',
+			id: this.client._getId()
 		}, {
 			name: 'loadConfig',
 			arg: [{
@@ -657,7 +658,9 @@
 				life: this.life,
 				particleCount: this._particles,
 				scaleKeys: this._scales,
-				tension: this._tension
+				tension: this._tension,
+				size: this._particleSize,
+				particleShape: this._particleShape
 			}]
 		}];
 	};
@@ -687,7 +690,9 @@
 	 *     colorKeys: array of time keys and values for particle color ramp
 	 *     life: lifetime of particle system (in seconds)
 	 *     particleCount: number of particles to allocate for system
-	 *     particleShape: mesh containg shape geometry to use for particles
+	 *     particleSize: size of the particle
+	 *     particleShape: hemi.ShapeType pre defined shape type
+	 *	   customMesh: Custom mesh for particles *CANNOT BE OCTANED CURRENTLY*
 	 *     scales: array of values for particle scale ramp (use this or scaleKeys)
 	 *     scaleKeys: array of time keys and values for particle size ramp
 	 *     tension: tension parameter for the curve (typically from -1 to 1)
@@ -699,6 +704,8 @@
 		this.life = cfg.life || 5;
 		this._particles = cfg.particleCount || 0;
 		this._tension = cfg.tension || 0;
+		this._particleSize = cfg.particleSize || 0;
+		this._particleShape = cfg.particleShape || null;
 
 		if (cfg.colorKeys) {
 			this.setColorKeys(cfg.colorKeys);
@@ -718,7 +725,10 @@
 
 		if (cfg.particleShape) {
 			this.setParticleShape(cfg.particleShape);
-		} else {
+		} else if (cfg.customMesh) {
+			this.setParticleMesh(cfg.customMesh);
+		}
+		else {
 			this._mesh = null;
 		}
 	};
@@ -881,7 +891,7 @@
 
 		if (this._mesh) {
 			// Recreate the custom vertex buffers
-			this.setParticleShape(this._mesh);
+			this.setParticleMesh(this._mesh);
 		}
 	};
 
@@ -891,7 +901,7 @@
 	 * 
 	 * @param {hemi.Mesh} mesh the mesh containing the shape geometry to use
 	 */
-	ParticleCurve.prototype.setParticleShape = function(mesh) {			
+	ParticleCurve.prototype.setParticleMesh = function(mesh) {			
 		if (this._mesh) {
 			if (this._mesh.parent) this.client.scene.remove(this._mesh);
 			this._mesh = null;
@@ -909,6 +919,21 @@
 
 		this.setMaterial(mesh.material || newMaterial());
 	};
+
+	/**
+	 * Set's the particles shape to a hemi.ShapeType
+	 * 
+	 * @param {hemi.ShapeType} The type of shape
+	 */
+	ParticleCurve.prototype.setParticleShape = function(shapeType) {
+		this._particleShape = shapeType;
+		this.setParticleMesh(hemi.createShape({
+			shape: shapeType,
+			size: this._particleSize,
+			tail: this._particleSize / 2,
+			depth: this._particleSize
+		}));
+	}
 
 	/**
 	 * Set the scale ramp for the particles as they travel along the curve.
@@ -973,6 +998,15 @@
 		if (this._mesh) {
 			this._mesh.material.getParam('tension').value = (1 - this._tension) / 2;
 		}
+	};
+
+	/**
+	 * Set the lifetime of the curve
+	 * 
+	 * @param {number} life lifetime in seconds
+	 */
+	ParticleCurve.prototype.setLife = function(life) {
+		this.life = life;
 	};
 
 	/**

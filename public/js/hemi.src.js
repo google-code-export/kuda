@@ -7636,7 +7636,7 @@ if (!window.requestAnimationFrame) {
 		if (params.uv === undefined) {
 			// Previous manip was not a Movable, so restoring is not possible.
 			restore = false;
-		} else {
+		} else if (restore) {
 			this._manip._uv[0] = params.uv[0];
 			this._manip._uv[1] = params.uv[1];
 		}
@@ -7711,7 +7711,7 @@ if (!window.requestAnimationFrame) {
 		if (params.scale === undefined) {
 			// Previous manip was not a Resizable, so restoring is not possible.
 			restore = false;
-		} else {
+		} else if (restore) {
 			this._manip._scale = params.scale;
 		}
 
@@ -7769,7 +7769,7 @@ if (!window.requestAnimationFrame) {
 		if (params.angle === undefined) {
 			// Previous manip was not a Turnable, so restoring is not possible.
 			restore = false;
-		} else {
+		} else if (restore) {
 			this._manip._angle = params.angle;
 		}
 
@@ -7853,8 +7853,8 @@ if (!window.requestAnimationFrame) {
 	 * @class A Mesh performs hierarchical matrix transformations and contains geometry and
 	 * rendering materials.
 	 */
-	var Mesh = function() {
-		THREE.Mesh.call(this);
+	var Mesh = function(geometry, material) {
+		THREE.Mesh.call(this, geometry, material);
 
 		/*
 		 * The Manipulator that allows the user to control the Mesh through mouse interaction.
@@ -7914,6 +7914,14 @@ if (!window.requestAnimationFrame) {
 		}
 
 		Transform.prototype._init.call(this, obj, toConvert);
+	};
+
+	Mesh.prototype.getBoundingBox = function() {
+		if (!this.geometry.boundingBox) {
+			this.geometry.computeBoundingBox();
+		}
+		return new hemi.BoundingBox(this.matrixWorld.multiplyVector3(this.geometry.boundingBox.min.clone()),
+			this.matrixWorld.multiplyVector3(this.geometry.boundingBox.max.clone()));
 	};
 
 	/*
@@ -14553,6 +14561,7 @@ if (!window.requestAnimationFrame) {
 		this._tension = 0;
 		this._timeParam = null;
 		this._viewITParam = null;
+		this._particleSize = null;
 
 		/**
 		 * Flag indicating if the ParticleCurve is currently running.
@@ -14588,8 +14597,8 @@ if (!window.requestAnimationFrame) {
 	 */
 	ParticleCurve.prototype._octane = function() {
 		return [{
-			name: 'mesh',
-			id: this._mesh._getId()
+			name: 'client',
+			id: this.client._getId()
 		}, {
 			name: 'loadConfig',
 			arg: [{
@@ -14599,7 +14608,9 @@ if (!window.requestAnimationFrame) {
 				life: this.life,
 				particleCount: this._particles,
 				scaleKeys: this._scales,
-				tension: this._tension
+				tension: this._tension,
+				size: this._particleSize,
+				particleShape: this._particleShape
 			}]
 		}];
 	};
@@ -14629,7 +14640,9 @@ if (!window.requestAnimationFrame) {
 	 *     colorKeys: array of time keys and values for particle color ramp
 	 *     life: lifetime of particle system (in seconds)
 	 *     particleCount: number of particles to allocate for system
-	 *     particleShape: mesh containg shape geometry to use for particles
+	 *     particleSize: size of the particle
+	 *     particleShape: hemi.ShapeType pre defined shape type
+	 *	   customMesh: Custom mesh for particles *CANNOT BE OCTANED CURRENTLY*
 	 *     scales: array of values for particle scale ramp (use this or scaleKeys)
 	 *     scaleKeys: array of time keys and values for particle size ramp
 	 *     tension: tension parameter for the curve (typically from -1 to 1)
@@ -14641,6 +14654,8 @@ if (!window.requestAnimationFrame) {
 		this.life = cfg.life || 5;
 		this._particles = cfg.particleCount || 0;
 		this._tension = cfg.tension || 0;
+		this._particleSize = cfg.particleSize || 0;
+		this._particleShape = cfg.particleShape || null;
 
 		if (cfg.colorKeys) {
 			this.setColorKeys(cfg.colorKeys);
@@ -14660,7 +14675,10 @@ if (!window.requestAnimationFrame) {
 
 		if (cfg.particleShape) {
 			this.setParticleShape(cfg.particleShape);
-		} else {
+		} else if (cfg.customMesh) {
+			this.setParticleMesh(cfg.customMesh);
+		}
+		else {
 			this._mesh = null;
 		}
 	};
@@ -14823,7 +14841,7 @@ if (!window.requestAnimationFrame) {
 
 		if (this._mesh) {
 			// Recreate the custom vertex buffers
-			this.setParticleShape(this._mesh);
+			this.setParticleMesh(this._mesh);
 		}
 	};
 
@@ -14833,7 +14851,7 @@ if (!window.requestAnimationFrame) {
 	 * 
 	 * @param {hemi.Mesh} mesh the mesh containing the shape geometry to use
 	 */
-	ParticleCurve.prototype.setParticleShape = function(mesh) {			
+	ParticleCurve.prototype.setParticleMesh = function(mesh) {			
 		if (this._mesh) {
 			if (this._mesh.parent) this.client.scene.remove(this._mesh);
 			this._mesh = null;
@@ -14851,6 +14869,21 @@ if (!window.requestAnimationFrame) {
 
 		this.setMaterial(mesh.material || newMaterial());
 	};
+
+	/**
+	 * Set's the particles shape to a hemi.ShapeType
+	 * 
+	 * @param {hemi.ShapeType} The type of shape
+	 */
+	ParticleCurve.prototype.setParticleShape = function(shapeType) {
+		this._particleShape = shapeType;
+		this.setParticleMesh(hemi.createShape({
+			shape: shapeType,
+			size: this._particleSize,
+			tail: this._particleSize / 2,
+			depth: this._particleSize
+		}));
+	}
 
 	/**
 	 * Set the scale ramp for the particles as they travel along the curve.
@@ -14915,6 +14948,15 @@ if (!window.requestAnimationFrame) {
 		if (this._mesh) {
 			this._mesh.material.getParam('tension').value = (1 - this._tension) / 2;
 		}
+	};
+
+	/**
+	 * Set the lifetime of the curve
+	 * 
+	 * @param {number} life lifetime in seconds
+	 */
+	ParticleCurve.prototype.setLife = function(life) {
+		this.life = life;
 	};
 
 	/**
@@ -16114,6 +16156,7 @@ if (!window.requestAnimationFrame) {
 		mesh.geometry.computeBoundingSphere();
 		mesh.geometry.computeBoundingBox();
 		mesh.boundRadius = mesh.geometry.boundingSphere.radius;
+		mesh.name = shapeType;
 		return mesh;
 	};
 
