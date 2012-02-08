@@ -5887,7 +5887,7 @@ var editor = {};
 		hemi._resetKeyListeners(ws.keyListeners);
 		hemi._resetMouseListeners(ws.mouseListeners);
 		hemi.world.setNextId(ws.worldId);
-		hemi.dispatch.setNextId(ws._dispatchId);
+		hemi.dispatch.setNextId(ws.dispatchId);
 		hemi.hudManager._contexts = ws.hudContexts;
 
 		this.worldState = null;
