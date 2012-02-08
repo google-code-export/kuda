@@ -99,7 +99,8 @@
 		'hemi.Camera': ['disableControl', 'enableControl', 'moveOnCurve',
 			'moveToView', 'orbit', 'rotate', 'truck'],
 		'hemi.Transform': ['move', 'turn', 'cancelInteraction', 'cancelMoving', 'cancelTurning', 
-			'setMovable', 'setMoving', 'setTurnable', 'setTurning', 'setResizable']
+			'setMovable', 'setMoving', 'setPickable', 'setTurnable', 'setTurning', 'setResizable',
+			'setVisible']
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////

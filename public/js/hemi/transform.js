@@ -479,6 +479,16 @@
 	};
 
 	/**
+	 * Set the pickable flag for the Transform. NOTE: This is here temporarily for the Editor and
+	 * will be going away soon.
+	 * 
+	 * @param {boolean} pickable flag indicating if the Transform should be pickable
+	 */
+	Transform.prototype.setPickable = function(pickable) {
+		this.pickable = pickable;
+	};
+
+	/**
 	 * Allow the Transform to be resized (scaled) through mouse interaction along the given axis.
 	 * 
 	 * @param {hemi.Axis} opt_axis optional axis to enable resizing along (default is Y)
@@ -611,6 +621,16 @@
 	};
 
 	/**
+	 * Set the visible flag for the Transform. NOTE: This is here temporarily for the Editor and
+	 * will be going away soon.
+	 * 
+	 * @param {boolean} visible flag indicating if the Transform should be visible
+	 */
+	Transform.prototype.setVisible = function(visible) {
+		this.visible = visible;
+	};
+
+	/**
 	 * Animate the Transform turning by the given amount over the given amount of time.
 	 * 
 	 * @param {THREE.Vector3} delta XYZ amount to turn the Transform by
@@ -704,14 +724,6 @@
 		Transform.prototype._init.call(this, obj, toConvert);
 	};
 
-	Mesh.prototype.getBoundingBox = function() {
-		if (!this.geometry.boundingBox) {
-			this.geometry.computeBoundingBox();
-		}
-		return new hemi.BoundingBox(this.matrixWorld.multiplyVector3(this.geometry.boundingBox.min.clone()),
-			this.matrixWorld.multiplyVector3(this.geometry.boundingBox.max.clone()));
-	};
-
 	/*
 	 * Array of Hemi Messages that Mesh is known to send.
 	 * @type string[]
@@ -760,6 +772,24 @@
 	 * @return {hemi.Transform[]} array of all child/grandchild Transforms
 	 */
 	Mesh.prototype.getAllChildren = Transform.prototype.getAllChildren;
+
+	/**
+	 * Get the bounding box of the Mesh's geometry in world-space coordinates.
+	 * 
+	 * @return {hemi.BoundingBox} the world-space bounding box
+	 */
+	Mesh.prototype.getBoundingBox = function() {
+		var box = this.geometry.boundingBox,
+			wm = this.matrixWorld;
+
+		if (!box) {
+			this.geometry.computeBoundingBox();
+			box = this.geometry.boundingBox;
+		}
+
+		return new hemi.BoundingBox(wm.multiplyVector3(box.min.clone()),
+			wm.multiplyVector3(box.max.clone()));
+	};
 
 	/**
 	 * Get the current velocity of the given motion type for the Mesh.
@@ -817,6 +847,14 @@
 	Mesh.prototype.setMoving = Transform.prototype.setMoving;
 
 	/**
+	 * Set the pickable flag for the Mesh. NOTE: This is here temporarily for the Editor and will be
+	 * going away soon.
+	 * 
+	 * @param {boolean} pickable flag indicating if the Mesh should be pickable
+	 */
+	Mesh.prototype.setPickable = Transform.prototype.setPickable;
+
+	/**
 	 * Allow the Mesh to be resized (scaled) through mouse interaction along the given axis.
 	 * 
 	 * @param {hemi.Axis} axis the axis to enable resizing along
@@ -850,6 +888,14 @@
 	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for turning
 	 */
 	Mesh.prototype.setTurning = Transform.prototype.setTurning;
+
+	/**
+	 * Set the visible flag for the Mesh. NOTE: This is here temporarily for the Editor and will be
+	 * going away soon.
+	 * 
+	 * @param {boolean} visible flag indicating if the Mesh should be visible
+	 */
+	Mesh.prototype.setVisible = Transform.prototype.setVisible;
 
 	/**
 	 * Animate the Mesh turning by the given amount over the given amount of time.
