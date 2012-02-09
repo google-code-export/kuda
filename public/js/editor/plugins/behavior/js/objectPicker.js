@@ -33,7 +33,7 @@
 		position: 'absolute'
 	});
 				
-	function createCitizenTree(filter) {
+	function createCitizenTree(objPicker, filter) {
 		try {
 			if (citTree == null) {
 				citTree = shorthand.createCitizensTree();
@@ -63,9 +63,9 @@
 			}
 		}
 		catch (err) {
-			this.cannotFilter = true;
+			objPicker.cannotFilter = true;
 		}
-	};
+	}
 	
 	function initCitizenTree(tree, filter) {	
 		citTreePnl.append(tree);
@@ -85,8 +85,7 @@
 				
 			if (metadata.type === 'citizen') {
 				citParam = hemi.dispatch.ID_ARG + citizen._getId();
-				citName = citizen._octaneType.split('.').pop() 
-					+ '.' + citizen.name;
+				citName = citizen._octaneType.split('.').pop() + '.' + citizen.name;
 				jQuery(this).parent().hide(200);
 				tree.jstree('close_all').jstree('deselect_all');
 				citTree.currentParamIpt = null;
@@ -106,8 +105,7 @@
 				citTreePnl.hide().data('curElem', null);
 				citTree.currentParamIpt = null;
 				
-				jQuery(document).unbind('click.' + wgt.argName 
-					+ 'CitTree');
+				jQuery(document).unbind('click.' + wgt.argName + 'CitTree');
 				citTreePnl.data('docBound', false);
 				ipt.removeClass('open');
 				btn.removeClass('open');
@@ -115,13 +113,13 @@
 		});
 
 		citTree.filter(filter);
-	};
+	}
 	
 	shorthand.ObjectPicker = function(argName, filter) {
 		this.argName = argName;
 		this.filter = filter;
 		
-		createCitizenTree.call(this, filter);
+		createCitizenTree(this, filter);
 		
 		editor.ui.Component.call(this);
 	};
@@ -139,8 +137,7 @@
 					btn = elem.children('button'), 
 					ipt = elem.children('input');
 				
-				if (citTreePnl.is(':visible') && oldElem 
-						&& elem[0] === oldElem[0]) {
+				if (citTreePnl.is(':visible') && oldElem  && elem[0] === oldElem[0]) {
 					citTreePnl.slideUp(200).data('curElem', null);
 					citTree.currentParamIpt = null;
 					
@@ -169,10 +166,10 @@
 								parent = target.parents('#' + CIT_TREE_PNL_ID),
 								id = target.attr('id');
 							
-							if (parent.size() == 0 
-								&& id != CIT_TREE_PNL_ID
-								&& !target.hasClass('treeSelectorBtn')
-								&& !target.hasClass('treeSelectorIpt')) {
+							if (parent.size() == 0 &&
+								id != CIT_TREE_PNL_ID &&
+								!target.hasClass('treeSelectorBtn') &&
+								!target.hasClass('treeSelectorIpt')) {
 								citTreePnl.slideUp(200);
 								ipt.removeClass('open');
 								btn.removeClass('open');
