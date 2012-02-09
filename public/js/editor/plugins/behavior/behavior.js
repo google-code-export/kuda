@@ -253,7 +253,7 @@
 			method = msgTarget.handler.func;
 			argList = msgTarget.handler.args;
 			
-			if (spec.src === hemi.world.WORLD_ID) {
+			if (spec.src === hemi.dispatch.WILDCARD) {
 				source = shorthand.treeData.createShapePickCitizen(msgTarget.handler.citizen);
 			} else {
 				source = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
