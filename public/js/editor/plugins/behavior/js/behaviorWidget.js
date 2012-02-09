@@ -397,6 +397,8 @@
 								args = editor.utils.getFunctionParams(handler[method]);
 							if (args.length > 0) {
 								wgt.prmList.show(200, function() {
+									// can be repetitive, but needs to be here due to the show 
+									// animation
 									wgt.invalidate();
 								});
 								wgt.axnChooser.getUI().addClass('hasValue');
@@ -404,11 +406,11 @@
 							else {
 								wgt.prmList.hide();
 								wgt.axnChooser.getUI().removeClass('hasValue');
-								wgt.invalidate();
 							}
 							wgt.prms.populateArgList(handler, method, args);
 							data.handler = handler;
 							data.method = method;
+							wgt.invalidate();
 						}
 						else {
 							data.citizen = metadata.parent;
