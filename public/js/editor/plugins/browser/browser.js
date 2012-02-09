@@ -19,7 +19,7 @@
 	"use strict";
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			   			 Initialization  		                      		  //
+// Initialization
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var shorthand = editor.tools.browser,
@@ -74,7 +74,7 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			  			Tool Definition  				                      //
+// Tool Definition
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	shorthand.constants = {
@@ -119,175 +119,177 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                          				  Helper Methods		                              //
+// Helper Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var owners = new Hashtable();
 		
-	var createJsonObj = function(node, parentNode, owner) {
-			var c = getNodeChildren(node),
-				nodeType = getNodeType(node),
-				children = [];
-				
-			if (owner) {
-				owners.put(node, owner);
-			}
+	function createJsonObj(node, parentNode, owner) {
+		var c = getNodeChildren(node),
+			nodeType = getNodeType(node),
+			children = [],
+			i;
 			
-			if (parentNode == null) {
-				parentNode = node;
-				owner = node;
-			}
-			
-			for (var i = 0; c && i < c.length; i++) {
-				var nodeJson = createJsonObj(c[i], parentNode, owner);
-				children.push(nodeJson);
-			}
-			
-			var tNode = {
-				data: node.name,
-				attr: {
-					id: getNodeId(node),
-					rel: nodeType
-				},
-				state: children.length > 0 ? 'closed' : 'leaf',
-				children: children,
-				metadata: {
-					type: nodeType,
-					actualNode: node,
-					parent: parentNode
-				}
-			};
-			
-			return tNode;
-		},
+		if (owner) {
+			owners.put(node, owner);
+		}
 		
-		generateNodes = function(nodeName, closePath) {
-			var paths = getNodePath(nodeName),
-				toClose = [];
-			
-			for (var i = 0; i < paths.length; ++i) {
-				var node = this.tree.find('#' + paths[i]);
-				
-				if (node.length > 0) {
-					if (closePath && this.tree.jstree('is_closed', node)) {
-						toClose.unshift(node);
-					}
-					
-					this.tree.jstree('open_node', node, false, true);
-				}
-			}
-			
-			for (var i = 0; i < toClose.length; ++i) {
-				this.tree.jstree('close_node', toClose[i], true);
-			}
-		},
+		if (parentNode == null) {
+			parentNode = node;
+			owner = node;
+		}
 		
-		getNodePath = function(nodeName) {
-			var ndx = nodeName.indexOf('_'),
-				names = [];
-			
-			ndx = nodeName.indexOf('_', ndx + 1);
-			
-			while (ndx > -1) {
-				names.push(nodeName.substr(0, ndx));
-				ndx = nodeName.indexOf('_', ndx + 1);
-			}
-			
-			return names;
-		},
+		for (i = 0; c && i < c.length; i++) {
+			var nodeJson = createJsonObj(c[i], parentNode, owner);
+			children.push(nodeJson);
+		}
 		
-		getNodeChildren = function(node) {
-			var children;
-			
-			if (node instanceof hemi.Model) {
-				var citId = getCitNodeId(node),
-					tranObj = {
-						name: 'Transforms',
-						children: [node.root],
-						className: 'directory',
-						nodeId: citId + '_trans'
-					},
-					matObj = {
-						name: 'Materials',
-						children: node.materials,
-						className: 'directory',
-						nodeId: citId + '_mats'
-					};
-				children = [tranObj, matObj];
-			} else if (node instanceof hemi.Shape) {
-				children = [{
-						name: 'Transforms',
-						children: [node.mesh],
-						className: 'directory',
-						nodeId: getCitNodeId(node) + '_trans'
-					}];
-			} else {
-				children = node.children;
+		var tNode = {
+			data: node.name,
+			attr: {
+				id: getNodeId(node),
+				rel: nodeType
+			},
+			state: children.length > 0 ? 'closed' : 'leaf',
+			children: children,
+			metadata: {
+				type: nodeType,
+				actualNode: node,
+				parent: parentNode
 			}
-			
-			return children;
-		},
-		
-		getCitNodeId = function(cit) {
-			var id = 'br_';
-			
-			if (cit instanceof hemi.Model) {
-				id += 'models_';
-			} else if (cit instanceof hemi.Shape) {
-				id += 'shapes_';
-			} else if (cit instanceof hemi.Transform || cit instanceof hemi.Mesh) {
-				var owner = owners.get(cit);
-				id = getCitNodeId(owner) + '_trans' + getTransformPath(cit, owner);
-			} 
-			
-			id += cit._getId();
-			return id;
-		},
-	
-		getNodeId = function(obj) {
-			var isCitizen = obj._worldId != null,
-				id = '';
-			
-			if (isCitizen) {
-				id = getCitNodeId(obj);
-			} else if (obj instanceof THREE.Material) {
-				id = getCitNodeId(owners.get(obj)) + '_mats_' + obj.id;
-			} else if (obj.className === 'directory') {
-				id = obj.nodeId;
-			}
-			
-			return id;
-		},
-		
-		getNodeType = function(node) {
-			var type = 'obj';
-			
-			if (node instanceof hemi.Transform || node instanceof hemi.Mesh) {
-				type = 'transform';
-			}
-			else if (node._worldId != null) {
-				type = 'citizen';
-			}
-			else if (node instanceof THREE.Material) {
-				type = 'material';
-			}
-			return type;
-		},
-		
-		getTransformPath = function(transform, owner) {
-			var path = '_', 
-				parent = transform.parent;
-			
-			if (parent != editor.client.scene) {
-				path = parent._getId() + path;
-				path = getTransformPath(parent, owner) + path;	
-			}
-			
-			return path;
 		};
+		
+		return tNode;
+	}
+	
+	function generateNodes(nodeName, closePath) {
+		var paths = getNodePath(nodeName),
+			toClose = [],
+			i;
+		
+		for (i = 0; i < paths.length; ++i) {
+			var node = this.tree.find('#' + paths[i]);
+			
+			if (node.length > 0) {
+				if (closePath && this.tree.jstree('is_closed', node)) {
+					toClose.unshift(node);
+				}
+				
+				this.tree.jstree('open_node', node, false, true);
+			}
+		}
+		
+		for (i = 0; i < toClose.length; ++i) {
+			this.tree.jstree('close_node', toClose[i], true);
+		}
+	}
+	
+	function getNodePath(nodeName) {
+		var ndx = nodeName.indexOf('_'),
+			names = [];
+		
+		ndx = nodeName.indexOf('_', ndx + 1);
+		
+		while (ndx > -1) {
+			names.push(nodeName.substr(0, ndx));
+			ndx = nodeName.indexOf('_', ndx + 1);
+		}
+		
+		return names;
+	}
+	
+	function getNodeChildren(node) {
+		var children;
+		
+		if (node instanceof hemi.Model) {
+			var citId = getCitNodeId(node),
+				tranObj = {
+					name: 'Transforms',
+					children: [node.root],
+					className: 'directory',
+					nodeId: citId + '_trans'
+				},
+				matObj = {
+					name: 'Materials',
+					children: node.materials,
+					className: 'directory',
+					nodeId: citId + '_mats'
+				};
+			children = [tranObj, matObj];
+		} else if (node instanceof hemi.Shape) {
+			children = [{
+					name: 'Transforms',
+					children: [node.mesh],
+					className: 'directory',
+					nodeId: getCitNodeId(node) + '_trans'
+				}];
+		} else {
+			children = node.children;
+		}
+		
+		return children;
+	}
+	
+	function getCitNodeId(cit) {
+		var id = 'br_';
+		
+		if (cit instanceof hemi.Model) {
+			id += 'models_';
+		} else if (cit instanceof hemi.Shape) {
+			id += 'shapes_';
+		} else if (cit instanceof hemi.Transform || cit instanceof hemi.Mesh) {
+			var owner = owners.get(cit);
+			id = getCitNodeId(owner) + '_trans' + getTransformPath(cit, owner);
+		} 
+		
+		id += cit._getId();
+		return id;
+	}
+
+	function getNodeId(obj) {
+		var isCitizen = obj._worldId != null,
+			id = '';
+		
+		if (isCitizen) {
+			id = getCitNodeId(obj);
+		} else if (obj instanceof THREE.Material) {
+			id = getCitNodeId(owners.get(obj)) + '_mats_' + obj.id;
+		} else if (obj.className === 'directory') {
+			id = obj.nodeId;
+		}
+		
+		return id;
+	}
+	
+	function getNodeType(node) {
+		var type = 'obj';
+		
+		if (node instanceof hemi.Transform || node instanceof hemi.Mesh) {
+			type = 'transform';
+		}
+		else if (node._worldId != null) {
+			type = 'citizen';
+		}
+		else if (node instanceof THREE.Material) {
+			type = 'material';
+		}
+		return type;
+	}
+	
+	function getTransformPath(transform, owner) {
+		var path = '_', 
+			parent = transform.parent;
+		
+		if (parent != editor.client.scene) {
+			path = parent._getId() + path;
+			path = getTransformPath(parent, owner) + path;	
+		}
+		
+		return path;
+	}
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                            				Browser Model		                                  //
+// Browser Model
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var BrowserModel = function() {
@@ -380,13 +382,14 @@
 	};
 	
 	BrowserModel.prototype.deselectTransform = function(transform) {
-		var children = transform.children;
+		var children = transform.children,
+			ndx, len;
 		
-		for (var ndx = 0, len = children.length; ndx < len; ndx++) {
+		for (ndx = 0, len = children.length; ndx < len; ndx++) {
 			this.deselectTransform(children[ndx]);
 		}
 		
-		var ndx = this.selected.indexOf(transform);
+		ndx = this.selected.indexOf(transform);
 		
 		if (ndx !== -1) {
 			this.selected.splice(ndx, 1);
@@ -505,36 +508,6 @@
 				owner: model
 			});
 		}
-		// if (transform instanceof THREE.Mesh) {
-		// 	var mat = transform.material,
-		// 		objs = editor.client.scene.__webglObjects.concat(editor.client.scene.__webglObjectsImmediate),
-		// 		globject = null;
-
-		// 	for (var i = 0, il = objs.length; i < il && globject == null; i++) {
-		// 		var webglObject = objs[i],
-		// 			obj = webglObject.object;
-				
-		// 		globject = obj === transform;
-		// 	}
-
-		// 	mat.transparent = true;
-			
-		// 	if (mat instanceof THREE.MeshFaceMaterial) {
-		// 		materialIndex = buffer.materialIndex;
-
-		// 		if (materialIndex >= 0) {
-		// 			mat = object.geometry.materials[materialIndex];
-
-		// 			globject.transparent = mat;
-		// 			globject.opaque = null;
-		// 		}
-				
-		// 	}
-		// 	else {
-		// 		globject.transparent = mat;
-		// 		globject.opaque = null;
-		// 	}
-		// }
 
 		for (var i = 0, il = children.length; i < il; ++i) {
 			this.processModel(model, children[i]);
@@ -644,16 +617,17 @@
 		
 	BrowserModel.prototype.worldCleaned = function() {
 		var models = hemi.world.getModels(),
-			shapes = hemi.world.getShapes();
+			shapes = hemi.world.getShapes(),
+			i, il;
 		
 		// turn off handles
 		this.curHandle.setDrawState(editor.ui.trans.DrawState.NONE);
 		
-		for (var i = 0, il = models.length; i < il; ++i) {
+		for (i = 0, il = models.length; i < il; ++i) {
 			this.notifyListeners(editor.events.Removing, models[i]);
 		}
 		
-		for (var i = 0, il = shapes.length; i < il; ++i) {
+		for (i = 0, il = shapes.length; i < il; ++i) {
 			this.notifyListeners(shorthand.events.RemoveUserCreatedShape, shapes[i]);
 		}
 	};
@@ -663,7 +637,7 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                      	  					Side Panel				     	                  //
+// Side Panel
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var SidePanel = function() {
@@ -715,24 +689,23 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                      	  			  Widget Private Methods		     	                  //
+// Widget Private Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	var brSizeAndPosition = function() {
-			var container = this.container,
-				btnPnlHeight = jQuery('.mbrSidePanel .panelButtons').outerHeight(),
-				padding = parseInt(container.css('paddingBottom')) +
-					parseInt(container.css('paddingTop')),
-				win = jQuery(window),
-				winHeight = win.height(),
-				wgtHeight = winHeight - padding - btnPnlHeight;
-			
-			container.height(wgtHeight);
-		};
-	
+	function brSizeAndPosition(wgt) {
+		var container = wgt.container,
+			btnPnlHeight = jQuery('.mbrSidePanel .panelButtons').outerHeight(),
+			padding = parseInt(container.css('paddingBottom'), 10) +
+				parseInt(container.css('paddingTop'), 10),
+			win = jQuery(window),
+			winHeight = win.height(),
+			wgtHeight = winHeight - padding - btnPnlHeight;
+		
+		container.height(wgtHeight);
+	}	
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                            				 Model Tree Widget		                             //
+// Model Tree Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	
@@ -801,14 +774,15 @@
 			var elem = data.rslt.obj,
 				metadata = elem.data('jstree'),
 				type = metadata.type,
-				selected = wgt.tree.jstree('get_selected');
+				selected = wgt.tree.jstree('get_selected'),
+				i, il, sel;
 			
 			switch(type) {
 				case 'transform':
 					// Deselect any non-transforms that may be selected
-					for (var i = 0, il = selected.length; i < il; i++) {
-						var sel = selected[i],
-							selData = jQuery(sel).data('jstree');
+					for (i = 0, il = selected.length; i < il; i++) {
+						sel = selected[i];
+						var selData = jQuery(sel).data('jstree');
 						
 						if (selData.type !== type) {
 							wgt.tree.jstree('deselect_node', sel);
@@ -833,8 +807,8 @@
 						model = metadata.parent;
 					
 					// Materials are always single selection
-					for (var i = 0, il = selected.length; i < il; i++) {
-						var sel = selected[i];
+					for (i = 0, il = selected.length; i < il; i++) {
+						sel = selected[i];
 						
 						if (sel !== elem[0]) {
 							wgt.tree.jstree('deselect_node', sel);
@@ -931,7 +905,7 @@
 	};
 	
 	ModelTreeWidget.prototype.sizeAndPosition = function() {
-		brSizeAndPosition.call(this);
+		brSizeAndPosition(this);
 	};
 	
 	ModelTreeWidget.prototype.updateShape = function(shape) {
@@ -950,7 +924,7 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                            				Hidden Items Widget   		                          //
+// Hidden Items Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var HiddenItemListItem = function() {
@@ -1059,7 +1033,7 @@
 		var list = this.list.getUI(),
 		
 		// adjust the list pane height
-			listHeight = maxHeight - hdrHeight;
+			listHeight = maxHeight;
 			
 		if (listHeight > 0) {
 			list.height(listHeight);
@@ -1083,12 +1057,34 @@
 	};
 	
 	HiddenItemsWidget.prototype.sizeAndPosition = function() {
-		brSizeAndPosition.call(this);
+		brSizeAndPosition(this);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                           				Model Loading Widget		                          //
+// Model Loading Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	function populateUnloadPanel(ldrWgt) {
+		var models = hemi.world.getModels(),
+			sel = ldrWgt.find('#mbrUnloadPnl select'),
+			btn = ldrWgt.find('#mbrUnloadPnl button');
+		
+		sel.empty().show();
+		
+		if (models.length === 0) {
+			btn.attr('disabled', 'disabled');
+			sel.append('<option value="-1">No Models to Unload</option>');
+		} else {
+			btn.removeAttr('disabled');
+			
+			sel.append('<option value="-1">Unload a Model</option>');
+			for (var i = 0, il = models.length; i < il; i++) {
+				var mdl = models[i];
+				var prj = jQuery('<option value="' + mdl._getId() + '">' + mdl.name + '</option>');
+				sel.append(prj);
+			}
+		}
+	};
 
 	var LoaderWidget = function() {
 		editor.ui.Widget.call(this, {
@@ -1110,11 +1106,56 @@
 		window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
 		
 		var pnl = this.find('#mbrImportPnl'),
-		btn = pnl.find('button'),
-		wgt = this;				
+			btn = pnl.find('button'),
+			wgt = this,				
 	
-		var loadPnl = this.find('#mbrLoadPnl');
-		var sel = loadPnl.find('select');
+			loadPnl = this.find('#mbrLoadPnl'),
+			sel = loadPnl.find('select'),
+			jsonFileEntry,
+			regEx = /.+\.json/,
+			processFile = function(fs, curFile, fileReadCounter) {
+				var createFile = function(fileEntry) {
+						fileEntry.createWriter(function(fileWriter) {
+							fileWriter.onwriteend = function() {
+								fileReadCounter--;
+								if (fileReadCounter == 0 && jsonFileEntry) {
+									var prj = jQuery('<option value="' + 
+										jsonFileEntry.toURL() + '">' + 
+										jsonFileEntry.name.split('.')[0] + '</option>');
+									sel.append(prj);
+								}
+							};
+							if (regEx.test(fileEntry.name)) {
+								jsonFileEntry = fileEntry;
+							}
+							fileWriter.write(curFile);
+						}, wgt.errorHandler);
+					},			
+					eraseCreateFile = function(fileEntry) {
+						var name = fileEntry.name;
+						(function(fileName) {
+							fileEntry.remove(function() {
+								fs.root.getFile(fileName, {create: true, exclusive: true}, 
+									createFile, wgt.errorHandler);
+							});
+						})(name);
+					};
+									
+				//Only one of these callbacks will get called
+				//if file exists
+				fs.root.getFile(curFile.name, {create: false, exclusive: true}, 
+					eraseCreateFile);
+				//if file doesn't exist
+				fs.root.getFile(curFile.name, {create: true, exclusive: true}, 
+					createFile);
+			},
+
+			fileInput = jQuery(':input[type="file"]'),
+			fileDiv = fileInput.parent().parent();
+
+		// We need to hide the file div because it interferes with the mouse
+		// events for the minMax button.		
+		fileDiv.hide();;
 		
 		if (window.requestFileSystem) {
 			btn.bind('click', function(evt) {
@@ -1124,48 +1165,12 @@
 			})
 			.file({multiple: true})
 			.choose(function(evt, input) {
-				var files = input.files;
-				var jsonFileEntry;
-				var fileReadCounter = files.length;
-				var regEx = /.+\.json/;
+				var files = input.files,
+					fileReadCounter = files.length;
 				window.requestFileSystem(window.PERMANENT, 50 * 1024 * 1024, function(fs) {
 					for (var i = 0; i < files.length; ++i) {
-						var file = files[i];
-						(function(curFile) {
-							var createFile = function(fileEntry) {
-								fileEntry.createWriter(function(fileWriter) {
-									fileWriter.onwriteend = function() {
-										fileReadCounter--;
-										if (fileReadCounter == 0 && jsonFileEntry) {
-											var prj = jQuery('<option value="' + jsonFileEntry.toURL() + '">' + jsonFileEntry.name.split('.')[0] + '</option>');
-											sel.append(prj);
-										}
-									};
-									if (regEx.test(fileEntry.name)) {
-										jsonFileEntry = fileEntry;
-									}
-									fileWriter.write(curFile);
-								}, wgt.errorHandler);
-							};
-							
-							var eraseCreateFile = function(fileEntry) {
-								var name = fileEntry.name;
-								(function(fileName) {
-									fileEntry.remove(function() {
-										fs.root.getFile(fileName, {create: true, exclusive: true}, createFile, wgt.errorHandler);
-									});
-								})(name);
-							};
-							
-							//Only one of these callbacks will get called
-							//if file exists
-							fs.root.getFile(curFile.name, {create: false, exclusive: true}, eraseCreateFile);
-							//if file doesn't exist
-							fs.root.getFile(curFile.name, {create: true, exclusive: true}, createFile);
-						})(file);
+						processFile(fs, files[i], fileReadCounter);
 					}
-					
-					
 				}, wgt.errorHandler);
 			});
 		}
@@ -1174,13 +1179,6 @@
 				wgt.errorHandler('Import not supported on this browser');
 			});
 		}
-		
-		// We need to hide the file div because it interferes with the mouse
-		// events for the minMax button.
-		var fileInput = jQuery(':input[type="file"]'),
-			fileDiv = fileInput.parent().parent();
-		
-		fileDiv.hide();
 	};
 	
 	LoaderWidget.prototype.loadModelsFromLocalFS = function(selectElement) {
@@ -1260,7 +1258,7 @@
 			wgt = this;
 	
 		sel.bind('change', function() {	
-			var id = parseInt(sel.val());
+			var id = parseInt(sel.val(), 10);
 			if (id !== -1) {
 				var model = hemi.world.getCitizenById(id);
 				
@@ -1270,22 +1268,22 @@
 			}
 		});	
 		
-		populateUnloadPanel.call(this);
+		populateUnloadPanel(this);
 	};
 	
 	LoaderWidget.prototype.layout = function() {
 		wgtSuper.layout.call(this);
-		this.container.append('<p id="mbrMsg"></p> \
-			<form id="mbrLoadPnl"> \
-				<input type="text" id="loadMdlSel" placeholder="Model Path:" /> \
-				<select id="loadMdlIpt"></select> \
-			</form> \
-			<form id="mbrImportPnl"> \
-				<button id="importMdlBtn">Import</button> \
-			</form> \
-			<form id="mbrUnloadPnl"> \
-				<select id="unloadMdlSel"></select> \
-			</form>');
+		this.container.append('<p id="mbrMsg"></p>' +
+			'<form id="mbrLoadPnl">' +
+			'	<input type="text" id="loadMdlSel" placeholder="Model Path:" />' +
+			'	<select id="loadMdlIpt"></select>' +
+			'</form>' +
+			'<form id="mbrImportPnl">' +
+			'	<button id="importMdlBtn">Import</button>' +
+			'</form>' +
+			'<form id="mbrUnloadPnl">' +
+			'	<select id="unloadMdlSel"></select>' +
+			'</form>');
 		
 		this.msgPanel = this.find('#mbrMsg').hide();
 		this.container.find('select').sb({
@@ -1314,7 +1312,7 @@
 		this.importData = null;
 		this.showMessage('Unable to load: ' + url);
 		
-		populateUnloadPanel.call(this);
+		populateUnloadPanel(this);
 	};
 	
 	LoaderWidget.prototype.updateModelLoaded = function(model) {
@@ -1328,7 +1326,7 @@
 			wgt.invalidate();
 		});
 		
-		populateUnloadPanel.call(this);
+		populateUnloadPanel(this);
 	};
 	
 	LoaderWidget.prototype.updateModelRemoved = function(model) {
@@ -1337,7 +1335,7 @@
 		this.msgPanel.text('').slideUp(200, function() {		
 			wgt.invalidate();
 		});
-		populateUnloadPanel.call(this);
+		populateUnloadPanel(this);
 	};
 	
 	LoaderWidget.prototype.updateServerRunning = function(models) {
@@ -1374,30 +1372,8 @@
 		}
 	};
 	
-	var populateUnloadPanel = function() {			
-			var models = hemi.world.getModels(),
-				sel = this.find('#mbrUnloadPnl select'),
-				btn = this.find('#mbrUnloadPnl button');
-			
-			sel.empty().show();
-			
-			if (models.length === 0) {
-				btn.attr('disabled', 'disabled');
-				sel.append('<option value="-1">No Models to Unload</option>');
-			} else {
-				btn.removeAttr('disabled');
-				
-				sel.append('<option value="-1">Unload a Model</option>');
-				for (var i = 0, il = models.length; i < il; i++) {
-					var mdl = models[i];
-					var prj = jQuery('<option value="' + mdl._getId() + '">' + mdl.name + '</option>');
-					sel.append(prj);
-				}
-			}
-		};
-	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                        				Transform Adjusting Widget		                          //
+// Transform Adjusting Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var AdjustState = {
@@ -1479,7 +1455,7 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                              			Opacity Widget			                              //
+// Opacity Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var OpacityWidget = function() {
@@ -1536,7 +1512,7 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                           				 Details Widget			                              //
+// Details Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var DetailsType = {
@@ -1559,7 +1535,7 @@
 		detCtn.append(img);
 	
 		return container;
-	};
+	}
 	
 	function buildTransformPopup(transform) {
 		var meshes = recurseTransforms(transform),
@@ -1567,7 +1543,14 @@
 			container = jQuery('<div></div>'),
 			detCtn = jQuery('<div><div class="details"></div><button class="back" href="#">Back</button></div>').hide(),
 			backBtn = detCtn.find('.back'),
-			detPnl = detCtn.find('.details');
+			detPnl = detCtn.find('.details'),
+			clickFcn = function(evt) {
+				var item = jQuery(this).data('liWidget'),
+					data = item.getAttachedObject();
+				showMeshDetails(data.mesh, data.transform, detPnl);
+				detCtn.show();
+				meshList.setVisible(false);
+			};
 		
 		for (var ndx = 0, len = meshes.length; ndx < len; ndx++) {
 			var mesh = meshes[ndx],
@@ -1582,17 +1565,11 @@
 					mesh: mesh
 				});
 				item.data('liWidget', item);
-				item.container.bind('click', function(evt) {
-					var item = jQuery(this).data('liWidget'),
-						data = item.getAttachedObject();
-					showMeshDetails(data.mesh, data.transform, detPnl);
-					detCtn.show();
-					meshList.setVisible(false);
-				});
+				item.container.bind('click', clickFcn);
 				
 				meshList.add(item);
 			}
-		};
+		}
 		
 		backBtn.bind('click', function() {
 			detCtn.hide();
@@ -1602,7 +1579,7 @@
 		container.append(detCtn).append(meshList.getUI());
 		
 		return container;
-	};
+	}
 	
 	function recurseTransforms(mesh) {
 		var meshes = [],
@@ -1617,7 +1594,7 @@
 		}
 		
 		return meshes;
-	};
+	}
 	
 	function showMeshDetails(mesh, transform, pnl) {
 		var //shapeInfo = hemi.picking.pickManager.createShapeInfo(shape, null),
@@ -1647,7 +1624,7 @@
 		
 		jQuery.tmpl(liTemplate, minData).appendTo(minDd.find('ul'));
 		jQuery.tmpl(liTemplate, maxData).appendTo(maxDd.find('ul'));		
-	};
+	}
 	
 	var DetailsWidget = function() {
 		editor.ui.Widget.call(this, {
@@ -1795,7 +1772,7 @@
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                   			  View			                                  //
+// View
 ////////////////////////////////////////////////////////////////////////////////////////////////////   	
 	
 	var BrowserView = function() {
@@ -1833,7 +1810,7 @@
 	BrowserView.prototype.constructor = BrowserView;
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                				Controller		                                  //
+// Controller
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var BrowserController = function() {
@@ -1879,7 +1856,7 @@
 			}
 			
 			hidWgt.setVisible(isDown && hidWgt.hiddenItems.size() > 0);
-		});	        
+		});
 		
 		// hidden list widget specific
 		hidWgt.addListener(shorthand.events.SetPickable, function(data) {
@@ -1925,7 +1902,7 @@
 			}
 		});
 		
-		// bottom panel			  
+		// bottom panel
 		adjWgt.addListener(shorthand.events.ManipState, function(state) {
 			model.setManipState(state);
 		});
@@ -2019,7 +1996,7 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			  			   Extra Scripts		  		                      //
+// Extra Scripts
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	editor.getCss('js/editor/plugins/browser/css/style.css');

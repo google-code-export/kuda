@@ -572,7 +572,7 @@
 				var tr = jQuery(this).parents('tr'),
 					target = tr.data('behavior'),
 					handler = target.handler,
-					messages = jQuery(tblWgt).data('chainMsgs');
+					messages = jQuery(this).data('chainMsgs');
 				
 				if (handler instanceof hemi.ValueCheck) {
 					target = handler;
@@ -594,7 +594,7 @@
 		}
 		
 		td.find('.cloneBtn').bind('click', function(evt) {
-			var tr = jQuery(tblWgt).parents('tr'),
+			var tr = jQuery(this).parents('tr'),
 				target = tr.data('behavior');
 			
 			tblWgt.notifyListeners(shorthand.events.CloneTarget, {
@@ -604,7 +604,7 @@
 			
 		});
 		td.find('.removeBtn').bind('click', function(evt) {
-			var tr = jQuery(tblWgt).parents('tr'),
+			var tr = jQuery(this).parents('tr'),
 				target = tr.data('behavior');
 				
 			tblWgt.notifyListeners(editor.events.Remove, target);
