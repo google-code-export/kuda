@@ -24,7 +24,7 @@
 	shorthand.events.ListItemRemove = 'behavior.listitemremove';
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                				Constants		    	                          //
+// Constants
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	shorthand.BehaviorTypes = {
@@ -34,10 +34,29 @@
 	};
 			
 	var axnTree = null,
-		trgTree = null;
+		trgTree = null,
+		behaviorLiTable = new Hashtable(),
+		behaviorLiNotifier = new editor.utils.Listenable(),
+		behaviorMenu = new editor.ui.PopupMenu(),
+		addTriggerMnuItm = new editor.ui.MenuItem({
+			title: 'Trigger a behavior',
+			action: function(evt) {
+				behaviorMenu.widget.setVisible(true);
+				behaviorMenu.widget.setActor(behaviorMenu.actor, 
+					shorthand.BehaviorTypes.TRIGGER);
+			}
+		}),
+		addActionMnuItm = new editor.ui.MenuItem({
+			title: 'Respond to a trigger',
+			action: function(evt) {
+				behaviorMenu.widget.setVisible(true);
+				behaviorMenu.widget.setActor(behaviorMenu.actor, 
+					shorthand.BehaviorTypes.ACTION);
+			}
+		});
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                              			  Widget Helpers 		                              //
+// Widget Helpers
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 	function expandTargetData(msgTarget, spec) {
@@ -88,11 +107,12 @@
 			method: method,
 			args: args
 		};
-	};
+	}
 	
 	function getMessages(citizen) {
 		var msgs = [],
-			id = citizen._getId();
+			id = citizen._getId(),
+			i, il, j, jl;
 		
 		if (citizen._msgSent) {
 			msgs.push('Any');
@@ -106,7 +126,7 @@
 			// get the list of viewpoints
 			var vps = hemi.world.getViewpoints();
 			
-			for (var i = 0, il = vps.length; i < il; i++) {
+			for (i = 0, il = vps.length; i < il; i++) {
 				msgs.push(vps[i]._getId());
 			}
 		}			
@@ -115,21 +135,21 @@
 			// get list of shapes
 			var shapes = hemi.world.getShapes();
 			
-			for (var i = 0, il = shapes.length; i < il; i++) {
+			for (i = 0, il = shapes.length; i < il; i++) {
 				msgs.push(shapes[i].name);
 			}
 			var models = hemi.world.getModels();
 			
-			for (var i = 0, il = models.length; i < il; i++) {
+			for (i = 0, il = models.length; i < il; i++) {
 				var geometries = models[i].geometries;
-				for (var j = 0, jl = geometries.length; j < jl; j++) {
+				for (j = 0, jl = geometries.length; j < jl; j++) {
 					msgs.push(geometries[j].name);
 				}					
 			}
 		}			
 		
 		return msgs;
-	};
+	}
 	
 	function getMethods(citizen) {		
 		var methods = [],
@@ -149,7 +169,7 @@
 		}
 		
 		return methods;
-	};
+	}
 	
 	function getTriggerName(data) {
 		var source = data.source,
@@ -184,7 +204,7 @@
 		}
 			
 		return nameArr;
-	};
+	}
 	
 	function openNode(tree, citizen, prefix) {
 		var nodeName = shorthand.treeData.getNodeName(citizen, {
@@ -198,15 +218,15 @@
 			var n = jQuery('#' + path[i]);
 			tree.jstree('open_node', n, false, true);
 		}	
-	};
+	}
 	
 	function reset(tree) {
 		tree.removeClass('restricted');
 		tree.find('a').removeClass('restrictedSelectable');
 		tree.jstree('close_all');
-	};
+	}
 	
-	function setByMsgTarget(msgTarget, spec) {
+	function setByMsgTarget(wgt, msgTarget, spec) {
 		var data = expandTargetData(msgTarget, spec),
 			source = hemi.utils.isNumeric(data.source) ? 
 				hemi.world.getCitizenById(data.source) : data.source;
@@ -220,7 +240,7 @@
 			axnT = axnTree.getUI();
 		
 		openNode(trgT, source, trgTree.pre);
-		this.trgChooser.select(nodeName);
+		wgt.trgChooser.select(nodeName);
 		
 		nodeName = shorthand.treeData.getNodeName(data.handler, {
 			option: data.method,
@@ -229,56 +249,60 @@
 		});
 		
 		openNode(axnT, data.handler, axnTree.pre);
-		this.axnChooser.select(nodeName);	
+		wgt.axnChooser.select(nodeName);	
 					
 		for (var i = 0, il = data.args.length; i < il; i++) {
 			var a = data.args[i];				
-			this.prms.setArgument(a.name, a.value);
+			wgt.prms.setArgument(a.name, a.value);
 		}
 		
-		this.nameIpt.val(msgTarget.name);
-		this.msgTarget = msgTarget;
-		this.checkSaveButton();
-	};
+		wgt.nameIpt.val(msgTarget.name);
+		wgt.msgTarget = msgTarget;
+		wgt.checkSaveButton();
+	}
 	
-	function setBySavedData(data, actor) {			
+	function setBySavedData(wgt, data, actor) {
+		var nodeName;
+
 		if (data.trigger) {
 			var msg = data.trigger.type, 
-				cit = data.trigger.citizen,
-				nodeName = shorthand.treeData.getNodeName(cit, {
-					option: msg,
-					prefix: trgTree.pre,
-					id: cit._getId()
-				});
+				cit = data.trigger.citizen;
+
+			nodeName = shorthand.treeData.getNodeName(cit, {
+				option: msg,
+				prefix: trgTree.pre,
+				id: cit._getId()
+			});
 			
-			this.trgChooser.select(nodeName);
+			wgt.trgChooser.select(nodeName);
 			openNode(trgTree.getUI(), cit, trgTree.pre);
 		}
 		if (data.action) {
 			var handler = data.action.handler,
-				func = data.action.method,
-				nodeName = shorthand.treeData.getNodeName(handler, {
-					option: [func],
-					prefix: axnTree.pre,
-					id: handler._getId()
-				});
+				func = data.action.method;
+
+			nodeName = shorthand.treeData.getNodeName(handler, {
+				option: [func],
+				prefix: axnTree.pre,
+				id: handler._getId()
+			});
 			
 			openNode(axnTree.getUI(), handler, axnTree.pre);
-			this.axnChooser.select(nodeName);
+			wgt.axnChooser.select(nodeName);
 		}
 		if (data.args) {					
 			for (var i = 0, il = data.args.length; i < il; i++) {
 				var a = data.args[i];				
-				this.prms.setArgument(a.name, a.value);
+				wgt.prms.setArgument(a.name, a.value);
 			}
 		}
 		
-		this.nameIpt.val(data.name);
-		this.checkSaveButton();			
-	};
+		wgt.nameIpt.val(data.name);
+		wgt.checkSaveButton();			
+	}
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                         	 				Custom Tree Selector		                          //
+// Custom Tree Selector
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 	
@@ -297,10 +321,10 @@
 		pnl.append(this.tree);
 		this.input.attr('placeholder', 'Select an item');
 		
-		this.treeBorder = Math.ceil(parseFloat(pnl.css('borderRightWidth'))) 
-			+ Math.ceil(parseFloat(pnl.css('borderLeftWidth')));
-		this.treePadding = Math.ceil(parseFloat(pnl.css('paddingLeft'))) 
-			+ Math.ceil(parseFloat(pnl.css('paddingRight')));
+		this.treeBorder = Math.ceil(parseFloat(pnl.css('borderRightWidth'))) + 
+			Math.ceil(parseFloat(pnl.css('borderLeftWidth')));
+		this.treePadding = Math.ceil(parseFloat(pnl.css('paddingLeft'))) + 
+			Math.ceil(parseFloat(pnl.css('paddingRight')));
 	};
 	
 	BhvTreeSelector.prototype.rebindTree = function() {
@@ -310,7 +334,7 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                				   Widget			                              //
+// Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 	var BehaviorWidget = function(options) {
@@ -329,7 +353,7 @@
 				type = this.restrictions.type;
 				
 			if (type === shorthand.BehaviorTypes.ACTION) {
-			 	axnTree.restrictSelection(actor, getMethods(actor));
+				axnTree.restrictSelection(actor, getMethods(actor));
 			}
 			else {
 				trgTree.restrictSelection(actor, getMessages(actor));
@@ -363,10 +387,10 @@
 			saveFieldset = jQuery('<fieldset><legend>Save Behavior</legend><ol>' +
 				'<li>' +
 				'    <input type="text" class="nameField" autocomplete="off" placeholder="Name"/>' +
-				'	 <div class="buttons">' +
+				'    <div class="buttons">' +
 				'        <button class="saveBtn" disabled="disabled">Save</button>' +
 				'        <button class="cancelBtn">Cancel</button>' +
-				'	</div>' +
+				'    </div>' +
 				'</li></ol></fieldset>'), 
 			nameIpt = saveFieldset.find('.nameField'), 
 			saveBtn = saveFieldset.find('.saveBtn'), 
@@ -385,7 +409,7 @@
 					return false;
 				}
 				else {
-					var data = {};
+					var dta = {};
 					
 					if (!isSelectable && isRestricted) {
 						return false;
@@ -408,16 +432,16 @@
 								wgt.axnChooser.getUI().removeClass('hasValue');
 							}
 							wgt.prms.populateArgList(handler, method, args);
-							data.handler = handler;
-							data.method = method;
+							dta.handler = handler;
+							dta.method = method;
 							wgt.invalidate();
 						}
 						else {
-							data.citizen = metadata.parent;
-							data.type = metadata.msg;
+							dta.citizen = metadata.parent;
+							dta.type = metadata.msg;
 						}
 						selector.input.val(path.join('.').replace('.More...', ''));
-						selector.setSelection(data);
+						selector.setSelection(dta);
 						
 						wgt.checkSaveButton();
 						return true;
@@ -576,8 +600,8 @@
 					break;
 			}
 		} 
-		else if (actor instanceof hemi.Shape 
-				&& type === shorthand.BehaviorTypes.TRIGGER) {
+		else if (actor instanceof hemi.Shape && 
+				type === shorthand.BehaviorTypes.TRIGGER) {
 			var shp = actor,
 				spc = shorthand.treeData.createShapePickCitizen(actor);
 			
@@ -589,11 +613,11 @@
 						citizen: spc,
 						type: shp.name
 					}
-				}
+				};
 			}
 		}
 		
-	    this.axnFieldset.show();
+		this.axnFieldset.show();
 		this.trgFieldset.show();
 		this.savFieldset.show();
 		
@@ -606,7 +630,7 @@
 				break;
 			case shorthand.BehaviorTypes.TRIGGER:
 				trgTree.restrictSelection(actor, getMessages(actor));
-				openNode(trgTree.getUI(), actor, trgTree.pre);		    
+				openNode(trgTree.getUI(), actor, trgTree.pre);
 				break;
 		}
 				
@@ -614,13 +638,13 @@
 		this.restrictions = {
 			actor: actor,
 			type: type
-		}
+		};
 		
 		if (data instanceof hemi.dispatch.MessageTarget) {
-			setByMsgTarget.call(this, data, opt_spec);
+			setByMsgTarget(this, data, opt_spec);
 		}
 		else if (data != null) {
-			setBySavedData.call(this, data, actor);
+			setBySavedData(this, data, actor);
 		}
 	};
 	
@@ -653,8 +677,58 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                            				Behavior List Widget	  		                      //
+// Behavior List Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	function detectTriggersAndActions(bhvLi, citizen) {
+		editor.getDispatchProxy().swap();
+		var specs = hemi.dispatch.getSpecs(),
+			id = citizen._getId(),
+			i, il, k, kl, target;
+		
+		for (i = 0, il = specs.length; i < il; i++) {
+			var spec = specs[i];
+			
+			if (spec.src === id) {
+				// triggers
+				for (k = 0, kl = spec.targets.length; k < kl; k++) {
+					target = spec.targets[k];
+					
+					if (!jQuery.isFunction(target.handler)) {
+						bhvLi.add(spec.targets[k], spec);
+					}
+				}
+			}
+			else {
+				// actions				
+				for (k = 0, kl = spec.targets.length; k < kl; k++) {
+					target = spec.targets[k];
+					var compId;
+					
+					// valuecheck case
+					if (target.handler instanceof hemi.ValueCheck) {
+						if (target.handler.citizen instanceof hemi.Camera){
+							compId = target.handler.values[0];
+						}
+						else if (target.handler.citizen instanceof hemi.Model) {
+							compId = target.handler.handler._getId();
+						}
+						else {
+							compId = target.handler.citizen._getId();
+						}
+					}
+					else {
+						compId = target.handler._getId ? target.handler._getId() : null;
+					}
+					
+					if (compId === id) {
+						bhvLi.add(target, spec);
+					}
+				}
+			}
+		}
+		editor.getDispatchProxy().unswap();
+	}
 	
 	shorthand.BhvListItem = function(behaviorWidget) {
 		editor.ui.EditableListItem.call(this);
@@ -687,7 +761,7 @@
 	shorthand.BhvListItem.prototype.attachObject = function(obj) {
 		bhvLiSuper.attachObject.call(this, obj);
 		
-		detectTriggersAndActions.call(this, obj);
+		detectTriggersAndActions(this, obj);
 		behaviorLiTable.put(obj, this);
 	};
 	
@@ -714,6 +788,8 @@
 	};
 	
 	shorthand.BhvListItem.prototype.layout = function() {
+		var wgt = this;
+
 		bhvLiSuper.layout.call(this);
 		
 		this.behaviorBtn = jQuery('<button class="behaviorBtn">Edit Behavior</button>');
@@ -728,8 +804,7 @@
 		// attach the sub lists
 		var loadHeader = jQuery('<h2>Attached Behaviors:</h2>'),
 			evtList = jQuery('<div class="bhvListWrapper"></div>'),
-			arrow = jQuery('<div class="bhvListArrow"></div>'),
-			wgt = this;
+			arrow = jQuery('<div class="bhvListArrow"></div>');
 		
 		this.list = new editor.ui.List({
 			cssClass: 'bhvList',
@@ -744,10 +819,10 @@
 		this.container.bind('click', function(evt) {
 			var tgt = jQuery(evt.target);
 			
-			if (evt.target.tagName !== 'BUTTON'
-					&& tgt.parents('.bhvListWrapper').size() === 0
-					&& !tgt.hasClass('bhvListWrapper')
-					&& !wgt.isSorting) {
+			if (evt.target.tagName !== 'BUTTON' && 
+					tgt.parents('.bhvListWrapper').size() === 0 && 
+					!tgt.hasClass('bhvListWrapper') && 
+					!wgt.isSorting) {
 				arrow.toggle(100);
 				evtList.slideToggle(200);
 			}
@@ -786,78 +861,9 @@
 		li.setText(name.join('.') + ': ' + msgTarget.name);
 	};
 	
-	function detectTriggersAndActions(citizen) {
-		editor.getDispatchProxy().swap();
-		var specs = hemi.dispatch.getSpecs(),
-			id = citizen._getId();
-		
-		for (var i = 0, il = specs.length; i < il; i++) {
-			var spec = specs[i];
-			
-			if (spec.src === id) {
-				// triggers
-				for (var k = 0, kl = spec.targets.length; k < kl; k++) {
-					var target = spec.targets[k];
-					
-					if (!jQuery.isFunction(target.handler)) {
-						this.add(spec.targets[k], spec);
-					}
-				}
-			}
-			else {
-				// actions				
-				for (var k = 0, kl = spec.targets.length; k < kl; k++) {
-					var target = spec.targets[k],
-						compId;
-					
-					// valuecheck case
-					if (target.handler instanceof hemi.ValueCheck) {
-						if (target.handler.citizen instanceof hemi.Camera){
-							compId = target.handler.values[0];
-						}
-						else if (target.handler.citizen instanceof hemi.Model) {
-							compId = target.handler.handler._getId();
-						}
-						else {
-							compId = target.handler.citizen._getId();
-						}
-					}
-					else {
-						compId = target.handler._getId ? target.handler._getId() : null;
-					}
-					
-					if (compId === id) {
-						this.add(target, spec);
-					}
-				}
-			}
-		}
-		editor.getDispatchProxy().unswap();
-	};
-	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                	   				Setup			                              //
+// Setup
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-	
-	var behaviorLiTable = new Hashtable(),
-		behaviorLiNotifier = new editor.utils.Listenable(),
-		behaviorMenu = new editor.ui.PopupMenu(),
-		addTriggerMnuItm = new editor.ui.MenuItem({
-			title: 'Trigger a behavior',
-			action: function(evt) {
-				behaviorMenu.widget.setVisible(true);
-				behaviorMenu.widget.setActor(behaviorMenu.actor, 
-					shorthand.BehaviorTypes.TRIGGER);
-			}
-		}),
-		addActionMnuItm = new editor.ui.MenuItem({
-			title: 'Respond to a trigger',
-			action: function(evt) {
-				behaviorMenu.widget.setVisible(true);
-				behaviorMenu.widget.setActor(behaviorMenu.actor, 
-					shorthand.BehaviorTypes.ACTION);
-			}
-		});
 		
 	behaviorMenu.addMenuItem(addTriggerMnuItm);
 	behaviorMenu.addMenuItem(addActionMnuItm);
@@ -880,7 +886,7 @@
 		position.top += parBtn.outerHeight();
 		position.left -= behaviorMenu.container.outerWidth() - parBtn.outerWidth();
 		behaviorMenu.show(position, parBtn);
-		behaviorMenu.actor = actor,
+		behaviorMenu.actor = actor;
 		behaviorMenu.widget = bhvWgt;
 	};
 	
@@ -917,7 +923,7 @@
 		}
 			
 		if (data.method === 'moveToView' && data.handler._octaneType === 'hemi.Camera') {
-			var id = parseInt(data.args[0].value.replace('id:', ''));
+			var id = parseInt(data.args[0].value.replace('id:', ''), 10);
 			li = behaviorLiTable.get(hemi.world.getCitizenById(id));				
 		}
 		else {
