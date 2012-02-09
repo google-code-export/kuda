@@ -74,6 +74,28 @@
 		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
 		updateVertices(mesh);
 	};
+	
+	/**
+	 * Clones the given material and returns the clone. Every prop is copied by reference.
+	 * 
+	 * @param {THREE.Material} material the material to clone
+	 */
+	hemi.utils.cloneMaterial = function(material) {
+		var newMat = new material.constructor(),
+			offLimits = ['fragmentShader', 'id', 'program', 'uniforms', 'uniformsList', 
+				'vertexShader'];
+				
+		for (var prop in material) {
+			var p = material[prop];
+			if (!hemi.utils.isFunction(p) && offLimits.indexOf(prop) === -1) {
+				newMat[prop] = p;
+			}
+		}
+		
+		newMat.name = newMat.name + '_clone';
+		
+		return newMat;
+	};
 
 	/**
 	 * Interpret the given point from world space to local space. Note that this function converts

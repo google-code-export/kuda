@@ -102,6 +102,8 @@
 		ShowPicked: "browser.ShowPicked",
 		ManipState: "browser.ManipState",
 		SetTransOpacity: "browser.SetTransOpacity",
+		StartTransOpacity: "browser.StartTransOpacity",
+		StopTransOpacity: "browser.StopTransOpacity",
 		
 		// hidden items widget events
 		SetPickable: "browser.SetPickable",
@@ -458,6 +460,7 @@
 		
 		if (geometry) {
 			this.oldMaterials.put(transform, transform.material);
+			this.highlightMaterial.opacity = transform.material.opacity;
 			transform.material = this.highlightMaterial;
 			var scene = editor.client.scene;
 			
@@ -502,6 +505,36 @@
 				owner: model
 			});
 		}
+		// if (transform instanceof THREE.Mesh) {
+		// 	var mat = transform.material,
+		// 		objs = editor.client.scene.__webglObjects.concat(editor.client.scene.__webglObjectsImmediate),
+		// 		globject = null;
+
+		// 	for (var i = 0, il = objs.length; i < il && globject == null; i++) {
+		// 		var webglObject = objs[i],
+		// 			obj = webglObject.object;
+				
+		// 		globject = obj === transform;
+		// 	}
+
+		// 	mat.transparent = true;
+			
+		// 	if (mat instanceof THREE.MeshFaceMaterial) {
+		// 		materialIndex = buffer.materialIndex;
+
+		// 		if (materialIndex >= 0) {
+		// 			mat = object.geometry.materials[materialIndex];
+
+		// 			globject.transparent = mat;
+		// 			globject.opaque = null;
+		// 		}
+				
+		// 	}
+		// 	else {
+		// 		globject.transparent = mat;
+		// 		globject.opaque = null;
+		// 	}
+		// }
 
 		for (var i = 0, il = children.length; i < il; ++i) {
 			this.processModel(model, children[i]);
@@ -554,15 +587,15 @@
 	BrowserModel.prototype.setOpacity = function(opacity, transform) {
 		if (transform == null) {
 			transform = this.currentTransform;
-			transform.opacityVal = opacity;
 		}
+		transform.opacityVal = opacity;	
 		
 		if (transform instanceof hemi.Transform) {
 			var children = transform.children;
 			for (var i = 0, il = children.length; i < il; i++) {
 				this.setOpacity(opacity, children[i]);
 			}
-		} else {			
+		} else {
 			hemi.fx.setOpacity(editor.client, transform, opacity);
 		}
 	};
@@ -1481,6 +1514,12 @@
 			slide: function(evt, ui) {								
 				wgt.notifyListeners(shorthand.events.SetTransOpacity, 
 					ui.value/100);
+			},
+			start: function(evt, ui) {
+				wgt.notifyListeners(shorthand.events.StartTransOpacity);
+			},
+			stop: function(evt, ui) {
+				wgt.notifyListeners(shorthand.events.StopTransOpacity);
 			}
 		})
 		.find('.ui-slider-handle').append('<span></span>');
@@ -1893,6 +1932,12 @@
 		});
 		opaWgt.addListener(shorthand.events.SetTransOpacity, function(opacity) {
 			model.setOpacity(opacity);
+		});
+		opaWgt.addListener(shorthand.events.StartTransOpacity, function() {
+			model.unhighlightTransform(model.currentTransform);
+		});
+		opaWgt.addListener(shorthand.events.StopTransOpacity, function() {
+			model.highlightTransform(model.currentTransform);
 		});
 		visWgt.addListener(shorthand.events.ShowPicked, function(value) {
 			if (value) {

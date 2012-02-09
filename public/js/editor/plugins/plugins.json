@@ -1,1 +1,1 @@
-{"plugins":["browser"]}
+{"plugins":["browser","shapes","timers","behavior","viewpoints","manips","motions","states"]}

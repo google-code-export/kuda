@@ -148,31 +148,29 @@
 	 * @param {THREE.Material} material the material to set opacity on
 	 * @param {number} opacity the opacity value between 0 and 1
 	 */
-	hemi.fx.setOpacity = function(client, object, opacity) {
+	hemi.fx.setOpacity = function(client, mesh, opacity) {
 		var objs = client.scene.__webglObjects.concat(client.scene.__webglObjectsImmediate),
-			material = object.material,
-			sharedObjects = [];
+			object = mesh.geometry,
+			sharedObjects = [],
+			globject = null,
+			transparent = opacity < 1,
+			material = mesh.material;
 
-		for (var i = 0, il = objs.length; i < il; i++) {
+		for (var i = 0, il = objs.length; i < il && globject == null; i++) {
 			var webglObject = objs[i],
 				obj = webglObject.object;
 			
-			if (obj.material === material) {
-				sharedObjects.push(webglObject);
-			}
+			globject = obj === object;
 		}
 
-		if (sharedObjects.length > 0) {
-			material.transparent = opacity < 1;
-			material.opacity = opacity;
-			
-			// setup transparent and opaque list for objects with the same material
-			for (var i = 0, il = sharedObjects.length; i < il; i++) {
-				var obj = sharedObjects[i];
-				unrollBufferMaterial(obj);
-				unrollImmediateBufferMaterial(obj);
-			}
+		// material.transparent = opacity < 1;
+		// material.opacity = opacity;
+		if (mesh.opacity == null) {
+			material = mesh.material = hemi.utils.cloneMaterial(material);
+			client.renderer.initMaterial(material, client.scene.lights, client.scene.fog, 
+				object);
 		}
+		mesh.opacity = material.opacity = opacity;
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -188,63 +186,5 @@
 		}
 		return retVal;
 	}
-
-	/*
-	 * The following three functions are exact duplicates of the functions in WebGLRenderer. Until
-	 * those functions are exposed, we have to duplicate them here.
-	 */
-	function addToFixedArray(where, what) {
-		where.list[ where.count ] = what;
-		where.count += 1;
-	}
-
-	function unrollImmediateBufferMaterial(globject) {
-		var object = globject.object,
-			material = object.material;
-
-		if (material.transparent) {
-			globject.transparent = material;
-			globject.opaque = null;
-		} else {
-			globject.opaque = material;
-			globject.transparent = null;
-		}
-	}
-
-	function unrollBufferMaterial(globject) {
-		var object = globject.object,
-			buffer = globject.buffer,
-			material, materialIndex, meshMaterial;
-
-		meshMaterial = object.material;
-
-		if (meshMaterial instanceof THREE.MeshFaceMaterial) {
-			materialIndex = buffer.materialIndex;
-
-			if (materialIndex >= 0) {
-				material = object.geometry.materials[materialIndex];
-
-				if (material.transparent) {
-					globject.transparent = material;
-					globject.opaque = null;
-				} else {
-					globject.opaque = material;
-					globject.transparent = null;
-				}
-			}
-		} else {
-			material = meshMaterial;
-
-			if (material) {
-				if (material.transparent) {
-					globject.transparent = material;
-					globject.opaque = null;
-				} else {
-					globject.opaque = material;
-					globject.transparent = null;
-				}
-			}
-		}
-	}
-
+	
 })();
