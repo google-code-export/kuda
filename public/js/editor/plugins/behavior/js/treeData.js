@@ -30,9 +30,8 @@
 	shorthand.treeData.chainTable = (function() {
 		var chainTable = new Hashtable();
 		// Animation
-		chainTable.put('hemi.Animation' + '_' + 'onRender', [hemi.msg.stop]); // Calls stop()
-		chainTable.put('hemi.Animation' + '_' + 'start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
-		chainTable.put('hemi.Animation' + '_' + 'stop', [hemi.msg.stop]);
+		chainTable.put('hemi.AnimationGroup' + '_' + 'start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
+		chainTable.put('hemi.AnimationGroup' + '_' + 'stop', [hemi.msg.stop]);
 		// Burst
 		chainTable.put('hemi.ParticleBurst' + '_' + 'trigger', [hemi.msg.burst]);
 		// Emitter
@@ -48,20 +47,29 @@
 		chainTable.put('hemi.HudDisplay' + '_' + 'previousPage', [hemi.msg.visible]); // Calls showPage()
 		chainTable.put('hemi.HudDisplay' + '_' + 'show', [hemi.msg.visible]); // Calls showPage()
 		chainTable.put('hemi.HudDisplay' + '_' + 'showPage', [hemi.msg.visible]);
+		// Mesh
+		chainTable.put('hemi.Mesh' + '_' + 'move', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
+		chainTable.put('hemi.Mesh' + '_' + 'setMovable', [hemi.msg.move]);
+		chainTable.put('hemi.Mesh' + '_' + 'setResizable', [hemi.msg.resize]);
+		chainTable.put('hemi.Mesh' + '_' + 'turn', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
 		// Model
-		chainTable.put('hemi.Model' + '_' + 'load', [hemi.msg.load]); // Calls loadConfig()
-		chainTable.put('hemi.Model' + '_' + 'loadConfig', [hemi.msg.load]);
-		chainTable.put('hemi.Model' + '_' + 'setFileName', [hemi.msg.load]); // Calls loadModel()
+		chainTable.put('hemi.Model' + '_' + 'load', [hemi.msg.load]);
+		chainTable.put('hemi.Model' + '_' + 'setFileName', [hemi.msg.load]); // Calls load()
 		chainTable.put('hemi.Model' + '_' + 'unload', [hemi.msg.unload]);
 		// State
 		chainTable.put('hemi.State' + '_' + 'load', [hemi.msg.load]);
 		chainTable.put('hemi.State' + '_' + 'nextState', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
 		chainTable.put('hemi.State' + '_' + 'previousState', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
 		chainTable.put('hemi.State' + '_' + 'unload', [hemi.msg.unload]);
+		// Timer
+		chainTable.put('hemi.Timer' + '_' + 'start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
+		chainTable.put('hemi.Timer' + '_' + 'stop', [hemi.msg.stop]);
+		// Transform
+		chainTable.put('hemi.Transform' + '_' + 'move', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
+		chainTable.put('hemi.Transform' + '_' + 'turn', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
 		// Camera
 		chainTable.put('hemi.Camera' + '_' + 'moveOnCurve', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
 		chainTable.put('hemi.Camera' + '_' + 'moveToView', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
-		chainTable.put('hemi.Camera' + '_' + 'onRender', [hemi.msg.stop]); // Calls update()
 		chainTable.put('hemi.Camera' + '_' + 'update', [hemi.msg.stop]);
 		// Citizen
 		chainTable.put('hemi.Citizen' + '_' + 'cleanup', [hemi.msg.cleanup]);
@@ -72,6 +80,7 @@
 	var methodsToRemove = shorthand.treeData.methodsToRemove = [
         'constructor',
         'init',
+        'onRender',
 		'_getId',
 		'_setId',
 		'_toOctane'
