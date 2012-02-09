@@ -454,7 +454,7 @@
 		if (obj !== null) {
 			nodeName = TREE_PREFIX + obj._octaneType.split('.').pop();				
 			nodeName += '_' + (obj._getId ? obj._getId() : obj.name);
-			nodeName = nodeName.replace(/ /g, '_').replace(/./g, '_');
+			nodeName = nodeName.replace(/\s/g, '_').replace(/\./g, '_');
 		}
 
 		return nodeName;
