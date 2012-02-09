@@ -143,34 +143,18 @@
 	/**
 	 * Sets the opacity for the given object.
 	 * 
-	 * @param {hemi.Client} client the client view in which to change opacity
 	 * @param {THREE.Mesh} object the object whose material's opacity we're changing
-	 * @param {THREE.Material} material the material to set opacity on
 	 * @param {number} opacity the opacity value between 0 and 1
 	 */
-	hemi.fx.setOpacity = function(client, mesh, opacity) {
-		var objs = client.scene.__webglObjects.concat(client.scene.__webglObjectsImmediate),
-			object = mesh.geometry,
-			sharedObjects = [],
-			globject = null,
-			transparent = opacity < 1,
-			material = mesh.material;
+	hemi.fx.setOpacity = function(mesh, opacity) {
+		var material = mesh.material;
 
-		for (var i = 0, il = objs.length; i < il && globject == null; i++) {
-			var webglObject = objs[i],
-				obj = webglObject.object;
-			
-			globject = obj === object;
-		}
-
-		// material.transparent = opacity < 1;
-		// material.opacity = opacity;
-		if (mesh.opacity == null) {
+		if (mesh._opacity === null) {
+			// Assume that the material is shared and therefore the Mesh should have its own copy.
 			material = mesh.material = hemi.utils.cloneMaterial(material);
-			client.renderer.initMaterial(material, client.scene.lights, client.scene.fog, 
-				object);
 		}
-		mesh.opacity = material.opacity = opacity;
+
+		mesh._opacity = material.opacity = opacity;
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

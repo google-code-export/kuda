@@ -588,15 +588,14 @@
 		if (transform == null) {
 			transform = this.currentTransform;
 		}
-		transform.opacityVal = opacity;	
-		
+
 		if (transform instanceof hemi.Transform) {
 			var children = transform.children;
 			for (var i = 0, il = children.length; i < il; i++) {
 				this.setOpacity(opacity, children[i]);
 			}
 		} else {
-			hemi.fx.setOpacity(editor.client, transform, opacity);
+			hemi.fx.setOpacity(transform, opacity);
 		}
 	};
 	

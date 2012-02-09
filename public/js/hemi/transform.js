@@ -101,7 +101,6 @@
 		 * @default true
 		 */
 		this.pickable = true;
-		// this.opacity?
 
 		// Improve performance by having autoupdate default to false
 		this.matrixAutoUpdate = false;
@@ -671,6 +670,12 @@
 		this._manip = null;
 
 		/*
+		 * A custom opacity value for the Mesh's material.
+		 * @type numbe
+		 */
+		this._opacity = null;
+
+		/*
 		 * The Rotator that is currently moving the Mesh.
 		 * @type hemi.Rotator
 		 */
@@ -688,7 +693,6 @@
 		 * @default true
 		 */
 		this.pickable = true;
-		// this.opacity?
 
 		// Improve performance by having autoupdate default to false
 		this.matrixAutoUpdate = false;
@@ -711,7 +715,7 @@
 	 */
 	Mesh.prototype._init = function(obj, toConvert) {
 		this.geometry = obj.geometry;
-		this.material = obj.opacity != null ? hemi.utils.cloneMaterial(obj.material) : obj.material;
+		this.material = obj.material;
 		this.boundRadius = obj.boundRadius;
 
 		if (this.geometry.morphTargets.length) {
@@ -719,6 +723,12 @@
 			this.morphTargetForcedOrder = obj.morphTargetForcedOrder;
 			this.morphTargetInfluences = obj.morphTargetInfluences;
 			this.morphTargetDictionary = obj.morphTargetDictionary;
+		}
+
+		if (this._opacity !== null) {
+			var opacity = this._opacity;
+			this._opacity = null; // Necessary for the function to clone the material
+			hemi.fx.setOpacity(this, opacity);
 		}
 
 		Transform.prototype._init.call(this, obj, toConvert);
@@ -738,8 +748,8 @@
 		var props = Transform.prototype._octane.call(this);
 		
 		props.push({
-			name: 'opacity',
-			val: this.opacity
+			name: '_opacity',
+			val: this._opacity
 		});
 		
 		return props;
