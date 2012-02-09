@@ -18,127 +18,135 @@
 (function() {
 	"use strict";
 
+	var shorthand = editor.tools.behavior,
+		bhvMdl = null,
+		bhvView = null,
+		wgtParentHash = new Hashtable();
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			   			Helper Methods			  		                      //
+// Helper Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	var injectBehaviorWidget = function(view) {
-			if (view.toolTitle.match(/Project|project/) != null) {
-				return;
-			}
-							
-			var widgets = view.sidePanel ? view.sidePanel.widgets : [],
-				bhvWgt = null;
-			
-			for (var k = 0, kl = widgets.length; k < kl; k++) {
-				var widget = widgets[k];
-				
-				if (widget instanceof editor.ui.ListWidget) {
-					if (bhvWgt == null) {
-						bhvWgt = shorthand.createBehaviorWidget({
-							height: editor.ui.Height.FULL
-						});
+	function injectBehaviorWidget(view) {
+		if (view.toolTitle.match(/Project|project/) != null) {
+			return;
+		}
 						
-						bhvWgt.addListener(shorthand.events.CreateBehavior, bhvMdl);
-						bhvWgt.addListener(shorthand.events.UpdateBehavior, bhvMdl);
-						bhvWgt.parentPanel = view.sidePanel;
+		var widgets = view.sidePanel ? view.sidePanel.widgets : [],
+			bhvWgt = null,
+			listener = function(obj) {
+				var thisWgt = obj.widget,
+					wgts = thisWgt.parentPanel.widgets;
+				
+				for (var ndx = 0, len = wgts.length; ndx < len; ndx++) {
+					var wgt = wgts[ndx];
 					
-						bhvWgt.addListener(editor.events.WidgetVisible, function(obj) {
-							var thisWgt = obj.widget,
-								wgts = thisWgt.parentPanel.widgets;
-							
-							for (var ndx = 0, len = wgts.length; ndx < len; ndx++) {
-								var wgt = wgts[ndx];
-								
-								if (wgt !== thisWgt) {
-									wgt.setVisible(!obj.visible);
-								}
-							}
-						});
-						bhvWgt.parentPanel.addListener(editor.events.PanelVisible, function(data) {
-							if (data.visible) {
-								bhvWgt.axnChooser.rebindTree();
-								bhvWgt.trgChooser.rebindTree();
-								bhvWgt.checkRestrictions();
-							}
-						});
+					if (wgt !== thisWgt) {
+						wgt.setVisible(!obj.visible);
 					}
+				}
+			},
+			visListener = function(data) {
+				var wgt = wgtParentHash.get(data.panel);
+
+				if (data.visible) {
+					wgt.axnChooser.rebindTree();
+					wgt.trgChooser.rebindTree();
+					wgt.checkRestrictions();
+				}
+			},
+			createListItem = function() {
+				return new shorthand.BhvListItem(this.behaviorWidget);
+			};
+		
+		for (var k = 0, kl = widgets.length; k < kl; k++) {
+			var widget = widgets[k];
+			
+			if (widget instanceof editor.ui.ListWidget) {
+				if (bhvWgt == null) {
+					bhvWgt = shorthand.createBehaviorWidget({
+						height: editor.ui.Height.FULL
+					});
 					
-					// add the behavior widget
-					view.sidePanel.addWidget(bhvWgt);
-					
-					// replace the createListItem method
-					widget.behaviorWidget = bhvWgt;
-					widget.createListItem = function() {
-						return new shorthand.BhvListItem(this.behaviorWidget);
-					};
+					bhvWgt.addListener(shorthand.events.CreateBehavior, bhvMdl);
+					bhvWgt.addListener(shorthand.events.UpdateBehavior, bhvMdl);
+					bhvWgt.parentPanel = view.sidePanel;
+					wgtParentHash.put(bhvWgt.parentPanel, bhvWgt);
+				
+					bhvWgt.addListener(editor.events.WidgetVisible, listener);
+					bhvWgt.parentPanel.addListener(editor.events.PanelVisible, visListener);
+				}
+				
+				// add the behavior widget
+				view.sidePanel.addWidget(bhvWgt);
+				
+				// replace the createListItem method
+				widget.behaviorWidget = bhvWgt;
+				widget.createListItem = createListItem;
+			}
+		}
+	}
+	
+	function specialUpdate(obj) {
+		var proxy = editor.getDispatchProxy(),
+			tblWgt = bhvView.bottomPanel.behaviorTableWidget;
+						
+		proxy.swap();
+		
+		var specs = hemi.dispatch.getSpecs(),
+			id = obj._getId(),
+			i, il, k, kl, target;
+		
+		for (i = 0, il = specs.length; i < il; i++) {
+			var spec = specs[i];
+			
+			if (spec.src === id) {
+				// triggers
+				for (k = 0, kl = spec.targets.length; k < kl; k++) {
+					target = spec.targets[k];
+					tblWgt.update(target, spec);
+					shorthand.modifyBehaviorListItems(target, spec, 'update');
 				}
 			}
-		},
-		
-		specialUpdate = function(obj) {
-			var proxy = editor.getDispatchProxy(),
-				tblWgt = bhvView.bottomPanel.behaviorTableWidget;
-							
-			proxy.swap();
-			
-			var specs = hemi.dispatch.getSpecs(),
-				id = obj._getId();
-			
-			for (var i = 0, il = specs.length; i < il; i++) {
-				var spec = specs[i];
-				
-				if (spec.src === id) {
-					// triggers
-					for (var k = 0, kl = spec.targets.length; k < kl; k++) {
-						var target = spec.targets[k];
+			else {
+				// actions				
+				for (k = 0, kl = spec.targets.length; k < kl; k++) {
+					target = spec.targets[k];
+					var compId;
+					
+					// valuecheck case
+					if (target.handler instanceof hemi.ValueCheck) {
+						if (target.handler.citizen instanceof hemi.Camera) {
+							compId = target.handler.values[0];
+						}
+						else if (target.handler.citizen instanceof hemi.Model) {
+							compId = target.handler.handler._getId();
+						}
+						else {
+							compId = target.handler.citizen._getId();
+						}
+					}
+					else {
+						compId = target.handler._getId();
+					}
+					
+					if (compId === id) {
+						if (obj instanceof hemi.Shape) {
+							target.handler.values[0] = obj.transform.shapes[0].name;
+						}
 						tblWgt.update(target, spec);
 						shorthand.modifyBehaviorListItems(target, spec, 'update');
 					}
 				}
-				else {
-					// actions				
-					for (var k = 0, kl = spec.targets.length; k < kl; k++) {
-						var target = spec.targets[k],
-							compId;
-						
-						// valuecheck case
-						if (target.handler instanceof hemi.ValueCheck) {
-							if (target.handler.citizen instanceof hemi.Camera) {
-								compId = target.handler.values[0];
-							}
-							else if (target.handler.citizen instanceof hemi.Model) {
-								compId = target.handler.handler._getId();
-							}
-							else {
-								compId = target.handler.citizen._getId();
-							}
-						}
-						else {
-							compId = target.handler._getId();
-						}
-						
-						if (compId === id) {
-							if (obj instanceof hemi.Shape) {
-								target.handler.values[0] = obj.transform.shapes[0].name;
-							}
-							tblWgt.update(target, spec);
-							shorthand.modifyBehaviorListItems(target, spec, 'update');
-						}
-					}
-				}
 			}
-			
-			proxy.unswap();
-		};
+		}
+		
+		proxy.unswap();
+	}
 
 //////////////////////////////////////////////////////////////////////////////////////////////////// 
-//                     			   				Initialization		  		                      //
+// Initialization
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	var shorthand = editor.tools.behavior,
-		bhvMdl = null,
-		bhvView = null;
 	
 	shorthand.init = function() {		
 		var navPane = editor.ui.getNavPane('Behaviors');
@@ -154,15 +162,16 @@
 	
 		// grab all views
 		var views = editor.getViews(),
-			models = editor.getModels();
+			models = editor.getModels(),
+			i, il;
 		
 		// for each view, if there is a list widget, insert a behavior widget
 		// and replace the createListItem() method in the list widget
-		for (var i = 0, il = views.length; i < il; i++) {
+		for (i = 0, il = views.length; i < il; i++) {
 			injectBehaviorWidget(views[i]);
 		}
 		
-		for (var i = 0, il = models.length; i < il; i++) {
+		for (i = 0, il = models.length; i < il; i++) {
 			var mdl = models[i];
 			
 			if (mdl !== bhvMdl) {
@@ -190,7 +199,7 @@
 	};	
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			  			 Tool Definition		  		                      //
+// Tool Definition
 ////////////////////////////////////////////////////////////////////////////////////////////////////
     
 	shorthand.constants = {
@@ -203,7 +212,7 @@
 		ArgumentSet: "messaging.ArgumentSet",
 		TriggerSet: "messaging.TriggerSet",
 		ActionSet: "messaging.ActionSet",
-	    SaveTarget: "messaging.view.SaveTarget",
+		SaveTarget: "messaging.view.SaveTarget",
 		SelectTrigger: "messaging.SelectTrigger",
 		SelectAction: "messaging.SelectAction",
 		CloneTarget: "messaging.CloneTarget",
@@ -211,9 +220,9 @@
 		CreateBehavior: "messaging.CreateBehavior",
 		UpdateBehavior: "messaging.UpdateBehavior"
 	};
-	    
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                   				Model                             		      //
+// Model
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -288,8 +297,7 @@
 	};
 	
 	BehaviorModel.prototype.notify = function(eventType, data) {
-		if (eventType === editor.events.WorldCleaned 
-				|| eventType === editor.events.WorldLoaded) {
+		if (eventType === editor.events.WorldCleaned || eventType === editor.events.WorldLoaded) {
 			bhvMdlSuper.notify.call(this, eventType, data);
 			return;
 		}
@@ -373,12 +381,8 @@
 				type = this.type === shorthand.treeData.MSG_WILDCARD ? hemi.dispatch.WILDCARD 
 					: this.type;
 			
-			newTarget = this.dispatchProxy.registerTarget(
-	            src,
-	            type,
-	            this.handler,
-	            this.method,
-	            args);
+			newTarget = this.dispatchProxy.registerTarget(src, type, this.handler, this.method,
+				args);
 		}
 		
 		newTarget.name = name;
@@ -415,12 +419,12 @@
 	};
     
     BehaviorModel.prototype.setAction = function(handler, method) {
-    	if (handler === this.handler && method === this.method) {
+		if (handler === this.handler && method === this.method) {
 			return;
 		}
-    	
-    	this.handler = handler;
-        this.method = method;
+
+		this.handler = handler;
+		this.method = method;
 		this.args.clear();
 		
 		if (method !== null) {
@@ -438,7 +442,7 @@
 			for (var ndx = 0, len = params.length; ndx < len; ndx++) {
 				var param = params[ndx];
 				
-	            this.args.put(param, {
+				this.args.put(param, {
 					ndx: ndx,
 					value: null
 				});
@@ -458,7 +462,6 @@
             arg.value = argValue;
         }
         
-//	        this.args.put(argName, arg);
 		this.notifyListeners(shorthand.events.ArgumentSet, {
 			name: argName,
 			value: argValue
@@ -469,8 +472,8 @@
 		if (source === this.source && type === this.type) {
 			return;
 		}
-    	
-    	if (source === null || source._getId != null) {
+
+		if (source === null || source._getId != null) {
 			this.source = source;
 		} else if (source === hemi.dispatch.WILDCARD || source === shorthand.treeData.MSG_WILDCARD) {
 			this.source = shorthand.treeData.MSG_WILDCARD;
@@ -525,7 +528,7 @@
     };
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                              			  Private Methods    		                          //
+// Private Methods
 //////////////////////////////////////////////////////////////////////////////////////////////////// 
 	
 		
@@ -546,13 +549,69 @@
 		}
 		
 		return messages;
-	};
+	}
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                               				Table Widget          		                      //
+// Table Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	function bindButtons(tblWgt, tr, td, data, msgTarget) {			
+		var	msgs = getChainMessages(data.handler, data.method);
+			
+		tr.data('behavior', msgTarget);
+		tblWgt.behaviors.put(msgTarget._dispatchId, tr[0]);
+		
+		td.find('.editBtn').bind('click', function(evt) {
+			var bhv = tr.data('behavior');					
+			tblWgt.notifyListeners(editor.events.Edit, bhv);
+		});
+		
+		if (msgs.length > 0) {
+			td.find('.chainBtn').data('chainMsgs', msgs)
+			.bind('click', function(evt) {
+				var tr = jQuery(this).parents('tr'),
+					target = tr.data('behavior'),
+					handler = target.handler,
+					messages = jQuery(tblWgt).data('chainMsgs');
+				
+				if (handler instanceof hemi.ValueCheck) {
+					target = handler;
+					handler = target.handler;
+				}
+				
+				// special case
+				if (target.func === 'moveToView') {
+					handler = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
+					messages = [parseInt(target.args[0].replace(hemi.dispatch.ID_ARG, ''), 10)];
+				}
+				tblWgt.notifyListeners(shorthand.events.SelectTrigger, {
+					source: handler,
+					messages: messages
+				});
+			});
+		} else {
+			td.find('.chainBtn').attr('disabled', 'disabled');
+		}
+		
+		td.find('.cloneBtn').bind('click', function(evt) {
+			var tr = jQuery(tblWgt).parents('tr'),
+				target = tr.data('behavior');
+			
+			tblWgt.notifyListeners(shorthand.events.CloneTarget, {
+				target: target,
+				name: 'Copy of ' + target.name
+			});
+			
+		});
+		td.find('.removeBtn').bind('click', function(evt) {
+			var tr = jQuery(tblWgt).parents('tr'),
+				target = tr.data('behavior');
+				
+			tblWgt.notifyListeners(editor.events.Remove, target);
+		});
+	}
 
-   	var TableWidget = function() {
+	var TableWidget = function() {
 		this.behaviors = new Hashtable();
 		
 		editor.ui.Widget.call(this, {
@@ -571,17 +630,17 @@
 				shorthand.getTriggerName(data).join('.'),
 				shorthand.getActionName(data).join('.'),
 				msgTarget.name,
-				'<td> \
-				<button class="editBtn" title="Edit behavior">Edit</button>\
-				<button class="chainBtn" title="Trigger another behavior from this">Chain</button>\
-				<button class="cloneBtn" title="Duplicate this behavior">Clone</button>\
-				<button class="removeBtn" title="Remove this behavior">Remove</button>\
-				</td>'
+				'<td>' +
+				'<button class="editBtn" title="Edit behavior">Edit</button>' +
+				'<button class="chainBtn" title="Trigger another behavior from this">Chain</button>' +
+				'<button class="cloneBtn" title="Duplicate this behavior">Clone</button>' +
+				'<button class="removeBtn" title="Remove this behavior">Remove</button>' +
+				'</td>'
 			]),
 			tr = jQuery(this.table.fnGetNodes(row)),
 			td = tr.find('td.editHead');
 			
-		bindButtons.call(this, tr, td, data, msgTarget);
+		bindButtons(this, tr, td, data, msgTarget);
 		
 		this.invalidate();
 	};
@@ -649,78 +708,20 @@
 				shorthand.getTriggerName(data).join('.'),
 				shorthand.getActionName(data).join('.'),
 				msgTarget.name,
-				'<td> \
-				<button class="editBtn">Edit</button>\
-				<button class="chainBtn">Chain</button>\
-				<button class="cloneBtn">Clone</button>\
-				<button class="removeBtn">Remove</button>\
-				</td>'
+				'<td>' +
+				'<button class="editBtn">Edit</button>' +
+				'<button class="chainBtn">Chain</button>' +
+				'<button class="cloneBtn">Clone</button>' +
+				'<button class="removeBtn">Remove</button>' +
+				'</td>'
 			], row[0]);
 		
-		bindButtons.call(this, row, td, data, msgTarget);
+		bindButtons(this, row, td, data, msgTarget);
 		this.invalidate();
 	};
 	
-	function bindButtons(tr, td, data, msgTarget) {			
-		var	msgs = getChainMessages(data.handler, data.method),
-			wgt = this;
-			
-		tr.data('behavior', msgTarget);
-		this.behaviors.put(msgTarget._dispatchId, tr[0]);
-		
-		td.find('.editBtn').bind('click', function(evt) {
-			var bhv = tr.data('behavior');					
-			wgt.notifyListeners(editor.events.Edit, bhv);
-		});
-		
-		if (msgs.length > 0) {
-			td.find('.chainBtn').data('chainMsgs', msgs)
-			.bind('click', function(evt) {
-				var tr = jQuery(this).parents('tr'),
-					target = tr.data('behavior'),
-					handler = target.handler,
-					messages = jQuery(this).data('chainMsgs');
-				
-				if (handler instanceof hemi.ValueCheck) {
-					target = handler;
-					handler = target.handler;
-				}
-				
-				// special case
-				if (target.func === 'moveToView') {
-					handler = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
-					messages = [parseInt(target.args[0].replace(
-						hemi.dispatch.ID_ARG, ''))];
-				}
-				wgt.notifyListeners(shorthand.events.SelectTrigger, {
-					source: handler,
-					messages: messages
-				});
-			});
-		} else {
-			td.find('.chainBtn').attr('disabled', 'disabled');
-		}
-		
-		td.find('.cloneBtn').bind('click', function(evt) {
-			var tr = jQuery(this).parents('tr'),
-				target = tr.data('behavior');
-			
-			wgt.notifyListeners(shorthand.events.CloneTarget, {
-				target: target,
-				name: 'Copy of ' + target.name
-			});
-			
-		});
-		td.find('.removeBtn').bind('click', function(evt) {
-			var tr = jQuery(this).parents('tr'),
-				target = tr.data('behavior');
-				
-			wgt.notifyListeners(editor.events.Remove, target);
-		});
-	};
-	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                   				View	                                      //
+// View
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var BehaviorView = function() {
@@ -754,7 +755,7 @@
 	
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                				Controller		                                  //
+// Controller
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -918,7 +919,7 @@
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			  				Extra Scripts		  		                      //
+// Extra Scripts
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	editor.getScript('js/editor/plugins/behavior/js/objectPicker.js');
