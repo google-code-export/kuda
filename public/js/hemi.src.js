@@ -3297,6 +3297,28 @@ if (!window.requestAnimationFrame) {
 		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
 		updateVertices(mesh);
 	};
+	
+	/**
+	 * Clones the given material and returns the clone. Every prop is copied by reference.
+	 * 
+	 * @param {THREE.Material} material the material to clone
+	 */
+	hemi.utils.cloneMaterial = function(material) {
+		var newMat = new material.constructor(),
+			offLimits = ['fragmentShader', 'id', 'program', 'uniforms', 'uniformsList', 
+				'vertexShader'];
+				
+		for (var prop in material) {
+			var p = material[prop];
+			if (!hemi.utils.isFunction(p) && offLimits.indexOf(prop) === -1) {
+				newMat[prop] = p;
+			}
+		}
+		
+		newMat.name = newMat.name + '_clone';
+		
+		return newMat;
+	};
 
 	/**
 	 * Interpret the given point from world space to local space. Note that this function converts
@@ -7923,7 +7945,7 @@ if (!window.requestAnimationFrame) {
 	 */
 	Mesh.prototype._init = function(obj, toConvert) {
 		this.geometry = obj.geometry;
-		this.material = obj.material;
+		this.material = obj.opacity != null ? hemi.utils.cloneMaterial(obj.material) : obj.material;
 		this.boundRadius = obj.boundRadius;
 
 		if (this.geometry.morphTargets.length) {
@@ -7944,10 +7966,19 @@ if (!window.requestAnimationFrame) {
 
 	/*
 	 * Octane properties for Mesh.
-	 * @type string[]
+	 * @return {Object[]} array of Octane properties
 	 */
-	Mesh.prototype._octane = Transform.prototype._octane;
-
+	Mesh.prototype._octane = function() {
+		var props = Transform.prototype._octane.call(this);
+		
+		props.push({
+			name: 'opacity',
+			val: this.opacity
+		});
+		
+		return props;
+	};
+	
 	/**
 	 * Cancel the current interaction that is enabled for the Mesh (movable, resizable or turnable).
 	 */
@@ -16477,31 +16508,29 @@ if (!window.requestAnimationFrame) {
 	 * @param {THREE.Material} material the material to set opacity on
 	 * @param {number} opacity the opacity value between 0 and 1
 	 */
-	hemi.fx.setOpacity = function(client, object, opacity) {
+	hemi.fx.setOpacity = function(client, mesh, opacity) {
 		var objs = client.scene.__webglObjects.concat(client.scene.__webglObjectsImmediate),
-			material = object.material,
-			sharedObjects = [];
+			object = mesh.geometry,
+			sharedObjects = [],
+			globject = null,
+			transparent = opacity < 1,
+			material = mesh.material;
 
-		for (var i = 0, il = objs.length; i < il; i++) {
+		for (var i = 0, il = objs.length; i < il && globject == null; i++) {
 			var webglObject = objs[i],
 				obj = webglObject.object;
 			
-			if (obj.material === material) {
-				sharedObjects.push(webglObject);
-			}
+			globject = obj === object;
 		}
 
-		if (sharedObjects.length > 0) {
-			material.transparent = opacity < 1;
-			material.opacity = opacity;
-			
-			// setup transparent and opaque list for objects with the same material
-			for (var i = 0, il = sharedObjects.length; i < il; i++) {
-				var obj = sharedObjects[i];
-				unrollBufferMaterial(obj);
-				unrollImmediateBufferMaterial(obj);
-			}
+		// material.transparent = opacity < 1;
+		// material.opacity = opacity;
+		if (mesh.opacity == null) {
+			material = mesh.material = hemi.utils.cloneMaterial(material);
+			client.renderer.initMaterial(material, client.scene.lights, client.scene.fog, 
+				object);
 		}
+		mesh.opacity = material.opacity = opacity;
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -16517,65 +16546,7 @@ if (!window.requestAnimationFrame) {
 		}
 		return retVal;
 	}
-
-	/*
-	 * The following three functions are exact duplicates of the functions in WebGLRenderer. Until
-	 * those functions are exposed, we have to duplicate them here.
-	 */
-	function addToFixedArray(where, what) {
-		where.list[ where.count ] = what;
-		where.count += 1;
-	}
-
-	function unrollImmediateBufferMaterial(globject) {
-		var object = globject.object,
-			material = object.material;
-
-		if (material.transparent) {
-			globject.transparent = material;
-			globject.opaque = null;
-		} else {
-			globject.opaque = material;
-			globject.transparent = null;
-		}
-	}
-
-	function unrollBufferMaterial(globject) {
-		var object = globject.object,
-			buffer = globject.buffer,
-			material, materialIndex, meshMaterial;
-
-		meshMaterial = object.material;
-
-		if (meshMaterial instanceof THREE.MeshFaceMaterial) {
-			materialIndex = buffer.materialIndex;
-
-			if (materialIndex >= 0) {
-				material = object.geometry.materials[materialIndex];
-
-				if (material.transparent) {
-					globject.transparent = material;
-					globject.opaque = null;
-				} else {
-					globject.opaque = material;
-					globject.transparent = null;
-				}
-			}
-		} else {
-			material = meshMaterial;
-
-			if (material) {
-				if (material.transparent) {
-					globject.transparent = material;
-					globject.opaque = null;
-				} else {
-					globject.opaque = material;
-					globject.transparent = null;
-				}
-			}
-		}
-	}
-
+	
 })();
 /*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php

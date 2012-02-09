@@ -711,7 +711,7 @@
 	 */
 	Mesh.prototype._init = function(obj, toConvert) {
 		this.geometry = obj.geometry;
-		this.material = obj.material;
+		this.material = obj.opacity != null ? hemi.utils.cloneMaterial(obj.material) : obj.material;
 		this.boundRadius = obj.boundRadius;
 
 		if (this.geometry.morphTargets.length) {
@@ -732,10 +732,19 @@
 
 	/*
 	 * Octane properties for Mesh.
-	 * @type string[]
+	 * @return {Object[]} array of Octane properties
 	 */
-	Mesh.prototype._octane = Transform.prototype._octane;
-
+	Mesh.prototype._octane = function() {
+		var props = Transform.prototype._octane.call(this);
+		
+		props.push({
+			name: 'opacity',
+			val: this.opacity
+		});
+		
+		return props;
+	};
+	
 	/**
 	 * Cancel the current interaction that is enabled for the Mesh (movable, resizable or turnable).
 	 */
