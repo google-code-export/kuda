@@ -22,7 +22,7 @@
 	shorthand.treeData = shorthand.treeData || {};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                 				Constants		                                  //
+// Constants
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var MSG_WILDCARD = shorthand.treeData.MSG_WILDCARD = 'Any';
@@ -87,7 +87,7 @@
 	];
 		
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                               			Local Variables			                              //
+// Local Variables
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var commonMethods = {
@@ -113,7 +113,7 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                  			Methods			                                  //
+// Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var isCommon = function(citizen, method) {
@@ -272,7 +272,7 @@
 			_getId: function() {
 				return this.citizen._getId();
 			}
-		}
+		};
 	};
 	
 	shorthand.treeData.createCamMoveCitizen = function(camera) {
@@ -330,12 +330,12 @@
 			msgSent = citizen._msgSent;
 		
 		for (var ndx = 0, len = msgSent ? msgSent.length : 0; ndx < len; ndx++) {
-			var msg = msgSent[ndx],
-				name = getNodeName(citizen, {
-					option: msg,
-					prefix: prefix,
-					id: id
-				});
+			var msg = msgSent[ndx];
+			name = getNodeName(citizen, {
+				option: msg,
+				prefix: prefix,
+				id: id
+			});
 			
 			msgs.push({
 				data: msg.split('.').pop(),
@@ -360,7 +360,8 @@
 	shorthand.treeData.createActionJson = function(citizen, prefix) {
 		var methods = [],
 			moreMethods = [],
-			id = citizen._getId();
+			id = citizen._getId(),
+			node;
 		
 		for (var propName in citizen) {
 			var prop = citizen[propName];
@@ -370,18 +371,18 @@
 						option: propName,
 						prefix: prefix,
 						id: id
-					}),
-					node = {
-						data: propName,
-						attr: {
-							id: name,
-							rel: 'method'
-						},
-						metadata: {
-							type: 'method',
-							parent: citizen
-						}
-					};
+					});
+				node = {
+					data: propName,
+					attr: {
+						id: name,
+						rel: 'method'
+					},
+					metadata: {
+						type: 'method',
+						parent: citizen
+					}
+				};
 				
 				if (isCommon(citizen, propName)) {
 					methods.push(node);
@@ -414,20 +415,21 @@
 			methods = moreMethods;
 		}
 		
-		var node = createCitizenJson(citizen, prefix);
+		node = createCitizenJson(citizen, prefix);
 		node.children = methods;
 		node.state = 'closed';
 		return node;
 	};
 	
 	shorthand.treeData.createModuleJson = function(module, prefix) {
-		var methods = [];
+		var methods = [],
+			name;
 		
-		for (propName in module) {
+		for (var propName in module) {
 			var prop = module[propName];
 			
 			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
-				var name = getNodeName(module, {
+				name = getNodeName(module, {
 					option: propName,
 					prefix: prefix,
 					id: module._getId()
@@ -447,7 +449,7 @@
 			}
 		}
 		
-		var name = getNodeName(module, {
+		name = getNodeName(module, {
 			prefix: prefix,
 			id: module._getId()
 		});
@@ -544,17 +546,18 @@
 		var model = spCit.citizen,
 			id = spCit._getId(),
 			meshes = [],
-			meshJson = [];
+			meshJson = [],
+			name;
 
 		findMeshes(model.root, meshes);
 
 		for (var i = 0, il = meshes.length; i < il; ++i) {
-			var mesh = meshes[i],
-				name = getNodeName(spCit, {
-					option: mesh.name || '',
-					prefix: prefix,
-					id: id
-				});
+			var mesh = meshes[i];
+			name = getNodeName(spCit, {
+				option: mesh.name || '',
+				prefix: prefix,
+				id: id
+			});
 
 			meshJson.push({
 				data: mesh.name || '',
@@ -570,7 +573,7 @@
 			});
 		}
 
-		var name = getNodeName(spCit, {
+		name = getNodeName(spCit, {
 			option: null,
 			prefix: prefix,
 			id: id

@@ -24,7 +24,7 @@
 		counter = 0;
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                            				Parameter Component		                              //
+// Parameter Component
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 	/*
@@ -116,7 +116,7 @@
 		var ipt = this.curArgs.get(argName);
 		if (/id:/.test(argValue)) {
 			var cit = hemi.world.getCitizenById(
-				parseInt(argValue.split(':').pop()));
+				parseInt(argValue.split(':').pop(), 10));
 			ipt.setValue(cit);
 		}
 		else {
@@ -125,7 +125,7 @@
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                               				Helper Methods		                              //
+// Helper Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	function createListItem(argName, desc, ui) {
@@ -181,7 +181,7 @@
 		}
 		
 		return li;
-	};
+	}
 	
 	function createParameterUi(prm, type) {
 		var firstMatch = type.indexOf('['),
@@ -251,7 +251,7 @@
 		}
 
 		return ui;
-	};
+	}
 	
 	function createInputArray(bound1, bound2) {
 		var retVal = [];
@@ -266,6 +266,6 @@
 		}
 		
 		return retVal;
-	};
+	}
 	
 })();
