@@ -607,7 +607,7 @@
 				metadata: {
 					type: 'message',
 					parent: spCit,
-					msg: shape.name || ''
+					msg: shape.mesh.name || ''
 				}
 			}];
 		
