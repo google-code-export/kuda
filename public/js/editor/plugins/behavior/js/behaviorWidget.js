@@ -650,7 +650,7 @@
 	
 	BehaviorWidget.prototype.setTarget = function(msgTarget, spec) {
 		this.reset();
-		setByMsgTarget.call(this, msgTarget, spec);
+		setByMsgTarget(this, msgTarget, spec);
 	};
 	
 	BehaviorWidget.prototype.setTrigger = function(source, messages) {
