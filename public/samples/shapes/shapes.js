@@ -55,6 +55,7 @@
 			});
 
 		cube.position.x -= 90;
+		cube.updateMatrix();
 		client.scene.add(cube);
 
 		/* Create a 5x5x20 box */
@@ -64,6 +65,7 @@
 			h: 20, w: 5, d: 5 });
 
 		box.position.x -= 70;
+		box.updateMatrix();
 		client.scene.add(box);
 			
 		/* Create a sphere of radius 10 */
@@ -73,6 +75,7 @@
 			radius: 10 });
 
 		sphere.position.x -= 50;
+		sphere.updateMatrix();
 		client.scene.add(sphere);
 			
 		/* Create a cylinder, radius 5, height 10 */
@@ -82,6 +85,7 @@
 			r: 5, h: 10 });
 
 		cylinder.position.x -= 30;
+		cylinder.updateMatrix();
 		client.scene.add(cylinder);
 			
 		/* Create a cone, base radius 5, height 10 */
@@ -91,6 +95,7 @@
 			r: 5, h: 10 });
 
 		cone.position.x -= 10;
+		cone.updateMatrix();
 		client.scene.add(cone);
 			
 		/* Create a tetrahedron of size 10 */
@@ -100,6 +105,7 @@
 			size: 10 });
 
 		tetra.position.x += 10;
+		tetra.updateMatrix();
 		client.scene.add(tetra);
 			
 		/* Create a stellated octahedron, size 10 */
@@ -109,6 +115,7 @@
 			size: 10 });
 
 		octa.position.x += 30;
+		octa.updateMatrix();
 		client.scene.add(octa);
 			
 		/* Create a 5x10x15 pyramid */
@@ -118,6 +125,7 @@
 			h: 15, w: 5, d: 10 });
 
 		pyramid.position.x += 50;
+		pyramid.updateMatrix();
 		client.scene.add(pyramid);
 			
 		/* Create a custom shape from vertices */
@@ -134,6 +142,7 @@
 		});
 
 		custom.position.x += 70;
+		custom.updateMatrix();
 		client.scene.add(custom);
 		
 		/* Create an arrow */
@@ -143,6 +152,7 @@
 			size: 5, tail: 5, depth: 5 });
 
 		arrow.position.x += 90;
+		arrow.updateMatrix();
 		client.scene.add(arrow);
 	}
 
