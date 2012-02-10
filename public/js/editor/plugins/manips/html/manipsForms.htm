@@ -1,0 +1,110 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+<h1>Create Manipulation</h1>
+    <form id="mnpForm" class="withSteps" method="post" action="">
+        <fieldset id="mnpTransforms">
+            <legend>
+                Select Transforms
+            </legend>
+            <ol id="mnpTranList">
+            </ol>
+        </fieldset>
+        <fieldset id="mnpType">
+            <legend>
+                Select Manipulation Type
+            </legend>
+            <ol>
+                <li>
+                    <select id="mnpTypeSelect">
+                        <option value="-1">Select Type</option>
+                        <option value="move">Movable</option>
+                        <option value="turn">Turnable</option>
+                    </select>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mnpParams">
+            <legend>
+                Set Manipulation Parameters
+            </legend>
+            <ol>
+            	<li>
+                    <select id="mnpPlaneSelect" class="optional">
+                        <option value="-1">Select Plane</option>
+                        <option value="xy">XY</option>
+                        <option value="xz">XZ</option>
+                        <option value="yz">YZ</option>
+                    </select>
+                </li>
+                <li>
+                	<span class="optional">
+                		Optional Limits:
+                	</span>
+					<label for="mnpPlaneMinDiv">
+                        Minimum
+                    </label>
+                    <div id="mnpPlaneMinDiv"></div>
+                    <label for="mnpPlaneMaxDiv">
+                        Maximum
+                    </label>
+                    <div id="mnpPlaneMaxDiv"></div>
+                </li>
+				<li>
+                    <select id="mnpAxisSelect" class="optional">
+                        <option value="-1">Select Axis</option>
+                        <option value="x">X</option>
+                        <option value="y">Y</option>
+                        <option value="z">Z</option>
+                    </select>
+                </li>
+				<li>
+                	<span class="optional">
+                		Optional Limits:
+                	</span>
+					<label for="mnpAxisMin">
+                        Minimum
+                    </label>
+                    <div id="mnpAxisMin"></div>
+                    <label for="mnpAxisMax">
+                        Maximum
+                    </label>
+                    <div id="mnpAxisMax"></div>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="mnpSave">
+            <legend>
+                Save Manipulation
+            </legend>
+            <ol>
+                <li>
+                    <div class="buttons">
+                        <button id="mnpPrevBtn" disabled="disabled">
+                            Start Preview
+                        </button>
+                        <button id="mnpSaveBtn" disabled="disabled">
+                            Save
+                        </button>
+                        <button id="mnpCancelBtn">
+                            Clear
+                        </button>
+                    </div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>
