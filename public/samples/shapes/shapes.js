@@ -82,7 +82,7 @@
 		var cylinder = hemi.createShape({
 			shape: 'cylinder',
 			color: 0x88ff00,
-			r: 5, h: 10 });
+			r1: 2.5, r2: 2.5, h: 10 });
 
 		cylinder.position.x -= 30;
 		cylinder.updateMatrix();
@@ -122,7 +122,7 @@
 		var pyramid = hemi.createShape({
 			shape: 'pyramid',
 			color: 0x8800ff,
-			h: 15, w: 5, d: 10 });
+			h: 10, w: 10, d: 10 });
 
 		pyramid.position.x += 50;
 		pyramid.updateMatrix();
