@@ -625,24 +625,31 @@
 	TableWidget.prototype.constructor = TableWidget;
 	
 	TableWidget.prototype.add = function(msgTarget, spec) {
-		var data = shorthand.expandBehaviorData(msgTarget, spec),
-			row = this.table.fnAddData([
-				shorthand.getTriggerName(data).join('.'),
-				shorthand.getActionName(data).join('.'),
-				msgTarget.name,
-				'<td>' +
-				'<button class="editBtn" title="Edit behavior">Edit</button>' +
-				'<button class="chainBtn" title="Trigger another behavior from this">Chain</button>' +
-				'<button class="cloneBtn" title="Duplicate this behavior">Clone</button>' +
-				'<button class="removeBtn" title="Remove this behavior">Remove</button>' +
-				'</td>'
-			]),
-			tr = jQuery(this.table.fnGetNodes(row)),
-			td = tr.find('td.editHead');
+		var exists = jQuery(this.behaviors.get(msgTarget._dispatchId));
+
+		if (exists.length > 0) {
+			this.update(msgTarget, spec);
+		}
+		else {
+			var data = shorthand.expandBehaviorData(msgTarget, spec),
+				row = this.table.fnAddData([
+					shorthand.getTriggerName(data).join('.'),
+					shorthand.getActionName(data).join('.'),
+					msgTarget.name,
+					'<td>' +
+					'<button class="editBtn" title="Edit behavior">Edit</button>' +
+					'<button class="chainBtn" title="Trigger another behavior from this">Chain</button>' +
+					'<button class="cloneBtn" title="Duplicate this behavior">Clone</button>' +
+					'<button class="removeBtn" title="Remove this behavior">Remove</button>' +
+					'</td>'
+				]),
+				tr = jQuery(this.table.fnGetNodes(row)),
+				td = tr.find('td.editHead');
 			
-		bindButtons(this, tr, td, data, msgTarget);
-		
-		this.invalidate();
+			bindButtons(this, tr, td, data, msgTarget);
+			
+			this.invalidate();
+		}
 	};
 	
 	TableWidget.prototype.layout = function() {

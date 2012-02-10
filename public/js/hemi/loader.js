@@ -238,7 +238,7 @@
 	 */
 	hemi.resetLoadTasks = function(opt_callback) {
 		resetCB = opt_callback;
-		decrementTaskCount();
+		taskCount = 1;
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
