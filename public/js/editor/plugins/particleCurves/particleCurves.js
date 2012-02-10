@@ -553,7 +553,7 @@
 				pos = wgt.position.getValue(),
 				dim = wgt.dimensions.getValue();
 				
-			if (pos.length > 0 && dim.length > 0) {
+			if (pos && dim && pos.length > 0 && dim.length > 0) {
 				var msgType = box == null ? shorthand.events.AddBox 
 						: shorthand.events.UpdateBox, 
 					data = {

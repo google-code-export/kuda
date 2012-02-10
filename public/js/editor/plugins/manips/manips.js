@@ -155,6 +155,7 @@
 
 		prevProps.active = transform;
 		applyManip(props);
+        transform._manip.enable();
 		editor.client.camera.disableControl();
 	};
 
