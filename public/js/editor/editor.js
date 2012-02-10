@@ -17,7 +17,7 @@
 
 var editor = {};
 
-(function() {
+(function(editor, hemi, jQuery) {
 	"use strict";
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ var editor = {};
 		editor.ui.initializeView(editor.client);
 		editor.projects.init();
 		editor.plugins.init();
-	};
+	}
 		
 	function setupWorldMessages() {			
 		hemi.subscribe(hemi.msg.worldCleanup, function(msg) {
@@ -115,13 +115,13 @@ var editor = {};
 			editor.notifyListeners(editor.events.WorldLoaded);
 			editor.projects.loadingDone();
 		});
-	};
+	}
 	
 	function uninitViewer() {
 		if (hemi.core.client) {
 			hemi.core.client.cleanup();
 		}
-	};
+	}
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                             Editor Utilities                               //
@@ -147,11 +147,11 @@ var editor = {};
 	
 	editor.getCss = function(url, media) {
 		jQuery( document.createElement('link') ).attr({
-	        href: url,
-	        media: media || 'screen',
-	        type: 'text/css',
-	        rel: 'stylesheet'
-	    }).appendTo('head');
+			href: url,
+			media: media || 'screen',
+			type: 'text/css',
+			rel: 'stylesheet'
+		}).appendTo('head');
 	};
 	
 	editor.getDispatchProxy = function() {
@@ -174,34 +174,28 @@ var editor = {};
 		
 		editor.notifyListeners(editor.events.ScriptLoadStart, url);
 		
-		{
-	        var done = false;
+		var done = false;
+
+		// Attach handlers for all browsers
+		script.onload = script.onreadystatechange = function(){
+			if (!done && (!this.readyState ||
+					this.readyState == "loaded" || 
+					this.readyState == "complete")) {
+				done = true;
+				if (callback) {
+					callback();
+				}
+				editor.notifyListeners(editor.events.ScriptLoaded, url);
+
+				// Handle memory leak in IE
+				script.onload = script.onreadystatechange = null;
+			}
+		};
 	
-	        // Attach handlers for all browsers
-	        script.onload = script.onreadystatechange = function(){
-	            if (!done && (!this.readyState ||
-	            		this.readyState == "loaded" || 
-						this.readyState == "complete")) {
-	                done = true;
-					if (callback) {
-						callback();
-					}
-					editor.notifyListeners(editor.events.ScriptLoaded, url);
-	
-	                // Handle memory leak in IE
-	                script.onload = script.onreadystatechange = null;
-	            }
-	        };
-	    }
-		
 	    document.body.appendChild(script);
 	};
 	
 	window.onload = function() {	
 		initViewer();
 	};
-	
-//	window.onunload = function() {
-//		uninitViewer();
-//	};
-})();
+})(editor, hemi, jQuery);
