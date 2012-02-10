@@ -357,7 +357,7 @@
 			if (this.tree.jstree('is_leaf', node)) {
 				this.tree.jstree('select_node', node, true);
 			} else {
-				this.tree.jstree('open_node', node, true);
+				this.tree.jstree('open_node', node, false, true);
 			}
 			
 			this.tree.parent().scrollTo(node, 400);
