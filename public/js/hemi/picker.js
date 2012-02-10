@@ -65,14 +65,16 @@
 	hemi.Picker.prototype.onMouseDown = function(mouseEvent) {
 		var x = (mouseEvent.x / this.width) * 2 - 1,
 			y = -(mouseEvent.y / this.height) * 2 + 1,
-			camPos = this.camera.threeCamera.position;
+			camPos = this.camera.threeCamera.position,
+			toPick = [];
 
 		_vector.set(x, y, 1);
 		_projector.unprojectVector(_vector, this.camera.threeCamera);
 		_ray.origin.copy(camPos);
 		_ray.direction.copy(_vector.subSelf(camPos).normalize());
 
-		var pickedObjs = _ray.intersectScene(this.scene);
+		buildPickList(this.scene.children, toPick);
+		var pickedObjs = _ray.intersectObjects(toPick);
 
 		if (pickedObjs.length > 0) {
 			for (var i = 0; i < pickedObjs.length; ++i) {
@@ -88,7 +90,7 @@
 						worldIntersectionPosition: worldIntersectionPosition
 					};
 
-					if (this.pickGrabber != null) {
+					if (this.pickGrabber !== null) {
 						this.pickGrabber.onPick(pickInfo);
 					} else {
 						hemi.send(hemi.msg.pick, pickInfo);
@@ -123,5 +125,27 @@
 	hemi.Picker.prototype.setPickGrabber = function(grabber) {
 		this.pickGrabber = grabber;
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Recursively build a list of all of the children, grandchildren, etc. of the Transforms in the
+	 * given array.
+	 * 
+	 * @param {hemi.Transform[]} array of Transforms to add to list
+	 * @param {hemi.Transform[]} the list to fill
+	 */
+	function buildPickList(objects, pickList) {
+		for (var i = 0, il = objects.length; i < il; ++i) {
+			var obj = objects[i];
+			pickList.push(obj);
+
+			if (obj.children.length > 0) {
+				buildPickList(obj.children, pickList);
+			}
+		}
+	}
 
 })();

@@ -1653,6 +1653,11 @@ if (!window.requestAnimationFrame) {
 		 */
 		lastRenderTime = 0,
 		/*
+		 * Map of initialized renderers by the id of their DOM element's parent node.
+		 * @type {Object}
+		 */
+		renderers = {},
+		/*
 		 * Array of render listener objects that all have an onRender function.
 		 * @type Object[]
 		 */
@@ -1702,6 +1707,61 @@ if (!window.requestAnimationFrame) {
 	 * The list of Clients being rendered on the current webpage.
 	 */
 	hemi.clients = [];
+
+	/*
+	 * Get the renderer associated with the given DOM id. If no renderer matches the id, the first
+	 * available renderer (if any) is returned.
+	 * 
+	 * @param {string} domId id of the parent node of the renderer DOM element
+	 * @return {THREE.WebGLRenderer} a matching or available renderer, or null
+	 */
+	hemi._getRenderer = function(domId) {
+		var renderer = renderers[domId];
+
+		if (!renderer) {
+			console.log('No rendererer matches id ' + domId);
+			renderer = null;
+
+			// If there's at least one renderer currently, just return that for convenience
+			for (var id in renderers) {
+				renderer = renderers[id];
+				break;
+			}
+		}
+
+		return renderer;
+	};
+
+	/*
+	 * Search the webpage for any divs with an ID starting with "kuda" and create a canvas within
+	 * each div that will be rendered to using WebGL.
+	 */
+	hemi._makeRenderers = function() {
+		var elements = document.getElementsByTagName('div');
+
+		for (var i = 0, il = elements.length; i < il; ++i) {
+			var element = elements[i],
+				id = element.id;
+
+			if (id && id.match(/^kuda/)) {
+				if (renderers[id]) {
+					console.log('Renderer already exists for id ' + id);
+				} else {
+					var renderer = getRenderer(element);
+
+					if (renderer) {
+						var dom = renderer.domElement;
+						element.appendChild(dom);
+						dom.style.width = "100%";
+						dom.style.height = "100%";
+						hemi.input.init(dom);
+
+						renderers[id] = renderer;
+					}
+				}
+			}
+		}
+	};
 
 	/**
 	 * Utility function to reset the render listeners. This should typically not be used.
@@ -1800,34 +1860,23 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Search the webpage for any divs with an ID starting with "kuda" and create a Client and
-	 * canvas within each div that will be rendered to using WebGL.
+	 * Create a Client for each rendered canvas on the page.
 	 * 
 	 * @param {Object} opt_config optional configuration parameters
+	 * @return {hemi.Client[]} array of all existing Clients
 	 */
 	hemi.makeClients = function(opt_config) {
-		var elements = document.getElementsByTagName('div'),
-			numClients = hemi.clients.length;
-		
-		for (var i = 0, il = elements.length; i < il; ++i) {
-			var element = elements[i];
+		var numClients = hemi.clients.length,
+			ndx = -1;
 
-			if (element.id && element.id.match(/^kuda/)) {
-				var renderer = getRenderer(element);
+		hemi._makeRenderers();
 
-				if (renderer) {
-					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true),
-						dom = renderer.domElement;
+		for (var id in renderers) {
+			var renderer = renderers[id],
+				client = ++ndx < numClients ? hemi.clients[ndx] : new hemi.Client(true);
 
-					element.appendChild(dom);
-					dom.style.width = "100%";
-					dom.style.height = "100%";
-					hemi.input.init(dom);
-
-					client.setRenderer(renderer);
-					hemi.hudManager.addClient(client);
-				}
-			}
+			client.setRenderer(renderer);
+			hemi.hudManager.addClient(client);
 		}
 
 		hemi.init(opt_config);
@@ -4122,10 +4171,15 @@ if (!window.requestAnimationFrame) {
 					data = JSON.parse(data);
 				}
 
+				if (!data.type) {
+					// Assume we are loading a full world from Octane
+					hemi._makeRenderers();
+					hemi.init();
+				}
+
 				var obj = hemi.fromOctane(data);
 
 				if (!data.type) {
-					hemi.makeClients();
 					hemi.ready();
 				}
 
@@ -9686,14 +9740,16 @@ if (!window.requestAnimationFrame) {
 	hemi.Picker.prototype.onMouseDown = function(mouseEvent) {
 		var x = (mouseEvent.x / this.width) * 2 - 1,
 			y = -(mouseEvent.y / this.height) * 2 + 1,
-			camPos = this.camera.threeCamera.position;
+			camPos = this.camera.threeCamera.position,
+			toPick = [];
 
 		_vector.set(x, y, 1);
 		_projector.unprojectVector(_vector, this.camera.threeCamera);
 		_ray.origin.copy(camPos);
 		_ray.direction.copy(_vector.subSelf(camPos).normalize());
 
-		var pickedObjs = _ray.intersectScene(this.scene);
+		buildPickList(this.scene.children, toPick);
+		var pickedObjs = _ray.intersectObjects(toPick);
 
 		if (pickedObjs.length > 0) {
 			for (var i = 0; i < pickedObjs.length; ++i) {
@@ -9709,7 +9765,7 @@ if (!window.requestAnimationFrame) {
 						worldIntersectionPosition: worldIntersectionPosition
 					};
 
-					if (this.pickGrabber != null) {
+					if (this.pickGrabber !== null) {
 						this.pickGrabber.onPick(pickInfo);
 					} else {
 						hemi.send(hemi.msg.pick, pickInfo);
@@ -9744,6 +9800,28 @@ if (!window.requestAnimationFrame) {
 	hemi.Picker.prototype.setPickGrabber = function(grabber) {
 		this.pickGrabber = grabber;
 	};
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/*
+	 * Recursively build a list of all of the children, grandchildren, etc. of the Transforms in the
+	 * given array.
+	 * 
+	 * @param {hemi.Transform[]} array of Transforms to add to list
+	 * @param {hemi.Transform[]} the list to fill
+	 */
+	function buildPickList(objects, pickList) {
+		for (var i = 0, il = objects.length; i < il; ++i) {
+			var obj = objects[i];
+			pickList.push(obj);
+
+			if (obj.children.length > 0) {
+				buildPickList(obj.children, pickList);
+			}
+		}
+	}
 
 })();
 /*
@@ -9789,18 +9867,18 @@ if (!window.requestAnimationFrame) {
 	 */
 	var Client = function(opt_init) {
 		/*
-		 * The color of the background, in hex. This should not be set directly.
-		 * @type number
-		 * @default 0
-		 */
-		this._bgColor = 0;
-
-		/*
 		 * The opacity of the background, between 0 and 1. This should not be set directly.
 		 * @type number
 		 * @default 1
 		 */
 		this._bgAlpha = 1;
+
+		/*
+		 * The color of the background, in hex. This should not be set directly.
+		 * @type number
+		 * @default 0
+		 */
+		this._bgColor = 0;
 
 		/**
 		 * The Camera that represents the viewing position and direction.
@@ -9852,6 +9930,21 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/*
+	 * Assign the renderer associated with the given DOM id to the Client.
+	 * 
+	 * @param {string} domId id of the parent node of the renderer DOM element
+	 */
+	Client.prototype._init = function(domId) {
+		var renderer = hemi._getRenderer(domId);
+
+		if (renderer) {
+			this.setRenderer(renderer);
+		} else {
+			console.log('Unable to find renderer for Client with id ' + client._getId());
+		}
+	};
+
+	/*
 	 * Octane properties for Client.
 	 * 
 	 * @return {Object[]} array of Octane properties
@@ -9870,6 +9963,9 @@ if (!window.requestAnimationFrame) {
 			}, {
 				name: 'setCamera',
 				arg: [hemi.dispatch.ID_ARG + this.camera._getId()]
+			}, {
+				name: '_init',
+				arg: [this.renderer.domElement.parentNode.id]
 			}
 		];
 	};

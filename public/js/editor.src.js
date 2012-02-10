@@ -5680,8 +5680,7 @@ var editor = {};
 			data: data,
 			dataType: 'json',
 			success: function(data, status, xhr) {
-				var renderer = editor.client.renderer,
-					context = hemi.hudManager._contexts[editor.client._getId()];
+				var context = hemi.hudManager._contexts[editor.client._getId()];
 
 				mdl.loading = true;
 				hemi.send(hemi.msg.worldCleanup);
@@ -5691,7 +5690,6 @@ var editor = {};
 
 				var client = editor.client = hemi.clients[0];
 				editor.grid.setClient(client);
-				client.setRenderer(renderer);
 				hemi.hudManager._contexts[client._getId()] = context;
 				hemi.ready();
 				
@@ -5881,7 +5879,6 @@ var editor = {};
 		hemi.fromOctane(data);
 
 		var client = hemi.clients[0];
-		client.setRenderer(editor.client.renderer);
 		hemi.hudManager._contexts[client._getId()] = this.worldState.hudContexts[editor.client._getId()];
 		hemi.ready();
 	};

@@ -73,6 +73,11 @@ if (!window.requestAnimationFrame) {
 		 */
 		lastRenderTime = 0,
 		/*
+		 * Map of initialized renderers by the id of their DOM element's parent node.
+		 * @type {Object}
+		 */
+		renderers = {},
+		/*
 		 * Array of render listener objects that all have an onRender function.
 		 * @type Object[]
 		 */
@@ -122,6 +127,61 @@ if (!window.requestAnimationFrame) {
 	 * The list of Clients being rendered on the current webpage.
 	 */
 	hemi.clients = [];
+
+	/*
+	 * Get the renderer associated with the given DOM id. If no renderer matches the id, the first
+	 * available renderer (if any) is returned.
+	 * 
+	 * @param {string} domId id of the parent node of the renderer DOM element
+	 * @return {THREE.WebGLRenderer} a matching or available renderer, or null
+	 */
+	hemi._getRenderer = function(domId) {
+		var renderer = renderers[domId];
+
+		if (!renderer) {
+			console.log('No rendererer matches id ' + domId);
+			renderer = null;
+
+			// If there's at least one renderer currently, just return that for convenience
+			for (var id in renderers) {
+				renderer = renderers[id];
+				break;
+			}
+		}
+
+		return renderer;
+	};
+
+	/*
+	 * Search the webpage for any divs with an ID starting with "kuda" and create a canvas within
+	 * each div that will be rendered to using WebGL.
+	 */
+	hemi._makeRenderers = function() {
+		var elements = document.getElementsByTagName('div');
+
+		for (var i = 0, il = elements.length; i < il; ++i) {
+			var element = elements[i],
+				id = element.id;
+
+			if (id && id.match(/^kuda/)) {
+				if (renderers[id]) {
+					console.log('Renderer already exists for id ' + id);
+				} else {
+					var renderer = getRenderer(element);
+
+					if (renderer) {
+						var dom = renderer.domElement;
+						element.appendChild(dom);
+						dom.style.width = "100%";
+						dom.style.height = "100%";
+						hemi.input.init(dom);
+
+						renderers[id] = renderer;
+					}
+				}
+			}
+		}
+	};
 
 	/**
 	 * Utility function to reset the render listeners. This should typically not be used.
@@ -220,34 +280,23 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Search the webpage for any divs with an ID starting with "kuda" and create a Client and
-	 * canvas within each div that will be rendered to using WebGL.
+	 * Create a Client for each rendered canvas on the page.
 	 * 
 	 * @param {Object} opt_config optional configuration parameters
+	 * @return {hemi.Client[]} array of all existing Clients
 	 */
 	hemi.makeClients = function(opt_config) {
-		var elements = document.getElementsByTagName('div'),
-			numClients = hemi.clients.length;
-		
-		for (var i = 0, il = elements.length; i < il; ++i) {
-			var element = elements[i];
+		var numClients = hemi.clients.length,
+			ndx = -1;
 
-			if (element.id && element.id.match(/^kuda/)) {
-				var renderer = getRenderer(element);
+		hemi._makeRenderers();
 
-				if (renderer) {
-					var client = i < numClients ? hemi.clients[i] : new hemi.Client(true),
-						dom = renderer.domElement;
+		for (var id in renderers) {
+			var renderer = renderers[id],
+				client = ++ndx < numClients ? hemi.clients[ndx] : new hemi.Client(true);
 
-					element.appendChild(dom);
-					dom.style.width = "100%";
-					dom.style.height = "100%";
-					hemi.input.init(dom);
-
-					client.setRenderer(renderer);
-					hemi.hudManager.addClient(client);
-				}
-			}
+			client.setRenderer(renderer);
+			hemi.hudManager.addClient(client);
 		}
 
 		hemi.init(opt_config);
