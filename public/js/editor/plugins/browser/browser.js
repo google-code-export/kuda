@@ -318,6 +318,7 @@
 				var src = msg.src;
 
 				if (src instanceof hemi.Model) {
+					src.root.name = src.name + '_root';
 					mdl.processModel(src, src.root);
 					mdl.notifyListeners(editor.events.Created, src);
 				}
