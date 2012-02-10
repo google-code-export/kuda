@@ -150,12 +150,14 @@
 
 			if (!props.moveAccel.isZero() || !props.moveVel.isZero()) {
 				transform.setMoving(props.moveVel, props.moveAccel);
+                transform._translator.disable();
 			} else {
 				transform.cancelMoving();
 			}
 
 			if (!props.turnAccel.isZero() || !props.turnVel.isZero()) {
 				transform.setTurning(props.turnVel, props.turnAccel);
+                transform._rotator.disable();
 			} else {
 				transform.cancelTurning();
 			}
@@ -219,7 +221,9 @@
 
 			if (disable) {
 				transform._translator.disable();
-			}
+			} else { 
+                transform._translator.enable();
+            }
 		} else {
 			transform.cancelMoving();
 		}
@@ -236,7 +240,9 @@
 
 			if (disable) {
 				transform._rotator.disable();
-			}
+			} else { 
+                transform._rotator.enable();
+            }
 		} else {
 			transform.cancelTurning();
 		}
