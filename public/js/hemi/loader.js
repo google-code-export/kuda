@@ -153,10 +153,15 @@
 					data = JSON.parse(data);
 				}
 
+				if (!data.type) {
+					// Assume we are loading a full world from Octane
+					hemi._makeRenderers();
+					hemi.init();
+				}
+
 				var obj = hemi.fromOctane(data);
 
 				if (!data.type) {
-					hemi.makeClients();
 					hemi.ready();
 				}
 

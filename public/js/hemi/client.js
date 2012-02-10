@@ -41,18 +41,18 @@
 	 */
 	var Client = function(opt_init) {
 		/*
-		 * The color of the background, in hex. This should not be set directly.
-		 * @type number
-		 * @default 0
-		 */
-		this._bgColor = 0;
-
-		/*
 		 * The opacity of the background, between 0 and 1. This should not be set directly.
 		 * @type number
 		 * @default 1
 		 */
 		this._bgAlpha = 1;
+
+		/*
+		 * The color of the background, in hex. This should not be set directly.
+		 * @type number
+		 * @default 0
+		 */
+		this._bgColor = 0;
 
 		/**
 		 * The Camera that represents the viewing position and direction.
@@ -104,6 +104,21 @@
 	};
 
 	/*
+	 * Assign the renderer associated with the given DOM id to the Client.
+	 * 
+	 * @param {string} domId id of the parent node of the renderer DOM element
+	 */
+	Client.prototype._init = function(domId) {
+		var renderer = hemi._getRenderer(domId);
+
+		if (renderer) {
+			this.setRenderer(renderer);
+		} else {
+			console.log('Unable to find renderer for Client with id ' + client._getId());
+		}
+	};
+
+	/*
 	 * Octane properties for Client.
 	 * 
 	 * @return {Object[]} array of Octane properties
@@ -122,6 +137,9 @@
 			}, {
 				name: 'setCamera',
 				arg: [hemi.dispatch.ID_ARG + this.camera._getId()]
+			}, {
+				name: '_init',
+				arg: [this.renderer.domElement.parentNode.id]
 			}
 		];
 	};
