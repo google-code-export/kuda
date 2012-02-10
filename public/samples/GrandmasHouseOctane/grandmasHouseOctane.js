@@ -22,30 +22,30 @@
  */
 (function() {
 
-	function init(clientElements) {
-		/**
-		 * It is possible to have multiple clients (i.e. multiple frames
-		 * 		rendering 3d content) on one page that would have to be
-		 * 		initialized. In this case, we only want to initialize the
-		 *		first one.
-		 */
-		hemi.core.init(clientElements[0]);
+	// // function init(clientElements) {
+		// /**
+		 // * It is possible to have multiple clients (i.e. multiple frames
+		 // * 		rendering 3d content) on one page that would have to be
+		 // * 		initialized. In this case, we only want to initialize the
+		 // *		first one.
+		 // */
+		// hemi.core.init(clientElements[0]);
 		
-		/**
-		 * Set the background color to a light-bluish. The parameter is in
-		 * 		the form [red,blue,green,alpha], with each value on a 
-		 *		scale of 0-1.
-		 */
-		hemi.view.setBGColor([0.7, 0.8, 1, 1]);
-		
+		// /**
+		 // * Set the background color to a light-bluish. The parameter is in
+		 // * 		the form [red,blue,green,alpha], with each value on a 
+		 // *		scale of 0-1.
+		 // */
+		// hemi.view.setBGColor([0.7, 0.8, 1, 1]);
+		hemi.init();
 		/**
 		 * Set a prefix for the loader that will allow us to load assets as if
 		 * the helloWorld.html file was in the root directory.
 		 */
-		hemi.loader.loadPath = '../../';
+		hemi.loadPath = '../../';
 
 		createWorld();
-	}
+	// }
 
 	function createWorld() {
 
@@ -54,64 +54,58 @@
 		 *		cameras, effects, etc. When we set the model's file name, it
 		 *		will begin loading that file.
 		 */
-        hemi.loader.loadOctane('samples/GrandmasHouseOctane/grandmasHouseOctane.json',
+         console.log('create world');
+        hemi.loadOctane('samples/GrandmasHouseOctane/grandmasHouseOctane.json',
+        
         function() {
             // This will be executed before hemi.world.ready() is called.
-            hemi.world.subscribe(hemi.msg.ready,
+            hemi.subscribe(hemi.msg.ready,
                 function(msg) {
-                    // We are not currently able to disable camera control
-                    // from the Kuda World Editor, so we must do it here.
                     bindJavascript();
                 });
         });
 	}
 
     function bindJavascript() {
+        console.log('binding javascript');
         jQuery('#next').click(function() {
-            var scenes = hemi.world.getScenes();
-            for(index = 0 ; index < scenes.length; index++){
-                if(scenes[index].isLoaded)
+            var states = hemi.world.getStates();
+            
+            for(index = 0 ; index < states.length; index++){
+                if(states[index].isLoaded)
                     break;
             }
-            scenes[index].nextScene();
-            var sceneHTML;
-            if(scenes[index].next != null && scenes[index].next.name != null){
-                var sceneHTML=scenes[index].next.name;
-                switch(scenes[index].next.name){
-                    case "sceneA":
+            console.log(index + ' ' + states[index].name);
+            states[index].nextState();
+            if(states[index].next != null && states[index].next.name != null){
+                var sceneHTML=states[index].next.name;
+                switch(states[index].next.name){
+                    case "scene01":
                         sceneHTML="content/scene0.htm";
                         break;
-                    case "sceneB":
+                    case "scene02":
                         sceneHTML="content/scene1.htm";
                         break;
-                    case "sceneC":
+                    case "scene03":
                         sceneHTML="content/scene2.htm";
                         break;
-                    case "sceneD":
+                    case "scene04":
                         sceneHTML="content/scene3.htm";
                         break;
-                    case "sceneE":
+                    case "scene05":
                         sceneHTML="content/scene4.htm";
                         break;
-                    case "sceneF":
+                    case "scene06":
                         sceneHTML="content/scene5.htm";
                         break;
-                    case "sceneG":
+                    case "scene07":
+                    case "scene08":
+                    case "scene09":
                         sceneHTML="content/scene6.htm";
                         break;
-                    case "sceneH":
-                        sceneHTML="content/scene6.htm";
-                        break;
-                    case "sceneI":
-                        sceneHTML="content/scene6.htm";
-                        break;
-                    case "sceneJ":
-                        sceneHTML="content/scene8.htm";
-                        break;
-                    case "sceneK":
-                        sceneHTML="content/scene8.htm";
-                        break;
-                    case "sceneL":
+                    case "scene10":
+                    case "scene11":
+                    case "scene12":
                         sceneHTML="content/scene8.htm";
                         break;
                     default:
@@ -121,51 +115,43 @@
             }
 		});
 		jQuery('#prev').click(function() {
-			var scenes = hemi.world.getScenes();
-            scenes.sort();
-            for(index = 0 ; index < scenes.length; index++){
-                if(scenes[index].isLoaded)
+			var states = hemi.world.getStates();
+            states.sort();
+            for(index = 0 ; index < states.length; index++){
+                if(states[index].isLoaded)
                     break;
             }
-            scenes[index].previousScene();
+            states[index].previousState();
             
-            if(scenes[index].prev != null && scenes[index].prev.name != null){
-                var sceneHTML;
-                switch(scenes[index].prev.name){
-                    case "sceneA":
+            if(states[index].prev != null && states[index].prev.name != null){
+                var sceneHTML = states[index].prev.name;;
+                switch(states[index].prev.name){
+                    case "scene01":
                         sceneHTML="content/scene0.htm";
                         break;
-                    case "sceneB":
+                    case "scene02":
                         sceneHTML="content/scene1.htm";
                         break;
-                    case "sceneC":
+                    case "scene03":
                         sceneHTML="content/scene2.htm";
                         break;
-                    case "sceneD":
+                    case "scene04":
                         sceneHTML="content/scene3.htm";
                         break;
-                    case "sceneE":
+                    case "scene05":
                         sceneHTML="content/scene4.htm";
                         break;
-                    case "sceneF":
+                    case "scene06":
                         sceneHTML="content/scene5.htm";
                         break;
-                    case "sceneG":
+                    case "scene07":
+                    case "scene08":
+                    case "scene09":
                         sceneHTML="content/scene6.htm";
                         break;
-                    case "sceneH":
-                        sceneHTML="content/scene6.htm";
-                        break;
-                    case "sceneI":
-                        sceneHTML="content/scene6.htm";
-                        break;
-                    case "sceneJ":
-                        sceneHTML="content/scene8.htm";
-                        break;
-                    case "sceneK":
-                        sceneHTML="content/scene8.htm";
-                        break;
-                    case "sceneL":
+                    case "scene10":
+                    case "scene11":
+                    case "scene12":
                         sceneHTML="content/scene8.htm";
                         break;
                     default:
@@ -173,27 +159,25 @@
                 }
                 document.getElementById("myframe").src=sceneHTML;
             }
-            
-
 		});
         jQuery('#reload').click(function() {
-            var scenes = hemi.world.getScenes();
-            for(index = 0 ; index < scenes.length; index++){
-                if(scenes[index].isLoaded)
+            var states = hemi.world.getStates();
+            for(index = 0 ; index < states.length; index++){
+                if(states[index].isLoaded)
                     break;
             }
-            scenes[index].unload();
-            scenes[index].load();
+            states[index].unload();
+            states[index].load();
 		});
     }
     
-	jQuery(window).load(function() {
-		o3djs.webgl.makeClients(init);
-	});
+	// jQuery(window).load(function() {
+		// o3djs.webgl.makeClients(init);
+	// });
 
-	jQuery(window).unload(function() {
-		if (hemi.core.client) {
-			hemi.core.client.cleanup();
-		}
-	});
+	// jQuery(window).unload(function() {
+		// if (hemi.core.client) {
+			// hemi.core.client.cleanup();
+		// }
+	// });
 })();
