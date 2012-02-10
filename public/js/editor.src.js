@@ -17,7 +17,7 @@
 
 var editor = {};
 
-(function() {
+(function(editor, hemi, jQuery) {
 	"use strict";
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -105,7 +105,7 @@ var editor = {};
 		editor.ui.initializeView(editor.client);
 		editor.projects.init();
 		editor.plugins.init();
-	};
+	}
 		
 	function setupWorldMessages() {			
 		hemi.subscribe(hemi.msg.worldCleanup, function(msg) {
@@ -115,13 +115,13 @@ var editor = {};
 			editor.notifyListeners(editor.events.WorldLoaded);
 			editor.projects.loadingDone();
 		});
-	};
+	}
 	
 	function uninitViewer() {
 		if (hemi.core.client) {
 			hemi.core.client.cleanup();
 		}
-	};
+	}
 	
 ////////////////////////////////////////////////////////////////////////////////
 //                             Editor Utilities                               //
@@ -147,11 +147,11 @@ var editor = {};
 	
 	editor.getCss = function(url, media) {
 		jQuery( document.createElement('link') ).attr({
-	        href: url,
-	        media: media || 'screen',
-	        type: 'text/css',
-	        rel: 'stylesheet'
-	    }).appendTo('head');
+			href: url,
+			media: media || 'screen',
+			type: 'text/css',
+			rel: 'stylesheet'
+		}).appendTo('head');
 	};
 	
 	editor.getDispatchProxy = function() {
@@ -174,37 +174,31 @@ var editor = {};
 		
 		editor.notifyListeners(editor.events.ScriptLoadStart, url);
 		
-		{
-	        var done = false;
+		var done = false;
+
+		// Attach handlers for all browsers
+		script.onload = script.onreadystatechange = function(){
+			if (!done && (!this.readyState ||
+					this.readyState == "loaded" || 
+					this.readyState == "complete")) {
+				done = true;
+				if (callback) {
+					callback();
+				}
+				editor.notifyListeners(editor.events.ScriptLoaded, url);
+
+				// Handle memory leak in IE
+				script.onload = script.onreadystatechange = null;
+			}
+		};
 	
-	        // Attach handlers for all browsers
-	        script.onload = script.onreadystatechange = function(){
-	            if (!done && (!this.readyState ||
-	            		this.readyState == "loaded" || 
-						this.readyState == "complete")) {
-	                done = true;
-					if (callback) {
-						callback();
-					}
-					editor.notifyListeners(editor.events.ScriptLoaded, url);
-	
-	                // Handle memory leak in IE
-	                script.onload = script.onreadystatechange = null;
-	            }
-	        };
-	    }
-		
 	    document.body.appendChild(script);
 	};
 	
 	window.onload = function() {	
 		initViewer();
 	};
-	
-//	window.onunload = function() {
-//		uninitViewer();
-//	};
-})();
+})(editor, hemi, jQuery);
 /* 
  * Kuda includes a library and editor for authoring interactive 3D content for the web.
  * Copyright (C) 2011 SRI International.
@@ -2891,13 +2885,13 @@ var editor = {};
  * Boston, MA 02110-1301 USA.
  */
 
-(function(editor) {
+(function() {
 	"use strict";
 	
 	editor.ui = editor.ui || {};	
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			   				Constants			  		                      //
+// Constants
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	editor.ui.Layer = {
@@ -2928,7 +2922,7 @@ var editor = {};
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//												  Panel				  		                      //
+// Panel
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var panels = [];
@@ -3027,7 +3021,7 @@ var editor = {};
 			minMaxBtn = this.minMaxBtn,
 			that = this;
 		
-		addSlideAnim.call(this, 0, animData);
+		addSlideAnim(this, 0, animData);
 		this.container.bind('mouseleave', hideMinMaxBtn)
 			.bind('mouseenter', showMinMaxBtn)
 			.animate(animData, function() {
@@ -3053,7 +3047,7 @@ var editor = {};
 				break;
 		}
 		
-		addSlideAnim.call(this, -1 * dest, animData);
+		addSlideAnim(this, -1 * dest, animData);
 		this.container.unbind('mouseleave', hideMinMaxBtn)
 			.unbind('mouseenter', showMinMaxBtn)
 			.animate(animData, function() {
@@ -3107,7 +3101,7 @@ var editor = {};
 	
 	PanelBase.prototype.setVisible = function(visible, opt_skipAnim) {
 		if (visible !== this.visible) {
-			setVisible.call(this, visible, opt_skipAnim);
+			setVisible(this, visible, opt_skipAnim);
 			
 			if (!visible) {							
 				this.container.bind('mouseleave', hideMinMaxBtn)
@@ -3125,18 +3119,18 @@ var editor = {};
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//										Panel Private Methods		  		                      //
+// Panel Private Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 	/*
-	 * Adds the opacity parameter for animation.
-	 * 
-	 * @param {boolean} visible flag indicating visibility
-	 * @param {number} origOpacity the original opacity of the target
-	 * @param {jQuery} target the target element
-	 * @param {object} animData animation object literal passed to jQuery 
-	 * 		animate() method
-	 */
+     * Adds the opacity parameter for animation.
+     * 
+     * @param {boolean} visible flag indicating visibility
+     * @param {number} origOpacity the original opacity of the target
+     * @param {jQuery} target the target element
+     * @param {object} animData animation object literal passed to jQuery 
+     * 		animate() method
+     */
 	function addOpacityAnim(visible, origOpacity, target, animData) {
 		var opacityStart = visible ? 0 : origOpacity,
 			opacityEnd = visible ? origOpacity : 0;
@@ -3147,21 +3141,21 @@ var editor = {};
 		if (visible) {
 			target.show();
 		}
-	};
+	}
 	
 	/*
-	 * Adds the location parameter for animation, which is used for sliding
-	 * the element.
-	 * 
-	 * @param {number} destination the x/y position to slide to
-	 * @param {object} animData animation object literal passed to jQuery 
-	 * 		animate() method
-	 */
-	function addSlideAnim(destination, animData) {
-		var ctn = this.container,
+     * Adds the location parameter for animation, which is used for sliding
+     * the element.
+     * 
+     * @param {number} destination the x/y position to slide to
+     * @param {object} animData animation object literal passed to jQuery 
+     * 		animate() method
+     */
+	function addSlideAnim(panel, destination, animData) {
+		var ctn = panel.container,
 			location;
 		
-		switch(this.config.location) {
+		switch(panel.config.location) {
 			case editor.ui.Location.TOP:
 				location = 'top';
 				break;
@@ -3176,27 +3170,27 @@ var editor = {};
 				break;
 		}
 		
-		var start = parseInt(ctn.css(location)),
+		var start = parseInt(ctn.css(location), 10),
 			animAmt = '+=' + (destination - start);
 		
 		animData[location] = animAmt;
-	};
+	}
 	
 	/*
-	 * Sets the visibility of a panel, using animations if specified
-	 * 
-	 * @param {boolean} visible flag indicating the new visibility
-	 * @param {boolean} opt_skipAnim optional flag indicating whether to 
-	 * 		skip the animation 
-	 */
-	function setVisible(visible, opt_skipAnim) {
-		var ctn = this.container,
-			btn = this.minMaxBtn,
+     * Sets the visibility of a panel, using animations if specified
+     * 
+     * @param {boolean} visible flag indicating the new visibility
+     * @param {boolean} opt_skipAnim optional flag indicating whether to 
+     * 		skip the animation 
+     */
+	function setVisible(panel, visible, opt_skipAnim) {
+		var ctn = panel.container,
+			btn = panel.minMaxBtn,
 			animData = {},
 			dest = visible ? 0 : -20,
 			location;
 		
-		switch(this.config.location) {
+		switch(panel.config.location) {
 			case editor.ui.Location.TOP:
 				location = 'top';
 				break;
@@ -3221,13 +3215,13 @@ var editor = {};
 			btn.data('min', true).text('Min').hide();
 		} else {
 			// Check if it is already hidden
-			var pos = parseInt(ctn.css(location));
+			var pos = parseInt(ctn.css(location), 10);
 			opt_skipAnim = opt_skipAnim || pos < dest;
 		}
 		
 		if (opt_skipAnim) {
 			if (visible) {
-				ctn.css(location, dest).css('opacity', this.origOpacity).show();
+				ctn.css(location, dest).css('opacity', panel.origOpacity).show();
 				btn.css(location, dest);
 			}
 			else {
@@ -3235,8 +3229,8 @@ var editor = {};
 				btn.css(location, dest);
 			}
 		} else {
-			addOpacityAnim(visible, this.origOpacity, ctn, animData, ctn);
-			addSlideAnim.call(this, dest, animData);
+			addOpacityAnim(visible, panel.origOpacity, ctn, animData, ctn);
+			addSlideAnim(panel, dest, animData);
 			
 			ctn.animate(animData, function() {
 				if (!visible) {
@@ -3244,13 +3238,13 @@ var editor = {};
 				}
 			});
 		}
-	};
+	}
 
 	/*
-	 * Hides the min/max button of a panel
-	 * 
-	 * @param {Object} evt
-	 */
+     * Hides the min/max button of a panel
+     * 
+     * @param {Object} evt
+     */
 	function hideMinMaxBtn(evt) {
 		var btn = jQuery(this).find('button.minMax'),
 			animData = {};
@@ -3259,7 +3253,7 @@ var editor = {};
 		btn.animate(animData, function() {
 			btn.hide();
 		});
-	};
+	}
 	
 	function showMinMaxBtn(evt) {
 		var btn = jQuery(this).find('button.minMax'),
@@ -3267,10 +3261,10 @@ var editor = {};
 		
 		addOpacityAnim(true, btn.data('origOpacity'), btn, animData);
 		btn.animate(animData);
-	};
+	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			   	  			 Tab Bar			  		                      //	
+// Tab Bar
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var NavBar = function() {
@@ -3344,7 +3338,7 @@ var editor = {};
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			   	 			  Tab Pane			  		                      //
+// Tab Pane
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var NavPane = editor.ui.NavPane = function(title, options) {	
@@ -3377,10 +3371,8 @@ var editor = {};
 	};
 	
 	NavPane.prototype.notify = function(eventType, value) {
-		switch (eventType) {
-			case editor.events.Enabled:
-				this.setEnabled(value.enabled); 
-				break;
+		if (eventType === editor.events.Enabled) {
+			this.setEnabled(value.enabled); 
 		}
 	};
 	
@@ -3427,7 +3419,7 @@ var editor = {};
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			   	  				Panel			  		                      //
+// Panel
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var Panel = editor.ui.Panel = function(options) {
@@ -3460,7 +3452,7 @@ var editor = {};
 		this[widget.getName()] = widget;
 		this.widgets.push(widget);
 
-		widget.setMinHeight(parseInt(this.container.css('min-height')));
+		widget.setMinHeight(parseInt(this.container.css('min-height'), 10));
 		widget.addListener(editor.events.Invalidate, function(data) {
 			pnl.resize();
 		});
@@ -3485,7 +3477,7 @@ var editor = {};
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//												  Full Panel		  		                      //
+// Full Panel
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	var FullPanel = editor.ui.FullPanel = function(options) {
@@ -3505,7 +3497,7 @@ var editor = {};
 	FullPanel.prototype.constructor = FullPanel;
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			   	  				Widget			  		                      //
+// Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	editor.ui.WidgetDefaults = {
@@ -3577,8 +3569,8 @@ var editor = {};
 	
 	Widget.prototype.sizeAndPosition = function() {
 		var container = this.container,
-			padding = parseInt(container.css('paddingBottom')) +
-				parseInt(container.css('paddingTop')),
+			padding = parseInt(container.css('paddingBottom'), 10) +
+				parseInt(container.css('paddingTop'), 10),
 			win = jQuery(window),
 			winHeight = this.minHeight ? Math.max(win.height(), this.minHeight) : win.height();
 		
@@ -3606,7 +3598,7 @@ var editor = {};
 	};
    
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     		  				Convenient Forms Widget			                   	  //
+// Convenient Forms Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 		
 	var FormWidget = editor.ui.FormWidget = function(options) {
@@ -3626,10 +3618,11 @@ var editor = {};
 	FormWidget.prototype.constructor = FormWidget;
 		
 	FormWidget.prototype.addInputsToCheck = function(inputs) {
-		var wgt = this;
+		var wgt = this,
+			checker;
 		
 		if (inputs instanceof editor.ui.ColorPicker) {
-			var checker = {
+			checker = {
 				input: inputs,
 				saveable: function() {
 					return this.input.getColor() != null;
@@ -3638,7 +3631,7 @@ var editor = {};
 			this.checkers.push(checker);
 		}
 		else if (inputs instanceof editor.ui.Input || inputs instanceof editor.ui.Vector) {
-			var checker = {
+			checker = {
 				input: inputs,
 				saveable: function() {
 					return this.input.getValue() != null;
@@ -3685,7 +3678,7 @@ var editor = {};
 	};
    
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     		   				Convenient List Widget			                   	  //
+// Convenient List Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
 	/*
@@ -3895,8 +3888,7 @@ var editor = {};
 		hemi.hudManager.resetTextBaseline();
 	};
 
-})(editor);
-/* 
+})();/* 
  * Kuda includes a library and editor for authoring interactive 3D content for the web.
  * Copyright (C) 2011 SRI International.
  *

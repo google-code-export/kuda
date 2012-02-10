@@ -19,7 +19,7 @@
 	"use strict";
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			   			Initialization			  		                      //
+// Initialization
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	var shorthand = editor.tools.shapes;
@@ -38,17 +38,17 @@
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     			  			Tool Definition			  		                      //
+// Tool Definition
 ////////////////////////////////////////////////////////////////////////////////////////////////////
     
     shorthand.events = {
 		// create sidebar widget specific
-	    PreviewShape: "Shapes.PreviewShape",
-	    SaveShape: "Shapes.SaveShape"
+		PreviewShape: "Shapes.PreviewShape",
+		SaveShape: "Shapes.SaveShape"
     };
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                   			 Model                                    		  //
+// Model
 ////////////////////////////////////////////////////////////////////////////////////////////////////
     
     /**
@@ -141,16 +141,16 @@
 			this.notifyListeners(editor.events.Created, shapes[ndx]);
 		}
     };
-   	
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                     	   			 Create Shape Sidebar Widget    	                          //
+// Create Shape Sidebar Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 			
 	var CreateWidget = function() {
-	    editor.ui.FormWidget.call(this, {
+		editor.ui.FormWidget.call(this, {
 			name: 'createShapeWidget',
 			uiFile: 'js/editor/plugins/shapes/html/shapesForms.htm',
-	        instructions: 'Click on a model to select it'
+			instructions: 'Click on a model to select it'
 		});
 			
 		this.inputsToCheck = [];
@@ -257,9 +257,7 @@
 					inputs.push(wgt.shapeHeight);
 					break;
 				case hemi.ShapeType.ARROW:
-					wgt.shapeSize.getUI().parent().show();
 					wgt.shapeTail.getUI().parent().show();
-					inputs.push(wgt.shapeSize);
 					inputs.push(wgt.shapeTail);
 				case hemi.ShapeType.CUBE:
 				case hemi.ShapeType.TETRA:
@@ -361,7 +359,6 @@
 				shapeInfo.height = this.shapeHeight.getValue();
 				break;
 			case hemi.ShapeType.ARROW:
-				shapeInfo.size= this.shapeSize.getValue();
 				shapeInfo.tail= this.shapeTail.getValue();
 			case hemi.ShapeType.CUBE:
 			case hemi.ShapeType.TETRA:
@@ -419,7 +416,7 @@
 			
 			switch(prop) {
 				case 'height':
-				    this.shapeHeight.setValue(val);
+					this.shapeHeight.setValue(val);
 					break;
 				case 'width':
 					this.shapeWidth.setValue(val);
@@ -450,7 +447,7 @@
 	};
          
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                  			View		                                      //
+// View
 ////////////////////////////////////////////////////////////////////////////////////////////////////  
     
     /**
@@ -459,10 +456,10 @@
      */
     var ShapesView = function() {
         editor.ToolView.call(this, {
-	        toolName: 'Shapes',
+			toolName: 'Shapes',
 			toolTip: 'Create and edit primitive shapes',
 			id: 'shapes'
-	    });
+		});
 		
 		this.addPanel(new editor.ui.Panel({
 			classes: ['shpSidePanel']
@@ -482,7 +479,7 @@
 	ShapesView.prototype.constructor = ShapesView;
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-//                                			  Controller		                                  //
+// Controller
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -496,7 +493,7 @@
 		
 	ShapesController.prototype = new editor.ToolController();
 	ShapesController.prototype.constructor = ShapesController;
-		    
+
     /**
      * Binds event and message handlers to the view and model this object 
      * references.  
@@ -505,7 +502,7 @@
         shpCtrSuper.bindEvents.call(this);
         
         var model = this.model,
-        	view = this.view,
+			view = this.view,
 			crtWgt = view.sidePanel.createShapeWidget,
 			lstWgt = view.sidePanel.shapeListWidget;
 			
@@ -518,7 +515,7 @@
 					model.currentShape.mesh.visible = !isDown;
 				}
 			}
-		});	        
+		});
 		
 		// create sidebar widget listeners
 		crtWgt.addListener(shorthand.events.SaveShape, function(props) {				
