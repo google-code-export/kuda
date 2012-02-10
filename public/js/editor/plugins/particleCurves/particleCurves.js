@@ -181,7 +181,6 @@
 		this.config.trail = this.particles instanceof hemi.ParticleCurveTrail;
 		this.config.aim = this.particles._aim;
 		this.config.particleCount = this.particles._particles;
-		this.config.particleSize = this.particles._particleSize;
 		this.config.life = this.particles.life;
 		this.config.tension = this.particles._tension;
 		this.config.colors = [];
@@ -358,8 +357,12 @@
 		
 	ParticleCurvesModel.prototype.updateParticles = function(param, value) {
 		if (this.particles) {
-			var method = this.particles['set' + hemi.utils.capitalize(param)];
-			method.apply(this.particles, [value]);
+			if (param === 'life') {
+				this.particles.life = value;
+			} else {
+				var method = this.particles['set' + hemi.utils.capitalize(param)];
+				method.apply(this.particles, [value]);
+			}
 		}
 	};
 		
@@ -408,6 +411,7 @@
 		this.boxHandles.setDrawState(editor.ui.trans.DrawState.NONE);
 		this.boxHandles.addListener(editor.events.Updated, this);
 		this.boxes = new Hashtable();
+		this.shapeConfig = {};
 		
 		editor.ui.FormWidget.call(this, {
 			name: 'createPtcCurveWidget',
@@ -466,15 +470,22 @@
 			onBlur: blurFcn,
 			validator: sizeVdr
 		});
-		this.particleSize = new editor.ui.Input({
-			container: wgt.find('#crvParticleSize'),
-			onBlur: blurFcn,
-			validator: sizeVdr
-		});
 		this.curveTension = new editor.ui.Input({
 			container: wgt.find('#crvTension'),
 			onBlur: blurFcn,
 			validator: editor.ui.createDefaultValidator(null, 1)
+		});
+		this.particleSize = new editor.ui.Input({
+			container: wgt.find('#crvParticleSize'),
+			onBlur: function(ipt, evt) {
+				setShapeSize.call(wgt, ipt.getValue());
+
+				wgt.notifyListeners(shorthand.events.SetParam, {
+					paramName: 'particleShape',
+					paramValue: wgt.shapeConfig
+				});
+			},
+			validator: sizeVdr
 		});
 		this.curveName = new editor.ui.Input({
 			container: wgt.find('#crvName'),
@@ -529,9 +540,11 @@
 		});
 		
 		shpTypeSel.bind('change', function(evt) {
+			setShapeType.call(wgt, jQuery(this).val());
+
 			wgt.notifyListeners(shorthand.events.SetParam, {
 				paramName: 'particleShape',
-				paramValue: jQuery(this).val()
+				paramValue: wgt.shapeConfig
 			});
 		});
 		
@@ -834,16 +847,16 @@
 		
 	CreateWidget.prototype.set = function(curve, boxes) {
 		if (curve) {
-			var type = curve instanceof hemi.ParticleCurveTrail ?
-					'trail' : 'emitter',
-				colors = curve._colors;
-			
+			var type = curve instanceof hemi.ParticleCurveTrail ? 'trail' : 'emitter',
+				colors = curve._colors,
+				config = this.shapeConfig = hemi.utils.clone(curve._shapeConfig);
+
 			this.find('#crvSystemTypeSelect').val(type);
-			this.find('#crvShapeSelect').val(curve._mesh.name);
+			this.find('#crvShapeSelect').val(config.shape);
 			this.curveName.setValue(curve.name);
 			this.curveLife.setValue(curve.life);
 			this.numParticles.setValue(curve._particles);
-			this.particleSize.setValue(curve._particleSize);
+			this.particleSize.setValue(getParticleSize(config));
 			this.curveTension.setValue(curve._tension);
 			this.curveAim.prop('checked', curve._aim);
 							
@@ -935,7 +948,71 @@
 			this.showBoxWireframe(boxes[i]);
 		}
 	};
-	
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Private Methods
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function getParticleSize(config) {
+		var size;
+
+		switch (config.shape) {
+			case 'arrow':
+			case 'cube':
+			case 'octa':
+				size = config.size;
+				break;
+			case 'cone':
+			case 'cylinder':
+			case 'pyramid':
+				size = config.height;
+				break;
+			case 'sphere':
+				size = config.radius * 2;
+				break;
+		}
+
+		return size;
+	}
+
+	function setShapeSize(size) {
+		var config = this.shapeConfig;
+
+		switch (config.shape) {
+			case 'arrow':
+				config.size = size;
+				config.tail = config.depth = size / 2;
+				break;
+			case 'cone':
+				config.height = size;
+				config.radius = size / 2;
+				break;
+			case 'cube':
+			case 'octa':
+				config.size = size;
+				break;
+			case 'cylinder':
+				config.height = size;
+				config.radiusB = config.radiusT = size / 4;
+				break;
+			case 'pyramid':
+				config.height = config.width = config.depth = size;
+				break;
+			case 'sphere':
+				config.radius = size / 2;
+				break;
+		}
+	}
+
+	function setShapeType(type) {
+		var config = this.shapeConfig = {},
+			size = this.particleSize.getValue() || 0;
+
+		config.shape = type;
+		config.color = 0x000000;
+		setShapeSize.call(this, size);
+	}
+
 ////////////////////////////////////////////////////////////////////////////////
 //                     		Curve List Sidebar Widget                         //
 ////////////////////////////////////////////////////////////////////////////////

@@ -14741,10 +14741,10 @@ if (!window.requestAnimationFrame) {
 		this._mesh = null;
 		this._particles = 0;
 		this._scales = [];
+		this._shapeConfig = null;
 		this._tension = 0;
 		this._timeParam = null;
 		this._viewITParam = null;
-		this._particleSize = null;
 
 		/**
 		 * Flag indicating if the ParticleCurve is currently running.
@@ -14792,8 +14792,7 @@ if (!window.requestAnimationFrame) {
 				particleCount: this._particles,
 				scaleKeys: this._scales,
 				tension: this._tension,
-				size: this._particleSize,
-				particleShape: this._particleShape
+				particleShape: this._shapeConfig
 			}]
 		}];
 	};
@@ -14823,7 +14822,6 @@ if (!window.requestAnimationFrame) {
 	 *     colorKeys: array of time keys and values for particle color ramp
 	 *     life: lifetime of particle system (in seconds)
 	 *     particleCount: number of particles to allocate for system
-	 *     particleSize: size of the particle
 	 *     particleShape: hemi.ShapeType pre defined shape type
 	 *	   customMesh: Custom mesh for particles *CANNOT BE OCTANED CURRENTLY*
 	 *     scales: array of values for particle scale ramp (use this or scaleKeys)
@@ -14837,8 +14835,7 @@ if (!window.requestAnimationFrame) {
 		this.life = cfg.life || 5;
 		this._particles = cfg.particleCount || 0;
 		this._tension = cfg.tension || 0;
-		this._particleSize = cfg.particleSize || 0;
-		this._particleShape = cfg.particleShape || null;
+		this._shapeConfig = cfg.particleShape || null;
 
 		if (cfg.colorKeys) {
 			this.setColorKeys(cfg.colorKeys);
@@ -14860,8 +14857,7 @@ if (!window.requestAnimationFrame) {
 			this.setParticleShape(cfg.particleShape);
 		} else if (cfg.customMesh) {
 			this.setParticleMesh(cfg.customMesh);
-		}
-		else {
+		} else {
 			this._mesh = null;
 		}
 	};
@@ -15054,19 +15050,16 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Set's the particles shape to a hemi.ShapeType
+	 * Sets the particle Mesh to a hemi.Shape. See hemi.createShape() for more details.
 	 * 
-	 * @param {hemi.ShapeType} The type of shape
+	 * @param {Object} shapeConfig properties of the shape to create
 	 */
-	ParticleCurve.prototype.setParticleShape = function(shapeType) {
-		this._particleShape = shapeType;
-		this.setParticleMesh(hemi.createShape({
-			shape: shapeType,
-			size: this._particleSize,
-			tail: this._particleSize / 2,
-			depth: this._particleSize
-		}));
-	}
+	ParticleCurve.prototype.setParticleShape = function(shapeConfig) {
+		var mesh = hemi.createShape(shapeConfig);
+		hemi.world.removeCitizen(mesh); // We don't want it to end up in Octane
+		this._shapeConfig = shapeConfig;
+		this.setParticleMesh(mesh);
+	};
 
 	/**
 	 * Set the scale ramp for the particles as they travel along the curve.
@@ -15131,15 +15124,6 @@ if (!window.requestAnimationFrame) {
 		if (this._mesh) {
 			this._mesh.material.getParam('tension').value = (1 - this._tension) / 2;
 		}
-	};
-
-	/**
-	 * Set the lifetime of the curve
-	 * 
-	 * @param {number} life lifetime in seconds
-	 */
-	ParticleCurve.prototype.setLife = function(life) {
-		this.life = life;
 	};
 
 	/**
