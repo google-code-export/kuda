@@ -89,14 +89,19 @@
 				desc = meta.getDescription(octType, fnc, prm);
 			
 			type = type || 'string';
-			
+			var ui = createParameterUi(prm, type);
+
 			if (desc && desc.search(/radian/i) !== -1) {
 				desc = desc.replace(/radian/gi, 'degree');
-				type = type.replace('number', 'angle');
+
+				if (ui.setInputType) {
+					ui.setInputType('angle');
+				} else if (ui.setType) {
+					ui.setType('angle');
+				}
 			}
 			
-			var ui = createParameterUi(prm, type),
-				li = createListItem(prm, desc, ui);
+			var li = createListItem(prm, desc, ui);
 			
 			if (opt_values) {
 				ui.setValue(opt_values[i]);
