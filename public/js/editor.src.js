@@ -2417,7 +2417,14 @@ var editor = {};
 	Vector3.prototype.constructor = Vector3;
 
 	Vector3.prototype.setValue = function(value) {
-		var values = [value.x, value.y, value.z];
+		var values;
+
+		if (value) {
+			values = [value.x, value.y, value.z];
+		} else {
+			values = [null, null, null];
+		}
+
 		Vector.prototype.setValue.call(this, values);
 	};
 
