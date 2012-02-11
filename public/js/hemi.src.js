@@ -7890,8 +7890,8 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Set the Transform to rotate with the given velocity and/or acceleration.
 	 * 
-	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for turning
-	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for turning
+	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for turning (in radians)
+	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for turning (in radians)
 	 */
 	Transform.prototype.setTurning = function(opt_velocity, opt_acceleration) {
 		if (!this._rotator) {
@@ -7920,7 +7920,7 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Animate the Transform turning by the given amount over the given amount of time.
 	 * 
-	 * @param {THREE.Vector3} delta XYZ amount to turn the Transform by
+	 * @param {THREE.Vector3} delta XYZ amount to turn the Transform by (in radians)
 	 * @param {number} time the amount of time for the motion to take (in seconds)
 	 * @param {boolean} opt_mustComplete optional flag indicating this turn cannot be interrupted by
 	 *     a different turn before it finishes
@@ -8191,8 +8191,8 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Set the Mesh to rotate with the given velocity and/or acceleration.
 	 * 
-	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for turning
-	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for turning
+	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for turning (in radians)
+	 * @param {THREE.Vector3} opt_acceleration optional XYZ acceleration to set for turning (in radians)
 	 */
 	Mesh.prototype.setTurning = Transform.prototype.setTurning;
 
@@ -8207,7 +8207,7 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Animate the Mesh turning by the given amount over the given amount of time.
 	 * 
-	 * @param {THREE.Vector3} delta XYZ amount to turn the Mesh by
+	 * @param {THREE.Vector3} delta XYZ amount to turn the Mesh by (in radians)
 	 * @param {number} time the amount of time for the motion to take (in seconds)
 	 * @param {boolean} opt_mustComplete optional flag indicating this turn cannot be interrupted by
 	 *     a different turn before it finishes
