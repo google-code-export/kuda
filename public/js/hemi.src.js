@@ -10206,7 +10206,7 @@ if (!window.requestAnimationFrame) {
 		this.stopTime = 0;
 	};
 
-	Loop.prototype._octane = ['iteration', 'name', 'startTime', 'stopTime'];
+	Loop.prototype._octane = ['iterations', 'name', 'startTime', 'stopTime'];
 
 	hemi.Loop = Loop;
 	hemi.makeOctanable(hemi.Loop, 'hemi.Loop', hemi.Loop.prototype._octane);
