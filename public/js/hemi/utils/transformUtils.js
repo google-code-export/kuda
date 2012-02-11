@@ -64,7 +64,7 @@
 		if (mesh.useQuaternion) {
 			mesh.quaternion.multiplyVector3(delta);
 		} else {
-			_matrix.setRotationFromEuler(transform.rotation, transform.eulerOrder);
+			_matrix.setRotationFromEuler(mesh.rotation, mesh.eulerOrder);
 			delta = transformVector(_matrix, delta);
 		}
 

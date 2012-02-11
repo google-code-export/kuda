@@ -51,7 +51,8 @@
 			coloredPlane = new THREE.Mesh(new THREE.PlaneGeometry(fullExtent, fullExtent), 
 				new THREE.MeshBasicMaterial({
 					color: 0x75d0f4,
-					opacity: 0.1
+					opacity: 0.1,
+					transparent: true
 				}));
 				
 		this.transform = new THREE.Object3D();
@@ -64,6 +65,9 @@
 		this.material = mat;
 		this.markerMaterial = markerMat;
 		this.client.scene.add(this.transform);
+
+		coloredPlane.doubleSided = true;
+		hemi.utils.centerGeometry(coloredPlane);
 	};
 
 	editor.ui.GridPlane.prototype.setClient = function(client) {

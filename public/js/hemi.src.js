@@ -3336,7 +3336,7 @@ if (!window.requestAnimationFrame) {
 		if (mesh.useQuaternion) {
 			mesh.quaternion.multiplyVector3(delta);
 		} else {
-			_matrix.setRotationFromEuler(transform.rotation, transform.eulerOrder);
+			_matrix.setRotationFromEuler(mesh.rotation, mesh.eulerOrder);
 			delta = transformVector(_matrix, delta);
 		}
 
@@ -16605,6 +16605,7 @@ if (!window.requestAnimationFrame) {
 		}
 
 		mesh._opacity = material.opacity = opacity;
+		material.transparent = opacity < 1.0;
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
