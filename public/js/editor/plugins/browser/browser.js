@@ -463,13 +463,14 @@
 		}
 		
 		if (geometry) {
-			this.oldMaterials.put(transform, transform.material);
-			this.highlightMaterial.opacity = transform.material.opacity;
-			transform.material = this.highlightMaterial;
+			var mat = transform.material,
+				hmat = this.highlightMaterial;
+
+			this.oldMaterials.put(transform, mat);
+			hmat.opacity = mat.opacity;
+			hmat.transparent = mat.transparent;
+			transform.material = hmat;
 			var scene = editor.client.scene;
-			
-			editor.client.renderer.initMaterial(this.highlightMaterial, scene.lights, scene.fog, 
-				this.transform);
 		}
 	};
 	
@@ -503,6 +504,9 @@
 	BrowserModel.prototype.processModel = function(model, transform) {
 		var children = transform.children;
 
+		if (transform instanceof hemi.Mesh) {
+			// hemi.utils.centerGeometry(transform);
+		}
 		if (!transform.visible) {
 			this.notifyListeners(shorthand.events.TransformHidden, {
 				transform: transform,
