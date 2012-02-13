@@ -852,14 +852,33 @@
 	};
 	
 	function removeAction(citizen, removeType) {
-		var nodeName = shorthand.treeData.getNodeName(citizen, {
+		var id = citizen._getId ? citizen._getId() : null,
+			nodeName = shorthand.treeData.getNodeName(citizen, {
 			option: null,
 			prefix: this.pre,
-			id: citizen._getId()
+			id: id
 		});
 		
 		var node = jQuery('#' + nodeName);
 		this.tree.jstree('delete_node', node);
+
+		if (citizen instanceof hemi.Model || citizen instanceof hemi.Shape) {
+			var spc = shorthand.treeData.createShapePickCitizen(citizen),
+				tc = shorthand.treeData.createTransformCitizen(citizen);
+			nodeName = shorthand.treeData.getNodeName(spc, {
+				option: null,
+				prefix: this.pre,
+				id: id
+			});
+			this.tree.jstree('delete_node', jQuery('#' + nodeName));
+			
+			nodeName = shorthand.treeData.getNodeName(tc, {
+				option: null,
+				prefix: this.pre,
+				id: id
+			});
+			this.tree.jstree('delete_node', jQuery('#' + nodeName));
+		}
 		
 		if (removeType) {
 			removeActionType.call(this, citizen);
