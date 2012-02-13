@@ -1949,7 +1949,7 @@
 			mbrWgt.addShape(shape);
 			
 			if (shape.mesh.visible === false) {
-				hidWgt.addHiddenItem(shape.transform, shape);
+				hidWgt.addHiddenItem(shape.mesh, shape);
 				hidWgt.setVisible(isDown);
 			}
 		});
