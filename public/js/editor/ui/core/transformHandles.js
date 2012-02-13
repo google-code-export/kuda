@@ -120,7 +120,7 @@
 		if (this.drawState !== editor.ui.trans.DrawState.NONE) {
 //				var origin = this.transform.localMatrix[3],		FOR LOCAL
 			var bbox = getBoundingBox(this.transform),
-				origin = this.transform.matrix.decompose()[0].clone(), 
+				origin = getCenterOfGeometry(bbox), 
 				extent = getExtent(bbox, this.transform) / 2,
 				x = origin.x, 
 				y = origin.y, 
@@ -282,7 +282,7 @@
 	};
 	
 	TransHandles.prototype.onRender = function(renderEvent) {
-		if (this.drawState !== editor.ui.trans.DrawState.NONE) {
+		if (this.drawState !== editor.ui.trans.DrawState.NONE && this.transform !== null) {
 			hemi.hudManager.clearDisplay();
 
 			if (this.drawCallback) {
@@ -355,10 +355,6 @@
 	};
 	
 	TransHandles.prototype.setTransform = function(transform) {
-		if (transform === null) {
-			this.drawState = editor.ui.trans.DrawState.NONE;
-		}
-
 		this.transform = transform;
 		// make sure the render handler is called at least once
 		this.onRender();
