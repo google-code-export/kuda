@@ -504,9 +504,6 @@
 	BrowserModel.prototype.processModel = function(model, transform) {
 		var children = transform.children;
 
-		if (transform instanceof hemi.Mesh) {
-			// hemi.utils.centerGeometry(transform);
-		}
 		if (!transform.visible) {
 			this.notifyListeners(shorthand.events.TransformHidden, {
 				transform: transform,
