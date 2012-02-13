@@ -16122,6 +16122,7 @@ if (!window.requestAnimationFrame) {
 		this.setName(this.name);
 
 		if (this.mesh.parent === undefined) {
+			this.mesh.updateMatrix();
 			scene.add(this.mesh);
 		} else {
 			// need the renderer to do some setup
