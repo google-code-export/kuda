@@ -218,6 +218,158 @@
 		updateUVs(geometry);
 	};
 
+	/** 
+	 * Check for degenerate triangles (all three points are collinear) in the faces of the geometry
+	 * of the given Transform and its children and remove those triangles.
+	 *
+	 * @param {hemi.Transform} transform Transform to begin scrubbing faces at
+	 * @param {number} opt_precision the precision to use for floating point numbers
+	 */
+	hemi.utils.scrubTriangles = function(transform, opt_precision) {
+		if (opt_precision === undefined) opt_precision = 0.00001;
+
+		if (transform.geometry) {
+			var geom = transform.geometry,
+				vertices = geom.vertices,
+				faces = geom.faces;
+
+			for (var i = faces.length - 1; i >= 0; --i) {
+				var face = faces[i];
+
+				if (face instanceof THREE.Face3) {
+					var a = vertices[face.a].position,
+						b = vertices[face.b].position,
+						c = vertices[face.c].position,
+						area = THREE.GeometryUtils.triangleArea(a, b, c);
+
+					if (area < opt_precision) {
+						faces.splice(i, 1);
+
+						for (var j = 0, jl = geom.faceUvs.length; j < jl; ++j) {
+							var uvs = geom.faceUvs[j];
+
+							if (i < uvs.length) {
+								uvs.splice(i, 1);
+							}
+						}
+
+						for (var j = 0, jl = geom.faceVertexUvs.length; j < jl; ++j) {
+							var uvs = geom.faceVertexUvs[j];
+
+							if (i < uvs.length) {
+								uvs.splice(i, 1);
+							}
+						}
+					}
+				} else if (face instanceof THREE.Face4) {
+					var a = vertices[face.a].position,
+						b = vertices[face.b].position,
+						c = vertices[face.c].position,
+						d = vertices[face.d].position,
+						area1 = THREE.GeometryUtils.triangleArea(a, b, d),
+						area2 = THREE.GeometryUtils.triangleArea(b, c, d);
+
+					if (area1 <= opt_precision) {
+						if (area2 <= opt_precision) {
+							// Remove the whole face
+							faces.splice(i, 1);
+
+							for (var j = 0, jl = geom.faceUvs.length; j < jl; ++j) {
+								var uvs = geom.faceUvs[j];
+
+								if (i < uvs.length) {
+									uvs.splice(i, 1);
+								}
+							}
+
+							for (var j = 0, jl = geom.faceVertexUvs.length; j < jl; ++j) {
+								var uvs = geom.faceVertexUvs[j];
+
+								if (i < uvs.length) {
+									uvs.splice(i, 1);
+								}
+							}
+						} else {
+							// Remove the first triangle
+							var newFace = new THREE.Face3(face.b, face.c, face.d, face.normal,
+								face.color, face.materialIndex);
+
+							if (face.vertexNormals.length > 0) {
+								newFace.vertexNormals[0] = face.vertexNormals[1];
+								newFace.vertexNormals[1] = face.vertexNormals[2];
+								newFace.vertexNormals[2] = face.vertexNormals[3];
+							}
+							
+							if (face.vertexColors.length > 0) {
+								newFace.vertexColors[0] = face.vertexColors[1];
+								newFace.vertexColors[1] = face.vertexColors[2];
+								newFace.vertexColors[2] = face.vertexColors[3];
+							}
+
+							faces[i] = newFace;
+
+							for (var j = 0, jl = geom.faceUvs.length; j < jl; ++j) {
+								var uvs = geom.faceUvs[j];
+
+								if (i < uvs.length) {
+									uvs[i].shift();
+								}
+							}
+
+							for (var j = 0, jl = geom.faceVertexUvs.length; j < jl; ++j) {
+								var uvs = geom.faceVertexUvs[j];
+
+								if (i < uvs.length) {
+									uvs[i].shift();
+								}
+							}
+						}
+					} else if (area2 <= opt_precision) {
+						// Remove the second triangle
+						var newFace = new THREE.Face3(face.a, face.b, face.d, face.normal,
+							face.color, face.materialIndex);
+						
+						if (face.vertexNormals.length > 0) {
+							newFace.vertexNormals[0] = face.vertexNormals[0];
+							newFace.vertexNormals[1] = face.vertexNormals[1];
+							newFace.vertexNormals[2] = face.vertexNormals[3];
+						}
+						
+						if (face.vertexColors.length > 0) {
+							newFace.vertexColors[0] = face.vertexColors[0];
+							newFace.vertexColors[1] = face.vertexColors[1];
+							newFace.vertexColors[2] = face.vertexColors[3];
+						}
+
+						faces[i] = newFace;
+
+						for (var j = 0, jl = geom.faceUvs.length; j < jl; ++j) {
+							var uvs = geom.faceUvs[j];
+
+							if (i < uvs.length) {
+								uvs[i].splice(2, 1);
+							}
+						}
+
+						for (var j = 0, jl = geom.faceVertexUvs.length; j < jl; ++j) {
+							var uvs = geom.faceVertexUvs[j];
+
+							if (i < uvs.length) {
+								uvs[i].splice(2, 1);
+							}
+						}
+					}
+				}
+			}
+		}
+
+		var children = transform.children;
+
+		for (var i = 0, il = children.length; i < il; ++i) {
+			this.scrubTriangles(children[i], opt_precision);
+		}
+	};
+
 	/**
 	 * Translate the vertices of the given Mesh's geometry by the given amount and update the Mesh
 	 * Mesh so that the geometry stays in the same world position.
