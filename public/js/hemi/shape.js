@@ -104,6 +104,9 @@
 		this.setName(this.name);
 
 		if (this.mesh.parent === undefined) {
+			// updateMatrix() call is due to a specific case for when loading from octane
+			this.mesh.updateMatrix();
+
 			scene.add(this.mesh);
 		} else {
 			// need the renderer to do some setup
