@@ -6,7 +6,7 @@ been packaged with *almost* everything it needs to be viewed on the web. If you
 wish to embed your content into an existing html page, it only takes two steps:
 
 - copy the script tags into the top of your html file
-- copy the o3d div tag into your html file where you want the content to appear
+- copy the kuda div tag into your html file where you want the content to appear
 
 NOTE: If you move the provided html file out of the package directory or embed
 your content in a file in a different directory, you may have to check the paths

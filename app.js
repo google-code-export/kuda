@@ -440,10 +440,8 @@ routes.post(routes.PUBLISH, function(req, res) {
 		var stat = fs.statSync(routes.projectsPath);
 		fs.mkdirSync(toDir, stat.mode);
 		fs.mkdirSync(toDir + '/assets', stat.mode);
-		fs.mkdirSync(toDir + '/lib', stat.mode);
 		copyFile('./public/js/hemi.min.js', toDir);
 		copyFile('./public/js/Three.js', toDir);
-		copyFile('./public/js/lib/jshashtable.min.js', toDir + '/lib');
 		copyFile(routes.projectsPath + '/' + name + '.json', toDir);
 		fs.writeFileSync(toDir + '/README', readme.concat(models));
 		fs.writeFileSync(toDir + '/' + name + '.html',

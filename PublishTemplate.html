@@ -20,9 +20,7 @@
     <head>
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <title>Kuda Project - %PROJECT%</title>
-        <script type="text/javascript" src="%SCRIPT%/lib/jshashtable.min.js">
-        </script>
-        <script type="text/javascript" src="%SCRIPT%/o3d.min.js">
+        <script type="text/javascript" src="%SCRIPT%/Three.js">
         </script>
         <script type="text/javascript" src="%SCRIPT%/hemi.min.js">
         </script>
@@ -39,24 +37,15 @@
 				}
 			};
 			addWinFunc(function() {
-				o3djs.webgl.makeClients(function(clientElements) {
-					hemi.core.init(clientElements[0]);
-					hemi.core.setErrorCallback(function(msg) {
-						alert('An error has occurred:\n' + msg +
-							'\nDid you forget to copy a model to the assets directory?');
-					});
-					hemi.loader.loadPath = '%LOAD%/';
-					hemi.loader.loadOctane('%PROJECT%.json');
+				hemi.setErrorCallback(function(msg) {
+					alert('An error has occurred:\n' + msg + '\nDid you forget to copy a model to the assets directory?');
 				});
+				hemi.loadPath = '%LOAD%/';
+				hemi.loadOctane('%PROJECT%.json');
 			}, 'onload');
-			addWinFunc(function() {
-				if (hemi.core.client) {
-					hemi.core.client.cleanup();
-				}
-			}, 'onunload');
         </script>
     </head>
     <body>
-		<div id="o3d"></div>
+		<div id="kuda"></div>
     </body>
 </html>
