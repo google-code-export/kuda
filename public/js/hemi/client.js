@@ -267,6 +267,9 @@
 		renderer.setClearColorHex(this._bgColor, this._bgAlpha);
 		this.renderer = renderer;
 		this._resize();
+
+		// Allow the HUD manager to add the 2D hud canvas
+		hemi.hudManager.addClient(this);
 	};
 
 	/**
