@@ -1282,7 +1282,6 @@ form input:not([type=submit]):focus, form textarea:focus {
     background: #ffeeaa;
 }
 form input[type=radio] {
-    float: left;
     margin-right: 5px;
 }
 .hasScrollBar form input:not([type=checkBox]),

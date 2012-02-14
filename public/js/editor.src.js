@@ -932,7 +932,8 @@ var editor = {};
 		onBlur: null,
 		placeHolder: null,
 		type: 'number',
-		validator: null
+		validator: null,
+		name: null
 	};
 			
 	var Input = editor.ui.Input = function(options) {
@@ -945,18 +946,22 @@ var editor = {};
 	Input.prototype.constructor = Input;
 		
 	Input.prototype.layout = function() {
-		var wgt = this;
+		var wgt = this,
+			cfg = this.config;
 		
-		if (this.config.container) {
-			this.container = this.config.container;
+		if (cfg.container) {
+			this.container = cfg.container;
 			
-			if (!this.config.placeHolder) {
-				this.config.placeHolder = this.container.attr('placeholder');
+			if (!cfg.placeHolder) {
+				cfg.placeHolder = this.container.attr('placeholder');
 			}
 		} else {
-			switch (this.config.type) {
+			switch (cfg.type) {
 				case 'boolean':
-					this.container = jQuery('<input type="checkbox" />');
+					this.container = jQuery('<div>' + 
+						'<input type="radio" name="' + cfg.name + '" value="true" /> true' +
+						'<input type="radio" name="' + cfg.name + '" value="false" /> false' +
+						'</div>');
 					break;
 				default:
 					this.container = jQuery('<input type="text" />');
@@ -964,18 +969,18 @@ var editor = {};
 			}
 		}
 		
-		if (this.config.placeHolder) {
-			this.container.attr('placeholder', this.config.placeHolder);
+		if (cfg.placeHolder) {
+			this.container.attr('placeholder', cfg.placeHolder);
 		}
-		if (this.config.inputClass) {
-			this.container.attr('class', this.config.inputClass);
+		if (cfg.inputClass) {
+			this.container.attr('class', cfg.inputClass);
 		}
-		if (this.config.validator) {
-			this.config.validator.setElements(this.container);
+		if (cfg.validator) {
+			cfg.validator.setElements(this.container);
 		}
 		
 		this.container.bind('blur', function(evt) {
-			var val = getContainerValue.call(wgt);
+			var val = getContainerValue(wgt);
 			wgt.setValue(val);
 			
 			if (wgt.config.onBlur) {
@@ -983,13 +988,13 @@ var editor = {};
 			}
 		})
 		.bind('focus', function(evt) {
-			setContainerValue.call(wgt, wgt.value);
+			setContainerValue(wgt, wgt.value);
 		});
 	};
 	
 	Input.prototype.getValue = function() {
 		if (this.container.is(':focus') || this.config.type === 'boolean') {
-			return getContainerValue.call(this);
+			return getContainerValue(this);
 		} else {
 			return this.value;
 		}
@@ -997,7 +1002,7 @@ var editor = {};
 	
 	Input.prototype.reset = function() {
 		this.value = null;
-		setContainerValue.call(this, null);
+		setContainerValue(this, null);
 	};
 	
 	Input.prototype.setName = function(name) {
@@ -1018,7 +1023,8 @@ var editor = {};
 			
 			switch (this.config.type) {
 				case 'boolean':
-					this.container.prop('checked', value);
+					this.container.find('input[value="' + (value ? 'true' : 'false') + '"]')
+						.attr('checked', true);
 					break;
 				case 'angle':
 					value = hemi.RAD_TO_DEG * value;
@@ -1038,29 +1044,29 @@ var editor = {};
 //											Private Methods										  //
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	function getContainerValue() {
+	function getContainerValue(wgt) {
 		var val;
 		
-		switch (this.config.type) {
+		switch (wgt.config.type) {
 			case 'number':
-				val = parseFloat(this.container.val());
+				val = parseFloat(wgt.container.val());
 				
 				if (isNaN(val)) {
 					val = null;
 				}
 				break;
 			case 'integer':
-				val = parseInt(this.container.val());
+				val = parseInt(wgt.container.val());
 				
 				if (isNaN(val)) {
 					val = null;
 				}
 				break;
 			case 'boolean':
-				val = this.container.prop('checked');
+				val = wgt.container.find('input:radio:checked').val() === 'true';
 				break;
 			case 'angle':
-				var deg = parseFloat(this.container.val());
+				var deg = parseFloat(wgt.container.val());
 				val = hemi.DEG_TO_RAD * deg;
 				
 				if (isNaN(val)) {
@@ -1068,7 +1074,7 @@ var editor = {};
 				}
 				break;
 			default:
-				val = this.container.val();
+				val = wgt.container.val();
 				
 				if (val === '') {
 					val = null;
@@ -1079,27 +1085,28 @@ var editor = {};
 		return val;
 	};
 	
-	function setContainerValue(value) {
+	function setContainerValue(wgt, value) {
 		if (value == null) {
-			switch (this.config.type) {
+			switch (wgt.config.type) {
 				case 'boolean':
-					this.container.prop('checked', false);
+					wgt.container.find('input[value="false"]').attr('checked', true);
 					break;
 				default:
-					this.container.val('');
+					wgt.container.val('');
 					break;
 			}
 		} else {
-			switch (this.config.type) {
+			switch (wgt.config.type) {
 				case 'boolean':
-					this.container.prop('checked', value);
+					wgt.container.find('input[value="' + (value ? 'true' : 'false') + '"]')
+						.attr('checked', true);
 					break;
 				case 'angle':
 					var deg = hemi.RAD_TO_DEG * value;
-					this.container.val(deg);
+					wgt.container.val(deg);
 					break;
 				default:
-					this.container.val(value);
+					wgt.container.val(value);
 					break;
 			}
 		}
