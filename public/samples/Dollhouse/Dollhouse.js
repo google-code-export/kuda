@@ -24,9 +24,6 @@
     var client;
     
 	function init(clientElements) {
-        client = hemi.makeClients()[0];
-        client.setBGColor(0xb2cbff, 1);
-
 		hemi.loadPath = '../../';
 		loadWorld();
 	}
@@ -34,6 +31,8 @@
     function loadWorld() {
 		hemi.loadOctane('samples/Dollhouse/dollhouse.json',
 			function() {
+				client = hemi.clients[0];
+        		client.setBGColor(0xb2cbff, 1);
 				// This will be executed before hemi.world.ready() is called.
 				hemi.subscribe(hemi.msg.ready,
 					function(msg) {
@@ -88,7 +87,7 @@
 			}
 		}
 		
-		var camera = hemi.clients[0].camera;
+		var camera = client.camera;
 		
 		jQuery('#viewpoint1').click(function() {
 			camera.moveToView(viewpoint1);
