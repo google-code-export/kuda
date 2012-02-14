@@ -25,24 +25,19 @@
         <script type="text/javascript" src="%SCRIPT%/hemi.min.js">
         </script>
         <script type="text/javascript">
-        	var addWinFunc = function(func, name) {
-				if (typeof window[name] !== 'function') {
-					window[name] = func;
-				} else {
-					var oldFunc = window[name];
-					window[name] = function(){
-						oldFunc();
-						func();
-					}
+        	var oldLoad = typeof window.onload === 'function' ? window.onload : null;
+
+			window.onload = function() {
+				if (oldLoad) {
+					oldLoad();
 				}
-			};
-			addWinFunc(function() {
+
 				hemi.setErrorCallback(function(msg) {
 					alert('An error has occurred:\n' + msg + '\nDid you forget to copy a model to the assets directory?');
 				});
 				hemi.loadPath = '%LOAD%/';
 				hemi.loadOctane('%PROJECT%.json');
-			}, 'onload');
+			};
         </script>
     </head>
     <body>
