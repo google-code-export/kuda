@@ -369,6 +369,16 @@
 			hudContexts: hemi.hudManager._contexts
 		};
 
+		// Add the default particle system back to the render listeners
+		for (var i = 0, il = this.worldState.renderListeners.length; i < il; ++i) {
+			var rl = this.worldState.renderListeners[i];
+
+			if (rl.isParticleSystem) {
+				hemi.addRenderListener(rl);
+				break;
+			}
+		}
+
 		// finish setting the world to its initial state
 		hemi.hudManager.clearDisplay();
 		hemi.clients = [];
