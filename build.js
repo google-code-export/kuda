@@ -298,7 +298,7 @@ if (process.argv.length > 3) {
 		checkForToDir(toDir);
 		// Copy only the core Hemi library
 		filter.push('app.js', 'build.js', 'PublishReadMe',
-			'PublishTemplate.html', 'editor', 'hemi', 'o3djs', 'o3d-webgl', 'parse.js');
+			'PublishTemplate.html', 'editor', 'hemi', 'parse.js');
 		copyFiles('.', toDir, false);
 		copyFiles('./public/js', toDir, true);
 
@@ -311,8 +311,6 @@ if (process.argv.length > 3) {
 		}
 	} else if (type === 'uglify') {
 		uglifyFile(toDir, '');
-	} else if (type === 'uglifyO3d') {
-		uglifyO3d('./public/js', toDir);
 	} else if (type == 'uglifyHemi') {
 		uglifyHemi('./public/js', toDir);
 	} else if (type == 'uglifyEditor') {
@@ -345,5 +343,5 @@ if (process.argv.length > 3) {
 } else {
 	process.stdout.write('Usage: node build.js [options] [type] [toDir]\n' +
 		'Valid options are: --no-doc, --zip\n' +
-		'Valid types are: core, editor, full, uglifyHemi, `uglifyO3d, ugly\n');
+		'Valid types are: core, editor, full, uglifyHemi, `uglifyEditor, uglify\n');
 }
