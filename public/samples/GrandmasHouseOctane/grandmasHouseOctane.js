@@ -22,7 +22,7 @@
  */
 (function() {
 
-	// // function init(clientElements) {
+	function init(clientElements) {
 		// /**
 		 // * It is possible to have multiple clients (i.e. multiple frames
 		 // * 		rendering 3d content) on one page that would have to be
@@ -37,7 +37,7 @@
 		 // *		scale of 0-1.
 		 // */
 		// hemi.view.setBGColor([0.7, 0.8, 1, 1]);
-		hemi.init();
+		//hemi.init();
 		/**
 		 * Set a prefix for the loader that will allow us to load assets as if
 		 * the helloWorld.html file was in the root directory.
@@ -45,7 +45,7 @@
 		hemi.loadPath = '../../';
 
 		createWorld();
-	// }
+	}
 
 	function createWorld() {
 
@@ -167,7 +167,9 @@
             states[index].load();
 		});
     }
-    
+    jQuery(window).load(function() {
+		init();
+	});
 	// jQuery(window).load(function() {
 		// o3djs.webgl.makeClients(init);
 	// });
