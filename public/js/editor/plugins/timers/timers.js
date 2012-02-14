@@ -162,7 +162,7 @@
 		
 		this.saveBtn.bind('click', function() {
 			var data = {
-					startTime: wgt.startTimeIpt.getValue(),
+					startTime: wgt.startTimeIpt.getValue() * 1000,
 					name: wgt.nameIpt.getValue()
 				};
 			
@@ -180,7 +180,7 @@
 	};
 	
 	CreateWidget.prototype.edit = function(timer) {
-		this.startTimeIpt.setValue(timer.startTime);
+		this.startTimeIpt.setValue(timer.startTime / 1000);
 		this.nameIpt.setValue(timer.name);
 		this.checkSaveButton();
 	};
