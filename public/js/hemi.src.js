@@ -1853,8 +1853,8 @@ if (!window.requestAnimationFrame) {
 	 */
 	hemi.init = function(opt_config) {
 		var handler = opt_config && opt_config.resizeHandler ? opt_config.resizeHandler : resize;
-
 		window.addEventListener('resize', handler, false);
+
 		lastRenderTime = new Date().getTime();
 		render(true);
 	};
@@ -1876,7 +1876,6 @@ if (!window.requestAnimationFrame) {
 				client = ++ndx < numClients ? hemi.clients[ndx] : new hemi.Client(true);
 
 			client.setRenderer(renderer);
-			hemi.hudManager.addClient(client);
 		}
 
 		hemi.init(opt_config);
@@ -10264,6 +10263,9 @@ if (!window.requestAnimationFrame) {
 		renderer.setClearColorHex(this._bgColor, this._bgAlpha);
 		this.renderer = renderer;
 		this._resize();
+
+		// Allow the HUD manager to add the 2D hud canvas
+		hemi.hudManager.addClient(this);
 	};
 
 	/**
