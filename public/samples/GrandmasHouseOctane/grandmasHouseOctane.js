@@ -54,7 +54,6 @@
 		 *		cameras, effects, etc. When we set the model's file name, it
 		 *		will begin loading that file.
 		 */
-         console.log('create world');
         hemi.loadOctane('samples/GrandmasHouseOctane/grandmasHouseOctane.json',
         
         function() {
@@ -67,7 +66,6 @@
 	}
 
     function bindJavascript() {
-        console.log('binding javascript');
         jQuery('#next').click(function() {
             var states = hemi.world.getStates();
             
@@ -75,7 +73,6 @@
                 if(states[index].isLoaded)
                     break;
             }
-            console.log(index + ' ' + states[index].name);
             states[index].nextState();
             if(states[index].next != null && states[index].next.name != null){
                 var sceneHTML=states[index].next.name;

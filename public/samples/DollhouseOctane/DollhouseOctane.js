@@ -118,38 +118,6 @@
 		jQuery('#viewpoint9').click(function() {
 			camera.moveToView(viewpoint9);
 		});
-        
-        var animationGroups = hemi.world.getAnimationGroups();
-        
-        var animAtticDoor, animFan, animFrontDoor;
-        
-        for (var ndx = 0, len = animationGroups.length; ndx < len; ndx++) {
-			var animationGroup = animationGroups[ndx];
-            
-            switch (animationGroup.name) {
-                case 'Fan':
-                    animFan = animationGroup;
-                    break;
-                case 'AtticDoor':
-                    animAtticDoor = animationGroup;
-                    break;
-                case 'FrontDoor':
-                    animFrontDoor = animationGroup;
-                    break;
-                default:
-                    break;
-			}
-		}
-		
-        jQuery('#atticDoor').click(function() {
-            animAtticDoor.start();
-		});
-        jQuery('#frontDoor').click(function() {
-            animFrontDoor.start();
-		});
-        jQuery('#fan').click(function() {
-            animFan.start();
-		});
 	}
 
 	// jQuery(window).load(function() {
