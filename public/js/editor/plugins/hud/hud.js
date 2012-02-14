@@ -147,9 +147,9 @@
 			if (element === null) {
 				element = new hemi.HudText();
 				this.currentPage.add(element);
+				element.name = this.currentPage.name + ' Text ' + this.currentPage.elements.length;
 			}
 
-			element.name = this.currentPage.name + ' Text';
 			element.x = props.x;
 			element.y = props.y;
 			element.setConfig(props.config);
@@ -169,9 +169,9 @@
 			if (element === null) {
 				element = new hemi.HudImage();
 				this.currentPage.add(element);
+				element.name = this.currentPage.name + ' Image ' + this.currentPage.elements.length;
 			}
 
-			element.name = this.currentPage.name + ' Image';
 			element.x = props.x;
 			element.y = props.y;
 			element.setUrl(props.url, function(hudImage) {
