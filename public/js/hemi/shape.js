@@ -173,7 +173,7 @@
 		this.mesh.translateY(y);
 		this.mesh.translateZ(z);
 		this.mesh.updateMatrix();
-		this.mesh.updateMatrixWorld();
+		this.mesh.updateMatrixWorld(true);
 	};
 
 	hemi.makeCitizen(Shape, 'hemi.Shape', {

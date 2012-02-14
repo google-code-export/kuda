@@ -48,7 +48,7 @@
 		}
 
 		transform.updateMatrix();
-		transform.updateMatrixWorld();
+		transform.updateMatrixWorld(true);
 	};
 
 	/**
@@ -70,7 +70,7 @@
 
 		mesh.position.subSelf(delta);
 		mesh.updateMatrix();
-		mesh.updateMatrixWorld();
+		mesh.updateMatrixWorld(true);
 		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
 		updateVertices(mesh);
 	};
@@ -141,7 +141,7 @@
 		tran.rotation.y += rotY;
 		tran.rotation.x += rotX;
 		tran.updateMatrix();
-		tran.updateMatrixWorld();
+		tran.updateMatrixWorld(true);
 
 		return tran;
 	};
@@ -162,7 +162,7 @@
 		tran.rotation.y += rotY;
 		tran.rotation.x += rotX;
 		tran.updateMatrix();
-		tran.updateMatrixWorld();
+		tran.updateMatrixWorld(true);
 
 		return tran;
 	};
@@ -394,7 +394,7 @@
 
 		mesh.position.subSelf(delta);
 		mesh.updateMatrix();
-		mesh.updateMatrixWorld();
+		mesh.updateMatrixWorld(true);
 
 		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
 		updateVertices(mesh);
@@ -537,7 +537,7 @@
 		_vector.copy(scale);
 		transform.scale.multiplySelf(multiplyMat3(invMat, _vector));
 		transform.updateMatrix();
-		transform.updateMatrixWorld();
+		transform.updateMatrixWorld(true);
 	};
 
 	/**
@@ -552,7 +552,7 @@
 
 		transform.position.addSelf(localDelta);
 		transform.updateMatrix();
-		transform.updateMatrixWorld();
+		transform.updateMatrixWorld(true);
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////

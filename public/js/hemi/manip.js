@@ -852,7 +852,7 @@
 			if (this.local) {
 				tran.scale.multiplySelf(axis);
 				tran.updateMatrix();
-				tran.updateMatrixWorld();
+				tran.updateMatrixWorld(true);
 			} else {
 				hemi.utils.worldScale(axis, tran);
 			}

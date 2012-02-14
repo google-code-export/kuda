@@ -232,7 +232,7 @@
 
 		this._transform.rotation.copy(this.angle);
 		this._transform.updateMatrix();
-		this._transform.updateMatrixWorld();
+		this._transform.updateMatrixWorld(true);
 	}
 
 	hemi.Rotator = Rotator;
@@ -424,7 +424,7 @@
 	function applyTranslator() {
 		this._transform.position.copy(this.pos);
 		this._transform.updateMatrix();
-		this._transform.updateMatrixWorld();
+		this._transform.updateMatrixWorld(true);
 	}
 
 	hemi.Translator = Translator;
