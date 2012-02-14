@@ -763,6 +763,7 @@
 				
 			if (t) {
 				t.visible = false;
+				t.pickable = false;
 			}
 		}
 	};
@@ -938,6 +939,7 @@
 		} 
 		else {
 			b.mesh.visible = true;
+			b.mesh.pickable = true;
 		}
 	};
 		
