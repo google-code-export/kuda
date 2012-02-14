@@ -259,10 +259,10 @@ body.ten24 {
 .toolBtn.behavior:hover:after, .toolBtn.behavior.down:after {
     background-position: -16em -4em;
 }
-.toolBtn.scenes:after {
+.toolBtn.states:after {
 	background-position: -20em 0;
 }
-.toolBtn.scenes:hover:after, .toolBtn.scenes.down:after {
+.toolBtn.states:hover:after, .toolBtn.states.down:after {
     background-position: -20em -4em;
 }
 .toolBtn.particleEffects:after {
@@ -295,10 +295,10 @@ body.ten24 {
 .toolBtn.motions:hover:after, .toolBtn.motions.down:after  {
 	background-position: -12em -4em;
 }
-.toolBtn.manips:after {
+.toolBtn.manipulation:after {
 	background-position: -40em 0;
 }
-.toolBtn.manips:hover:after, .toolBtn.manips.down:after {
+.toolBtn.manipulation:hover:after, .toolBtn.manipulation.down:after {
 	background-position: -40em -4em;
 }
 .toolBtn.timers:after {

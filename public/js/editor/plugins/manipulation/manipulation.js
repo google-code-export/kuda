@@ -21,7 +21,7 @@
 //								Initialization								  //
 ////////////////////////////////////////////////////////////////////////////////
 
-	var shorthand = editor.tools.manips,
+	var shorthand = editor.tools.manipulation,
 		_matrix = new THREE.Matrix4();
 	
 	shorthand.init = function() {
@@ -68,7 +68,7 @@
 	 * and Turnables.
 	 */
 	var ManipsModel = function() {
-		editor.ToolModel.call(this, 'manips');
+		editor.ToolModel.call(this, 'manipulation');
 		
 		this.currentTransform = null;
 		this.previewProps = {
@@ -252,7 +252,7 @@
 	var CreateWidget = function() {
 		editor.ui.FormWidget.call(this, {
 			name: 'createMnpWidget',
-			uiFile: 'js/editor/plugins/manips/html/manipsForms.htm'
+			uiFile: 'js/editor/plugins/manipulation/html/manipulationForms.htm'
 		});
 			
 		this.inputsToCheck = [];
@@ -573,9 +573,9 @@
 	 */
 	var ManipsView = function() {
 		editor.ToolView.call(this, {
-			toolName: 'Manipulations',
+			toolName: 'Manipulation',
 			toolTip: 'Create and edit manipulatable transforms',
-			id: 'manips'
+			id: 'manipulation'
 		});
 			
 		this.addPanel(new editor.ui.Panel({
@@ -588,8 +588,8 @@
 			name: 'mnpListWidget',
 			listId: 'manipList',
 			prefix: 'mnpLst',
-			title: 'Manipulations',
-			instructions: "Add manipulations above."
+			title: 'Manipulatable Transforms',
+			instructions: "Define manipulatable transforms above."
 		}));
 	};
 
@@ -697,6 +697,5 @@
 			crtWgt.addTransform(transform);
 		});
 	};
-	
-	return editor;
-})(editor || {});
+
+})();
