@@ -21,16 +21,15 @@
  * effects as well as binding camera movement to HTML buttons in the viewer.
  */
 (function() {
+    var client;
+    
+	function init(clientElements) {
+        client = hemi.makeClients()[0];
+        client.setBGColor(0xb2cbff, 1);
 
-	// function init(clientElements) {
-		// hemi.core.init(clientElements[0]);
-		// hemi.view.setBGColor([1, 1, 1, 1]);
-		// hemi.loader.loadPath = '../../';
-		// loadWorld();
-	// }
-    hemi.init();
-    hemi.loadPath = '../../';
-    loadWorld();
+		hemi.loadPath = '../../';
+		loadWorld();
+	}
 	
     function loadWorld() {
 		hemi.loadOctane('samples/DollhouseOctane/dollhouse.json',
@@ -120,6 +119,9 @@
 		});
 	}
 
+    jQuery(window).load(function() {
+		init();
+	});
 	// jQuery(window).load(function() {
 		// o3djs.webgl.makeClients(init);
 	// });
