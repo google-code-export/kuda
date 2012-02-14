@@ -119,3 +119,10 @@ editor    -   The graphical Kuda Editor
 hemi      -   The Hemi library
 hext      -   The Hemi Extensions (Hext) library
 lib       -   Third party libraries used by Hext and the Kuda Editor
+
+About Three.js
+Kuda takes advantage of the Three.js library to provide 3D content through WebGL.
+We distribute Kuda releases with the latest version of Three.js at the time of
+that release. Kuda 2.0 has one custom modification to Three.js that can be seen
+in THREE.Ray.intersectObject(). We changed the floating point precision from
+0.0001 to 0 to correct a bug that occurs with very small geometry.
