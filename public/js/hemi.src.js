@@ -7918,13 +7918,19 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Set the pickable flag for the Transform. NOTE: This is here temporarily for the Editor and
-	 * will be going away soon.
+	 * Set the pickable flag for the Transform and optionally all of its children.
 	 * 
 	 * @param {boolean} pickable flag indicating if the Transform should be pickable
+	 * @param {boolean} recurse flag indicating if all child Transforms should also be set
 	 */
-	Transform.prototype.setPickable = function(pickable) {
+	Transform.prototype.setPickable = function(pickable, recurse) {
 		this.pickable = pickable;
+
+		if (recurse) {
+			for (var i = 0, il = this.children.length; i < il; ++i) {
+				this.children[i].setPickable(pickable, recurse);
+			}
+		}
 	};
 
 	/**
@@ -8060,13 +8066,19 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Set the visible flag for the Transform. NOTE: This is here temporarily for the Editor and
-	 * will be going away soon.
+	 * Set the visible flag for the Transform and optionally all of its children.
 	 * 
 	 * @param {boolean} visible flag indicating if the Transform should be visible
+	 * @param {boolean} recurse flag indicating if all child Transforms should also be set
 	 */
-	Transform.prototype.setVisible = function(visible) {
+	Transform.prototype.setVisible = function(visible, recurse) {
 		this.visible = visible;
+
+		if (recurse) {
+			for (var i = 0, il = this.children.length; i < il; ++i) {
+				this.children[i].setVisible(visible, recurse);
+			}
+		}
 	};
 
 	/**
@@ -8306,10 +8318,10 @@ if (!window.requestAnimationFrame) {
 	Mesh.prototype.setMoving = Transform.prototype.setMoving;
 
 	/**
-	 * Set the pickable flag for the Mesh. NOTE: This is here temporarily for the Editor and will be
-	 * going away soon.
+	 * Set the pickable flag for the Mesh and optionally all of its children.
 	 * 
 	 * @param {boolean} pickable flag indicating if the Mesh should be pickable
+	 * @param {boolean} recurse flag indicating if all child Transforms should also be set
 	 */
 	Mesh.prototype.setPickable = Transform.prototype.setPickable;
 
@@ -8349,10 +8361,10 @@ if (!window.requestAnimationFrame) {
 	Mesh.prototype.setTurning = Transform.prototype.setTurning;
 
 	/**
-	 * Set the visible flag for the Mesh. NOTE: This is here temporarily for the Editor and will be
-	 * going away soon.
+	 * Set the visible flag for the Mesh and optionally all of its children.
 	 * 
 	 * @param {boolean} visible flag indicating if the Mesh should be visible
+	 * @param {boolean} recurse flag indicating if all child Transforms should also be set
 	 */
 	Mesh.prototype.setVisible = Transform.prototype.setVisible;
 
@@ -10661,6 +10673,7 @@ if (!window.requestAnimationFrame) {
 
 	// The default particle system updates using render time.
 	hemi.addRenderListener({
+		isParticleSystem: true,
 		onRender: function(event) {
 			defaultParticleSystem.update(event.elapsedTime);
 		}
