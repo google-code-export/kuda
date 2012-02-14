@@ -170,13 +170,4 @@
     jQuery(window).load(function() {
 		init();
 	});
-	// jQuery(window).load(function() {
-		// o3djs.webgl.makeClients(init);
-	// });
-
-	// jQuery(window).unload(function() {
-		// if (hemi.core.client) {
-			// hemi.core.client.cleanup();
-		// }
-	// });
 })();

@@ -81,8 +81,7 @@
 		this.msgHandler = null;
 		this.name = 'No Name';
 		this.isUpdate = false;
-		
-		//this.initSelectorUI();
+
 		var that = this;
 		
 		hemi.subscribe(hemi.msg.stop,
@@ -201,24 +200,7 @@
 			this.hilights.put(transform, hilightedShapes);
 		}
 	};
-   
-	/**
-	 * Initializes UI for highlighting a selection.
-	 */
-	AnimatorModel.prototype.initSelectorUI = function() {
-		this.hilightMaterial = hemi.core.material.createConstantMaterial(
-			hemi.core.mainPack, 
-			hemi.view.viewInfo, 
-			[0, 1, 0, 0.3],
-			true);
-		// Setup a state to bring the lines forward.
-		var state = hemi.core.mainPack.createObject('State');
-		state.getStateParam('PolygonOffset2').value = -1.0;
-		state.getStateParam('FillMode').value = 
-			hemi.core.o3d.State.WIREFRAME;
-		this.hilightMaterial.state = state;
-	};
-	
+
 	/**
 	 * Starts an animation for preview purposes.
 	 */

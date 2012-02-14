@@ -84,7 +84,7 @@ var hext = (function(hext) {
 	 * Add the given Transform to the list of selectable Transforms which
 	 * direct the Camera to a Viewpoint.
 	 * 
-	 * @param {o3d.Transform} transform the Transform to add
+	 * @param {hemi.Transform} transform the Transform to add
 	 */
 	Navigation.prototype.addZoomSelectTransform = function(transform) {
 		this.zoomSelectTransforms.push(transform);
