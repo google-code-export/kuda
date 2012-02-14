@@ -76,6 +76,8 @@
 		if (cfg.validator) {
 			cfg.validator.setElements(this.container);
 		}
+
+		this.container.attr('autocomplete', 'off');
 		
 		this.container.bind('blur', function(evt) {
 			var val = getContainerValue(wgt);
