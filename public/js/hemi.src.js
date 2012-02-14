@@ -1258,6 +1258,7 @@ var Hashtable = (function() {
 		this._transform = new THREE.Mesh(emitter.shape, emitter.material);
 		this._transform.doubleSided = true; // turn off face culling
 		this._transform.visible = false;
+		this._transform.matrixAutoUpdate = false;
 
 		if (opt_parent) {
 			opt_parent.add(this._transform);
@@ -1280,6 +1281,7 @@ var Hashtable = (function() {
 		}
 		if (opt_position) {
 			this._transform.position.copy(opt_position);
+			this._transform.updateMatrix();
 		}
 
 		this._transform.visible = true;
@@ -10824,11 +10826,17 @@ if (!window.requestAnimationFrame) {
 		// Create a deep copy of the parameters since the particle emitter will mutate them as it
 		// fires.
 		var clonedParams = hemi.utils.clone(this.params),
-			paramSetter = null;
+			paramSetter = null,
+			position = null;
 
 		// It's okay if paramSetter stays null.
 		if (this.particleFunction !== null) {
 			paramSetter = hemi.getParticleFunction(this.particleFunction);
+		}
+
+		if (clonedParams.position) {
+			position = clonedParams.position;
+			clonedParams.position = [0, 0, 0];
 		}
 
 		this._system = this._newSystem ? new hemi.particles.System() : defaultParticleSystem;
@@ -10839,6 +10847,14 @@ if (!window.requestAnimationFrame) {
 
 		this.transform = new THREE.Mesh(this.particles.shape, this.particles.material);
 		this.transform.doubleSided = true; // turn off face culling
+		this.transform.matrixAutoUpdate = false;
+
+		if (position !== null) {
+			// This helps prevent clipping issues
+			this.transform.position.set(position[0], position[1], position[2]);
+			this.transform.updateMatrix();
+		}
+
 		this.client.scene.add(this.transform);
 	};
 
@@ -10904,11 +10920,17 @@ if (!window.requestAnimationFrame) {
 		// Create a deep copy of the parameters since the particle emitter
 		// will mutate them as it fires.
 		var clonedParams = hemi.utils.clone(this.params),
-			paramSetter = null;
+			paramSetter = null,
+			position = null;
 
 		// It's okay if paramSetter stays null.
 		if (this.particleFunction !== null) {
 			paramSetter = hemi.getParticleFunction(this.particleFunction);
+		}
+
+		if (clonedParams.position) {
+			position = clonedParams.position;
+			clonedParams.position = [0, 0, 0];
 		}
 
 		this._system = this._newSystem ? new hemi.particles.System() : defaultParticleSystem;
@@ -10918,8 +10940,15 @@ if (!window.requestAnimationFrame) {
 		this.particles.setParameters(clonedParams, paramSetter);
 
 		this.transform = new THREE.Object3D();
-		this.client.scene.add(this.transform);
+		this.transform.matrixAutoUpdate = false;
 
+		if (position !== null) {
+			// This helps prevent clipping issues
+			this.transform.position.set(position[0], position[1], position[2]);
+			this.transform.updateMatrix();
+		}
+
+		this.client.scene.add(this.transform);
 		this.oneShot = this.particles.createOneShot(this.transform);
 	};
 
@@ -10988,7 +11017,7 @@ if (!window.requestAnimationFrame) {
 
 		if (this.count >= this.fireInterval) {
 			this.count = 0;
-			this.particles.birthParticles(this.params.position);
+			this.particles.birthParticles([0, 0, 0]);
 		}
 	};
 
@@ -11003,6 +11032,7 @@ if (!window.requestAnimationFrame) {
 		// fires.
 		var clonedParams = hemi.utils.clone(this.params),
 			paramSetter = null,
+			position = null,
 			// Calculate the maximum number of particles for the stream
 			particlesPerFire = this.params.numParticles || 1,
 			maxLife = this.params.lifeTime || 1 + this.params.lifeTimeRange || 0,
@@ -11012,6 +11042,11 @@ if (!window.requestAnimationFrame) {
 		// It's okay if paramSetter stays undefined.
 		if (this.particleFunction !== null) {
 			paramSetter = hemi.getParticleFunction(this.particleFunction);
+		}
+
+		if (clonedParams.position) {
+			position = clonedParams.position;
+			clonedParams.position = [0, 0, 0];
 		}
 
 		this._system = this._newSystem ? new hemi.particles.System() : defaultParticleSystem;
@@ -11026,6 +11061,14 @@ if (!window.requestAnimationFrame) {
 
 		this.transform = new THREE.Mesh(this.particles.shape, this.particles.material);
 		this.transform.doubleSided = true; // turn off face culling
+		this.transform.matrixAutoUpdate = false;
+
+		if (position !== null) {
+			// This helps prevent clipping issues
+			this.transform.position.set(position[0], position[1], position[2]);
+			this.transform.updateMatrix();
+		}
+
 		this.client.scene.add(this.transform);
 	};
 

@@ -831,6 +831,7 @@
 		this._transform = new THREE.Mesh(emitter.shape, emitter.material);
 		this._transform.doubleSided = true; // turn off face culling
 		this._transform.visible = false;
+		this._transform.matrixAutoUpdate = false;
 
 		if (opt_parent) {
 			opt_parent.add(this._transform);
@@ -853,6 +854,7 @@
 		}
 		if (opt_position) {
 			this._transform.position.copy(opt_position);
+			this._transform.updateMatrix();
 		}
 
 		this._transform.visible = true;

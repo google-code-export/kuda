@@ -176,11 +176,17 @@
 		// Create a deep copy of the parameters since the particle emitter will mutate them as it
 		// fires.
 		var clonedParams = hemi.utils.clone(this.params),
-			paramSetter = null;
+			paramSetter = null,
+			position = null;
 
 		// It's okay if paramSetter stays null.
 		if (this.particleFunction !== null) {
 			paramSetter = hemi.getParticleFunction(this.particleFunction);
+		}
+
+		if (clonedParams.position) {
+			position = clonedParams.position;
+			clonedParams.position = [0, 0, 0];
 		}
 
 		this._system = this._newSystem ? new hemi.particles.System() : defaultParticleSystem;
@@ -191,6 +197,14 @@
 
 		this.transform = new THREE.Mesh(this.particles.shape, this.particles.material);
 		this.transform.doubleSided = true; // turn off face culling
+		this.transform.matrixAutoUpdate = false;
+
+		if (position !== null) {
+			// This helps prevent clipping issues
+			this.transform.position.set(position[0], position[1], position[2]);
+			this.transform.updateMatrix();
+		}
+
 		this.client.scene.add(this.transform);
 	};
 
@@ -256,11 +270,17 @@
 		// Create a deep copy of the parameters since the particle emitter
 		// will mutate them as it fires.
 		var clonedParams = hemi.utils.clone(this.params),
-			paramSetter = null;
+			paramSetter = null,
+			position = null;
 
 		// It's okay if paramSetter stays null.
 		if (this.particleFunction !== null) {
 			paramSetter = hemi.getParticleFunction(this.particleFunction);
+		}
+
+		if (clonedParams.position) {
+			position = clonedParams.position;
+			clonedParams.position = [0, 0, 0];
 		}
 
 		this._system = this._newSystem ? new hemi.particles.System() : defaultParticleSystem;
@@ -270,8 +290,15 @@
 		this.particles.setParameters(clonedParams, paramSetter);
 
 		this.transform = new THREE.Object3D();
-		this.client.scene.add(this.transform);
+		this.transform.matrixAutoUpdate = false;
 
+		if (position !== null) {
+			// This helps prevent clipping issues
+			this.transform.position.set(position[0], position[1], position[2]);
+			this.transform.updateMatrix();
+		}
+
+		this.client.scene.add(this.transform);
 		this.oneShot = this.particles.createOneShot(this.transform);
 	};
 
@@ -340,7 +367,7 @@
 
 		if (this.count >= this.fireInterval) {
 			this.count = 0;
-			this.particles.birthParticles(this.params.position);
+			this.particles.birthParticles([0, 0, 0]);
 		}
 	};
 
@@ -355,6 +382,7 @@
 		// fires.
 		var clonedParams = hemi.utils.clone(this.params),
 			paramSetter = null,
+			position = null,
 			// Calculate the maximum number of particles for the stream
 			particlesPerFire = this.params.numParticles || 1,
 			maxLife = this.params.lifeTime || 1 + this.params.lifeTimeRange || 0,
@@ -364,6 +392,11 @@
 		// It's okay if paramSetter stays undefined.
 		if (this.particleFunction !== null) {
 			paramSetter = hemi.getParticleFunction(this.particleFunction);
+		}
+
+		if (clonedParams.position) {
+			position = clonedParams.position;
+			clonedParams.position = [0, 0, 0];
 		}
 
 		this._system = this._newSystem ? new hemi.particles.System() : defaultParticleSystem;
@@ -378,6 +411,14 @@
 
 		this.transform = new THREE.Mesh(this.particles.shape, this.particles.material);
 		this.transform.doubleSided = true; // turn off face culling
+		this.transform.matrixAutoUpdate = false;
+
+		if (position !== null) {
+			// This helps prevent clipping issues
+			this.transform.position.set(position[0], position[1], position[2]);
+			this.transform.updateMatrix();
+		}
+
 		this.client.scene.add(this.transform);
 	};
 
