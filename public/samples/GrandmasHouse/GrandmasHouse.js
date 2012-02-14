@@ -23,21 +23,6 @@
 (function() {
 
 	function init(clientElements) {
-		// /**
-		 // * It is possible to have multiple clients (i.e. multiple frames
-		 // * 		rendering 3d content) on one page that would have to be
-		 // * 		initialized. In this case, we only want to initialize the
-		 // *		first one.
-		 // */
-		// hemi.core.init(clientElements[0]);
-		
-		// /**
-		 // * Set the background color to a light-bluish. The parameter is in
-		 // * 		the form [red,blue,green,alpha], with each value on a 
-		 // *		scale of 0-1.
-		 // */
-		// hemi.view.setBGColor([0.7, 0.8, 1, 1]);
-		//hemi.init();
 		/**
 		 * Set a prefix for the loader that will allow us to load assets as if
 		 * the helloWorld.html file was in the root directory.
