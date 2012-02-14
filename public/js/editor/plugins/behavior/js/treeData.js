@@ -100,6 +100,7 @@
 		'hemi.HudDisplay': ['hide', 'nextPage', 'previousPage', 'show'],
 		'hemi.Model': ['load', 'unload'],
 		'hemi.State': ['load', 'nextState', 'previousState', 'unload'],
+		'hemi.Timer': ['pause', 'reset', 'resume', 'start', 'stop'],
 		'hemi.Mesh': ['move', 'turn', 'cancelInteraction', 'cancelMoving', 'cancelTurning', 
 			'setMovable', 'setMoving', 'setPickable', 'setTurnable', 'setTurning', 'setResizable',
 			'setVisible'],
