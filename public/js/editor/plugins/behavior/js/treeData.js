@@ -93,23 +93,21 @@
 	var commonMethods = {
 		'hemi.AnimationGroup': ['reset', 'start', 'stop'],
 		'hemi.Audio': ['pause', 'play', 'seek', 'setVolume'],
-		'hemi.ParticleSystem': ['pause', 'play', 'start', 'stop'],
-		'hemi.Burst': ['trigger'],
-		'hemi.Emitter': ['hide', 'show'],
-		'hemi.Trail': ['start', 'stop'],
+		'hemi.ParticleCurve': ['pause', 'play', 'start', 'stop'],
+		'hemi.ParticleBurst': ['trigger'],
+		'hemi.ParticleEmitter': ['hide', 'show'],
+		'hemi.ParticleTrail': ['start', 'stop'],
 		'hemi.HudDisplay': ['hide', 'nextPage', 'previousPage', 'show'],
-		'hemi.Theme': ['load'],
 		'hemi.Model': ['load', 'unload'],
-		'hemi.Rotator': ['disable', 'enable', 'rotate', 'setAccel',
-			'setAngle', 'setVel'],
-		'hemi.Translator': ['disable', 'enable', 'move', 'setAccel',
-			'setPos', 'setVel'],
 		'hemi.State': ['load', 'nextState', 'previousState', 'unload'],
-		'hemi.Camera': ['disableControl', 'enableControl', 'moveOnCurve',
-			'moveToView', 'orbit', 'rotate', 'truck'],
+		'hemi.Mesh': ['move', 'turn', 'cancelInteraction', 'cancelMoving', 'cancelTurning', 
+			'setMovable', 'setMoving', 'setPickable', 'setTurnable', 'setTurning', 'setResizable',
+			'setVisible'],
 		'hemi.Transform': ['move', 'turn', 'cancelInteraction', 'cancelMoving', 'cancelTurning', 
 			'setMovable', 'setMoving', 'setPickable', 'setTurnable', 'setTurning', 'setResizable',
-			'setVisible']
+			'setVisible'],
+		'hemi.Camera': ['disableControl', 'enableControl', 'moveOnCurve',
+			'moveToView', 'orbit', 'rotate', 'truck']
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
