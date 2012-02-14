@@ -49,8 +49,8 @@
 	
 	function setUpScene(house) {
 		var vp1 = new hemi.Viewpoint();		// Create a new Viewpoint
-		vp1.eye = house.getTransforms('camEye_outdoors')[0].position.clone();
-		vp1.target = house.getTransforms('camTarget_outdoors')[0].position.clone();
+		vp1.eye = house.getTransform('camEye_outdoors').position.clone();
+		vp1.target = house.getTransform('camTarget_outdoors').position.clone();
 
 		/*
 		 * Move the camera from it's default position (eye : [0,0,-1],
@@ -65,10 +65,11 @@
 		/* Get the material used on the walls, add an opacity variable to its
 		 * shader, and get the parameter that controls that opacity.
 		 */
-		var wallT = house.getTransforms('wallFront')[0],		
+		var wallT = house.getTransform('wallFront'),		
 			opacity = 1.0;
 		
-		hemi.fx.setOpacity(client, wallT, wallT.material, opacity);
+		// hemi.fx.setOpacity(client, wallT, wallT.material, opacity);
+        hemi.fx.setOpacity(wallT, opacity);
 		
 		/* On any keyDown, begin the fading. Reverse the direction each time */
 		hemi.input.addKeyDownListener({
@@ -84,7 +85,9 @@
 			onRender : function(e) {
 				if (cnt > 0) {
 					opacity += dir*0.02;
-					hemi.fx.setOpacity(client, wallT, wallT.material, opacity);
+					// hemi.fx.setOpacity(client, wallT, wallT.material, opacity);
+                    hemi.fx.setOpacity(wallT, opacity);
+
 					cnt--;
 				}
 			}});

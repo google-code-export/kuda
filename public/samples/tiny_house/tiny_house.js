@@ -43,11 +43,11 @@
 	}
 
 	function setupScene() {
-		house.getTransforms('spinDisk')[0].visible = false;
-		house.getTransforms('fan_ring1')[0].visible = false;
-		house.getTransforms('cam_Eye')[0].visible = false;
-		house.getTransforms('cam_Target')[0].visible = false;
-		house.getTransforms('SO_window')[0].visible = false;
+		house.getTransform('spinDisk').visible = false;
+		house.getTransform('fan_ring1').visible = false;
+		house.getTransform('cam_Eye').visible = false;
+		house.getTransform('cam_Target').visible = false;
+		house.getTransform('SO_window').visible = false;
 
 		var winWidth = 16; // Typical window width
 		var engine = new hext.engines.PressureEngine();
@@ -56,7 +56,7 @@
 		var outside = hext.engines.createOutsideLocation();
 
 		blowerFan = {
-			transform: house.getTransforms('fan_blades')[0],
+			transform: house.getTransform('fan_blades'),
 			msgHandler: function(msg) {
 				blowerFan.transform.setTurning(new THREE.Vector3(0, 0, 0.3 * msg.data.speed));
 			},
@@ -78,7 +78,7 @@
 		}.init();
 
 		houseWindow = {
-			transform: house.getTransforms('SO_window')[0],
+			transform: house.getTransform('SO_window'),
 			msgHandler: function(msg) {
 				houseWindow.portal.adjustOpening(msg.data.delta);
 			},
