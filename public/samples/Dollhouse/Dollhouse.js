@@ -32,7 +32,7 @@
 	}
 	
     function loadWorld() {
-		hemi.loadOctane('samples/DollhouseOctane/dollhouse.json',
+		hemi.loadOctane('samples/Dollhouse/dollhouse.json',
 			function() {
 				// This will be executed before hemi.world.ready() is called.
 				hemi.subscribe(hemi.msg.ready,
