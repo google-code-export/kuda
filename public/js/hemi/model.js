@@ -280,6 +280,13 @@
 		this.materials = [];
 	};
 
+	Model.prototype.setVisible = function(visible) {
+		var transforms = this.root.getAllChildren();
+		for (var count = 0; count < transforms.length; ++count) {
+			transforms[count].visible = visible;
+		}
+	};
+
 // Private functions for Model
 
 	/*
