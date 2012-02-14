@@ -50,17 +50,17 @@
 	
 	var setupModel = function(model) {
 		// Set these Transforms to be hidden and non-pickable
-		var t1 = model.getTransforms('BD_barrier')[0],
-			t2 = model.getTransforms('spinDisk')[0],
-			t3 = model.getTransforms('highlight_manometer')[0],
-			t4 = model.getTransforms('highlight_bdHole')[0],
-			t5 = model.getTransforms('highlight_fanPressTap')[0],
-			t6 = model.getTransforms('highlight_frontDoor')[0],
-			t7 = model.getTransforms('blowerArrowsExt_g')[0],
-			t8 = model.getTransforms('B1_window_paneTL')[0],
-			t9 = model.getTransforms('B1_window_paneTR')[0],
-			t10 = model.getTransforms('B1_window_paneLL')[0],
-			t11 = model.getTransforms('B1_window_paneLR')[0];
+		var t1 = model.getTransform('BD_barrier'),
+			t2 = model.getTransform('spinDisk'),
+			t3 = model.getTransform('highlight_manometer'),
+			t4 = model.getTransform('highlight_bdHole'),
+			t5 = model.getTransform('highlight_fanPressTap'),
+			t6 = model.getTransform('highlight_frontDoor'),
+			t7 = model.getTransform('blowerArrowsExt_g'),
+			t8 = model.getTransform('B1_window_paneTL'),
+			t9 = model.getTransform('B1_window_paneTR'),
+			t10 = model.getTransform('B1_window_paneLL'),
+			t11 = model.getTransform('B1_window_paneLR');
 		
 		t1.visible = false;
 		t1.pickable = false;
@@ -109,7 +109,7 @@
 
 		// Make the material of the highlight shapes pulse between two different
 		// colors.
-		var highlightTran = model.getTransforms('highlight_bdHole')[0];
+		var highlightTran = model.getTransform('highlight_bdHole');
 		var pulsator = {
 			count: 0,
 			direction: 1,
@@ -125,7 +125,7 @@
 
 		// There is a bug with this Mesh. Its geometry contains a quad that should really be a
 		// triangle (3 of the 4 points lie in a straight line) and it messes up picking.
-		model.getTransforms('EXT_walls')[0].pickable = false;
+		model.getTransform('EXT_walls').pickable = false;
 	};
 	
 	var setupWorld = function(model) {
@@ -348,7 +348,7 @@
 		}
 		
 		// Set up the movable windows.
-		var b1RightWinTran = model.getTransforms('B1_window01_sashRight')[0];
+		var b1RightWinTran = model.getTransform('B1_window01_sashRight');
 		b1RightWinTran.setMovable(hemi.Plane.XY, [0, 0, -46, 11], model.getTransforms('SO_B1_window_right'));
 		b1RightWinTran.subscribe(hemi.msg.move, b1Window1Right, 'adjustOpening', ['msg:data.delta']);
 
@@ -356,21 +356,21 @@
 		b1Window1Right.setClosedPosition(new THREE.Vector3(0, 0, -899));
 		b1Window1Right.setOpening(new THREE.Vector3(0, 44, -899));
 
-		var b1LeftWinTran = model.getTransforms('B1_window_sashLeft')[0];
+		var b1LeftWinTran = model.getTransform('B1_window_sashLeft');
 		b1LeftWinTran.setMovable(hemi.Plane.XY, [0, 0, -46, 11], model.getTransforms('SO_B1_window_left'));
 		b1LeftWinTran.subscribe(hemi.msg.move, b1Window1Left, 'adjustOpening', ['msg:data.delta']);
 
 		b1Window1Left.setClosedPosition(new THREE.Vector3(0, 0, -899));
 		b1Window1Left.setOpening(new THREE.Vector3(0, 44, -899));
 
-		var b2RightWinTran = model.getTransforms('B2_window2_sashRight')[0];
+		var b2RightWinTran = model.getTransform('B2_window2_sashRight');
 		b2RightWinTran.setMovable(hemi.Plane.YZ, [0, 0, -19, 38], model.getTransforms('SO_B2_window2_right'));
 		b2RightWinTran.subscribe(hemi.msg.move, b2Window2Right, 'adjustOpening', ['msg:data.delta']);
 
 		b2Window2Right.setClosedPosition(new THREE.Vector3(1000, 0, 0));
 		b2Window2Right.setOpening(new THREE.Vector3(1000, 17, 0));
 
-		var b2LeftWinTran = model.getTransforms('B2_window2_sashLeft')[0];
+		var b2LeftWinTran = model.getTransform('B2_window2_sashLeft');
 		b2LeftWinTran.setMovable(hemi.Plane.YZ, [0, 0, -19, 38], model.getTransforms('SO_B2_window2_left'));
 		b2LeftWinTran.subscribe(hemi.msg.move, b2Window2Left, 'adjustOpening', ['msg:data.delta']);
 
@@ -378,7 +378,7 @@
 		b2Window2Left.setOpening(new THREE.Vector3(1000, 17, 0));
 
 		
-		var baWinTran = model.getTransforms('BA_windowSashRight')[0];
+		var baWinTran = model.getTransform('BA_windowSashRight');
 		baWinTran.setMovable(hemi.Plane.YZ, [-13, 19, 0, 0], model.getTransforms('SO_BA_window'));
 		baWinTran.subscribe(hemi.msg.move, baWindow1, 'adjustOpening', ['msg:data.delta']);
 		
@@ -389,19 +389,19 @@
 		var cw = 1;
 		var ccw = -1;
 		
-		var b1DoorTran = model.getTransforms('B1_door')[0];
+		var b1DoorTran = model.getTransform('B1_door');
 		hemi.utils.translateGeometry(b1DoorTran, new THREE.Vector3(-16.758, 14.848, 0));
 
 		var door1 = createDoor(b1DoorTran, cw, true);
 		door1.addAltName('SO_B1_2');
 
-		var b2DoorTran = model.getTransforms('B2_door')[0];
+		var b2DoorTran = model.getTransform('B2_door');
 		hemi.utils.translateGeometry(b2DoorTran, new THREE.Vector3(-394.4, 20.1, 0));
 
 		var door2 = createDoor(b2DoorTran, ccw, true);
 		door2.addAltName('SO_B2_2');
 
-		var baDoorTran = model.getTransforms('BA_door')[0];
+		var baDoorTran = model.getTransform('BA_door');
 		hemi.utils.translateGeometry(baDoorTran, new THREE.Vector3(135, 63.9, 0));
 
 		var door3 = createDoor(baDoorTran, ccw, false);
@@ -423,7 +423,7 @@
 		manometer.setLocation(livingroom);
 		
 		var manShapeView = new hext.tools.ShapeView();
-		manShapeView.addTransform(model.getTransforms('LR_manometer')[0]);
+		manShapeView.addTransform(model.getTransform('LR_manometer'));
 		
 		hext.html.toolViews.addView(manView);
 		hext.html.toolbar.addView(manToolbarView);
@@ -457,7 +457,7 @@
 		blowerDoorController.setToolbarView(blowerDoorToolbarView);
 		
 		// Create a Rotator to animate the fan blades in response to the blower door control.
-		var fanTrans = model.getTransforms('fan_blades')[0];
+		var fanTrans = model.getTransform('fan_blades');
 		hemi.utils.centerGeometry(fanTrans);
 
 		blowerDoor.subscribe(hext.msg.speed,
@@ -497,35 +497,35 @@
 		tube5.setLocation(bedroom2);
 		
 		var tube1ShapeView = new hext.tools.ShapeView();
-		tube1ShapeView.addTransform(model.getTransforms('greenTube')[0]);
+		tube1ShapeView.addTransform(model.getTransform('greenTube'));
 		
 		var tube1Controller = new hext.tools.BaseController();
 		tube1Controller.setModel(tube1);
 		tube1Controller.setShapeView(tube1ShapeView);
 		
 		var tube2ShapeView = new hext.tools.ShapeView();
-		tube2ShapeView.addTransform(model.getTransforms('redTube')[0]);
+		tube2ShapeView.addTransform(model.getTransform('redTube'));
 		
 		var tube2Controller = new hext.tools.BaseController();
 		tube2Controller.setModel(tube2);
 		tube2Controller.setShapeView(tube2ShapeView);
 		
 		var tube3ShapeView = new hext.tools.ShapeView();
-		tube3ShapeView.addTransform(model.getTransforms('tube_BA')[0]);
+		tube3ShapeView.addTransform(model.getTransform('tube_BA'));
 		
 		var tube3Controller = new hext.tools.BaseController();
 		tube3Controller.setModel(tube3);
 		tube3Controller.setShapeView(tube3ShapeView);
 		
 		var tube4ShapeView = new hext.tools.ShapeView();
-		tube4ShapeView.addTransform(model.getTransforms('tube_B1')[0]);
+		tube4ShapeView.addTransform(model.getTransform('tube_B1'));
 		
 		var tube4Controller = new hext.tools.BaseController();
 		tube4Controller.setModel(tube4);
 		tube4Controller.setShapeView(tube4ShapeView);
 		
 		var tube5ShapeView = new hext.tools.ShapeView();
-		tube5ShapeView.addTransform(model.getTransforms('tube_B2')[0]);
+		tube5ShapeView.addTransform(model.getTransform('tube_B2'));
 		
 		var tube5Controller = new hext.tools.BaseController();
 		tube5Controller.setModel(tube5);
@@ -619,9 +619,9 @@
 		navTool.addArea('AT_soffitFront', createViewpoint(model, 'camEye_BDCam', 'camTarget_BDCam'));
 		
 		// Add select transforms for zoom in
-		navTool.addZoomSelectTransform(model.getTransforms('SO_BA_1')[0]);
-		navTool.addZoomSelectTransform(model.getTransforms('SO_B1_1')[0]);
-		navTool.addZoomSelectTransform(model.getTransforms('SO_B2_1')[0]);
+		navTool.addZoomSelectTransform(model.getTransform('SO_BA_1'));
+		navTool.addZoomSelectTransform(model.getTransform('SO_B1_1'));
+		navTool.addZoomSelectTransform(model.getTransform('SO_B2_1'));
 		
 		var navToolbar = new hext.tools.NavigationToolbarView();
 		// The script calls for being "zoomed" in at the start, so disable the
@@ -682,13 +682,13 @@
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint1) {
 					display1.show();
-					model.getTransforms('highlight_frontDoor')[0].visible = true;
+					model.getTransform('highlight_frontDoor').visible = true;
 				}
 			});
 		hemi.subscribe(hemi.msg.pick,
 			function(msg) {
 				if (state.isLoaded && msg.data.pickedMesh.name === 'SO_BD') {
-					model.getTransforms('highlight_frontDoor')[0].visible = true;
+					model.getTransform('highlight_frontDoor').visible = true;
 					display1.hide();
 					state.nextState();
 				}
@@ -723,9 +723,9 @@
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
 					// Replace the living room door with the blower door.
-					model.getTransforms('BD_barrier')[0].visible = true;
-					model.getTransforms('LR_front_door')[0].visible = true;
-					model.getTransforms('LR_front_door')[0].visible = true;
+					model.getTransform('BD_barrier').visible = true;
+					model.getTransform('LR_front_door').visible = true;
+					model.getTransform('LR_front_door').visible = true;
 					display1.show();
 				}
 			});
@@ -749,7 +749,7 @@
 					display1.hide();
 					display2.show();
 					// Keep the Transform from obscuring the next pick.
-					model.getTransforms('SO_BD')[0].pickable = false;
+					model.getTransform('SO_BD').pickable = false;
 				}
 			});
 		
@@ -769,7 +769,7 @@
 		manometerView.subscribe(hext.msg.input,
 			function(msg) {
 				if (state.isLoaded && msg.data.selected && msg.data.elementId === 'll') {
-					model.getTransforms('highlight_bdHole')[0].visible = true;
+					model.getTransform('highlight_bdHole').visible = true;
 					display2.hide();
 					display3.show();
 				}
@@ -778,8 +778,8 @@
 		tube.subscribe(hemi.msg.visible,
 			function(msg) {
 				if (state.isLoaded && msg.data.visible) {
-					model.getTransforms('highlight_bdHole').visible = false;
-					model.getTransforms('SO_BD')[0].pickable = true;
+					model.getTransform('highlight_bdHole').visible = false;
+					model.getTransform('SO_BD').pickable = true;
 					display3.hide();
 					state.nextState();
 				}
@@ -813,9 +813,9 @@
 		client.camera.subscribe(hemi.msg.stop,
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
-					model.getTransforms('highlight_fanPressTap')[0].visible = true;
+					model.getTransform('highlight_fanPressTap').visible = true;
 					// Keep the Transform from obscuring the next pick.
-					model.getTransforms('SO_BD')[0].pickable = false;
+					model.getTransform('SO_BD').pickable = false;
 					display1.show();
 				}
 			});
@@ -844,8 +844,8 @@
 		tube.subscribe(hemi.msg.visible,
 			function(msg) {
 				if (state.isLoaded && msg.data.visible) {
-					model.getTransforms('highlight_fanPressTap')[0].visible = false;
-					model.getTransforms('SO_BD')[0].pickable = true;
+					model.getTransform('highlight_fanPressTap').visible = false;
+					model.getTransform('SO_BD').pickable = true;
 					display2.hide();
 					state.nextState();
 				}
@@ -1059,10 +1059,10 @@
 					if (msg.data.page === 2) {
 						client.camera.moveToView(viewpoint2);
 						animation1.start();
-						model.getTransforms('blowerArrowsExt_g')[0].visible = true;
+						model.getTransform('blowerArrowsExt_g').visible = true;
 					} else if (msg.data.page === 3) {
 						client.camera.moveToView(viewpoint3);
-						model.getTransforms('blowerArrowsExt_g')[0].visible = false;
+						model.getTransform('blowerArrowsExt_g').visible = false;
 						animation1.stop();
 					}
 				}
@@ -1072,13 +1072,13 @@
 			function(msg) {
 				if (state.isLoaded && msg.data.elementId === 'ur') {
 					if (msg.data.selected) {
-						model.getTransforms('SO_BA_1')[0].pickable = true;
-						model.getTransforms('SO_B1_1')[0].pickable = true;
-						model.getTransforms('SO_B2_1')[0].pickable = true;
+						model.getTransform('SO_BA_1').pickable = true;
+						model.getTransform('SO_B1_1').pickable = true;
+						model.getTransform('SO_B2_1').pickable = true;
 					} else {
-						model.getTransforms('SO_BA_1')[0].pickable = false;
-						model.getTransforms('SO_B1_1')[0].pickable = false;
-						model.getTransforms('SO_B2_1')[0].pickable = false;
+						model.getTransform('SO_BA_1').pickable = false;
+						model.getTransform('SO_B1_1').pickable = false;
+						model.getTransform('SO_B2_1').pickable = false;
 					}
 				}
 			});
@@ -1164,8 +1164,8 @@
 		var fp = 5000;
 		opt_fov = opt_fov * hemi.DEG_TO_RAD || hemi.DEG_TO_RAD * 40;
 		
-		var eyeTran = model.getTransforms(eyeName)[0];
-		var targetTran = model.getTransforms(targetName)[0];
+		var eyeTran = model.getTransform(eyeName);
+		var targetTran = model.getTransform(targetName);
 		
 		if (eyeTran != null && targetTran != null) {
 			viewpoint = new hemi.Viewpoint({name: "", eye: eyeTran.position.clone(), 

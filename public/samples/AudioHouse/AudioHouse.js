@@ -79,17 +79,17 @@
 	}
 
 	function setupScene() {
-		house.getTransforms('SO_door')[0].visible = false;
-		house.getTransforms('SO_window1sashLeft')[0].visible = false;
-		house.getTransforms('SO_window1sashRight')[0].visible = false;
-		house.getTransforms('camEye_outdoors')[0].visible = false;
-		house.getTransforms('camEye_indoors')[0].visible = false;
-		house.getTransforms('camTarget_outdoors')[0].visible = false;
-		house.getTransforms('camTarget_indoors')[0].visible = false;
-		house.getTransforms('camEye_outdoors')[0].isPickable = false;
-		house.getTransforms('camEye_indoors')[0].isPickable = false;
-		house.getTransforms('camTarget_outdoors')[0].isPickable = false;
-		house.getTransforms('camTarget_indoors')[0].isPickable = false;
+		house.getTransform('SO_door').visible = false;
+		house.getTransform('SO_window1sashLeft').visible = false;
+		house.getTransform('SO_window1sashRight').visible = false;
+		house.getTransform('camEye_outdoors').visible = false;
+		house.getTransform('camEye_indoors').visible = false;
+		house.getTransform('camTarget_outdoors').visible = false;
+		house.getTransform('camTarget_indoors').visible = false;
+		house.getTransform('camEye_outdoors').isPickable = false;
+		house.getTransform('camEye_indoors').isPickable = false;
+		house.getTransform('camTarget_outdoors').isPickable = false;
+		house.getTransform('camTarget_indoors').isPickable = false;
 
 		client.camera.fixEye();
 		client.camera.setLookAroundLimits(null, null, -50 * hemi.DEG_TO_RAD,
@@ -119,7 +119,7 @@
 		var fire = hemi.createParticleEmitter(client, colorRamp, params);
 		fire.transform.position.set(0.0, 72.0, -236.0);
 
-		door = new hext.house.Door(house.getTransforms('door')[0]);
+		door = new hext.house.Door(house.getTransform('door'));
 		door.angle.y *= -1;
 		door.onPick(function(msg) {
 			switch (msg.data.pickedMesh.name) {
@@ -153,7 +153,7 @@
 			}, 200);
 		});
 		
-		window1Left = new hext.house.Window(house.getTransforms('window1_sashLeft')[0], new THREE.Vector3(0, 60, 0));
+		window1Left = new hext.house.Window(house.getTransform('window1_sashLeft'), new THREE.Vector3(0, 60, 0));
 		window1Left.onPick(function(msg) {
 			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashLeft':
@@ -182,7 +182,7 @@
 			audio.winLeft.pause();
 		});
 	
-		window1Right = new hext.house.Window(house.getTransforms('window1_sashRight')[0], new THREE.Vector3(0, 60, 0));
+		window1Right = new hext.house.Window(house.getTransform('window1_sashRight'), new THREE.Vector3(0, 60, 0));
 		window1Right.onPick(function(msg) {
 			switch (msg.data.pickedMesh.name) {
 				case 'SO_window1sashRight':
@@ -212,8 +212,8 @@
 		});
 		
 		var viewpoint = new hemi.Viewpoint();
-		viewpoint.eye = house.getTransforms('camEye_outdoors')[0].position.clone();
-		viewpoint.target = house.getTransforms('camTarget_outdoors')[0].position.clone();
+		viewpoint.eye = house.getTransform('camEye_outdoors').position.clone();
+		viewpoint.target = house.getTransform('camTarget_outdoors').position.clone();
 		viewpoint.fov = 60 * hemi.DEG_TO_RAD;
 		client.camera.moveToView(viewpoint, 2.5);
 		// Use a simple function to track when the windows and door are open to allow entering the house per the script.
@@ -254,8 +254,8 @@
 	function enter() {
 		entered = true;
 		var viewpoint = new hemi.Viewpoint();
-		viewpoint.eye = house.getTransforms('camEye_indoors')[0].position.clone();
-		viewpoint.target = house.getTransforms('camTarget_indoors')[0].position.clone();
+		viewpoint.eye = house.getTransform('camEye_indoors').position.clone();
+		viewpoint.target = house.getTransform('camTarget_indoors').position.clone();
 		viewpoint.fov = 60 * hemi.DEG_TO_RAD;
 		enterMoveCamera();
 		client.camera.moveToView(viewpoint, 2.5);
