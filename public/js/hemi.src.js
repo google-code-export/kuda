@@ -3320,7 +3320,7 @@ if (!window.requestAnimationFrame) {
 		}
 
 		transform.updateMatrix();
-		transform.updateMatrixWorld();
+		transform.updateMatrixWorld(true);
 	};
 
 	/**
@@ -3342,7 +3342,7 @@ if (!window.requestAnimationFrame) {
 
 		mesh.position.subSelf(delta);
 		mesh.updateMatrix();
-		mesh.updateMatrixWorld();
+		mesh.updateMatrixWorld(true);
 		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
 		updateVertices(mesh);
 	};
@@ -3413,7 +3413,7 @@ if (!window.requestAnimationFrame) {
 		tran.rotation.y += rotY;
 		tran.rotation.x += rotX;
 		tran.updateMatrix();
-		tran.updateMatrixWorld();
+		tran.updateMatrixWorld(true);
 
 		return tran;
 	};
@@ -3434,7 +3434,7 @@ if (!window.requestAnimationFrame) {
 		tran.rotation.y += rotY;
 		tran.rotation.x += rotX;
 		tran.updateMatrix();
-		tran.updateMatrixWorld();
+		tran.updateMatrixWorld(true);
 
 		return tran;
 	};
@@ -3666,7 +3666,7 @@ if (!window.requestAnimationFrame) {
 
 		mesh.position.subSelf(delta);
 		mesh.updateMatrix();
-		mesh.updateMatrixWorld();
+		mesh.updateMatrixWorld(true);
 
 		// Do some magic since Three.js doesn't currently have a way to flush cached vertices
 		updateVertices(mesh);
@@ -3809,7 +3809,7 @@ if (!window.requestAnimationFrame) {
 		_vector.copy(scale);
 		transform.scale.multiplySelf(multiplyMat3(invMat, _vector));
 		transform.updateMatrix();
-		transform.updateMatrixWorld();
+		transform.updateMatrixWorld(true);
 	};
 
 	/**
@@ -3824,7 +3824,7 @@ if (!window.requestAnimationFrame) {
 
 		transform.position.addSelf(localDelta);
 		transform.updateMatrix();
-		transform.updateMatrixWorld();
+		transform.updateMatrixWorld(true);
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -7239,7 +7239,7 @@ if (!window.requestAnimationFrame) {
 
 		this._transform.rotation.copy(this.angle);
 		this._transform.updateMatrix();
-		this._transform.updateMatrixWorld();
+		this._transform.updateMatrixWorld(true);
 	}
 
 	hemi.Rotator = Rotator;
@@ -7431,7 +7431,7 @@ if (!window.requestAnimationFrame) {
 	function applyTranslator() {
 		this._transform.position.copy(this.pos);
 		this._transform.updateMatrix();
-		this._transform.updateMatrixWorld();
+		this._transform.updateMatrixWorld(true);
 	}
 
 	hemi.Translator = Translator;
@@ -7806,7 +7806,7 @@ if (!window.requestAnimationFrame) {
 		this.rotation.set(0, 0, 0);
 		this.scale.set(1, 1, 1);
 		this.matrix.identity();
-		this.updateMatrixWorld();
+		this.updateMatrixWorld(true);
 	};
 
 	/**
@@ -7843,7 +7843,7 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Allow the Transform to be moved (translated) through mouse interaction along the given plane.
 	 * 
-	 * @param {hemi.Plane} opt_plane optional 2D plane to enable movement along (default is XZ)
+	 * @param {string} opt_plane optional 2D plane to enable movement along (default is XZ)
 	 * @param {number[4]} opt_limits optional array of movement limits within the plane:
 	 *     [min on u, max on u, min on v, max on v]
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make movable
@@ -7868,21 +7868,21 @@ if (!window.requestAnimationFrame) {
 			this._manip._uv[1] = params.uv[1];
 		}
 
-		if (opt_plane !== undefined) {
+		if (opt_plane != null) {
 			this._manip.setPlane(opt_plane);
 			params.plane = opt_plane;
 		} else if (restore && params.plane) {
 			this._manip.setPlane(params.plane);
 		}
 
-		if (opt_limits !== undefined) {
+		if (opt_limits != null) {
 			this._manip.setLimits(opt_limits);
 			params.limits = opt_limits;
 		} else if (restore && params.limits) {
 			this._manip.setLimits(params.limits);
 		}
 
-		if (opt_transforms !== undefined) {
+		if (opt_transforms != null) {
 			opt_transforms = opt_transforms.slice(0);
 			opt_transforms.unshift(this);
 			params.transforms = opt_transforms;
@@ -7936,7 +7936,7 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Allow the Transform to be resized (scaled) through mouse interaction along the given axis.
 	 * 
-	 * @param {hemi.Axis} opt_axis optional axis to enable resizing along (default is Y)
+	 * @param {string} opt_axis optional axis to enable resizing along (default is Y)
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make resizable
 	 *     as one group with the Transform
 	 */
@@ -7958,14 +7958,14 @@ if (!window.requestAnimationFrame) {
 			this._manip._scale = params.scale;
 		}
 
-		if (opt_axis !== undefined) {
+		if (opt_axis != null) {
 			this._manip.setAxis(opt_axis);
 			params.axis = opt_axis;
 		} else if (restore && params.axis) {
 			this._manip.setAxis(params.axis);
 		}
 
-		if (opt_transforms !== undefined) {
+		if (opt_transforms != null) {
 			opt_transforms = opt_transforms.slice(0);
 			opt_transforms.unshift(this);
 			params.transforms = opt_transforms;
@@ -7993,7 +7993,7 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Allow the Transform to be turned (rotated) through mouse interaction about the given axis.
 	 * 
-	 * @param {hemi.Axis} axis optional axis to enable turning about (default is Y)
+	 * @param {string} axis optional axis to enable turning about (default is Y)
 	 * @param {number[2]} opt_limits optional minimum and maximum angle limits (in radians)
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make turnable
 	 *     as one group with the Transform
@@ -8016,21 +8016,21 @@ if (!window.requestAnimationFrame) {
 			this._manip._angle = params.angle;
 		}
 
-		if (opt_axis !== undefined) {
+		if (opt_axis != null) {
 			this._manip.setAxis(opt_axis);
 			params.axis = opt_axis;
 		} else if (restore && params.axis) {
 			this._manip.setAxis(params.axis);
 		}
 
-		if (opt_limits !== undefined) {
+		if (opt_limits != null) {
 			this._manip.setLimits(opt_limits);
 			params.limits = opt_limits;
 		} else if (restore && params.limits) {
 			this._manip.setLimits(params.limits);
 		}
 
-		if (opt_transforms !== undefined) {
+		if (opt_transforms != null) {
 			opt_transforms = opt_transforms.slice(0);
 			opt_transforms.unshift(this);
 			params.transforms = opt_transforms;
@@ -8301,7 +8301,7 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Allow the Mesh to be moved (translated) through mouse interaction along the given plane.
 	 * 
-	 * @param {hemi.Plane} plane the 2D plane to enable movement along
+	 * @param {string} plane the 2D plane to enable movement along
 	 * @param {number[4]} opt_limits optional array of movement limits within the plane:
 	 *     [min on u, max on u, min on v, max on v]
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make movable
@@ -8328,7 +8328,7 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Allow the Mesh to be resized (scaled) through mouse interaction along the given axis.
 	 * 
-	 * @param {hemi.Axis} axis the axis to enable resizing along
+	 * @param {string} axis the axis to enable resizing along
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make resizable
 	 *     as one group with the Mesh
 	 */
@@ -8345,7 +8345,7 @@ if (!window.requestAnimationFrame) {
 	/**
 	 * Allow the Mesh to be turned (rotated) through mouse interaction about the given axis.
 	 * 
-	 * @param {hemi.Axis} axis the axis to enable turning about
+	 * @param {string} axis the axis to enable turning about
 	 * @param {number[2]} opt_limits optional minimum and maximum angle limits (in radians)
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make turnable
 	 *     as one group with the Mesh
@@ -14214,7 +14214,7 @@ if (!window.requestAnimationFrame) {
 			if (this.local) {
 				tran.scale.multiplySelf(axis);
 				tran.updateMatrix();
-				tran.updateMatrixWorld();
+				tran.updateMatrixWorld(true);
 			} else {
 				hemi.utils.worldScale(axis, tran);
 			}
@@ -16363,7 +16363,7 @@ if (!window.requestAnimationFrame) {
 		this.mesh.translateY(y);
 		this.mesh.translateZ(z);
 		this.mesh.updateMatrix();
-		this.mesh.updateMatrixWorld();
+		this.mesh.updateMatrixWorld(true);
 	};
 
 	hemi.makeCitizen(Shape, 'hemi.Shape', {
