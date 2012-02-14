@@ -40,7 +40,7 @@ if (!window.requestAnimationFrame) {
 
 /**
  * @namespace The core Hemi library used by Kuda.
- * @version 2.0.0-rc
+ * @version 2.0.0
  */
  var hemi = hemi || {};
 
@@ -114,10 +114,10 @@ if (!window.requestAnimationFrame) {
 	hemi.RAD_TO_DEG = 180 / Math.PI;
 
 	/**
-	 * The version of Hemi released: TBD
+	 * The version of Hemi released: 2/14/2012
 	 * @constant
 	 */
-	hemi.version = '2.0.0-rc';
+	hemi.version = '2.0.0';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
