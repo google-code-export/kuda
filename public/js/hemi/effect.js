@@ -27,6 +27,7 @@
 
 	// The default particle system updates using render time.
 	hemi.addRenderListener({
+		isParticleSystem: true,
 		onRender: function(event) {
 			defaultParticleSystem.update(event.elapsedTime);
 		}
