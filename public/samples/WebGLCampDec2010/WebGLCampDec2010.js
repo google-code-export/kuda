@@ -161,6 +161,7 @@
 		client.scene.add(transform);
 		transform.translateY(-270);
 		transform.rotation.x = -Math.PI/2;
+		transform.updateMatrix();
 
 		makeOcta(new THREE.Vector3(1700, -120, 8000), 300);
 		makeOcta(new THREE.Vector3(-900, -120, 0), 200);
@@ -180,6 +181,7 @@
 
 		digDisp.root.scale.set(2, 2, 2);
 		digDisp.root.position.set(328, 240, SLIDE_1Z + 990);
+		digDisp.root.updateMatrix();
 		updateDigDisp(0, 1);
 
 		// vp.eye = SLIDE1_EYE;
@@ -233,25 +235,27 @@
 			if (ndx < 9) updateDigDisp(shapeNdx[ndx], upOrDown);
 		} else {
 			digDisp.root.position.z -= 1000 * upOrDown;
+			digDisp.root.updateMatrix();
 		}
 	}
 
 	function moveOnRails() {
 		var eyes = [
-				SLIDE1_EYE, 
-				new THREE.Vector3(800, 0, SLIDE1_EYE.z),
-				new THREE.Vector3(2800, 0, 4900), 
-				new THREE.Vector3(1500, 2000, -9000),
-				new THREE.Vector3(-1200, 100, -9000), 
-				new THREE.Vector3(-2000, 800, 0),
-				new THREE.Vector3(-1000, 300, SLIDE1_EYE.z), 
-				SLIDE1_EYE
+				[SLIDE1_EYE.x, SLIDE1_EYE.y, SLIDE1_EYE.z], 
+				[800, 0, SLIDE1_EYE.z],
+				[2800, 0, 4900],
+				[1500, 2000, -9000],
+				[-1200, 100, -9000], 
+				[-2000, 800, 0],
+				[-1000, 300, SLIDE1_EYE.z],
+				[SLIDE1_EYE.x, SLIDE1_EYE.y, SLIDE1_EYE.z]
 			],
 			targets = [
-				SLIDE1_TARGET, eyes[2],
-				eyes[3], eyes[4],
-				eyes[5], eyes[6],
-				eyes[7], SLIDE1_TARGET
+				[SLIDE1_TARGET.x, SLIDE1_TARGET.y, SLIDE1_TARGET.z],
+				eyes[2], eyes[3],
+				eyes[4], eyes[5],
+				eyes[6], eyes[7],
+				[SLIDE1_TARGET.x, SLIDE1_TARGET.y, SLIDE1_TARGET.z]
 			],
 			curveEye = new hemi.Curve(eyes, hemi.CurveType.Cardinal),
 			curveTarget = new hemi.Curve(targets, hemi.CurveType.Cardinal),
@@ -275,13 +279,15 @@
 				Zd = Za - 1000,
 				Zt = SLIDE1_TARGET.z - offset,
 				eyes = [
-					new THREE.Vector3(0, 0, Za), 
-					new THREE.Vector3(0, 400, Zb),
-					new THREE.Vector3(0, 400, Zc), 
-					new THREE.Vector3(0, 0, Zd)],
+					[0, 0, Za],
+					[0, 400, Zb],
+					[0, 400, Zc],
+					[0, 0, Zd]
+				],
 				targets = [
-					new THREE.Vector3(0, 0, Zt), 
-					new THREE.Vector3(0, 0, Zt)],
+					[0, 0, Zt],
+					[0, 0, Zt]
+				],
 			curveEye = new hemi.Curve(eyes, hemi.CurveType.CubicHermite, { tangents: tangents }),
 			curveTarget = new hemi.Curve(targets, hemi.CurveType.Linear),
 			camCurve = new hemi.CameraCurve(curveEye, curveTarget);
@@ -297,6 +303,7 @@
 			size: size});
 
 		shape.position.addSelf(vector);
+		shape.updateMatrix();
 		client.scene.add(shape);
 	}
 
@@ -308,6 +315,7 @@
 
 		pyr.rotation.y += sixty;
 		pyr.position.addSelf(vector);
+		pyr.updateMatrix();
 		client.scene.add(pyr);
 	}
 
@@ -318,6 +326,7 @@
 			r: 500, h: 1200});
 
 		shape.position.addSelf(vector);
+		shape.updateMatrix();
 		client.scene.add(shape);
 	}
 
@@ -329,6 +338,7 @@
 
 		cube.rotation.y += thirty;
 		cube.position.addSelf(vector);
+		cube.updateMatrix();
 		client.scene.add(cube);
 	}
 
@@ -340,6 +350,7 @@
 
 		cube.rotation.y += sixty;
 		cube.position.addSelf(vector);
+		cube.updateMatrix();
 		client.scene.add(cube);
 	}
 
@@ -351,6 +362,7 @@
 
 		box.rotation.y += thirty;
 		box.position.addSelf(vector);
+		box.updateMatrix();
 		client.scene.add(box);
 	}
 
@@ -370,14 +382,17 @@
 
 		cubea.rotation.y += thirty;
 		cubea.position.addSelf(vector);
+		cubea.updateMatrix();
 		client.scene.add(cubea);
 
 		cubeb.rotation.y += thirty;
 		cubeb.position.addSelf(new THREE.Vector3(20, 150, 0));
+		cubeb.updateMatrix();
 		cubea.add(cubeb);
 
 		cubec.rotation.y += thirty;
 		cubec.position.addSelf(new THREE.Vector3(0, 75, 10));
+		cubec.updateMatrix();
 		cubeb.add(cubec);
 	}
 	
