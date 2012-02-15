@@ -106,7 +106,12 @@
 			}
 		}
 		
-
+        for(var i = 0; i < t7.children.length; i++){
+            t7.children[i].visible = false;
+        }
+        for(var i = 0; i < t1.children.length; i++){
+            t1.children[i].visible = false;
+        }
 		// Make the material of the highlight shapes pulse between two different
 		// colors.
 		var highlightTran = model.getTransform('highlight_bdHole');
@@ -275,6 +280,8 @@
 		baDoor.locationA = livingroom;
 		baDoor.locationB = bathroom;
 		baDoor.setWidth(doorWidth);
+		baDoor.setLength(doorLength);
+
 		
 		var b1Door = new hext.engines.Portal();
 		b1Door.locationA = livingroom;
@@ -688,7 +695,7 @@
 		hemi.subscribe(hemi.msg.pick,
 			function(msg) {
 				if (state.isLoaded && msg.data.pickedMesh.name === 'SO_BD') {
-					model.getTransform('highlight_frontDoor').visible = true;
+					model.getTransform('highlight_frontDoor').visible = false;
 					display1.hide();
 					state.nextState();
 				}
@@ -723,9 +730,12 @@
 			function(msg) {
 				if (msg.data.viewpoint === viewpoint) {
 					// Replace the living room door with the blower door.
-					model.getTransform('BD_barrier').visible = true;
-					model.getTransform('LR_front_door').visible = true;
-					model.getTransform('LR_front_door').visible = true;
+					var bd_barrier = model.getTransform('BD_barrier');
+                    for(var i = 0; i < bd_barrier.children.length; i++){
+                        bd_barrier.children[i].visible = true;
+                    }   
+					model.getTransform('LR_front_door').visible = false;
+					model.getTransform('LR_front_door').pickable = false;
 					display1.show();
 				}
 			});
@@ -1042,12 +1052,13 @@
 				client.camera.moveToView(viewpoint1);
 			});
 		
-		var startFrame = 260;
-		var endFrame = 292;
+		var startFrame = 649;
+		var endFrame = 780;
 		var animation1 = new hemi.AnimationGroup(hemi.getTimeOfFrame(startFrame), hemi.getTimeOfFrame(endFrame), model);
 		var loop1 = new hemi.Loop();
-		loop1.startTime = hemi.getTimeOfFrame(280);
-		loop1.stopTime = hemi.getTimeOfFrame(292);
+		loop1.startTime = hemi.getTimeOfFrame(649);
+		loop1.stopTime = hemi.getTimeOfFrame(780);
+        loop1.iterations = -1;
 		animation1.addLoop(loop1);
 		
 		var viewpoint2 = createViewpoint(model, 'camEye_ExteriorCam', 'camTarget_ExteriorCam');
@@ -1056,13 +1067,20 @@
 		display1.subscribe(hemi.msg.visible,
 			function(msg) {
 				if (state.isLoaded) {
+                    var blowerArrows = model.getTransform('blowerArrowsExt_g');
 					if (msg.data.page === 2) {
 						client.camera.moveToView(viewpoint2);
+                        for(var i = 0; i < blowerArrows.children.length; i++) {
+                            blowerArrows.children[i].visible = true;
+                        }
 						animation1.start();
-						model.getTransform('blowerArrowsExt_g').visible = true;
+                        
+						
 					} else if (msg.data.page === 3) {
 						client.camera.moveToView(viewpoint3);
-						model.getTransform('blowerArrowsExt_g').visible = false;
+						for(var i = 0; i < blowerArrows.children.length; i++) {
+                            blowerArrows.children[i].visible = false;
+                        }
 						animation1.stop();
 					}
 				}
@@ -1143,7 +1161,7 @@
 					var pos = this.open ? [0, 0, 180] : [0, 0, 0];
 
 					// Notify any handlers that the door is open/closed.
-					this.transform.send('Swing', { position: pos });
+					this.transform.send('Swing', { position: new THREE.Vector3(pos[0], pos[1], pos[2])});
 				}
 			}
 		};
