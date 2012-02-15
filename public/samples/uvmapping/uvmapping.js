@@ -68,6 +68,7 @@
 		spriteR.rotation.x = Math.PI / -16;
 		spriteR.position.x -= 50;
 		spriteR.position.y -= 40;
+		spriteR.updateMatrix();
 		client.scene.add(spriteR);
 
 		var spriteT = new hemi.Sprite(client, {
@@ -78,7 +79,8 @@
 		spriteT.scale.set(0.15, 0.15);
 		spriteT.run(-1);
 		spriteT.translateY(-40);
-		
+		spriteT.updateMatrix();
+
 		var spriteS = new hemi.Sprite(client, {
 			maps: ['assets/images/dino.png'],
 			useScreenCoordinates: false
@@ -88,6 +90,7 @@
 		spriteS.run(-1);
 		spriteS.translateX(50);
 		spriteS.translateY(-40);
+		spriteS.updateMatrix();
 
 		var frame = 0;
 		var tickCounts = [0,0,0,0,0,0,0,0,0,0];
