@@ -97,7 +97,7 @@
 			particleCount: 500,
 			life: 12,
 			boxes: [box1,box2,box3,box4,box5,box6,box7,box8,box9,box1],
-			particleShape: hemi.createShape({
+			customMesh: hemi.createShape({
 					shape: 'arrow',
 					material: null,
 					size: 10,
