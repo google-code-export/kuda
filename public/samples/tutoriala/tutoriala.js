@@ -170,6 +170,7 @@
 		};
 		var fire = hemi.createParticleEmitter(client, colorRamp, params);
 		fire.transform.position.set(0.0, 72.0, -236.0);
+		fire.transform.updateMatrix();
 
 		// Per the script start the book animation curve 2 seconds after the fire is lit.
 		setTimeout(function() {
