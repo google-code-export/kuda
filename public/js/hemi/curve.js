@@ -779,7 +779,12 @@
 	ParticleCurve.prototype.setAim = function(aim) {
 		if (this._aim !== aim) {
 			this._aim = aim;
-			setupShaders.call(this);
+			if (this._mesh) {
+				this.setParticleShape(this._shapeConfig);
+			}
+			else {
+				setupShaders.call(this);
+			}
 		}
 	};
 
@@ -848,7 +853,12 @@
 			this._colors = [];
 		}
 
-		setupShaders.call(this);
+		if (this._mesh) {
+			this.setParticleShape(this._shapeConfig);
+		}
+		else {
+			setupShaders.call(this);
+		}
 	};
 
 	/**
@@ -887,7 +897,7 @@
 
 		if (this._mesh) {
 			// Recreate the custom vertex buffers
-			this.setParticleMesh(this._mesh);
+			this.setParticleShape(this._shapeConfig);
 		}
 	};
 
@@ -897,7 +907,7 @@
 	 * 
 	 * @param {hemi.Mesh} mesh the mesh containing the shape geometry to use
 	 */
-	ParticleCurve.prototype.setParticleMesh = function(mesh) {			
+	ParticleCurve.prototype.setParticleMesh = function(mesh) {	
 		if (this._mesh) {
 			if (this._mesh.parent) this.client.scene.remove(this._mesh);
 			this._mesh = null;
@@ -922,10 +932,18 @@
 	 * @param {Object} shapeConfig properties of the shape to create
 	 */
 	ParticleCurve.prototype.setParticleShape = function(shapeConfig) {
+		var timeParam = this._timeParam ? this._timeParam.value : null;
+		var maxTimeParam = this._maxTimeParam ? this._maxTimeParam.value : null;
+
 		var mesh = hemi.createShape(shapeConfig);
 		hemi.world.removeCitizen(mesh); // We don't want it to end up in Octane
 		this._shapeConfig = shapeConfig;
 		this.setParticleMesh(mesh);
+
+		if (timeParam !== null && maxTimeParam !== null) {
+			this._timeParam.value = timeParam;
+			this._maxTimeParam.value = maxTimeParam;
+		}
 	};
 
 	/**
@@ -989,7 +1007,7 @@
 		this._tension = tension;
 
 		if (this._mesh) {
-			this._mesh.material.getParam('tension').value = (1 - this._tension) / 2;
+			this._mesh.material.uniforms.tension.value = (1 - this._tension) / 2;
 		}
 	};
 
