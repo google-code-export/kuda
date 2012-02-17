@@ -49,7 +49,7 @@
 	 */
 	function bindJavascript() {
 		var viewpoint1, viewpoint2, viewpoint3, viewpoint4, viewpoint5,
-			viewpoint6, viewpoint7, viewpoint8, viewpoint9;
+			viewpoint6, viewpoint7, viewpoint8, viewpoint9, viewpoint10;
 		
 		var viewpoints = hemi.world.getViewpoints();
 		
@@ -81,8 +81,11 @@
 				case 'Ceiling Fan':
 					viewpoint8 = vp;
 					break;
-				case 'Air Conditioner':
+				case 'Furnace':
 					viewpoint9 = vp;
+					break;
+                case 'Air Conditioner':
+					viewpoint10 = vp;
 					break;
 			}
 		}
@@ -115,6 +118,9 @@
 		});
 		jQuery('#viewpoint9').click(function() {
 			camera.moveToView(viewpoint9);
+		});
+        jQuery('#viewpoint10').click(function() {
+			camera.moveToView(viewpoint10);
 		});
 	}
 
