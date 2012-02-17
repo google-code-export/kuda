@@ -63,6 +63,7 @@
 			}
 		}
 		catch (err) {
+			console.error(err);
 			objPicker.cannotFilter = true;
 		}
 	}

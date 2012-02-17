@@ -25,7 +25,9 @@
 // Constants
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	var MSG_WILDCARD = shorthand.treeData.MSG_WILDCARD = 'Any';
+	var MSG_WILDCARD = shorthand.treeData.MSG_WILDCARD = 'Any',
+		MESSAGES = 'messages',
+		FUNCTIONS = 'functions';
 	
 	shorthand.treeData.chainTable = (function() {
 		var chainTable = new Hashtable();
@@ -83,7 +85,8 @@
         'onRender',
 		'_getId',
 		'_setId',
-		'_toOctane'
+		'_toOctane',
+		'_clean'
 	];
 		
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -110,12 +113,14 @@
 		'hemi.Camera': ['disableControl', 'enableControl', 'moveOnCurve',
 			'moveToView', 'orbit', 'rotate', 'truck']
 	};
+
+	var owners = new Hashtable();
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Methods
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	var isCommon = function(citizen, method) {
+	function isCommon(citizen, method) {
 		var type = citizen._octaneType ? citizen._octaneType : citizen.name,
 			methList = commonMethods[type],
 			common = false;
@@ -129,9 +134,9 @@
 		}
 		
 		return common;
-	};
+	}
 	
-	var getNodeName = function(citizen, config) {
+	function getNodeName(citizen, config) {
 		var nodeName = config.prefix;
 		
 		if (citizen === null) {
@@ -139,43 +144,60 @@
 		} else if (citizen === MSG_WILDCARD) {
 			nodeName += citizen;
 		} else if (citizen._octaneType !== undefined) {
-			nodeName += citizen._octaneType.split('.').pop();
+			var type = citizen._octaneType.split('.').pop(),
+				path = type + 'Type',
+				id = citizen._getId(),
+				cit;
+
+			// determine paths
+			if ((citizen instanceof hemi.Transform || citizen instanceof hemi.Mesh)) {
+				cit = owners.get(citizen);
+				var citType = cit._octaneType.split('.').pop();
+
+				path = citType + 'Type_' + citType + '-' + cit._getId() + '_' 
+					+ shorthand.constants.TRANSFORM;
+			} else if (citizen instanceof hemi.Viewpoint && config.parent) {
+				cit = config.parent.citizen;
+				path = config.parent._octaneType.split('.').pop() + '_' + 
+					cit._octaneType.split('.').pop() + '-' + cit._getId();
+			} else if (citizen._octaneType === shorthand.constants.CAM_MOVE ||
+					citizen._octaneType === shorthand.constants.SHAPE_PICK ||
+					citizen._octaneType === shorthand.constants.TRANSFORM) {
+				cit = citizen.citizen;
+				path =  citizen._octaneType.split('.').pop();
+				type = cit._octaneType.split('.').pop();
+				id = cit._getId();
+			} 
+			nodeName += (path !== null ? path + '_' : '') + type + (id !== null ? '-' + id : '');
+		} else if ((typeof citizen) === 'string') {
+			nodeName += citizen;
 		}
 		
-		if (config.id != null) {
-			nodeName += '_' + config.id;
-		}
 		if (config.option != null) {
 			nodeName += '_' + config.option;
 		}
 		
-		return nodeName.replace(' ', '_').replace('.', '_');
-	};
+		return nodeName.replace(' ', '-').replace('.', '-');
+	}
 	
-	var getNodePath = function(nodeName) {
+	function getNodePath(nodeName) {
 		var ndx = nodeName.indexOf('_'),
 			names = [];
 		
 		ndx = nodeName.indexOf('_', ndx + 1);
-		ndx = nodeName.indexOf('_', ndx + 1);
 		
-		if (ndx > -1) {
+		while (ndx > -1) {
 			names.push(nodeName.substr(0, ndx));
 			ndx = nodeName.indexOf('_', ndx + 1);
-			
-			if (ndx > -1) {
-				names.push(nodeName.substr(0, ndx));
-			}
 		}
 		
 		return names;
-	};
+	}
 	
-	var createCitizenJson = function(citizen, prefix) {
+	function createCitizenJson(citizen, prefix, opt_parent) {
 		var name = getNodeName(citizen, {
 			option: null,
-			prefix: prefix,
-			id: citizen._getId()
+			prefix: prefix
 		});
 		
 		return {
@@ -189,61 +211,57 @@
 				citizen: citizen
 			}
 		};
-	};
+	}
 	
-	var createShapeTransformJson = function(tCit, prefix, method) {
-		var shape = tCit.citizen;
+	function createShapeTransformJson(shape, node, prefix, method) {
+		owners.put(shape.mesh, shape);
 		
-		return {
-			data: shape.name || '',
+		node.children.push({
+			data: 'transforms',
 			attr: {
-				id: getNodeName(tCit, {
-					option: null,
-					prefix: prefix,
-					id: tCit._getId()
+				id: getNodeName(shape, {
+					option: shorthand.constants.TRANSFORM,
+					prefix: prefix
 				}),
-				rel: 'citizen'
+				rel: 'other'
 			},
 			children: [shorthand.treeData[method](shape.mesh, prefix)],
 			state: 'closed',
 			metadata: {
-				type: 'citizen',
-				citizen: tCit
+				type: 'set'
 			}
-		};
-	};
+		});
+	}
 	
-	var createModelTransformJson = function(tCit, prefix, method) {
-		var model = tCit.citizen,
-			list = [],
+	function createModelTransformJson(model, node, prefix, method) {
+		var list = [],
 			transforms = [];
 		
 		THREE.SceneUtils.traverseHierarchy(model.root, function(transform) {
-			list.push(transform);	
+			list.push(transform);
+			owners.put(transform, model);
 		});
 		
 		for (var ndx = 0, len = list.length; ndx < len; ndx++) {
 			transforms.push(shorthand.treeData[method](list[ndx], prefix));
 		}
 		
-		return {
-			data: model.name || '',
+		node.children.push({
+			data: 'transforms',
 			attr: {
-				id: getNodeName(tCit, {
-					option: null,
-					prefix: prefix,
-					id: tCit._getId()
+				id: getNodeName(model, {
+					option: shorthand.constants.TRANSFORM,
+					prefix: prefix
 				}),
-				rel: 'citizen'
+				rel: 'other'
 			},
 			children: transforms,
 			state: 'closed',
 			metadata: {
-				type: 'citizen',
-				citizen: tCit
+				type: 'set'
 			}
-		};
-	};
+		});
+	}
 	
 	shorthand.treeData.getNodeName = getNodeName;
 	shorthand.treeData.getNodePath = getNodePath;
@@ -288,7 +306,7 @@
 	
 	shorthand.treeData.createOctaneTypeJson = function(citizen, prefix) {
 		var type = citizen._octaneType.split('.').pop(),
-			name = getNodeName(citizen, {
+			name = getNodeName(type + 'Type', {
 				option: null,
 				prefix: prefix
 			});
@@ -311,8 +329,7 @@
 		var id = citizen._getId(),
 			name = getNodeName(citizen, {
 				option: MSG_WILDCARD,
-				prefix: prefix,
-				id: id
+				prefix: prefix
 			}),
 			msgs = [{
 				data: '[any trigger]',
@@ -326,14 +343,27 @@
 					msg: MSG_WILDCARD
 				}
 			}],
+			children = [{
+				data: 'messages',
+				attr: {
+					id: getNodeName(citizen, {
+						option: shorthand.constants.MESSAGES,
+						prefix: prefix
+					}),
+					rel: 'other'
+				},
+				metadata: {
+					type: 'set'
+				},
+				children: msgs
+			}],
 			msgSent = citizen._msgSent;
 		
 		for (var ndx = 0, len = msgSent ? msgSent.length : 0; ndx < len; ndx++) {
 			var msg = msgSent[ndx];
 			name = getNodeName(citizen, {
 				option: msg,
-				prefix: prefix,
-				id: id
+				prefix: prefix
 			});
 			
 			msgs.push({
@@ -351,26 +381,43 @@
 		}
 		
 		var node = createCitizenJson(citizen, prefix);
-		node.children = msgs;
+		node.children = children;
 		node.state = 'closed';
 		return node;
 	};
 	
 	shorthand.treeData.createActionJson = function(citizen, prefix) {
-		var methods = [],
+		var id = citizen._getId(),
+			fcnPre = shorthand.constants.FUNCTIONS,
+			fcnMorePre = shorthand.constants.FUNCTIONS_MORE,
+			functions = {
+				data: 'functions',
+				attr: {
+					id: getNodeName(citizen, {
+						option: fcnPre,
+						prefix: prefix
+					}),
+					rel: 'other'
+				},
+				metadata: {
+					type: 'set'
+				}
+			},
+			methods = [],
 			moreMethods = [],
-			id = citizen._getId(),
 			node;
 		
 		for (var propName in citizen) {
 			var prop = citizen[propName];
 			
 			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
-				var name = getNodeName(citizen, {
-						option: propName,
-						prefix: prefix,
-						id: id
+				var common = isCommon(citizen, propName),
+					name = getNodeName(citizen, {
+						option: common ? fcnPre + '_' + propName : fcnMorePre + 
+							propName,
+						prefix: prefix
 					});
+
 				node = {
 					data: propName,
 					attr: {
@@ -383,7 +430,7 @@
 					}
 				};
 				
-				if (isCommon(citizen, propName)) {
+				if (common) {
 					methods.push(node);
 				} else {
 					moreMethods.push(node);
@@ -393,10 +440,9 @@
 		
 		if (methods.length > 0) {
 			var moreName = getNodeName(citizen, {
-					option: null,
-					prefix: prefix,
-					id: id
-				}) + '_MORE';
+					option: fcnMorePre,
+					prefix: prefix
+				});
 			var moreNode = {
 				data: 'More...',
 				attr: {
@@ -412,60 +458,18 @@
 			methods.push(moreNode);
 		} else {
 			methods = moreMethods;
-		}
-		
-		node = createCitizenJson(citizen, prefix);
-		node.children = methods;
-		node.state = 'closed';
-		return node;
-	};
-	
-	shorthand.treeData.createModuleJson = function(module, prefix) {
-		var methods = [],
-			name;
-		
-		for (var propName in module) {
-			var prop = module[propName];
-			
-			if (jQuery.isFunction(prop) && methodsToRemove.indexOf(propName) === -1) {
-				name = getNodeName(module, {
-					option: propName,
-					prefix: prefix,
-					id: module._getId()
-				});
-				
-				methods.push({
-					data: propName,
-					attr: {
-						id: name,
-						rel: 'method'
-					},
-					metadata: {
-						type: 'method',
-						parent: module
-					}
-				});
+
+			for (var i = 0, il = methods.length; i < il; i++) {
+				var temp = methods[i];
+				temp.attr.id = temp.attr.id.replace('MORE_', '');
 			}
 		}
 		
-		name = getNodeName(module, {
-			prefix: prefix,
-			id: module._getId()
-		});
-		
-		return {
-			data: module.name,
-			attr: {
-				id: name,
-				rel: 'citType'
-			},
-			metadata: {
-				type: 'citType',
-				citizen: module
-			},
-			children: methods,
-			state: 'closed'
-		};
+		functions.children = methods;
+		node = createCitizenJson(citizen, prefix);
+		node.children = [functions];
+		node.state = 'closed';
+		return node;
 	};
 	
 	shorthand.treeData.createCamMoveJson = function(cmCit, prefix) {
@@ -481,8 +485,7 @@
 		
 		var name = getNodeName(cmCit, {
 			option: null,
-			prefix: prefix,
-			id: cmCit._getId()
+			prefix: prefix
 		});
 		
 		return {
@@ -501,7 +504,7 @@
 	};
 	
 	shorthand.treeData.createCamMoveTypeJson = function(cmCit, prefix) {
-		var name = getNodeName(cmCit, {
+		var name = getNodeName(cmCit._octaneType, {
 			option: null,
 			prefix: prefix
 		});
@@ -521,10 +524,9 @@
 	};
 	
 	shorthand.treeData.createViewpointJson = function(cmCit, viewpoint, prefix) {
-		var name = getNodeName(cmCit, {
-				option: viewpoint._getId(),
+		var name = getNodeName(viewpoint, {
 				prefix: prefix,
-				id: cmCit._getId()
+				parent: cmCit
 			});
 			
 		return {
@@ -541,21 +543,21 @@
 		};
 	};
 	
-	shorthand.treeData.createModelPickJson = function(spCit, prefix) {
-		var model = spCit.citizen,
-			id = spCit._getId(),
+	shorthand.treeData.createModelPickJson = function(model, node, prefix) {
+		var spCit = shorthand.treeData.createShapePickCitizen(model),
+			id = model._getId(),
 			meshes = [],
 			meshJson = [],
+			pre = shorthand.constants.SHAPE_PICK,
 			name;
 
 		findMeshes(model.root, meshes);
 
 		for (var i = 0, il = meshes.length; i < il; ++i) {
 			var mesh = meshes[i];
-			name = getNodeName(spCit, {
-				option: mesh.name || '',
-				prefix: prefix,
-				id: id
+			name = getNodeName(model, {
+				option: pre + '_' + mesh.name.replace(/_/g, '-') || '',
+				prefix: prefix
 			});
 
 			meshJson.push({
@@ -572,47 +574,41 @@
 			});
 		}
 
-		name = getNodeName(spCit, {
-			option: null,
-			prefix: prefix,
-			id: id
-		});
-
-		return {
-			data: model.name || '',
+		node.children.push({
+			data: 'pickable shapes',
 			attr: {
-				id: name,
-				rel: 'citizen'
+				id: getNodeName(model, {
+					option: pre,
+					prefix: prefix
+				}),
+				rel: 'other'
 			},
-			children: meshJson,
-			state: 'closed',
 			metadata: {
-				type: 'citizen',
-				citizen: spCit
-			}
-		};
+				type: 'set'
+			},
+			children: meshJson
+		});
 	};
 	
-	shorthand.treeData.createModelTransformTriggerJson = function(tCit, prefix) {
-		return createModelTransformJson(tCit, prefix, 'createTriggerJson');
+	shorthand.treeData.createModelTransformTriggerJson = function(model, node, prefix) {
+		return createModelTransformJson(model, node, prefix, 'createTriggerJson');
 	};
 	
-	shorthand.treeData.createModelTransformActionJson = function(tCit, prefix) {
-		return createModelTransformJson(tCit, prefix, 'createActionJson');
+	shorthand.treeData.createModelTransformActionJson = function(model, node, prefix) {
+		return createModelTransformJson(model, node, prefix, 'createActionJson');
 	};
 	
-	shorthand.treeData.createShapePickJson = function(spCit, prefix) {
-		var shape = spCit.citizen,
-			id = spCit._getId(),
-			name = getNodeName(spCit, {
-				option: shape.name || '',
-				prefix: prefix,
-				id: id
-			}),
+	shorthand.treeData.createShapePickJson = function(shape, node, prefix) {
+		var spCit = shorthand.treeData.createShapePickCitizen(shape),
+			id = shape._getId(),
+			pre = shorthand.constants.SHAPE_PICK,
 			children = [{
 				data: shape.name || '',
 				attr: {
-					id: name,
+					id: getNodeName(shape, {
+						option: pre + '_' + shape.name.replace(/_/g, '-') || '',
+						prefix: prefix
+					}),
 					rel: 'message'
 				},
 				metadata: {
@@ -622,37 +618,32 @@
 				}
 			}];
 		
-		name = getNodeName(spCit, {
-			option: null,
-			prefix: prefix,
-			id: id
-		});
-		
-		return {
-			data: shape.name || '',
+		node.children.push({
+			data: 'pickable shapes',
 			attr: {
-				id: name,
-				rel: 'citizen'
+				id: getNodeName(shape, {
+					option: pre,
+					prefix: prefix
+				}),
+				rel: 'other'
 			},
-			children: children,
-			state: 'closed',
 			metadata: {
-				type: 'citizen',
-				citizen: spCit
-			}
-		};
+				type: 'set'
+			},
+			children: children
+		});
 	};
 	
-	shorthand.treeData.createShapeTransformTriggerJson = function(tCit, prefix) {
-		return createShapeTransformJson(tCit, prefix, 'createTriggerJson');
+	shorthand.treeData.createShapeTransformTriggerJson = function(shape, node, prefix) {
+		return createShapeTransformJson(shape, node, prefix, 'createTriggerJson');
 	};
 	
-	shorthand.treeData.createShapeTransformActionJson = function(tCit, prefix) {
-		return createShapeTransformJson(tCit, prefix, 'createActionJson');
+	shorthand.treeData.createShapeTransformActionJson = function(shape, node, prefix) {
+		return createShapeTransformJson(shape, node, prefix, 'createActionJson');
 	};
 	
 	shorthand.treeData.createShapePickTypeJson = function(spCit, prefix) {
-		var name = getNodeName(spCit, {
+		var name = getNodeName(spCit._octaneType, {
 			option: null,
 			prefix: prefix
 		});
@@ -672,7 +663,7 @@
 	};
 	
 	shorthand.treeData.createTransformTypeJson = function(tCit, prefix) {
-		var name = getNodeName(tCit, {
+		var name = getNodeName(tCit._octaneType, {
 			option: null,
 			prefix: prefix
 		});
@@ -751,6 +742,18 @@
 				citizen: MSG_WILDCARD
 			}
 		};
+	};
+
+	shorthand.treeData.cleanup = function() {
+		owners.clear();
+	};
+
+	shorthand.treeData.getOwner = function(citizen) {
+		return owners.get(citizen);
+	};
+
+	shorthand.treeData.removeOwner = function(citizen) {
+		owners.remove(citizen);
 	};
 
 	function findMeshes(transform, meshes) {

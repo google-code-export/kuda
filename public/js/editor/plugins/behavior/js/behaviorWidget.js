@@ -118,7 +118,7 @@
 			msgs.push('Any');
 			
 			for (var ndx = 0, len = citizen._msgSent.length; ndx < len; ndx++) {
-				msgs.push(citizen._msgSent[ndx]);
+				msgs.push('messages_' + citizen._msgSent[ndx]);
 			}
 		}
 		// viewpoint case
@@ -127,7 +127,7 @@
 			var vps = hemi.world.getViewpoints();
 			
 			for (i = 0, il = vps.length; i < il; i++) {
-				msgs.push(vps[i]._getId());
+				msgs.push(vps[i]);
 			}
 		}			
 		// shape pick case
@@ -160,12 +160,12 @@
 			
 			if (jQuery.isFunction(prop) && shorthand.treeData.methodsToRemove.indexOf(propName) === -1) {					
 				hasMore = !shorthand.treeData.isCommon(citizen, propName);
-				methods.push(propName);
+				methods.push(shorthand.constants.FUNCTIONS + '_' + propName);
 			}
 		}
 		
 		if (hasMore) {
-			methods.push('MORE');
+			methods.push(shorthand.constants.FUNCTIONS_MORE);
 		}
 		
 		return methods;
@@ -196,6 +196,11 @@
 			
 			if (source.camMove) {
 				argName = hemi.world.getCitizenById(msgType).name;
+			} else if (source.shapePick) {
+				trigType = source.citizen._octaneType.split('.').pop();
+				citName += '.pickedShape';
+				argName = msgType;
+			} else if (trigType === 'Mesh' || trigType === 'Transform') {
 			} else {
 				argName = msgType;
 			}
@@ -206,18 +211,24 @@
 		return nameArr;
 	}
 	
-	function openNode(tree, citizen, prefix) {
+	function openNode(treeWgt, citizen, prefix) {
 		var nodeName = shorthand.treeData.getNodeName(citizen, {
-				prefix: prefix,
-				id: citizen._getId ? citizen._getId() : null
+				prefix: prefix
 			}),
-			node = jQuery('#' + nodeName),
-			path = tree.jstree('get_path', node, true);
+			tree = treeWgt.getUI(),
+			cons = shorthand.constants,
+			node, path;
 		
-		for (var i = 0, il = path.length; i < il; i++) {
-			var n = jQuery('#' + path[i]);
-			tree.jstree('open_node', n, false, true);
-		}	
+		treeWgt.generateNodes(nodeName);
+
+		// special cases
+		tree.jstree('open_node', jQuery('#' + nodeName, tree), false, true);
+		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.FUNCTIONS, tree), false, true);
+		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.FUNCTIONS_MORE, tree), false, 
+			true);
+		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.TRANSFORMS, tree), false, true);
+		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.MESSAGES, tree), false, true);
+		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.SHAPE_PICK, tree), false, true);
 	}
 	
 	function reset(tree) {
@@ -229,26 +240,39 @@
 	function setByMsgTarget(wgt, msgTarget, spec) {
 		var data = expandTargetData(msgTarget, spec),
 			source = hemi.utils.isNumeric(data.source) ? 
-				hemi.world.getCitizenById(data.source) : data.source;
-				
-		var nodeName = shorthand.treeData.getNodeName(source, {
-					option: data.type,
-					prefix: trgTree.pre,
-					id: source._getId ? source._getId() : null
-				}),				
-			trgT = trgTree.getUI(),
-			axnT = axnTree.getUI();
+				hemi.world.getCitizenById(data.source) : data.source,
+			node = source,
+			cfg = { prefix: trgTree.pre };
 		
-		openNode(trgT, source, trgTree.pre);
+		if (source._octaneType && source._octaneType === shorthand.constants.SHAPE_PICK) {
+			// shape pick case
+			node = source.citizen;
+			cfg.option = shorthand.constants.SHAPE_PICK + '_' + data.type.replace(/_/g, '-') || '';
+		} else if (source._octaneType && source._octaneType === shorthand.constants.CAM_MOVE) {
+			node = hemi.world.getCitizenById(data.type);
+			cfg.parent = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
+		}else {
+			cfg.option = data.type;
+		}
+		openNode(trgTree, node, trgTree.pre);
+		var nodeName = shorthand.treeData.getNodeName(node, cfg);
+		
 		wgt.trgChooser.select(nodeName);
 		
 		nodeName = shorthand.treeData.getNodeName(data.handler, {
-			option: data.method,
-			prefix: axnTree.pre,
-			id: data.handler._getId()
+			option: shorthand.constants.FUNCTIONS + '_' + data.method,
+			prefix: axnTree.pre
 		});
 		
-		openNode(axnT, data.handler, axnTree.pre);
+		openNode(axnTree, data.handler, axnTree.pre);
+
+		if (jQuery('#' + nodeName, axnTree.getUI()).length === 0) {
+			nodeName = shorthand.treeData.getNodeName(data.handler, {
+				option: shorthand.constants.FUNCTIONS_MORE + '_' + data.method,
+				prefix: axnTree.pre
+			});
+		}
+
 		wgt.axnChooser.select(nodeName);	
 					
 		for (var i = 0, il = data.args.length; i < il; i++) {
@@ -266,28 +290,40 @@
 
 		if (data.trigger) {
 			var msg = data.trigger.type, 
-				cit = data.trigger.citizen;
+				cit = data.trigger.citizen,
+				cfg = { prefix: trgTree.pre },
+				node = cit;
 
-			nodeName = shorthand.treeData.getNodeName(cit, {
-				option: msg,
-				prefix: trgTree.pre,
-				id: cit._getId()
-			});
+			// cam move case
+			if (cit._octaneType === shorthand.constants.CAM_MOVE) {
+				node = hemi.world.getCitizenById(msg);
+				cfg.parent = cit;
+			} else {
+				cfg.option = msg;
+			}
+			nodeName = shorthand.treeData.getNodeName(node, cfg);
 			
 			wgt.trgChooser.select(nodeName);
-			openNode(trgTree.getUI(), cit, trgTree.pre);
+			openNode(trgTree, cit, trgTree.pre);
 		}
 		if (data.action) {
 			var handler = data.action.handler,
 				func = data.action.method;
 
 			nodeName = shorthand.treeData.getNodeName(handler, {
-				option: [func],
-				prefix: axnTree.pre,
-				id: handler._getId()
+				option: shorthand.constants.FUNCTIONS + '_' + func,
+				prefix: axnTree.pre
 			});
 			
-			openNode(axnTree.getUI(), handler, axnTree.pre);
+			openNode(axnTree, handler, axnTree.pre);
+
+			if (jQuery('#' + nodeName, axnTree.getUI()).length === 0) {
+				nodeName = shorthand.treeData.getNodeName(data.handler, {
+					option: shorthand.constants.FUNCTIONS_MORE + '_' + func,
+					prefix: axnTree.pre
+				});
+			}
+
 			wgt.axnChooser.select(nodeName);
 		}
 		if (data.args) {					
@@ -403,7 +439,7 @@
 					isRestricted = selector.tree.hasClass('restricted'),
 					isSelectable = elem.children('a').hasClass('restrictedSelectable');
 				
-				if (metadata.type === 'citType' ||
+				if (metadata.type === 'citType' || metadata.type === 'set' ||
 						metadata.type === 'citizen') {
 					selector.tree.jstree('open_node', elem, false, false);
 					return false;
@@ -440,7 +476,9 @@
 							dta.citizen = metadata.parent;
 							dta.type = metadata.msg;
 						}
-						selector.input.val(path.join('.').replace('.More...', ''));
+						selector.input.val(path.join('.').replace(
+							/\.More\.\.\.|\.messages|\.functions|\.transforms/g, '').replace(
+							/pickable shapes/g, 'pickedShape'));
 						selector.setSelection(dta);
 						
 						wgt.checkSaveButton();
@@ -623,14 +661,13 @@
 		
 		switch(type) {
 			case shorthand.BehaviorTypes.ACTION:
-				// get the list of functions
-				axnTree.restrictSelection(actor, getMethods(actor));
 				// open up to the actor's node
-				openNode(axnTree.getUI(), actor, axnTree.pre);
+				openNode(axnTree, actor, axnTree.pre);
+				axnTree.restrictSelection(actor, getMethods(actor));
 				break;
 			case shorthand.BehaviorTypes.TRIGGER:
+				openNode(trgTree, actor, trgTree.pre);
 				trgTree.restrictSelection(actor, getMessages(actor));
-				openNode(trgTree.getUI(), actor, trgTree.pre);
 				break;
 		}
 				
@@ -654,16 +691,15 @@
 	};
 	
 	BehaviorWidget.prototype.setTrigger = function(source, messages) {
-		trgTree.restrictSelection(source, messages);
-		openNode(trgTree.getUI(), source, trgTree.pre);
+		openNode(trgTree, source, trgTree.pre);
 		
 		var nodeId = shorthand.treeData.getNodeName(source, {
-			option: messages[0],
-			prefix: trgTree.pre,
-			id: source._getId ? source._getId() : null
+			option: 'messages_' + messages[0],
+			prefix: trgTree.pre
 		});
 		
 		this.trgChooser.select(nodeId);
+		trgTree.restrictSelection(source, messages);
 	};
 	
 	BehaviorWidget.prototype.setVisible = function(visible, etc) {
@@ -893,9 +929,17 @@
 	shorthand.expandBehaviorData = expandTargetData;
 	
 	shorthand.getActionName = function(data) {
-		var handler = data.handler;
+		var handler = data.handler,
+			retVal = [handler.name, data.method];
 		
-		return [handler._octaneType.split('.').pop(), handler.name, data.method];
+		if (handler instanceof hemi.Mesh || handler instanceof hemi.Transform) {
+			var owner = shorthand.treeData.getOwner(handler);
+			retVal = [owner._octaneType.split('.').pop(), owner.name].concat(retVal);
+		} else {
+			retVal.unshift(handler._octaneType.split('.').pop());
+		}
+		
+		return retVal;
 	};
 	
 	shorthand.modifyBehaviorListItems = function(msgTarget, spec, opt_method) {

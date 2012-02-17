@@ -246,8 +246,7 @@
 			case 'boolean':
 				// create the input
 				ui = new editor.ui.Input({
-					type: baseType,
-					name: prm
+					type: baseType
 				});
 				break;
 			default:

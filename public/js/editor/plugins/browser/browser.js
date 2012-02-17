@@ -526,6 +526,8 @@
 			if (owner === model) {
 				this.deselectTransform(transform);
 			}
+
+			owners.remove(transform);
 		}
 		
 		this.notifyListeners(editor.events.Removing, model);

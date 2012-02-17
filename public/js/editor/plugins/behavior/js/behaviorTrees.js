@@ -255,12 +255,13 @@
 	};
 	
 	TreeView.prototype.filter = function(type) {
-		var id = shorthand.treeData.getNodeName({
-				_octaneType: type
-			}, {
+		var id = shorthand.treeData.getNodeName(type.split('.').pop() + 'Type', {
 				prefix: this.pre
-			}),
-			tree = jQuery.jstree._reference(this.tree),
+			});
+
+		this.generateNodes(id);
+
+		var tree = jQuery.jstree._reference(this.tree),
 			nodes = tree._get_children(-1),
 			mainNode = tree._get_node('#' + id);
 			
@@ -273,6 +274,25 @@
 		}
 		
 		this.filterId = id;
+	};
+
+	TreeView.prototype.generateNodes = function(nodeName, closePath) {
+		var paths = shorthand.treeData.getNodePath(nodeName),
+			toClose = [];
+		
+		for (var i = 0; i < paths.length; ++i) {
+			var node = jQuery('#' + paths[i], this.tree);
+			
+			if (closePath && this.tree.jstree('is_closed', node)) {
+				toClose.unshift(node);
+			}
+			
+			this.tree.jstree('open_node', node, false, true);
+		}
+		
+		for (var i = 0; i < toClose.length; ++i) {
+			this.tree.jstree('close_node', toClose[i], true);
+		}
 	};
 	
 	TreeView.prototype.notify = function(eventType, value) {
@@ -320,21 +340,28 @@
 	TreeView.prototype.restrictSelection = function(citizen, options) {
 		var id = citizen._getId ? citizen._getId() : null,
 			nodeName = shorthand.treeData.getNodeName(citizen, {
-				prefix: this.pre,
-				id: id
+				prefix: this.pre
 			});
 		
-		generateNodes.call(this, nodeName, false);
+		this.generateNodes(nodeName, false);
 		var node = jQuery('#' + nodeName, this.tree);
 		this.tree.jstree('open_node', node, false, true);
 		this.tree.addClass('restricted');
 		
 		for (var ndx = 0, len = options.length; ndx < len; ndx++) {
-			nodeName = shorthand.treeData.getNodeName(citizen, {
-				option: options[ndx],
-				prefix: this.pre,
-				id: id
-			});
+			var option = options[ndx],
+				config = {
+					prefix: this.pre
+				},
+				cit = citizen;
+
+			if (option instanceof hemi.Viewpoint) {
+				config.parent = citizen;
+				cit = option;
+			} else {
+				config.option = option;
+			}
+			nodeName = shorthand.treeData.getNodeName(cit, config);
 			
 			node = jQuery('#' + nodeName, this.tree);
 			node.find('a').addClass('restrictedSelectable');
@@ -347,11 +374,10 @@
 		} else {
 			var nodeName = shorthand.treeData.getNodeName(citizen, {
 					option: option,
-					prefix: this.pre,
-					id: citizen._getId ? citizen._getId() : null
+					prefix: this.pre
 				});
 			
-			generateNodes.call(this, nodeName, false);
+			this.generateNodes(nodeName, false);
 			var node = jQuery('#' + nodeName);
 			
 			if (this.tree.jstree('is_leaf', node)) {
@@ -371,8 +397,7 @@
 		for (var ndx = 0, len = msgs.length; ndx < len; ndx++) {
 			var nodeName = shorthand.treeData.getNodeName(citizen, {
 					option: msgs[ndx],
-					prefix: this.pre,
-					id: id
+					prefix: this.pre
 				}),
 				node = jQuery('#' + nodeName, this.tree);
 			
@@ -382,12 +407,10 @@
 	
 	TreeView.prototype.update = function(citizen) {
 		var nodeName = shorthand.treeData.getNodeName(citizen, {
-				option: null,
-				prefix: this.pre,
-				id: citizen._getId()
+				prefix: this.pre
 			});
 		
-		generateNodes.call(this, nodeName, true);
+		this.generateNodes(nodeName, true);
 		var node = jQuery('#' + nodeName, this.tree);
 		this.tree.jstree('rename_node', node, citizen.name);
 		
@@ -404,27 +427,15 @@
 		if (createType) {
 			addActionType.call(this, citizen);
 		}
-			
-		if (citizen instanceof hemi.Model) {
-			var tc = shorthand.treeData.createTransformCitizen(citizen),
-				tcTriggerNode = shorthand.treeData.createModelTransformActionJson(tc, this.pre),
-				tcType = tc._octaneType.split('.').pop();
-			
-			this.tree.jstree('create_node', '#' + this.pre + tcType, 'inside', {
-				json_data: tcTriggerNode
-			});
-		} else if (citizen instanceof hemi.Shape) {
-			var tc = shorthand.treeData.createTransformCitizen(citizen),
-				tcTriggerNode = shorthand.treeData.createShapeTransformActionJson(tc, this.pre),
-				tcType = tc._octaneType.split('.').pop();
-			
-			this.tree.jstree('create_node', '#' + this.pre + tcType, 'inside', {
-				json_data: tcTriggerNode
-			});
-		}
 		
 		var actionNode = shorthand.treeData.createActionJson(citizen, this.pre),
-			type = citizen._octaneType.split('.').pop();
+			type = citizen._octaneType.split('.').pop() + 'Type';
+			
+		if (citizen instanceof hemi.Model) {
+			shorthand.treeData.createModelTransformActionJson(citizen, actionNode, this.pre);
+		} else if (citizen instanceof hemi.Shape) {
+			shorthand.treeData.createShapeTransformActionJson(citizen, actionNode, this.pre);
+		}
 			
 		this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
 			json_data: actionNode
@@ -446,24 +457,6 @@
 		});
 		
 		addToolTip.call(this, citizen);
-		
-		if (citizen instanceof hemi.Model || citizen instanceof hemi.Shape) {
-			var tc = shorthand.treeData.createTransformCitizen(citizen),
-				pre = this.pre,
-				tcName = shorthand.treeData.getNodeName(tc, {
-					option: null,
-					prefix: pre
-				});
-			if (this.tree.find('#' + tcName).length === 0) {
-				json = shorthand.treeData.createTransformTypeJson(tc, pre);
-				
-				this.tree.jstree('create_node', -1, 'last', {
-					json_data: json
-				});
-				
-				addToolTip.call(this, tc);
-			}
-		}
 	};
 	
 	function addCitizen(citizen, createType) {
@@ -473,7 +466,7 @@
 		
 		var citizenNode = shorthand.treeData.createCitizenJson(citizen, 
 				this.pre),
-			type = citizen._octaneType.split('.').pop();
+			type = citizen._octaneType.split('.').pop() + 'Type';
 			
 		this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
 			json_data: citizenNode
@@ -491,8 +484,7 @@
 	function addToolTip(citizen, opt_func) {
 		var nodeId = shorthand.treeData.getNodeName(citizen, {
 				prefix: this.pre,
-				option: opt_func,
-				id: opt_func ? citizen._getId() : null
+				option: opt_func
 			}),
 			type = citizen._octaneType,
 			desc;
@@ -523,60 +515,31 @@
 			msgSent = citizen._msgSent,
 			name = shorthand.treeData.getNodeName(citizen, {
 					option: shorthand.treeData.MSG_WILDCARD,
-					prefix: this.pre,
-					id: citizen._getId()
+					prefix: this.pre
 				});
 		
 		this.tooltips.put(name, 'any of the triggers for the ' + type);
 		
-		this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
-			json_data: triggerNode
-		});
-		
 		if (citizen instanceof hemi.Model) {
-			var spc = shorthand.treeData.createShapePickCitizen(citizen),
-				tc = shorthand.treeData.createTransformCitizen(citizen),
-				spcTriggerNode = shorthand.treeData.createModelPickJson(spc, this.pre),
-				tcTriggerNode = shorthand.treeData.createModelTransformTriggerJson(tc, this.pre),
-				spcType = spc._octaneType.split('.').pop(),
-				tcType = tc._octaneType.split('.').pop();
-			
-			this.tree.jstree('create_node', '#' + this.pre + spcType, 'inside', {
-				json_data: spcTriggerNode
-			});
-			this.tree.jstree('create_node', '#' + this.pre + tcType, 'inside', {
-				json_data: tcTriggerNode
-			});
+			shorthand.treeData.createModelPickJson(citizen, triggerNode, this.pre);
+			shorthand.treeData.createModelTransformTriggerJson(citizen, triggerNode, this.pre);
 		} else if (citizen instanceof hemi.Shape) {
-			var spc = shorthand.treeData.createShapePickCitizen(citizen),
-				tc = shorthand.treeData.createTransformCitizen(citizen),
-				spcTriggerNode = shorthand.treeData.createShapePickJson(spc, this.pre),
-				tcTriggerNode = shorthand.treeData.createShapeTransformTriggerJson(tc, this.pre),
-				spcType = spc._octaneType.split('.').pop(),
-				tcType = tc._octaneType.split('.').pop();
-			
-			this.tree.jstree('create_node', '#' + this.pre + spcType, 'inside', {
-				json_data: spcTriggerNode
-			});
-			this.tree.jstree('create_node', '#' + this.pre + tcType, 'inside', {
-				json_data: tcTriggerNode
-			});
+			shorthand.treeData.createShapePickJson(citizen, triggerNode, this.pre);
+			shorthand.treeData.createShapeTransformTriggerJson(citizen, triggerNode, this.pre);
 		} else if (citizen instanceof hemi.Camera) {
 			var cmc = shorthand.treeData.createCamMoveCitizen(citizen),
-				triggerNode = shorthand.treeData.createCamMoveJson(cmc, this.pre);
-				type = cmc._octaneType.split('.').pop();
+				cmcTriggerNode = shorthand.treeData.createCamMoveJson(cmc, this.pre),
+				cmcType = cmc._octaneType.split('.').pop();
 			
-			this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
-				json_data: triggerNode
+			this.tree.jstree('create_node', '#' + this.pre + cmcType, 'inside', {
+				json_data: cmcTriggerNode
 			});
 		} else if (citizen instanceof hemi.Viewpoint) {
 			// In future if we support multiple cameras, this will need to
 			// be updated
 			var cmc = shorthand.treeData.createCamMoveCitizen(editor.client.camera),
 				nodeName = shorthand.treeData.getNodeName(cmc, {
-					option: null,
-					prefix: this.pre,
-					id: cmc._getId()
+					prefix: this.pre
 				}),
 				node = jQuery('#' + nodeName);
 			
@@ -589,6 +552,10 @@
 				});
 			}
 		}
+
+		this.tree.jstree('create_node', '#' + this.pre + type + 'Type', 'inside', {
+			json_data: triggerNode
+		});
 		
 		for (var i = 0, il = msgSent ? msgSent.length : 0; i < il; ++i) {
 			addTriggerToolTip.call(this, citizen, citizen._msgSent[i]);
@@ -598,8 +565,7 @@
 	function addTriggerToolTip(citizen, msg) {
 		var nodeId = shorthand.treeData.getNodeName(citizen, {
 					prefix: this.pre,
-					option: msg,
-					id: citizen._getId()
+					option: msg
 				});
 		
 		msg = msg.split('.').pop();
@@ -619,38 +585,7 @@
 		
 		addToolTip.call(this, citizen);
 		
-		if (citizen instanceof hemi.Model || citizen instanceof hemi.Shape) {
-			var spc = shorthand.treeData.createShapePickCitizen(citizen),
-				tc = shorthand.treeData.createTransformCitizen(citizen),
-				pre = this.pre,
-				spcName = shorthand.treeData.getNodeName(spc, {
-					option: null,
-					prefix: pre
-				}),
-				tcName = shorthand.treeData.getNodeName(tc, {
-					option: null,
-					prefix: pre
-				});
-			
-			if (this.tree.find('#' + spcName).length === 0) {
-				json = shorthand.treeData.createShapePickTypeJson(spc, pre);
-				
-				this.tree.jstree('create_node', -1, 'last', {
-					json_data: json
-				});
-				
-				addToolTip.call(this, spc);
-			}
-			if (this.tree.find('#' + tcName).length === 0) {
-				json = shorthand.treeData.createTransformTypeJson(tc, pre);
-				
-				this.tree.jstree('create_node', -1, 'last', {
-					json_data: json
-				});
-				
-				addToolTip.call(this, tc);
-			}
-		} else if (citizen instanceof hemi.Camera) {
+		if (citizen instanceof hemi.Camera) {
 			var cmc = shorthand.treeData.createCamMoveCitizen(citizen);
 			json = shorthand.treeData.createCamMoveTypeJson(cmc, this.pre);
 			
@@ -794,7 +729,6 @@
 		this.tooltips.put(name, 'any trigger from any source');
 		
 		name = shorthand.treeData.getNodeName(wildcard, {
-			option: null,
 			prefix: this.pre
 		});
 		
@@ -806,8 +740,7 @@
 			method = data.method,
 			nodeName = shorthand.treeData.getNodeName(citizen, {
 				option: method,
-				prefix: this.pre,
-				id: citizen._getId()
+				prefix: this.pre
 			}),
         	node = jQuery('#' + nodeName),
 			actionText = jQuery('#msgEdtEffectTxt');
@@ -819,11 +752,9 @@
 	function deselectTrigger(data) {
 		var citizen = data.citizen, 
 			message = data.message,
-			id = citizen._getId ? citizen._getId() : null,
 			nodeName = shorthand.treeData.getNodeName(citizen, {
 				option: message,
-				prefix: this.pre,
-				id: id
+				prefix: this.pre
 			}),
         	node = jQuery('#' + nodeName),
 			triggerText = jQuery('#msgEdtCauseTxt');
@@ -832,32 +763,11 @@
 		triggerText.text('');
 	};
 	
-	function generateNodes(nodeName, closePath) {
-		var paths = shorthand.treeData.getNodePath(nodeName),
-			toClose = [];
-		
-		for (var i = 0; i < paths.length; ++i) {
-			var node = jQuery('#' + paths[i], this.tree);
-			
-			if (closePath && this.tree.jstree('is_closed', node)) {
-				toClose.unshift(node);
-			}
-			
-			this.tree.jstree('open_node', node, false, true);
-		}
-		
-		for (var i = 0; i < toClose.length; ++i) {
-			this.tree.jstree('close_node', toClose[i], true);
-		}
-	};
-	
 	function removeAction(citizen, removeType) {
 		var id = citizen._getId ? citizen._getId() : null,
 			nodeName = shorthand.treeData.getNodeName(citizen, {
-			option: null,
-			prefix: this.pre,
-			id: id
-		});
+				prefix: this.pre
+			});
 		
 		var node = jQuery('#' + nodeName);
 		this.tree.jstree('delete_node', node);
@@ -866,16 +776,12 @@
 			var spc = shorthand.treeData.createShapePickCitizen(citizen),
 				tc = shorthand.treeData.createTransformCitizen(citizen);
 			nodeName = shorthand.treeData.getNodeName(spc, {
-				option: null,
-				prefix: this.pre,
-				id: id
+				prefix: this.pre
 			});
 			this.tree.jstree('delete_node', jQuery('#' + nodeName));
 			
 			nodeName = shorthand.treeData.getNodeName(tc, {
-				option: null,
-				prefix: this.pre,
-				id: id
+				prefix: this.pre
 			});
 			this.tree.jstree('delete_node', jQuery('#' + nodeName));
 		}
@@ -886,20 +792,29 @@
 	};
 	
 	function removeActionType(citizen) {
-		var nodeName = shorthand.treeData.getNodeName(citizen, {
-			option: null,
-			prefix: this.pre
-		});
+		var nodeName = shorthand.treeData.getNodeName(citizen._octaneType.split('.').pop() + 
+			'Type', { prefix: this.pre });
 		
 		var node = jQuery('#' + nodeName);
 		this.tree.jstree('delete_node', node);
+
+		if (citizen instanceof hemi.Model || citizen instanceof hemi.Shape) {
+			nodeName = shorthand.treeData.getNodeName(shorthand.constants.TRANSFORM, {
+				prefix: this.pre
+			});
+			
+			node = jQuery('#' + nodeName);
+			var nodeJson = this.tree.jstree('get_json', node);
+			
+			if (!nodeJson[0].children) {
+				this.tree.jstree('delete_node', node);
+			}
+		}
 	};
 	
 	function removeCitizen(citizen, removeType) {
 		var nodeName = shorthand.treeData.getNodeName(citizen, {
-			option: null,
-			prefix: this.pre,
-			id: citizen._getId()
+			prefix: this.pre
 		});
 		
 		var node = jQuery('#' + nodeName);
@@ -911,8 +826,7 @@
 	};
 	
 	function removeOctaneType(citizen) {
-		var nodeName = shorthand.treeData.getNodeName(citizen, {
-			option: null,
+		var nodeName = shorthand.treeData.getNodeName(citizen._octaneType.split('.').pop(), {
 			prefix: this.pre
 		});
 		
@@ -923,9 +837,7 @@
 	function removeTrigger(citizen, removeType) {
 		var id = citizen._getId ? citizen._getId() : null,
 			nodeName = shorthand.treeData.getNodeName(citizen, {
-				option: null,
-				prefix: this.pre,
-				id: id
+				prefix: this.pre
 			});
 		
 		var node = jQuery('#' + nodeName);
@@ -935,24 +847,18 @@
 			var spc = shorthand.treeData.createShapePickCitizen(citizen),
 				tc = shorthand.treeData.createTransformCitizen(citizen);
 			nodeName = shorthand.treeData.getNodeName(spc, {
-				option: null,
-				prefix: this.pre,
-				id: id
+				prefix: this.pre
 			});
 			this.tree.jstree('delete_node', jQuery('#' + nodeName));
 			
 			nodeName = shorthand.treeData.getNodeName(tc, {
-				option: null,
-				prefix: this.pre,
-				id: id
+				prefix: this.pre
 			});
 			this.tree.jstree('delete_node', jQuery('#' + nodeName));
 		} else if (citizen instanceof hemi.Camera) {
 			var cmc = shorthand.treeData.createCamMoveCitizen(citizen);
 			nodeName = shorthand.treeData.getNodeName(cmc, {
-				option: null,
-				prefix: this.pre,
-				id: id
+				prefix: this.pre
 			});
 			
 			node = jQuery('#' + nodeName);
@@ -961,10 +867,9 @@
 			// In future if we support multiple cameras, this will need to
 			// be updated
 			var cmc = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
-			nodeName = shorthand.treeData.getNodeName(cmc, {
-				option: id,
+			nodeName = shorthand.treeData.getNodeName(citizen, {
 				prefix: this.pre,
-				id: id
+				parent: cmc
 			});
 			
 			node = jQuery('#' + nodeName);
@@ -977,8 +882,7 @@
 	};
 	
 	function removeTriggerType(citizen) {
-		var nodeName = shorthand.treeData.getNodeName(citizen, {
-			option: null,
+		var nodeName = shorthand.treeData.getNodeName(citizen._octaneType.split('.').pop() + 'Type', {
 			prefix: this.pre
 		});
 		
@@ -986,9 +890,7 @@
 		this.tree.jstree('delete_node', node);
 		
 		if (citizen instanceof hemi.Model || citizen instanceof hemi.Shape) {
-			var spc = shorthand.treeData.createShapePickCitizen(citizen);
-			nodeName = shorthand.treeData.getNodeName(spc, {
-				option: null,
+			nodeName = shorthand.treeData.getNodeName(shorthand.constants.SHAPE_PICK, {
 				prefix: this.pre
 			});
 			
@@ -998,10 +900,18 @@
 			if (!nodeJson[0].children) {
 				this.tree.jstree('delete_node', node);
 			}
+			nodeName = shorthand.treeData.getNodeName(shorthand.constants.TRANSFORM, {
+				prefix: this.pre
+			});
+			
+			node = jQuery('#' + nodeName);
+			nodeJson = this.tree.jstree('get_json', node);
+			
+			if (!nodeJson[0].children) {
+				this.tree.jstree('delete_node', node);
+			}
 		} else if (citizen instanceof hemi.Camera) {
-			var cmc = shorthand.treeData.createCamMoveCitizen(citizen);
-			nodeName = shorthand.treeData.getNodeName(cmc, {
-				option: null,
+			nodeName = shorthand.treeData.getNodeName(shorthand.constants.CAM_MOVE, {
 				prefix: this.pre
 			});
 			
@@ -1014,9 +924,7 @@
 		if (citizen instanceof hemi.Shape) {
 			var spc = shorthand.treeData.createShapePickCitizen(citizen),
 				nodeName = shorthand.treeData.getNodeName(spc, {
-					option: null,
-					prefix: this.pre,
-					id: citizen._getId()
+					prefix: this.pre
 				}),
 				triggerNode = shorthand.treeData.createShapePickJson(spc, 
 					this.pre),
@@ -1030,14 +938,12 @@
 			// In future if we support multiple cameras, this will need to
 			// be updated
 			var cmc = shorthand.treeData.createCamMoveCitizen(editor.client.camera),
-				id = citizen._getId(),
-				nodeName = shorthand.treeData.getNodeName(cmc, {
-					option: id,
+				nodeName = shorthand.treeData.getNodeName(citizen, {
 					prefix: this.pre,
-					id: cmc._getId()
+					parent: cmc
 				});
 			
-			generateNodes.call(this, nodeName, false);
+			this.generateNodes(nodeName, false);
 			this.tree.jstree('rename_node', '#' + nodeName, citizen.name);
 		}
 		
