@@ -691,15 +691,28 @@
 	};
 	
 	BehaviorWidget.prototype.setTrigger = function(source, messages) {
+		var cit = source, 
+			cfg = { prefix: trgTree.pre },
+			opt = [];
+
+		if (source._octaneType === shorthand.constants.CAM_MOVE) {
+			var vpt = hemi.world.getCitizenById(messages[0]);
+			cfg.option = vpt._octaneType.split('.').pop() + '-' + vpt._getId();
+			opt.push(vpt);
+		} else {
+			cfg.option = shorthand.constants.MESSAGES + '_' + messages[0].replace(/\./g, '-');
+
+			for (var i = 0, il = messages.length; i < il; i++) {
+				opt.push(shorthand.constants.MESSAGES + '_' + messages[i]);
+			}
+		}
+
 		openNode(trgTree, source, trgTree.pre);
 		
-		var nodeId = shorthand.treeData.getNodeName(source, {
-			option: 'messages_' + messages[0],
-			prefix: trgTree.pre
-		});
+		var nodeId = shorthand.treeData.getNodeName(source, cfg);
 		
 		this.trgChooser.select(nodeId);
-		trgTree.restrictSelection(source, messages);
+		trgTree.restrictSelection(cit, opt);
 	};
 	
 	BehaviorWidget.prototype.setVisible = function(visible, etc) {

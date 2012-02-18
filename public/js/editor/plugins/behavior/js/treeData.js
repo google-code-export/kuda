@@ -32,49 +32,49 @@
 	shorthand.treeData.chainTable = (function() {
 		var chainTable = new Hashtable();
 		// Animation
-		chainTable.put('hemi.AnimationGroup' + '_' + 'start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
-		chainTable.put('hemi.AnimationGroup' + '_' + 'stop', [hemi.msg.stop]);
+		chainTable.put('hemi.AnimationGroup_start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
+		chainTable.put('hemi.AnimationGroup_stop', [hemi.msg.stop]);
 		// Burst
-		chainTable.put('hemi.ParticleBurst' + '_' + 'trigger', [hemi.msg.burst]);
+		chainTable.put('hemi.ParticleBurst_trigger', [hemi.msg.burst]);
 		// Emitter
-		chainTable.put('hemi.ParticleEmitter' + '_' + 'hide', [hemi.msg.visible]);
-		chainTable.put('hemi.ParticleEmitter' + '_' + 'show', [hemi.msg.visible]);
+		chainTable.put('hemi.ParticleEmitter_hide', [hemi.msg.visible]);
+		chainTable.put('hemi.ParticleEmitter_show', [hemi.msg.visible]);
 		// Trail
-		chainTable.put('hemi.ParticleTrail' + '_' + 'start', [hemi.msg.start]);
-		chainTable.put('hemi.ParticleTrail' + '_' + 'stop', [hemi.msg.stop]);
+		chainTable.put('hemi.ParticleTrail_start', [hemi.msg.start]);
+		chainTable.put('hemi.ParticleTrail_stop', [hemi.msg.stop]);
 		// HudDisplay
-		chainTable.put('hemi.HudDisplay' + '_' + 'clear', [hemi.msg.visible]); // Calls hide()
-		chainTable.put('hemi.HudDisplay' + '_' + 'hide', [hemi.msg.visible]);
-		chainTable.put('hemi.HudDisplay' + '_' + 'nextPage', [hemi.msg.visible]); // Calls showPage()
-		chainTable.put('hemi.HudDisplay' + '_' + 'previousPage', [hemi.msg.visible]); // Calls showPage()
-		chainTable.put('hemi.HudDisplay' + '_' + 'show', [hemi.msg.visible]); // Calls showPage()
-		chainTable.put('hemi.HudDisplay' + '_' + 'showPage', [hemi.msg.visible]);
+		chainTable.put('hemi.HudDisplay_clear', [hemi.msg.visible]); // Calls hide()
+		chainTable.put('hemi.HudDisplay_hide', [hemi.msg.visible]);
+		chainTable.put('hemi.HudDisplay_nextPage', [hemi.msg.visible]); // Calls showPage()
+		chainTable.put('hemi.HudDisplay_previousPage', [hemi.msg.visible]); // Calls showPage()
+		chainTable.put('hemi.HudDisplay_show', [hemi.msg.visible]); // Calls showPage()
+		chainTable.put('hemi.HudDisplay_showPage', [hemi.msg.visible]);
 		// Mesh
-		chainTable.put('hemi.Mesh' + '_' + 'move', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
-		chainTable.put('hemi.Mesh' + '_' + 'setMovable', [hemi.msg.move]);
-		chainTable.put('hemi.Mesh' + '_' + 'setResizable', [hemi.msg.resize]);
-		chainTable.put('hemi.Mesh' + '_' + 'turn', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
+		chainTable.put('hemi.Mesh_move', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
+		chainTable.put('hemi.Mesh_setMovable', [hemi.msg.move]);
+		chainTable.put('hemi.Mesh_setResizable', [hemi.msg.resize]);
+		chainTable.put('hemi.Mesh_turn', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
 		// Model
-		chainTable.put('hemi.Model' + '_' + 'load', [hemi.msg.load]);
-		chainTable.put('hemi.Model' + '_' + 'setFileName', [hemi.msg.load]); // Calls load()
-		chainTable.put('hemi.Model' + '_' + 'unload', [hemi.msg.unload]);
+		chainTable.put('hemi.Model_load', [hemi.msg.load]);
+		chainTable.put('hemi.Model_setFileName', [hemi.msg.load]); // Calls load()
+		chainTable.put('hemi.Model_unload', [hemi.msg.unload]);
 		// State
-		chainTable.put('hemi.State' + '_' + 'load', [hemi.msg.load]);
-		chainTable.put('hemi.State' + '_' + 'nextState', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
-		chainTable.put('hemi.State' + '_' + 'previousState', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
-		chainTable.put('hemi.State' + '_' + 'unload', [hemi.msg.unload]);
+		chainTable.put('hemi.State_load', [hemi.msg.load]);
+		chainTable.put('hemi.State_nextState', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.State_previousState', [hemi.msg.load, hemi.msg.unload]); // Calls load(), unload()
+		chainTable.put('hemi.State_unload', [hemi.msg.unload]);
 		// Timer
-		chainTable.put('hemi.Timer' + '_' + 'start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
-		chainTable.put('hemi.Timer' + '_' + 'stop', [hemi.msg.stop]);
+		chainTable.put('hemi.Timer_start', [hemi.msg.start, hemi.msg.stop]); // Leads to stop()
+		chainTable.put('hemi.Timer_stop', [hemi.msg.stop]);
 		// Transform
-		chainTable.put('hemi.Transform' + '_' + 'move', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
-		chainTable.put('hemi.Transform' + '_' + 'turn', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
+		chainTable.put('hemi.Transform_move', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
+		chainTable.put('hemi.Transform_turn', [hemi.msg.start, hemi.msg.stop]); // Leads to stop
 		// Camera
-		chainTable.put('hemi.Camera' + '_' + 'moveOnCurve', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
-		chainTable.put('hemi.Camera' + '_' + 'moveToView', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
-		chainTable.put('hemi.Camera' + '_' + 'update', [hemi.msg.stop]);
+		chainTable.put('hemi.Camera_moveOnCurve', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
+		chainTable.put('hemi.Camera_moveToView', [hemi.msg.start, hemi.msg.stop]); // Leads to update()
+		chainTable.put('hemi.Camera_update', [hemi.msg.stop]);
 		// Citizen
-		chainTable.put('hemi.Citizen' + '_' + 'cleanup', [hemi.msg.cleanup]);
+		chainTable.put('hemi.Citizen_cleanup', [hemi.msg.cleanup]);
 		
 		return chainTable;
 	})();
@@ -327,6 +327,7 @@
 	
 	shorthand.treeData.createTriggerJson = function(citizen, prefix) {
 		var id = citizen._getId(),
+			pre = shorthand.constants.MESSAGES,
 			name = getNodeName(citizen, {
 				option: MSG_WILDCARD,
 				prefix: prefix
@@ -347,7 +348,7 @@
 				data: 'messages',
 				attr: {
 					id: getNodeName(citizen, {
-						option: shorthand.constants.MESSAGES,
+						option: pre,
 						prefix: prefix
 					}),
 					rel: 'other'
@@ -362,7 +363,7 @@
 		for (var ndx = 0, len = msgSent ? msgSent.length : 0; ndx < len; ndx++) {
 			var msg = msgSent[ndx];
 			name = getNodeName(citizen, {
-				option: msg,
+				option: pre + '_' + msg,
 				prefix: prefix
 			});
 			
