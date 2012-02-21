@@ -207,17 +207,27 @@
 		
 		if (this.colorPickers.length <= ndx) {
 			var colorPicker = new editor.ui.ColorPicker({
-				inputId: 'pte-colorRamp' + ndx,
-				containerClass: 'pteColorRampAdd',
-				buttonId: 'pteColorRamp' + ndx + 'Picker'
-			});			
+					containerClass: 'pteColorRampAdd',
+				}),
+				ui = colorPicker.getUI(),
+				remover = jQuery('<button class="icon removeBtn colorRemover">Remove</button>');
 			
 			colorPicker.addListener(editor.events.ColorPicked, function(clr) {
 				wgt.canSave();
 			});
+
+			ui.append(remover);
+
+			remover.bind('click', function(evt) {
+				var i = colorAdder.data('ndx');
+
+				ui.remove();
+				wgt.colorPickers.splice(wgt.colorPickers.indexOf(colorPicker), 1);
+				colorAdder.data('ndx', i-1);
+			});
 		
 			this.colorPickers.push(colorPicker);
-			wrapper.before(colorPicker.getUI());
+			wrapper.before(ui);
 		}
 		else {
 			var colorPicker = this.colorPickers[ndx];

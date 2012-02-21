@@ -1256,7 +1256,7 @@ form input.vector, form input.color, form input.quat {
 	margin-right: 2px;
 }
 form input.color {
-	width: 2.417em;
+	width: 1.917em;
 }
 form span.jPicker {
 	margin: 4px 5px 0 0;
@@ -1264,10 +1264,6 @@ form span.jPicker {
 form input.vector:last-child, form input.color:last-child,
 form input.quat:last-child {
 	margin-right: 0;
-}
-form.scrolling input.vector, form.scrolling input.color,
-form.scrolling input.quat {
-	width: 24px;
 }
 form input:-moz-placeholder {
 	color: #aaa;
@@ -1300,7 +1296,7 @@ form input[type=radio] {
 	width: 4.167em;
 }
 .hasScrollBar li input.color {
-	width: 2em;
+	width: 1.5em;
 }
 .hasScrollBar li input.quat {
 	width: 2.167em;
@@ -1382,6 +1378,9 @@ form button.icon {
 	-moz-box-shadow: none;
 	margin: 5px;
 	padding: 0;
+}
+form button.colorRemover {
+	float: none;
 }
 form button.removeBtn {
 	background-position: 0 -32px;

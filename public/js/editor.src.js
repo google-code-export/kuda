@@ -1429,14 +1429,14 @@ var editor = {};
 		this.container.addClass(this.config.containerClass);
 		
 		// initialize inputs
-		this.rInput = jQuery('<input type="text" id="' + this.config.inputId + 'R" class="rNdx color" placeholder="r" disabled />');
-		this.gInput = jQuery('<input type="text" id="' + this.config.inputId + 'G"  class="gNdx color" placeholder="g" disabled />');
-		this.bInput = jQuery('<input type="text" id="' + this.config.inputId + 'B"  class="bNdx color" placeholder="b" disabled />');
-		this.aInput = jQuery('<input type="text" id="' + this.config.inputId + 'A"  class="aNdx color" placeholder="a" disabled />');
+		this.rInput = jQuery('<input type="text" class="rNdx color" placeholder="r" disabled />');
+		this.gInput = jQuery('<input type="text" class="gNdx color" placeholder="g" disabled />');
+		this.bInput = jQuery('<input type="text" class="bNdx color" placeholder="b" disabled />');
+		this.aInput = jQuery('<input type="text" class="aNdx color" placeholder="a" disabled />');
 		this.hex = 0x000000;
 		
 		// initialize colorpicker button
-		this.pickerBtn = jQuery('<span id="' + this.config.buttonId + '" class="colorPicker"></span>');
+		this.pickerBtn = jQuery('<span class="colorPicker"></span>');
 		
 		// add to container
 		this.container.append(this.rInput).append(this.gInput)
@@ -1494,7 +1494,7 @@ var editor = {};
 			return val;
 		};
 			
-		colorPickerElem.jPicker(options, function(color, context) {
+		colorPickerElem.data('container', this).jPicker(options, function(color, context) {
 			var clr = colorPickedFcn(color);
 			wgt.notifyListeners(editor.events.ColorPicked, clr);
 		});
@@ -1505,7 +1505,7 @@ var editor = {};
 		
 		for (var ndx = 0, len = pickers.length; ndx < len && !found; ndx++) {
 			var picker = pickers[ndx];
-			if (jQuery(picker).attr('id') === this.config.buttonId) {
+			if (jQuery(picker).data('container') === this) {
 				this.picker = picker;
 				found = true;
 			}

@@ -600,10 +600,10 @@
 		
 		if (this.colorPickers.length <= ndx) {
 			colorPicker = new editor.ui.ColorPicker({
-				inputId: 'crvColorRamp' + ndx,
 				containerClass: 'colorRampAdd long',
-				buttonId: 'crvColorRamp' + ndx + 'Picker'
-			});			
+			});
+
+			var remover = jQuery('<button class="icon removeBtn colorRemover">Remove</button>');
 			
 			colorPicker.addListener(editor.events.ColorPicked, function(clr) {
 				wgt.notifyListeners(shorthand.events.SetCurveColor, {
@@ -611,6 +611,16 @@
 					ndx: ndx
 				});
 			});
+
+			remover.bind('click', function(evt) {
+				var i = colorAdder.data('ndx');
+
+				colorPicker.getUI().remove();
+				wgt.colorPickers.splice(wgt.colorPickers.indexOf(colorPicker), 1);
+				colorAdder.data('ndx', i-1);
+			});
+
+			colorPicker.getUI().append(remover);
 		
 			this.colorPickers.push(colorPicker);
 		}
