@@ -14370,7 +14370,7 @@ if (!window.requestAnimationFrame) {
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-(function() {
+(function(hemi) {
 
 	var dbgBoxMat =  new THREE.MeshPhongMaterial({
 			color: 0x000088,
@@ -14626,12 +14626,8 @@ if (!window.requestAnimationFrame) {
 		this.tension = 0;
 		this.type = opt_type;
 		this.weights = [];
-		this.xpts = [];
-		this.xtans = [];
-		this.ypts = [];
-		this.ytans = [];
-		this.zpts = [];
-		this.ztans = [];
+		this.points = [];
+		this.tangents = [];
 
 		if (points) {
 			opt_config = opt_config || {};
@@ -14645,7 +14641,7 @@ if (!window.requestAnimationFrame) {
 	 * @type string[]
 	 */
 	Curve.prototype._octane = function() {
-		var names = ['count', 'tension', 'weights', 'xpts', 'xtans', 'ypts', 'ytans', 'zpts', 'ztans'],
+		var names = ['count', 'tension', 'weights', 'points', 'tangents'],
 			props = [];
 
 		for (var i = 0, il = names.length; i < il; ++i) {
@@ -14688,7 +14684,7 @@ if (!window.requestAnimationFrame) {
 	 */
 	Curve.prototype.getEnd = function() {
 		var end = this.count - 1;
-		return new THREE.Vector3(this.xpts[end],this.ypts[end],this.zpts[end]);
+		return this.points[end].clone();
 	};
 	
 	/**
@@ -14697,7 +14693,7 @@ if (!window.requestAnimationFrame) {
 	 * @return {THREE.Vector3} the position of the first waypoint
 	 */
 	Curve.prototype.getStart = function() {
-		return new THREE.Vector3(this.xpts[0],this.ypts[0],this.zpts[0]);
+		return this.points[0].clone();
 	};
 
 	/**
@@ -14725,13 +14721,10 @@ if (!window.requestAnimationFrame) {
 			this.count = points.length;
 
 			for (var i = 0; i < this.count; i++) {
-				this.xpts[i] = points[i][0];
-				this.ypts[i] = points[i][1];
-				this.zpts[i] = points[i][2];
-				this.xtans[i] = 0;
-				this.ytans[i] = 0;
-				this.ztans[i] = 0;
 				this.weights[i] = 1;
+
+				this.points[i] = points[i].clone();
+				this.tangents[i] = new THREE.Vector3(0, 0, 0);
 			}
 		}
 
@@ -14744,9 +14737,7 @@ if (!window.requestAnimationFrame) {
 		if (cfg.tangents) {
 			for (var i = 0; i < this.count; i++) {
 				if(cfg.tangents[i]) {
-					this.xtans[i] = cfg.tangents[i][0] || 0;
-					this.ytans[i] = cfg.tangents[i][1] || 0;
-					this.ztans[i] = cfg.tangents[i][2] || 0;
+					this.tangents[i] = cfg.tangents[i] || new THREE.Vector3(0, 0, 0);
 				}	
 			}
 		}
@@ -14805,11 +14796,12 @@ if (!window.requestAnimationFrame) {
 
 			for (var i = 0; i < points; ++i) {
 				var fac = this.weights[i] * hemi.utils.choose(points - 1, i) * Math.pow(time, i) *
-					Math.pow((1 - time), (points - 1 - i));
+						Math.pow((1 - time), (points - 1 - i)),
+					point = this.points[i];
 
-				x += fac * this.xpts[i];
-				y += fac * this.ypts[i];
-				z += fac * this.zpts[i];
+				x += fac * point.x;
+				y += fac * point.y;
+				z += fac * point.z;
 				w += fac;
 			}
 
@@ -14833,9 +14825,13 @@ if (!window.requestAnimationFrame) {
 
 			var factor = ndx / last,
 				tt = (time - factor) / ((ndx + 1) / last - factor),
-				x = hemi.utils.cubicHermite(tt, this.xpts[ndx], this.xtans[ndx], this.xpts[ndx+1], this.xtans[ndx+1]);
-				y = hemi.utils.cubicHermite(tt, this.ypts[ndx], this.ytans[ndx], this.ypts[ndx+1], this.ytans[ndx+1]);
-				z = hemi.utils.cubicHermite(tt, this.zpts[ndx], this.ztans[ndx], this.zpts[ndx+1], this.ztans[ndx+1]);
+				point1 = this.points[ndx],
+				point2 = this.points[ndx+1],
+				tangent1 = this.tangents[ndx],
+				tangent2 = this.tangents[ndx+1],
+				x = hemi.utils.cubicHermite(tt, point1.x, tangent1.x, point2.x, tangent2.x);
+				y = hemi.utils.cubicHermite(tt, point1.y, tangent1.y, point2.y, tangent2.y);
+				z = hemi.utils.cubicHermite(tt, point1.z, tangent1.z, point2.z, tangent2.z);
 
 			return new THREE.Vector3(x, y, z);
 		},
@@ -14856,9 +14852,11 @@ if (!window.requestAnimationFrame) {
 
 			var factor = ndx / last,
 				tt = (time - factor) / ((ndx + 1) / last - factor),
-				x = (1 - tt) * this.xpts[ndx] + tt * this.xpts[ndx+1];
-				y = (1 - tt) * this.ypts[ndx] + tt * this.ypts[ndx+1];
-				z = (1 - tt) * this.zpts[ndx] + tt * this.zpts[ndx+1];
+				point1 = this.points[ndx],
+				point2 = this.points[ndx+1],
+				x = (1 - tt) * point1.x + tt * point2.x;
+				y = (1 - tt) * point1.y + tt * point2.y;
+				z = (1 - tt) * point1.z + tt * point2.z;
 
 			return new THREE.Vector3(x, y, z);
 		},
@@ -14872,12 +14870,15 @@ if (!window.requestAnimationFrame) {
 		 */
 		interpolateLinearNorm = function(time) {
 			var dist = 0,
-				dpts = [0];
+				dpts = [0],
+				point1, point2;
 
 			for (var i = 1, il = this.count; i < il; ++i) {
-				var xDist = this.xpts[i-1] - this.xpts[i],
-					yDist = this.ypts[i-1] - this.ypts[i],
-					zDist = this.zpts[i-1] - this.zpts[i];
+				var point1 = this.points[i-1],
+					point2 = this.points[i],
+					xDist = point1.x - point2.x,
+					yDist = point1.y - point2.y,
+					zDist = point1.z - point2.z;
 
 				dist += Math.sqrt(xDist * xDist + yDist * yDist + zDist * zDist);
 				dpts[i] = d;
@@ -14892,10 +14893,13 @@ if (!window.requestAnimationFrame) {
 				}
 			}
 
+			point1 = this.points[ndx];
+			point2 = this.points[ndx+1];
+
 			var lt = (tt - dpts[ndx]) / (dpts[ndx+1] - dpts[ndx]),
-				x = (1 - lt) * this.xpts[ndx] + lt * this.xpts[ndx+1],
-				y = (1 - lt) * this.ypts[ndx] + lt * this.ypts[ndx+1],
-				z = (1 - lt) * this.zpts[ndx] + lt * this.zpts[ndx+1];
+				x = (1 - lt) * point1.x + lt * point2.x,
+				y = (1 - lt) * point1.y + lt * point2.y,
+				z = (1 - lt) * point1.z + lt * point2.z;
 
 			return new THREE.Vector3(x, y, z);
 		},
@@ -14905,22 +14909,19 @@ if (!window.requestAnimationFrame) {
 		 * tangents are defined by a single 'tension' factor.
 		 */
 		setTangents = function() {
-			var xpts = hemi.utils.clone(this.xpts),
-				ypts = hemi.utils.clone(this.ypts),
-				zpts = hemi.utils.clone(this.zpts);
+			var points = hemi.utils.clone(this.points);
 
 			// Copy the first and last points in order to calculate tangents
-			xpts.unshift(xpts[0]);
-			xpts.push(xpts[xpts.length - 1]);
-			ypts.unshift(ypts[0]);
-			ypts.push(ypts[ypts.length - 1]);
-			zpts.unshift(zpts[0]);
-			zpts.push(zpts[zpts.length - 1]);
+			points.unshift(points[0]);
+			points.push(points[points.length - 1]);
 
 			for (var i = 0; i < this.count; i++) {
-				this.xtans[i] = (1-this.tension)*(xpts[i+2]-xpts[i])/2;
-				this.ytans[i] = (1-this.tension)*(ypts[i+2]-ypts[i])/2;
-				this.ztans[i] = (1-this.tension)*(zpts[i+2]-zpts[i])/2;
+				var point1 = points[i+2],
+					point2 = points[i],
+					tangent = this.tangents[i];
+				tangent.x = (1-this.tension)*(point1.x-point2.x)/2;
+				tangent.y = (1-this.tension)*(point1.y-point2.y)/2;
+				tangent.z = (1-this.tension)*(point1.z-point2.z)/2;
 			}
 		};
 
@@ -16063,8 +16064,7 @@ if (!window.requestAnimationFrame) {
 		}
 	}
 
-})();
-/*
+})(hemi);/*
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php
  * The MIT License (MIT)
  * 

@@ -86,8 +86,8 @@
 				fp:		40000
 			}),
 		tangents = [
-			[0, -100, 0], [0, 0, -100],
-			[0, 0, -100], [0, -100, 0]
+			new THREE.Vector3(0, -100, 0), new THREE.Vector3(0, 0, -100),
+			new THREE.Vector3(0, 0, -100), new THREE.Vector3(0, -100, 0)
 		],
 		dispDigits = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
 		shapeNdx = [1, 7, 5, 4, 2, 8, 3, 6, 9],
@@ -241,21 +241,21 @@
 
 	function moveOnRails() {
 		var eyes = [
-				[SLIDE1_EYE.x, SLIDE1_EYE.y, SLIDE1_EYE.z], 
-				[800, 0, SLIDE1_EYE.z],
-				[2800, 0, 4900],
-				[1500, 2000, -9000],
-				[-1200, 100, -9000], 
-				[-2000, 800, 0],
-				[-1000, 300, SLIDE1_EYE.z],
-				[SLIDE1_EYE.x, SLIDE1_EYE.y, SLIDE1_EYE.z]
+				new THREE.Vector3(SLIDE1_EYE.x, SLIDE1_EYE.y, SLIDE1_EYE.z), 
+				new THREE.Vector3(800, 0, SLIDE1_EYE.z),
+				new THREE.Vector3(2800, 0, 4900),
+				new THREE.Vector3(1500, 2000, -9000),
+				new THREE.Vector3(-1200, 100, -9000), 
+				new THREE.Vector3(-2000, 800, 0),
+				new THREE.Vector3(-1000, 300, SLIDE1_EYE.z),
+				new THREE.Vector3(SLIDE1_EYE.x, SLIDE1_EYE.y, SLIDE1_EYE.z)
 			],
 			targets = [
-				[SLIDE1_TARGET.x, SLIDE1_TARGET.y, SLIDE1_TARGET.z],
+				new THREE.Vector3(SLIDE1_TARGET.x, SLIDE1_TARGET.y, SLIDE1_TARGET.z),
 				eyes[2], eyes[3],
 				eyes[4], eyes[5],
 				eyes[6], eyes[7],
-				[SLIDE1_TARGET.x, SLIDE1_TARGET.y, SLIDE1_TARGET.z]
+				new THREE.Vector3(SLIDE1_TARGET.x, SLIDE1_TARGET.y, SLIDE1_TARGET.z)
 			],
 			curveEye = new hemi.Curve(eyes, hemi.CurveType.Cardinal),
 			curveTarget = new hemi.Curve(targets, hemi.CurveType.Cardinal),
@@ -279,14 +279,14 @@
 				Zd = Za - 1000,
 				Zt = SLIDE1_TARGET.z - offset,
 				eyes = [
-					[0, 0, Za],
-					[0, 400, Zb],
-					[0, 400, Zc],
-					[0, 0, Zd]
+					new THREE.Vector3(0, 0, Za),
+					new THREE.Vector3(0, 400, Zb),
+					new THREE.Vector3(0, 400, Zc),
+					new THREE.Vector3(0, 0, Zd)
 				],
 				targets = [
-					[0, 0, Zt],
-					[0, 0, Zt]
+					new THREE.Vector3(0, 0, Zt),
+					new THREE.Vector3(0, 0, Zt)
 				],
 			curveEye = new hemi.Curve(eyes, hemi.CurveType.CubicHermite, { tangents: tangents }),
 			curveTarget = new hemi.Curve(targets, hemi.CurveType.Linear),

@@ -147,17 +147,15 @@
         
         if (curve) {
             var eye = curve.eye,
-                ex = eye.xpts,
-                ey = eye.ypts,
-                ez = eye.zpts,
+                ep = eye.points,
                 target = curve.target,
-                tx = target.xpts,
-                ty = target.ypts,
-                tz = target.zpts;
+                tp = target.points;
                 
-            for (var i = 0, il = ex.length; i < il; i++) {
-                this.addWaypoint([ex[i], ey[i], ez[i]],
-                    [tx[i], ty[i], tz[i]]);
+            for (var i = 0, il = ep.length; i < il; i++) {
+                var pnt = ep[i],
+                    tgt = tp[i];
+                this.addWaypoint(new THREE.Vector3(pnt.x, pnt.y, pnt.z), 
+                    new THREE.Vector3(tgt.x, tgt.y, tgt.z));
             }
         }
     };
@@ -331,11 +329,11 @@
         this.previewBtn = previewBtn;
         this.saveBtn = saveBtn;
         this.pntList = this.find('#crvPntList');
-        this.position = new editor.ui.Vector({
+        this.position = new editor.ui.Vector3({
             container: wgt.find('#crvPositionDiv'),
             validator: validator
         });
-        this.target = new editor.ui.Vector({
+        this.target = new editor.ui.Vector3({
             container: wgt.find('#crvTargetDiv'),
             validator: validator
         });
@@ -381,27 +379,15 @@
             var pos = editor.client.camera.getEye(),
                 tgt = editor.client.camera.getTarget(),
                 rndFnc = editor.utils.roundNumber,
-                point = [];
+                point;
             
-            point[0] = rndFnc(pos.x,2);
-            point[1] = rndFnc(pos.y,2);
-            point[2] = rndFnc(pos.z,2);
+            point = new THREE.Vector3(rndFnc(pos.x,2), rndFnc(pos.y,2), rndFnc(pos.z,2));
             
-            wgt.position.setValue({
-                x: point[0],
-                y: point[1],
-                z: point[2]
-            });
+            wgt.position.setValue(point);
             
-            point[0] = rndFnc(tgt.x,2);
-            point[1] = rndFnc(tgt.y,2);
-            point[2] = rndFnc(tgt.z,2);
+            point = new THREE.Vector3(rndFnc(tgt.x,2), rndFnc(tgt.y,2), rndFnc(tgt.z,2));
             
-            wgt.target.setValue({
-                x: point[0],
-                y: point[1],
-                z: point[2]
-            });
+            wgt.target.setValue(point);
         });
         
         pntAddBtn.bind('click', function(evt) {
@@ -409,7 +395,7 @@
                 pos = wgt.position.getValue(),
                 tgt = wgt.target.getValue();
             
-            if (pos && tgt && pos.length > 0 && tgt.length > 0) {
+            if (pos && tgt) {
                 var msgType = pnt == null ? shorthand.events.AddWaypoint
                         : shorthand.events.UpdateWaypoint,
                     data = {
@@ -500,7 +486,8 @@
     
     CreateWidget.prototype.waypointAdded = function(waypoint) {
         var position = waypoint.pos,
-            wrapper = jQuery('<li class="crvBoxEditor"><span>Waypoint at [' + position.join(',') + ']</span></li>'),
+            wrapper = jQuery('<li class="crvBoxEditor"><span>Waypoint at [' + position.x + ',' +
+                position.y + ',' + position.z + ']</span></li>'),
             removeBtn = jQuery('<button class="icon removeBtn">Remove</button>'),
             editBtn = jQuery('<button class="icon editBtn">Edit</button>'),
             wgt = this;
@@ -518,17 +505,9 @@
             wgt.pntAddBtn.text(UPDATE_TXT).data('waypoint', wp);
             wgt.pntCancelBtn.show();
 
-            wgt.position.setValue({
-                x: pos[0],
-                y: pos[1],
-                z: pos[2]
-            });
+            wgt.position.setValue(pos);
             
-            wgt.target.setValue({
-                x: tgt[0],
-                y: tgt[1],
-                z: tgt[2]
-            });
+            wgt.target.setValue(tgt);
         // a jquery bug here that doesn't test for css rgba
         // wgt.boxForms.effect('highlight');
         });
@@ -559,28 +538,17 @@
             position = waypoint.pos,
             target = waypoint.tgt,
             wpUI = waypoint.ui,
-            point = [];
+            point;
 
         if (this.pntAddBtn.data('waypoint') === waypoint) {
-            point[0] = rndFnc(position.x,2);
-            point[1] = rndFnc(position.y,2);
-            point[2] = rndFnc(position.z,2);
+            point = new THREE.Vector3(rndFnc(position.x,2), rndFnc(position.y,2), 
+                rndFnc(position.z,2));
             
-            this.position.setValue({
-                x: point[0],
-                y: point[1],
-                z: point[2]
-            });
+            this.position.setValue(point);
             
-            point[0] = rndFnc(target.x,2);
-            point[1] = rndFnc(target.y,2);
-            point[2] = rndFnc(target.z,2);
+            point = new THREE.Vector3(rndFnc(target.x,2), rndFnc(target.y,2), rndFnc(target.z,2));
             
-            this.target.setValue({
-                x: point[0],
-                y: point[1],
-                z: point[2]
-            });
+            this.target.setValue(point);
         }
         
         wpUI.data('waypoint', waypoint);
