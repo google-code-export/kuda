@@ -282,7 +282,6 @@
 	};
 	
 	TransHandles.prototype.onRender = function(renderEvent) {
-		console.log(this.transform);
 		if (this.drawState !== editor.ui.trans.DrawState.NONE && this.transform !== null) {
 			hemi.hudManager.clearDisplay();
 
