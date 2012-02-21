@@ -4068,11 +4068,11 @@ var editor = {};
 	
 	function getBoundingBox(transform) {
 		var children = transform.children,
-			box = transform.getBoundingBox();
+			box = transform instanceof hemi.Mesh ? transform.getBoundingBox() : null;
 
 		for (var i = 0, il = children.length; i < il; i++) {
 			var b = getBoundingBox(children[i]);
-			if (box) {
+			if (box && b) {
 				box.min = new THREE.Vector3(
 					Math.min(b.min.x, box.min.x),
 					Math.min(b.min.y, box.min.y),
