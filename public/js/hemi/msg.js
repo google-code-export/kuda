@@ -90,6 +90,36 @@
 		 * hemi.State - the State is set as the "current" State
 		 * data = { }
 		 */
+		keyDown: 'hemi.keyDown',
+		/**
+		 * @type string
+		 * @constant
+		 * @example
+		 * hemi - a key is pressed
+		 * data = {
+		 *		event: {Object} the key down event
+		 * }
+		 */
+		keyPress: 'hemi.keyPress',
+		/**
+		 * @type string
+		 * @constant
+		 * @example
+		 * hemi - a key is pressed
+		 * data = {
+		 *		event: {Object} the key press event
+		 * }
+		 */
+		keyUp: 'hemi.keyUp',
+		/**
+		 * @type string
+		 * @constant
+		 * @example
+		 * hemi - a key is pressed
+		 * data = {
+		 *		event: {Object} the key up event
+		 * }
+		 */
 		load: 'hemi.load',
 		/**
 		 * @type string
