@@ -244,7 +244,9 @@
 		if (opt_collada) {
 			onCollada(opt_collada);
 		} else {
-			hemi.loadCollada(this._fileName, onCollada); 
+			hemi.loadCollada(this._fileName, onCollada, {
+				// Options here
+			});
 		}
 	};
 
