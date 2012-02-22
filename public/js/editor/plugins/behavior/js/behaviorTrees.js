@@ -922,17 +922,19 @@
 	
 	function updateTrigger(citizen) {
 		if (citizen instanceof hemi.Shape) {
-			var spc = shorthand.treeData.createShapePickCitizen(citizen),
-				nodeName = shorthand.treeData.getNodeName(spc, {
+			var nodeName = shorthand.treeData.getNodeName(citizen, {
 					prefix: this.pre
 				}),
-				triggerNode = shorthand.treeData.createShapePickJson(spc, 
-					this.pre),
-				type = spc._octaneType.split('.').pop();
+				type = citizen._octaneType.split('.').pop() + 'Type',
+				node = shorthand.treeData.createTriggerJson(citizen, 
+					this.pre);
 			
+			shorthand.treeData.createShapePickJson(citizen, node, this.pre);
+			shorthand.treeData.createShapeTransformTriggerJson(citizen, node, this.pre);
+
 			this.tree.jstree('delete_node', '#' + nodeName);				
 			this.tree.jstree('create_node', '#' + this.pre + type, 'inside', {
-				json_data: triggerNode
+				json_data: node
 			});
 		} else if (citizen instanceof hemi.Viewpoint) {
 			// In future if we support multiple cameras, this will need to
