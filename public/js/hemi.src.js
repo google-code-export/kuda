@@ -3982,6 +3982,36 @@ if (!window.requestAnimationFrame) {
 		 * @type string
 		 * @constant
 		 * @example
+		 * hemi.KeyDispatcher - a key is pressed down
+		 * data = {
+		 *		event: {Object} the key down event
+		 * }
+		 */
+		keyDown: 'hemi.keyDown',
+		/**
+		 * @type string
+		 * @constant
+		 * @example
+		 * hemi.KeyDispatcher - a key is pressed down and released up
+		 * data = {
+		 *		event: {Object} the key press event
+		 * }
+		 */
+		keyPress: 'hemi.keyPress',
+		/**
+		 * @type string
+		 * @constant
+		 * @example
+		 * hemi.KeyDispatcher - a key is released up
+		 * data = {
+		 *		event: {Object} the key up event
+		 * }
+		 */
+		keyUp: 'hemi.keyUp',
+		/**
+		 * @type string
+		 * @constant
+		 * @example
 		 * hemi.Audio - the Audio's media content is loaded
 		 * data = {
 		 *     src: (string) the URL of the audio file loaded
@@ -4000,36 +4030,6 @@ if (!window.requestAnimationFrame) {
 		 * @example
 		 * hemi.State - the State is set as the "current" State
 		 * data = { }
-		 */
-		keyDown: 'hemi.keyDown',
-		/**
-		 * @type string
-		 * @constant
-		 * @example
-		 * hemi - a key is pressed
-		 * data = {
-		 *		event: {Object} the key down event
-		 * }
-		 */
-		keyPress: 'hemi.keyPress',
-		/**
-		 * @type string
-		 * @constant
-		 * @example
-		 * hemi - a key is pressed
-		 * data = {
-		 *		event: {Object} the key press event
-		 * }
-		 */
-		keyUp: 'hemi.keyUp',
-		/**
-		 * @type string
-		 * @constant
-		 * @example
-		 * hemi - a key is pressed
-		 * data = {
-		 *		event: {Object} the key up event
-		 * }
 		 */
 		load: 'hemi.load',
 		/**
@@ -4281,9 +4281,14 @@ if (!window.requestAnimationFrame) {
 	 * 
 	 * @param {string} url the url of the file to load relative to the Kuda directory
 	 * @param {function(Object):void} callback a function to pass the loaded COLLADA data
+	 * @param {Object} options load options for the COLLADA loader
 	 */
-	hemi.loadCollada = function(url, callback) {
+	hemi.loadCollada = function(url, callback, options) {
 		var loader = new THREE.ColladaLoader();
+
+		if (options) {
+			hemi.utils.join(loader.options, options);
+		}
 
 		url = hemi.getLoadPath(url);
 		++taskCount;
@@ -8931,8 +8936,8 @@ if (!window.requestAnimationFrame) {
 			hemi.input.addMouseUpListener(this);
 			hemi.input.addMouseMoveListener(this);
 			hemi.input.addMouseWheelListener(this);
-			hemi.keyDispatch.addKeyDownListener(this, 'onKeyDown');
-			hemi.keyDispatch.addKeyUpListener(this, 'onKeyUp');
+			hemi.input.addKeyDownListener(this);
+			hemi.input.addKeyUpListener(this);
 			this.mode.control = true;
 		}
 
@@ -9946,7 +9951,9 @@ if (!window.requestAnimationFrame) {
 		if (opt_collada) {
 			onCollada(opt_collada);
 		} else {
-			hemi.loadCollada(this._fileName, onCollada); 
+			hemi.loadCollada(this._fileName, onCollada, {
+				// Options here
+			});
 		}
 	};
 

@@ -80,9 +80,14 @@
 	 * 
 	 * @param {string} url the url of the file to load relative to the Kuda directory
 	 * @param {function(Object):void} callback a function to pass the loaded COLLADA data
+	 * @param {Object} options load options for the COLLADA loader
 	 */
-	hemi.loadCollada = function(url, callback) {
+	hemi.loadCollada = function(url, callback, options) {
 		var loader = new THREE.ColladaLoader();
+
+		if (options) {
+			hemi.utils.join(loader.options, options);
+		}
 
 		url = hemi.getLoadPath(url);
 		++taskCount;
