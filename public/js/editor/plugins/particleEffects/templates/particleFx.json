@@ -3,7 +3,7 @@
 	{
 		"_octaneType": "hemi.ParticleEmitter",
 		"name": "Smoke Stack",
-		"blending": 0,
+		"blending": 1,
 		"colorRamp": [0, 0, 0, 0.7,
 				0, 0, 0, 0.1,
 				0, 0, 0, 0,
@@ -28,7 +28,7 @@
 	{
 		"_octaneType": "hemi.ParticleEmitter",
 		"name": "Fire",
-		"blending": 1,
+		"blending": 2,
 		"colorRamp": [1, 1, 0, 0.6,
 				 1, 0, 0, 0.6,
 				 0, 0, 0, 1,
@@ -54,7 +54,7 @@
 	{
 		"_octaneType": "hemi.ParticleTrail",
 		"name": "Water Drip",
-		"blending": 0,
+		"blending": 1,
 		"colorRamp": [0.35, 0.71, 0.80, 0.8],
 		"fireInterval": 0.6,
 		"params": {
@@ -73,7 +73,7 @@
 	{
 		"_octaneType": "hemi.ParticleBurst",
 		"name": "Smoke Puff",
-		"blending": 1,
+		"blending": 2,
 		"colorRamp": [0.6, 0.6, 0.6, 0.6,
 				0.9, 0.9, 0.9, 0.2,
 				0.95, 0.95, 0.95, 0.1,
