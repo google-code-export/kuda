@@ -410,6 +410,16 @@
 	};
 
 	/** 
+	 * Convert from quaternion to euler rotation
+	 *
+	 * @param {THREE.Quaternion} quaternion
+	 * @return {THREE.Vector3} Euler rotation
+	 */
+	hemi.utils.quaternionToVector3 = function(quaternion) {
+		return new THREE.Vector3.setRotationFromMatrix(new THREE.Matrix4().setRotationFromQuaternion(quaternion));
+	};
+
+	/** 
 	 * Convert from spherical to cartesian coordinates.
 	 *
 	 * @param {number[3]} rtp array of radius, theta, phi
