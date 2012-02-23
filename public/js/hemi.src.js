@@ -8102,63 +8102,6 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Allow the Transform to be moved (translated) through mouse interaction along the given plane.
-	 * 
-	 * @param {string} opt_plane optional 2D plane to enable movement along (default is XZ)
-	 * @param {number[4]} opt_limits optional array of movement limits within the plane:
-	 *     [min on u, max on u, min on v, max on v]
-	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make movable
-	 *     as one group with the Transform
-	 */
-	Transform.prototype.setMovable = function(opt_plane, opt_limits, opt_transforms) {
-		var params = getParams(this._getId()),
-			restore = opt_plane == null && opt_limits == null && opt_transforms == null;
-
-		if (this._manip instanceof hemi.Movable) {
-			this._manip.clearTransforms();
-		} else {
-			this.cancelInteraction();
-			this._manip = getManip(hemi.MotionType.MOVE);
-		}
-
-		if (params.uv === undefined) {
-			// Previous manip was not a Movable, so restoring is not possible.
-			restore = false;
-		} else if (restore) {
-			this._manip._uv[0] = params.uv[0];
-			this._manip._uv[1] = params.uv[1];
-		}
-
-		if (opt_plane != null) {
-			this._manip.setPlane(opt_plane);
-			params.plane = opt_plane;
-		} else if (restore && params.plane) {
-			this._manip.setPlane(params.plane);
-		}
-
-		if (opt_limits != null) {
-			this._manip.setLimits(opt_limits);
-			params.limits = opt_limits;
-		} else if (restore && params.limits) {
-			this._manip.setLimits(params.limits);
-		}
-
-		if (opt_transforms != null) {
-			opt_transforms = opt_transforms.slice(0);
-			opt_transforms.unshift(this);
-			params.transforms = opt_transforms;
-		} else if (restore && params.transforms) {
-			opt_transforms = params.transforms;
-		} else {
-			opt_transforms = [this];
-		}
-
-		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
-			this._manip.addTransform(opt_transforms[i]);
-		}
-	};
-
-	/**
 	 * Set the Transform to translate with the given velocity and/or acceleration.
 	 * 
 	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for moving
@@ -8195,53 +8138,6 @@ if (!window.requestAnimationFrame) {
 	};
 
 	/**
-	 * Allow the Transform to be resized (scaled) through mouse interaction along the given axis.
-	 * 
-	 * @param {string} opt_axis optional axis to enable resizing along (default is Y)
-	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make resizable
-	 *     as one group with the Transform
-	 */
-	Transform.prototype.setResizable = function(opt_axis, opt_transforms) {
-		var params = getParams(this._getId()),
-			restore = opt_axis == null && opt_transforms == null;
-
-		if (this._manip instanceof hemi.Resizable) {
-			this._manip.clearTransforms();
-		} else {
-			this.cancelInteraction();
-			this._manip = getManip(hemi.MotionType.RESIZE);
-		}
-
-		if (params.scale === undefined) {
-			// Previous manip was not a Resizable, so restoring is not possible.
-			restore = false;
-		} else if (restore) {
-			this._manip._scale = params.scale;
-		}
-
-		if (opt_axis != null) {
-			this._manip.setAxis(opt_axis);
-			params.axis = opt_axis;
-		} else if (restore && params.axis) {
-			this._manip.setAxis(params.axis);
-		}
-
-		if (opt_transforms != null) {
-			opt_transforms = opt_transforms.slice(0);
-			opt_transforms.unshift(this);
-			params.transforms = opt_transforms;
-		} else if (restore && params.transforms) {
-			opt_transforms = params.transforms;
-		} else {
-			opt_transforms = [this];
-		}
-
-		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
-			this._manip.addTransform(opt_transforms[i]);
-		}
-	};
-
-	/**
 	 * Set the Transform to scale with the given velocity and/or acceleration.
 	 * 
 	 * @param {THREE.Vector3} opt_velocity optional XYZ velocity to set for resizing
@@ -8249,61 +8145,6 @@ if (!window.requestAnimationFrame) {
 	 */
 	Transform.prototype.setResizing = function(opt_velocity, opt_acceleration) {
 		// TODO
-	};
-
-	/**
-	 * Allow the Transform to be turned (rotated) through mouse interaction about the given axis.
-	 * 
-	 * @param {string} axis optional axis to enable turning about (default is Y)
-	 * @param {number[2]} opt_limits optional minimum and maximum angle limits (in radians)
-	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make turnable
-	 *     as one group with the Transform
-	 */
-	Transform.prototype.setTurnable = function(opt_axis, opt_limits, opt_transforms) {
-		var params = getParams(this._getId()),
-			restore = opt_axis == null && opt_limits == null && opt_transforms == null;
-
-		if (this._manip instanceof hemi.Turnable) {
-			this._manip.clearTransforms();
-		} else {
-			this.cancelInteraction();
-			this._manip = getManip(hemi.MotionType.TURN);
-		}
-
-		if (params.angle === undefined) {
-			// Previous manip was not a Turnable, so restoring is not possible.
-			restore = false;
-		} else if (restore) {
-			this._manip._angle = params.angle;
-		}
-
-		if (opt_axis != null) {
-			this._manip.setAxis(opt_axis);
-			params.axis = opt_axis;
-		} else if (restore && params.axis) {
-			this._manip.setAxis(params.axis);
-		}
-
-		if (opt_limits != null) {
-			this._manip.setLimits(opt_limits);
-			params.limits = opt_limits;
-		} else if (restore && params.limits) {
-			this._manip.setLimits(params.limits);
-		}
-
-		if (opt_transforms != null) {
-			opt_transforms = opt_transforms.slice(0);
-			opt_transforms.unshift(this);
-			params.transforms = opt_transforms;
-		} else if (restore && params.transforms) {
-			opt_transforms = params.transforms;
-		} else {
-			opt_transforms = [this];
-		}
-
-		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
-			this._manip.addTransform(opt_transforms[i]);
-		}
 	};
 
 	/**
@@ -8600,7 +8441,53 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make movable
 	 *     as one group with the Mesh
 	 */
-	Mesh.prototype.setMovable = Transform.prototype.setMovable;
+	Mesh.prototype.setMovable = function(opt_plane, opt_limits, opt_transforms) {
+		var params = getParams(this._getId()),
+			restore = opt_plane == null && opt_limits == null && opt_transforms == null;
+
+		if (this._manip instanceof hemi.Movable) {
+			this._manip.clearTransforms();
+		} else {
+			this.cancelInteraction();
+			this._manip = getManip(hemi.MotionType.MOVE);
+		}
+
+		if (params.uv === undefined) {
+			// Previous manip was not a Movable, so restoring is not possible.
+			restore = false;
+		} else if (restore) {
+			this._manip._uv[0] = params.uv[0];
+			this._manip._uv[1] = params.uv[1];
+		}
+
+		if (opt_plane != null) {
+			this._manip.setPlane(opt_plane);
+			params.plane = opt_plane;
+		} else if (restore && params.plane) {
+			this._manip.setPlane(params.plane);
+		}
+
+		if (opt_limits != null) {
+			this._manip.setLimits(opt_limits);
+			params.limits = opt_limits;
+		} else if (restore && params.limits) {
+			this._manip.setLimits(params.limits);
+		}
+
+		if (opt_transforms != null) {
+			opt_transforms = opt_transforms.slice(0);
+			opt_transforms.unshift(this);
+			params.transforms = opt_transforms;
+		} else if (restore && params.transforms) {
+			opt_transforms = params.transforms;
+		} else {
+			opt_transforms = [this];
+		}
+
+		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
+			this._manip.addTransform(opt_transforms[i]);
+		}
+	};
 
 	/**
 	 * Set the Mesh to translate with the given velocity and/or acceleration.
@@ -8625,7 +8512,45 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make resizable
 	 *     as one group with the Mesh
 	 */
-	Mesh.prototype.setResizable = Transform.prototype.setResizable;
+	Mesh.prototype.setResizable = function(opt_axis, opt_transforms) {
+		var params = getParams(this._getId()),
+			restore = opt_axis == null && opt_transforms == null;
+
+		if (this._manip instanceof hemi.Resizable) {
+			this._manip.clearTransforms();
+		} else {
+			this.cancelInteraction();
+			this._manip = getManip(hemi.MotionType.RESIZE);
+		}
+
+		if (params.scale === undefined) {
+			// Previous manip was not a Resizable, so restoring is not possible.
+			restore = false;
+		} else if (restore) {
+			this._manip._scale = params.scale;
+		}
+
+		if (opt_axis != null) {
+			this._manip.setAxis(opt_axis);
+			params.axis = opt_axis;
+		} else if (restore && params.axis) {
+			this._manip.setAxis(params.axis);
+		}
+
+		if (opt_transforms != null) {
+			opt_transforms = opt_transforms.slice(0);
+			opt_transforms.unshift(this);
+			params.transforms = opt_transforms;
+		} else if (restore && params.transforms) {
+			opt_transforms = params.transforms;
+		} else {
+			opt_transforms = [this];
+		}
+
+		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
+			this._manip.addTransform(opt_transforms[i]);
+		}
+	};
 
 	/**
 	 * Set the Mesh to scale with the given velocity and/or acceleration.
@@ -8643,7 +8568,52 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Transform[]} opt_transforms optional array of extra Transforms to make turnable
 	 *     as one group with the Mesh
 	 */
-	Mesh.prototype.setTurnable = Transform.prototype.setTurnable;
+	Mesh.prototype.setTurnable = function(opt_axis, opt_limits, opt_transforms) {
+		var params = getParams(this._getId()),
+			restore = opt_axis == null && opt_limits == null && opt_transforms == null;
+
+		if (this._manip instanceof hemi.Turnable) {
+			this._manip.clearTransforms();
+		} else {
+			this.cancelInteraction();
+			this._manip = getManip(hemi.MotionType.TURN);
+		}
+
+		if (params.angle === undefined) {
+			// Previous manip was not a Turnable, so restoring is not possible.
+			restore = false;
+		} else if (restore) {
+			this._manip._angle = params.angle;
+		}
+
+		if (opt_axis != null) {
+			this._manip.setAxis(opt_axis);
+			params.axis = opt_axis;
+		} else if (restore && params.axis) {
+			this._manip.setAxis(params.axis);
+		}
+
+		if (opt_limits != null) {
+			this._manip.setLimits(opt_limits);
+			params.limits = opt_limits;
+		} else if (restore && params.limits) {
+			this._manip.setLimits(params.limits);
+		}
+
+		if (opt_transforms != null) {
+			opt_transforms = opt_transforms.slice(0);
+			opt_transforms.unshift(this);
+			params.transforms = opt_transforms;
+		} else if (restore && params.transforms) {
+			opt_transforms = params.transforms;
+		} else {
+			opt_transforms = [this];
+		}
+
+		for (var i = 0, il = opt_transforms.length; i < il; ++i) {
+			this._manip.addTransform(opt_transforms[i]);
+		}
+	};
 
 	/**
 	 * Set the Mesh to rotate with the given velocity and/or acceleration.
