@@ -388,6 +388,19 @@
 	};
 
 	/**
+	 * Animate the Transform moving by the given amount over the given amount of time.
+	 * 
+	 * @param {THREE.Vector3} position XYZ position to move the Transform to
+	 * @param {number} time the amount of time for the motion to take (in seconds)
+	 * @param {boolean} opt_mustComplete optional flag indicating this move cannot be interrupted by
+	 *     a different move before it finishes
+	 * @return {boolean} true if the Transform will start moving, false if it will not
+	 */
+	Transform.prototype.moveTo = function(position, time, opt_mustComplete) {
+		return this.move(position.clone().subSelf(this.matrixWorld.getPosition()), time, opt_mustComplete);
+	};
+
+	/**
 	 * Animate the Transform resizing by the given amount over the given amount of time.
 	 * 
 	 * @param {THREE.Vector3} scale XYZ amount to scale the Transform by
@@ -659,6 +672,27 @@
 		return this._rotator.turn(theta, time, opt_mustComplete);
 	};
 
+	/**
+	 * Animate the Transform turning to the given angle over the given amount of time.
+	 * 
+	 * @param {THREE.Vector3} theta XYZ rotation to turn the Transform to (in radians)
+	 * @param {number} time the amount of time for the motion to take (in seconds)
+	 * @param {boolean} opt_mustComplete optional flag indicating this turn cannot be interrupted by
+	 *     a different turn before it finishes
+	 * @return {boolean} true if the Transform will start turning, false if it will not
+	 */
+	Transform.prototype.turnTo = function(theta, time, opt_mustComplete) {
+		var rotDelta;
+		if (this.useQuaternion) {
+			rotDelta = theta.clone().subSelf(hemi.utils.quaternionToEuler(this.quaternion));
+		}
+		else {
+			rotDelta = theta.clone().subSelf(this.rotation);
+		}
+
+		return this.turn(rotDelta, time, opt_mustComplete);
+	};
+
 	hemi.makeCitizen(Transform, 'hemi.Transform', {
 		cleanup: Transform.prototype._clean,
 		toOctane: Transform.prototype._octane
@@ -848,6 +882,17 @@
 	Mesh.prototype.move = Transform.prototype.move;
 
 	/**
+	 * Animate the Mesh moving by the given amount over the given amount of time.
+	 * 
+	 * @param {THREE.Vector3} position XYZ position to move the Mesh to
+	 * @param {number} time the amount of time for the motion to take (in seconds)
+	 * @param {boolean} opt_mustComplete optional flag indicating this move cannot be interrupted by
+	 *     a different move before it finishes
+	 * @return {boolean} true if the Mesh will start moving, false if it will not
+	 */
+	Mesh.prototype.moveTo = Transform.prototype.moveTo;
+
+	/**
 	 * Animate the Mesh resizing by the given amount over the given amount of time.
 	 * 
 	 * @param {THREE.Vector3} scale XYZ amount to scale the Mesh by
@@ -938,6 +983,17 @@
 	 * @return {boolean} true if the Mesh will start turning, false if it will not
 	 */
 	Mesh.prototype.turn = Transform.prototype.turn;
+
+	/**
+	 * Animate the Mesh turning to the given angle over the given amount of time.
+	 * 
+	 * @param {THREE.Vector3} theta XYZ rotation to turn the Mesh to (in radians)
+	 * @param {number} time the amount of time for the motion to take (in seconds)
+	 * @param {boolean} opt_mustComplete optional flag indicating this turn cannot be interrupted by
+	 *     a different turn before it finishes
+	 * @return {boolean} true if the Mesh will start turning, false if it will not
+	 */
+	Mesh.prototype.turnTo = Transform.prototype.turnTo;
 
 	hemi.makeCitizen(Mesh, 'hemi.Mesh', {
 		cleanup: Mesh.prototype._clean,
