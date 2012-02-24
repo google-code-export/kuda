@@ -46,7 +46,6 @@
 		this.gInput = jQuery('<input type="text" class="gNdx color" placeholder="g" disabled />');
 		this.bInput = jQuery('<input type="text" class="bNdx color" placeholder="b" disabled />');
 		this.aInput = jQuery('<input type="text" class="aNdx color" placeholder="a" disabled />');
-		this.hex = 0x000000;
 		
 		// initialize colorpicker button
 		this.pickerBtn = jQuery('<span class="colorPicker"></span>');
@@ -97,7 +96,6 @@
 			g.val(rndFnc(color.val('g')/255, 2));
 			b.val(rndFnc(color.val('b')/255, 2));
 			a.val(rndFnc(color.val('a')/255, 2));
-			wgt.hex = color.val('hex');
 			
 			var val = [
 				parseFloat(r.val()), parseFloat(g.val()), parseFloat(b.val()), 
@@ -187,25 +185,29 @@
 			b: color[2] * 255,
 			a: color[3] * 255
 		});
-	};
+   	};
 	
 	ColorPicker.prototype.setColorHex = function(color, alpha) {
 		var colorMeth = jQuery.jPicker.ColorMethods,
 			str = ((typeof color) == 'number' ? color.toString(16) : color) + 
 				colorMeth.intToHex(alpha * 255),
-			rgb = colorMeth.hexToRgba(str);
-			
+            rgb;
+            while (str.length < 8) {
+                str = '0' + str;
+            }
+        rgb = colorMeth.hexToRgba(str);            
+                
 		this.rInput.val(rgb.r / 255);
 		this.gInput.val(rgb.g / 255);
 		this.bInput.val(rgb.b / 255);
 		this.aInput.val(alpha);
-		
 		this.picker.color.active.val('rgba', {
 			r: rgb.r,
 			g: rgb.g,
 			b: rgb.b,
 			a: rgb.a
 		});
+        
 	};
 	
 	ColorPicker.prototype.getColor = function() {
@@ -230,7 +232,23 @@
 	};
 	
 	ColorPicker.prototype.getColorHex = function() {
-		return parseInt(this.hex, 16);
+        var colorMeth = jQuery.jPicker.ColorMethods;
+        var r = this.rInput.val(),
+			g = this.gInput.val(),
+			b = this.bInput.val(),
+			a = this.aInput.val(),
+			color = null;
+		
+		if (r !== '' && g !== '' && b !== '' && a !== '') {
+			r = parseFloat(r) * 255;
+			g = parseFloat(g) * 255;
+			b = parseFloat(b) * 255;
+			
+			if (!(isNaN(r) || isNaN(g) || isNaN(b))) {
+               color = parseInt(colorMeth.intToHex(r) + colorMeth.intToHex(g) + colorMeth.intToHex(b), 16);
+			}
+		}
+        return color;
 	};
 	
 	ColorPicker.prototype.getAlpha = function() {
