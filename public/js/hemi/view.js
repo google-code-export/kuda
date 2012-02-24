@@ -103,7 +103,7 @@
 		 * A light that moves with the Camera and is always pointing where the Camera is pointing.
 		 * @type THREE.PointLight
 		 */
-		this.light = new THREE.PointLight(0xffffff, 1.35);
+		this.light = new THREE.SpotLight(0xffffff, 1.35);
 
 		// Use shared reference to guarantee the camera light follows the Camera.
 		this.light.position = this.threeCamera.position;

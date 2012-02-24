@@ -8882,7 +8882,7 @@ if (!window.requestAnimationFrame) {
 		 * A light that moves with the Camera and is always pointing where the Camera is pointing.
 		 * @type THREE.PointLight
 		 */
-		this.light = new THREE.PointLight(0xffffff, 1.35);
+		this.light = new THREE.SpotLight(0xffffff, 1.35);
 
 		// Use shared reference to guarantee the camera light follows the Camera.
 		this.light.position = this.threeCamera.position;
@@ -13321,23 +13321,35 @@ if (!window.requestAnimationFrame) {
 	HudManager.prototype.addClient = function(client) {
 		var canvas = client.renderer.domElement,
 			container = canvas.parentNode,
-			hudCan = document.createElement('canvas'),
-			style = hudCan.style;
+			hudId = container.id + '_hudCanvas',
+			hudCan = container.firstChild,
+			context;
 
-		style.left = canvas.offsetLeft + 'px';
-		style.position = 'absolute';
-		style.top = canvas.offsetTop + 'px';
-		style.zIndex = '10';
+		// Check to see if we've already appended a HUD canvas to this container
+		while (hudCan && hudCan.id !== hudId) {
+			hudCan = hudCan.nextSibling;
+		}
 
-		hudCan.height = canvas.height;
-		hudCan.width = canvas.width;
-		// Since the HUD canvas obscures the WebGL canvas, pass mouse events through to Hemi.
-		hudCan.addEventListener('DOMMouseScroll', hemi.input.scroll, true);
-		hudCan.addEventListener('mousewheel', hemi.input.scroll, true);
-		hudCan.addEventListener('mousedown', hemi.input.mouseDown, true);
-		hudCan.addEventListener('mousemove', hemi.input.mouseMove, true);
-		hudCan.addEventListener('mouseup', hemi.input.mouseUp, true);
-		container.appendChild(hudCan);
+		if (!hudCan) {
+			hudCan = document.createElement('canvas');
+			hudCan.id = hudId;
+			hudCan.height = canvas.height;
+			hudCan.width = canvas.width;
+
+			var style = hudCan.style;
+			style.left = canvas.offsetLeft + 'px';
+			style.position = 'absolute';
+			style.top = canvas.offsetTop + 'px';
+			style.zIndex = '10';
+
+			// Since the HUD canvas obscures the WebGL canvas, pass mouse events through to Hemi.
+			hudCan.addEventListener('DOMMouseScroll', hemi.input.scroll, true);
+			hudCan.addEventListener('mousewheel', hemi.input.scroll, true);
+			hudCan.addEventListener('mousedown', hemi.input.mouseDown, true);
+			hudCan.addEventListener('mousemove', hemi.input.mouseMove, true);
+			hudCan.addEventListener('mouseup', hemi.input.mouseUp, true);
+			container.appendChild(hudCan);
+		}
 
 		var context = hudCan.getContext('2d'),
 			that = this;
@@ -17738,8 +17750,7 @@ if (!window.requestAnimationFrame) {
     hemi.makeOctanable(THREE.Vector3, 'THREE.Vector3', ['x', 'y', 'z']);
     hemi.makeOctanable(THREE.AmbientLight, 'THREE.AmbientLight', ['color']);    
     hemi.makeOctanable(THREE.PointLight, 'THREE.PointLight', ['color', 'intensity', 'position', 'distance']);
-    hemi.makeOctanable(THREE.DirectionalLight, 'THREE.DirectionalLight', ['color', 'intensity', 'position', 'distance', 'target']);
-    hemi.makeOctanable(THREE.Object3D, 'THREE.Object3D', ['position']);
+    //hemi.makeOctanable(THREE.DirectionalLight, 'THREE.DirectionalLight', ['color', 'intensity', 'position', 'distance', 'target']);
     //hemi.makeOctanable(THREE.SpotLight, 'THREE.SpotLight', ['color', 'intensity', 'position', 'distance']);
     
 
