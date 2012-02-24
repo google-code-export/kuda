@@ -28,7 +28,9 @@
 		motions = [],
 		// Mapping of previous manip parameters for Transforms and Meshes to enable quick swapping
 		// of cancelInteraction and setMovable (for example).
-		savedParams = {};
+		savedParams = {},
+		// Static helper objects
+		_vector = new THREE.Vector3();
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Contants
@@ -388,16 +390,18 @@
 	};
 
 	/**
-	 * Animate the Transform moving by the given amount over the given amount of time.
+	 * Animate the Transform moving to the given world position over the given amount of time.
 	 * 
-	 * @param {THREE.Vector3} position XYZ position to move the Transform to
+	 * @param {THREE.Vector3} position XYZ position to move the Transform to (in world space)
 	 * @param {number} time the amount of time for the motion to take (in seconds)
 	 * @param {boolean} opt_mustComplete optional flag indicating this move cannot be interrupted by
 	 *     a different move before it finishes
 	 * @return {boolean} true if the Transform will start moving, false if it will not
 	 */
 	Transform.prototype.moveTo = function(position, time, opt_mustComplete) {
-		return this.move(position.clone().subSelf(this.matrixWorld.getPosition()), time, opt_mustComplete);
+		hemi.utils.pointAsLocal(this, _vector.copy(position));
+
+		return this.move(_vector, time, opt_mustComplete);
 	};
 
 	/**
@@ -514,7 +518,7 @@
 	};
 
 	/**
-	 * Animate the Transform turning to the given angle over the given amount of time.
+	 * Animate the Transform turning to the given rotation over the given amount of time.
 	 * 
 	 * @param {THREE.Vector3} theta XYZ rotation to turn the Transform to (in radians)
 	 * @param {number} time the amount of time for the motion to take (in seconds)
@@ -523,15 +527,13 @@
 	 * @return {boolean} true if the Transform will start turning, false if it will not
 	 */
 	Transform.prototype.turnTo = function(theta, time, opt_mustComplete) {
-		var rotDelta;
 		if (this.useQuaternion) {
-			rotDelta = theta.clone().subSelf(hemi.utils.quaternionToEuler(this.quaternion));
-		}
-		else {
-			rotDelta = theta.clone().subSelf(this.rotation);
+			_vector.copy(theta).subSelf(hemi.utils.quaternionToEuler(this.quaternion));
+		} else {
+			_vector.copy(theta).subSelf(this.rotation);
 		}
 
-		return this.turn(rotDelta, time, opt_mustComplete);
+		return this.turn(_vector, time, opt_mustComplete);
 	};
 
 	hemi.makeCitizen(Transform, 'hemi.Transform', {

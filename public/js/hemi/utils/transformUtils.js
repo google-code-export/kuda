@@ -106,7 +106,7 @@
 	 * @return {THREE.Vector3} the given point, now in local space
 	 */
 	hemi.utils.pointAsLocal = function(transform, point) {
-		var inv = new THREE.Matrix4().getInverse(transform.matrixWorld);
+		var inv = _matrix.getInverse(transform.matrixWorld);
 	    return inv.multiplyVector3(point);
 	};
 
