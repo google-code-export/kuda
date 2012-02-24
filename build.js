@@ -190,7 +190,8 @@ var uglifyHemi = function(src, dst) {
 					'hemi/fx.js',
 					'hemi/texture.js',
 					'hemi/timer.js',
-					'hemi/valueCheck.js'
+					'hemi/valueCheck.js',
+                    'hemi/light.js'
 				]
 			},
 			header =
