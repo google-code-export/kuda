@@ -15,6 +15,7 @@
  * Boston, MA 02110-1301 USA.
  */
  
+ // TODO: Update to work with directional and spot lights.
  (function() {
 	"use strict";
 	
@@ -43,8 +44,8 @@
     
     shorthand.events = {
 		// create sidebar widget specific
-		PreviewLight: "Shapes.PreviewLight",
-		SaveLight: "Shapes.SaveLight"
+		PreviewLight: "Lights.PreviewLight",
+		SaveLight: "Lights.SaveLight"
     };
     
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,45 +68,108 @@
 		
 	LightsModel.prototype.previewLight = function(props) {
 		if (this.currentLight !== null) {
-            this.currentLight.remove();
+            this.currentLight.removeFromScene();
         }
         if(this.prevLight) {
+            //this.prevLight.removeFromScene();
             this.prevLight.cleanup();
         }
-        
-        console.log(props);
-        this.prevLight = new hemi.Light(editor.client, props.lightInfo);
+        this.prevLight = new hemi.Light(editor.client, this.createLight(props.lightInfo));
         this.prevLight.name = editor.ToolConstants.EDITOR_PREFIX + 'PreviewLight';
 	};
 	
-    LightsModel.prototype.addCurrentLight = function() {
-        if (this.currentLight !== null) {
-            this.currentLight.add();
-        }
-    };
     
-	LightsModel.prototype.removeLight = function(shape) {
-		
+	LightsModel.prototype.removeLight = function(light) {
+		this.notifyListeners(editor.events.Removing, light);
+        //light.removeFromScene();
+        light.cleanup();
 	};
 	
 	LightsModel.prototype.saveLight = function(props) {
-		
+        var light, msgType;
+		if (this.prevLight !== null) {
+            //this.prevLight.removeFromScene();
+            this.prevLight.cleanup();
+            this.prevLight = null;
+        }
+        
+        if (this.currentLight !== null) {
+            light = this.currentLight;
+            light.removeFromScene();
+            //light.cleanup();            
+            light.light = this.createLight(props.lightInfo);            
+            light.addToScene();
+            msgType = editor.events.Updated;
+        } else {
+            light = this.currentLight = new hemi.Light(editor.client, this.createLight(props.lightInfo));
+            msgType = editor.events.Created;
+        }
+        light.setName(props.name);
+        this.notifyListeners(msgType, light)
+        this.currentLight = null;
 	};
 	
-	LightsModel.prototype.setLight = function(shape) {
-		
-	};
-	
+    LightsModel.prototype.setLight = function(light) {
+        if (this.prevLight !== null) {
+            //this.prevLight.removeFromScene();
+            this.prevLight.cleanup();
+            this.prevLight = null;
+        }
+        if (this.currentLight !== null) {
+            this.currentLight.addToScene();
+        }
+        
+        this.currentLight = light;
+        this.notifyListeners(editor.events.Editing, light);
+    };
+    
+    LightsModel.prototype.createLight = function(lightInfo) {
+        var type = lightInfo.type,
+            light;
+        switch(type) {
+            case hemi.LightType.AMBIENT:
+                light = new THREE.AmbientLight(lightInfo.color);
+                break;
+            case hemi.LightType.SPOT:
+                // false is the default for shadow
+                light = new THREE.SpotLight(lightInfo.color, lightInfo.intensity, lightInfo.distance, false);
+                light.position = lightInfo.position;
+                light.target.position = lightInfo.target;
+                // shadows
+                
+                break;
+            case hemi.LightType.DIRECTIONAL:
+                light = new THREE.DirectionalLight(lightInfo.color, lightInfo.intensity, lightInfo.distance);
+                light.position = lightInfo.position;
+                light.target.position = lightInfo.target;
+                break;  
+            case hemi.LightType.POINT:
+                light = new THREE.PointLight(lightInfo.color, lightInfo.intensity, lightInfo.distance);
+                light.position = lightInfo.position;
+                break;  
+        }    
+        return light;
+    };
+    
 	LightsModel.prototype.worldCleaned = function() {
-		
+		var lights = hemi.world.getLights();
+        
+        for (var ndx = 0, len = lights.length; ndx < len; ndx++) {
+			this.notifyListeners(editor.events.Removing, lights[ndx]);
+		}
     };
     
     LightsModel.prototype.worldLoaded = function() {
-		
+		var lights = hemi.world.getLights();
+        
+        for (var ndx = 0, len = lights.length; ndx < len; ndx++) {
+			this.notifyListeners(editor.events.Created, lights[ndx]);
+		}		
     };
+    
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-// Create Shape Sidebar Widget
+// Create Light Sidebar Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 			
 	var CreateWidget = function() {
@@ -161,6 +225,14 @@
 			validator: validator
 		});
 		
+        this.lightTarget = new editor.ui.Vector({
+			container: wgt.find('#lightTargetDiv'),
+			onBlur: function(ipt, evt) {
+				wgt.checkToggleButtons();
+			},
+			validator: validator
+		});
+        
 		// hide optional inputs
 		this.find('.optional').parent().hide();
 		
@@ -181,25 +253,35 @@
 			wgt.lightDistance.reset();
 			wgt.find('.optional').parent().hide();
 			
-			// switch between shapes
+			// switch between lights
 			switch(val) {
                 case hemi.LightType.POINT:
-                case hemi.LightType.DIRECTIONAL:
                     wgt.lightDistance.getUI().parent().show();
                     wgt.lightIntensity.getUI().parent().show();
                     wgt.lightPosition.getUI().parent().show();
                     inputs.push(wgt.lightDistance);
                     inputs.push(wgt.lightIntensity);
                     inputs.push(wgt.lightPosition);
-                    
+                    break;
+                case hemi.LightType.DIRECTIONAL:
+                    wgt.lightDistance.getUI().parent().show();
+                    wgt.lightIntensity.getUI().parent().show();
+                    wgt.lightPosition.getUI().parent().show();
+                    wgt.lightTarget.getUI().parent().show();
+                    inputs.push(wgt.lightDistance);
+                    inputs.push(wgt.lightIntensity);
+                    inputs.push(wgt.lightPosition);
+                    inputs.push(wgt.lightTarget);
                     break;
                 case hemi.LightType.SPOT:
                     wgt.lightDistance.getUI().parent().show();
                     wgt.lightIntensity.getUI().parent().show();
                     wgt.lightPosition.getUI().parent().show();
+                    wgt.lightTarget.getUI().parent().show();
                     inputs.push(wgt.lightDistance);
                     inputs.push(wgt.lightIntensity);
                     inputs.push(wgt.lightPosition);
+                    inputs.push(wgt.lightTarget);
                     // cast shadow?
                     break;
                 case hemi.LightType.AMBIENT:
@@ -277,22 +359,31 @@
 			},
 			lightInfo = {
 				color: wgt.colorPicker.getColorHex(),
-				light: type
+				type: type
 			};
-		
 		switch (type) {
             case hemi.LightType.POINT:
+                lightInfo.distance = this.lightDistance.getValue();
+                lightInfo.intensity = this.lightIntensity.getValue();
+                var pos = this.lightPosition.getValue();
+                lightInfo.position = new THREE.Vector3(pos[0], pos[1], pos[2]);
+                break;
             case hemi.LightType.DIRECTIONAL:
                 lightInfo.distance = this.lightDistance.getValue();
                 lightInfo.intensity = this.lightIntensity.getValue();
                 var pos = this.lightPosition.getValue();
                 lightInfo.position = new THREE.Vector3(pos[0], pos[1], pos[2]);
+                var tgt = this.lightTarget.getValue();
+                lightInfo.target = new THREE.Vector3(tgt[0], tgt[1], tgt[2]);
                 break;
             case hemi.LightType.SPOT:
                 lightInfo.distance = this.lightDistance.getValue();
                 lightInfo.intensity = this.lightIntensity.getValue();
                 var pos = this.lightPosition.getValue();
                 lightInfo.position = new THREE.Vector3(pos[0], pos[1], pos[2]);
+                var tgt = this.lightTarget.getValue();
+                lightInfo.target = new THREE.Vector3(tgt[0], tgt[1], tgt[2]);
+                break;
                 // cast shadow?
                 break;
             case hemi.LightType.AMBIENT:
@@ -314,6 +405,8 @@
         this.lightDistance.reset();
         this.lightIntensity.reset();
         this.lightPosition.reset();
+        this.lightTarget.reset();
+        this.lightName.reset();
 	
 		// reset the colorpicker
 		this.colorPicker.reset();
@@ -325,12 +418,27 @@
 	
 	CreateWidget.prototype.set = function(light) {
 		// set the type
-		this.lightType.val(light.config.light).change();
+        var type;
+        switch(light.light._octaneType) {
+            case 'THREE.AmbientLight':
+                type = hemi.LightType.AMBIENT;
+                break;
+            case 'THREE.SpotLight':
+                type = hemi.LightType.SPOT;
+                break;
+            case 'THREE.DirectionalLight':
+                type = hemi.LightType.DIRECTIONAL;
+                break;
+            case 'THREE.PointLight':
+                type = hemi.LightType.POINT;
+                break;
+        }
+		this.lightType.val(type).change();
 		
 		
 		// set the dimension values
-		for (var prop in shape.config) {
-			var val = shape.config[prop];
+		for (var prop in light.light) {
+			var val = light.light[prop];
 			
 			switch(prop) {
 				case 'intensity':
@@ -340,19 +448,30 @@
 					this.lightDistance.setValue(val);
 					break;
 				case 'position':
-                    var translation = light.config.position;
+                    var translation = light.light.position;
                     this.lightPosition.setValue({
                         x: translation.x,
                         y: translation.y,
                         z: translation.z
                     });
 					break;
+                case 'target':
+                    var target = light.light.target.position;
+                    
+                    this.lightTarget.setValue({
+                        x: target.x,
+                        y: target.y,
+                        z: target.z
+                    });
 			}
 		}
 		
 		// set the color
-		this.colorPicker.setColorHex(shape.config.color, shape.config.opacity);
-		
+        var lightColor = light.light.color;
+        var color = [];
+        color = [lightColor.r, lightColor.g, lightColor.b, 1]
+        this.colorPicker.setColor(color);
+        
 		// set the name
 		this.lightName.setValue(light.name);
 		
@@ -364,10 +483,6 @@
 // View
 ////////////////////////////////////////////////////////////////////////////////////////////////////  
     
-    /**
-     * The ShapesView controls the dialog and toolbar widget for the 
-     * animation tool.
-     */
     var LightsView = function() {
         editor.ToolView.call(this, {
 			toolName: 'Lights',
@@ -396,10 +511,6 @@
 // Controller
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 
-    /**
-     * The ShapesController facilitates ShapesModel and ShapesView
-     * communication by binding event and message handlers.
-     */
     var LightsController = function() {
 		editor.ToolController.call(this);
 	};
@@ -421,50 +532,59 @@
 			lstWgt = view.sidePanel.lightListWidget;
 			
 		view.addListener(editor.events.ToolModeSet, function(value) {
-			// var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
+			var isDown = value.newMode === editor.ToolConstants.MODE_DOWN;
 			
-			// if (model.prevShape) {
-				// model.prevShape.mesh.visible = isDown;
-				// if (model.currentShape) {
-					// model.currentShape.mesh.visible = !isDown;
-				// }
-			// }
+			if (model.prevLight) {
+                if (isDown) {
+                    model.prevLight.addToScene();
+                } else {
+                    model.prevLight.removeFromScene();
+                }
+                if (model.currentLight) {
+                    if (isDown) {
+                        model.prevLight.removeFromScene();
+                    } else {
+                        model.prevLight.addToScene();
+                    }
+                }
+			}
 		});
 		
 		// create sidebar widget listeners
 		crtWgt.addListener(shorthand.events.SaveLight, function(props) {				
-			// model.saveShape(props);
-			// crtWgt.reset();
+            model.saveLight(props);
+            crtWgt.reset();
+
 		});		
 		crtWgt.addListener(shorthand.events.PreviewLight, function(props) {
 			model.previewLight(props);
 		});
 		crtWgt.addListener(editor.events.Cancel, function() {
-			// model.setShape(null);
+            model.setLight(null);
 		});	
 		
 		// list sidebar widget listeners
-		lstWgt.addListener(editor.events.Edit, function(shape) {				
-			// model.setShape(shape);
+		lstWgt.addListener(editor.events.Edit, function(light) {				
+            model.setLight(light)
 		});	
-		lstWgt.addListener(editor.events.Remove, function(shape) {
-			// model.removeShape(shape);
+		lstWgt.addListener(editor.events.Remove, function(light) {
+			 model.removeLight(light);
 		});
 		
 		// model specific listeners
-		model.addListener(editor.events.Created, function(shape) {
-			// lstWgt.add(shape);
+		model.addListener(editor.events.Created, function(light) {
+            lstWgt.add(light);
 		});
-		model.addListener(editor.events.Editing, function(shape) {
-			// if (shape != null) {
-				// crtWgt.set(shape);
-			// }
+		model.addListener(editor.events.Editing, function(light) {
+            if (light !== null) {
+                crtWgt.set(light);
+            }
 		});		
-		model.addListener(editor.events.Updated, function(shape) {
-			// lstWgt.update(shape);
+		model.addListener(editor.events.Updated, function(light) {
+			lstWgt.update(light);
 		});		
-		model.addListener(editor.events.Removing, function(shape) {
-			// lstWgt.remove(shape);
+		model.addListener(editor.events.Removing, function(light) {
+			 lstWgt.remove(light);
 		});
     };
 })();

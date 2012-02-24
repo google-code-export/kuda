@@ -524,6 +524,20 @@
 		return this.getCitizens(attributes, opt_filter);
 	};
 
+    /**
+	 * Get any Lights with the given attributes. If no attributes are given, all Shapes will be
+	 * returned.
+	 * 
+	 * @param {Object} attributes optional structure with the attributes to search for
+	 * @param {function(hemi.Shape): boolean} opt_filter optional filter function that takes a Shape
+	 *     and returns true if the Shape should be included in the returned array
+	 * @return {hemi.Shape[]} an array of Shapes with matching attributes
+	 */
+	hemi.world.getLights = function(attributes, opt_filter) {
+		attributes = attributes || {};
+		attributes._octaneType = hemi.Light.prototype._octaneType;
+		return this.getCitizens(attributes, opt_filter);
+	};
 	/**
 	 * Remove the given Citizen from the World.
 	 * 
