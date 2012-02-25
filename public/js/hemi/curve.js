@@ -874,7 +874,7 @@
 
 			if (!material.program) {
 				var scene = this.client.scene;
-				this.client.renderer.initMaterial(material, scene.lights, scene.fog, this._mesh);
+				this.client.renderer.initMaterial(material, scene.__lights, scene.fog, this._mesh);
 			}
 
 			var shads = hemi.utils.getShaders(this.client, material);

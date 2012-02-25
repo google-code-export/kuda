@@ -15609,7 +15609,7 @@ if (!window.requestAnimationFrame) {
 
 			if (!material.program) {
 				var scene = this.client.scene;
-				this.client.renderer.initMaterial(material, scene.lights, scene.fog, this._mesh);
+				this.client.renderer.initMaterial(material, scene.__lights, scene.fog, this._mesh);
 			}
 
 			var shads = hemi.utils.getShaders(this.client, material);
@@ -17123,7 +17123,7 @@ if (!window.requestAnimationFrame) {
 			for (var i = 0, il = data.materials.length; i < il; i++) {
 				var matData = data.materials[i];
 
-				client.renderer.initMaterial(matData.mat, client.scene.lights, client.scene.fog, matData.obj);
+				client.renderer.initMaterial(matData.mat, client.scene.__lights, client.scene.fog, matData.obj);
 			}
 		}
 	};
@@ -17200,7 +17200,7 @@ if (!window.requestAnimationFrame) {
 				fog = client.scene.fog;
 
 			if (refresh) {
-				client.renderer.initMaterial(material, client.scene.lights, 
+				client.renderer.initMaterial(material, client.scene.__lights, 
 					fog, object);
 			}
 			else {
