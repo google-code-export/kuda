@@ -278,7 +278,7 @@ routes.get(routes.MODELS, function(req, res) {
 	if (!path.existsSync(routes.assetsPath)) {
 		fs.mkdirSync(routes.assetsPath, 0755);
 	} else {
-		getColladaFiles(routes.assetsPath, 'assets', data);
+		getModelFiles(routes.assetsPath, 'assets', data);
 	}
 
 	res.send(JSON.stringify(data), 200, JSONt);
@@ -453,7 +453,7 @@ routes.post(routes.PUBLISH, function(req, res) {
 	}
 });
 
-function getColladaFiles(fullPath, url, data) {
+function getModelFiles(fullPath, url, data) {
 	var fileNames = fs.readdirSync(fullPath),
 			urlDir = 'assets/';
 
@@ -464,13 +464,11 @@ function getColladaFiles(fullPath, url, data) {
 			stat = fs.statSync(filePath);
 		
 		if (stat.isDirectory()) {
-			getColladaFiles(filePath, fileUrl, data);
+			getModelFiles(filePath, fileUrl, data);
 		} else {
-			var ndx = fileName.indexOf('.dae');
-
-			if (ndx !== -1) {
+			if (fileName.match(/\.dae$|\.js$|\.utf8$/) !== null) {
 				data.models.push({
-					name: fileName.substr(0, ndx),
+					name: fileName.split('.').shift(),
 					url: fileUrl
 				});
 			}

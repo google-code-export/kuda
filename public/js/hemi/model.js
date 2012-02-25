@@ -206,9 +206,15 @@
 		if (this._loaded) this.unload();
 
 		var that = this,
-			onCollada = function (collada) {
+			onFileLoad = function(obj) {
 				var animHandler = THREE.AnimationHandler,
-					animations = collada.animations,
+					animations = obj.animations || [],
+					scene = obj.scene || obj.materials.length > 0 ? 
+						new hemi.Mesh(obj, new THREE.MeshFaceMaterial()) :
+						new hemi.Mesh(obj, new THREE.MeshLambertMaterial({ 
+							color: 0xffffff, 
+							overdraw: true 
+						})),
 					toConvert = {};
 
 				that._loaded = true;
@@ -219,9 +225,13 @@
 				}
 
 				if (that.root === null) {
-					that.root = convertObject3Ds.call(that, collada.scene, toConvert);
+					if (!(scene instanceof hemi.Mesh)) {
+						that.root = convertObject3Ds.call(that, scene, toConvert);
+					} else {
+						that.root = scene;
+					}
 				} else {
-					that.root._init(collada.scene, toConvert);
+					that.root._init(scene, toConvert);
 				}
 
 				that.client.scene.add(that.root);
@@ -237,16 +247,42 @@
 				}
 
 				that.send(hemi.msg.load, {
-					root: collada.scene
+					root: scene
 				});
 			};
 
 		if (opt_collada) {
 			onCollada(opt_collada);
 		} else {
-			hemi.loadCollada(this._fileName, onCollada, {
-				// Options here
-			});
+			// check type
+			var fileType = this._fileName.split('.').pop();
+
+			switch (fileType) {
+				case 'utf8':
+					hemi.loadUTF8(this._fileName, onFileLoad, {
+						// Options here
+					});
+					break;
+				case 'dae':
+					hemi.loadCollada(this._fileName, onFileLoad, {
+						// Options here
+					});
+					break;
+				// default is .js format which includes jsonLoader and binLoader
+				default:
+					var scope = this;
+					// test first
+					hemi.utils.get(this._fileName, function(data, status) {
+						var fileData = JSON.parse(data);
+
+						if (fileData.buffers !== undefined) {
+							hemi.loadBinary(scope._fileName, onFileLoad);
+						} else {
+							hemi.loadJson(scope._fileName, onFileLoad);
+						}
+					})
+					break;
+			}
 		}
 	};
 
