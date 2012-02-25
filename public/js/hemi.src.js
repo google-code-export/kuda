@@ -4317,6 +4317,34 @@ if (!window.requestAnimationFrame) {
 		});
 	};
 
+	hemi.loadUTF8 = function(url, callback, options) {
+		var loader = new THREE.UTF8Loader();
+		
+		url = hemi.getLoadPath(url);
+		++taskCount;
+		createTask(url);
+
+		loader.load(url, function(result) {
+			if (callback) {
+				callback(result);
+			}
+			updateTask(url, 100);
+			decrementTaskCount();
+		}, options);
+	};
+
+	hemi.loadJson = function(url, callback) {
+		var loader = new THREE.JSONLoader();
+
+		genericLoad(url, callback, loader);
+	};
+
+	hemi.loadBinary = function(url, callback) {
+		var loader = new THREE.BinaryLoader();
+
+		genericLoad(url, callback, loader);
+	};
+
 	/**
 	 * Load the image file at the given URL. If an error occurs, it is logged. Otherwise the given
 	 * callback is executed and passed the loaded image.
@@ -4547,6 +4575,20 @@ if (!window.requestAnimationFrame) {
 		}
 		
 		return percent;
+	}
+
+	function genericLoad(url, callback, loader) {
+		url = hemi.getLoadPath(url);
+		++taskCount;
+		createTask(url);
+
+		loader.load(url, function(result) {
+			if (callback) {
+				callback(result);
+			}
+			updateTask(url, 100);
+			decrementTaskCount();
+		});
 	}
 
 })();
@@ -9965,9 +10007,15 @@ if (!window.requestAnimationFrame) {
 		if (this._loaded) this.unload();
 
 		var that = this,
-			onCollada = function (collada) {
+			onFileLoad = function(obj) {
 				var animHandler = THREE.AnimationHandler,
-					animations = collada.animations,
+					animations = obj.animations || [],
+					scene = obj.scene || obj.materials.length > 0 ? 
+						new hemi.Mesh(obj, new THREE.MeshFaceMaterial()) :
+						new hemi.Mesh(obj, new THREE.MeshLambertMaterial({ 
+							color: 0xffffff, 
+							overdraw: true 
+						})),
 					toConvert = {};
 
 				that._loaded = true;
@@ -9978,9 +10026,13 @@ if (!window.requestAnimationFrame) {
 				}
 
 				if (that.root === null) {
-					that.root = convertObject3Ds.call(that, collada.scene, toConvert);
+					if (!(scene instanceof hemi.Mesh)) {
+						that.root = convertObject3Ds.call(that, scene, toConvert);
+					} else {
+						that.root = scene;
+					}
 				} else {
-					that.root._init(collada.scene, toConvert);
+					that.root._init(scene, toConvert);
 				}
 
 				that.client.scene.add(that.root);
@@ -9996,16 +10048,42 @@ if (!window.requestAnimationFrame) {
 				}
 
 				that.send(hemi.msg.load, {
-					root: collada.scene
+					root: scene
 				});
 			};
 
 		if (opt_collada) {
 			onCollada(opt_collada);
 		} else {
-			hemi.loadCollada(this._fileName, onCollada, {
-				// Options here
-			});
+			// check type
+			var fileType = this._fileName.split('.').pop();
+
+			switch (fileType) {
+				case 'utf8':
+					hemi.loadUTF8(this._fileName, onFileLoad, {
+						// Options here
+					});
+					break;
+				case 'dae':
+					hemi.loadCollada(this._fileName, onFileLoad, {
+						// Options here
+					});
+					break;
+				// default is .js format which includes jsonLoader and binLoader
+				default:
+					var scope = this;
+					// test first
+					hemi.utils.get(this._fileName, function(data, status) {
+						var fileData = JSON.parse(data);
+
+						if (fileData.buffers !== undefined) {
+							hemi.loadBinary(scope._fileName, onFileLoad);
+						} else {
+							hemi.loadJson(scope._fileName, onFileLoad);
+						}
+					})
+					break;
+			}
 		}
 	};
 

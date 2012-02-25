@@ -106,6 +106,34 @@
 		});
 	};
 
+	hemi.loadUTF8 = function(url, callback, options) {
+		var loader = new THREE.UTF8Loader();
+		
+		url = hemi.getLoadPath(url);
+		++taskCount;
+		createTask(url);
+
+		loader.load(url, function(result) {
+			if (callback) {
+				callback(result);
+			}
+			updateTask(url, 100);
+			decrementTaskCount();
+		}, options);
+	};
+
+	hemi.loadJson = function(url, callback) {
+		var loader = new THREE.JSONLoader();
+
+		genericLoad(url, callback, loader);
+	};
+
+	hemi.loadBinary = function(url, callback) {
+		var loader = new THREE.BinaryLoader();
+
+		genericLoad(url, callback, loader);
+	};
+
 	/**
 	 * Load the image file at the given URL. If an error occurs, it is logged. Otherwise the given
 	 * callback is executed and passed the loaded image.
@@ -336,6 +364,20 @@
 		}
 		
 		return percent;
+	}
+
+	function genericLoad(url, callback, loader) {
+		url = hemi.getLoadPath(url);
+		++taskCount;
+		createTask(url);
+
+		loader.load(url, function(result) {
+			if (callback) {
+				callback(result);
+			}
+			updateTask(url, 100);
+			decrementTaskCount();
+		});
 	}
 
 })();
