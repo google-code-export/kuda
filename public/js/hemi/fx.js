@@ -50,7 +50,7 @@
 			for (var i = 0, il = data.materials.length; i < il; i++) {
 				var matData = data.materials[i];
 
-				client.renderer.initMaterial(matData.mat, client.scene.lights, client.scene.fog, matData.obj);
+				client.renderer.initMaterial(matData.mat, client.scene.__lights, client.scene.fog, matData.obj);
 			}
 		}
 	};
@@ -127,7 +127,7 @@
 				fog = client.scene.fog;
 
 			if (refresh) {
-				client.renderer.initMaterial(material, client.scene.lights, 
+				client.renderer.initMaterial(material, client.scene.__lights, 
 					fog, object);
 			}
 			else {
