@@ -275,20 +275,28 @@ form .objectPicker input.treeSelectorIpt {
  * 								  Behavior UI								  *
  ******************************************************************************/
 
-#behaviorAxnParams li {
+.behaviorTrgParams label {
+	clear: both;
+	width: auto;
+}
+.bhvTopPanel .behaviorTrgParams input.keyTrigger[type=text] {
+	float: left;
+	clear: left;
+}
+.behaviorAxnParams li {
 	list-style: none;
 	float: left;
 	clear: both;
 }
-#behaviorAxnParams label {
+.behaviorAxnParams label {
 	width: 6.667em;
 }
-#behaviorAxnParams input[type=text]:not(.short) {
+.behaviorAxnParams input[type=text]:not(.short) {
 	width: 10.417em;
 	float: left;
 	margin-bottom: 2px;
 }
-#behaviorAxnParams input[type=text].vector {
+.behaviorAxnParams input[type=text].vector {
 	width: 3.363em;
 }
 #behaviorMenu {

@@ -71,7 +71,11 @@
 			method = msgTarget.handler.func;
 			argList = msgTarget.handler.args;
 			
-			if (spec.src === hemi.dispatch.WILDCARD) {
+			if (spec.msg === hemi.msg.keyDown || spec.msg === hemi.msg.keyUp ||
+					spec.msg === hemi.msg.keyPress) {
+				source = shorthand.treeData.MSG_WILDCARD;
+				type = spec.msg;
+			} else if (spec.src === hemi.dispatch.WILDCARD) {
 				source = shorthand.treeData.createShapePickCitizen(msgTarget.handler.citizen);
 			} else {
 				source = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
@@ -251,13 +255,22 @@
 		} else if (source._octaneType && source._octaneType === shorthand.constants.CAM_MOVE) {
 			node = hemi.world.getCitizenById(data.type);
 			cfg.parent = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
-		}else {
+		} else {
 			cfg.option = data.type;
 		}
 		openNode(trgTree, node, trgTree.pre);
 		var nodeName = shorthand.treeData.getNodeName(node, cfg);
 		
 		wgt.trgChooser.select(nodeName);
+
+		if (data.type === hemi.msg.keyDown || data.type === hemi.msg.keyUp ||
+				data.type === hemi.msg.keyPress) {
+			wgt.trgPrmLst.show(200, function() {
+				wgt.invalidate();
+			});
+			wgt.keySelector.getUI().show();
+			wgt.keySelector.setValue(msgTarget.handler.values[0]);
+		}
 		
 		nodeName = shorthand.treeData.getNodeName(data.handler, {
 			option: shorthand.constants.FUNCTIONS + '_' + data.method,
@@ -274,8 +287,16 @@
 		}
 
 		wgt.axnChooser.select(nodeName);	
-					
-		for (var i = 0, il = data.args.length; i < il; i++) {
+		
+		var il = data.args.length;
+		
+		if (il) {
+			wgt.axnPrmList.show(200, function() {
+				wgt.invalidate();
+			});
+		}
+
+		for (var i = 0; i < il; i++) {
 			var a = data.args[i];				
 			wgt.prms.setArgument(a.name, a.value);
 		}
@@ -417,9 +438,10 @@
 		bhvWgtSuper.layout.call(this);
 		
 		var form = jQuery('<form class="noSteps" action="" method="post"></form>'), 
-			triggerFieldset = jQuery('<fieldset><legend>Select a Trigger</legend><ol></ol></fieldset>'), 
-			actionFieldset = jQuery('<fieldset><legend>Select an Action</legend><ol id="behaviorAxnSelect"></ol><ol id="behaviorAxnParams"><li></li></ol></fieldset>'),
-			paramsList = actionFieldset.find('#behaviorAxnParams').hide(), 
+			triggerFieldset = jQuery('<fieldset><legend>Select a Trigger</legend><ol class="behaviorTrgSelect" /><ol class="behaviorTrgParams"><li /></ol></fieldset>'), 
+			actionFieldset = jQuery('<fieldset><legend>Select an Action</legend><ol class="behaviorAxnSelect" /><ol class="behaviorAxnParams"><li /></ol></fieldset>'),
+			axnParamsList = actionFieldset.find('.behaviorAxnParams').hide(), 
+			trgParamsList = triggerFieldset.find('.behaviorTrgParams').hide(),
 			saveFieldset = jQuery('<fieldset><legend>Save Behavior</legend><ol>' +
 				'<li>' +
 				'    <input type="text" class="nameField" autocomplete="off" placeholder="Name"/>' +
@@ -456,7 +478,7 @@
 								method = path[path.length-1],
 								args = editor.utils.getFunctionParams(handler[method]);
 							if (args.length > 0) {
-								wgt.prmList.show(200, function() {
+								wgt.axnPrmList.show(200, function() {
 									// can be repetitive, but needs to be here due to the show 
 									// animation
 									wgt.invalidate();
@@ -464,7 +486,7 @@
 								wgt.axnChooser.getUI().addClass('hasValue');
 							}
 							else {
-								wgt.prmList.hide();
+								wgt.axnPrmList.hide();
 								wgt.axnChooser.getUI().removeClass('hasValue');
 							}
 							wgt.prms.populateArgList(handler, method, args);
@@ -475,6 +497,22 @@
 						else {
 							dta.citizen = metadata.parent;
 							dta.type = metadata.msg;
+							console.log(dta.citizen);
+
+							var key = wgt.keySelector,
+								keyUI = key.getUI();
+
+							if (dta.type === hemi.msg.keyDown) {
+								key.reset();
+								keyUI.show();
+								wgt.trgPrmLst.show(200, function() {
+									wgt.invalidate();
+								});
+							}
+							else {
+								keyUI.hide();
+								wgt.trgPrmLst.hide();
+							}
 						}
 						selector.input.val(path.join('.').replace(
 							/\.More\.\.\.|\.messages|\.functions|\.transforms/g, '').replace(
@@ -490,7 +528,8 @@
 		this.trgFieldset = triggerFieldset;
 		this.axnFieldset = actionFieldset;
 		this.savFieldset = saveFieldset;
-		this.prmList = paramsList;
+		this.axnPrmList = axnParamsList;
+		this.trgPrmLst = trgParamsList;
 		this.saveBtn = saveBtn;
 		this.cancelBtn = cancelBtn;
 		this.nameIpt = nameIpt;
@@ -498,8 +537,10 @@
 		this.prms = new shorthand.Parameters({
 				prefix: 'bhvEdt'
 			});
+		this.keySelector = new shorthand.KeyTriggerSelector();
 		
-		paramsList.find('li').append(this.prms.getUI());
+		axnParamsList.find('li').append(this.prms.getUI());
+		trgParamsList.find('li').append(this.keySelector.getUI());
 			
 		// init trees
 		if (axnTree == null) {
@@ -522,12 +563,12 @@
 		var li = jQuery('<li></li>');
 		
 		li.append(this.axnChooser.getUI());
-		actionFieldset.find('#behaviorAxnSelect').append(li);
+		actionFieldset.find('.behaviorAxnSelect').append(li);
 		
 		li = jQuery('<li></li>');
 		
 		li.append(this.trgChooser.getUI());
-		triggerFieldset.find('ol').append(li);
+		triggerFieldset.find('.behaviorTrgSelect').append(li);
 		
 		saveBtn.bind('click', function(evt) {
 			var data = {
@@ -542,6 +583,10 @@
 				msgType = wgt.msgTarget ? shorthand.events.UpdateBehavior :
 					shorthand.events.CreateBehavior;
 			
+			if (wgt.keySelector.getUI().is(':visible')) {
+				data.keyTrigger = wgt.keySelector.getValue();
+			}
+
 			wgt.notifyListeners(msgType, data);
 			wgt.reset();
 			wgt.setVisible(false);
@@ -581,11 +626,15 @@
 		this.axnChooser.reset();
 		this.axnChooser.getUI().removeClass('hasValue');
 		this.prms.reset();
+		this.keySelector.reset();
 		this.nameIpt.val('');
 		
 		reset(trgTree.getUI());
 		reset(axnTree.getUI());
 		
+		this.axnPrmList.hide();
+		this.trgPrmLst.hide();
+		this.keySelector.getUI().hide();
 		this.checkSaveButton();
 		this.msgTarget = null;
 		this.invalidate();
@@ -758,11 +807,11 @@
 					if (target.handler instanceof hemi.ValueCheck) {
 						if (target.handler.citizen instanceof hemi.Camera){
 							compId = target.handler.values[0];
-						}
-						else if (target.handler.citizen instanceof hemi.Model) {
+						} else if (target.handler.citizen instanceof hemi.Model) {
 							compId = target.handler.handler._getId();
-						}
-						else {
+						} else if (target.handler.citizen == null) {
+							compId = null;
+						} else {
 							compId = target.handler.citizen._getId();
 						}
 					}
