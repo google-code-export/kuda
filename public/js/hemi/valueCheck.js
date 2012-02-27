@@ -133,6 +133,27 @@
 		}
 	};
 
+	ValueCheck.prototype.handleKeyMessage = function(message) {
+		var evt = hemi.dispatch.getArguments(message, this.valueParams)[0],
+			key = this.values[0],
+			valid = evt.keyCode === key.keyCode;
+
+		if (valid && key.altKey) {
+			valid = evt.altKey;
+		}
+		if (valid && key.ctrlKey) {
+			valid = evt.ctrlKey;
+		}
+		if (valid && key.shiftKey) {
+			valid = evt.shiftKey;
+		}
+
+		if (valid) {
+			var args = hemi.dispatch.getArguments(message, this.args);
+			this.handler[this.func].apply(this.handler, args);
+		}
+	}
+
 	hemi.makeCitizen(ValueCheck, 'hemi.ValueCheck', {
 		cleanup: ValueCheck.prototype._clean,
 		toOctane: ValueCheck.prototype._octane
@@ -192,6 +213,32 @@
 		}
 
 		return camera.subscribe(hemi.msg.stop, valCheck, 'handleMessage');
+	};
+
+	/**
+	 * Create a ValueCheck handler that will check keyboard event messages for the given key.
+	 * 
+	 * @param {string} eventType either hemi.msg.keyDown, hemi.msg.keyUp, or hemi.msg.keyPress
+	 * @param {Object} key the key object which specifies the keycode as well as whether special
+	 *     characters like ctrl, shift, or alt were pressed
+	 * @param {Object} handler handler object for the Message.
+	 * @param {string} func name of the object function to pass the Message to
+	 * @param {string[]} opt_args optional array to specify arguments to pass to the handler.
+	 *     Otherwise just pass it the Message.
+	 * @return {hemi.ValueCheck} the created ValueCheck handler
+	 */
+	hemi.handleKeyEvent = function(eventType, key, handler, func, opt_args) {
+		var valCheck = new hemi.ValueCheck();
+		valCheck.values = [key];
+		valCheck.valueParams = [hemi.dispatch.MSG_ARG + 'data'];
+		valCheck.handler = handler;
+		valCheck.func = func;
+
+		if (opt_args) {
+			valCheck.args = opt_args;
+		}
+
+		return hemi.subscribe(eventType, valCheck, 'handleKeyMessage');
 	};
 
 })();

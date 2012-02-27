@@ -260,15 +260,19 @@
 			source, type, handler, method, argList;
 		
 		if (isValueCheck) {
+			var cit = msgTarget.handler.citizen;
+
 			type = msgTarget.handler.values[0];
 			handler = msgTarget.handler.handler;
 			method = msgTarget.handler.func;
 			argList = msgTarget.handler.args;
 			
-			if (spec.src === hemi.dispatch.WILDCARD) {
+			if (cit instanceof hemi.Model || cit instanceof hemi.Shape) {
 				source = shorthand.treeData.createShapePickCitizen(msgTarget.handler.citizen);
-			} else {
+			} else if (cit instanceof hemi.Camera) {
 				source = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
+			} else if (cit === null) {
+				source = shorthand.treeData.MSG_WILDCARD;
 			}
 		} else {
 			source = spec.src;
@@ -318,6 +322,7 @@
 		
 		this.setTrigger(trigger.citizen, trigger.type);
 		this.setAction(action.handler, action.method);
+		this.keyData = data.keyTrigger;
 		
 		for (var ndx = 0, len = args.length; ndx < len; ndx++) {
 			var arg = args[ndx];
@@ -366,8 +371,7 @@
 				this.method,
 				args);
 			this.dispatchProxy.unswap();
-		}
-		else if (this.source.camMove) {
+		} else if (this.source.camMove) {
 			this.dispatchProxy.swap();
 			var viewpoint = hemi.world.getCitizenById(this.type);
 			newTarget = hemi.handleCameraMove(
@@ -377,8 +381,17 @@
 				this.method,
 				args);
 			this.dispatchProxy.unswap();
-		}
-		else {
+		} else if (this.type === hemi.msg.keyDown || this.type === hemi.msg.keyUp || 
+				this.type === hemi.msg.keyPress) {
+			this.dispatchProxy.swap();
+			newTarget = hemi.handleKeyEvent(
+				this.type,
+				this.keyData,
+				this.handler,
+				this.method,
+				args);
+			this.dispatchProxy.unswap();
+		} else {
 			var src = this.source === shorthand.treeData.MSG_WILDCARD ? hemi.dispatch.WILDCARD 
 					: this.source._getId(),
 				type = this.type === shorthand.treeData.MSG_WILDCARD ? hemi.dispatch.WILDCARD 
@@ -469,6 +482,10 @@
 			name: argName,
 			value: argValue
 		});
+	};
+
+	BehaviorModel.prototype.setKey = function(keyData) {
+		this.key = keyData;
 	};
     
     BehaviorModel.prototype.setTrigger = function(source, type) {
@@ -934,6 +951,7 @@
 
 	editor.getScript('js/editor/plugins/behavior/js/objectPicker.js');
 	editor.getScript('js/editor/plugins/behavior/js/param.js');
+	editor.getScript('js/editor/plugins/behavior/js/keyTriggerSelector.js');
 	editor.getScript('js/editor/plugins/behavior/js/treeData.js');
 	editor.getScript('js/editor/plugins/behavior/js/behaviorTrees.js');
 	editor.getScript('js/editor/plugins/behavior/js/behaviorWidget.js');
