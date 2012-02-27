@@ -20,7 +20,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
  (function () {
-
+   
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Constants
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,8 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Light class
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-
+    var clientData = [],
+        mats = [];
 	/**
 	 * @class A Light is a wrapper class around light types.
 	 * 
@@ -78,6 +79,7 @@
             var scene = this.client.scene;
             if (this.light) {
                 scene.add(this.light);
+                this.updateTargetMatrix();
             }
         }
     }
@@ -86,10 +88,17 @@
             var scene = this.client.scene;
             if (this.light) {
                 scene.remove(this.light);
+                this.updateTargetMatrix();
             }
         }
     };
-
+    
+    Light.prototype.updateTargetMatrix = function() {
+        if (this.light.target) {
+            this.light.target.updateMatrix();
+            this.light.target.updateMatrixWorld();  
+        }
+    };
 	/**
 	 * Set the name for the Light object.
 	 * 
@@ -98,6 +107,49 @@
 	Light.prototype.setName = function(name) {
 		this.name = name;
 	};
+    
+    Light.prototype.initMaterial = function() {
+    
+        var data = findData(this.client),
+            objs = this.client.scene.__webglObjects.concat(this.client.scene.__webglObjectsImmediate);
+        if (!data) {
+            data = {
+                client: this.client
+            };
+            clientData.push(data);
+        }
+        for (var i = 0, il = objs.length; i < il; i++) {
+            var webglObject = objs[i], 
+                object = webglObject.object, 
+                opaque = webglObject.opaque, 
+                transparent = webglObject.transparent;
+
+            if (opaque) {
+                mats.push({
+                    mat: opaque,
+                    obj: object
+                });
+            }
+            if (transparent) {
+                mats.push({
+                    mat: transparent,
+                    obj: object
+                });
+            }
+        }
+
+        // save the materials for later
+        data.materials = mats;
+		for (var i = 0, il = data.materials.length; i < il; i++) {
+			var matData = data.materials[i],
+				material = matData.mat,
+				object = matData.obj,
+				fog = this.client.scene.fog;
+
+				this.client.renderer.initMaterial(material, this.client.scene.__lights, 
+					fog, object);
+		}
+    }
 
 	hemi.makeCitizen(Light, 'hemi.Light', {
 		cleanup: Light.prototype._clean,
@@ -107,8 +159,20 @@
     hemi.makeOctanable(THREE.Vector3, 'THREE.Vector3', ['x', 'y', 'z']);
     hemi.makeOctanable(THREE.AmbientLight, 'THREE.AmbientLight', ['color']);    
     hemi.makeOctanable(THREE.PointLight, 'THREE.PointLight', ['color', 'intensity', 'position', 'distance']);
-    //hemi.makeOctanable(THREE.DirectionalLight, 'THREE.DirectionalLight', ['color', 'intensity', 'position', 'distance', 'target']);
+    hemi.makeOctanable(THREE.DirectionalLight, 'THREE.DirectionalLight', ['color', 'intensity', 'position', 'distance', 'target']);
     //hemi.makeOctanable(THREE.SpotLight, 'THREE.SpotLight', ['color', 'intensity', 'position', 'distance']);
-    
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+	
+	function findData(client) {
+		var retVal = null;
+		for (var i = 0, il = clientData.length; i < il && retVal === null; i++) {
+			if (clientData[i].client === client) {
+				retVal = clientData[i];
+			}
+		}
+		return retVal;
+	}    
 
 })();
