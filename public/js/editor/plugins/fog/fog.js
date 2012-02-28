@@ -25,7 +25,7 @@
 	var shorthand = editor.tools.fog;
 
 	shorthand.init = function() {
-		var navPane = editor.ui.getNavPane('Effects'),
+		var navPane = editor.ui.getNavPane('Environment'),
 			
 			fogMdl = new FogModel(),
 			fogView = new FogView(),

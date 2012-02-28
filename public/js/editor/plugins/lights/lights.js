@@ -26,7 +26,7 @@
 	var shorthand = editor.tools.lights;
 
 	shorthand.init = function() {
-		var navPane = editor.ui.getNavPane('Lights'),
+		var navPane = editor.ui.getNavPane('Environment'),
 			
 			lightsMdl = new LightsModel(),
 			lightsView = new LightsView(),
