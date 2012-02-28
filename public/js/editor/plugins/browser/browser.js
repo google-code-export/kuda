@@ -1394,6 +1394,7 @@
 		});
 		
 		this.state = AdjustState.NONE;
+		this.transform = null;
 	};
 		
 	AdjustWidget.prototype = new editor.ui.Widget();
@@ -1409,6 +1410,7 @@
 			this.transBtn.attr('disabled', 'disabled');
 			this.rotateBtn.attr('disabled', 'disabled');
 			this.scaleBtn.attr('disabled', 'disabled');
+			this.state = AdjustState.NONE;
 		}
 	};
 		
@@ -1430,7 +1432,12 @@
 		this.transBtn = jQuery('<button id="mbrTranslateBtn">Translate</button>');
 		this.rotateBtn = jQuery('<button id="mbrRotateBtn">Rotate</button>');
 		this.scaleBtn = jQuery('<button id="mbrScaleBtn">Scale</button>');
-		
+
+		var popup = editor.ui.createTooltip({
+			cls: 'mbrPopup',
+			mouseHide: false
+		});
+
 		form.append(this.transBtn).append(this.rotateBtn)
 			.append(this.scaleBtn);
 		this.container.append(form);
@@ -1438,24 +1445,108 @@
 		this.transBtn.bind('click', function() {				
 			wgt.rotateBtn.removeClass('down');
 			wgt.scaleBtn.removeClass('down');
+			wgt.state = AdjustState.TRANSLATE;
 			notify(jQuery(this), editor.ui.trans.DrawState.TRANSLATE);
+			wgt.buildPopup(popup, wgt.transBtn);
 		});
 		this.rotateBtn.bind('click', function() {				
 			wgt.transBtn.removeClass('down');
 			wgt.scaleBtn.removeClass('down');
+			wgt.state = AdjustState.ROTATE;
 			notify(jQuery(this), editor.ui.trans.DrawState.ROTATE);
+			wgt.buildPopup(popup, wgt.rotateBtn);
 		});
 		this.scaleBtn.bind('click', function() {				
 			wgt.rotateBtn.removeClass('down');
 			wgt.transBtn.removeClass('down');
+			wgt.state = AdjustState.SCALE;
 			notify(jQuery(this), editor.ui.trans.DrawState.SCALE);
+			wgt.buildPopup(popup, wgt.scaleBtn);
 		});
+	};
+
+	AdjustWidget.prototype.buildPopup = function(popup, button) {
+		if (button.hasClass('down')) {
+			var container = jQuery('<form></form>'),
+				acceptButton = jQuery('<button id="mbrAcceptButton">Accept</button>'),
+				transform = this.transform,
+				vector = this.buildVector(this.transform),
+				state = this.state;
+
+			acceptButton.bind('click', function() {
+				if (state === AdjustState.TRANSLATE) {
+					transform.position = new THREE.Matrix4().getInverse(transform.parent.matrixWorld).multiplyVector3(vector.getValue());
+					transform.updateMatrix();
+				}
+				else if (state === AdjustState.SCALE) {
+					transform.scale = new THREE.Matrix4().getInverse(transform.parent.matrixWorld).multiplyVector3(vector.getValue());
+					transform.updateMatrix();
+				}
+				else if (state === AdjustState.ROTATE) {
+					var newRotation = new THREE.Matrix4().getInverse(transform.parent.matrixWorld).multiplyVector3(vector.getValue());
+					if (transform.useQuaternion) {
+						transform.quaternion.setFromEuler(newRotation);
+					}	
+					else {
+						transform.rotation = newRotation;
+					}
+					transform.updateMatrix();
+				}
+			});
+
+			container.append(vector.getUI()).append(acceptButton);
+			popup.show(button, container, null, {
+				top: 5,
+				left: 0
+			});
+		
+			jQuery(document).bind('click.mbr', function(e) {
+				var target = jQuery(e.target),
+					parent = target.parents('.tooltip, #' + button.attr('id'));
+				
+				if (parent.size() == 0 && target.attr('id') != button.attr('id')) {
+					popup.hide(0);
+				}
+			});
+		}
+		else {
+			popup.hide(0);
+			jQuery(document).unbind('click.mbr');
+		}
+	};
+
+	AdjustWidget.prototype.buildVector = function(transform) {
+		var vector = new editor.ui.Vector3({
+			validator: editor.ui.createDefaultValidator()
+		});
+		if (transform !== null) {
+			if (this.state === AdjustState.TRANSLATE) {
+				vector.setValue(transform.matrixWorld.getPosition());
+			}
+			else if (this.state === AdjustState.ROTATE) {
+				var rotate = new THREE.Vector3().setRotationFromMatrix(transform.matrixWorld);
+				rotate.x = rotate.x * hemi.RAD_TO_DEG;
+				rotate.y = rotate.y * hemi.RAD_TO_DEG;
+				rotate.z = rotate.z * hemi.RAD_TO_DEG;
+				vector.setValue(rotate);
+			}
+			else if (this.state === AdjustState.SCALE) {
+				vector.setValue(transform.matrixWorld.decompose()[2]);
+			}
+		}
+		
+		return vector;
+	};
+
+	AdjustWidget.prototype.set = function(transform) {
+		this.transform = transform;
 	};
 	
 	AdjustWidget.prototype.reset = function() {
 		this.scaleBtn.removeClass('down');
 		this.rotateBtn.removeClass('down');
 		this.transBtn.removeClass('down');
+		this.state = AdjustState.NONE;
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1984,6 +2075,7 @@
 			opaWgt.enable(true);
 			visWgt.enable(true);
 			adjWgt.enable(true);
+			adjWgt.set(transform);
 			
 			if (view.mode === editor.ToolConstants.MODE_DOWN) {
 				view.bottomPanel.setVisible(true);
