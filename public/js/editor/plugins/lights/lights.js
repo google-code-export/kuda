@@ -15,7 +15,7 @@
  * Boston, MA 02110-1301 USA.
  */
  
- // TODO: Update to work with directional and spot lights.
+ // TODO: Octane targets for spot and directional lights.
  (function() {
 	"use strict";
 	
@@ -69,7 +69,7 @@
 	LightsModel.prototype.previewLight = function(props) {
 		if (this.currentLight !== null) {
             this.currentLight.removeFromScene();
-            this.currentLight.initMaterial();
+            //this.currentLight.initMaterial();
         }
         if(this.prevLight) {
             this.prevLight.cleanup();
@@ -77,6 +77,7 @@
         
         this.prevLight = new hemi.Light(editor.client, this.createLight(props.lightInfo));
         this.prevLight.name = editor.ToolConstants.EDITOR_PREFIX + 'PreviewLight';
+        this.currentLight.initMaterial();
 	};
 	
     
@@ -138,7 +139,7 @@
                 break;
             case hemi.LightType.SPOT:
                 // false is the default for shadow
-                light = new THREE.SpotLight(lightInfo.color, lightInfo.intensity, lightInfo.distance, false);
+                light = new THREE.SpotLight(lightInfo.color, lightInfo.intensity, lightInfo.distance);
                 light.position = lightInfo.position;
                 light.target.position = lightInfo.target;
                 // shadows
@@ -154,6 +155,7 @@
                 light.position = lightInfo.position;
                 break;  
         }    
+        console.log(light);
         return light;
     };
     
