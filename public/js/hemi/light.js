@@ -44,7 +44,7 @@
 	 * @class A Light is a wrapper class around light types.
 	 * 
 	 * @param {hemi.Client} client the Client that will render the Light
-	 * @param {Object} config Configurations for light
+	 * @param {Object} light A THREE.js light object
 	 */
 	var Light = function(client, light) {
         this.client = client;
@@ -160,7 +160,7 @@
     hemi.makeOctanable(THREE.AmbientLight, 'THREE.AmbientLight', ['color']);    
     hemi.makeOctanable(THREE.PointLight, 'THREE.PointLight', ['color', 'intensity', 'position', 'distance']);
     hemi.makeOctanable(THREE.DirectionalLight, 'THREE.DirectionalLight', ['color', 'intensity', 'position', 'distance', 'target']);
-    //hemi.makeOctanable(THREE.SpotLight, 'THREE.SpotLight', ['color', 'intensity', 'position', 'distance']);
+    hemi.makeOctanable(THREE.SpotLight, 'THREE.SpotLight', ['color', 'intensity', 'position', 'distance', 'target']);
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////
