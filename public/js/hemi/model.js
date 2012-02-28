@@ -209,7 +209,7 @@
 			onFileLoad = function(obj) {
 				var animHandler = THREE.AnimationHandler,
 					animations = obj.animations || [],
-					scene = obj.scene || obj.materials.length > 0 ? 
+					scene = obj.scene ? obj.scene : obj.materials.length > 0 ? 
 						new hemi.Mesh(obj, new THREE.MeshFaceMaterial()) :
 						new hemi.Mesh(obj, new THREE.MeshLambertMaterial({ 
 							color: 0xffffff, 
