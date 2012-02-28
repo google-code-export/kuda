@@ -118,16 +118,16 @@
 					if (target.handler instanceof hemi.ValueCheck) {
 						if (target.handler.citizen instanceof hemi.Camera) {
 							compId = target.handler.values[0];
-						}
-						else if (target.handler.citizen instanceof hemi.Model) {
+						} else if (target.handler.citizen instanceof hemi.Model) {
 							compId = target.handler.handler._getId();
-						}
-						else {
+						} else if (target.handler.citizen === null) {
+							compId = null;
+						} else {
 							compId = target.handler.citizen._getId();
 						}
 					}
 					else {
-						compId = target.handler._getId();
+						compId = target.handler._getId ? target.handler._getId() : null;
 					}
 					
 					if (compId === id) {

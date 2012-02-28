@@ -809,7 +809,7 @@
 							compId = target.handler.values[0];
 						} else if (target.handler.citizen instanceof hemi.Model) {
 							compId = target.handler.handler._getId();
-						} else if (target.handler.citizen == null) {
+						} else if (target.handler.citizen === null) {
 							compId = null;
 						} else {
 							compId = target.handler.citizen._getId();
