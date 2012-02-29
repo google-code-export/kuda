@@ -152,10 +152,11 @@
 			// determine paths
 			if ((citizen instanceof hemi.Transform || citizen instanceof hemi.Mesh)) {
 				cit = owners.get(citizen);
-				var citType = cit._octaneType.split('.').pop();
+				var citType = cit._octaneType.split('.').pop(),
+					parPath = getTransformPath(citizen);
 
 				path = citType + 'Type_' + citType + '-' + cit._getId() + '_' 
-					+ shorthand.constants.TRANSFORM;
+					+ shorthand.constants.TRANSFORM + (parPath === '' ? '' : '_' + parPath);
 			} else if (citizen instanceof hemi.Viewpoint && config.parent) {
 				cit = config.parent.citizen;
 				path = config.parent._octaneType.split('.').pop() + '_' + 
@@ -235,16 +236,21 @@
 	
 	function createModelTransformJson(model, node, prefix, method) {
 		var list = [],
-			transforms = [];
+			transforms = [],
+			hash = new Hashtable(),
+			nodeJson;
+
+		owners.put(model.root, model);
+		nodeJson = shorthand.treeData[method](model.root, prefix);
+		hash.put(model.root, nodeJson);
 		
-		THREE.SceneUtils.traverseHierarchy(model.root, function(transform) {
-			list.push(transform);
+		traverseHierarchy(model.root, function(transform, parent) {
 			owners.put(transform, model);
+
+			var n = shorthand.treeData[method](transform, prefix);
+			hash.put(transform, n);
+			hash.get(parent).children.push(n);
 		});
-		
-		for (var ndx = 0, len = list.length; ndx < len; ndx++) {
-			transforms.push(shorthand.treeData[method](list[ndx], prefix));
-		}
 		
 		node.children.push({
 			data: 'transforms',
@@ -255,12 +261,36 @@
 				}),
 				rel: 'other'
 			},
-			children: transforms,
+			children: [nodeJson],
 			state: 'closed',
 			metadata: {
 				type: 'set'
 			}
 		});
+	}
+	
+	function getTransformPath(transform) {
+		var path = '', 
+			parent = transform.parent;
+		
+		if (parent != editor.client.scene) {
+			path = parent._octaneType.split('.').pop() + '-' + parent._getId() + '_';
+			path = getTransformPath(parent) + path;
+		}
+		
+		return path;
+	}
+
+	function traverseHierarchy(root, callback) {
+		var n, i, l = root.children.length;
+
+		for (i = 0; i < l; i++) {
+			n = root.children[ i ];
+
+			callback(n, root);
+
+			traverseHierarchy(n, callback);
+		}
 	}
 	
 	shorthand.treeData.getNodeName = getNodeName;
