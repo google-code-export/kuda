@@ -15027,9 +15027,10 @@ if (!window.requestAnimationFrame) {
 	 */
 	Curve.prototype._octane = function() {
 		var names = ['count', 'tension', 'weights'],
-			props = [];
+			props = [],
+			i, il;
 
-		for (var i = 0, il = names.length; i < il; ++i) {
+		for (i = 0, il = names.length; i < il; ++i) {
 			var name = names[i];
 
 			props.push({
@@ -15038,15 +15039,22 @@ if (!window.requestAnimationFrame) {
 			});
 		}
 
-		props.push({
-			name: 'points',
-			oct: this.points
-		});
+		names = ['points', 'tangents'];
 
-		props.push({
-			name: 'tangents',
-			oct: this.points
-		});
+		for (i = 0, il = names.length; i < il; ++i) {
+			var name = names[i],
+				prop = this[name],
+				oct = [];
+
+			for (var j = 0, jl = prop.length; j < jl; ++j) {
+				oct.push(prop[j]._toOctane());
+			}
+
+			props.push({
+				name: name,
+				oct: oct
+			});
+		}
 
 		props.push({
 			name: 'setType',
