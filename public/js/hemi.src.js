@@ -15026,7 +15026,7 @@ if (!window.requestAnimationFrame) {
 	 * @type string[]
 	 */
 	Curve.prototype._octane = function() {
-		var names = ['count', 'tension', 'weights', 'points', 'tangents'],
+		var names = ['count', 'tension', 'weights'],
 			props = [];
 
 		for (var i = 0, il = names.length; i < il; ++i) {
@@ -15037,6 +15037,16 @@ if (!window.requestAnimationFrame) {
 				val: this[name]
 			});
 		}
+
+		props.push({
+			name: 'points',
+			oct: this.points
+		});
+
+		props.push({
+			name: 'tangents',
+			oct: this.points
+		});
 
 		props.push({
 			name: 'setType',
