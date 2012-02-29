@@ -111,7 +111,8 @@
 			'setMovable', 'setMoving', 'setPickable', 'setTurnable', 'setTurning', 'setResizable',
 			'setVisible'],
 		'hemi.Camera': ['disableControl', 'enableControl', 'moveOnCurve',
-			'moveToView', 'orbit', 'rotate', 'truck']
+			'moveToView', 'orbit', 'rotate', 'truck'],
+        'hemi.Light': ['removeFromScene','addToScene']
 	};
 
 	var owners = new Hashtable();

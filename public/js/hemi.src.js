@@ -17850,6 +17850,7 @@ if (!window.requestAnimationFrame) {
             if (this.light) {
                 scene.add(this.light);
                 this.updateTargetMatrix();
+                this.refreshMaterial();
             }
         }
     }
@@ -17859,6 +17860,7 @@ if (!window.requestAnimationFrame) {
             if (this.light) {
                 scene.remove(this.light);
                 this.updateTargetMatrix();
+                this.refreshMaterial();
             }
         }
     };
@@ -17878,8 +17880,10 @@ if (!window.requestAnimationFrame) {
 		this.name = name;
 	};
     
-    Light.prototype.initMaterial = function() {
-    
+    Light.prototype.refreshMaterial = function() {
+        if (!this.client.scene.__webglObjects) {
+            return;
+        }
         var data = findData(this.client),
             objs = this.client.scene.__webglObjects.concat(this.client.scene.__webglObjectsImmediate);
         if (!data) {
@@ -17929,8 +17933,9 @@ if (!window.requestAnimationFrame) {
     hemi.makeOctanable(THREE.Vector3, 'THREE.Vector3', ['x', 'y', 'z']);
     hemi.makeOctanable(THREE.AmbientLight, 'THREE.AmbientLight', ['color']);    
     hemi.makeOctanable(THREE.PointLight, 'THREE.PointLight', ['color', 'intensity', 'position', 'distance']);
-    hemi.makeOctanable(THREE.DirectionalLight, 'THREE.DirectionalLight', ['color', 'intensity', 'position', 'distance', 'target']);
-    hemi.makeOctanable(THREE.SpotLight, 'THREE.SpotLight', ['color', 'intensity', 'position', 'distance', 'target']);
+    hemi.makeOctanable(THREE.DirectionalLight, 'THREE.DirectionalLight', ['color', 'intensity', 'position', 'target']);
+    hemi.makeOctanable(THREE.SpotLight, 'THREE.SpotLight', ['color', 'intensity', 'position', 'distance',]);
+    hemi.makeOctanable(THREE.Object3D, 'THREE.Object3D',['position']);
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////

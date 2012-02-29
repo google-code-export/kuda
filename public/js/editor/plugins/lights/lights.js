@@ -69,7 +69,7 @@
 	LightsModel.prototype.previewLight = function(props) {
 		if (this.currentLight !== null) {
             this.currentLight.removeFromScene();
-            //this.currentLight.initMaterial();
+            //this.currentLight.refreshMaterial();
         }
         if(this.prevLight) {
             this.prevLight.cleanup();
@@ -77,7 +77,7 @@
         
         this.prevLight = new hemi.Light(editor.client, this.createLight(props.lightInfo));
         this.prevLight.name = editor.ToolConstants.EDITOR_PREFIX + 'PreviewLight';
-        this.currentLight.initMaterial();
+        //this.prevLight.refreshMaterial();
 	};
 	
     
@@ -102,13 +102,13 @@
             light.removeFromScene();
             light.light = this.createLight(props.lightInfo);            
             light.addToScene();
-            light.updateTargetMatrix();
-            light.initMaterial();
+            //light.updateTargetMatrix();
+            //light.refreshMaterial();
             msgType = editor.events.Updated;
         } else {
             light = this.currentLight = new hemi.Light(editor.client, this.createLight(props.lightInfo));
-            light.updateTargetMatrix();
-            light.initMaterial();
+            //light.updateTargetMatrix();
+            //light.refreshMaterial();
             msgType = editor.events.Created;
         }
         light.setName(props.name);
@@ -123,7 +123,7 @@
         }
         if (this.currentLight !== null) {
             this.currentLight.addToScene();
-            this.currentLight.initMaterial();
+            //this.currentLight.refreshMaterial();
         }
         
         this.currentLight = light;
@@ -139,11 +139,9 @@
                 break;
             case hemi.LightType.SPOT:
                 // false is the default for shadow
-                light = new THREE.SpotLight(lightInfo.color, lightInfo.intensity, lightInfo.distance);
+                light = new THREE.SpotLight(lightInfo.color, lightInfo.intensity, lightInfo.distance,false);
                 light.position = lightInfo.position;
-                light.target.position = lightInfo.target;
-                // shadows
-                
+                // shadows 
                 break;
             case hemi.LightType.DIRECTIONAL:
                 light = new THREE.DirectionalLight(lightInfo.color, lightInfo.intensity);
@@ -283,11 +281,9 @@
                     wgt.lightDistance.getUI().parent().show();
                     wgt.lightIntensity.getUI().parent().show();
                     wgt.lightPosition.getUI().parent().show();
-                    wgt.lightTarget.getUI().parent().show();
                     inputs.push(wgt.lightDistance);
                     inputs.push(wgt.lightIntensity);
                     inputs.push(wgt.lightPosition);
-                    inputs.push(wgt.lightTarget);
                     // cast shadow?
                     break;
                 case hemi.LightType.AMBIENT:
@@ -387,8 +383,6 @@
                 lightInfo.intensity = this.lightIntensity.getValue();
                 var pos = this.lightPosition.getValue();
                 lightInfo.position = new THREE.Vector3(pos[0], pos[1], pos[2]);
-                var tgt = this.lightTarget.getValue();
-                lightInfo.target = new THREE.Vector3(tgt[0], tgt[1], tgt[2]);
                 break;
                 // cast shadow?
                 break;
@@ -543,18 +537,18 @@
 			if (model.prevLight) {
                 if (isDown) {
                     model.prevLight.addToScene();
-                    this.prevLight.initMaterial();
+                    //this.prevLight.refreshMaterial();
                 } else {
                     model.prevLight.removeFromScene();
-                    this.prevLight.initMaterial();
+                    //this.prevLight.refreshMaterial();
                 }
                 if (model.currentLight) {
                     if (isDown) {
                         model.prevLight.removeFromScene();
-                        this.prevLight.initMaterial();
+                        //this.prevLight.refreshMaterial();
                     } else {
                         model.prevLight.addToScene();
-                        this.prevLight.initMaterial();
+                        //this.prevLight.refreshMaterial();
                     }
                 }
 			}
