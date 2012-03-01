@@ -215,10 +215,8 @@
 		return nameArr;
 	}
 	
-	function openNode(treeWgt, citizen, prefix) {
-		var nodeName = shorthand.treeData.getNodeName(citizen, {
-				prefix: prefix
-			}),
+	function openNode(treeWgt, citizen, cfg) {
+		var nodeName = shorthand.treeData.getNodeName(citizen, cfg),
 			tree = treeWgt.getUI(),
 			cons = shorthand.constants,
 			node, path;
@@ -258,7 +256,7 @@
 		} else {
 			cfg.option = data.type;
 		}
-		openNode(trgTree, node, trgTree.pre);
+		openNode(trgTree, node, cfg);
 		var nodeName = shorthand.treeData.getNodeName(node, cfg);
 		
 		wgt.trgChooser.select(nodeName);
@@ -272,12 +270,14 @@
 			wgt.keySelector.setValue(msgTarget.handler.values[0]);
 		}
 		
-		nodeName = shorthand.treeData.getNodeName(data.handler, {
+		cfg = {
 			option: shorthand.constants.FUNCTIONS + '_' + data.method,
 			prefix: axnTree.pre
-		});
+		};
+
+		nodeName = shorthand.treeData.getNodeName(data.handler, cfg);
 		
-		openNode(axnTree, data.handler, axnTree.pre);
+		openNode(axnTree, data.handler, cfg);
 
 		if (jQuery('#' + nodeName, axnTree.getUI()).length === 0) {
 			nodeName = shorthand.treeData.getNodeName(data.handler, {
@@ -325,7 +325,7 @@
 			nodeName = shorthand.treeData.getNodeName(node, cfg);
 			
 			wgt.trgChooser.select(nodeName);
-			openNode(trgTree, cit, trgTree.pre);
+			openNode(trgTree, cit, { prefix: trgTree.pre });
 		}
 		if (data.action) {
 			var handler = data.action.handler,
@@ -336,7 +336,7 @@
 				prefix: axnTree.pre
 			});
 			
-			openNode(axnTree, handler, axnTree.pre);
+			openNode(axnTree, handler, { prefix: axnTree.pre });
 
 			if (jQuery('#' + nodeName, axnTree.getUI()).length === 0) {
 				nodeName = shorthand.treeData.getNodeName(data.handler, {
@@ -497,7 +497,6 @@
 						else {
 							dta.citizen = metadata.parent;
 							dta.type = metadata.msg;
-							console.log(dta.citizen);
 
 							var key = wgt.keySelector,
 								keyUI = key.getUI();
@@ -711,11 +710,11 @@
 		switch(type) {
 			case shorthand.BehaviorTypes.ACTION:
 				// open up to the actor's node
-				openNode(axnTree, actor, axnTree.pre);
+				openNode(axnTree, actor, { prefix: axnTree.pre });
 				axnTree.restrictSelection(actor, getMethods(actor));
 				break;
 			case shorthand.BehaviorTypes.TRIGGER:
-				openNode(trgTree, actor, trgTree.pre);
+				openNode(trgTree, actor, { prefix: trgTree.pre });
 				trgTree.restrictSelection(actor, getMessages(actor));
 				break;
 		}
@@ -756,7 +755,7 @@
 			}
 		}
 
-		openNode(trgTree, source, trgTree.pre);
+		openNode(trgTree, source, { prefix: trgTree.pre });
 		
 		var nodeId = shorthand.treeData.getNodeName(source, cfg);
 		
