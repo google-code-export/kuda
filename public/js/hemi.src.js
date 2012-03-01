@@ -7883,8 +7883,9 @@ if (!window.requestAnimationFrame) {
 	 * @param {THREE.Object3D} obj Object3D to use to initialize properties
 	 * @param {Object} toConvert look-up structure to get the Transform equivalent of an Object3D
 	 *     for animations
+	 * @param {hemi.Model} model the containing Model for the Transform
 	 */
-	Transform.prototype._init = function(obj, toConvert) {
+	Transform.prototype._init = function(obj, toConvert, model) {
 		var children = this.children;
 		// This is important since THREE.KeyFrameAnimation relies on updating a shared reference to
 		// the matrix.
@@ -7903,7 +7904,7 @@ if (!window.requestAnimationFrame) {
 				childObj = obj.getChildByName(child.name, false);
 
 			this.add(child);
-			child._init(childObj, toConvert);
+			child._init(childObj, toConvert, model);
 		}
 	};
 
@@ -8345,8 +8346,9 @@ if (!window.requestAnimationFrame) {
 	 * @param {THREE.Mesh} obj Mesh to use to initialize properties
 	 * @param {Object} toConvert look-up structure to get the hemi.Mesh equivalent of a THREE.Mesh
 	 *     for animations
+	 * @param {hemi.Model} model the containing Model for the Mesh
 	 */
-	Mesh.prototype._init = function(obj, toConvert) {
+	Mesh.prototype._init = function(obj, toConvert, model) {
 		this.geometry = obj.geometry;
 		this.material = obj.material;
 		this.boundRadius = obj.boundRadius;
@@ -8364,7 +8366,15 @@ if (!window.requestAnimationFrame) {
 			hemi.fx.setOpacity(this, opacity);
 		}
 
-		Transform.prototype._init.call(this, obj, toConvert);
+		if (model.materials.indexOf(this.material) === -1) {
+			model.materials.push(this.material);
+		}
+
+		if (model.geometries.indexOf(this.geometry) === -1) {
+			model.geometries.push(this.geometry);
+		}
+
+		Transform.prototype._init.call(this, obj, toConvert, model);
 	};
 
 	/*
@@ -10032,7 +10042,7 @@ if (!window.requestAnimationFrame) {
 						that.root = scene;
 					}
 				} else {
-					that.root._init(scene, toConvert);
+					that.root._init(scene, toConvert, that);
 				}
 
 				that.client.scene.add(that.root);

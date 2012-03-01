@@ -231,7 +231,7 @@
 						that.root = scene;
 					}
 				} else {
-					that.root._init(scene, toConvert);
+					that.root._init(scene, toConvert, that);
 				}
 
 				that.client.scene.add(that.root);
