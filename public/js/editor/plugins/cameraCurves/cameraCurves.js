@@ -207,15 +207,7 @@
             var saveCurve = this.curve,
                 posDist = 0,
                 tgtDist = 0;
-            
-            // for (var i = 1; i < this.waypoints.length; i++) {
-                // var wp0 = this.waypoints[i-1],
-                    // wp1 = this.waypoints[i];
-                
-                // posDist += hemi.math.distance(wp0.pos, wp1.pos);
-                // tgtDist += hemi.math.distance(wp0.tgt, wp1.tgt);
-            // }
-            
+                        
             var wp0 = this.waypoints[0];
             var p0 = wp0.pos.clone(),
                 t0 = wp0.tgt.clone();
@@ -230,8 +222,8 @@
                 p0 = p1;
                 t0 = t1;
             }
-            var eSamp = Math.ceil(posDist / 5),
-                tSamp = Math.ceil(tgtDist / 5);
+            var eSamp = Math.ceil(posDist / 2),
+                tSamp = Math.ceil(tgtDist / 2);
             
             this.curve = {};
             this.updateCurve();
