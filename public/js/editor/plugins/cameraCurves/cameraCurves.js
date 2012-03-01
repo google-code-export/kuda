@@ -217,13 +217,13 @@
             // }
             
             var wp0 = this.waypoints[0];
-            var p0 = new THREE.Vector3(wp0.pos[0],wp0.pos[1],wp0.pos[2]),
-                t0 = new THREE.Vector3(wp0.tgt[0],wp0.tgt[1],wp0.tgt[2]);
+            var p0 = wp0.pos.clone(),
+                t0 = wp0.tgt.clone();
 
             for (var i = 1; i < this.waypoints.length; i++) {
                 var wp1 = this.waypoints[i],
-                    p1 = new THREE.Vector3(wp1.pos[0],wp1.pos[1],wp1.pos[2]);
-                    t1 = new THREE.Vector3(wp1.tgt[0],wp1.tgt[1],wp1.tgt[2]);
+                    p1 = wp1.pos.clone();
+                    t1 = wp1.tgt.clone();
                     
                 posDist += p0.distanceTo(p1);
                 tgtDist += t0.distanceTo(t1);
@@ -231,27 +231,23 @@
                 t0 = t1;
             }
             var eSamp = Math.ceil(posDist / 5),
-                tSamp = Math.ceil(tgtDist / 5),
-                eSize = posDist / 1000,
-                tSize = tgtDist / 1000;
+                tSamp = Math.ceil(tgtDist / 5);
             
             this.curve = {};
             this.updateCurve();
             this.prevCurve = this.curve;
             this.curve = saveCurve;
-            //hemi.curve.hideCurves();
-            this.prevCurve.eye.draw(eSamp, {
-                edgeColor: [0,0,1,1],
-                edgeSize: eSize,
+            hemi.hideCurves(editor.client);
+            this.prevCurve.eye.draw(eSamp, editor.client, {
+                edgeColor: 0x0000ff,
                 joints: false
             });
-            this.prevCurve.target.draw(tSamp, {
-                edgeColor: [1,1,0,1],
-                edgeSize: tSize,
+            this.prevCurve.target.draw(tSamp, editor.client, {
+                edgeColor: 0xffff00,
                 joints: false
             });
         } else if (this.prevCurve) {
-            //hemi.curve.hideCurves();
+            hemi.hideCurves(editor.client);
             this.prevCurve = null;
         }    
     };

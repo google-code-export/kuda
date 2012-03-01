@@ -28,8 +28,18 @@
 			wireframeLinewidth: 1
 		}),	
 		dbgBoxTransforms = {},
-		dbgLineMat = null,
 		dbgLineTransforms = [];
+
+	/**
+	 * Remove the given curve line Transform, its shapes, and its children.
+	 * 
+	 * @param {hemi.Client} client the client being rendered to
+	 */
+	hemi.hideCurves = function(client) {
+		for (var i = 0, il = dbgLineTransforms.length; i < il; i++) {
+			client.scene.remove(dbgLineTransforms[i]);
+		}
+	}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // ParticleCurve shader code
@@ -333,16 +343,17 @@
 	 * Draw the Curve using primitive shapes.
 	 * 
 	 * @param {number} samples the number of samples to use to draw
+	 * @param {hemi.Client} client the client to draw to
 	 * @param {Object} config configuration for how the Curve should look
 	 */
-	Curve.prototype.draw = function(samples, config) {
+	Curve.prototype.draw = function(samples, client, config) {
 		var points = [];
 
 		for (var i = 0, il = samples + 2; i < il; ++i) {
 			points[i] = this.interpolate(i / (samples + 1));
 		}
 
-		drawCurve(points, config);
+		drawCurve(points, client, config);
 	};
 
 	/**
@@ -381,14 +392,15 @@
 	 */
 	Curve.prototype.loadConfig = function(cfg) {
 		var points = cfg.points,
-			type = cfg.type || this.type || hemi.CurveType.Linear;
+			type = cfg.type || this.type || hemi.CurveType.Linear,
+			i;
 
 		this.setType(type);
 
 		if (points) {
 			this.count = points.length;
 
-			for (var i = 0; i < this.count; i++) {
+			for (i = 0; i < this.count; i++) {
 				this.weights[i] = 1;
 
 				this.points[i] = points[i].clone();
@@ -397,13 +409,13 @@
 		}
 
 		if (cfg.weights) {
-			for (var i = 0; i < this.count; i++) {
+			for (i = 0; i < this.count; i++) {
 				this.weights[i] = (cfg.weights[i] !== undefined) ? cfg.weights[i] : 1;
 			}
 		}
 
 		if (cfg.tangents) {
-			for (var i = 0; i < this.count; i++) {
+			for (i = 0; i < this.count; i++) {
 				if(cfg.tangents[i]) {
 					this.tangents[i] = cfg.tangents[i] || new THREE.Vector3(0, 0, 0);
 				}	
@@ -1479,109 +1491,38 @@
 	 * Render a 3D representation of a curve.
 	 *
 	 * @param {THREE.Vector3[]} points array of points (not waypoints)
+	 * @param {THREE.Client} client the client to render to
 	 * @param {Object} config configuration describing how the curve should look
 	 */
-	function drawCurve(points, config) {
-//		if (!this.dbgLineMat) {
-//			this.dbgLineMat = this.newMaterial('phong', false);
-//			this.dbgLineMat.getParam('lightWorldPos').bind(hemi.world.camera.light.position);
-//		}
-//		
-//		var eShow = (config.edges == null) ? true : config.edges,
-//			eSize = config.edgeSize || 1,
-//			eColor = config.edgeColor || [0.5,0,0,1],
-//			jShow = (config.joints == null) ? true : config.joints,
-//			jSize = config.jointSize || 1,
-//			jColor = config.jointColor,
-//			crvTransform = this.pack.createObject('Transform');
-//		
-//		for (var i = 0; i < points.length; i++) {
-//			if(jShow) {
-//				var transform = this.pack.createObject('Transform'),
-//					joint = hemi.core.primitives.createSphere(this.pack,
-//						this.dbgLineMat, jSize, 20, 20);
-//				
-//				transform.parent = crvTransform;
-//				transform.addShape(joint);
-//				transform.translate(points[i]);
-//				
-//				if (jColor) {
-//					var param = transform.createParam('diffuse', 'o3d.ParamFloat4');
-//					param.value = jColor;
-//				}
-//			}
-//			if (eShow && i < (points.length - 1)) {
-//				var edgeTran = this.drawLine(points[i], points[i+1], eSize, eColor);
-//				edgeTran.parent = crvTransform;
-//			}
-//		}
-//		
-//		crvTransform.parent = hemi.core.client.root;
-//		this.dbgLineTransforms.push(crvTransform);
-	}
+	function drawCurve(points, client, config) {
+		var eShow = (config.edges == null) ? true : config.edges,
+			eSize = config.edgeSize || 1,
+			eColor = config.edgeColor || 0x880000,
+			lineMat = new THREE.MeshBasicMaterial({
+				color: eColor
+			}),
+			geometry = new THREE.Geometry(),
+			ribbon;
+		
+		for (var i = 0; i < points.length; i++) {
+			if (eShow && i < points.length-1) {
+				var p0 = points[i].clone();
 
-	/**
-	 * Draw a line connecting two points.
-	 *
-	 * @param {number[]} p0 The first point
-	 * @param {number[]} p1 The second point
-	 * @param {number} opt_size Thickness of the line
-	 * @param {number[]} opt_color Color of the line
-	 * @return {o3d.Transform} the Transform containing the line shape
-	 */
-	function drawLine(p0, p1, opt_size, opt_color) {
-//		if (!this.dbgLineMat) {
-//			this.dbgLineMat = this.newMaterial('phong', false);
-//			this.dbgLineMat.getParam('lightWorldPos').bind(hemi.world.camera.light.position);
-//		}
-//		
-//		var size = opt_size || 1,
-//			dist = hemi.core.math.distance(p0,p1),
-//			midpoint = [ (p0[0]+p1[0])/2, (p0[1]+p1[1])/2, (p0[2]+p1[2])/2 ],
-//			line = hemi.core.primitives.createCylinder(this.pack,
-//				this.dbgLineMat, size, dist, 3, 1),
-//			transform = this.pack.createObject('Transform');
-//		
-//		transform.addShape(line);
-//		transform.translate(midpoint);
-//		transform = hemi.utils.pointYAt(transform,midpoint,p0);
-//		
-//		if (opt_color) {
-//			var param = transform.createParam('diffuse', 'o3d.ParamFloat4');
-//			param.value = opt_color;
-//		}
-//		
-//		return transform;
-	}
+				if (i % 2) {
+					p0.y += eSize;
+				}
+				// var edgeTran = addVertex(points[i], points[i+1], eSize, lineMat);
+				geometry.vertices.push(new THREE.Vertex(p0));
+				geometry.colors.push(eColor);
+				// crvTransform.add(edgeTran);
+			}
+		}
+		
+		ribbon = new THREE.Ribbon(geometry, lineMat);
+		ribbon.doubleSided = true;
+ 		client.scene.add(ribbon);
 
-	/**
-	 * Remove the given curve line Transform, its shapes, and its children.
-	 * 
-	 * @param {o3d.Transform} opt_trans optional Transform to clean up
-	 */
-	function hideCurves(opt_trans) {
-//		if (opt_trans) {
-//			var children = opt_trans.children,
-//				shapes = opt_trans.shapes;
-//			
-//			for (var i = 0; i < children.length; i++) {
-//				this.hideCurves(children[i]);
-//			}
-//			for (var i = 0; i < shapes.length; i++) {
-//				var shape = shapes[i];
-//				opt_trans.removeShape(shape);
-//				this.pack.removeObject(shape);
-//			}
-//			
-//			opt_trans.parent = null;
-//			this.pack.removeObject(opt_trans);
-//		} else {
-//			for (var i = 0; i < this.dbgLineTransforms.length; i++) {
-//				this.hideCurves(this.dbgLineTransforms[i]);
-//			}
-//			
-//			this.dbgLineTransforms = [];
-//		}
+ 		dbgLineTransforms.push(ribbon);
 	}
 
 	/*
@@ -1669,11 +1610,12 @@
 	 * @param {string} opt_type optional shader type to use (defaults to phong)
 	 * @param {boolean} opt_trans optional flag indicating if material should support transparency
 	 *     (defaults to true)
+	 * @param {hex} opt_color optional material color in hex format
 	 * @return {THREE.Material} the created material
 	 */
-	function newMaterial(opt_type, opt_trans) {
+	function newMaterial(opt_type, opt_trans, opt_color) {
 		var params = {
-				color: 0xff0000,
+				color: opt_color == null ? 0xff0000 : opt_color,
 				opacity: 1,
 				transparent: opt_trans === undefined ? true : opt_trans
 			},
