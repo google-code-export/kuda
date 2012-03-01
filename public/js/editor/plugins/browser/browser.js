@@ -24,6 +24,7 @@
 
 	var shorthand = editor.tools.browser,
 		wgtSuper = editor.ui.Widget.prototype,
+		materialsHash = new Hashtable(),
 		
 		HILIGHT_COLOR = new THREE.Color(0x75d0f4),
 		HIGHLIGHT_MAT = new THREE.MeshBasicMaterial({
@@ -305,7 +306,6 @@
 		this.tranHighlightMat = null;
 		this.curHandle = new editor.ui.TransHandles();
 		this.models = [];
-		this.oldMaterials = new Hashtable();
 		this.highlightMaterial = new THREE.MeshPhongMaterial({
 			color: 0x75d0f4,
 			ambient: 0xffffff
@@ -466,7 +466,7 @@
 			var mat = transform.material,
 				hmat = this.highlightMaterial;
 
-			this.oldMaterials.put(transform, mat);
+			materialsHash.put(transform, mat);
 			hmat.opacity = mat.opacity;
 			hmat.transparent = mat.transparent;
 			transform.material = hmat;
@@ -611,7 +611,7 @@
 		}
 		
 		if (geometry) {
-			transform.material = this.oldMaterials.get(transform);
+			transform.material = materialsHash.get(transform);
 		}
 	};
 	
@@ -634,6 +634,8 @@
 		for (i = 0, il = shapes.length; i < il; ++i) {
 			this.notifyListeners(shorthand.events.RemoveUserCreatedShape, shapes[i]);
 		}
+
+		materialsHash.clear();
 	};
 		
 	BrowserModel.prototype.worldLoaded = function() {
@@ -1552,6 +1554,22 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Opacity Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function getOpacity(transform) {
+		var n, i, l = transform.children.length, opacity = null;
+
+		if (transform instanceof hemi.Mesh) {
+			opacity = materialsHash.get(transform).opacity;
+		} else {
+			for (i = 0; i < l; i++) {
+				var o = getOpacity(transform.children[i]);
+				console.log(o + ' vs ' + opacity);
+				opacity = opacity === null ? o : opacity > o ? opacity : o;
+			}
+		}
+
+		return opacity;
+	}
 	
 	var OpacityWidget = function() {
 		editor.ui.Widget.call(this, {
@@ -1603,7 +1621,7 @@
 	};
 	
 	OpacityWidget.prototype.set = function(transform) {
-		this.slider.slider('value', transform.opacityVal == null ? 100 : transform.opacityVal * 100);
+		this.slider.slider('value', getOpacity(transform) * 100);
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
