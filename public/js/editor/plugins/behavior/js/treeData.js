@@ -205,7 +205,7 @@
 			nodeName += citizen;
 		} else if (citizen._octaneType !== undefined) {
 			var type = citizen._octaneType.split('.').pop(),
-				path = type + 'Type',
+				path = type + 'Type' + '_',
 				id = citizen._getId(),
 				cit;
 
@@ -216,20 +216,20 @@
 					parPath = getTransformPath(citizen);
 
 				path = citType + 'Type_' + citType + '-' + cit._getId() + '_' 
-					+ shorthand.constants.TRANSFORM + (parPath === '' ? '' : '_' + parPath);
+					+ shorthand.constants.TRANSFORM + parPath;
 			} else if (citizen instanceof hemi.Viewpoint && config.parent) {
 				cit = config.parent.citizen;
 				path = config.parent._octaneType.split('.').pop() + '_' + 
-					cit._octaneType.split('.').pop() + '-' + cit._getId();
+					cit._octaneType.split('.').pop() + '-' + cit._getId() + '_';
 			} else if (citizen._octaneType === shorthand.constants.CAM_MOVE ||
 					citizen._octaneType === shorthand.constants.SHAPE_PICK ||
 					citizen._octaneType === shorthand.constants.TRANSFORM) {
 				cit = citizen.citizen;
-				path =  citizen._octaneType.split('.').pop();
+				path =  citizen._octaneType.split('.').pop() + '_';
 				type = cit._octaneType.split('.').pop();
 				id = cit._getId();
 			} 
-			nodeName += (path !== null ? path + '_' : '') + type + (id !== null ? '-' + id : '');
+			nodeName += (path !== null ? path : '') + type + (id !== null ? '-' + id : '');
 		} else if ((typeof citizen) === 'string') {
 			nodeName += citizen;
 		}
@@ -257,11 +257,11 @@
 	
 	
 	function getTransformPath(transform) {
-		var path = '', 
+		var path = '_',
 			parent = transform.parent;
 		
 		if (parent != editor.client.scene) {
-			path = parent._octaneType.split('.').pop() + '-' + parent._getId() + '_';
+			path = parent._octaneType.split('.').pop() + '-' + parent._getId() + path;
 			path = getTransformPath(parent) + path;
 		}
 		

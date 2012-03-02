@@ -228,7 +228,7 @@
 		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.FUNCTIONS, tree), false, true);
 		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.FUNCTIONS_MORE, tree), false, 
 			true);
-		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.TRANSFORMS, tree), false, true);
+		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.TRANSFORM, tree), false, true);
 		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.MESSAGES, tree), false, true);
 		tree.jstree('open_node', jQuery('#' + nodeName + '_' + cons.SHAPE_PICK, tree), false, true);
 	}
@@ -244,7 +244,8 @@
 			source = hemi.utils.isNumeric(data.source) ? 
 				hemi.world.getCitizenById(data.source) : data.source,
 			node = source,
-			cfg = { prefix: trgTree.pre };
+			cfg = { prefix: trgTree.pre },
+			openCfg = jQuery.extend({}, cfg);
 		
 		if (source._octaneType && source._octaneType === shorthand.constants.SHAPE_PICK) {
 			// shape pick case
@@ -253,10 +254,13 @@
 		} else if (source._octaneType && source._octaneType === shorthand.constants.CAM_MOVE) {
 			node = hemi.world.getCitizenById(data.type);
 			cfg.parent = shorthand.treeData.createCamMoveCitizen(editor.client.camera);
+			opnCfg.parent = cfg.parent;
+		} else if (source !== shorthand.treeData.MSG_WILDCARD) {
+			cfg.option = shorthand.constants.MESSAGES + '_' + data.type;
 		} else {
 			cfg.option = data.type;
 		}
-		openNode(trgTree, node, cfg);
+		openNode(trgTree, node, openCfg);
 		var nodeName = shorthand.treeData.getNodeName(node, cfg);
 		
 		wgt.trgChooser.select(nodeName);
@@ -277,7 +281,7 @@
 
 		nodeName = shorthand.treeData.getNodeName(data.handler, cfg);
 		
-		openNode(axnTree, data.handler, cfg);
+		openNode(axnTree, data.handler, { prefix: axnTree.pre });
 
 		if (jQuery('#' + nodeName, axnTree.getUI()).length === 0) {
 			nodeName = shorthand.treeData.getNodeName(data.handler, {
