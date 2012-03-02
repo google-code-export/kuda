@@ -1475,6 +1475,10 @@
 				vector = this.buildVector(this.transform),
 				state = this.state;
 
+			container.submit(function() {
+				return false;
+			});
+       		
 			acceptButton.bind('click', function() {
 				if (state === AdjustState.TRANSLATE) {
 					transform.position = new THREE.Matrix4().getInverse(transform.parent.matrixWorld).multiplyVector3(vector.getValue());
