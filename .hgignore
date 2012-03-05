@@ -8,3 +8,7 @@ public/js/lib/jquery\.dataTables\.js
 
 syntax: regexp
 ^public/js/threejs$
+syntax: regexp
+^node_modules/\.bin$
+syntax: regexp
+^node_modules$
