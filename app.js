@@ -466,7 +466,7 @@ function getModelFiles(fullPath, url, data) {
 		if (stat.isDirectory()) {
 			getModelFiles(filePath, fileUrl, data);
 		} else {
-			if (fileName.match(/\.dae$|\.js$|\.utf8$/) !== null) {
+			if (fileName.toLowerCase().match(/\.dae$|\.js$|\.utf8$/) !== null) {
 				data.models.push({
 					name: fileName.split('.').shift(),
 					url: fileUrl
