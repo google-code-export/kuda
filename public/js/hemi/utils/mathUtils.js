@@ -416,7 +416,7 @@
 	 * @return {THREE.Vector3} Euler rotation
 	 */
 	hemi.utils.quaternionToVector3 = function(quaternion) {
-		return new THREE.Vector3.setRotationFromMatrix(new THREE.Matrix4().setRotationFromQuaternion(quaternion));
+		return new THREE.Vector3().getRotationFromMatrix(new THREE.Matrix4().setRotationFromQuaternion(quaternion));
 	};
 
 	/** 
