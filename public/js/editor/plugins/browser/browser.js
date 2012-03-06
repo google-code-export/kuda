@@ -1485,22 +1485,23 @@
 					transform.updateMatrix();
 				}
 				else if (state === AdjustState.SCALE) {
-					transform.scale = new THREE.Matrix4().getInverse(transform.parent.matrixWorld).multiplyVector3(vector.getValue());
-					transform.updateMatrix();
-				}
-				else if (state === AdjustState.ROTATE) {
-					var newRotation = new THREE.Matrix4().getInverse(transform.parent.matrixWorld).multiplyVector3(vector.getValue());
-					if (transform.useQuaternion) {
-						transform.quaternion.setFromEuler(newRotation);
-					}	
+					if (transform.parent) {
+						transform.scale = vector.getValue().divideSelf(hemi.utils.decompose(transform.parent).scale);
+					}
 					else {
-						transform.rotation = newRotation;
+						transform.scale = vector.getValue()
 					}
 					transform.updateMatrix();
 				}
+				else if (state === AdjustState.ROTATE) {
+					//PABNOTE Setting rotation not implemented yet
+				}
 			});
 
-			container.append(vector.getUI()).append(acceptButton);
+			container.append(vector.getUI());
+			if (state !== AdjustState.ROTATE) {
+				container.append(acceptButton);
+			}
 			popup.show(button, container, null, {
 				top: 5,
 				left: 0
@@ -1530,14 +1531,15 @@
 				vector.setValue(transform.matrixWorld.getPosition());
 			}
 			else if (this.state === AdjustState.ROTATE) {
-				var rotate = new THREE.Vector3().setRotationFromMatrix(transform.matrixWorld);
+				var rotate = hemi.utils.decompose(transform).rotation;
+				rotate = rotate instanceof THREE.Quaternion ? hemi.utils.quaternionToVector3(rotate) : rotate;
 				rotate.x = rotate.x * hemi.RAD_TO_DEG;
 				rotate.y = rotate.y * hemi.RAD_TO_DEG;
 				rotate.z = rotate.z * hemi.RAD_TO_DEG;
 				vector.setValue(rotate);
 			}
 			else if (this.state === AdjustState.SCALE) {
-				vector.setValue(transform.matrixWorld.decompose()[2]);
+				vector.setValue(hemi.utils.decompose(transform).scale);
 			}
 		}
 		

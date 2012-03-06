@@ -555,6 +555,37 @@
 		transform.updateMatrixWorld(true);
 	};
 
+	hemi.utils.decompose = function(transform) {
+		var scale = transform.scale.clone(),
+			curTrans = transform,
+			matrix = new THREE.Matrix4().copy(transform.matrixWorld), 
+			rotation = transform.useQuaternion ? new THREE.Quaternion() : new THREE.Vector3(), 
+			translation = new THREE.Vector3(matrix.n14, matrix.n24, matrix.n34);
+		
+		while (curTrans.parent) {
+			scale.multiplySelf(curTrans.parent.scale);
+			curTrans = curTrans.parent;
+		}
+
+		matrix.n11 /= scale.x;
+		matrix.n21 /= scale.x;
+		matrix.n31 /= scale.x;
+
+		matrix.n12 /= scale.y;
+		matrix.n22 /= scale.y;
+		matrix.n32 /= scale.y;
+
+		matrix.n13 /= scale.z;
+		matrix.n23 /= scale.z;
+		matrix.n33 /= scale.z;
+
+		rotation instanceof THREE.Quaternion ? rotation.setFromRotationMatrix(matrix) : rotation.getRotationFromMatrix(matrix);
+
+		return {translation:translation,
+				rotation: rotation, 
+				scale: scale};
+	};
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Utility functions
 ////////////////////////////////////////////////////////////////////////////////////////////////////

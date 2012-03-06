@@ -2715,7 +2715,7 @@ if (!window.requestAnimationFrame) {
 	 * @return {THREE.Vector3} Euler rotation
 	 */
 	hemi.utils.quaternionToVector3 = function(quaternion) {
-		return new THREE.Vector3.setRotationFromMatrix(new THREE.Matrix4().setRotationFromQuaternion(quaternion));
+		return new THREE.Vector3().getRotationFromMatrix(new THREE.Matrix4().setRotationFromQuaternion(quaternion));
 	};
 
 	/** 
@@ -3836,6 +3836,37 @@ if (!window.requestAnimationFrame) {
 		transform.position.addSelf(localDelta);
 		transform.updateMatrix();
 		transform.updateMatrixWorld(true);
+	};
+
+	hemi.utils.decompose = function(transform) {
+		var scale = transform.scale.clone(),
+			curTrans = transform,
+			matrix = new THREE.Matrix4().copy(transform.matrixWorld), 
+			rotation = transform.useQuaternion ? new THREE.Quaternion() : new THREE.Vector3(), 
+			translation = new THREE.Vector3(matrix.n14, matrix.n24, matrix.n34);
+		
+		while (curTrans.parent) {
+			scale.multiplySelf(curTrans.parent.scale);
+			curTrans = curTrans.parent;
+		}
+
+		matrix.n11 /= scale.x;
+		matrix.n21 /= scale.x;
+		matrix.n31 /= scale.x;
+
+		matrix.n12 /= scale.y;
+		matrix.n22 /= scale.y;
+		matrix.n32 /= scale.y;
+
+		matrix.n13 /= scale.z;
+		matrix.n23 /= scale.z;
+		matrix.n33 /= scale.z;
+
+		rotation instanceof THREE.Quaternion ? rotation.setFromRotationMatrix(matrix) : rotation.getRotationFromMatrix(matrix);
+
+		return {translation:translation,
+				rotation: rotation, 
+				scale: scale};
 	};
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -10068,7 +10099,7 @@ if (!window.requestAnimationFrame) {
 			// check type
 			var fileType = this._fileName.split('.').pop();
 
-			switch (fileType) {
+			switch (fileType.toLowerCase()) {
 				case 'utf8':
 					hemi.loadUTF8(this._fileName, onFileLoad, {
 						// Options here
