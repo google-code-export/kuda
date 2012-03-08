@@ -1868,16 +1868,31 @@ if (!window.requestAnimationFrame) {
 	 * @return {hemi.Client[]} array of all existing Clients
 	 */
 	hemi.makeClients = function(opt_config) {
-		var numClients = hemi.clients.length,
-			ndx = -1;
+		var shared = opt_config.shared;
 
 		hemi._makeRenderers();
 
 		for (var id in renderers) {
-			var renderer = renderers[id],
-				client = ++ndx < numClients ? hemi.clients[ndx] : new hemi.Client(true);
+			var renderer = renderers[id];
 
-			client.setRenderer(renderer);
+			if (shared[id]) {
+				var shareArr = shared[id],
+					client = new hemi.SharedClient(true, shareArr[0]),
+					scene = client.scene;
+
+				renderer.enableScissorTest(true);
+				client.setRenderer(renderer);
+
+				for (var i = 1, il = shareArr.length; i < il; ++i) {
+					client = new hemi.SharedClient(false, shareArr[i]);
+					client.setCamera(new hemi.Camera());
+					client.setScene(scene);
+					client.setRenderer(renderer);
+				}
+			} else {
+				var client = new hemi.Client(true);
+				client.setRenderer(renderer);
+			}
 		}
 
 		hemi.init(opt_config);
@@ -10724,6 +10739,96 @@ if (!window.requestAnimationFrame) {
 	hemi.makeCitizen(Client, 'hemi.Client', {
 		cleanup: Client.prototype._clean,
 		toOctane: Client.prototype._octane
+	});
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// SharedClient class
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	/**
+	 * @class A SharedClient is a Client that shares its Scene and canvas with other SharedClients
+	 * in order to provide multiple simultaneous views of the same Scene. The location and size of
+	 * the SharedClient within the canvas are specified by the given array of bounds.
+	 * 
+	 * @param {boolean} opt_init optional flag indicating if the SharedClient should create its own
+	 *     Camera and Scene
+	 * @param {number[]} opts_bounds optional array of bounds with the format:
+	 *     [bottom, height, left, width]
+	 *     where 0 is bottom edge, 1 is full height, 0 is left edge, 1 is full width
+	 */
+	var SharedClient = function(opt_init, opt_bounds) {
+		Client.call(this, opt_init);
+
+		/*
+		 * The canvas coordinate of the bottom edge of the SharedClient's render space.
+		 * @type number
+		 */
+		this._bottom = 0;
+		/*
+		 * The height of the SharedClient's render space.
+		 * @type number
+		 */
+		this._height = 1;
+		/*
+		 * The canvas coordinate of the left edge of the SharedClient's render space.
+		 * @type number
+		 */
+		this._left = 0;
+		/*
+		 * The width of the SharedClient's render space.
+		 * @type number
+		 */
+		this._width = 1;
+		/**
+		 * The bounding factors that determine the render space of the SharedClient.
+		 * @type number[4]
+		 */
+		this.bounds = opt_bounds || [0, 1, 0, 1];
+	};
+
+	var clientProto = SharedClient.prototype = new Client();
+	SharedClient.constructor = SharedClient;
+
+	// necessary cleanup
+	hemi.clients.splice(hemi.clients.indexOf(clientProto), 1);
+	clientProto.picker.cleanup();
+
+	/*
+	 * Calculate the SharedClient's render space based upon its bounding factors and update its
+	 * Camera and Picker with its viewport.
+	 */
+	SharedClient.prototype._resize = function() {
+		var dom = this.renderer.domElement,
+			width = dom.clientWidth > 1 ? dom.clientWidth : 1,
+			height = dom.clientHeight > 1 ? dom.clientHeight : 1;
+
+		this.renderer.setSize(width, height);
+
+		this._bottom = Math.floor(height * this.bounds[0]);
+		this._height = Math.floor(height * this.bounds[1]);
+		this._left = Math.floor(width  * this.bounds[2]);
+		this._width = Math.floor(width  * this.bounds[3]);
+
+		this.camera.threeCamera.aspect = this._width / this._height;
+		this.camera.threeCamera.updateProjectionMatrix();
+		this.picker.width = this._width;
+		this.picker.height = this._height;
+	};
+
+	/**
+	 * Set up the viewport and scissoring of the SharedClient and use its renderer to render the
+	 * Scene from the perspective of its Camera.
+	 */
+	SharedClient.prototype.onRender = function() {
+		this.renderer.setViewport(this._left, this._bottom, this._width, this._height);
+		this.renderer.setScissor(this._left, this._bottom, this._width, this._height);
+		this.renderer.setClearColorHex(this._bgColor, this._bgAlpha);
+		this.renderer.render(this.scene, this.camera.threeCamera);
+	};
+
+	hemi.makeCitizen(SharedClient, 'hemi.SharedClient', {
+		cleanup: SharedClient.prototype._clean,
+		toOctane: SharedClient.prototype._octane
 	});
 
 })();

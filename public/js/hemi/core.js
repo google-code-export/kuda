@@ -286,16 +286,31 @@ if (!window.requestAnimationFrame) {
 	 * @return {hemi.Client[]} array of all existing Clients
 	 */
 	hemi.makeClients = function(opt_config) {
-		var numClients = hemi.clients.length,
-			ndx = -1;
+		var shared = opt_config.shared;
 
 		hemi._makeRenderers();
 
 		for (var id in renderers) {
-			var renderer = renderers[id],
-				client = ++ndx < numClients ? hemi.clients[ndx] : new hemi.Client(true);
+			var renderer = renderers[id];
 
-			client.setRenderer(renderer);
+			if (shared[id]) {
+				var shareArr = shared[id],
+					client = new hemi.SharedClient(true, shareArr[0]),
+					scene = client.scene;
+
+				renderer.enableScissorTest(true);
+				client.setRenderer(renderer);
+
+				for (var i = 1, il = shareArr.length; i < il; ++i) {
+					client = new hemi.SharedClient(false, shareArr[i]);
+					client.setCamera(new hemi.Camera());
+					client.setScene(scene);
+					client.setRenderer(renderer);
+				}
+			} else {
+				var client = new hemi.Client(true);
+				client.setRenderer(renderer);
+			}
 		}
 
 		hemi.init(opt_config);
