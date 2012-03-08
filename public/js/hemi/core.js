@@ -286,7 +286,7 @@ if (!window.requestAnimationFrame) {
 	 * @return {hemi.Client[]} array of all existing Clients
 	 */
 	hemi.makeClients = function(opt_config) {
-		var shared = opt_config.shared;
+		var shared = opt_config.shared || {};
 
 		hemi._makeRenderers();
 
