@@ -44,12 +44,21 @@
 		 * @default false
 		 */
 		this._loaded = false;
-
 		/**
 		 * Array of KeyFrameAnimations that the Model contains.
 		 * @type THREE.KeyFrameAnimation[]
 		 */
 		this.animations = [];
+		/**
+		 * Array of morph controller morphs that the Model contains.
+		 * @type THREE.Mesh[]
+		 */
+		this.morphs = [];
+		/**
+		 * Array of skin controller skins that the Model contains.
+		 * @type THREE.SkinnedMesh[]
+		 */
+		this.skins = [];
 		/**
 		 * Flag indicating if the Model should load its assets when its file name is set.
 		 * @type boolean
@@ -217,6 +226,8 @@
 						})),
 					toConvert = {};
 
+				that.morphs = obj.morphs; // Added to the model to give hemi users access
+				that.skins = obj.skins; // Added to the model to give hemi users access
 				that._loaded = true;
 
 				for (var i = 0, il = animations.length; i < il; ++i) {
