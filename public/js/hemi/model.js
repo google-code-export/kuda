@@ -257,7 +257,7 @@
 			// check type
 			var fileType = this._fileName.split('.').pop();
 
-			switch (fileType) {
+			switch (fileType.toLowerCase()) {
 				case 'utf8':
 					hemi.loadUTF8(this._fileName, onFileLoad, {
 						// Options here
