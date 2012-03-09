@@ -4075,8 +4075,11 @@ var editor = {};
 	var EXTENT = 5,
 		MAX_EXTENT = 10,
 		MIN_EXTENT = 4,
-		ALL_AXES = new THREE.Vector3(1, 1, 1);
-	
+		ALL_AXES = new THREE.Vector3(1, 1, 1),
+        localMesh = new hemi.Mesh();
+
+    hemi.world.removeCitizen(localMesh);
+
 	editor.ui.trans.DrawState = {
 		TRANSLATE: 0,
 		ROTATE: 1,
@@ -4413,16 +4416,16 @@ var editor = {};
 	
 	TransHandles.prototype.startRotate = function(axis, evt) {
 		editor.client.camera.disableControl();
-		this.transform.setTurnable(axis);
-		this.manip = this.transform._manip;
+		localMesh.setTurnable(axis, null, [this.transform]);
+		this.manip = localMesh._manip;
 		
 		this.manip.onPick(this.transform, evt);
 	};
 	
 	TransHandles.prototype.startScale = function(axis, evt) {
 		editor.client.camera.disableControl();
-		this.transform.setResizable(axis);
-		this.manip = this.transform._manip;
+        localMesh.setResizable(axis, [this.transform]);
+		this.manip = localMesh._manip;
 		
 		this.transform.subscribe(
 			hemi.msg.resize,
@@ -4455,9 +4458,10 @@ var editor = {};
 				limits = [0, 0, null, null];
 				break;
 		}
+        localMesh.setMovable(plane, limits, [this.transform]);
+        console.log(this.transform)
 		
-		this.transform.setMovable(plane, limits);		
-		this.manip = this.transform._manip;
+		this.manip = localMesh._manip;
 		this.manip.name = editor.ToolConstants.EDITOR_PREFIX + 'Dragger';
 		this.transform.subscribe(
 			hemi.msg.move,

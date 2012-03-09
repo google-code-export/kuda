@@ -800,7 +800,9 @@
 
 		if (opt_transforms != null) {
 			opt_transforms = opt_transforms.slice(0);
-			opt_transforms.unshift(this);
+            if (this.parent) {
+    			opt_transforms.unshift(this);
+            }
 			params.transforms = opt_transforms;
 		} else if (restore && params.transforms) {
 			opt_transforms = params.transforms;
@@ -863,7 +865,9 @@
 
 		if (opt_transforms != null) {
 			opt_transforms = opt_transforms.slice(0);
-			opt_transforms.unshift(this);
+            if (this.parent) {
+    			opt_transforms.unshift(this);
+            }
 			params.transforms = opt_transforms;
 		} else if (restore && params.transforms) {
 			opt_transforms = params.transforms;
@@ -926,7 +930,9 @@
 
 		if (opt_transforms != null) {
 			opt_transforms = opt_transforms.slice(0);
-			opt_transforms.unshift(this);
+            if (this.parent) {
+    			opt_transforms.unshift(this);
+            }
 			params.transforms = opt_transforms;
 		} else if (restore && params.transforms) {
 			opt_transforms = params.transforms;
