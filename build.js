@@ -144,57 +144,57 @@ var catFiles = function(args) {
 };
 
 var uglifyHemi = function(src, dst) {
-		var args = {
-				dist: src,
-				libFiles: [
-					'lib/Detector.js',
-					'lib/jshashtable.js',
-					'hemi/particles.js',
-				],
-				libMinFiles: [
-					'lib/Detector.min.js',
-					'lib/jshashtable.min.js',
-					'hemi/particles.min.js',
-				],
-				moduleFiles: [
-					'hemi/core.js',
-					'hemi/utils/hashtable.js',
-					'hemi/utils/jsUtils.js',
-					'hemi/utils/mathUtils.js',
-					'hemi/utils/shaderUtils.js',
-					'hemi/utils/stringUtils.js',
-					'hemi/utils/transformUtils.js',
-					'hemi/msg.js',
-					'hemi/loader.js',
-					//'hemi/accessibility.js',
-					'hemi/world.js',
-					'hemi/octane.js',
-					'hemi/audio.js',
-					'hemi/dispatch.js',
-					'hemi/input.js',
-					'hemi/keyDispatcher.js',
-					'hemi/motion.js',
-					'hemi/transform.js',
-					'hemi/view.js',
-					'hemi/model.js',
-					'hemi/picker.js',
-					'hemi/client.js',
-					'hemi/animationGroup.js',
-					'hemi/effect.js',
-					'hemi/state.js',
-					'hemi/hud.js',
-					'hemi/manip.js',
-					'hemi/curve.js',
-					'hemi/sprite.js',
-					'hemi/shape.js',
-					'hemi/fx.js',
-					'hemi/texture.js',
-					'hemi/timer.js',
-					'hemi/valueCheck.js',
-                    'hemi/light.js'
-				]
-			},
-			header =
+var args = {
+		dist: src,
+		libFiles: [
+			'lib/Detector.js',
+			'lib/jshashtable.js',
+			'hemi/particles.js',
+		],
+		libMinFiles: [
+			'lib/Detector.min.js',
+			'lib/jshashtable.min.js',
+			'hemi/particles.min.js',
+		],
+		moduleFiles: [
+			'hemi/core.js',
+			'hemi/utils/hashtable.js',
+			'hemi/utils/jsUtils.js',
+			'hemi/utils/mathUtils.js',
+			'hemi/utils/shaderUtils.js',
+			'hemi/utils/stringUtils.js',
+			'hemi/utils/transformUtils.js',
+			'hemi/msg.js',
+			'hemi/loader.js',
+			//'hemi/accessibility.js',
+			'hemi/world.js',
+			'hemi/octane.js',
+			'hemi/audio.js',
+			'hemi/dispatch.js',
+			'hemi/input.js',
+			'hemi/keyDispatcher.js',
+			'hemi/motion.js',
+			'hemi/transform.js',
+			'hemi/view.js',
+			'hemi/model.js',
+			'hemi/picker.js',
+			'hemi/client.js',
+			'hemi/animationGroup.js',
+			'hemi/effect.js',
+			'hemi/state.js',
+			'hemi/hud.js',
+			'hemi/manip.js',
+			'hemi/curve.js',
+			'hemi/sprite.js',
+			'hemi/shape.js',
+			'hemi/fx.js',
+			'hemi/texture.js',
+			'hemi/timer.js',
+			'hemi/valueCheck.js',
+	        'hemi/light.js'
+		]
+	},
+	header =
 '/*\n\
  * Licensed under the MIT license: http://www.opensource.org/licenses/mit-license.php\n\
  * The MIT License (MIT)\n\
@@ -216,56 +216,60 @@ var uglifyHemi = function(src, dst) {
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\n\
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.\n\
  */\n';
-		catFiles(args);
-		fs.writeFileSync(dst + '/hemi.src.js', args.libData + args.moduleData);
 
-		var uglyData = uglifyMe(args.moduleData),
-			outFile = fs.openSync(dst + '/hemi.min.js', 'w+');
-		fs.writeSync(outFile, args.libMinData + header + uglyData);
+	catFiles(args);
+	fs.writeFileSync(dst + '/hemi.src.js', args.libData + args.moduleData);
+
+	var uglyData = uglifyMe(args.moduleData),
+		outFile = fs.openSync(dst + '/hemi.min.js', 'w+');
+
+	fs.writeSync(outFile, args.libMinData + header + uglyData);
 };
 
 var uglifyEditor = function(src, dst) {
-		var args = {
-				dist: src,
-				libFiles: [],
-				libMinFiles: [],
-				moduleFiles: [
-					'editor/editor.js',
-					'editor/events.js',
-					'editor/utils/listener.js',
-					'editor/utils/misc.js',
-					'editor/utils/dependency.js',
-					'editor/data/metadata.js',
-					'editor/ui/components/component.js',
-					'editor/ui/components/input.js',
-					'editor/ui/components/menu.js',
-					'editor/ui/components/colorpicker.js',
-					'editor/ui/components/tooltip.js',
-					'editor/ui/components/validator.js',
-					'editor/ui/components/vector.js',
-					'editor/ui/components/treeSelector.js',
-					'editor/ui/components/list.js',
-					'editor/ui/core/view.js',
-					'editor/ui/core/progress.js',
-					'editor/ui/core/transformHandles.js',
-					'editor/ui/core/gridPlane.js',
-					'editor/ui/core/dialogs.js',
-					'editor/tools.js',
-					'editor/project.js',
-					'editor/pluginManager.js'
-				]
-			};
-		catFiles(args);
-		fs.writeFileSync(dst + '/editor.src.js', args.libData + args.moduleData);
+	var args = {
+		dist: src,
+		libFiles: [],
+		libMinFiles: [],
+		moduleFiles: [
+			'editor/editor.js',
+			'editor/events.js',
+			'editor/utils/listener.js',
+			'editor/utils/misc.js',
+			'editor/utils/dependency.js',
+			'editor/data/metadata.js',
+			'editor/ui/components/component.js',
+			'editor/ui/components/input.js',
+			'editor/ui/components/menu.js',
+			'editor/ui/components/colorpicker.js',
+			'editor/ui/components/tooltip.js',
+			'editor/ui/components/validator.js',
+			'editor/ui/components/vector.js',
+			'editor/ui/components/treeSelector.js',
+			'editor/ui/components/list.js',
+			'editor/ui/core/view.js',
+			'editor/ui/core/progress.js',
+			'editor/ui/core/transformHandles.js',
+			'editor/ui/core/gridPlane.js',
+			'editor/ui/core/dialogs.js',
+			'editor/tools.js',
+			'editor/project.js',
+			'editor/pluginManager.js'
+		]
+	};
 
-		var uglyData = uglifyMe(args.moduleData),
-			outFile = fs.openSync(dst + '/editor.min.js', 'w+');
-		fs.writeSync(outFile, args.libMinData + uglyData);
+	catFiles(args);
+	fs.writeFileSync(dst + '/editor.src.js', args.libData + args.moduleData);
+
+	var uglyData = uglifyMe(args.moduleData),
+		outFile = fs.openSync(dst + '/editor.min.js', 'w+');
+
+	fs.writeSync(outFile, args.libMinData + uglyData);
 };
 
 var fixTexRef = function(toDir) {
-var util = require('util'),
-	fixTexMissingSamplerSurface = require('fixAutodeskColladaExpTexture').fixTexMissingSamplerSurface;
+	var util = require('util'),
+		fixTexMissingSamplerSurface = require('fixAutodeskColladaExpTexture').fixTexMissingSamplerSurface;
 
 	util.puts(fixTexMissingSamplerSurface(toDir));
 };
