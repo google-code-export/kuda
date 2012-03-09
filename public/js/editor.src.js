@@ -4416,6 +4416,7 @@ var editor = {};
 	
 	TransHandles.prototype.startRotate = function(axis, evt) {
 		editor.client.camera.disableControl();
+        localMesh._manip = null;
 		localMesh.setTurnable(axis, null, [this.transform]);
 		this.manip = localMesh._manip;
 		
@@ -4424,6 +4425,7 @@ var editor = {};
 	
 	TransHandles.prototype.startScale = function(axis, evt) {
 		editor.client.camera.disableControl();
+        localMesh._manip = null;
         localMesh.setResizable(axis, [this.transform]);
 		this.manip = localMesh._manip;
 		
@@ -4445,7 +4447,7 @@ var editor = {};
 	
 	TransHandles.prototype.startTranslate = function(plane, evt) {
 		editor.client.camera.disableControl();
-
+        localMesh._manip = null;
 		var limits;
 		switch(plane) {
 			case hemi.Plane.XY:
@@ -4459,8 +4461,7 @@ var editor = {};
 				break;
 		}
         localMesh.setMovable(plane, limits, [this.transform]);
-        console.log(this.transform)
-		
+
 		this.manip = localMesh._manip;
 		this.manip.name = editor.ToolConstants.EDITOR_PREFIX + 'Dragger';
 		this.transform.subscribe(
@@ -6773,7 +6774,6 @@ var editor = {};
 				data = {
 					plugins: JSON.stringify(plugsData)
 				};
-			
 			jQuery.post('/plugins', data, 'json')
 			.success(function(data, status, xhr) {
 				// No feedback expected
