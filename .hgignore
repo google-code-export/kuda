@@ -3,12 +3,3 @@ glob:public/assets/
 glob:public/projects
 syntax: regexp
 ^\.project$
-public/js/editor/data/hemi\.json
-public/js/lib/jquery\.dataTables\.js
-
-syntax: regexp
-^public/js/threejs$
-syntax: regexp
-^node_modules/\.bin$
-syntax: regexp
-^node_modules$
