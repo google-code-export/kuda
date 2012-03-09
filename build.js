@@ -261,7 +261,14 @@ var uglifyEditor = function(src, dst) {
 		var uglyData = uglifyMe(args.moduleData),
 			outFile = fs.openSync(dst + '/editor.min.js', 'w+');
 		fs.writeSync(outFile, args.libMinData + uglyData);
-}
+};
+
+var fixTexRef = function(toDir) {
+var util = require('util'),
+	fixTexMissingSamplerSurface = require('fixAutodeskColladaExpTexture').fixTexMissingSamplerSurface;
+
+	util.puts(fixTexMissingSamplerSurface(toDir));
+};
 
 var checkForToDir = function(toDir) {
 	if (path.existsSync(toDir)) {
@@ -317,6 +324,8 @@ if (process.argv.length > 3) {
 		uglifyHemi('./public/js', toDir);
 	} else if (type == 'uglifyEditor') {
 		uglifyEditor('./public/js', toDir);
+	} else if (type == 'fixCTR') {
+		fixTexRef(toDir);
 	} else {
 		checkForToDir(toDir);
 
@@ -345,5 +354,6 @@ if (process.argv.length > 3) {
 } else {
 	process.stdout.write('Usage: node build.js [options] [type] [toDir]\n' +
 		'Valid options are: --no-doc, --zip\n' +
-		'Valid types are: core, editor, full, uglifyHemi, `uglifyEditor, uglify\n');
+		'Valid types are: core, editor, full, uglifyHemi, `uglifyEditor, uglify, fixCTR\n' +
+		'  fixCTR will fix the named COLLADA 1.4.x file that has effect textures directly referencing images\n');
 }
