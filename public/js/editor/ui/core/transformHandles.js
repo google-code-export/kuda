@@ -408,8 +408,7 @@
 				break;
 		}
         localMesh.setMovable(plane, limits, [this.transform]);
-        console.log(this.transform)
-		
+
 		this.manip = localMesh._manip;
 		this.manip.name = editor.ToolConstants.EDITOR_PREFIX + 'Dragger';
 		this.transform.subscribe(
