@@ -4416,7 +4416,7 @@ var editor = {};
 	
 	TransHandles.prototype.startRotate = function(axis, evt) {
 		editor.client.camera.disableControl();
-        localMesh._manip = null;
+        localMesh._manip = localMesh.cancelInteraction();
 		localMesh.setTurnable(axis, null, [this.transform]);
 		this.manip = localMesh._manip;
 		
@@ -4425,7 +4425,7 @@ var editor = {};
 	
 	TransHandles.prototype.startScale = function(axis, evt) {
 		editor.client.camera.disableControl();
-        localMesh._manip = null;
+        localMesh._manip = localMesh.cancelInteraction();
         localMesh.setResizable(axis, [this.transform]);
 		this.manip = localMesh._manip;
 		
@@ -4447,7 +4447,7 @@ var editor = {};
 	
 	TransHandles.prototype.startTranslate = function(plane, evt) {
 		editor.client.camera.disableControl();
-        localMesh._manip = null;
+        localMesh._manip = localMesh.cancelInteraction();
 		var limits;
 		switch(plane) {
 			case hemi.Plane.XY:
