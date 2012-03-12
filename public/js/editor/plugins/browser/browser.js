@@ -1070,11 +1070,10 @@
 // Model Loading Widget
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	function populateUnloadPanel(ldrWgt) {
+	function populateUnloadPanel(ldrWgt, removeModel) {
 		var models = hemi.world.getModels(),
 			sel = ldrWgt.find('#mbrUnloadPnl select'),
 			btn = ldrWgt.find('#mbrUnloadPnl button');
-		
 		sel.empty().show();
 		
 		if (models.length === 0) {
@@ -1082,12 +1081,13 @@
 			sel.append('<option value="-1">No Models to Unload</option>');
 		} else {
 			btn.removeAttr('disabled');
-			
 			sel.append('<option value="-1">Unload a Model</option>');
 			for (var i = 0, il = models.length; i < il; i++) {
 				var mdl = models[i];
-				var prj = jQuery('<option value="' + mdl._getId() + '">' + mdl.name + '</option>');
-				sel.append(prj);
+			    if (!removeModel || removeModel._getId() != mdl._getId()) {
+    				var prj = jQuery('<option value="' + mdl._getId() + '">' + mdl.name + '</option>');
+	    			sel.append(prj);
+                }
 			}
 		}
 	};
@@ -1341,7 +1341,7 @@
 		this.msgPanel.text('').slideUp(200, function() {		
 			wgt.invalidate();
 		});
-		populateUnloadPanel(this);
+		populateUnloadPanel(this, model, true);
 	};
 	
 	LoaderWidget.prototype.updateServerRunning = function(models) {
