@@ -138,8 +138,6 @@
 		}
 		
 		if (complete) {
-			this.initComplete = true;
-			
 			for (var i = 0, il = this.callbacks.length; i < il; i++) {
 				var obj = this.callbacks[i];
 				obj.callback.apply(this, obj.params);
@@ -147,6 +145,7 @@
 			
 			this.currentPlugin = null;
 			this.callbacks = [];
+			this.initComplete = true;
 		}			
 	};
 	
