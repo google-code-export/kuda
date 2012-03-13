@@ -35,7 +35,6 @@
 		
 		navPane.add(anmView);
 	};
-	
 ////////////////////////////////////////////////////////////////////////////////
 //                     			  Tool Definition  		                      //
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,7 +58,10 @@
 		SetAnmName: "crtAnm.SetAnmName",
 		
 		// animation list events
-		CreateAnimation: "anmList.CreateAnimation"
+		CreateAnimation: "anmList.CreateAnimation",
+
+        // Cleanup event for widget
+        CleanUpWidget: "anmList.CleanUpWidget"
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////
@@ -346,6 +348,8 @@
 			var anm = animations[ndx];
 			this.notifyListeners(editor.events.Removing, anm);
 		}
+        this.notifyListeners(shorthand.events.CleanUpWidget);
+
 	};
 	
 	AnimatorModel.prototype.worldLoaded = function() {
@@ -848,6 +852,21 @@
 		}
 	};
 
+    CreateWidget.prototype.cleanWidget = function() {
+        this.reset();
+        var wgt = this, 
+            children = wgt.selector.children();
+        for (var i = 0; i < children.length; i ++) {
+            var child = children[i],
+                val = child.getAttribute("value");
+            if (val > -1) {
+                var elemId = 'anmMdlSel_' + val;
+				wgt.find('#' + elemId).remove();
+            }
+        }
+
+    };
+
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                   View                                     //
@@ -960,7 +979,7 @@
 		lstWgt.addListener(editor.events.Edit, function(animation) {
 			model.setAnimation(animation);
 		});			
-		lstWgt.addListener(editor .events.Remove, function(animation) {
+		lstWgt.addListener(editor.events.Remove, function(animation) {
 			model.removeAnimation(animation);
 		});
 		
@@ -988,6 +1007,9 @@
 		model.addListener(shorthand.events.ModelPicked, function(model) {
 			crtWgt.modelSelected(model);
 		});
+        model.addListener(shorthand.events.CleanUpWidget, function() {
+            crtWgt.cleanWidget();
+        });
 	}
 
 ////////////////////////////////////////////////////////////////////////////////
