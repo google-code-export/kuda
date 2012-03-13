@@ -431,7 +431,7 @@
 	hemi.utils.useEuler = function(transform) {
 		if (transform.useQuaternion) {
 			_matrix.setRotationFromQuaternion(transform.quaternion);
-			transform.rotation.setRotationFromMatrix(_matrix);
+			transform.rotation.getRotationFromMatrix(_matrix);
 			transform.useQuaternion = false;
 		}
 	};

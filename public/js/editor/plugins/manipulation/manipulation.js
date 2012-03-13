@@ -120,7 +120,7 @@
 			case 'turn':
 				if (transform.useQuaternion) {
 					_matrix.setRotationFromQuaternion(transform.quaternion);
-					prevProps.vector.setRotationFromMatrix(_matrix);
+					prevProps.vector.getRotationFromMatrix(_matrix);
 				} else {
 					prevProps.vector.copy(transform.rotation);
 				}
