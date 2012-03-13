@@ -3,3 +3,6 @@ glob:public/assets/
 glob:public/projects
 syntax: regexp
 ^\.project$
+
+syntax: regexp
+^node_modules$
