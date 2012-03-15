@@ -208,10 +208,9 @@
 	/**
 	 * Load the Model's assets from its file.
 	 * 
-	 * @param {Object} opt_collada optional cached object constructed by the ColladaLoader that can
-	 *     be used to construct a new Model without loading and parsing the asset file
+	 * @param {Object} opt_loaderOptions optional loader options, ex. { convertUpAxis: true }
 	 */
-	Model.prototype.load = function(opt_collada) {
+	Model.prototype.load = function(opt_loadOptions) {
 		if (this._loaded) this.unload();
 
 		var that = this,
@@ -262,38 +261,30 @@
 				});
 			};
 
-		if (opt_collada) {
-			onCollada(opt_collada);
-		} else {
 			// check type
-			var fileType = this._fileName.split('.').pop();
+		var fileType = this._fileName.split('.').pop();
 
-			switch (fileType.toLowerCase()) {
-				case 'utf8':
-					hemi.loadUTF8(this._fileName, onFileLoad, {
-						// Options here
-					});
-					break;
-				case 'dae':
-					hemi.loadCollada(this._fileName, onFileLoad, {
-						// Options here
-					});
-					break;
-				// default is .js format which includes jsonLoader and binLoader
-				default:
-					var scope = this;
-					// test first
-					hemi.utils.get(this._fileName, function(data, status) {
-						var fileData = JSON.parse(data);
+		switch (fileType.toLowerCase()) {
+			case 'utf8':
+				hemi.loadUTF8(this._fileName, onFileLoad, opt_loadOptions);
+				break;
+			case 'dae':
+				hemi.loadCollada(this._fileName, onFileLoad, opt_loadOptions);
+				break;
+			// default is .js format which includes jsonLoader and binLoader
+			default:
+				var scope = this;
+				// test first
+				hemi.utils.get(this._fileName, function(data, status) {
+					var fileData = JSON.parse(data);
 
-						if (fileData.buffers !== undefined) {
-							hemi.loadBinary(scope._fileName, onFileLoad);
-						} else {
-							hemi.loadJson(scope._fileName, onFileLoad);
-						}
-					})
-					break;
-			}
+					if (fileData.buffers !== undefined) {
+						hemi.loadBinary(scope._fileName, onFileLoad);
+					} else {
+						hemi.loadJson(scope._fileName, onFileLoad);
+					}
+				})
+				break;
 		}
 	};
 
