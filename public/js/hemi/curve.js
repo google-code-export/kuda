@@ -946,6 +946,9 @@
 
 		if (!mesh.parent) this.client.scene.add(mesh);
 
+		// prevents culling. The mesh is positioned at 0, 0, 0 normally, which can cause culling 
+		// problems
+		mesh.frustumCulled = false;
 		this._mesh = mesh;
 		this._particles = this._particles || 1;
 
