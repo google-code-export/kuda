@@ -277,19 +277,19 @@
 
 			switch (blend) {
 				case THREE.NormalBlending:
-					this.blendSelect.val(0);
-					break;
-				case THREE.AdditiveBlending:
 					this.blendSelect.val(1);
 					break;
-				case THREE.SubtractiveBlending:
+				case THREE.AdditiveBlending:
 					this.blendSelect.val(2);
 					break;
-				case THREE.MultiplyBlending:
+				case THREE.SubtractiveBlending:
 					this.blendSelect.val(3);
 					break;
-				case THREE.AdditiveAlphaBlending:
+				case THREE.MultiplyBlending:
 					this.blendSelect.val(4);
+					break;
+				case THREE.AdditiveAlphaBlending:
+					this.blendSelect.val(5);
 					break;
 				default:
 					this.blendSelect.val(-1);
@@ -301,6 +301,9 @@
 				
 				if (paramName.match('colorMult')) {
 					this.colorMult.setColor(val);
+				}
+				else if (paramName.match('billboard')) {
+					this.billboard.prop('checked', val);
 				}
 				else {
 					this[paramName].setValue(val);
@@ -368,11 +371,8 @@
 		this.fireInterval = new editor.ui.Input({
 			container: wgt.find('#pte-fireInterval')
 		});
-		this.billboard = new editor.ui.Input({
-			container: wgt.find('#pte-billboard'),
-			type: 'boolean'
-		});
-		this.billboard.setValue(true);
+		this.billboard = this.find('#pte-billboard');
+		this.billboard.prop('checked', true);
 		this.startSize = new editor.ui.Input({
 			container: wgt.find('#pte-startSize')
 		});
@@ -549,7 +549,7 @@
 	CreateWidget.prototype.getProperties = function() {
 		var wgt = this,
 			names = ['numParticles', 'timeRange', 'lifeTime',
-				'lifeTimeRange', 'startTime', 'billboard', 'startSize',
+				'lifeTimeRange', 'startTime', 'startSize',
 				'startSizeRange', 'endSize', 'endSizeRange', 'spinSpeed',
 				'spinSpeedRange', 'spinStart', 'spinStartRange',
 				'numFrames', 'frameStart', 'frameStartRange',
@@ -559,6 +559,7 @@
 				'worldAcceleration', 'worldVelocity'],
 			props = {
 				colorRamp: wgt.getColorRamp(),
+				billboard: wgt.billboard.prop('checked'),
 				fireInterval: wgt.fireInterval.getValue(),
 				name: wgt.name.getValue(),
 				type: wgt.typeSelect.val()
@@ -566,19 +567,19 @@
 			params = {};
 
 		switch (wgt.blendSelect.val()) {
-			case '0':
+			case '1':
 				props.blend = THREE.NormalBlending;
 				break;
-			case '1':
+			case '2':
 				props.blend = THREE.AdditiveBlending;
 				break;
-			case '2':
+			case '3':
 				props.blend = THREE.SubtractiveBlending;
 				break;
-			case '3':
+			case '4':
 				props.blend = THREE.MultiplyBlending;
 				break;
-			case '4':
+			case '5':
 				props.blend = THREE.AdditiveAlphaBlending;
 				break;
 		}
@@ -648,7 +649,7 @@
 		this.lifeTimeRange.reset();
 		this.startTime.reset();
 		this.fireInterval.reset();
-		this.billboard.reset();
+		this.billboard.prop('checked', true);
 		this.startSize.reset();
 		this.startSizeRange.reset();
 		this.endSize.reset();
