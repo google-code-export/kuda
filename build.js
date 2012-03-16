@@ -358,6 +358,6 @@ if (process.argv.length > 3) {
 } else {
 	process.stdout.write('Usage: node build.js [options] [type] [toDir]\n' +
 		'Valid options are: --no-doc, --zip\n' +
-		'Valid types are: core, editor, full, uglifyHemi, `uglifyEditor, uglify, fixCTR\n' +
+		'Valid types are: core, full, uglifyHemi, uglifyEditor, uglify, fixCTR\n' +
 		'  fixCTR will fix the named COLLADA 1.4.x file that has effect textures directly referencing images\n');
 }
