@@ -958,10 +958,10 @@ var editor = {};
 		} else {
 			switch (cfg.type) {
 				case 'boolean':
-					this.container = jQuery('<div>' + 
+					this.container = jQuery('<div><form>' + 
 						'<input type="radio" name="' + cfg.name + '" value="true" /> true' +
 						'<input type="radio" name="' + cfg.name + '" value="false" /> false' +
-						'</div>');
+						'</form></div>');
 					break;
 				default:
 					this.container = jQuery('<input type="text" />');
