@@ -153,8 +153,7 @@
 			height = dom.clientHeight > 1 ? dom.clientHeight : 1;
 
 		this.renderer.setSize(width, height);
-		this.camera.threeCamera.aspect = width / height;
-		this.camera.threeCamera.updateProjectionMatrix();
+		this.camera.updateProjection(width, height);
 		this.picker.width = width;
 		this.picker.height = height;
 	};
@@ -382,8 +381,7 @@
 		this._left = Math.floor(width  * this.bounds[2]);
 		this._width = Math.floor(width  * this.bounds[3]);
 
-		this.camera.threeCamera.aspect = this._width / this._height;
-		this.camera.threeCamera.updateProjectionMatrix();
+		this.camera.updateProjection(this._width, this._height);
 		this.picker.width = this._width;
 		this.picker.height = this._height;
 	};

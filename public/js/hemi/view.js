@@ -69,7 +69,8 @@
 		this.fov = {
 			current: FOV,
 			min: MIN_FOV,
-			max: MAX_FOV
+			max: MAX_FOV,
+			aspect: window.innerWidth / window.innerHeight
 		};
 		this.lookLimits = {
 			panMax: null,
@@ -82,7 +83,7 @@
 			scan: true,
 			fixed: false,
 			control: false,
-			projection: null
+			ortho: false
 		};	
 		this.state = {
 			moving: false,
@@ -96,7 +97,7 @@
 		};
 
 		this.threeCamera = new THREE.PerspectiveCamera(this.fov.current * hemi.RAD_TO_DEG,
-			window.innerWidth / window.innerHeight, NEAR_PLANE, FAR_PLANE);
+			this.fov.aspect, NEAR_PLANE, FAR_PLANE);
 		this.threeCamera.matrixAutoUpdate = false;
 
 		/**
@@ -152,6 +153,13 @@
 					arg: [curView, 0]
 				}
 			];
+
+		if (this.mode.ortho) {
+			oct.push({
+				name: 'setOrthographic',
+				arg: []
+			});
+		}
 
 		return oct;
 	};
@@ -406,10 +414,13 @@
 			var xMovement = this.state.xy.current[0] - this.state.xy.last[0],
 				yMovement = this.state.xy.current[1] - this.state.xy.last[1];
 
-			if (this.mode.projection) {
-				moveOrthographic.call(this, xMovement, yMovement);
+			if (this.state.shift) {
+				var scanFactor = MOUSE_DELTA * this.distance;
+				this.scan(-1 * scanFactor * xMovement, scanFactor * yMovement);
+			} else if (this.mode.fixed) {
+				this.rotate(-xMovement * MOUSE_SPEED, -yMovement * MOUSE_SPEED);
 			} else {
-				movePerspective.call(this, xMovement, yMovement);
+				this.orbit(-xMovement * MOUSE_SPEED, -yMovement * MOUSE_SPEED);
 			}
 		}
 	};
@@ -472,20 +483,21 @@
 					}
 				}
 
-				this.threeCamera.fov = this.fov.current * hemi.RAD_TO_DEG;
-				this.threeCamera.updateProjectionMatrix();
-				this.state.update = true;
+				if (!this.mode.ortho) {
+					this.threeCamera.fov = this.fov.current * hemi.RAD_TO_DEG;
+					this.threeCamera.updateProjectionMatrix();
+				}
 			} else {
 				var t = (mouseEvent.deltaY > 0) ? SCROLL_DOWN : SCROLL_UP;
-				this.distance = hemi.utils.lerp(0, this.distance, t);
-
-				if (!this.mode.projection) {
-					this.cam.position.z = this.distance;
-					this.cam.updateMatrix();
-				}
-
-				this.state.update = true;
+				this.cam.position.z = this.distance = hemi.utils.lerp(0, this.distance, t);
+				this.cam.updateMatrix();
 			}
+
+			if (this.mode.ortho) {
+				updateOrtho.call(this);
+			}
+
+			this.state.update = true;
 		}
 	};
 
@@ -541,6 +553,24 @@
 
         this.cam.updateMatrix();
 		updateCamera.call(this);
+		return this;
+	};
+
+	/*
+	 * Move the Camera in the x and y directions by the given amounts.
+	 *
+	 * @param {number} xDelta distance to move the Camera in the x direction
+	 * @param {number} yDelta distance to move the Camera in the y direction
+	 * @return {hemi.Camera} this Camera (for easy chaining)
+	 */		
+	Camera.prototype.scan = function(xDelta, yDelta) {
+		if (this.mode.scan) {
+			this.panTilt.translateX(xDelta);
+			this.panTilt.translateY(yDelta);
+            this.panTilt.updateMatrix();
+			updateCamera.call(this);
+		}
+
 		return this;
 	};
 
@@ -611,6 +641,10 @@
 		this.cam.updateMatrix();
 
         this.updateWorldMatrices();
+
+		if (this.mode.ortho) {
+			updateOrtho.call(this);
+		}
 	};
 
 	/**
@@ -627,11 +661,33 @@
 	/**
 	 * Set the Camera view to render with an orthographic projection.
 	 * 
-	 * @param {hemi.Plane} plane the plane to look at orthographically (xy, xz, or yz)
 	 * @return {hemi.Camera} this Camera (for easy chaining)
 	 */
-	Camera.prototype.setOrthographic = function(plane) {
-		this.mode.projection = plane;
+	Camera.prototype.setOrthographic = function() {
+		if (!this.mode.ortho) {
+			var oldCam = this.threeCamera,
+				mid = (oldCam.near + oldCam.far) / 2,
+				halfH = Math.tan(this.fov.current / 2) * this.distance,
+				halfW = halfH * this.fov.aspect,
+				scene = oldCam.parent;
+
+			while (scene.parent !== undefined) {
+				scene = scene.parent;
+			}
+
+			this.mode.ortho = true;
+			this.threeCamera = new THREE.OrthographicCamera(halfW * -1, halfW, halfH, halfH * -1,
+				oldCam.near, oldCam.far);
+			this.threeCamera.matrixAutoUpdate = false;
+			this.light.position = this.threeCamera.position;
+			this.light.rotation = this.threeCamera.rotation;
+			this.light.scale = this.threeCamera.scale;
+
+			scene.remove(oldCam);
+			scene.add(this.threeCamera);
+			updateCamera.call(this);
+		}
+
 		return this;
 	};
 
@@ -641,7 +697,27 @@
 	 * @return {hemi.Camera} this Camera (for easy chaining)
 	 */
 	Camera.prototype.setPerspective = function() {
-		this.mode.projection = null;
+		if (this.mode.ortho) {
+			var oldCam = this.threeCamera,
+				scene = oldCam.parent;
+
+			while (scene.parent !== undefined) {
+				scene = scene.parent;
+			}
+
+			this.mode.ortho = false;
+			this.threeCamera = new THREE.PerspectiveCamera(this.fov.current * hemi.RAD_TO_DEG,
+				this.fov.aspect, oldCam.near, oldCam.far);
+			this.threeCamera.matrixAutoUpdate = false;
+			this.light.position = this.threeCamera.position;
+			this.light.rotation = this.threeCamera.rotation;
+			this.light.scale = this.threeCamera.scale;
+
+			scene.remove(oldCam);
+			scene.add(this.threeCamera);
+			updateCamera.call(this);
+		}
+
 		return this;
 	};
 
@@ -677,6 +753,24 @@
         this.panTilt.updateMatrix();
         updateCamera.call(this);
 		return this;
+	};
+
+	/**
+	 * Adjust the Camera's projection and aspect ratio to the given width and height.
+	 * 
+	 * @param {number} width the new width of the viewing field
+	 * @param {number} height the new height of the viewing field
+	 */
+	Camera.prototype.updateProjection = function(width, height) {
+		var aspect = this.fov.aspect = width / height;
+
+		if (this.mode.ortho) {
+			updateOrtho.call(this);
+		} else {
+			this.threeCamera.aspect = aspect;
+		}
+
+		this.threeCamera.updateProjectionMatrix();
 	};
 
 	/**
@@ -735,56 +829,6 @@
 	}
 
 	/*
-	 * Move the Camera when the Camera is in orthographic viewing mode.
-	 *
-	 * @param {number} xMovement the mouse movement in pixels along the x-axis
-	 * @param {number} yMovement the mouse movement in pixels along the y-axis
-	 */
-	function moveOrthographic(xMovement, yMovement) {
-		var distFactor = 2 * this.distance / hemi.core.client.width,
-			xDis = xMovement * distFactor,
-			yDis = yMovement * distFactor;
-
-		switch(this.mode.projection) {
-			case hemi.Plane.XY:
-			case hemi.Plane.YZ:
-				this.panTilt.translateX(-xDis);
-                this.panTilt.translateY(yDis);
-                this.panTilt.updateMatrix();
-				break;
-			case hemi.Plane.XZ:
-			    this.panTilt.translateX(xDis);
-                this.panTilt.translateZ(yDis);
-                this.panTilt.updateMatrix();
-				break;
-		}
-	}
-
-	/*
-	 * Move the Camera when the Camera is in perspective viewing mode.
-	 *
-	 * @param {number} xMovement the mouse movement in pixels along the x-axis
-	 * @param {number} yMovement the mouse movement in pixels along the y-axis
-	 */		
-	function movePerspective(xMovement, yMovement) {
-		if (this.state.shift && this.mode.scan) {
-			var deltaX = MOUSE_DELTA * this.distance * xMovement,
-				deltaY = MOUSE_DELTA * this.distance * yMovement;
-
-			this.panTilt.translateX(-deltaX);
-			this.panTilt.translateY(deltaY);
-            this.panTilt.updateMatrix();
-			updateCamera.call(this);
-		} else {
-			if (this.mode.fixed) {
-				this.rotate(-xMovement * MOUSE_SPEED, -yMovement * MOUSE_SPEED);
-			} else {
-				this.orbit(-xMovement * MOUSE_SPEED, -yMovement * MOUSE_SPEED);
-			}		
-		}
-	}
-
-	/*
 	 * Update the Camera.
 	 * 
 	 * @param {number} opt_delta optional time delta to upate for
@@ -825,6 +869,21 @@
 		this.threeCamera.updateMatrixWorld(true);
 
 		this.light.updateMatrix();
+	}
+
+	/*
+	 * Update the orthographic projection of the Camera based upon the current FOV and its distance
+	 * from its target.
+	 */
+	function updateOrtho() {
+		var halfH = Math.tan(this.fov.current / 2) * this.distance,
+			halfW = halfH * this.fov.aspect;
+
+		this.threeCamera.bottom = halfH * -1;
+		this.threeCamera.left = halfW * -1;
+		this.threeCamera.right = halfW;
+		this.threeCamera.top = halfH;
+		this.threeCamera.updateProjectionMatrix();
 	}
 
 	hemi.makeCitizen(Camera, 'hemi.Camera', {
