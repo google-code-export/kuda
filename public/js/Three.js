@@ -27789,7 +27789,7 @@ THREE.ColladaLoader = function () {
 
 	function recurseHierarchy( node ) {
 
-		var n = daeScene.getChildById( node.name, true ),
+		var n = daeScene.getChildById( node.nodeId, true ),
 			newData = null;
 
 		if ( n && n.keys ) {
@@ -28332,7 +28332,8 @@ THREE.ColladaLoader = function () {
 
 		}
 
-		obj.name = node.id || "";
+		obj.name = node.name || "";
+		obj.nodeId = node.id || "";
 		obj.matrix = node.matrix;
 		var props = node.matrix.decompose();
 		obj.position = props[ 0 ];
@@ -29528,7 +29529,7 @@ THREE.ColladaLoader = function () {
 			case 'translate':
 			case 'scale':
 
-				if ( typeof member !== 'string' ) {
+				if ( Object.prototype.toString.call( member ) === '[object Array]' ) {
 
 					member = members[ member[ 0 ] ];
 
@@ -29564,7 +29565,7 @@ THREE.ColladaLoader = function () {
 
 			case 'rotate':
 
-				if ( typeof member !== 'string' ) {
+				if ( Object.prototype.toString.call( member ) === '[object Array]' ) {
 
 					member = members[ member[ 0 ] ];
 
@@ -30938,6 +30939,25 @@ THREE.ColladaLoader = function () {
 			if ( child.nodeType != 1 ) continue;
 
 			switch ( child.nodeName ) {
+
+				case 'animation':
+
+					var anim = ( new Animation() ).parse( child );
+
+					for ( var src in anim.source ) {
+
+						this.source[ src ] = anim.source[ src ];
+
+					}
+
+					for ( var j = 0; j < anim.channel.length; j ++ ) {
+
+						this.channel.push( anim.channel[ j ] );
+						this.sampler.push( anim.sampler[ j ] );
+
+					}
+
+					break;
 
 				case 'source':
 
