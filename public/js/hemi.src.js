@@ -14437,7 +14437,7 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Plane} plane enum indicating which plane to move along
 	 */
 	Movable.prototype.setPlane = function(plane) {
-		switch (plane) {
+		switch (plane.toLowerCase()) {
 			case (hemi.Plane.XY):
 				this.plane = XY_PLANE;
 				break;
@@ -14711,7 +14711,7 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Axis} axis axis to rotate about
 	 */
 	Turnable.prototype.setAxis = function(axis) {
-		switch(axis) {
+		switch(axis.toLowerCase()) {
 			case hemi.Axis.X:
 				this.axis.copy(X_AXIS);
 				this.axis.x *= -1;
@@ -14894,7 +14894,7 @@ if (!window.requestAnimationFrame) {
 	 * @param {hemi.Axis} axis axis to resize along
 	 */
 	Resizable.prototype.setAxis = function(axis) {
-		switch(axis) {
+		switch(axis.toLowerCase()) {
 			case hemi.Axis.X:
 				this.axis = X_AXIS;
 				break;
