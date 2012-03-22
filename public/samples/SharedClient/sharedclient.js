@@ -17,11 +17,16 @@
 
 (function() {
 
-	var clients;
+	var clients,
+		car,
+		forwardVelocity = new THREE.Vector3(0, 0, 30),
+		forwardTireSpin = new THREE.Vector3(5, 0, 0),
+		backwardVelocity = new THREE.Vector3(0, 0, -30),
+		backwardTireSpin = new THREE.Vector3(-5, 0, 0);
 
 	function createWorld() {
 
-		var car = new hemi.Model(clients[0]);
+		car = new hemi.Model(clients[0]);
 		car.autoLoad = false;
 		car.setFileName('assets/Ford_Mustang/Ford_Mustang.dae');
 		car.load({ convertUpAxis: true });
@@ -82,6 +87,43 @@
 		clients[1].useCameraLight(false);
 		clients[2].useCameraLight(false);
 		clients[3].useCameraLight(false);
+
+		hemi.input.addKeyDownListener({
+			onKeyDown: function(evt) {
+				switch (evt.keyCode) {
+					case 65: //a
+						//TODO: turn car
+						break;
+					case 68: //d
+						//TODO: turn car
+						break;
+					case 83: //s
+						car.root.setMoving(backwardVelocity);
+						car.getTransform('Ford_Mustang-W_FL').setTurning(backwardTireSpin);
+						car.getTransform('Ford_Mustang-W_FR').setTurning(backwardTireSpin);
+						car.getTransform('Ford_Mustang-W_RL').setTurning(backwardTireSpin);
+						car.getTransform('Ford_Mustang-W_RR').setTurning(backwardTireSpin);
+						break;
+					case 87: //w
+						car.root.setMoving(forwardVelocity);
+						car.getTransform('Ford_Mustang-W_FL').setTurning(forwardTireSpin);
+						car.getTransform('Ford_Mustang-W_FR').setTurning(forwardTireSpin);
+						car.getTransform('Ford_Mustang-W_RL').setTurning(forwardTireSpin);
+						car.getTransform('Ford_Mustang-W_RR').setTurning(forwardTireSpin);
+						break;
+				}
+			}
+		});
+
+		hemi.input.addKeyUpListener({
+			onKeyUp: function(evt) {
+				car.root.cancelMoving();
+				car.getTransform('Ford_Mustang-W_FL').cancelTurning();
+				car.getTransform('Ford_Mustang-W_FR').cancelTurning();
+				car.getTransform('Ford_Mustang-W_RL').cancelTurning();
+				car.getTransform('Ford_Mustang-W_RR').cancelTurning();
+			}
+		});
 
 		hemi.loadPath = '../../';		
 		createWorld();
