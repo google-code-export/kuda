@@ -10178,6 +10178,129 @@ if (!window.requestAnimationFrame) {
 					that.animations.push(kfAnim);
 				}
 
+                var camerasObj = obj.dae.cameras,
+                    visualScenes = obj.dae.visualScenes,
+                    temp;
+
+                for (temp in camerasObj) {
+                    break;
+                }
+                if (temp) {
+                    var colladaUp = obj.asset.up_axis;
+
+                    for (var visualScene in visualScenes) {
+                        for (var i = 0, il = visualScenes[visualScene].nodes.length; i < il; i++) {
+                            var node = visualScenes[visualScene].nodes[i];
+    
+                            if (node.cameras.length > 0) {
+                                var eye, target, fov,  up, vp, rotate;
+                                rotate = undefined;
+                               
+                                rotate = up = target = undefined;
+                                eye = new THREE.Vector3();
+                                for (var j = 0, jl = node.transforms.length; j < jl; j++) {
+                                    var transform = node.transforms[j],
+                                        data = transform.data;
+    
+                                    switch (transform.type) {
+                                        case 'lookat':
+                                            eye.set(data[0],data[1], data[2]);
+                                            target = new THREE.Vector3(data[3], data[4], data[5]);
+                                            // Handle up vector?
+                                            break;
+                                        case 'translate':
+                                            //TODO: More than one translation may exist. How to distinguish?
+                                            if (transform.sid === 'translate') {
+                                                eye = new THREE.Vector3(data[0], data[1], data[2]);
+                                            }
+                                            break;
+                                        case 'rotate':
+                                            // TODO: Fragile, assumes rotations always on one axis at a time
+                                            if (!rotate) {
+                                                rotate = new THREE.Vector3();
+                                            }
+                                            switch(data.indexOf(1)) {
+                                                case 0:
+                                                    rotate.x = data[3] * (Math.PI/180);
+                                                    break;
+                                                case 1:
+                                                    rotate.y = data[3] * (Math.PI/180);
+                                                    break;
+                                                case 2:
+                                                    rotate.z= data[3] * (Math.PI/180);
+                                                    break;
+                                                default:
+                                                    break;
+                                            }
+                                            break;
+                                        case 'scale':
+                                            // TODO: How to handle scales
+                                            break;
+                                        case 'skew':
+                                            // TODO: Handle skew
+                                            break;
+                                        default:
+                                            break;
+                                    }
+                                }
+                                if (target == undefined && rotate != undefined) {
+                                    var x =  eye.x,
+                                        y =  eye.y,
+                                        z =  eye.z,
+                                        sx, sy, sz, cx, cy, cz;
+                                    
+                                    if (colladaUp === 'Y') {
+                                        sx = Math.sin((Math.PI/2) - rotate.x),
+                                        cx = Math.cos((Math.PI/2) - rotate.x),
+                                        sy = Math.sin((Math.PI/2) + rotate.y),
+                                        cy = Math.cos((Math.PI/2) + rotate.y),
+
+                                        x += sx * cy;
+                                        y += cx;
+                                        z -= sy * sx;
+                                    } else if( colladaUp === 'Z') {
+                                        sx = Math.sin((Math.PI/2) - rotate.x),
+                                        cx = Math.cos((Math.PI/2) - rotate.x),
+                                        sz = Math.sin((Math.PI/2) + rotate.z),
+                                        cz = Math.cos((Math.PI/2) + rotate.z);
+
+                                        x += sx * cz;
+                                        y += cx;
+                                        z -= sx * sz;
+                                    } else {
+                                        // TODO: Need to test
+                                        sx = Math.sin((Math.PI/2) + rotate.x),
+                                        cx = Math.cos((Math.PI/2) + rotate.x),
+                                        sz = Math.sin((Math.PI/2) - rotate.z),
+                                        cz = Math.cos((Math.PI/2) - rotate.z),
+
+                                        x += sz * cx;
+                                        y += cz;
+                                        z -= sx * sz;
+                                       
+                                    }
+                                    target = new THREE.Vector3(x,y,z);
+                                }
+                                
+                                for (var k = 0, kl = node.cameras.length; k < kl; k++) {
+                                    var camera = node.cameras[k];
+                                    vp = new hemi.Viewpoint();
+                                    vp.name = node.name + '_' + k;
+                                    vp.eye = eye;
+                                    vp.target = target;
+                                    vp.np = camerasObj[camera.url].znear;
+                                    vp.fp = camerasObj[camera.url].zfar;
+                                    if (camerasObj[camera.url].xfov === undefined) {
+                                        vp.fov = camerasObj[camera.url].yfov * (Math.PI/180);
+                                    } else {
+                                        vp.fov = camerasObj[camera.url].xfov * (Math.PI/180);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
 				that.send(hemi.msg.load, {
 					root: scene
 				});
