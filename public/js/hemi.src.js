@@ -10654,11 +10654,14 @@ if (!window.requestAnimationFrame) {
 
 	/**
 	 * Add a quick grid to the XZ plane of the Client's Scene.
+	 * 
+	 * @param {number} size the height and width of the grid
+	 * @param {number} step the height and width of a square in the grid
 	 */
-	Client.prototype.addGrid = function() {
+	Client.prototype.addGrid = function(size, step) {
 		var line_material = new THREE.LineBasicMaterial({ color: 0xcccccc, opacity: 0.2 }),
 			geometry = new THREE.Geometry(),
-			floor = -0.04, step = 1, size = 14;
+			floor = -0.04;
 
 		for (var i = 0, il = size / step * 2; i <= il; ++i) {
 			geometry.vertices.push(new THREE.Vertex(new THREE.Vector3(-size, floor, i * step - size)));
@@ -10871,9 +10874,9 @@ if (!window.requestAnimationFrame) {
 		this.renderer.setSize(width, height);
 
 		this._bottom = Math.floor(height * this.bounds[0]);
-		this._height = Math.floor(height * this.bounds[1]);
+		this._height = Math.ceil(height * this.bounds[1]);
 		this._left = Math.floor(width  * this.bounds[2]);
-		this._width = Math.floor(width  * this.bounds[3]);
+		this._width = Math.ceil(width  * this.bounds[3]);
 
 		this.camera.updateProjection(this._width, this._height);
 		this.picker.width = this._width;
