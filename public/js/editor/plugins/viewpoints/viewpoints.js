@@ -49,7 +49,7 @@
 		
 		// Create Viewpoint Widget events
 		SaveViewpoint: "viewpoints.SaveViewpoint",
-		PreviewViewpoint: "viewpoints.PreviewViewpoint"
+		PreviewViewpoint: "viewpoints.PreviewViewpoint",
 	};
 	
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,8 +67,17 @@
 		this.prevCurve = null;
 		this.previewing = false;
 		this.waypoints = [];
-
+        that = this;
 		hemi.addRenderListener(this);
+		hemi.subscribe(hemi.msg.load, function(msg) {
+			if (msg.src instanceof hemi.Model) {
+                var vps = hemi.world.getViewpoints();
+                for(var i = 0; i < vps.length; i++){
+                    that.notifyListeners(editor.events.Created, vps[i]);
+                }
+            }
+		});
+
 	};
 	
 	ViewpointsModel.prototype = new editor.ToolModel();
@@ -304,6 +313,7 @@
 			name: 'createVptWidget',
 			uiFile: 'js/editor/plugins/viewpoints/html/viewpointsForms.htm'
 		});
+
 	};
 	
 	var formWgtSuper = editor.ui.FormWidget.prototype;
@@ -588,7 +598,8 @@
 		lstWgt.addListener(editor.events.Remove, function(vpt) {
 			model.removeViewpoint(vpt);
 		});
-		
+
+        
 		// model specific 
 		model.addListener(shorthand.events.CameraUpdated, function(camData) {
 			camInfWgt.updateCameraInfo(camData);
