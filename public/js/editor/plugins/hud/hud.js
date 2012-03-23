@@ -152,6 +152,12 @@
 
 			element.x = props.x;
 			element.y = props.y;
+            if (props.percentX != null && props.percentY != null) {
+                element.percentX = props.percentX;
+                element.percentY = props.percentY;
+                element.x = (props.percentX / 100) * window.screen.width;
+                element.y = (props.percentY / 100) * window.screen.height;
+            }
 			element.setConfig(props.config);
 			element.setText(props.text);
 			element.setWidth(props.width);
@@ -253,7 +259,6 @@
 
 	HudModel.prototype.worldLoaded = function() {
 		var displays = hemi.world.getHudDisplays();
-
 		for (var i = 0, il = displays.length; i < il; ++i) {
 			this.notifyListeners(editor.events.Created, displays[i]);
 		}
@@ -506,6 +511,18 @@
 			container: imgEdt.find('#hudImgUrl'),
 			type: 'string'
 		});
+        var children = imgEdt.find('#hudImgPercentPositionDiv').children();
+       
+        for (var i = 0; i < children.length; i++) {
+            jQuery(children[i]).bind('blur', function() {
+                var percentPos = wgt.percentImagePosition.getValue();
+                if (percentPos) {
+                    var x = (percentPos[0]/100) * window.screen.width,
+                        y = (percentPos[1]/100) * window.screen.height;
+                    wgt.textPosition.setValue([x , y]);
+                }
+            });
+        }
 
 		inputs.bind('blur', function(evt) {
 			wgt.canSave(inputs, [saveBtn]);
@@ -516,10 +533,13 @@
 
 		saveBtn.bind('click', function(evt) {
 			var pos = wgt.imagePosition.getValue(),
+                percentPos = wgt.percentImagePosition.getValue(),
 				props = {
 					type: 'Image',
-					x: pos[0],
-					y: pos[1],
+                    x: pos[0],
+                    y: pos[1],
+					percentX: percentPos != null ? percentPos[0] : null,
+					percentY: percentPos != null ? percentPos[1] : null,
 					url: wgt.urlInput.getValue()
 				};
 
@@ -617,6 +637,19 @@
 			}),
 			wgt = this;
 
+        var children = txtEdt.find('#hudTxtPercentPositionDiv').children();
+       
+        for (var i = 0; i < children.length; i++) {
+            jQuery(children[i]).bind('blur', function() {
+                var percentPos = wgt.percentTextPosition.getValue();
+                if (percentPos) {
+                    var x = (percentPos[0]/100) * window.screen.width,
+                        y = (percentPos[1]/100) * window.screen.height;
+                    wgt.textPosition.setValue([x , y]);
+                }
+            });
+        }
+
 		this.sizeInput = new editor.ui.Input({
 			container: txtEdt.find('#hudTxtSize'),
 			type: 'integer',
@@ -643,12 +676,15 @@
 				style = styleSelect.val(),
 				align = alignSelect.val(),
 				color = colorPicker.getColor(),
-				pos = wgt.textPosition.getValue();
+				pos = wgt.textPosition.getValue(),
+                percentPos = wgt.percentTextPosition.getValue();
 
 			var props = {
 				type: 'Text',
 				x: pos[0],
 				y: pos[1],
+                percentX: percentPos != null ? percentPos[0] : null,
+                percentY: percentPos != null ? percentPos[1] : null,
 				text: textInput.val(),
 				width: wgt.widthInput.getValue(),
 				config: {}
@@ -750,12 +786,24 @@
 			inputs: ['x', 'y'],
 			validator: validator
 		});
+        this.percentTextPosition = new editor.ui.Vector({
+            container: wgt.find('#hudTxtPercentPositionDiv'),
+            inputs: ['px', 'py'],
+            type: "optional vector",
+            validator: validator
+        });
 		this.imageEditor = this.find('#hudImgEditor');
 		this.imagePosition = new editor.ui.Vector({
 			container: wgt.find('#hudImgPositionDiv'),
 			inputs: ['x', 'y'],
 			validator: validator
 		});
+        this.percentImagePosition = new editor.ui.Vector({
+            container: wgt.find('#hudImgPercentPositionDiv'),
+            inputs: ['px', 'py'],
+            type: "optional vector",
+            validator: validator
+        });
 
 		this.bindDisplayEditor();
 		this.bindPageEditor();
@@ -802,7 +850,19 @@
 
 		this.reset();
 		imgEdt.data('obj', obj).find('.displayName').text(obj ? obj.name : '');
-		obj ? this.imagePosition.setValue([obj.x, obj.y]) : this.imagePosition.reset();
+        if (obj) {
+            if (obj.percentX === null || obj.percentY === null) {
+                this.imagePosition.setValue([obj.x, obj.y]);
+            } else {
+                var x = (obj.percentX / 100) * window.screen.width,
+                    y = (obj.percentY / 100) * window.screen.height;
+                this.percentImagePosition.setValue([obj.percentX, obj.percentY]);
+                this.imagePosition.setValue([x, y]);
+            }
+        } else {
+            this.imagePosition.reset();
+        }
+
 		this.urlInput.setValue(obj ? obj.url : null);
 
 		if (obj) {
@@ -825,10 +885,22 @@
 			removeBtn = txtEdt.find('#hudTxtRemoveBtn'),
 			colorPicker = txtEdt.data('colorPicker'),
 			color = obj && obj.config.color ? obj.config.color : textTheme.color;
-
 		this.reset();
 		txtEdt.data('obj', obj).find('.displayName').text(obj ? obj.name : '');
-		obj ? this.textPosition.setValue([obj.x, obj.y]) : this.textPosition.reset();
+
+        if (obj) {
+            if (obj.percentX === null || obj.percentY === null) {
+                this.textPosition.setValue([obj.x, obj.y]);
+            } else {
+                var x = (obj.percentX / 100) * window.screen.width,
+                    y = (obj.percentY / 100) * window.screen.height;
+                this.percentTextPosition.setValue([obj.percentX, obj.percentY]);
+                this.textPosition.setValue([x, y]);
+            }
+        } else {
+            this.textPosition.reset();
+        }
+
 		this.widthInput.setValue(obj ? obj._width : null);
 		textInput.val(obj ? obj._text[0] : '');
 		this.sizeInput.setValue(obj && obj.config.textSize ? obj.config.textSize : textTheme.textSize);
