@@ -404,6 +404,9 @@
 		 * @default 0
 		 */
 		this.y = 0;
+
+        this.percentX = null;
+        this.percentY = null;
 	};
 
 	HudText.prototype = new HudElement();
@@ -413,7 +416,7 @@
 	 * Octane properties for the HudText.
 	 */
 	HudText.prototype._octane = HudElement.prototype._octane.concat([
-		'_text', '_width', 'x', 'y', 'wrapText']);
+		'_text', '_width', 'x', 'y', 'wrapText', 'percentX', 'percentY']);
 
 	/**
 	 * Calculate the bounds of the formatted text.
@@ -580,6 +583,9 @@
 		 * @default 0
 		 */
 		this.y = 0;
+
+        this.percentX = null;
+        this.percentY = null;
 	};
 
 	HudImage.prototype = new HudElement();
@@ -589,7 +595,7 @@
 	 * Octane properties for the HudImage.
 	 */
 	HudImage.prototype._octane = HudElement.prototype._octane.concat([
-		'srcX', 'srcY', 'url', 'x', 'y', 'loadImage']);
+		'srcX', 'srcY', 'url', 'x', 'y', 'loadImage','percentX', 'percentY']);
 
 	/**
 	 * Calculate the bounds of the image.
