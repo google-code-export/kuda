@@ -10182,10 +10182,7 @@ if (!window.requestAnimationFrame) {
                     visualScenes = obj.dae.visualScenes,
                     temp;
 
-                for (temp in camerasObj) {
-                    break;
-                }
-                if (temp) {
+                if (false) {
                     var colladaUp = obj.asset.up_axis;
 
                     for (var visualScene in visualScenes) {
