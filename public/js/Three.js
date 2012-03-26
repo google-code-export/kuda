@@ -27789,7 +27789,7 @@ THREE.ColladaLoader = function () {
 
 	function recurseHierarchy( node ) {
 
-		var n = daeScene.getChildById( node.nodeId, true ),
+		var n = daeScene.getChildById( node.name, true ),
 			newData = null;
 
 		if ( n && n.keys ) {
@@ -28332,8 +28332,7 @@ THREE.ColladaLoader = function () {
 
 		}
 
-		obj.name = node.name || "";
-		obj.nodeId = node.id || "";
+		obj.name = node.id || "";
 		obj.matrix = node.matrix;
 		var props = node.matrix.decompose();
 		obj.position = props[ 0 ];
