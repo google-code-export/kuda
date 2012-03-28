@@ -10178,7 +10178,7 @@ if (!window.requestAnimationFrame) {
 					that.animations.push(kfAnim);
 				}
 
-                if (true) {
+                if (false) {
                     loadColladaModelViewpoints(obj);
                 }
 
@@ -10352,7 +10352,6 @@ if (!window.requestAnimationFrame) {
                         }
                     }
 
-
                     if (!target && rotate) {
                         var x =  eye.x,
                             y =  eye.y,
@@ -10360,30 +10359,16 @@ if (!window.requestAnimationFrame) {
                             distanceToOrigin = eye.distanceTo(new THREE.Vector3()),
                             multiplier = distanceToOrigin < 1 ? 1 : distanceToOrigin,
                             cartesian;
+
                         // Adding and subtracting PI/2 used to create proper theta and phi angles based on rotations.
-//                        if (colladaUp === 'Y') {
-                            cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.x, hemi.HALF_PI - rotate.z]);
-/*                        } else if( colladaUp === 'Z') {
-                            cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.x, hemi.HALF_PI + rotate.z]);
-                        } else {
-                            // TODO: Need to test
-                            cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.z, hemi.HALF_PI + rotate.x]);
-                        }
-  */                     
-//                        if (colladaUp === 'Y') {
-                            x += cartesian[0];
-                            y += cartesian[2];
-                            z -= cartesian[1];
-/*                        } else if (colladaUp === 'Z') {
-                            x += cartesian[0];
-                            y -= cartesian[1];
-                            z -= cartesian[2]; 
-                        }
-                        */
-                        target = new THREE.Vector3(x,y,z);
+                        cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.x, hemi.HALF_PI - rotate.z]);
+                        x += cartesian[0];
+                        y += cartesian[2];
+                        z -= cartesian[1];
+            
+                        target = new THREE.Vector3(x, y, z);
                     }
-                    console.log(colladaUp);
-                    console.log(rotate.x + ' ' + rotate.y+ ' ' + rotate.z);
+
                     for (var k = 0, kl = node.cameras.length; k < kl; k++) {
                         var camera = node.cameras[k];
                         vp = new hemi.Viewpoint();
