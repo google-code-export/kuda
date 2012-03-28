@@ -430,30 +430,23 @@
                         }
                     }
 
-
-                    if (target == undefined && rotate != undefined) {
+                    if (!target && rotate) {
                         var x =  eye.x,
                             y =  eye.y,
                             z =  eye.z,
                             distanceToOrigin = eye.distanceTo(new THREE.Vector3()),
                             multiplier = distanceToOrigin < 1 ? 1 : distanceToOrigin,
                             cartesian;
-    
+
                         // Adding and subtracting PI/2 used to create proper theta and phi angles based on rotations.
-                        if (colladaUp === 'Y') {
-                            cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.x, hemi.HALF_PI + rotate.y]);
-                        } else if( colladaUp === 'Z') {
-                            cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.x, hemi.HALF_PI + rotate.z]);
-                        } else {
-                            // TODO: Need to test
-                            cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.z, hemi.HALF_PI + rotate.x]);
-                        }
+                        cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.x, hemi.HALF_PI - rotate.z]);
                         x += cartesian[0];
                         y += cartesian[2];
                         z -= cartesian[1];
-                        target = new THREE.Vector3(x,y,z);
+            
+                        target = new THREE.Vector3(x, y, z);
                     }
-                    
+
                     for (var k = 0, kl = node.cameras.length; k < kl; k++) {
                         var camera = node.cameras[k];
                         vp = new hemi.Viewpoint();
