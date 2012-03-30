@@ -160,6 +160,8 @@
 				loadTextures(maps.shift());
 			});
 		client.camera.moveToView(viewpoint, 1);
+
+        client.scene.remove(client.camera.light);
 	}
 
 	function changeModelTextures(textures) {
