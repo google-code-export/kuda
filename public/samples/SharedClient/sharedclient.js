@@ -99,17 +99,17 @@
 						break;
 					case 83: //s
 						car.root.setMoving(backwardVelocity);
-						car.getTransform('Ford_Mustang-W_FL').setTurning(backwardTireSpin);
-						car.getTransform('Ford_Mustang-W_FR').setTurning(backwardTireSpin);
-						car.getTransform('Ford_Mustang-W_RL').setTurning(backwardTireSpin);
-						car.getTransform('Ford_Mustang-W_RR').setTurning(backwardTireSpin);
+						car.getTransform('Ford_Mustang-W_FL-node').setTurning(backwardTireSpin);
+						car.getTransform('Ford_Mustang-W_FR-node').setTurning(backwardTireSpin);
+						car.getTransform('Ford_Mustang-W_RL-node').setTurning(backwardTireSpin);
+						car.getTransform('Ford_Mustang-W_RR-node').setTurning(backwardTireSpin);
 						break;
 					case 87: //w
 						car.root.setMoving(forwardVelocity);
-						car.getTransform('Ford_Mustang-W_FL').setTurning(forwardTireSpin);
-						car.getTransform('Ford_Mustang-W_FR').setTurning(forwardTireSpin);
-						car.getTransform('Ford_Mustang-W_RL').setTurning(forwardTireSpin);
-						car.getTransform('Ford_Mustang-W_RR').setTurning(forwardTireSpin);
+						car.getTransform('Ford_Mustang-W_FL-node').setTurning(forwardTireSpin);
+						car.getTransform('Ford_Mustang-W_FR-node').setTurning(forwardTireSpin);
+						car.getTransform('Ford_Mustang-W_RL-node').setTurning(forwardTireSpin);
+						car.getTransform('Ford_Mustang-W_RR-node').setTurning(forwardTireSpin);
 						break;
 				}
 			}
@@ -118,10 +118,10 @@
 		hemi.input.addKeyUpListener({
 			onKeyUp: function(evt) {
 				car.root.cancelMoving();
-				car.getTransform('Ford_Mustang-W_FL').cancelTurning();
-				car.getTransform('Ford_Mustang-W_FR').cancelTurning();
-				car.getTransform('Ford_Mustang-W_RL').cancelTurning();
-				car.getTransform('Ford_Mustang-W_RR').cancelTurning();
+				car.getTransform('Ford_Mustang-W_FL-node').cancelTurning();
+				car.getTransform('Ford_Mustang-W_FR-node').cancelTurning();
+				car.getTransform('Ford_Mustang-W_RL-node').cancelTurning();
+				car.getTransform('Ford_Mustang-W_RR-node').cancelTurning();
 			}
 		});
 
