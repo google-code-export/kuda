@@ -59,7 +59,7 @@
 		client.camera.moveToView(vp, 2.5);
 		client.camera.enableControl();							// Enable camera mouse control
 
-        client.scene.remove(client.camera.light);               // Remove camera light to prevent it from washing out counter
+        client.useCameraLight(false);               // Remove camera light to prevent it from washing out counter
 
         new hemi.Light(client, new THREE.AmbientLight(0xFFFFFF));
 

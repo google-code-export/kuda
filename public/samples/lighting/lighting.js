@@ -161,7 +161,8 @@
 			});
 		client.camera.moveToView(viewpoint, 1);
 
-        client.scene.remove(client.camera.light);
+        client.useCameraLight(false);
+
 	}
 
 	function changeModelTextures(textures) {
