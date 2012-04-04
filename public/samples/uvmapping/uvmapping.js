@@ -69,7 +69,7 @@
 			height: 29,
 			width: 29 });
 		spriteRMat.map.wrapS = spriteRMat.map.wrapT = THREE.RepeatWrapping;
-		spriteR.rotation.x = Math.PI / -16;
+		spriteR.rotation.x = hemi.HALF_PI + (Math.PI / -16);
 		spriteR.position.x -= 50;
 		spriteR.position.y -= 40;
 		spriteR.updateMatrix();
