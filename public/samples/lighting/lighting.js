@@ -100,7 +100,7 @@
 			window_ki: 'assets/images/TimeMaps/Window_KI_1725.jpg',
 			window_lr4: 'assets/images/TimeMaps/Window_LR4_1725.jpg'
 		}],
-	numAssets = (maps.length * 14) + 1; // textures and the model file
+		numAssets = (maps.length * 14) + 1; // textures and the model file
 
 	function createWorld() {
 		// Check if we should display one load bar for all loading
@@ -147,7 +147,7 @@
 
 			materials[name.substring(start + 1, stop)] = mat;
 			// Temporary fix for bug in Three.js colladaloader (ignores emission)
-			mat.color.setRGB(1,1,1);
+			mat.color.setRGB(1, 1, 1);
 		}
 
 		var viewpoint = new hemi.Viewpoint();
@@ -160,8 +160,6 @@
 				loadTextures(maps.shift());
 			});
 		client.camera.moveToView(viewpoint, 1);
-
-        client.useCameraLight(false);
 
 	}
 
