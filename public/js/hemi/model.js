@@ -256,10 +256,7 @@
 					that.animations.push(kfAnim);
 				}
 
-                if (false) {
-                    loadColladaModelViewpoints(obj);
-                }
-
+                loadColladaModelViewpoints(obj);
 				that.send(hemi.msg.load, {
 					root: scene
 				});
@@ -396,8 +393,7 @@
      */
     function loadColladaModelViewpoints(obj) {
         var camerasObj = obj.dae.cameras,
-            visualScenes = obj.dae.visualScenes,
-            colladaUp = obj.asset.up_axis;
+            visualScenes = obj.dae.visualScenes;
 
         // Check all visual scenes for nodes containing cameras
         for (var visualScene in visualScenes) {
@@ -405,12 +401,13 @@
                 var node = visualScenes[visualScene].nodes[i];
 
                 if (node.cameras.length > 0) {
-                    var eye, target, fov,  up, vp, rotate,
+                    var eye,
+                    	target,
+                    	rotate,
                         decompose = node.matrix.decompose();
-                    
+
                     eye = decompose[0];
                     rotate = hemi.utils.quaternionToVector3(decompose[1]);
-                    
                     
                     for (var j = 0, jl = node.transforms.length; j < jl; j++) {
                         var transform = node.transforms[j],
@@ -448,18 +445,16 @@
                     }
 
                     for (var k = 0, kl = node.cameras.length; k < kl; k++) {
-                        var camera = node.cameras[k];
+                        var camera = node.cameras[k],
+                        	vp;
                         vp = new hemi.Viewpoint();
                         vp.name = node.name + '_' + k;
                         vp.eye = eye;
                         vp.target = target;
                         vp.np = camerasObj[camera.url].znear;
                         vp.fp = camerasObj[camera.url].zfar;
-                        if (camerasObj[camera.url].xfov === undefined) {
-                            vp.fov = camerasObj[camera.url].yfov * hemi.DEG_TO_RAD;
-                        } else {
-                            vp.fov = camerasObj[camera.url].xfov * hemi.DEG_TO_RAD;
-                        }
+                        // hemi is y-up so ignore the xfov
+                        vp.fov = camerasObj[camera.url].yfov * hemi.DEG_TO_RAD;
                     }
                 }
             }

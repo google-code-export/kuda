@@ -60,8 +60,7 @@
 		this.transform.add(markerPlane);
 		this.transform.add(coloredPlane);
 		coloredPlane.translateZ(-0.1);
-		this.transform.rotation.x = -Math.PI/2;
-		
+
 		this.material = mat;
 		this.markerMaterial = markerMat;
 		this.client.scene.add(this.transform);
