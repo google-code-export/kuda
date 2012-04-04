@@ -57,7 +57,7 @@
 		 *		render cycles (~2 seconds) to do so.
 		 */
 		client.camera.moveToView(vp, 0);
-		client.camera.enableControl();	// Enable camera mouse control
+		client.camera.disableControl();	// Disable camera mouse control
  		
         pump.getTransform('camEye_camera').setVisible(false, true);
 		pump.getTransform('camTarget_camera').setVisible(false, true);
@@ -78,16 +78,19 @@
         pump.getTransform('shaft_u').setVisible(true, true);
         pump.getTransform('shaft_L').setVisible(true, true);
        
+		pump.getTransform('camCoverBolts_G').setVisible(false, true);
+        pump.getTransform('gearCoverBolts_G').setVisible(false, true);
+
         var animation = new hemi.AnimationGroup(0, 2830/60, pump),
             triggerTimes = [];
 
-        triggerTimes.push(hemi.getTimeOfFrame(391));
-        triggerTimes.push(hemi.getTimeOfFrame(637));
-        triggerTimes.push(hemi.getTimeOfFrame(882));
-        triggerTimes.push(hemi.getTimeOfFrame(1002));
-        triggerTimes.push(hemi.getTimeOfFrame(1107));
-        triggerTimes.push(hemi.getTimeOfFrame(1366));
-        triggerTimes.push(hemi.getTimeOfFrame(1536));
+        triggerTimes.push(hemi.getTimeOfFrame(426));
+        triggerTimes.push(hemi.getTimeOfFrame(675));
+        triggerTimes.push(hemi.getTimeOfFrame(896));
+        triggerTimes.push(hemi.getTimeOfFrame(1051));
+        triggerTimes.push(hemi.getTimeOfFrame(1127));
+        triggerTimes.push(hemi.getTimeOfFrame(1400));
+        triggerTimes.push(hemi.getTimeOfFrame(1620));
 
 		animation.subscribe(hemi.msg.animate, function(msg) {
 		    var time = msg.data.time;
@@ -97,16 +100,17 @@
                 var triggerTime = triggerTimes[i];
     			if (triggerTime > prev && triggerTime < time) {
                     if (i == 0) {
+        				pump.getTransform('nutsAndBolts_G').setVisible(true, true);
         				pump.getTransform('gearCoverBolts_G').setVisible(false, true);
 		        		pump.getTransform('nutsAndBolts_nut_pumpHousing1').setVisible(false, true);
         				pump.getTransform('nutsAndBolts_nut_pumpHousing2').setVisible(false, true);
         				pump.getTransform('nutsAndBolts_nut_pumpHousing3').setVisible(false, true);
         				pump.getTransform('nutsAndBolts_nut_pumpHousing4').setVisible(false, true);
+                        pump.getTransform('nuts_PistonCover_G').setVisible(false, true);
         				pump.getTransform('camGearUpper_G').setVisible(false, true);
         				pump.getTransform('camGearLower_G').setVisible(false, true);
         				pump.getTransform('camCover1').setVisible(true, true);
         				pump.getTransform('camCover2').setVisible(true, true);
-        				pump.getTransform('nutsAndBolts_G').setVisible(true, true);
                     } else if (i == 1) {
         				pump.getTransform('camGearUpper_G').setVisible(true, true);
         				pump.getTransform('camGearLower_G').setVisible(true, true);
