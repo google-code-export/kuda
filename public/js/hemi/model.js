@@ -401,48 +401,27 @@
                 var node = visualScenes[visualScene].nodes[i];
 
                 if (node.cameras.length > 0) {
-                    var eye,
-                    	target,
-                    	rotate,
-                        decompose = node.matrix.decompose();
+                    var eye = new THREE.Vector3(),
+                    	rotate = new THREE.Vector3(),
+                    	target = new THREE.Vector3();
 
-                    eye = decompose[0];
-                    rotate = hemi.utils.quaternionToVector3(decompose[1]);
-                    
-                    for (var j = 0, jl = node.transforms.length; j < jl; j++) {
-                        var transform = node.transforms[j],
-                            data = transform.data;
-                        switch (transform.type) {
-                            case 'lookat':
-                                eye.set(data[0],data[1], data[2]);
-                                target = new THREE.Vector3(data[3], data[4], data[5]);
-                                // Handle up vector?
-                                break;
-                            case 'scale':
-                            case 'skew':
-                            case 'translate':
-                            case 'rotate':
-                            default:
-                                break;
-                        }
-                    }
+                    eye = eye.getPositionFromMatrix(node.matrix);
+                    rotate = rotate.getRotationFromMatrix(node.matrix);
 
-                    if (!target && rotate) {
-                        var x =  eye.x,
-                            y =  eye.y,
-                            z =  eye.z,
-                            distanceToOrigin = eye.distanceTo(new THREE.Vector3()),
-                            multiplier = distanceToOrigin < 1 ? 1 : distanceToOrigin,
-                            cartesian;
+                    var x =  eye.x,
+                        y =  eye.y,
+                        z =  eye.z,
+                        distanceToOrigin = eye.distanceTo(new THREE.Vector3()),
+                        multiplier = distanceToOrigin < 1 ? 1 : distanceToOrigin,
+                        cartesian;
 
-                        // Adding and subtracting PI/2 used to create proper theta and phi angles based on rotations.
-                        cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.x, hemi.HALF_PI - rotate.z]);
-                        x += cartesian[0];
-                        y += cartesian[2];
-                        z -= cartesian[1];
-            
-                        target = new THREE.Vector3(x, y, z);
-                    }
+                    // Adding and subtracting PI/2 used to create proper theta and phi angles based on rotations.
+                    // This likely still needs work, especially when up-axis changes
+                    cartesian = hemi.utils.sphericalToCartesian([multiplier, hemi.HALF_PI - rotate.x, hemi.HALF_PI - rotate.z]);
+                    x += cartesian[0];
+                    y += cartesian[2];
+                    z -= cartesian[1];
+                    target.set(x, y, z);
 
                     for (var k = 0, kl = node.cameras.length; k < kl; k++) {
                         var camera = node.cameras[k],

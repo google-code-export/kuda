@@ -902,9 +902,10 @@
 		if (this._mesh) {
 			this._mesh.material = material;
 
-			if (!material.program) {
+			if (!material.program || material.needsUpdate) {
 				var scene = this.client.scene;
 				this.client.renderer.initMaterial(material, scene.__lights, scene.fog, this._mesh);
+				material.needsUpdate = false;
 			}
 
 			var shads = hemi.utils.getShaders(this.client, material);
