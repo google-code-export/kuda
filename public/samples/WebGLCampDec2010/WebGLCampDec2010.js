@@ -27,55 +27,55 @@
 			vector: [0, 0, SLIDE_1Z]
 		}, {
 			url: 'assets/images/Slide02.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide03.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide04.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide05.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide06.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide07.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide08.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide09.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide10.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide11.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide12.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide13.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide14.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide15.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide16.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide17.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}, {
 			url: 'assets/images/Slide18.png',
-			vector: [0, 0, -1000]
+			vector: [0, -1000, 0]
 		}],
 		loadedSlideCount = 0,
 		digDisp,
@@ -136,7 +136,13 @@
 				panel = new THREE.Mesh(geom, material);
 			client.scene.add(panel);
 			slide.transform = panel;
-			if (index) slides[index - 1].transform.add(panel);
+
+			if (index) {
+				slides[index - 1].transform.add(panel);
+			} else {
+				panel.rotation.x = hemi.HALF_PI;
+			}
+
 			panel.translateX(slide.vector[0]);
 			panel.translateY(slide.vector[1]);
 			panel.translateZ(slide.vector[2]);
@@ -152,16 +158,8 @@
 			}),
 			shape = new THREE.PlaneGeometry(20000, 20000),
 			transform = new THREE.Mesh(shape, material);
-//			checkerMaterial = core.material.createCheckerMaterial(pack,
-//				view.viewInfo, [0, 0, 0.5, 1], [1, 1, 1, 1], false, 50),
-//			shape = core.primitives.createPlane(pack, checkerMaterial, 20000, 20000, 1, 1),
-//			transform = pack.createObject('Transform');
-//		checkerMaterial.getParam('lightWorldPos').bind(camera.light.position);
-//		transform.parent = core.client.root;
 		client.scene.add(transform);
 		transform.translateY(-270);
-		transform.rotation.x = -Math.PI/2;
-		transform.updateMatrix();
 
 		makeOcta(new THREE.Vector3(1700, -120, 8000), 300);
 		makeOcta(new THREE.Vector3(-900, -120, 0), 200);
@@ -184,10 +182,6 @@
 		digDisp.root.updateMatrix();
 		updateDigDisp(0, 1);
 
-		// vp.eye = SLIDE1_EYE;
-		// vp.target = SLIDE1_TARGET;
-		// vp.fp = 40000;
-		// vp.fov = sixty;
 		camera.moveToView(vp, 0);
 		camera.enableControl();
 		var tout = setTimeout(function() {
