@@ -146,8 +146,6 @@
 				stop = name.indexOf('.', start);
 
 			materials[name.substring(start + 1, stop)] = mat;
-			// Temporary fix for bug in Three.js colladaloader (ignores emission)
-			mat.color.setRGB(1, 1, 1);
 		}
 
 		var viewpoint = new hemi.Viewpoint();
@@ -161,6 +159,8 @@
 			});
 		client.camera.moveToView(viewpoint, 1);
 
+        client.useCameraLight(false);
+        new hemi.Light(client, new THREE.AmbientLight(0xffffff));
 	}
 
 	function changeModelTextures(textures) {
