@@ -255,8 +255,9 @@
 					kfAnim.timeScale = 1;
 					that.animations.push(kfAnim);
 				}
-
-                loadColladaModelViewpoints(obj);
+                if (obj.dae) {
+                    loadColladaModelViewpoints(obj);
+                }
 				that.send(hemi.msg.load, {
 					root: scene
 				});
@@ -276,7 +277,7 @@
 			default:
 				var scope = this;
 				// test first
-				hemi.utils.get(this._fileName, function(data, status) {
+				hemi.utils.get(hemi.getLoadPath(this._fileName), function(data, status) {
 					var fileData = JSON.parse(data);
 
 					if (fileData.buffers !== undefined) {
