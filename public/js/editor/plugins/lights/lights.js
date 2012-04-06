@@ -153,7 +153,6 @@
                 light.position = lightInfo.position;
                 break;  
         }    
-        console.log(light);
         return light;
     };
     
