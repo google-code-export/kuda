@@ -254,7 +254,8 @@
 			curveEye = new hemi.Curve(eyes, hemi.CurveType.Cardinal),
 			curveTarget = new hemi.Curve(targets, hemi.CurveType.Cardinal),
 			camCurve = new hemi.CameraCurve(curveEye, curveTarget);
-			// curveEye.draw(50, { jointSize: 4 });
+
+		// curveEye.draw(50, client, { edgeSize: 5, edgeColor: 0x000000 });
 		camera.moveOnCurve(camCurve, 25);
 	}
 
@@ -285,7 +286,7 @@
 			curveEye = new hemi.Curve(eyes, hemi.CurveType.CubicHermite, { tangents: tangents }),
 			curveTarget = new hemi.Curve(targets, hemi.CurveType.Linear),
 			camCurve = new hemi.CameraCurve(curveEye, curveTarget);
-			// curveEye.draw(50, { jointSize: 4 });
+			// curveEye.draw(50, client, { edgeSize: 5, edgeColor: 0x000000 });
 			camera.moveOnCurve(camCurve, 1.2);
 		}
 	}
