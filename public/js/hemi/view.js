@@ -102,7 +102,7 @@
 
 		/**
 		 * A light that moves with the Camera and is always pointing where the Camera is pointing.
-		 * @type THREE.PointLight
+		 * @type THREE.SpotLight
 		 */
 		this.light = new THREE.SpotLight(0xffffff, 1.35);
 
