@@ -347,7 +347,8 @@
 	 * @param {Object} config configuration for how the Curve should look
 	 */
 	Curve.prototype.draw = function(samples, client, config) {
-		var points = [];
+		var points = [],
+			config = config || {};
 
 		for (var i = 0, il = samples + 2; i < il; ++i) {
 			points[i] = this.interpolate(i / (samples + 1));
@@ -1501,7 +1502,7 @@
 	function drawCurve(points, client, config) {
 		var eShow = (config.edges == null) ? true : config.edges,
 			eSize = config.edgeSize || 1,
-			eColor = config.edgeColor || 0x880000,
+			eColor = (config.edgeColor == null) ? 0x880000 : config.edgeColor,
 			lineMat = new THREE.MeshBasicMaterial({
 				color: eColor
 			}),
