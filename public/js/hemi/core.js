@@ -114,7 +114,7 @@ if (!window.requestAnimationFrame) {
 	hemi.RAD_TO_DEG = 180 / Math.PI;
 
 	/**
-	 * The version of Hemi released: 4/12/2012
+	 * The version of Hemi released: 4/13/2012
 	 * @constant
 	 */
 	hemi.version = '2.0.1';
@@ -374,7 +374,7 @@ if (!window.requestAnimationFrame) {
 		var renderer = null;
 
 		if (Detector.webgl) {
-			renderer = new THREE.WebGLRenderer();
+			renderer = new THREE.WebGLRenderer({ antialias: true });
 		} else {
 			if (Detector.canvas) {
 				renderer = new THREE.CanvasRenderer();
