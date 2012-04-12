@@ -114,7 +114,7 @@ if (!window.requestAnimationFrame) {
 	hemi.RAD_TO_DEG = 180 / Math.PI;
 
 	/**
-	 * The version of Hemi released: 4/5/2012
+	 * The version of Hemi released: 4/12/2012
 	 * @constant
 	 */
 	hemi.version = '2.0.1';

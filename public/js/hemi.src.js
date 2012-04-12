@@ -10169,17 +10169,21 @@ if (!window.requestAnimationFrame) {
 				that.client.scene.add(that.root);
 
 				for (var i = 0, il = animations.length; i < il; ++i) {
-					var anim = animations[i];
-					//Add to the THREE Animation handler to get the benefits of it's
-					animHandler.add(anim);
+					var anim = animations[i],
+						kfAnim;
 
-					var kfAnim = new THREE.KeyFrameAnimation(toConvert[anim.node.id], anim.name);
+					//Add to the THREE Animation handler to get the benefits of it's control functions
+					animHandler.add(anim);
+					// Don't use anim.node! needs to be the converted to hemi reference
+					kfAnim = new THREE.KeyFrameAnimation(toConvert[anim.node.id], anim.name);
 					kfAnim.timeScale = 1;
 					that.animations.push(kfAnim);
 				}
+
                 if (obj.dae) {
                     loadColladaModelViewpoints(obj);
                 }
+
 				that.send(hemi.msg.load, {
 					root: scene
 				});
@@ -10198,7 +10202,6 @@ if (!window.requestAnimationFrame) {
 			// default is .js format which includes jsonLoader and binLoader
 			default:
 				var scope = this;
-				// test first
 				hemi.utils.get(hemi.getLoadPath(this._fileName), function(data, status) {
 					var fileData = JSON.parse(data);
 
