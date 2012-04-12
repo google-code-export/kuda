@@ -160,7 +160,6 @@
 		client.camera.moveToView(viewpoint, 1);
 
         client.useCameraLight(false);
-        new hemi.Light(client, new THREE.AmbientLight(0xffffff));
 	}
 
 	function changeModelTextures(textures) {
