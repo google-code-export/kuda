@@ -305,13 +305,13 @@ if (process.argv.length > 3) {
 		toDir = process.argv[ndx];
 
 	// Set up our filter
-	filter = ['.svn', '.hg', '.hgignore', '.hgtags', '.project', '.settings'];
+	filter = ['.svn', '.hg', '.hgcheck', '.hgignore', '.hgtags', '.project', 'projects', '.settings'];
 
 	if (type === 'core') {
 		checkForToDir(toDir);
 		// Copy only the core Hemi library
-		filter.push('app.js', 'build.js', 'PublishReadMe',
-			'PublishTemplate.html', 'editor', 'hemi', 'parse.js');
+		filter.push('lib', 'app.js', 'build.js', 'PublishReadMe',
+			'PublishTemplate.html', 'editor', 'editor.min.js', 'editor.src.js', 'hemi', 'parse.js');
 		copyFiles('.', toDir, false);
 		copyFiles('./public/js', toDir, true);
 

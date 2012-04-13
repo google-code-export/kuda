@@ -28,6 +28,7 @@ var qs = require('querystring'),
 	routes = {
 		ROOT: '/',
 		ROOTANY: '/*',
+		SAMPLES: '/samples',
 		PROJECTS: '/projects',
 		PROJECT: '/project',
 		MODELS: '/models',
@@ -35,6 +36,7 @@ var qs = require('querystring'),
 		PUBLISH: '/publish',
 		WSEXAMPLE: 'websocket-example',
 		rootPath: 'public',
+		samplesPath: 'public/samples',
 		pluginsPath: 'public/js/editor/plugins',
 		projectsPath: 'public/projects',
 		assetsPath: 'public/assets',
@@ -138,6 +140,12 @@ if (process.argv.length > 2) {
 routes.get(routes.ROOT, function(req, res) {
 	log('...handling route GET ' + routes.ROOT);
 	var data = fs.readFileSync(routes.rootPath + '/index.html');
+	res.send(data, 200, HTMLt);
+});
+
+routes.get(routes.SAMPLES, function(req, res) {
+	log('...handling route GET' + routes.SAMPLES);
+	var data = fs.readFileSync(routes.samplesPath + '/index.html');
 	res.send(data, 200, HTMLt);
 });
 
