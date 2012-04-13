@@ -1478,7 +1478,6 @@
 			container.submit(function() {
 				return false;
 			});
-       		
 			acceptButton.bind('click', function() {
 				if (state === AdjustState.TRANSLATE) {
 					transform.position = new THREE.Matrix4().getInverse(transform.parent.matrixWorld).multiplyVector3(vector.getValue());
@@ -1494,14 +1493,17 @@
 					transform.updateMatrix();
 				}
 				else if (state === AdjustState.ROTATE) {
-					//PABNOTE Setting rotation not implemented yet
+                    var rotation = vector.getValue();
+                    rotation.x *= hemi.DEG_TO_RAD;
+                    rotation.y *= hemi.DEG_TO_RAD;
+                    rotation.z *= hemi.DEG_TO_RAD;
+                    transform.rotation = rotation;
+                    transform.updateMatrix();
 				}
 			});
 
 			container.append(vector.getUI());
-			if (state !== AdjustState.ROTATE) {
-				container.append(acceptButton);
-			}
+			container.append(acceptButton);
 			popup.show(button, container, null, {
 				top: 5,
 				left: 0
