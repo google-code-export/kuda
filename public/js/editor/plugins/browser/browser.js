@@ -1569,7 +1569,6 @@
 		} else {
 			for (i = 0; i < l; i++) {
 				var o = getOpacity(transform.children[i]);
-				console.log(o + ' vs ' + opacity);
 				opacity = opacity === null ? o : opacity > o ? opacity : o;
 			}
 		}
