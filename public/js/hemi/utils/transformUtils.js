@@ -379,7 +379,7 @@
 	 */
 	hemi.utils.translateGeometry = function(mesh, delta) {
 		// Shift geometry
-		mesh.geometry.applyMatrix(_matrix.setTranslation(delta.x, delta.y, delta.z));
+		mesh.geometry.applyMatrix(_matrix.makeTranslation(delta.x, delta.y, delta.z));
 		mesh.geometry.computeBoundingBox();
 
 		// Update mesh transform matrix
