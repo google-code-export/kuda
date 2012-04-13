@@ -1517,7 +1517,7 @@
 					p0.y += eSize;
 				}
 				// var edgeTran = addVertex(points[i], points[i+1], eSize, lineMat);
-				geometry.vertices.push(new THREE.Vertex(p0));
+				geometry.vertices.push(new THREE.Vertex().copy(p0));
 				geometry.colors.push(eColor);
 				// crvTransform.add(edgeTran);
 			}
@@ -1564,9 +1564,8 @@
 				ids.push(i);
 				offsets.push(timeOffset);
 				idOffsets.push(new THREE.Vector2(i, timeOffset));
-				var vert = verts[j].position,
-					newVert = new THREE.Vector3(vert.x, vert.y, vert.z);
-				newVerts.push(new THREE.Vertex(newVert));
+				var vert = verts[j];
+				newVerts.push(new THREE.Vertex(vert.x, vert.y, vert.z));
 			}
 
 			for (var j = 0; j < numFaces; j++) {
