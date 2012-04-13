@@ -1,0 +1,6 @@
+public/js/editor/data/hemi.json
+glob:public/assets/
+glob:public/projects
+syntax: regexp
+^\.project$
+

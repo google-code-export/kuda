@@ -1,0 +1,21 @@
+Kuda Published Content
+
+Thank you for using the Kuda World Editor to publish your WebGL project! To make
+your content available to others, you may use the provided html file which has
+been packaged with *almost* everything it needs to be viewed on the web. If you
+wish to embed your content into an existing html page, it only takes two steps:
+
+- copy the script tags into the top of your html file
+- copy the kuda div tag into your html file where you want the content to appear
+
+NOTE: If you move the provided html file out of the package directory or embed
+your content in a file in a different directory, you may have to check the paths
+on the script files as well as the Hemi load path. These paths are currently
+defined relative to the package directory and would need to be updated if they
+were referenced from another location.
+
+You're almost ready. In order to help keep the package size down and make
+publishing faster, we don't include any 3D model files in the package. If your
+project includes any models, you'll need to copy the model files into the
+'assets' directory yourself. It looks like you need the following models:
+

@@ -1,0 +1,33 @@
+Kuda World Editor
+Copyright (C) 2011 SRI International.
+ 
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or (at
+your option) any later version.
+
+This program is distributed in the hope that it will be useful, but
+WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+02110-1301 USA.
+
+
+Contributing to Kuda World Editor
+
+Kuda World Editor is a collaborative project and we encourage participation.  If
+you think of features to add, bugs to fix, or improvements to make, we
+welcome your input.  To become involved please send us a request at
+dev@kuda.sri.com.
+
+If you wish to contribute to the distribution we require that you to
+complete and submit a Contributor License Agreement (CLA) along with
+your first submission.  The purpose of this agreement is to clearly
+define the terms under which intellectual property has been
+contributed to the project and thereby allow us to defend the project
+should there be a legal dispute regarding the software at some future
+time.  The CLA is included with the distribution.

@@ -1,0 +1,90 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+	<h1>Create Light</h1>
+    <form id="lightForm" method="post" action="">
+        <fieldset id="lightSystemType">
+            <legend>
+                Select Light Type
+            </legend>
+            <ol>
+                <li>
+                    <select id="lightTypeSelect">
+                        <option value="-1">Select Type</option>
+                        <option value="ambient">Ambient</option>
+                        <option value="point">Point</option>
+                        <option value="directional">Directional</option>
+                        <option value="spot">Spot</option>
+                        
+                    </select>
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="lightParams">
+            <legend>
+                Set Light Parameters
+            </legend>
+            <ol>
+                <li>
+                    <label id="lightColorLbl" class="short">
+                        Color
+                    </label>
+                </li>
+                <li>
+                    <label for="lightPosition" class="optional">
+                        Position
+                    </label>
+					<div id="lightPositionDiv">
+					</div>
+                </li>
+                <li>
+                    <label for="lightTarget" class="optional">
+                        Target
+                    </label>
+					<div id="lightTargetDiv">
+					</div>
+                </li>
+                <li>
+                    <input type="text" value="" id="lightIntensity" class="optional" placeholder="Intensity" />
+                </li>
+                <li>
+                    <input type="text" value="" id="lightDistance" class="optional" placeholder="Distance" />
+                </li>
+            </ol>
+        </fieldset>
+        <fieldset id="lightSave">
+            <legend>
+                Save Your Light
+            </legend>
+            <ol>
+                <li>
+                    <input type="text" id="lightName" class="name" autocomplete="off" placeholder="Name" />
+                    <div class="buttons">
+	                    <button id="lightPreviewBtn">
+	                        Preview
+	                    </button>
+                        <button id="lightSaveBtn" disabled="disabled">
+                            Save
+                        </button>
+                        <button id="lightCancelBtn">
+                            Clear
+                        </button>
+                    </div>
+                </li>
+            </ol>
+        </fieldset>
+    </form>

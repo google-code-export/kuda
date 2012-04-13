@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Kuda Project - CPR_06</title>
+        <script type="text/javascript" src="../../js/Three.js">
+        </script>
+        <script type="text/javascript" src="../../js/hemi.min.js">
+        </script>
+        <script type="text/javascript">
+			var bodyModel, cycModel, envModel, client, hiding = false;
+
+			var addWinFunc = function(func, name) {
+				if (typeof window[name] !== 'function') {
+					window[name] = func;
+				} else {
+					var oldFunc = window[name];
+					window[name] = function(){
+						oldFunc();
+						func();
+					}
+				}
+			};
+			addWinFunc(function(clientElements) {
+				hemi.setErrorCallback(function(msg) {
+					alert('An error has occurred:\n' + msg +
+						'\nDid you forget to copy a model to the assets directory?');
+				});
+				hemi.loadPath = '../../';
+				hemi.loadOctane('samples/FirstAid/FirstAid.json', function() {
+					client = hemi.clients[0];
+					hemi.subscribe(hemi.msg.ready, function() {
+						additionalSetup();
+					});
+				});
+
+			}, 'onload');
+			addWinFunc(function() {
+				if (client) {
+					client.cleanup();
+				}
+			}, 'onunload');
+
+			function additionalSetup() {
+				var curve = hemi.world.getCamCurves()[0];
+
+				client.camera.subscribe(hemi.msg.stop, function(msg) {
+					if (msg.data.viewdata) {
+						client.camera.moveOnCurve(curve, 20);
+					}
+				});
+
+				var models = hemi.world.getModels();
+
+				for (var i = 0, il = models.length; i < il; ++i) {
+					var model = models[i];
+
+					switch (model.name) {
+						case 'body':
+							bodyModel = model;
+							break;
+						case 'cyc':
+							cycModel = model;
+							break;
+						case 'environment2':
+							envModel = model;
+							break;
+					}
+				}
+			}
+
+			function swapModels(button) {
+				button.innerHTML = hiding ? 'Hide Victim\'s Body' : 'Show Victim\'s Body';
+				bodyModel.setVisible(hiding);
+				envModel.setVisible(hiding);
+				cycModel.setVisible(hiding);
+				hiding = !hiding;
+			}
+
+			function moveToView(name) {
+				var viewpoint = hemi.world.getViewpoints({name:name})[0];
+				client.camera.moveToView(viewpoint);
+				if (name === 'cam_POV') {
+					client.camera.threeCamera.up = new THREE.Vector3(0,20,7);
+				} else {
+					client.camera.threeCamera.up = new THREE.Vector3(0,1,0);
+
+					if (name === 'cam_ribs' && !hiding) {
+						swapModels(document.getElementById('hideButton'));
+					}
+				}
+			}
+        </script>
+    </head>
+    <body style="overflow: hidden;">
+		<div id="kuda" style="width: 80%; float: left;"></div>
+		<div style="width: 20%; float: right;">
+			Cameras
+			<hr/>
+			<button onclick="moveToView('cam_feet');">Overview</button><br>
+			<button onclick="moveToView('cam_POV');">First-Person</button><br>
+			<button onclick="moveToView('cam_ribs');">Ribcage</button><br><br>
+			Options
+			<hr/>
+			<button id="hideButton" onclick="swapModels(this);">Hide Victim Body</button>
+		</div>
+    </body>
+</html>
