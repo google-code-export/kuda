@@ -211,6 +211,10 @@
 	 * @param {Object} opt_loaderOptions optional loader options, ex. { convertUpAxis: true }
 	 */
 	Model.prototype.load = function(opt_loadOptions) {
+		opt_loadOptions = opt_loadOptions || {};
+
+		if (opt_loadOptions.modelFileName) this._fileName = opt_loadOptions.modelFileName;
+
 		if (this._loaded) this.unload();
 
 		var that = this,

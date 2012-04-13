@@ -27,9 +27,7 @@
 	function createWorld() {
 
 		car = new hemi.Model(clients[0]);
-		car.autoLoad = false;
-		car.setFileName('assets/Ford_Mustang/Ford_Mustang.dae');
-		car.load({ convertUpAxis: true });
+		car.load({ modelFileName: 'assets/Ford_Mustang/Ford_Mustang.dae', convertUpAxis: true });
 
 		hemi.subscribe(hemi.msg.ready,
 			function(msg) {
