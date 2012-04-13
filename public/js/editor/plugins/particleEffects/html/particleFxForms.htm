@@ -1,0 +1,276 @@
+<!-- 
+  Kuda includes a library and editor for authoring interactive 3D content for the web.
+  Copyright (C) 2011 SRI International.
+
+  This program is free software; you can redistribute it and/or modify it under the terms
+  of the GNU General Public License as published by the Free Software Foundation; either 
+  version 2 of the License, or (at your option) any later version.
+ 
+  This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+  See the GNU General Public License for more details.
+ 
+  You should have received a copy of the GNU General Public License along with this program; 
+  if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+  Boston, MA 02110-1301 USA.
+-->
+
+<h1>Create Particle Effect</h1>
+<form id="pteForm" method="post" action="">
+    <fieldset id="pteTemplates">
+        <legend>
+            Select a Template
+        </legend>
+        <ol>
+            <li>
+            	<p>
+            		Use a template of pre-defined parameters or define your own below.
+            	</p>
+                <select id="pteTemplateSelect">
+                    <option value="-1">Select Template</option>
+                </select>
+            </li>
+        </ol>
+    </fieldset>
+    <fieldset id="pteSystemType">
+        <legend>
+            Select Effect Type
+        </legend>
+        <ol>
+            <li>
+                <select id="pteType">
+                    <option value="-1">Select Type</option>
+                    <option value="Burst">Burst</option>
+                    <option value="Trail">Trail</option>
+                    <option value="Emitter">Emitter</option>
+                </select>
+            </li>
+        </ol>
+    </fieldset>
+    <fieldset id="pteSysParams">
+        <legend>
+            System Parameters
+        </legend>
+        <ol>
+            <li>
+                <label for="pteBlend">
+                    Blending
+                </label>
+                <select id="pteBlend">
+                    <option value="-1">Select Blending</option>
+                    <option value="1">Normal</option>
+                    <option value="2">Additive</option>
+                    <option value="3">Subtractive</option>
+                    <option value="4">Multiply</option>
+                    <option value="5">Additive Alpha</option>
+                </select>
+            </li>
+            <li>
+                <input type="text" value="" id="pte-numParticles" placeholder="Number of Particles" />
+            </li>
+            <li>
+                <div class="long">
+                    <label for="pte-position" class="short">
+                        Position
+                    </label>
+                    <div id="pte-positionDiv">
+                    </div>
+                </div>
+                <div class="long">
+                    <label for="pte-positionRange" class="short">
+                        Range
+                    </label>
+                    <div id="pte-positionRangeDiv">
+                    </div>
+                </div>
+            </li>
+            <li>
+                <input type="text" value="" id="pte-timeRange" placeholder="System Life Time" />
+            </li>
+            <li>
+                <input type="text" value="" id="pte-fireInterval" placeholder="Fire Interval" />
+            </li>
+            <li class="ranged">
+                <div>
+                    <input type="text" value="" id="pte-lifeTime" placeholder="Particle Life Time" />
+                </div>
+                <div>
+                    <input type="text" value="" id="pte-lifeTimeRange" placeholder="Range" />
+                </div>
+            </li>
+            <li>
+                <input type="text" value="" id="pte-startTime" placeholder="Particle Start Time" />
+            </li>
+        </ol>
+    </fieldset>
+    <fieldset id="pteAppearanceParams">
+        <legend>
+            Appearance Parameters
+        </legend>
+        <ol>
+            <li>
+                <label for="pte-billboard" class="short">
+					Billboard
+				</label>
+                <input type="checkBox" id="pte-billboard" class="short" />
+            </li>
+            <li>
+                <label for="pte-orientation" class="short">
+                    Orientation
+                </label>
+                <div id="pte-orientationDiv">
+                </div>
+            </li>
+            <li>
+                <label for="pteColorRamp0R" class="short" id="pteColorRamp0Lbl">
+                    Color Ramp
+                </label>
+                <div id="pteColorRampWrapper">
+                    <button id="pteAddColorToRamp">
+                        Add Color
+                    </button>
+                </div>
+            </li>
+            <li id="pteColors">
+                <div>
+                    <label for="pteColorMultDiv" class="long" id="pteColorMultLbl">
+                        Color Multiplier
+                    </label>
+                </div>
+                <div>
+                    <label for="pte-colorMultRange" class="long">
+                        Range
+                    </label>
+                    <div id="pte-colorMultRangeDiv">
+                    </div>
+                </div>
+            </li>
+            <li class="ranged">
+                <div>
+                    <input type="text" value="" id="pte-startSize" placeholder="Start Size" />
+                </div>
+                <div>
+                    <input type="text" value="" id="pte-startSizeRange" placeholder="Range" />
+                </div>
+            </li>
+            <li class="ranged">
+                <div>
+                    <input type="text" value="" id="pte-endSize" placeholder="End Size" />
+                </div>
+                <div>
+                    <input type="text" value="" id="pte-endSizeRange" placeholder="Range" />
+                </div>
+            </li>
+        </ol>
+    </fieldset>
+    <fieldset id="pteMotionParams">
+        <legend>
+            Motion Parameters
+        </legend>
+        <ol>
+        <li>
+            <div>
+                <label for="pte-acceleration" class="long">
+                    Local Acceleration
+                </label>
+                <div id="pte-accelerationDiv">                    	
+                </div>
+            </div>
+            <div>
+                <label for="pte-accelerationRange" class="long">
+                    Range
+                </label>
+                <div id="pte-accelerationRangeDiv">
+                </div>
+            </div>
+        </li>
+        <li>
+            <div>
+                <label for="pte-velocity" class="long">
+                    Local Velocity
+                </label>
+                <div id="pte-velocityDiv">
+                </div>
+            </div>
+            <div>
+                <label for="pte-velocityRange" class="long">
+                    Range
+                </label>
+                <div id="pte-velocityRangeDiv">
+                </div>
+            </div>
+        </li>
+        <li>
+            <label for="pte-worldAcceleration" class="long">
+                World Acceleration
+            </label>
+            <div id="pte-worldAccelerationDiv">
+            </div>
+        </li>
+        <li>
+            <label for="pte-worldVelocity" class="long">
+                World Velocity
+            </label>
+            <div id="pte-worldVelocityDiv">
+            </div>
+        </li>
+        <li class="ranged">
+            <div>
+                <input type="text" value="" id="pte-spinSpeed" placeholder="Spin Speed" />
+            </div>
+            <div>
+                <input type="text" value="" id="pte-spinSpeedRange" placeholder="Range" />
+            </div>
+        </li>
+        <li class="ranged">
+            <div>
+                <input type="text" value="" id="pte-spinStart" placeholder="Spin Start" />
+            </div>
+            <div>
+                <input type="text" value="" id="pte-spinStartRange" placeholder="Range" />
+            </div>
+        </li>
+    </fieldset>
+    <fieldset id="pteTextureAnimParams">
+        <legend>
+            Texture Animation
+        </legend>
+        <ol>
+            <li>
+                <input type="text" value="" id="pte-numFrames" placeholder="Number of Frames" />
+            </li>
+            <li class="ranged">
+                <div>
+                    <input type="text" value="" id="pte-frameStart" placeholder="Frame Start" />
+                </div>
+                <div>
+                    <input type="text" value="" id="pte-frameStartRange" placeholder="Range" />
+                </div>
+            </li>
+            <li>
+                <input type="text" value="" id="pte-frameDuration" placeholder="Frame Duration" />
+            </li>
+        </ol>
+    </fieldset>
+    <fieldset id="pteSave">
+        <legend>
+            Save Particle Effect
+        </legend>
+        <ol>
+            <li>
+                <input type="text" id="pteName" class="name" autocomplete="off" placeholder="Name" />
+                <div class="buttons">
+                    <button id="ptePreviewBtn" disabled="disabled">
+                        Start Preview
+                    </button>
+                    <button id="pteSaveBtn" disabled="disabled">
+                        Save
+                    </button>
+                    <button id="pteCancelBtn">
+                        Clear
+                    </button>
+                </div>
+            </li>
+        </ol>
+    </fieldset>
+</form>

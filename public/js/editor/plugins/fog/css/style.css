@@ -1,0 +1,96 @@
+/* 
+ * Kuda includes a library and editor for authoring interactive 3D content for the web.
+ * Copyright (C) 2011 SRI International.
+ *
+ * This program is free software; you can redistribute it and/or modify it under the terms
+ * of the GNU General Public License as published by the Free Software Foundation; either 
+ * version 2 of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+ * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with this program; 
+ * if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, 
+ * Boston, MA 02110-1301 USA.
+ */
+
+/******************************************************************************
+ * 							     On/Off Switch								  *
+ ******************************************************************************/
+
+form .onOff {
+	display: block;
+	margin: 0.417em 0 0.417em 6.667em;
+	background: #ddd;
+	border-radius: 2.083em;
+	border: 1px solid #ccc;
+	width: 5em;
+	position: relative;
+	height: 2.083em;
+	box-shadow: inset 0 1px 2px #bbb,
+		0 1px 0 #fff;
+}
+form .onOff>span {
+	height: 0.167em;
+	border-radius: 0.167em;
+	box-shadow: inset 0 1px 0 #777,
+		0 1px 0 #fff;
+	background: #aaa;
+	width: 3.333em;
+	left: 0.833em;
+	top: 1em;
+	display: block;
+	position: absolute;
+}
+.check { 
+	display: block;
+	width: 1.833em;
+	height: 1.833em;
+	border-radius: 1.917em;
+	background: -moz-linear-gradient(100% 100% 90deg, #aaa, #eee);
+	background: #fff -webkit-gradient(linear, 0% 0%, 0% 100%, from(#eee), to(#aaa));
+	box-shadow: inset 0 1px 1px #fff,
+		0 2px 1px #555;
+	position: absolute;
+	top: 1px;
+	-webkit-transition: left 0.25s ease-in-out;
+	-moz-transition: left 0.25s ease-in-out;
+	-o-transition: left 0.25s ease-in-out;
+}
+.check>span {
+	height: 0.583em;
+	width: 0.583em;
+	background: green;
+	box-shadow: inset 0 1px 0 #555,
+		0 1px 0 #fff;
+	border-radius: 0.583em;
+	display: block;
+	position: absolute;
+	left: 0.667em;
+	top: 0.667em;
+	-webkit-transition: background 0.25s ease-in-out;
+	-moz-transition: background 0.25s ease-in-out;
+	-o-transition: background 0.25s ease-in-out;
+} 
+.onOff input[type=checkbox] {
+	display: none;
+} 
+.onOff input[type=checkbox]:checked + label.check {
+	left: 3em;
+}  
+.onOff input[type=checkbox]:checked + label.check span {
+	background: green;
+} 
+.onOff input[type=checkbox] + label.check {
+	left: 0.167em;
+}  
+.onOff input[type=checkbox] + label.check span {
+	background: red;
+} 
+.onOff label.info {
+	position: absolute;
+	top: 0;
+	margin-left: -6.667em;
+	line-height: 208.3%;
+}
