@@ -78,8 +78,8 @@
 	 * @return {THREE.Vector3} the normal vector
 	 */
 	hemi.utils.computeNormal = function(a, b, c) {
-		var cb = new THREE.Vector3().sub(c.position, b.position),
-			ab = _vector.sub(a.position, b.position);
+		var cb = new THREE.Vector3().sub(c, b),
+			ab = _vector.sub(a, b);
 
 		cb.crossSelf(ab);
 
