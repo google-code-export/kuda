@@ -2392,8 +2392,8 @@ if (!window.requestAnimationFrame) {
 	 * @return {THREE.Vector3} the normal vector
 	 */
 	hemi.utils.computeNormal = function(a, b, c) {
-		var cb = new THREE.Vector3().sub(c.position, b.position),
-			ab = _vector.sub(a.position, b.position);
+		var cb = new THREE.Vector3().sub(c, b),
+			ab = _vector.sub(a, b);
 
 		cb.crossSelf(ab);
 
@@ -10728,10 +10728,10 @@ if (!window.requestAnimationFrame) {
 			floor = -0.04;
 
 		for (var i = 0, il = size / step * 2; i <= il; ++i) {
-			geometry.vertices.push(new THREE.Vertex(new THREE.Vector3(-size, floor, i * step - size)));
-			geometry.vertices.push(new THREE.Vertex(new THREE.Vector3(size, floor, i * step - size)));
-			geometry.vertices.push(new THREE.Vertex(new THREE.Vector3(i * step - size, floor, -size)));
-			geometry.vertices.push(new THREE.Vertex(new THREE.Vector3(i * step - size, floor,  size)));
+			geometry.vertices.push(new THREE.Vertex(-size, floor, i * step - size));
+			geometry.vertices.push(new THREE.Vertex(size, floor, i * step - size));
+			geometry.vertices.push(new THREE.Vertex(i * step - size, floor, -size));
+			geometry.vertices.push(new THREE.Vertex(i * step - size, floor,  size));
 		}
 
 		var line = new THREE.Line(geometry, line_material, THREE.LinePieces);
@@ -16536,7 +16536,7 @@ if (!window.requestAnimationFrame) {
 					p0.y += eSize;
 				}
 				// var edgeTran = addVertex(points[i], points[i+1], eSize, lineMat);
-				geometry.vertices.push(new THREE.Vertex(p0));
+				geometry.vertices.push(new THREE.Vertex().copy(p0));
 				geometry.colors.push(eColor);
 				// crvTransform.add(edgeTran);
 			}
@@ -16583,9 +16583,8 @@ if (!window.requestAnimationFrame) {
 				ids.push(i);
 				offsets.push(timeOffset);
 				idOffsets.push(new THREE.Vector2(i, timeOffset));
-				var vert = verts[j].position,
-					newVert = new THREE.Vector3(vert.x, vert.y, vert.z);
-				newVerts.push(new THREE.Vertex(newVert));
+				var vert = verts[j];
+				newVerts.push(new THREE.Vertex(vert.x, vert.y, vert.z));
 			}
 
 			for (var j = 0; j < numFaces; j++) {
@@ -17274,11 +17273,11 @@ if (!window.requestAnimationFrame) {
 		var halfH = h / 2,
 			halfW = w / 2,
 			halfD = d / 2,
-			v = [new THREE.Vertex(new THREE.Vector3(halfW, -halfH, halfD)),
-				 new THREE.Vertex(new THREE.Vector3(-halfW, -halfH, halfD)),
-				 new THREE.Vertex(new THREE.Vector3(-halfW, -halfH, -halfD)),
-				 new THREE.Vertex(new THREE.Vector3(halfW, -halfH, -halfD)),
-				 new THREE.Vertex(new THREE.Vector3(0, halfH, 0))],
+			v = [new THREE.Vertex(halfW, -halfH, halfD),
+				 new THREE.Vertex(-halfW, -halfH, halfD),
+				 new THREE.Vertex(-halfW, -halfH, -halfD),
+				 new THREE.Vertex(halfW, -halfH, -halfD),
+				 new THREE.Vertex(0, halfH, 0)],
 			f = [new THREE.Face3(0, 1, 2),
 				 new THREE.Face3(0, 2, 3),
 				 new THREE.Face3(1, 0, 4),
@@ -17303,10 +17302,10 @@ if (!window.requestAnimationFrame) {
 	 */
 	function createTetra(size) {
 		var halfSize = size / 2,
-			v = [new THREE.Vertex(new THREE.Vector3(halfSize, halfSize, halfSize)),
-				 new THREE.Vertex(new THREE.Vector3(-halfSize, -halfSize, halfSize)),
-				 new THREE.Vertex(new THREE.Vector3(-halfSize, halfSize, -halfSize)),
-				 new THREE.Vertex(new THREE.Vector3(halfSize, -halfSize, -halfSize))],
+			v = [new THREE.Vertex(halfSize, halfSize, halfSize),
+				 new THREE.Vertex(-halfSize, -halfSize, halfSize),
+				 new THREE.Vertex(-halfSize, halfSize, -halfSize),
+				 new THREE.Vertex(halfSize, -halfSize, -halfSize)],
 			f = [new THREE.Face3(0, 2, 1),
 				 new THREE.Face3(0, 1, 3),
 				 new THREE.Face3(0, 3, 2),

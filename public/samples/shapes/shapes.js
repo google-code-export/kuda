@@ -132,9 +132,9 @@
 		var custom = hemi.createShape({
 			shape: 'custom',
 			color: 0xff00ff,
-			vertices: [new THREE.Vertex(new THREE.Vector3(-10, 0, 0)),
-				new THREE.Vertex(new THREE.Vector3(0, 10, 3)),
-				new THREE.Vertex(new THREE.Vector3(10, 2, -3))],
+			vertices: [new THREE.Vertex(-10, 0, 0),
+				new THREE.Vertex(0, 10, 3),
+				new THREE.Vertex(10, 2, -3)],
 			faces: [new THREE.Face3(0, 1, 2),
 				new THREE.Face3(0, 2, 1)],				
 			faceVertexUvs: [[new THREE.UV(0, 0), new THREE.UV(0, 1), new THREE.UV(1, 0)],
