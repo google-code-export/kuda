@@ -59,8 +59,7 @@
 		client.camera.moveToView(vp, 2.5);
 		client.camera.enableControl();							// Enable camera mouse control
 
-        client.useCameraLight(false);               // Remove camera light to prevent it from washing out counter
-
+        client.useCameraLight(false);
         new hemi.Light(client, new THREE.AmbientLight(0xFFFFFF));
 
 		var spriteR = hemi.createShape({
