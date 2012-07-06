@@ -1622,7 +1622,7 @@ if (!window.requestAnimationFrame) {
 
 /**
  * @namespace The core Hemi library used by Kuda.
- * @version 2.0.1
+ * @version 2.0.2
  */
  var hemi = hemi || {};
 
@@ -1696,10 +1696,10 @@ if (!window.requestAnimationFrame) {
 	hemi.RAD_TO_DEG = 180 / Math.PI;
 
 	/**
-	 * The version of Hemi released: 4/13/2012
+	 * The version of Hemi released: ?/?/2012
 	 * @constant
 	 */
-	hemi.version = '2.0.1';
+	hemi.version = '2.0.2';
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 // Global functions
@@ -2202,14 +2202,13 @@ if (!window.requestAnimationFrame) {
 	 * @param {string} url url of the resource to get
 	 * @param {function(string, string):void)} callback function to pass the data retrieved from the
 	 *     URL as well as the status text of the request
-	 * @param {boolean} opt_overrideMimeType optional flag indicating the XHR's mime type should be
-	 *     forced to "text/xml"
+	 * @param {string} opt_overrideMimeType optional string mime type for the request
 	 */
 	hemi.utils.get = function(url, callback, opt_overrideMimeType) {
 		var xhr = new window.XMLHttpRequest();
 
 		if (opt_overrideMimeType) {
-			xhr.overrideMimeType("text/xml");
+			xhr.overrideMimeType(opt_overrideMimeType);
 		}
 
 		xhr.onreadystatechange = function() {
@@ -2220,7 +2219,7 @@ if (!window.requestAnimationFrame) {
 				if (this.status === 200 || window.location.href.indexOf('http') === -1) {
 					var ct = this.getResponseHeader('content-type');
 
-					if (opt_overrideMimeType || ct && ct.indexOf('xml') >= 0) {
+					if (ct && ct.indexOf('xml') >= 0) {
 						data = this.responseXML;
 					} else {
 						data = this.responseText;
@@ -4459,7 +4458,7 @@ if (!window.requestAnimationFrame) {
 					opt_callback(obj);
 				}
 			}
-		});
+		}, 'application/json');
 	};
 
 	/**
@@ -10214,7 +10213,7 @@ if (!window.requestAnimationFrame) {
 					} else {
 						hemi.loadJson(scope._fileName, onFileLoad);
 					}
-				})
+				}, 'application/json');
 				break;
 		}
 	};

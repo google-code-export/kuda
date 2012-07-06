@@ -78,7 +78,7 @@ var hext = (function(hext) {
 		else {
 			hemi.utils.get(url, function(data, status) {
 				that.notifyLoaded(thatURL, data);
-			}, true);
+			}, 'text/xml');
 			
 			this.models.put(url, {
 				configs: [{
