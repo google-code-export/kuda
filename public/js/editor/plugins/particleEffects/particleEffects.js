@@ -633,7 +633,7 @@
 					wgt.tplSelect.append(option);				
 				}
 			}
-		});
+		}, 'application/json');
 	};
 		
 	CreateWidget.prototype.reset = function() {      

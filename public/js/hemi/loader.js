@@ -202,7 +202,7 @@
 					opt_callback(obj);
 				}
 			}
-		});
+		}, 'application/json');
 	};
 
 	/**

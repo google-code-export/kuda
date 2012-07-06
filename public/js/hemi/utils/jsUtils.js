@@ -69,14 +69,13 @@
 	 * @param {string} url url of the resource to get
 	 * @param {function(string, string):void)} callback function to pass the data retrieved from the
 	 *     URL as well as the status text of the request
-	 * @param {boolean} opt_overrideMimeType optional flag indicating the XHR's mime type should be
-	 *     forced to "text/xml"
+	 * @param {string} opt_overrideMimeType optional string mime type for the request
 	 */
 	hemi.utils.get = function(url, callback, opt_overrideMimeType) {
 		var xhr = new window.XMLHttpRequest();
 
 		if (opt_overrideMimeType) {
-			xhr.overrideMimeType("text/xml");
+			xhr.overrideMimeType(opt_overrideMimeType);
 		}
 
 		xhr.onreadystatechange = function() {
@@ -87,7 +86,7 @@
 				if (this.status === 200 || window.location.href.indexOf('http') === -1) {
 					var ct = this.getResponseHeader('content-type');
 
-					if (opt_overrideMimeType || ct && ct.indexOf('xml') >= 0) {
+					if (ct && ct.indexOf('xml') >= 0) {
 						data = this.responseXML;
 					} else {
 						data = this.responseText;

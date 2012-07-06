@@ -292,7 +292,7 @@
 					} else {
 						hemi.loadJson(scope._fileName, onFileLoad);
 					}
-				})
+				}, 'application/json');
 				break;
 		}
 	};
