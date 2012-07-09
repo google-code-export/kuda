@@ -24,10 +24,11 @@
 
 	
 	var client,
-		spriteRMat;
-		
+		spriteRMat,
+		ticker;
+
 	function createWorld() {
-		var ticker = new hemi.Model(client);			// Create a new Model
+		ticker = new hemi.Model(client);			// Create a new Model
 		ticker.setFileName('assets/DigitalDisplay/DigitalDisplay.dae');	// Set the model file
 		hemi.loadTexture('assets/images/dino.png', function(texture) {
 			spriteRMat = new THREE.MeshBasicMaterial({ map: texture });
