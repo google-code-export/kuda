@@ -24,13 +24,6 @@
 	var client;
 	
 	function createWorld() {
-	
-		/*
-		 * hemi.world.theWorld is the default world created to manage all of
-		 * 		our models, cameras, effects, etc. New worlds can be created,
-		 *		but we're happy with the default world in this case.
-		 */
-		var world = hemi.world;
 		
 		var house = new hemi.Model(client);				// Create a new Model
 		house.setFileName('assets/house_v12/house_v12.dae');	// Set the model file
