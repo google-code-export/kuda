@@ -112,12 +112,12 @@
 		if (full) {
 			// instantiate the progress bar to receive our progress updates
 			pbar = new hext.progressUI.bar(client, loadTask);
-			hemi.loader.createTask(loadTask, null);
-			
-			hemi.world.subscribe(hemi.msg.progress, function(msg) {
+			hemi.createTask(loadTask, null);
+
+			hemi.subscribe(hemi.msg.progress, function(msg) {
 				if (!msg.data.isTotal && msg.data.task !== loadTask) {
 					var pct = msg.data.percent / numAssets;
-					hemi.loader.updateTask(loadTask, loadProg + pct);
+					hemi.updateTask(loadTask, loadProg + pct);
 					
 					if (msg.data.percent === 100) {
 						loadProg += pct;
