@@ -4347,17 +4347,17 @@ if (!window.requestAnimationFrame) {
 
 		url = hemi.getLoadPath(url);
 		++taskCount;
-		createTask(url);
+		hemi.createTask(url);
 
 		loader.load(url, function (collada) {
 			if (callback) {
 				callback(collada);
 			}
-			updateTask(url, 100);
+			hemi.updateTask(url, 100);
 			decrementTaskCount();
 		}, function(progress) {
 			if (progress.loaded !== null && progress.total !== null) {
-				updateTask(url, (progress.loaded / progress.total) * 100);
+				hemi.updateTask(url, (progress.loaded / progress.total) * 100);
 			}
 		});
 	};
@@ -4367,13 +4367,13 @@ if (!window.requestAnimationFrame) {
 		
 		url = hemi.getLoadPath(url);
 		++taskCount;
-		createTask(url);
+		hemi.createTask(url);
 
 		loader.load(url, function(result) {
 			if (callback) {
 				callback(result);
 			}
-			updateTask(url, 100);
+			hemi.updateTask(url, 100);
 			decrementTaskCount();
 		}, options);
 	};
@@ -4470,13 +4470,13 @@ if (!window.requestAnimationFrame) {
 	 */
 	hemi.loadTexture = function(url, callback) {
 		hemi.loadImage(url, function(image) {
-			updateTask(url, 100);
+			hemi.updateTask(url, 100);
 			var texture = new THREE.Texture(image);
 			texture.needsUpdate = true;
 			callback(texture);
 		});
 
-		createTask(url);
+		hemi.createTask(url);
 	};
 
 	/**
@@ -4530,10 +4530,6 @@ if (!window.requestAnimationFrame) {
 		taskCount = 1;
 	};
 
-////////////////////////////////////////////////////////////////////////////////////////////////////
-// Utility functions
-////////////////////////////////////////////////////////////////////////////////////////////////////
-
 	/*
 	 * Create a new progress task with the given name. Initialize its
 	 * progress to 0.
@@ -4542,7 +4538,7 @@ if (!window.requestAnimationFrame) {
 	 * @return {boolean} true if the task was created successfully, false if
 	 *      another task with the given name already exists
 	 */
-	function createTask(name) {
+	hemi.createTask = function(name) {
 		if (progressTable.get(name) !== null) {
 			return false;
 		}
@@ -4556,18 +4552,6 @@ if (!window.requestAnimationFrame) {
 		return true;
 	}
 
-	function decrementTaskCount() {
-		if (--taskCount === 0) {
-			taskCount = 1;
-			hemi.send(hemi.msg.ready, {});
-
-			if (resetCB) {
-				resetCB();
-				resetCB = null;
-			}
-		}
-	}
-
 	/*
 	 * Update the progress of the task with the given name to the given percent.
 	 * 
@@ -4575,7 +4559,7 @@ if (!window.requestAnimationFrame) {
 	 * @param {number} percent percent to set the task's progress to (0-100)
 	 * @return {boolean} true if the task was found and updated
 	 */
-	function updateTask(name, percent) {
+	hemi.updateTask = function(name, percent) {
 		var task = progressTable.get(name),
 			update = task !== null;
 		
@@ -4593,7 +4577,23 @@ if (!window.requestAnimationFrame) {
 		
 		return update;
 	}
-	
+
+////////////////////////////////////////////////////////////////////////////////////////////////////
+// Utility functions
+////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	function decrementTaskCount() {
+		if (--taskCount === 0) {
+			taskCount = 1;
+			hemi.send(hemi.msg.ready, {});
+
+			if (resetCB) {
+				resetCB();
+				resetCB = null;
+			}
+		}
+	}
+
 	/*
 	 * Send an update on the total progress of all loading activities, and clear
 	 * the progress table if they are all finished.
@@ -4625,13 +4625,13 @@ if (!window.requestAnimationFrame) {
 	function genericLoad(url, callback, loader) {
 		url = hemi.getLoadPath(url);
 		++taskCount;
-		createTask(url);
+		hemi.createTask(url);
 
 		loader.load(url, function(result) {
 			if (callback) {
 				callback(result);
 			}
-			updateTask(url, 100);
+			hemi.updateTask(url, 100);
 			decrementTaskCount();
 		});
 	}
