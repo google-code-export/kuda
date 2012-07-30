@@ -334,6 +334,7 @@
 		for (var count = 0; count < transforms.length; ++count) {
 			transforms[count].visible = visible;
 		}
+		this.root.visible = visible;
 	};
 
 // Private functions for Model
