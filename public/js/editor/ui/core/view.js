@@ -825,7 +825,7 @@
 	};
 	
 	var ListWidget = editor.ui.ListWidget = function(options) {
-		var newOpts = jQuery.extend({}, editor.tools.ListWidgetDefaults, options);
+		var newOpts = jQuery.extend({}, editor.ui.ListWidgetDefaults, options);
 		editor.ui.Widget.call(this, newOpts);
 		
 		this.items = new Hashtable();		
