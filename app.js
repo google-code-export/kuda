@@ -24,7 +24,7 @@ var qs = require('querystring'),
 	PLAINt = 'text/plain',
 	opt_quiet = false,
 	opt_repl = false, 
-	opt_ws = false;
+	opt_ws = false,
 	routes = {
 		ROOT: '/',
 		ROOTANY: '/*',
