@@ -466,11 +466,25 @@
 			var mat = transform.material,
 				hmat = this.highlightMaterial;
 
-			materialsHash.put(transform, mat);
-			hmat.opacity = mat.opacity;
-			hmat.transparent = mat.transparent;
-			transform.material = hmat;
-			var scene = editor.client.scene;
+			if (geometry.materials) {
+				materialsHash.put(transform, geometry.materials);
+				var newMats = [];
+
+				for (var i = 0, il = geometry.materials.length; i < il; i++) {
+					var m = geometry.materials[i];					
+					hmat.opacity = m.opacity;
+					hmat.transparent = m.transparent;
+					newMats.push(hmat);
+				}
+
+				geometry.materials = newMats;
+
+			} else {
+				materialsHash.put(transform, mat);
+				hmat.opacity = mat.opacity;
+				hmat.transparent = mat.transparent;
+				transform.material = hmat;
+			}
 		}
 	};
 	
@@ -602,7 +616,7 @@
 		}
 	};
 	
-   BrowserModel.prototype. unhighlightTransform = function(transform) {
+   BrowserModel.prototype.unhighlightTransform = function(transform) {
 		var children = transform.children,
 			geometry = transform.geometry;
 		
@@ -611,7 +625,11 @@
 		}
 		
 		if (geometry) {
-			transform.material = materialsHash.get(transform);
+			if (geometry.materials) {
+				geometry.materials = materialsHash.get(transform);
+			} else {
+				transform.material = materialsHash.get(transform);
+			}
 		}
 	};
 	
