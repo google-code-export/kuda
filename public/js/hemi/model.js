@@ -243,6 +243,15 @@
 						that.root = convertObject3Ds.call(that, scene, toConvert);
 					} else {
 						that.root = scene;
+						// add materials
+						if (obj.materials) {
+							for (var j = 0, jl = obj.materials.length; j < jl; j++) {
+								var mat = obj.materials[j];
+								if (that.materials.indexOf(mat) === -1) {
+									that.materials.push(mat);
+								}
+							}
+						}
 					}
 				} else {
 					that.root._init(scene, toConvert, that);
