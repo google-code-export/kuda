@@ -116,6 +116,11 @@
 	};
 	
 	Input.prototype.setValue = function(value) {
+		if (this.container.is(':focus')) {
+			// Cannot set the input's value while the user has focus on it
+			return;
+		}
+
 		if (value == null) {
 			this.reset();
 		} else {
