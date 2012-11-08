@@ -4907,7 +4907,11 @@ var editor = {};
 	};
 
 	editor.ui.GridPlane.prototype.setVisible = function(visible) {
-		this.transform.visible = visible;
+		var children = this.transform.children;
+
+		for (var i = 0; i < children.length; ++i) {
+			children[i].visible = visible;
+		}
 	};
 	
 })(editor);
