@@ -28,6 +28,7 @@ var qs = require('querystring'),
 	routes = {
 		ROOT: '/',
 		ROOTANY: '/*',
+		IMAGE: '/image',
 		SAMPLES: '/samples',
 		PROJECTS: '/projects',
 		PROJECT: '/project',
@@ -458,6 +459,26 @@ routes.post(routes.PUBLISH, function(req, res) {
 		res.send(JSON.stringify({
 			name: name + '.html'
 		}), 200, HTMLt);
+	}
+});
+
+routes.post(routes.IMAGE, function(req, res) {
+	log('...handling route POST ' + routes.IMAGE);
+
+	if (req.xhr) {
+		if (!path.existsSync(routes.projectsPath)) {
+			fs.mkdirSync(routes.projectsPath, 0755);
+		}
+
+		var param = req.param,
+			data = param.data.replace(/^data:image\/png;base64,/,''),
+			filePath = routes.projectsPath + '/screen.png';
+
+		console.log(data);
+		fs.writeFileSync(filePath, new Buffer(data, 'base64'));
+		res.send('{}\n', 200, JSONt);
+	} else {
+		res.send('{}\n', 200, JSONt);
 	}
 });
 
