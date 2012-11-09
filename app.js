@@ -467,9 +467,10 @@ routes.post(routes.IMAGE, function(req, res) {
 
 	if (req.xhr) {
 		var param = req.param,
-			data = param.data.replace(/^data:image\/png;base64,/,''),
+			format = param.data.match(/^data:image\/(.*);/)[1],
+			data = param.data.replace(/^data:image\/.*;base64,/,''),
 			dir = param.dir,
-			filePath = dir + '/' + param.name + '.png';
+			filePath = dir + '/' + param.name + '.' + format;
 
 		if (!path.existsSync(dir)) {
 			fs.mkdirSync(dir, 0755);
