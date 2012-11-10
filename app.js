@@ -15,6 +15,8 @@
  *      node (OS X, Linux)
  */
 var qs = require('querystring'),
+	formidable = require('formidable'),
+	child = require('child_process'),
 	http = require('http'),
 	fs = require('fs'),
 	path = require('path'),
@@ -32,6 +34,7 @@ var qs = require('querystring'),
 		SAMPLES: '/samples',
 		PROJECTS: '/projects',
 		PROJECT: '/project',
+		MODEL: '/model',
 		MODELS: '/models',
 		PLUGINS: '/plugins',
 		PUBLISH: '/publish',
@@ -41,7 +44,7 @@ var qs = require('querystring'),
 		pluginsPath: 'public/js/editor/plugins',
 		projectsPath: 'public/projects',
 		assetsPath: 'public/assets',
-		//uploadPath: 'public/tmp',
+		uploadPath: 'public/tmp',
 		ws: function(protocol, handler) {
 			log('...adding WebSocket handler for protocol ' + protocol);
 			this.wss[protocol] = handler;
@@ -294,76 +297,59 @@ routes.get(routes.MODELS, function(req, res) {
 });
 
 // TODO: Support model import without using tar, use zip and unzip?
-routes.post('/model', function(req, res) {
+routes.post(routes.MODEL, function(req, res) {
 	log('...handling route post /model');
 
-	if (req.xhr && req.headers['content-type'] == 'application/octet-stream') {
-		// if (!path.existsSync(uploadPath)) {
-		//  fs.mkdirSync(uploadPath, 0755);
-		// }
+	// grab the files
+	var files = req.files,
+		metaObjs = [],
+		dirName = routes.assetsPath + '/';
 
-		// var fName = req.header('x-file-name'), 
-		//  fSize = req.header('x-file-size'), 
-		//  fType = req.header('x-file-type'), 
-		//  tmpFile = uploadPath + '/' + fName,
-		//  toDir = assetsPath + '/' + fName.split('.').shift(),
-		//  origDir = toDir,
-		//  ws = fs.createWriteStream(tmpFile),
-		//  ext = fName.split('.').pop(),
-		//  counter = 0;
-			
-		// req.on('data', function(data){
-		//  ws.write(data);
-		// });
-		
-		// if (ext === 'o3dtgz' || ext === 'tgz' || ext === 'zip') {
-			
-		//  while (path.existsSync(toDir)) {
-		//      toDir = origDir + counter++;
-		//  }
-		//  fs.mkdirSync(toDir, 0755);
-			
-		//  var tarChild = child.spawn('tar', ['-C', toDir, '-xzf', tmpFile], {
-		//      customFds: procFds
-		//  });
-			
-		//  tarChild.on('exit', function(code){
-		//      if (code === 0) {
-		//          // Clean up the temp file
-		//          fs.unlinkSync(tmpFile);
-					
-		//          var mFiles = fs.readdirSync(toDir), 
-		//              found = false, 
-		//              retVal = {}, 
-		//              urlDir = toDir.split('/');
-					
-		//          urlDir.shift();
-					
-		//          for (var j = 0, jl = mFiles.length; j < jl && !found; j++) {
-		//              var mFile = mFiles[j];
-						
-		//              if (mFile.match('.json')) {
-		//                  retVal.name = urlDir[urlDir.length - 1];
-		//                  retVal.url = urlDir.join('/') + '/' + mFile;
-		//                  found = true;
-		//              }
-		//          }
-					
-		//          res.send(retVal, 200);
-		//      }
-		//      else {
-		//          res.send('Failed to upload file', 300);
-		//          fs.unlinkSync(tmpFile);
-		//      }
-		//  });
-		// } else {         
-		//  res.send('File must be an archive file', 300);
-		//  fs.unlinkSync(tmpFile);
-		// }
+	// preprocess
+	for (var file in files) {
+		var meta = files[file],
+			name = meta.name;
 
-		res.send('{}\n', 200, JSONt);
+		metaObjs.push(meta);
+		if (name.toLowerCase().match('.obj') !== null) {
+			dirName += name.split('.')[0];
+			meta.isObj = true;
+		}
+	}
+
+	// save out the files
+	var moveFile = function(meta) {		
+		fs.readFile(meta.path, function(err, data) {
+			var fileName = dirName + '/' + meta.name,
+				bareName = meta.name.split('.')[0],
+				convertedName = dirName + '/' + bareName + '.js';
+			fs.writeFile(fileName, data);
+			fs.unlink(meta.path);
+
+			// if obj, do conversion
+			if (meta.isObj) {
+				var pyChild = child.spawn('python', ['utils/obj/convert_obj_three.py', '-i', 
+					fileName, '-o', convertedName]);
+
+				res.send(JSON.stringify({
+					model: bareName,
+					path: 'assets/' + bareName + '/' + bareName + '.js'
+				}), 200, JSONt)
+			}
+		});
+	};
+	var processFiles = function() {
+		for (var i = 0, il = metaObjs.length; i < il; i++) {
+			var obj = metaObjs[i];
+
+			moveFile(obj);
+		}		
+	}
+
+	if (path.existsSync(dirName)) {
+		processFiles();
 	} else {
-		res.send('{}\n', 200, JSONt);
+		fs.mkdir(dirName, 0755, processFiles);
 	}
 });
 
@@ -585,6 +571,7 @@ var copyFile = function(srcFile, dstDir) {
 
 var app = http.createServer(function (hreq, hres) {
 	var pltqs = getPathLessTheQueryString(hreq.url),
+		form = new formidable.IncomingForm();
 		req = {
 			url: hreq.url,
 			method: hreq.method,
@@ -596,6 +583,7 @@ var app = http.createServer(function (hreq, hres) {
 			queryString: getTheQueryString(hreq.url),
 			param: undefined,
 			httpReq: hreq,
+			form: form
 		},
 		res = {
 			httpRes: hres,
@@ -608,11 +596,25 @@ var app = http.createServer(function (hreq, hres) {
 		hreq
 			.on('data', function (data) {
 				req.body += data;
-			})
-			.on('end', function () {
-				req.param = qs.parse(req.queryString == '' ? req.body : req.queryString);
-				routes.dispatch(req, res);
 			});
+
+	if (hreq.url === routes.MODEL) {
+		form.keepExtensions = true;
+		form.uploadDir = routes.uploadPath;
+		form.parse(hreq, function(err, fields, files) {
+			req.files = files;
+			req.fields = fields;
+			req.param = qs.parse(req.queryString == '' ? req.body : req.queryString);
+
+			routes.dispatch(req, res);
+		});
+	} else {
+		hreq.on('end', function () {
+			req.param = qs.parse(req.queryString == '' ? req.body : req.queryString);
+			routes.dispatch(req, res);
+		});
+	}
+	
 });
 app.listen(3000, "127.0.0.1");
 
