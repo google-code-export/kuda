@@ -329,7 +329,7 @@ routes.post(routes.MODEL, function(req, res) {
 			// if obj, do conversion
 			if (meta.isObj) {
 				var pyChild = child.spawn('python', ['utils/obj/convert_obj_three.py', '-i', 
-					fileName, '-o', convertedName]);
+					fileName, '-o', convertedName], { stdio: 'inherit' });
 
 				pyChild.on('exit', function() {
 					res.send(JSON.stringify({
