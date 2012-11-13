@@ -331,10 +331,12 @@ routes.post(routes.MODEL, function(req, res) {
 				var pyChild = child.spawn('python', ['utils/obj/convert_obj_three.py', '-i', 
 					fileName, '-o', convertedName]);
 
-				res.send(JSON.stringify({
-					model: bareName,
-					path: 'assets/' + bareName + '/' + bareName + '.js'
-				}), 200, JSONt)
+				pyChild.on('exit', function() {
+					res.send(JSON.stringify({
+						model: bareName,
+						path: 'assets/' + bareName + '/' + bareName + '.js'
+					}), 200, JSONt);
+				});
 			}
 		});
 	};
