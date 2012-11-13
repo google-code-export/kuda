@@ -10503,6 +10503,9 @@ if (!window.requestAnimationFrame) {
 					var pickInfo =	{
 						mouseEvent: mouseEvent,
 						pickedMesh: pickedObj.object,
+						pickedFace: pickedObj.face,
+						pickedPoint: pickedObj.point,
+						pickedDistance: pickedObj.distance,
 						worldIntersectionPosition: worldIntersectionPosition
 					};
 
