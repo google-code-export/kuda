@@ -30,6 +30,7 @@ var qs = require('querystring'),
 	routes = {
 		ROOT: '/',
 		ROOTANY: '/*',
+		FILE: '/file',
 		IMAGE: '/image',
 		SAMPLES: '/samples',
 		PROJECTS: '/projects',
@@ -447,6 +448,25 @@ routes.post(routes.PUBLISH, function(req, res) {
 		res.send(JSON.stringify({
 			name: name + '.html'
 		}), 200, HTMLt);
+	}
+});
+
+routes.post(routes.FILE, function(req, res) {
+	log('...handling route POST ' + routes.FILE);
+
+	if (req.xhr) {
+		var param = req.param,
+			dir = param.dir,
+			filePath = dir + '/' + param.name;
+
+		if (!path.existsSync(dir)) {
+			fs.mkdirSync(dir, 0755);
+		}
+
+		fs.writeFileSync(filePath, param.data);
+		res.send('{}\n', 200, JSONt);
+	} else {
+		res.send('{}\n', 200, JSONt);
 	}
 });
 
