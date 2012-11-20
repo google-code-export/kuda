@@ -312,7 +312,7 @@ routes.post(routes.MODEL, function(req, res) {
 			name = meta.name;
 
 		metaObjs.push(meta);
-		if (name.toLowerCase().match('.obj') !== null) {
+		if (name.split('.').pop().toLowerCase() === 'obj') {
 			dirName += name.split('.')[0];
 			meta.isObj = true;
 		}
